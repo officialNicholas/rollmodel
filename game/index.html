@@ -1822,7 +1822,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 91</p>
+      <p class="ver">Version 92</p>
     </div>
   </div>
 
@@ -8952,7 +8952,8 @@ function fling(D, cIn) {
   }
   if (D.st === 'hide') exitPot(D); else if (!canAct(D) || D.air) return; else { cap(D); D.stroke++; }
   if (!D.ai) { const as = assistShot(D, D.yaw, c); D.yaw = as.yaw; c = as.c; }
-  D.air = true; D.vy = launchV(c); D.spd = launchSpd(c); D.squash = 0; D.buf = 0; D.flung = true; D.flingC = c; D.rollOutT = 0; fxLaunch(D, 0.7 + 0.3 * c);
+  D.air = true; D.vy = launchV(c); D.spd = launchSpd(c); D.ledge = null; D.ledgeNo = null; D.flingX = D.x; D.flingZ = D.z;
+  if (!D.ai) D.ledge = ledgePlan(D); D.squash = 0; D.buf = 0; D.flung = true; D.flingC = c; D.rollOutT = 0; fxLaunch(D, 0.7 + 0.3 * c);
   burst2(D, 10 + (c * 10 | 0));
   if (D === P) { shake = Math.max(shake, 0.05 + 0.08 * c); fovKick = 6 + 6 * c; AU.fling(c); buzz(12); if (Math.random() < 0.27) { if (c > 0.62) AU.vox('whee'); else if (c > 0.3) AU.vox('hup'); } } else if (hearable(D)) AU.fling(c * 0.5);
 }
@@ -9440,6 +9441,7 @@ function stepBlob(D, dt) {
   else if (!D.air && D.rollT > ROLL_T - ROLL_DASH) D.spd = D.rollV * (0.62 + 0.38 * (D.rollT - ROLL_T + ROLL_DASH) / ROLL_DASH);
   else if (!D.air && D.turret) D.spd += (0 - D.spd) * Math.min(1, dt * 12); // planted
   else if (!D.air) { const giant = D.giantT > 0; let tgt = cfg.speed * (giant ? 1 : speedMul) * slopeK(D) * D.slowK * (D.cpu ? AI.speed : 1) * (D.dry ? (D.turf > 0 ? DRY_OWN : DRY_SPD) : 1) * D.turfK; if (giant) tgt = Math.min(tgt * GIANT_SPD, cfg.speed * 1.9); /* a giant's pace is its own: rain doesn't speed it up */ D.spd += (tgt - D.spd) * Math.min(1, dt * (D.spd > tgt ? (D.slowed ? 9 : D.dry ? 5 : 2.6) : 9)); }
+  if (!D.ai && D.flung && D.air) ledgeNudge(D, dt);
   moveFlat(D, dt);
   if (D.buf > 0) D.buf -= dt;
   if (D.air) {
@@ -9952,6 +9954,56 @@ function localGain(D, rad) {
   return g;
 }
 // fling math: where a given power lands, and the power that lands at a given distance
+// ---------- the floating-ledge nudge (your flings only) ----------
+// A fling about to clip a floating slab is read for what it meant: onto the slab (the arc would have risen over its top, or the lip is
+// just out of reach) or under it (it would have carried on past, or the slab sits well above the arc). Within reach of a small nudge
+// the flight is eased that way as it arrives. Too far off either way, or thrown from right beside the slab, and it hits like before.
+// The read is taken from the live flight every few steps, since a fling can bend toward holy water on the way.
+const LEDGE_M = 0.45, LEDGE_NEAR = 1.0, LEDGE_IN = 0.36; // the most it lifts or presses; how close is too close; where the easing must be done by
+function ledgeFace(x, z, b) { // how far outside a slab's footprint, horizontally (negative inside)
+  if (b[6] === 'c') return Math.hypot(x - (b[0] + b[1]) * 0.5, z - (b[2] + b[3]) * 0.5) - (b[1] - b[0]) * 0.5;
+  return Math.max(b[0] - x, x - b[1], b[2] - z, z - b[3]);
+}
+function ledgePlan(D) {
+  if (D.ai || window.__noLedge) return null;
+  const hs = D.spd, sx = Math.sin(D.yaw), sz = Math.cos(D.yaw), m = PR * 0.9, dt = 0.02;
+  // walk the flight on from here, the way the physics will (lighter gravity going up, heavier coming down)
+  let x = D.x, y = D.y, z = D.z, vy = D.vy, hit = null, yHit = 0;
+  const pts = [];
+  for (let t = 0; t < 3 && !hit; t += dt) {
+    y += vy * dt; vy -= GRAV * (vy < 0 ? 1.45 : 1) * dt; x += sx * hs * dt; z += sz * hs * dt; pts.push([x, y, z, vy]);
+    if (vy < 0) { const g = surfaceUnder(x, z, y + STEP, true); if (g > -Infinity && y <= g) { if (window.__ledgeDbg) window.__ledgeLast = { why: 'lands', t: +t.toFixed(2), y: +y.toFixed(2), g: +g.toFixed(2) }; return null; } }
+    for (const b of qcell(qgB, x, z)) if (b[4] > 0 && inR(x, z, b, m) && y < b[5] - STEP && y + 0.8 > b[4]) { hit = b; yHit = y; break; }
+  }
+  if (!hit || D.ledgeNo === hit) { if (window.__ledgeDbg) window.__ledgeLast = { why: hit ? 'declined' : 'nohit' }; return null; }
+  const b = hit, fd0 = ledgeFace(D.flingX, D.flingZ, b);
+  if (fd0 >= 0 && fd0 < LEDGE_NEAR) { D.ledgeNo = b; return null; } // thrown from right beside it: that one's on you
+  // what it was going for: carry the arc on through the slab. Rising over its top while above it means it wanted on; else it wanted past
+  let overTop = false, yMax = -Infinity;
+  for (let t = pts.length * dt; t < 3; t += dt) {
+    y += vy * dt; vy -= GRAV * (vy < 0 ? 1.45 : 1) * dt; x += sx * hs * dt; z += sz * hs * dt;
+    const inside = inR(x, z, b, m); if (inside) { yMax = Math.max(yMax, y); if (y >= b[5]) overTop = true; }
+    if (!inside && ledgeFace(x, z, b) > 0.5 && vy < 0) break;
+    if (vy < 0) { const g = surfaceUnder(x, z, Math.min(y + STEP, b[4] - 0.01), true); if (g > -Infinity && y <= g) break; }
+  }
+  const go = (b[5] - STEP + 0.03) - yHit, gu = (yMax + 0.8) - (b[4] - 0.03); // the lift to clear the lip; the press to pass under
+  const canOver = fd0 >= 0 && go > 0 && go <= LEDGE_M, canUnder = gu > 0 && gu <= LEDGE_M;
+  if (window.__ledgeDbg) window.__ledgeLast = { go: +go.toFixed(2), gu: +gu.toFixed(2), overTop, fd0: +fd0.toFixed(2), yHit: +yHit.toFixed(2), yMax: +yMax.toFixed(2), b: b.slice(0, 6) };
+  let plan = null;
+  if (overTop) plan = canOver ? 'over' : null;
+  else if (canOver && (!canUnder || go <= gu)) plan = 'over';
+  else if (canUnder) plan = 'under';
+  if (!plan) { D.ledgeNo = b; return null; }
+  return { b, mode: plan, y: plan === 'over' ? b[5] - STEP + 0.03 : b[4] - 0.8 - 0.03 };
+}
+function ledgeNudge(D, dt) {
+  if (!D.air || !D.flung || D.st !== 'play' || D.slam) { D.ledge = null; return; }
+  if (!D.ledge) { if (stepNo % 3 === 0) D.ledge = ledgePlan(D); if (!D.ledge) return; }
+  const L = D.ledge, b = L.b, fd = ledgeFace(D.x, D.z, b), reach = D.spd * 0.35 + 0.8; if (fd > reach) return;
+  const tArr = Math.max(dt, (fd - LEDGE_IN) / Math.max(0.5, D.spd)), k = Math.min(1, dt / tArr); // eased so it is done by the face
+  if (L.mode === 'over') { if (D.y < L.y) D.y += (L.y - D.y) * k; else if (fd < 0) D.ledge = null; }
+  else { if (D.y > L.y) { D.y += (L.y - D.y) * k; if (D.vy > 0) D.vy = 0; } if (fd < 0) L.in = true; else if (L.in) D.ledge = null; }
+}
 function flightFor(c, dy) { const v0 = launchV(c), up = v0 / GRAV, ap = v0 * v0 / (2 * GRAV), down = Math.sqrt(Math.max(0, 2 * (ap + dy) / (GRAV * 1.45))); return { T: up + down, d: launchSpd(c) * (up + down), v0, up, ap }; }
 function solveFling(dist, dy) { if (flightFor(1, dy).d < dist) return -1; let lo = FLING_MIN, hi = 1; if (flightFor(lo, dy).d >= dist) return lo; for (let k = 0; k < 16; k++) { const m = (lo + hi) / 2; if (flightFor(m, dy).d < dist) lo = m; else hi = m; } return (lo + hi) / 2; }
 // walk the arc: nothing in the way, and somewhere decent to land (not boiling, not hard, not by a deadly edge)
