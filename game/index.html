@@ -1712,6 +1712,18 @@ kbd{background:#fff;border-color:var(--black)}
 .jbar{height:30px;border-radius:8px;background:#2A2338;transform:skewX(-12deg)}
 @media (max-height:720px) and (max-aspect-ratio:1/1){.jbar{height:22px}}
 @media (max-height:520px) and (min-aspect-ratio:1/1){.jbar{height:20px}}
+
+/* ===== eye styles, and the gallery's sub-line ===== */
+.leyes{flex-wrap:wrap;row-gap:8px}
+.estyles{gap:6px;margin-right:4px}
+.eyes{appearance:none;width:36px;height:36px;padding:0;border:0;border-radius:6px;background:#fff;box-shadow:2px 3px 0 rgba(23,19,32,.18);cursor:pointer;display:grid;place-items:center;transition:transform .2s cubic-bezier(.3,1.6,.5,1)}
+.eyes svg{width:30px;height:30px}
+.eyes[aria-pressed="true"]{box-shadow:0 0 0 2.5px var(--ink),2px 3px 0 rgba(23,19,32,.25);transform:translateY(-2px)}
+.eyes.pop{animation:tilepop .42s cubic-bezier(.2,1.6,.4,1)}
+.whead h2{position:relative}
+.whead h2::after{content:attr(data-sub);position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:4px;font:800 10px/1 var(--font-ui);letter-spacing:.16em;text-transform:uppercase;color:#B8B0C8;white-space:nowrap;text-shadow:none}
+.mworld.sopen .whead h2::after{display:none}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.eyes{width:30px;height:30px}.eyes svg{width:24px;height:24px}}
 </style>
 
 <div id="stage">
@@ -1767,14 +1779,14 @@ kbd{background:#fff;border-color:var(--black)}
       <div class="lbot" id="lobbyBot">
         <div class="lineup" id="lineup" aria-label="Who's in the exhibition"></div>
         <div class="lgo" id="mCta">
-          <button class="show" id="stageBtn" type="button" aria-label="Pick the exhibition"><img class="sthumb" id="stageThumb" alt=""><span class="stxt"><small>Canvas &middot; tap to change</small><b id="lobbyStage">The Studio</b><em id="lobbyMode">1v1</em></span><span class="sarrow" aria-hidden="true">&#9656;</span></button>
+          <button class="show" id="stageBtn" type="button" aria-label="Pick the exhibition"><img class="sthumb" id="stageThumb" alt=""><span class="stxt"><small>Canvases &middot; your pick</small><b id="lobbyStage">The Studio</b><em id="lobbyMode">1v1</em></span><span class="sarrow" aria-hidden="true">&#9656;</span></button>
           <button class="playbtn" id="homePlay" type="button"><span class="sheen" aria-hidden="true"></span><span class="pbl">Play</span></button>
         </div>
       </div>
     </div>
     <div class="lsay" id="heroSay" hidden><span id="heroSayTxt"></span></div>
     <div class="mworld" id="mWorld" hidden>
-      <div class="whead"><button class="ibtn back" id="worldBack" type="button" aria-label="Back to the title screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2 id="worldTitle">Pick a canvas</h2></div>
+      <div class="whead"><button class="ibtn back" id="worldBack" type="button" aria-label="Back to the title screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2 id="worldTitle" data-sub="5 canvases unlocked">Canvases</h2></div>
       <div class="seg" id="modes" role="group" aria-label="Game mode"></div>
       <button class="gnav prev" id="gPrev" type="button" aria-label="Previous canvas">&#8249;</button><button class="gnav next" id="gNext" type="button" aria-label="Next canvas">&#8250;</button>
       <div class="gallery" id="stagePick" role="group" aria-labelledby="worldTitle">
@@ -1806,7 +1818,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 84</p>
+      <p class="ver">Version 85</p>
     </div>
   </div>
 
@@ -1853,7 +1865,7 @@ kbd{background:#fff;border-color:var(--black)}
   <section class="sheet lookp" id="look" hidden role="dialog" aria-labelledby="lookTitle">
     <div class="lktop"><h2 class="ctitle" id="lookTitle">Locker</h2><span class="lkbal" id="lkBal" aria-label="Drops"><svg class="dropi" viewBox="0 0 16 20" aria-hidden="true"><path d="M8 1.5C8 1.5 2 9 2 12.5a6 6 0 0 0 12 0C14 9 8 1.5 8 1.5z"/></svg><b id="lkBalN">0</b></span><button class="lnbtn" id="lookNameBtn" type="button" aria-label="Change your name"><span id="lookNameTxt">You</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l1-4.2L15.4 5.4a1.9 1.9 0 0 1 2.7 0l.5.5a1.9 1.9 0 0 1 0 2.7L8.7 18.5z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M13.6 7.2l3.2 3.2" stroke="currentColor" stroke-width="2.2"/></svg></button></div>
     <div class="swatches" id="swatches" role="group" aria-label="Your color"></div>
-    <div class="leyes"><p class="lhead">Eyes</p><div class="irises" id="irises" role="group" aria-label="Eye color"></div></div>
+    <div class="leyes"><p class="lhead">Eyes</p><div class="irises estyles" id="eyeStyles" role="group" aria-label="Eye style"></div><div class="irises" id="irises" role="group" aria-label="Eye color"></div></div>
     <div class="seg lcats" id="lookCats" role="tablist" aria-label="Accessories"><button class="lcat" type="button" role="tab" id="lc-head" data-cat="head" data-label="Headgear" aria-controls="lookRail" aria-selected="true">Headgear</button><button class="lcat" type="button" role="tab" id="lc-face" data-cat="face" data-label="Facial" aria-controls="lookRail" aria-selected="false" tabindex="-1">Facial</button><button class="lcat" type="button" role="tab" id="lc-cloth" data-cat="cloth" data-label="Clothing" aria-controls="lookRail" aria-selected="false" tabindex="-1">Clothing</button></div>
     <div class="lrail" id="lookRail" role="tabpanel" aria-labelledby="lc-head"></div>
     <button class="btn play sm" id="lookDone" type="button">Done</button>
@@ -4870,7 +4882,7 @@ void slimeFace(vec3 p, vec3 nrm){
 }`;
   // the face on the skin: the eye layer (or the blink), pupils where the whites show, then the mouth; faceInk says how much is face
   const FACE_GLSL = `
-uniform sampler2D fCol, fMsk; uniform vec4 fCells, fMix, fPupil, fComp, fLash, fStrap, sCoat, mFace, mHead; uniform vec3 sPaint, fIris;
+uniform sampler2D fCol, fMsk; uniform vec4 fCells, fMix, fPupil, fComp, fLash, fStrap, sCoat, mFace, mHead; uniform vec3 sPaint, fIris; uniform float fStyle;
 varying vec3 vFace, vSlimeP;
 uniform sampler2D uScales; uniform vec4 uScaleK, sWade, mBelly, mSpot, sDry; varying vec3 vSlimeN; varying vec2 vSlimeE, vSlimeB; varying float vSlimeAO, vSlimeTh, vSlimeCt, vSlimeH;
 // the same noise with its exact slope (x the value, yzw the gradient), so bumps made from it come out smooth pixel by pixel
@@ -4903,20 +4915,28 @@ if (fLash.z > 0.0) { float sb = abs(dot((vSlimeP - mHead.xyz) / mHead.w, fStrap.
 }
 if (vFace.z > 0.01 && abs(vFace.x * fComp.x) < 0.985 && abs(vFace.y * fComp.y) < 0.985) {
   vec2 fq = vFace.xy * fComp.xy; vec2 cuv = fq * 0.5 + 0.5;
-  vec4 eA = texture2D(fCol, fCell(fCells.x, cuv)), eB = texture2D(fCol, fCell(fCells.z, cuv)), eye = mix(eA, eB, fMix.x);
-  vec3 emL = mix(texture2D(fMsk, fCell(fCells.x, cuv)).rgb, texture2D(fMsk, fCell(fCells.z, cuv)).rgb, fMix.x); vec2 em = emL.rg;
-  vec4 bl = texture2D(fCol, fCell(fMix.w, cuv)); eye = mix(eye, bl, fMix.y); em *= 1.0 - fMix.y;
+  // the eye style: 1 narrows and slants the eyes into almonds and rims them in ink; 2 draws them as solid dots
+  vec2 fqe = fq; if (fStyle > 0.5 && fStyle < 1.5) { float sd0 = fq.x < 0.0 ? -1.0 : 1.0; vec2 pc0 = vec2(sd0 * 0.4, 0.16); vec2 l = fq - pc0; l.y = l.y * 1.4 + 0.03; l.x = (l.x + l.y * sd0 * 0.5) * 1.06; fqe = pc0 + l; }
+  vec2 cuvE = fqe * 0.5 + 0.5;
+  vec4 eA = texture2D(fCol, fCell(fCells.x, cuvE)), eB = texture2D(fCol, fCell(fCells.z, cuvE)), eye = mix(eA, eB, fMix.x);
+  vec3 emL = mix(texture2D(fMsk, fCell(fCells.x, cuvE)).rgb, texture2D(fMsk, fCell(fCells.z, cuvE)).rgb, fMix.x); vec2 em = emL.rg;
+  vec4 bl = texture2D(fCol, fCell(fMix.w, cuvE)); eye = mix(eye, bl, fMix.y); em *= 1.0 - fMix.y;
+  float dotK = 0.0; if (fStyle > 1.5) { eye.a = 0.0; em = vec2(0.0); }
   // the lashes (when worn): the mask's blue, crossfading and blinking with the eyes; fLash says how much on each eye
-  float lsh = 0.0; if (fLash.x + fLash.y > 0.0) lsh = mix(emL.b, texture2D(fMsk, fCell(fMix.w, cuv)).b, fMix.y) * (fq.x < 0.0 ? fLash.x : fLash.y);
+  float lsh = 0.0; if (fLash.x + fLash.y > 0.0) lsh = mix(emL.b, texture2D(fMsk, fCell(fMix.w, cuvE)).b, fMix.y) * (fq.x < 0.0 ? fLash.x : fLash.y);
   vec3 c = mix(diffuseColor.rgb, eye.rgb, eye.a);
+  if (fStyle > 0.5 && fStyle < 1.5) { float d1 = max(max(texture2D(fCol, fCell(fCells.x, cuvE + vec2(0.024, 0.0))).a, texture2D(fCol, fCell(fCells.x, cuvE - vec2(0.024, 0.0))).a), max(texture2D(fCol, fCell(fCells.x, cuvE + vec2(0.0, 0.028))).a, texture2D(fCol, fCell(fCells.x, cuvE - vec2(0.0, 0.028))).a));
+    float rim = clamp(d1 - eye.a, 0.0, 1.0) * (1.0 - 0.5 * fMix.y); c = mix(c, vec3(0.03, 0.012, 0.02), rim); dotK = rim; }
+  if (fStyle > 1.5) { float bk = 1.0 - fMix.y * 0.92; for (int i = 0; i < 2; i++) { float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16 + fPupil.w) + fPupil.xy * 0.6; vec2 dd = (fq - pc) * vec2(1.0, 1.0 / max(0.08, bk)); float r = length(dd);
+    float dk = 1.0 - smoothstep(0.125, 0.145, r); c = mix(c, vec3(0.03, 0.012, 0.02), dk); float hl = 1.0 - smoothstep(0.03, 0.046, length((fq - pc - vec2(-0.045, 0.05)) * vec2(1.0, 1.0 / max(0.08, bk)))); c = mix(c, vec3(1.0), hl * dk); dotK = max(dotK, dk); } }
   // the pupils: a deep brown iris with a black pupil and two catchlights, shaded under the lid
   for (int i = 0; i < 2; i++) {
-    float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16 + fPupil.w) + fPupil.xy, dd = (fq - pc) * vec2(1.0, 0.92); float r = length(dd), ri = 0.165 * fPupil.z, rp = 0.092 * fPupil.z;
+    float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16 + fPupil.w) + fPupil.xy, dd = (fqe - pc) * vec2(1.0, 0.92); float r = length(dd), ri = 0.165 * fPupil.z, rp = 0.092 * fPupil.z;
     float ia = (1.0 - smoothstep(ri - 0.014, ri, r)) * em.r;
     vec3 ic = mix(fIris, fIris * 0.2, smoothstep(0.0, ri, r)); ic = mix(ic, vec3(0.004, 0.002, 0.003), 1.0 - smoothstep(rp - 0.012, rp, r));
     ic += fIris * 1.12 * smoothstep(ri * 0.35, ri * 0.95, r) * smoothstep(0.2, -0.6, dd.y / ri) * (1.0 - smoothstep(ri * 0.95, ri, r));
     c = mix(c, ic * (1.0 - 0.55 * em.g), ia);
-    float cl = (1.0 - smoothstep(0.03, 0.042, length(fq - pc - vec2(-0.055, 0.06) * fPupil.z))) + 0.8 * (1.0 - smoothstep(0.012, 0.02, length(fq - pc - vec2(0.05, -0.05) * fPupil.z)));
+    float cl = (1.0 - smoothstep(0.03, 0.042, length(fqe - pc - vec2(-0.055, 0.06) * fPupil.z))) + 0.8 * (1.0 - smoothstep(0.012, 0.02, length(fqe - pc - vec2(0.05, -0.05) * fPupil.z)));
     c = mix(c, vec3(1.0), clamp(cl, 0.0, 1.0) * em.r * (1.0 - 0.85 * em.g));
   }
   c = mix(c, vec3(0.016, 0.0025, 0.007), lsh);
@@ -4932,7 +4952,7 @@ if (vFace.z > 0.01 && abs(vFace.x * fComp.x) < 0.985 && abs(vFace.y * fComp.y) <
   }
   vec4 mA = texture2D(fCol, fCell(fCells.y, cuv)), mB = texture2D(fCol, fCell(fCells.w, cuv)), mo = mix(mA, mB, fMix.x) * fMix.z * (1.0 - sCoatM);
   c = mix(c, mo.rgb, mo.a);
-  faceInk = max(max(eye.a, mo.a), lsh) * vFace.z; diffuseColor.rgb = mix(diffuseColor.rgb, c, vFace.z); sEyeM = em.r * vFace.z;
+  faceInk = max(max(max(eye.a, mo.a), lsh), dotK) * vFace.z; diffuseColor.rgb = mix(diffuseColor.rgb, c, vFace.z); sEyeM = em.r * vFace.z;
 }
 sDrawM = faceInk * (1.0 - sPatch); faceInk = max(faceInk, sPatch); sEyeM = max(sEyeM, sPatch * 0.8); // (the patch and strap: glossy leather)
 // what the skin gives back of the light it soaks up: its own color, deeper; none from paint, the drawn face or the eyes
@@ -5230,11 +5250,11 @@ void slimeSSS(const in IncidentLight L, const in vec3 N, const in vec3 V, const 
     opt = opt || {};
     const I = { root: new THREE.Group(), color: new THREE.Color(opt.color || 0xE3122F), fangs: false, form: 'slime', U: null, parts: {}, mats: {} };
     const U = I.U = { sT: { value: 0 }, sMove: { value: new THREE.Vector4() }, sShape: { value: new THREE.Vector4() }, sHead: { value: new THREE.Vector4() }, sEar: { value: new THREE.Vector4() }, sBall: { value: new THREE.Vector4() }, sWave: { value: new THREE.Vector4() },
-      fCells: { value: new THREE.Vector4(0, 8, 0, 8) }, fMix: { value: new THREE.Vector4(0, 0, 1, 6) }, fPupil: { value: new THREE.Vector4(0, -0.03, 1, 0) }, fComp: { value: new THREE.Vector4(1, 1, 0, 0) }, fLash: { value: new THREE.Vector4(0, 0, 0, 0) }, fIris: { value: new THREE.Vector3(0.16, 0.06, 0.035) },
+      fCells: { value: new THREE.Vector4(0, 8, 0, 8) }, fMix: { value: new THREE.Vector4(0, 0, 1, 6) }, fPupil: { value: new THREE.Vector4(0, -0.03, 1, 0) }, fStyle: { value: 0 }, fComp: { value: new THREE.Vector4(1, 1, 0, 0) }, fLash: { value: new THREE.Vector4(0, 0, 0, 0) }, fIris: { value: new THREE.Vector3(0.16, 0.06, 0.035) },
       sCoat: { value: new THREE.Vector4() }, sPaint: { value: new THREE.Color(1, 0, 0) }, sWade: { value: new THREE.Vector4() }, sMicro: { value: new THREE.Vector4() }, sReact: { value: new THREE.Vector4() }, sTilt: { value: new THREE.Vector4() }, sDry: { value: new THREE.Vector4(0, 0.13, 0, 0) }, sCrawl: { value: new THREE.Vector4(0, 0.42, 0, 0) }, sRim: { value: new THREE.Vector4() }, sGait: { value: new THREE.Vector4() }, sBlob: { value: new THREE.Vector4() } };
     // covered in paint: c how much of it (1 all over .. 0 gone), b how shapeless (a blob of paint .. its own shape), burst the countdown to
     // it splashing off, melt while it's coming away
-    I.coat = { c: 0, b: 0, bT: 0, bRate: 8, burstT: -1, melt: false, fade: 0, seed: Math.random() * 40 };
+    I.coat = { c: 0, b: 0, bT: 0, bRate: 8, burstT: -1, melt: false, fade: 0, rise: 0, seed: Math.random() * 40 };
     const make1 = (key, parent) => {
       const m = matsFor(I, key), g = S.geo[MODEL[key].mesh];
       const mesh = new THREE.Mesh(g, m.body); mesh.castShadow = true; mesh.customDepthMaterial = m.depth; mesh.renderOrder = 32; mesh.layers.enable(3); if (typeof jellyGrab === 'function') mesh.onBeforeRender = jellyGrab;
@@ -5288,11 +5308,12 @@ void slimeSSS(const in IncidentLight L, const in vec3 N, const in vec3 V, const 
     // the eye patch (painted on, with its strap): how much (0 .. 1). Its iris color (linear rgb)
     I.setPatch = k => { U.fLash.value.z = k; };
     I.setIris = c => { U.fIris.value.set(c[0], c[1], c[2]); };
+    I.setEyeStyle = k => { U.fStyle.value = k; };
     I.setExpression = name => { if (!(name in EXPR)) name = 'neutral'; const s = I.st; if (name === s.exprB) return; if (s.exprK < 1) s.expr = s.exprK > 0.5 ? s.exprB : s.expr; s.exprB = name; s.exprK = 0; };
     I.blink = () => { I.st.blinkK = 0.13; };
     I.fire = () => { const T = I.tur; T.fireT = 0.42; T.kick = 1; T.gulpV -= 9; I.st.earKick = Math.max(I.st.earKick || 0, 0.28); };
     // arriving (out of the bead's splat, or back from being a roller): curled up, it pops and unrolls, ears flopping, eyes opening
-    I.popIn = () => { const s = I.st; s.ball = 1; s.slowT = 0.5; s.formK = 0; s.pop = 1; s.earKick = 1; s.blinkK = Math.max(s.blinkK, 0.38); I.coatOn(0.7); I.coatShape(0, 7); I.coatBurst(0.34); };
+    I.popIn = () => { const s = I.st; s.ball = 1; s.slowT = 0.5; s.formK = 0; s.pop = 1; s.earKick = 1; s.blinkK = Math.max(s.blinkK, 0.38); I.coatOn(0.7); I.coat.c = 0.001; I.coat.rise = 0.32; I.coatShape(0, 7); I.coatBurst(0.72); };
     // a knock: pushed toward (x, z) in its own frame (x to its left, z ahead), k how hard (0..1). The top's thrown that way over its base and
     // rocks back, the head snaps with it, the ears fling the other way, the stubs flail a moment and the tail whips
     I.impact = (x, z, k) => { const s = I.st; if (I.form !== 'slime' || !(k > 0)) return; k = Math.min(1.2, k);
@@ -5310,7 +5331,7 @@ void slimeSSS(const in IncidentLight L, const in vec3 N, const in vec3 V, const 
     // all over paint (b: how much of a shapeless blob it is), then pulling into shape, then the paint splashing off; onBurst (set by the
     // game) throws the drops when it goes. The paint is the team's color
     I.setPaint = c => { I.U.sPaint.value.copy(c); };
-    I.coatOn = b => { const C = I.coat; C.c = 1; C.melt = false; C.fade = 0; C.burstT = -1; C.b = C.bT = b || 0; };
+    I.coatOn = b => { const C = I.coat; C.c = 1; C.melt = false; C.fade = 0; C.rise = 0; C.burstT = -1; C.b = C.bT = b || 0; };
     I.coatShape = (b, rate) => { I.coat.bT = b; I.coat.bRate = rate || 8; };
     I.coatBurst = delay => { const C = I.coat; if (C.c > 0 && !C.melt) C.burstT = C.burstT > 0 ? Math.min(C.burstT, Math.max(0.001, delay)) : Math.max(0.001, delay); };
     I.coated = () => I.coat.c > 0.001;
@@ -5479,8 +5500,8 @@ void slimeSSS(const in IncidentLight L, const in vec3 N, const in vec3 V, const 
     for (let i = 0; i < 2; i++) { const e = i ? s.earR : s.earL, sd = i ? 1 : -1;
       const out = -lax * sd * 0.022, back = -laz * 0.02 - Math.max(0, lvz) * 0.05 - 0.12 * s.gamp * Math.max(0, -(s.crSlide || 0)), hl = -hv0 * sd * 0.35, spin = Math.abs(s.yawV) * 0.06;
       const float = (1 - Math.min(1, gEff)) * 0.75, ballWrap = s.ball * 0.25;
-      const fT = clampS(EAR_REST.f * Math.max(0.4, gEff) + float + out + hl + spin + ballWrap + s.leap * 0.9 * (0.12 + 0.88 * upK) + 0.45 * s.brace + 0.7 * flk - 0.2 * s.wallK - 0.35 * s.tired - 0.15 * s.dizzy + 1.15 * Math.max(0, (o.earUp || 0) * sd), -0.75, 1.5), // (o.earUp: one ear thrown up, + its left)
-        sT = clampS(EAR_REST.s + back - float * 0.3 - s.ball * 0.4 - s.leap * 0.26 * upK - 0.6 * s.wallK + 0.12 * s.brace, -1.1, 0.8);
+      const fT = clampS(EAR_REST.f * Math.max(0.4, gEff) + float + out + hl + spin + ballWrap + s.leap * 0.9 * (0.12 + 0.88 * upK) + 0.45 * s.brace + 0.7 * flk - 0.2 * s.wallK - 0.35 * s.tired - 0.15 * s.dizzy + 1.15 * Math.max(0, (o.earUp || 0) * sd) - 1.0 * (o.earCover || 0), -0.75, 1.5), // (o.earUp: one ear thrown up, + its left)
+        sT = clampS(EAR_REST.s + back - float * 0.3 - s.ball * 0.4 - s.leap * 0.26 * upK - 0.6 * s.wallK + 0.12 * s.brace + 0.6 * (o.earCover || 0), -1.1, 0.8);
       if (kick) { e[1] -= kick * 5 * (0.8 + 0.4 * Math.random()); e[3] -= kick * 2.5; }
       if (fkick) { e[1] += (Math.random() * 2 - 1) * 7 * fkick; e[3] += (Math.random() * 2 - 1) * 5 * fkick; }
       if (tw && sd === twSide) e[1] += 6;
@@ -5521,7 +5542,8 @@ void slimeSSS(const in IncidentLight L, const in vec3 N, const in vec3 V, const 
     // ---- the paint coat: the blob pulls into shape, then on its cue the paint splashes off in patches ----
     { const C = I.coat;
       if (C.burstT > 0) { C.burstT -= dt; if (C.burstT <= 0) { C.burstT = -1; C.melt = true; C.bT = 0; C.bRate = Math.max(C.bRate, 14); s.earKick = Math.max(s.earKick || 0, 0.7); if (I.onBurst) I.onBurst(I); } }
-      if (C.melt) { C.c = Math.max(0, C.c - dt / 0.36); if (C.c <= 0) C.melt = false; }
+      if (C.rise > 0) { C.c = Math.min(1, C.c + dt / C.rise); if (C.c >= 1) C.rise = 0; }
+      else if (C.melt) { C.c = Math.max(0, C.c - dt / 0.36); if (C.c <= 0) C.melt = false; }
       else if (C.fade > 0) { C.c = Math.max(0, C.c - dt / C.fade); if (C.c <= 0) C.fade = 0; }
       C.b += (C.bT - C.b) * Math.min(1, dt * C.bRate); if (C.c <= 0) C.b = 0;
       U.sCoat.value.set(C.c, C.b, C.seed, C.melt ? 1 - C.c : 0); }
@@ -5870,7 +5892,7 @@ function placeWear(W, U, look, D, withFangs) {
     const plain = SI.form === 'slime' && !SI.st.formNext, mk = SLIME.headSize(SI) / SLIME.S.meta.slime.head[3];
     if (!plain) { W.patch.visible = W.flower.visible = W.bow.visible = W.glasses.visible = false; }
     // painted on (every form): the lashes (none under the patch), the patch and its strap, the eyes' color
-    if (SI.setLashes) { const k = !off ? Math.min(1, pu * 1.4) : 0, lk = look.lash === 'lashes' ? k : 0, pt = look.eye === 'patch' ? k : 0; SI.setLashes(lk, pt > 0 ? 0 : lk); SI.setPatch(pt); SI.setIris((EYE_COLS[look.iris] || EYE_COLS.brown).lin); }
+    if (SI.setLashes) { const k = !off ? Math.min(1, pu * 1.4) : 0, lk = look.lash === 'lashes' ? k : 0, pt = look.eye === 'patch' ? k : 0; SI.setLashes(lk, pt > 0 ? 0 : lk); SI.setPatch(pt); SI.setIris((EYE_COLS[look.iris] || EYE_COLS.brown).lin); if (SI.setEyeStyle) SI.setEyeStyle(EYE_STYLE_K[look.eyes] || 0); }
     if (W.glasses.visible || W.flower.visible) { SLIME.headTop(SI, wv1, wq1, 0);
       if (W.glasses.visible) { W.glasses.position.copy(wv1).add(wv2.set(0, 0.062, 0.448).multiplyScalar(mk).applyQuaternion(wq1)); W.glasses.quaternion.copy(wq1).multiply(wearQ2.setFromEuler(wearE.set(-0.06 + S.tx * 0.2, 0, S.tz * 0.15))); W.glasses.scale.multiplyScalar(mk * 0.56); }
       if (W.patch.visible) { W.patch.position.copy(wv1); W.patch.quaternion.copy(wq1); W.patch.scale.multiplyScalar(mk); }
@@ -8150,6 +8172,7 @@ function makeAudio() {
     // the stage was picked: get its theme ready, and let go of the others
     prep() { const sk = stageTrk(); for (const k of ['halloween', 'island', 'blank']) if (k !== sk) trkDrop(k); if (sk) trkDecode(sk); },
     _trk(k) { return k ? !!(TRK[k] && TRK[k].buf) : trk && trk.key; },
+    beat() { if (!ctx || !trk || trk.t0 === undefined) return null; return { t: T() - trk.t0, bpm: trk.key === 'menu' ? 148 : trk.key === 'win' || trk.key === 'lost' ? 120 : bpm }; },
     init() {
       if (ctx) { if (ctx.state !== 'running') ctx.resume().catch(() => {}); return; }
       const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
@@ -10489,14 +10512,24 @@ function shimStep(S, dt) {
   const k = clamp(Math.abs(S.vel) / 1.1, 0, 1), sg = S.vel >= 0 ? 1 : -1;
   S.push = clamp((Math.sin(S.ph) * 0.8 + 0.3 * sg) * k, -1, 1); S.shove = Math.sin(S.ph - 0.9) * k * 0.7;
 }
-const IDLE_ACTS = [['bounce', 0.9], ['look', 1.7], ['wiggle', 1.3], ['yawn', 1.9], ['shimmy', 1.2], ['look', 1.7], ['bounce', 0.9], ['shimmy', 1.2]];
+const IDLE_ACTS = [['listen', 3.4, 3], ['bounce', 2.1, 2], ['still', 2.6, 3], ['hands', 2.6, 2], ['wag', 1.6, 2], ['peek', 2.6, 1], ['face', 2.0, 2], ['look', 1.7, 2], ['yawn', 1.9, 1], ['shimmy', 1.2, 2], ['wiggle', 1.3, 1]];
+let idleLast = '';
+function pickIdle() { if (window.__idleForce) { const f = IDLE_ACTS.find(a => a[0] === window.__idleForce); if (f) return f; } const pool = []; for (const a of IDLE_ACTS) if (a[0] !== idleLast) for (let i = 0; i < a[2]; i++) pool.push(a); const a = pool[(Math.random() * pool.length) | 0]; idleLast = a[0]; return a; }
+const beatNow = () => { const B = AU.beat ? AU.beat() : null; return B ? B.t * B.bpm / 60 : clock * 2.47; };
 function idleStep(rdt) {
-  idle.sway = idle.push = idle.hop = idle.spin = idle.sq = idle.rise = idle.roll = idle.pitch = idle.bank = 0;
+  idle.sway = idle.push = idle.hop = idle.spin = idle.sq = idle.rise = idle.roll = idle.pitch = idle.bank = idle.hand = idle.earCover = 0;
   let lxT = 0, lyT = 0;
   if (state === 'menu' && (lookOpen || menuPage === 'home') && !lookIntro && !vic && menuReact <= 0) {
-    if (!idle.act) { idle.t -= rdt; if (idle.t <= 0) { const a = IDLE_ACTS[(Math.random() * IDLE_ACTS.length) | 0]; idle.act = a[0]; idle.dur = a[1]; idle.u = 0; if (idle.act === 'yawn') emote(P, 'yawn', a[1]); if (idle.act === 'shimmy') { const home = Math.round(shim.tgt / 6.2832) * 6.2832, off = shim.tgt - home; shim.tgt = Math.abs(off) > 0.8 ? shim.tgt - Math.sign(off) * (0.55 + Math.random() * 0.25) : home + clamp(off + (Math.random() < 0.5 ? -1 : 1) * (0.35 + Math.random() * 0.25), -0.7, 0.7); } } }
+    if (!idle.act) { idle.t -= rdt; if (window.__idleForce && idle.t > 0.15) idle.t = 0.15; if (idle.t <= 0) { const a = pickIdle(); idle.act = a[0]; idle.dur = a[1]; idle.u = 0; idle.b0 = beatNow(); if (idle.act === 'yawn') emote(P, 'yawn', a[1]); if (idle.act === 'face') emote(P, ['glee', 'smug', 'ouch', 'bonk'][(Math.random() * 4) | 0], a[1] * 0.8); if (idle.act === 'listen' || idle.act === 'bounce') idle.dur = Math.max(a[1], (idle.act === 'listen' ? 8 : 4) * 60 / (AU.beat && AU.beat() ? AU.beat().bpm : 148)); if (idle.act === 'shimmy') { const home = Math.round(shim.tgt / 6.2832) * 6.2832, off = shim.tgt - home; shim.tgt = Math.abs(off) > 0.8 ? shim.tgt - Math.sign(off) * (0.55 + Math.random() * 0.25) : home + clamp(off + (Math.random() < 0.5 ? -1 : 1) * (0.35 + Math.random() * 0.25), -0.7, 0.7); } } }
     if (idle.act) { idle.u += rdt / idle.dur; const u = Math.min(1, idle.u);
-      if (idle.act === 'bounce') { const k = (u * 2) % 1; idle.hop = Math.sin(k * Math.PI) * (u < 0.5 ? 0.3 : 0.2); idle.rise = Math.sin(k * Math.PI) * 0.35; idle.sq = k < 0.1 || k > 0.88 ? 0.32 : 0; }
+      const env = Math.sin(Math.min(1, u * 4) * Math.PI / 2) * (1 - smoothstep(0.82, 1, u)), bt = beatNow() - idle.b0;
+      if (idle.act === 'bounce') { const k = (bt / 2) % 1, p = Math.sin(k * Math.PI); idle.hop = p * 0.3 * env; idle.rise = p * 0.32 * env; idle.sq = (k < 0.08 || k > 0.9 ? 0.3 : 0) * env; }
+      else if (idle.act === 'listen') { const ph = bt % 1, p = Math.pow(Math.max(0, Math.cos(ph * 6.2832)), 3), bar = Math.floor(bt); idle.pitch = -0.11 * p * env; idle.roll = (bar % 2 ? 0.06 : -0.06) * p * env; idle.sq = 0.07 * p * env; idle.rise = 0.05 * p * env; lyT = 0.02 * env; }
+      else if (idle.act === 'still') { lyT = 0.01; }
+      else if (idle.act === 'hands') { const h = u < 0.5 ? smoothstep(0.08, 0.22, u) * (1 - smoothstep(0.4, 0.5, u)) : smoothstep(0.55, 0.68, u) * (1 - smoothstep(0.88, 1, u)); idle.hand = (u < 0.5 ? 1 : -1) * h; idle.pitch = 0.13 * h; idle.roll = (u < 0.5 ? -0.05 : 0.05) * h; lxT = (u < 0.5 ? -0.07 : 0.07) * h; lyT = -0.07 * h; }
+      else if (idle.act === 'wag') { const ph = u * Math.PI * 9; idle.spin = Math.sin(ph) * 0.2 * env; idle.bank = Math.sin(ph) * 0.11 * env; idle.sway = Math.sin(ph + 0.4) * 0.55 * env; idle.sq = 0.05 * env; idle.rise = 0.04 * env * Math.abs(Math.sin(ph)); }
+      else if (idle.act === 'peek') { const k = smoothstep(0.08, 0.3, u) * (1 - smoothstep(0.7, 0.92, u)); idle.earCover = k; idle.pitch = 0.07 * k; idle.sq = 0.06 * k; }
+      else if (idle.act === 'face') { idle.roll = 0.12 * Math.sin(u * Math.PI * 2) * env; lxT = 0.09 * Math.sin(u * Math.PI * 3); lyT = 0.03 * Math.sin(u * Math.PI * 5); idle.sq = 0.08 * Math.abs(Math.sin(u * Math.PI * 4)) * env; }
       else if (idle.act === 'look') { lxT = u < 0.42 ? -0.085 : u < 0.88 ? 0.085 : 0; lyT = 0.025; }
       else if (idle.act === 'wiggle') { const env = Math.sin(Math.min(1, u * 4) * Math.PI / 2) * Math.pow(1 - u, 0.8), ph = u * Math.PI * 5; idle.sway = Math.sin(ph) * env; idle.push = Math.sin(ph + 0.9) * env; }
       else if (idle.act === 'yawn') { idle.rise = 0.32 * Math.sin(u * Math.PI); lyT = 0.045; }
@@ -10509,7 +10542,7 @@ function idleStep(rdt) {
       else if (idle.act === 'show') { const env = Math.sin(Math.min(1, u * 6) * Math.PI / 2) * Math.pow(1 - u, 0.7), ph = u * Math.PI * 8, s1 = Math.sin(ph);
         idle.sway = s1 * env; idle.push = Math.sin(ph + 0.9) * env; idle.spin = Math.sin(ph + 0.5) * 0.26 * env; idle.bank = s1 * 0.13 * env; idle.roll = -s1 * 0.1 * env;
         idle.sq = 0.05 + 0.1 * Math.abs(s1) * env; idle.rise = 0.24 * env * Math.max(0, Math.sin(ph * 2 - 0.6)); lyT = -0.07 * env; }
-      if (u >= 1) { idle.act = null; idle.t = 2.2 + Math.random() * 2.8; } }
+      if (u >= 1) { idle.act = null; idle.t = 1.4 + Math.random() * 2.6; } }
   } else { idle.act = null; idle.t = 2.2; }
   idleLook.x += (lxT - idleLook.x) * Math.min(1, rdt * 10); idleLook.y += (lyT - idleLook.y) * Math.min(1, rdt * 10);
 }
@@ -10619,7 +10652,7 @@ function blobVisual(D, V, dt, ke, kf) {
     const ph = (clock * 0.85 + (D.cpu ? 0.47 : 0)) % 1;
     hop = 0; rise = ph < 0.3 ? Math.sin(ph / 0.3 * Math.PI) * 0.55 : 0;
     sq = ph < 0.3 ? 0 : ph < 0.44 ? (1 - (ph - 0.3) / 0.14) * 0.42 : ph > 0.9 ? (ph - 0.9) / 0.1 * 0.2 : 0;
-    if (D === P && lookOpen && !lookIntro) { sq = idle.sq || 0.04 + 0.035 * Math.sin(clock * 2.3); rise = idle.rise; hop = idle.hop; spinY = idle.spin; } // breathing, plus its little idle bits
+    if (D === P && (lookOpen || menuPage === 'home') && !lookIntro) { sq = idle.sq || 0.04 + 0.035 * Math.sin(clock * 2.3); rise = idle.rise; hop = idle.hop; spinY = idle.spin; } // breathing, plus its little idle bits
     if (D === P && menuReact > 0) { const u = 1 - menuReact / 0.7; hop = Math.sin(u * Math.PI) * 0.6; sq = u > 0.85 ? (u - 0.85) / 0.15 * 0.5 : 0; rise = u < 0.4 ? 0.7 : 0; }
     if (D === P && lookIntro) { const I = introPose(lookIntro.t); hop = I.y; sq = I.sq; rise = I.rise; spinY = 0; U.gDrop.value = I.drop; U.gWob.value = I.wob; V.introSc = I.sc; }
   }
@@ -10757,7 +10790,7 @@ function makeCpuLook(D, color) {
 const L2 = makeCpuLook(H2, TEAMS[2].wet);
 H.look = LH; H2.look = L2;
 LH.wear = makeWear(LH.body); L2.wear = makeWear(L2.body); LH.wearing = { head: null, back: null, mouth: null, eye: null, side: null, neck: null, lash: null, iris: 'brown' }; L2.wearing = { head: null, back: null, mouth: null, eye: null, side: null, neck: null, lash: null, iris: 'brown' };
-function rollRivalLooks() { const heads = [null, null, 'halo', 'hat', 'pirate', 'tophat', 'tiara']; for (const L of [LH, L2]) { const head = heads[Math.random() * heads.length | 0]; L.wearing = { head, back: null, mouth: Math.random() < 0.3 ? 'fangs' : null, eye: Math.random() < (head === 'pirate' ? 0.6 : 0.12) ? 'patch' : Math.random() < 0.14 ? 'glasses' : null, side: !head && Math.random() < 0.3 ? 'flower' : null, neck: Math.random() < (head === 'tophat' ? 0.6 : 0.15) ? 'bowtie' : null, lash: Math.random() < (head === 'tiara' ? 0.65 : 0.18) ? 'lashes' : null, iris: Math.random() < 0.45 ? 'brown' : EYE_KEYS[1 + (Math.random() * 4 | 0)] }; } }
+function rollRivalLooks() { const heads = [null, null, 'halo', 'hat', 'pirate', 'tophat', 'tiara']; for (const L of [LH, L2]) { const head = heads[Math.random() * heads.length | 0]; L.wearing = { head, back: null, mouth: Math.random() < 0.3 ? 'fangs' : null, eye: Math.random() < (head === 'pirate' ? 0.6 : 0.12) ? 'patch' : Math.random() < 0.14 ? 'glasses' : null, side: !head && Math.random() < 0.3 ? 'flower' : null, neck: Math.random() < (head === 'tophat' ? 0.6 : 0.15) ? 'bowtie' : null, lash: Math.random() < (head === 'tiara' ? 0.65 : 0.18) ? 'lashes' : null, iris: Math.random() < 0.45 ? 'brown' : EYE_KEYS[1 + (Math.random() * 4 | 0)], eyes: ['round', 'round', 'edgy', 'dot'][(Math.random() * 4) | 0] }; } }
 // ---------- the slime in the game: one per blob, riding its body group. The old jelly ball stays underneath as the bead of paint you drip
 // in as on the customize screen, and is the whole look if the slime's models never arrive ----------
 const vOf = D => D === P ? VP : D.look && D.look.V;
@@ -10935,7 +10968,7 @@ function slimeVisual(D, V, dt, sq, rise, rad, gy, hop, fxK, fxL) {
   const IPo = D.ip; // (an intro's moves)
   o.brace = brace; o.wall = wall; o.flail = flail; o.grip = D.charging && D.st === 'play' && !D.air ? 0.35 + 0.65 * D.charge : 0; o.dizzy = D.st === 'play' && D.stunT > 0 ? 1 : 0; o.tired = D.st === 'play' && D.dry ? 1 : 0; o.curl = D.st === 'play' && ((D.rollT > ROLL_T - ROLL_DASH + 0.05 && !D.air) || D.rollOutT > 0.12 || (D.slam && !D.missile && D.vy < 2.5 && D.giantT <= 0)) ? 1 : 0; // (a pound tucks up into a cannonball as it tops out)
   if (W) { o.wt.yaw = W.yaw; o.wt.pitch = W.pitch; o.watch = o.wt; } else o.watch = null;
-  o.ballK = IPo ? IPo.ballK : null; const showK = D === P && state === 'menu' && lookOpen; o.headRoll = showK ? idle.roll : 0; o.headPitch = showK ? idle.pitch : 0; o.hand = IPo ? IPo.hand : 0; o.wave = IPo ? IPo.wave : 0; o.earUp = IPo ? IPo.earUp : 0; o.bendK = IPo ? IPo.bendK : null;
+  o.ballK = IPo ? IPo.ballK : null; const showK = D === P && state === 'menu' && (lookOpen || menuPage === 'home'); o.headRoll = showK ? idle.roll : 0; o.headPitch = showK ? idle.pitch : 0; o.earCover = showK ? idle.earCover : 0; o.hand = IPo ? IPo.hand : showK ? idle.hand : 0; o.wave = IPo ? IPo.wave : 0; o.earUp = IPo ? IPo.earUp : 0; o.bendK = IPo ? IPo.bendK : null;
   if (IPo) { if (IPo.curl !== null) o.curl = IPo.curl; if (IPo.leap !== null) o.leap = IPo.leap; if (IPo.leapTip !== null) o.leapTip = IPo.leapTip; if (IPo.coil) { o.coil = IPo.coil; o.coilSide = IPo.side || 1; } if (IPo.kick) o.kick = IPo.kick;
     if (IPo.push !== null) o.push = IPo.push; if (IPo.shove !== null) o.shove = IPo.shove; if (IPo.brace !== null) o.brace = IPo.brace; if (IPo.flail !== null) o.flail = IPo.flail; if (IPo.dizzy !== null) o.dizzy = IPo.dizzy; }
   SLIME.update(I, o);
@@ -11843,6 +11876,7 @@ const WEAR_WHERE = { island: 'Palette Island', blank: 'Blank Canvas', halloween:
 const EYE_COLS = { brown: { name: 'Brown', lin: [0.16, 0.06, 0.035], css: '#8A5636' }, blue: { name: 'Blue', lin: [0.03, 0.1, 0.32], css: '#3B7BE0' }, green: { name: 'Green', lin: [0.04, 0.18, 0.05], css: '#46A853' },
   violet: { name: 'Violet', lin: [0.14, 0.045, 0.28], css: '#8E52DA' }, gold: { name: 'Gold', lin: [0.34, 0.17, 0.016], css: '#D8A41F' } };
 const EYE_KEYS = Object.keys(EYE_COLS);
+const EYE_STYLES = { round: 'Round', edgy: 'Edgy', dot: 'Dot' }, EYE_STYLE_K = { round: 0, edgy: 1, dot: 2 };
 const WEAR_CAT = { head: 'head', side: 'head', eye: 'face', lash: 'face', mouth: 'face', neck: 'cloth', back: 'cloth' };
 for (const w of WEAR) w.cat = WEAR_CAT[w.slot] || 'face';
 let lookCat = 'head'; // the category open in Customize
@@ -11870,7 +11904,7 @@ function showDrops() { const n = store.drops || 0; if ($('statDrops')) $('statDr
 const owns = id => OWNED.has(id);
 function unlockItem(id) { if (OWNED.has(id)) return false; OWNED.add(id); store.owned = [...OWNED]; store.fresh = [...new Set([...(store.fresh || []), id])]; store.seen = store.seen || {}; store.seen.look = 0; save(); $('lookBtn').classList.add('hot'); return true; }
 if (typeof store.itemIn !== 'number') store.itemIn = 4 + Math.floor(Math.random() * 5); // matches to go before the next item can turn up
-const myLook = (() => { const l = Object.assign({}, store.look || {}); if (l.head && l.side) l.side = null; const ok = (v, slot) => WEAR.some(w => w.id === v && w.slot === slot) && BOUGHT.has(v) ? v : null; return { eyes: 'round', head: ok(l.head, 'head'), back: ok(l.back, 'back'), mouth: ok(l.mouth, 'mouth'), eye: ok(l.eye, 'eye'), side: ok(l.side, 'side'), neck: ok(l.neck, 'neck'), lash: ok(l.lash, 'lash'), iris: ['brown', 'blue', 'green', 'violet', 'gold'].includes(l.iris) ? l.iris : 'brown' }; })();
+const myLook = (() => { const l = Object.assign({}, store.look || {}); if (l.head && l.side) l.side = null; const ok = (v, slot) => WEAR.some(w => w.id === v && w.slot === slot) && BOUGHT.has(v) ? v : null; return { eyes: EYE_STYLES[l.eyes] ? l.eyes : 'round', head: ok(l.head, 'head'), back: ok(l.back, 'back'), mouth: ok(l.mouth, 'mouth'), eye: ok(l.eye, 'eye'), side: ok(l.side, 'side'), neck: ok(l.neck, 'neck'), lash: ok(l.lash, 'lash'), iris: ['brown', 'blue', 'green', 'violet', 'gold'].includes(l.iris) ? l.iris : 'brown' }; })();
 const colorOf = () => PALETTE.find(p => p.id === colorId) || PALETTE[0];
 function setColor(id) {
   const c = PALETTE.find(p => p.id === id) || PALETTE[0], css = '#' + c.hex.toString(16).padStart(6, '0').toUpperCase(); colorId = c.id;
@@ -12016,7 +12050,7 @@ function openSeason() {
   renderGo(); setTimeout(() => { const b = [...$('seasonGrid').children].find(x => x.dataset.s === stageSel) || $('seasonGrid').firstElementChild; b && b.focus({ preventScroll: true }); }, 40);
 }
 function closeSeason() {
-  if (!seasonOpen()) return false; $('mWorld').classList.remove('sopen'); $('seasonGrid').hidden = true; $('worldTitle').textContent = 'Pick a canvas'; $('worldBack').setAttribute('aria-label', 'Back to the title screen');
+  if (!seasonOpen()) return false; $('mWorld').classList.remove('sopen'); $('seasonGrid').hidden = true; $('worldTitle').textContent = 'Canvases'; $('worldBack').setAttribute('aria-label', 'Back to the title screen');
   centerWorld(worldBtns.find(b => b.dataset.s === 'season'), false); renderWorlds(); return true;
 }
 $('seasonGrid').addEventListener('click', e => { const t = e.target.closest('.stg'); if (!t || building) return; AU.init(); if (t.dataset.s === stageSel) { AU.ui(); return; }
@@ -12140,9 +12174,9 @@ function introFrame() {
   else strand.visible = false;
   // touchdown: a splat on the floor and a ring of drops
   if (t >= IN_LAND && !I.landed) {
-    I.landed = true; AU.splat(0.9); buzz(14);
-    addSplat(P.x, P.y, P.z, P.yaw, 0.72, -8, false, false, 0);
-    for (let i = 0; i < 16; i++) { const a = i / 16 * 6.283 + Math.random() * 0.2; spawnPart(P.x, P.y + 0.2, P.z, Math.cos(a) * (1.8 + Math.random()), 1.6 + Math.random() * 1.8, Math.sin(a) * (1.8 + Math.random()), 0.55, teamMats[0], 0.6); }
+    I.landed = true; AU.splat(1.2); AU.land(0.8); buzz(18); shockwave(P.x, P.y, P.z, 1.6, TEAMS[0].wet); splash(P, 1.4); shake = Math.max(shake, 0.08);
+    addSplat(P.x, P.y, P.z, P.yaw, 0.95, -8, false, false, 0);
+    for (let i = 0; i < 24; i++) { const a = i / 16 * 6.283 + Math.random() * 0.2; spawnPart(P.x, P.y + 0.2, P.z, Math.cos(a) * (1.8 + Math.random()), 1.6 + Math.random() * 1.8, Math.sin(a) * (1.8 + Math.random()), 0.55, teamMats[0], 0.6); }
   }
   // then the face fades in, eyes opening as it does, and the accessories pop in after it
   const kf = easeOut((t - IN_LAND - 0.14) / 0.32), kw = clamp((t - IN_LAND - 0.34) / 0.34, 0, 1);
@@ -12191,6 +12225,8 @@ function renderLook() {
   rail.innerHTML = WEAR.filter(w => w.cat === lookCat).map(w => { const found = owns(w.id), own = found && bought(w.id), sale = found && !own, fr = own && fresh.has(w.id), broke = sale && (store.drops || 0) < PRICE(w);
     return '<button class="ltile' + (own ? '' : sale ? ' sale' : ' locked') + (broke ? ' broke' : '') + (fr ? ' fresh' : '') + '" type="button" data-w="' + w.id + '"' + (own ? ' aria-pressed="' + (myLook[w.slot] === w.id) + '"' : sale ? '' : ' aria-disabled="true"') + ' aria-label="' + w.name + (own ? (fr ? ', new' : '') : sale ? ', ' + PRICE(w) + ' drops' : ', locked') + '">' + (sale ? '<span class="ltag">' + DROP_SVG + PRICE(w) + '</span>' : '') + '<svg viewBox="0 0 40 40" aria-hidden="true">' + WEAR_ICON[w.id] + '</svg><span class="ltn">' + w.name + '</span>' + (found ? '' : LOCK_ICON) + '</button>'; }).join('');
   showDrops();
+  const ES_ICON = { round: '<svg viewBox="0 0 40 40"><ellipse cx="20" cy="20" rx="13" ry="12" fill="#fff" stroke="#171320" stroke-width="2.5"/><circle cx="21" cy="21" r="6" fill="#8A5636"/><circle cx="21.5" cy="21.5" r="3" fill="#171320"/><circle cx="19" cy="18.5" r="1.6" fill="#fff"/></svg>', edgy: '<svg viewBox="0 0 40 40"><path d="M6 23C10 13 22 11 34 15C30 24 18 29 6 23Z" fill="#171320"/><path d="M8.5 22.5C12 15.5 22 14 31.5 16.5C28 23 18 26.5 8.5 22.5Z" fill="#fff"/><circle cx="20" cy="20" r="4.6" fill="#8A5636"/><circle cx="20.5" cy="20.4" r="2.4" fill="#171320"/><circle cx="18.6" cy="18.4" r="1.3" fill="#fff"/></svg>', dot: '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="9.5" fill="#171320"/><circle cx="16.5" cy="16.5" r="3" fill="#fff"/></svg>' };
+  $('eyeStyles').innerHTML = Object.keys(EYE_STYLES).map(k => '<button class="eyes" type="button" data-es="' + k + '" aria-label="' + EYE_STYLES[k] + ' eyes" title="' + EYE_STYLES[k] + '" aria-pressed="' + (myLook.eyes === k) + '">' + ES_ICON[k] + '</button>').join('');
   $('irises').innerHTML = EYE_KEYS.map(k => '<button class="eyec" type="button" data-i="' + k + '" style="--ic:' + EYE_COLS[k].css + '" aria-label="' + EYE_COLS[k].name + ' eyes" title="' + EYE_COLS[k].name + '" aria-pressed="' + (myLook.iris === k) + '"><i></i></button>').join('');
   railEdge(); $('lookNameTxt').textContent = playerName();
   $('unlockLink').parentNode.hidden = WEAR.every(w => owns(w.id)); // (nothing left to unlock: no link)
@@ -12235,6 +12271,7 @@ const wearPick = e => { const b = e.target.closest('.ltile'); if (!b) return; AU
   if (w.slot === 'eye' && myLook.eye === 'glasses') shim.tgt = Math.round(shim.tgt / 6.2832) * 6.2832;
   if (w.slot === 'lash' && myLook.lash) { shim.tgt = Math.round(shim.tgt / 6.2832) * 6.2832; setTimeout(() => { if (lookOpen && VP.slime && VP.slime.flutter) VP.slime.flutter(3); }, 380); } };
 $('lookRail').addEventListener('click', wearPick);
+$('eyeStyles').addEventListener('click', e => { const b = e.target.closest('.eyes'); if (!b || b.dataset.es === myLook.eyes) return; AU.init(); myLook.eyes = b.dataset.es; saveLook(); const sl = $('lookRail').scrollLeft; renderLook(); $('lookRail').scrollLeft = sl; railEdge(); AU.pop(); { const t = $('eyeStyles').querySelector('[data-es="' + myLook.eyes + '"]'); if (t) kick(t, 'pop'); } eyeShow = { t: 0, kind: 0 }; idle.t = Math.max(idle.t, 4); });
 $('irises').addEventListener('click', e => { const b = e.target.closest('.eyec'); if (!b || b.dataset.i === myLook.iris) return; AU.init(); myLook.iris = b.dataset.i; saveLook(); const sl = $('lookRail').scrollLeft; renderLook(); $('lookRail').scrollLeft = sl; railEdge(); AU.pop(); { const t = $('irises').querySelector('[data-i="' + myLook.iris + '"]'); if (t) kick(t, 'pop'); } eyeShow = { t: 0, kind: (eyeShow ? eyeShow.kind + 1 + (Math.random() * 2 | 0) : Math.random() * 3 | 0) % 3 }; idle.t = Math.max(idle.t, 4); shim.tgt = Math.round(shim.tgt / 6.2832) * 6.2832; });
 // the code that unlocks everything
 $('unlockLink').addEventListener('click', () => { AU.init(); AU.ui(); $('unlockLink').hidden = true; $('unlockForm').hidden = false; setTimeout(() => $('unlockCode').focus(), 30); });
