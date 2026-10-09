@@ -1841,7 +1841,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 103</p>
+      <p class="ver">Version 104</p>
     </div>
   </div>
 
@@ -3933,9 +3933,9 @@ const RB0 = { stroke: -1 }; // each blob keeps its own ribbon so two trails neve
 function hugY(x, z, cy) { const y = surfaceUnder(x, z, cy + 0.3); return (y > cy - 0.3) ? y : cy; }
 // the newest stretch of a trail tapers in toward the blob laying it, so the paint looks like it's flowing out from under it rather than
 // starting from nowhere: each point remembers where its edges sit at full width, the last few are drawn pulled in toward the middle (the
-// newest most), and each lets out a notch as the next is laid ahead of it. A roller or a giant lays its full width straight away
-const TAPER_N = 9, TAPER_TIP = 0.3; let trailGen = 0;
-const taperF = (a, k) => 1 - (1 - TAPER_TIP) * k * Math.pow(Math.max(0, 1 - a / TAPER_N), 2);
+// newest most), and each lets out a notch as the next is laid ahead of it. A roller or a giant tapers the same way over a longer run
+const TAPER_N = 9, TAPER_NMAX = 22, TAPER_TIP = 0.3; let trailGen = 0;
+const taperF = (a, k, n) => 1 - (1 - TAPER_TIP) * k * Math.pow(Math.max(0, 1 - a / (n || TAPER_N)), 2);
 const taperV = (o, k, v) => { const j = (o + k) * 3; vPos[j] = v[0]; vPos[j + 1] = v[1]; vPos[j + 2] = v[2]; };
 function taperPut(h, f) {
   h.f = f; const w = h.hw * f, L = h.L, R = h.R;
@@ -3952,7 +3952,7 @@ function addPoint(x, y, z, yaw, t, stroke, wmul, team, rb) {
   pX[nP] = x; pY[nP] = y; pZ[nP] = z; pT[nP] = t; pR[nP] = W / 2 * 0.85 + PR * 0.3; pTeam[nP] = team % 3; nP++;
   const hw = (W / 2) * 1.16 * (0.86 + 0.28 * (0.5 + 0.5 * Math.sin(d * 1.9 + 2 * Math.sin(d * 0.57))));
   const rx = -Math.cos(yaw), rz = Math.sin(yaw), yC = y + 0.016 + lift;
-  const h = { x, z, rx, rz, hw, yC, yL: hugY(x - rx * hw, z - rz * hw, y) + 0.008 + lift, yR: hugY(x + rx * hw, z + rz * hw, y) + 0.008 + lift, L: [x, yC, z], C: [x, yC, z], R: [x, yC, z], o: -1, o2: -1, f: -1, k: (wmul || 1) > 1.5 ? 0 : 1 };
+  const h = { x, z, rx, rz, hw, yC, yL: hugY(x - rx * hw, z - rz * hw, y) + 0.008 + lift, yR: hugY(x + rx * hw, z + rz * hw, y) + 0.008 + lift, L: [x, yC, z], C: [x, yC, z], R: [x, yC, z], o: -1, o2: -1, f: -1, k: 1, n: TAPER_N * Math.min(2.4, Math.max(1, wmul || 1)) };
   if (stroke !== rb.stroke || rb.gen !== trailGen || !rb.hist) { rb.hist = []; rb.gen = trailGen; }
   const Hs = rb.hist, p = Hs.length ? Hs[Hs.length - 1] : null;
   if (p && nV + VPS <= MAXV) {
@@ -3962,9 +3962,9 @@ function addPoint(x, y, z, yaw, t, stroke, wmul, team, rb) {
     for (const k of [1, 3, 6]) taperV(o, k, p.C); for (const k of [4, 8, 11]) taperV(o, k, h.C);
     p.o2 = o; h.o = o; nV += VPS;
   }
-  Hs.push(h); if (Hs.length > TAPER_N + 1) Hs.shift();
+  Hs.push(h); if (Hs.length > TAPER_NMAX + 1) Hs.shift();
   let lo = dirtyV;
-  for (let a = 0; a < Hs.length; a++) { const q = Hs[Hs.length - 1 - a], f = taperF(a, q.k); if (f === q.f && q !== p) continue; taperPut(q, f); if (q.o >= 0 && q.o < lo) lo = q.o; else if (q.o < 0 && q.o2 >= 0 && q.o2 < lo) lo = q.o2; }
+  for (let a = 0; a < Hs.length; a++) { const q = Hs[Hs.length - 1 - a], f = taperF(a, q.k, q.n); if (f === q.f && q !== p) continue; taperPut(q, f); if (q.o >= 0 && q.o < lo) lo = q.o; else if (q.o < 0 && q.o2 >= 0 && q.o2 < lo) lo = q.o2; }
   dirtyV = lo; rb.stroke = stroke;
   stamp(x, y, z, W / 2, team);
   if (nP === 1) addSplat(x, y, z, yaw, TW * 0.52, t, true, false, team);
