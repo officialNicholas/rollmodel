@@ -1822,7 +1822,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 92</p>
+      <p class="ver">Version 93</p>
     </div>
   </div>
 
@@ -8352,10 +8352,10 @@ function paintHow() {
   $('howOrb').textContent = 'Roll up to the glowing orb (or jump into it) to go giant for 5 seconds. Roll into ' + riv + ' while you\'re giant and it\'s out.';
   const el = $('howCtl'); if (el) el.innerHTML = keysUI ? '<kbd>A</kbd> <kbd>D</kbd> or the arrows steer. <kbd>Space</kbd> jumps, <kbd>Shift</kbd> rolls. Hold <kbd>S</kbd> to stop and load a fling, let go to fling. <kbd>E</kbd> pounds. <kbd>P</kbd> pauses, <kbd>M</kbd> mutes.' : 'Drag sideways to steer. Tap to jump, swipe up to roll. Hold to stop, then pull down and let go to fling. The arrow button pounds.'; }
 paintHow();
-const bannerEl = $('banner');
+const bannerEl = $('banner'); let bannerUntil = 0, bannerWx = false;
 const reAdd = new Map(); let reAddQ = false;
 function restartCls(el, cls) { el.classList.remove(cls); let l = reAdd.get(el); if (!l) reAdd.set(el, l = []); if (!l.includes(cls)) l.push(cls); if (!reAddQ) { reAddQ = true; requestAnimationFrame(() => { reAddQ = false; for (const [e, cs] of reAdd) for (const c of cs) e.classList.add(c); reAdd.clear(); }); } }
-function banner(big, small, long) { $('bannerBig').textContent = big; $('bannerSmall').textContent = small || ''; bannerEl.classList.toggle('long', !!long); const em = $('bannerEm'); em.dataset.k = /rain/i.test(big) ? 'rain' : /heat/i.test(big) ? 'heat' : /paint it/i.test(big) ? 'stroke' : /giant|overtime|new item/i.test(big) ? 'splat' : 'drip'; restartCls(bannerEl, 'on'); }
+function banner(big, small, long) { bannerUntil = performance.now() + (long ? 3400 : 2100); bannerWx = /heat|rain/i.test(big); $('bannerBig').textContent = big; $('bannerSmall').textContent = small || ''; bannerEl.classList.toggle('long', !!long); const em = $('bannerEm'); em.dataset.k = /rain/i.test(big) ? 'rain' : /heat/i.test(big) ? 'heat' : /paint it/i.test(big) ? 'stroke' : /giant|overtime|new item/i.test(big) ? 'splat' : 'drip'; restartCls(bannerEl, 'on'); }
 function hitEdge(A) { if (reduceMotion || !A || A === P) return; const v = $('vig'); v.style.setProperty('--hc', TEAMS[A.team].css); restartCls(v, 'hit'); }
 function flashScreen() { if (reduceMotion) return; restartCls($('flash'), 'on'); }
 function popText(t) { const p = $('pop'); p.textContent = t; restartCls(p, 'on'); }
@@ -10709,13 +10709,13 @@ function blobVisual(D, V, dt, ke, kf) {
     const ph = (clock * 0.85 + (D.cpu ? 0.47 : 0)) % 1;
     hop = 0; rise = ph < 0.3 ? Math.sin(ph / 0.3 * Math.PI) * 0.55 : 0;
     sq = ph < 0.3 ? 0 : ph < 0.44 ? (1 - (ph - 0.3) / 0.14) * 0.42 : ph > 0.9 ? (ph - 0.9) / 0.1 * 0.2 : 0;
-    if (D === P && (lookOpen || menuPage === 'home') && !lookIntro) { sq = idle.sq || 0.04 + 0.035 * Math.sin(clock * 2.3); rise = idle.rise; hop = idle.hop; spinY = idle.spin; } // breathing, plus its little idle bits
-    if (D === P && menuReact > 0) { const u = 1 - menuReact / 0.7; hop = Math.sin(u * Math.PI) * 0.6; sq = u > 0.85 ? (u - 0.85) / 0.15 * 0.5 : 0; rise = u < 0.4 ? 0.7 : 0; }
+    if (D === P && (lookOpen || menuPage === 'home') && !lookIntro && !vsSnap) { sq = idle.sq || 0.04 + 0.035 * Math.sin(clock * 2.3); rise = idle.rise; hop = idle.hop; spinY = idle.spin; } // breathing, plus its little idle bits
+    if (D === P && menuReact > 0 && !vsSnap) { const u = 1 - menuReact / 0.7; hop = Math.sin(u * Math.PI) * 0.6; sq = u > 0.85 ? (u - 0.85) / 0.15 * 0.5 : 0; rise = u < 0.4 ? 0.7 : 0; }
     if (D === P && lookIntro) { const I = introPose(lookIntro.t); hop = I.y; sq = I.sq; rise = I.rise; spinY = 0; U.gDrop.value = I.drop; U.gWob.value = I.wob; V.introSc = I.sc; }
   }
   const isc = D === P && lookIntro && state === 'menu' ? V.introSc : 1;
   if (vic && D.vicPose) { const vp = D.vicPose; hop = vp.hop; sq = vp.sq; rise = vp.rise; spinY = vp.spin; }
-  if (D.ip && state !== 'menu') { const ip = D.ip; hop += ip.hop; if (ip.sq !== null) sq = ip.sq; if (ip.rise !== null) rise = ip.rise; spinY += ip.spin; }
+  if (D.ip && (state !== 'menu' || vsSnap)) { const ip = D.ip; hop += ip.hop; if (ip.sq !== null) sq = ip.sq; if (ip.rise !== null) rise = ip.rise; spinY += ip.spin; }
   if (V.turK > 0.01) { sq = Math.max(sq, 0.2 * V.turK); hop += 0.3 * rad * V.turK; } // sat down in the mount (lifted onto it)
   if (D.turret && D.st === 'play' && !(vic && D.vicPose)) sq = Math.max(sq, 0.16 + 0.22 * D.turret.kick); // a turret squats into a dome on its mount, and kicks with each shot
   U.gSquash.value = sq; U.gRise.value = rise;
@@ -11343,7 +11343,7 @@ function visuals(dt, rdt) {
     if (P.dry && P.st === 'play') { const n = Math.max(1, Math.ceil(DRY_KO - (P.dryT || 0))); if (n !== dryShown) { if (!dryShown) $('tdryW').textContent = 'Find a ' + potWord(); dryShown = n; $('tdryN').textContent = n; if (playing) { AU.count(n); buzz(n <= 2 ? [14, 30, 14] : 10); } } } else dryShown = 0; bar.classList.toggle('giant', P.giantT > 0 && P.st === 'play');
     const vig = $('vig'); vig.classList.toggle('heat', burning); vig.classList.toggle('danger', ((dangerK > 0 && P.st === 'play') || foes(P).some(F => F.slam && (hc => Math.hypot(hc.x - P.x, hc.z - P.z))(slamCenter(F)) < slamRadius(F) + PR + 1)) && !burning); vig.classList.toggle('low', P.paint < 0.22 && P.st === 'play' && !(dangerK > 0) && !burning);
     // one weather chip
-    const wx = $('wx'), wxOn = wxPhase !== 'clear';
+    const wx = $('wx'), wxOn = wxPhase !== 'clear' && !(bannerWx && performance.now() < bannerUntil);
     if (wx.hidden === wxOn) wx.hidden = !wxOn;
     if (wxOn) { const tx = wxPhase === 'warn' ? 'Heat in ' + Math.ceil(wxLeft) : wxPhase === 'sun' ? (burning ? 'Hide! ' : 'Safe ') + Math.ceil(wxLeft) + 's' : wxPhase === 'dusk' ? 'Hard paint ' + Math.ceil(wxLeft) + 's' : 'Rain ' + Math.ceil(wxLeft) + 's'; if (wxShown !== tx) { wxShown = tx; wx.innerHTML = (wxPhase === 'rain' ? RAIN_SVG : wxPhase === 'dusk' ? CLOUD_SVG : SUN_SVG) + '<span>' + tx + '</span>'; wx.className = 'chip wx ' + wxPhase + (wxPhase === 'sun' ? (burning ? ' burn' : ' safe') : ''); } }
     // knocked out: count down to the comeback
@@ -12836,7 +12836,7 @@ function showVS(cb) {
   $('vsRow').innerHTML = h; $('vsRow').classList.toggle('trio', mode === 'trio');
   // the rivals step out, dressed, with their game face on; the portraits are taken two frames on, once their bodies have settled
   const list = [[P, $('vbox0'), VS_POSE.me]]; if (mode !== 'solo') list.push([H, $('vbox1'), VS_POSE.foe]); if (mode === 'trio') list.push([H2, $('vbox2'), VS_POSE.foe2]);
-  for (const [D, , pose] of list) { if (D !== P) { D.look.drop.visible = true; D.yaw = P.yaw; D.flatT = 0; D.stunT = 0; D.dry = false; D.vsSt = D.st; D.st = 'play'; }
+  for (const [D, , pose] of list) { D.wearPop = 1; D.wearOff = false; D.wearHid = false; if (D !== P) { D.look.drop.visible = true; D.yaw = P.yaw; D.flatT = 0; D.stunT = 0; D.dry = false; D.vsSt = D.st; D.st = 'play'; }
     D.vsIp = D.ip; D.ip = Object.assign({ hop: 0, spin: 0, pitch: 0, roll: 0, sq: null, rise: null, sink: null, coat: null, watch: null, expr: null, shut: false, stars: false }, pose.ip); }
   vsSnap = { t: 2, list, id: runId }; $('vsTitle').innerHTML = '<b>' + escAttr(TH.label) + '</b> \u00b7 ' + (mode === 'solo' ? 'Solo, 60 seconds' : md[1] + ', CPU ' + (CRITICS[diff] || 'fair').toLowerCase());
   el.hidden = false; AU.whoosh(); for (const k of ['ready', 'cd3', 'cd2', 'cd1', 'go']) AU.say(k, 0); buzz([15, 30, 15]);
