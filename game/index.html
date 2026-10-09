@@ -1109,6 +1109,244 @@ kbd{background:#fff;border-color:var(--black)}
 .comm.done .cr{color:var(--black)}
 .cnote.small{font-size:12.5px}
 @media (max-width:374px){.xpmeter{width:110px;height:62px;background-size:660px 372px}}
+
+/* ===================== WET PAINT, the material pass =====================
+   Real paint, real tape, real paper (photographed, tinted in CSS), hero type lockups, and a motion system: everything rolls in,
+   breathes, and drips out. This sheet sits on top of the language sheet and replaces its flat kit. */
+:root{--ink-rgb:227,18,47;--eo:cubic-bezier(.2,1.4,.4,1);--ei:cubic-bezier(.5,0,.75,0)}
+/* the type: hero lockups. Stacked, skewed, with a hard black offset and a cream key line */
+.hero{font:900 1em/.92 var(--font-head);text-transform:uppercase;letter-spacing:-.01em;color:var(--cream);-webkit-text-stroke:0;text-shadow:0 0 0 var(--black),.045em .045em 0 var(--black),-.025em -.02em 0 var(--black),.025em -.02em 0 var(--black),-.025em .02em 0 var(--black),.09em .09em 0 rgba(23,19,32,.22);transform:skewX(-6deg)}
+.hero.ink{color:var(--ink)}
+.hero.dark{color:var(--black);text-shadow:.045em .045em 0 var(--cream),.025em .025em 0 var(--cream),-.025em -.02em 0 var(--cream),.025em -.02em 0 var(--cream),-.025em .02em 0 var(--cream)}
+
+/* ---- the kit, in material ---- */
+/* paint: a white photograph of paint, tinted by masking it with itself and filling with the ink */
+.paint{position:absolute;inset:0;z-index:-1;background:var(--pc,var(--ink));-webkit-mask:var(--pm) center/100% 100% no-repeat;mask:var(--pm) center/100% 100% no-repeat;pointer-events:none}
+.paint::after{content:"";position:absolute;inset:0;background:var(--pm) center/100% 100% no-repeat;mix-blend-mode:soft-light;opacity:.9}
+.paint.gloss::before{content:"";position:absolute;inset:0;background:var(--pm) center/100% 100% no-repeat;mix-blend-mode:screen;opacity:.35}
+/* the stroke button: the photographed stroke, tinted your ink, the label upright on it */
+.btn.play,.ybtn,.playbtn,.stroke{color:#fff;min-height:60px;padding:10px 26px 14px;font:900 20px/1 var(--font-head);text-transform:uppercase;letter-spacing:.02em;text-shadow:0 2px 0 rgba(0,0,0,.35),0 0 12px rgba(0,0,0,.2);filter:drop-shadow(3px 5px 0 rgba(23,19,32,.28))}
+.btn.play::before,.ybtn::before,.playbtn::before,.stroke::before{content:"";position:absolute;inset:-6% -2% -34% -2%;z-index:-1;background:var(--ink);clip-path:none;border-radius:0;box-shadow:none;-webkit-mask:url(art/m_stroke.webp) center/100% 100% no-repeat;mask:url(art/m_stroke.webp) center/100% 100% no-repeat;transform:none;transition:filter .12s}
+.btn.play::after,.ybtn::after,.playbtn::after,.stroke::after{content:"";position:absolute;inset:-6% -2% -34% -2%;z-index:-1;background:url(art/m_stroke.webp) center/100% 100% no-repeat;mix-blend-mode:multiply;opacity:1;left:-2%;bottom:-34%;width:auto;height:auto;border-radius:0;box-shadow:none}
+.btn.play:active,.ybtn:active,.playbtn:active,.stroke:active{transform:translateY(3px) scale(.985)}
+.btn.play.sm{min-height:54px;font-size:18px}
+.btn.play:disabled{color:rgba(255,255,255,.7)}
+.btn.play:disabled::before{background:#8E8798}
+@media (hover:hover){.btn.play:hover::before,.ybtn:hover::before,.playbtn:hover::before,.stroke:hover::before{filter:brightness(1.08)}}
+/* the tape button: real masking tape */
+.btn::before,.ugo::before{background:url(art/m_tape1.webp) center/100% 100% no-repeat;border-radius:0;box-shadow:none;clip-path:none;transform:rotate(-1.2deg);opacity:.98}
+.btn:nth-child(2n)::before{background-image:url(art/m_tape2.webp);transform:rotate(1deg)}
+.btn.play:nth-child(2n)::before{background:var(--ink);transform:none}
+.btn.play:nth-child(2n):disabled::before{background:#8E8798}
+.btn,.card .btn,.sheet .btn,#end .btn,.row .btn{color:#2A2437;font:900 15px/1 var(--font-head);text-transform:uppercase;letter-spacing:.04em;min-height:50px;filter:drop-shadow(0 2px 0 rgba(23,19,32,.16))}
+/* placards and sheets: torn paper */
+.card{background:#F6F1E8 url(art/m_paperbg.webp) center/420px;border:0;border-radius:3px;box-shadow:0 1px 0 rgba(255,255,255,.6) inset,6px 8px 0 rgba(23,19,32,.22),0 24px 48px rgba(6,2,16,.3)}
+.card::before{background:url(art/m_tape3.webp) center/100% 100% no-repeat;width:120px;height:34px;margin-left:-60px;top:-16px;transform:rotate(-2.5deg);clip-path:none;opacity:.97}
+.sheet{background:#F6F1E8 url(art/m_paperbg.webp) center/420px;border:0}
+.sheet::before{background:url(art/m_tape3.webp) center/100% 100% no-repeat;width:120px;height:34px;margin-left:-60px;top:-16px;transform:rotate(2deg);clip-path:none}
+.ctitle{font:900 30px/.95 var(--font-head);text-transform:uppercase;color:var(--black);transform:skewX(-6deg);text-shadow:.04em .04em 0 var(--cream),.08em .08em 0 var(--black)}
+.lhead{font:800 11px/1 var(--font-ui);letter-spacing:.16em}
+.seg{background:#E6DECF;border:0;border-radius:6px;box-shadow:inset 0 2px 4px rgba(23,19,32,.22),0 1px 0 rgba(255,255,255,.7)}
+.seg button{border-radius:4px;font:900 13.5px/1 var(--font-head)}
+.seg button[aria-pressed="true"],.seg button[aria-selected="true"],.seg.lcats button[aria-selected="true"]{color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.3);box-shadow:inset 0 2px 0 rgba(255,255,255,.3),0 2px 0 rgba(23,19,32,.3)}
+.modal{background:rgba(23,19,32,.5);backdrop-filter:blur(6px) saturate(.9);-webkit-backdrop-filter:blur(6px) saturate(.9)}
+/* the swatch card: a paint chip */
+.swatch{border:0;border-radius:4px;background:#fff;box-shadow:0 1px 0 rgba(255,255,255,.8) inset,3px 4px 0 rgba(23,19,32,.22)}
+.swatch:active{box-shadow:1px 2px 0 rgba(23,19,32,.22)}
+.swc{border-radius:3px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08),inset 0 3px 0 rgba(255,255,255,.3),inset 0 -3px 0 rgba(0,0,0,.12)}
+.swlvl{background:var(--gold);border:0;box-shadow:inset 0 -2px 0 rgba(0,0,0,.18),0 2px 0 rgba(23,19,32,.25)}
+.swt b{font-size:14.5px}
+.swt .repbar{background:#E6DECF;box-shadow:inset 0 1px 2px rgba(23,19,32,.25)}
+/* glyph buttons: ink black chips */
+.ib,.ibtn,.ib2{background:var(--black);border-radius:8px;box-shadow:inset 0 1px 0 rgba(255,255,255,.14),3px 4px 0 rgba(23,19,32,.22)}
+.ib:active,.ibtn:active,.ib2:active{box-shadow:inset 0 1px 0 rgba(255,255,255,.14),1px 1px 0 rgba(23,19,32,.22)}
+/* the red dot: the sticker */
+.reddot{width:18px;height:18px;border:0;background:url(art/m_dot.webp) center/contain no-repeat;box-shadow:none}
+/* tape label */
+.tape{background:url(art/m_tape3.webp) center/100% 100% no-repeat;clip-path:none;box-shadow:none;padding:7px 16px 8px;color:#2A2437}
+
+/* ---- the Studio, as a set: paper with grain, flecks drifting, your blob huge on a real stroke, a long shadow ---- */
+.mhome.lobby{padding-top:max(8px,env(safe-area-inset-top))}
+.lobbyfx{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.lobbyfx{display:none}
+.ltop,.lcol,.lbot{position:relative;z-index:1}
+/* the plates: torn paper cards taped up */
+.plate{width:68px;padding:12px 4px 8px;border:0;border-radius:2px;background:#F8F4EC url(art/m_paperbg.webp) center/300px;box-shadow:0 1px 0 rgba(255,255,255,.7) inset,3px 4px 0 rgba(23,19,32,.2);font:900 9.5px/1.1 var(--font-head)}
+.plate::before{background:url(art/m_tape3.webp) center/100% 100% no-repeat;width:46px;height:16px;margin-left:-23px;top:-8px;clip-path:none;transform:rotate(-4deg)}
+.plate:nth-child(2)::before{transform:rotate(3deg)}
+.plate:nth-child(3)::before{transform:rotate(-2deg)}
+.plate:active{box-shadow:0 1px 0 rgba(255,255,255,.7) inset,1px 1px 0 rgba(23,19,32,.2)}
+.plate.hot{box-shadow:0 1px 0 rgba(255,255,255,.7) inset,3px 4px 0 rgba(23,19,32,.2),0 0 0 3px var(--ink)}
+.plate .pbadge{border:0;color:#fff;box-shadow:0 2px 0 rgba(23,19,32,.3)}
+.plate.stat b{font-size:18px}
+/* the lineup: chips */
+.lineup .lu{border:0;border-radius:99px;background:#fff;box-shadow:3px 3px 0 rgba(23,19,32,.2);padding:3px 11px 3px 3px}
+.lineup .lu.me{color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.3)}
+.lineup .lu.me .bico{border-color:rgba(0,0,0,.35)}
+.lineup .vs{font-family:var(--font-head);font-weight:900;font-style:italic;font-size:14px;opacity:.6}
+/* the exhibition card: a Polaroid of the canvas */
+.show{border:0;border-radius:2px;background:#fff;padding:6px 10px 6px 6px;box-shadow:0 1px 0 rgba(255,255,255,.8) inset,3px 4px 0 rgba(23,19,32,.22)}
+.show:active{box-shadow:1px 2px 0 rgba(23,19,32,.22)}
+.sthumb{border:0;border-radius:1px;width:66px;height:50px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
+.stxt small{letter-spacing:.14em}
+.stxt b{font-size:14.5px}
+/* the Play stroke: bigger, pulsing with a gloss sweep */
+.playbtn{min-width:150px;min-height:72px;padding:10px 26px 16px}
+.playbtn .pbl{font:400 34px/1 var(--font-display);letter-spacing:.01em;padding-top:2px;color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.3)}
+.playbtn::before{animation:playbreath 2.8s ease-in-out infinite}
+@keyframes playbreath{0%,100%{filter:brightness(1)}50%{filter:brightness(1.1)}}
+.playbtn .sheen{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;-webkit-mask:url(art/m_stroke.webp) center/100% 100% no-repeat;mask:url(art/m_stroke.webp) center/100% 100% no-repeat;inset:-6% -2% -34% -2%}
+.playbtn .sheen::after{content:"";position:absolute;top:-20%;bottom:-20%;left:-30%;width:26%;background:linear-gradient(100deg,rgba(255,255,255,0),rgba(255,255,255,.55) 50%,rgba(255,255,255,0));transform:skewX(-20deg);animation:sheen 3.2s ease-in-out infinite}
+@keyframes sheen{0%,55%{left:-30%}100%{left:130%}}
+/* what the slime says: a hand-cut paper bubble */
+.lsay{border:0;border-radius:16px;background:#fff;box-shadow:3px 4px 0 rgba(23,19,32,.2);font:800 14px/1.25 var(--font-ui)}
+.lsay::after{border:0;background:#fff;box-shadow:2px 2px 0 rgba(23,19,32,.2)}
+/* motion: the lobby pieces roll in from their sides and settle */
+.ltop{animation:rollin-t .55s var(--eo) both}
+.lcol.left{animation:rollin-l .55s .06s var(--eo) both}
+.lcol.right{animation:rollin-r .55s .1s var(--eo) both}
+.lbot{animation:rollin-b .6s .14s var(--eo) both}
+.mhome.lobby .logo{animation:stampin .6s .1s var(--eo) both}
+@keyframes rollin-t{from{opacity:0;transform:translateY(-40px) rotate(-1deg)}}
+@keyframes rollin-l{from{opacity:0;transform:translateX(-60px) rotate(-4deg)}}
+@keyframes rollin-r{from{opacity:0;transform:translateX(60px) rotate(4deg)}}
+@keyframes rollin-b{from{opacity:0;transform:translateY(60px)}}
+@keyframes stampin{0%{opacity:0;transform:scale(1.8) rotate(-6deg)}60%{opacity:1;transform:scale(.96) rotate(1deg)}100%{transform:none}}
+.plate{animation:plateidle 4s ease-in-out infinite}
+.plate:nth-child(2){animation-delay:-1.3s}.plate:nth-child(3){animation-delay:-2.6s}
+@keyframes plateidle{0%,100%{transform:rotate(0)}50%{transform:rotate(.6deg) translateY(-1px)}}
+.menu.leaving .ltop{animation:rollout-t .35s var(--ei) both}
+.menu.leaving .lcol.left{animation:rollout-l .35s var(--ei) both}
+.menu.leaving .lcol.right{animation:rollout-r .35s var(--ei) both}
+.menu.leaving .lbot{animation:rollout-b .35s var(--ei) both}
+.menu.leaving .logo{animation:rollout-t .35s var(--ei) both}
+@keyframes rollout-t{to{opacity:0;transform:translateY(-50px)}}
+@keyframes rollout-l{to{opacity:0;transform:translateX(-70px) rotate(-4deg)}}
+@keyframes rollout-r{to{opacity:0;transform:translateX(70px) rotate(4deg)}}
+@keyframes rollout-b{to{opacity:0;transform:translateY(70px)}}
+@media (min-aspect-ratio:1/1){.mhome.lobby .logo{display:none}}
+/* the logo: a hero lockup, not a sticker */
+.mhome.lobby .logo .tcard{filter:drop-shadow(4px 6px 0 rgba(23,19,32,.22)) drop-shadow(0 18px 24px rgba(23,19,32,.18))}
+
+/* ---- the Gallery, as a set: a lit wall ---- */
+.mworld{background:#17131F url(art/m_wall.webp) center top/cover no-repeat}
+.mworld::before{background:none}
+.whead h2{font:900 clamp(26px,7vw,34px)/.95 var(--font-head);transform:skewX(-6deg);text-shadow:.04em .04em 0 var(--black),.09em .09em 0 rgba(0,0,0,.5)}
+.frame{padding:9px;background:#fff;box-shadow:0 0 0 7px #1C1822,0 0 0 8px #3A3344,10px 14px 0 rgba(0,0,0,.45),0 30px 50px rgba(0,0,0,.5)}
+.world[aria-pressed="true"] .frame{box-shadow:0 0 0 7px #1C1822,0 0 0 8px #3A3344,0 0 0 12px var(--ink),12px 18px 0 rgba(0,0,0,.5),0 40px 60px rgba(0,0,0,.55)}
+.plaque{background:#fff url(art/m_paperbg.webp) center/300px;border:0;border-radius:2px;box-shadow:3px 4px 0 rgba(0,0,0,.45)}
+.stg .sfr{background:#fff;padding:5px;box-shadow:0 0 0 5px #1C1822,0 0 0 6px #3A3344,6px 8px 0 rgba(0,0,0,.45)}
+.stg[aria-pressed="true"] .sfr{box-shadow:0 0 0 5px #1C1822,0 0 0 6px #3A3344,0 0 0 9px var(--ink),8px 10px 0 rgba(0,0,0,.5)}
+.stg b{background:#fff;border:0;box-shadow:3px 4px 0 rgba(0,0,0,.45)}
+.mworld .seg{background:rgba(255,255,255,.08);box-shadow:inset 0 2px 4px rgba(0,0,0,.5),0 1px 0 rgba(255,255,255,.08)}
+.ribbon{background:url(art/m_tape3.webp) center/100% 100% no-repeat;padding:8px 18px 9px;box-shadow:none;transform:translateX(-50%) rotate(-2deg)}
+
+/* ---- the opening night, as a set ---- */
+.vsx{background:#17131F url(art/m_wall.webp) center top/cover no-repeat}
+.vsx .vband{-webkit-mask:url(art/m_stroke2.webp) center/100% 100% no-repeat;mask:url(art/m_stroke2.webp) center/100% 100% no-repeat;height:30%;left:-14%;right:-14%;opacity:1}
+.vsx .vband::after{content:"";position:absolute;inset:0;background:url(art/m_stroke2.webp) center/100% 100% no-repeat;mix-blend-mode:soft-light}
+.vsx .vband.top{top:-12%}
+.vsx .vband.bot{bottom:-12%}
+.vsp .swc{border:0;border-radius:4px;box-shadow:0 0 0 4px #fff,8px 10px 0 rgba(0,0,0,.5)}
+.vsp b{font:900 clamp(18px,5vw,26px)/1 var(--font-head);transform:skewX(-6deg);text-shadow:.04em .04em 0 var(--black),.09em .09em 0 rgba(0,0,0,.5)}
+.vsbig{font:400 clamp(60px,18vw,120px)/1 var(--font-display);color:var(--ink);text-shadow:.05em .05em 0 var(--cream),.1em .1em 0 var(--black);transform:rotate(-8deg) skewX(-4deg)}
+.vstitle{font:800 15px/1.3 var(--font-ui)}
+
+/* ---- the victory: the stamp ---- */
+.vplace{color:#fff;padding:.1em .3em .08em .24em}
+.vplace::before{background:var(--black);transform:rotate(-3deg) skewX(-6deg);border-radius:.04em;box-shadow:.06em .08em 0 rgba(0,0,0,.35)}
+.vtag{border:0;background:#fff url(art/m_paperbg.webp) center/300px;box-shadow:3px 4px 0 rgba(23,19,32,.5);font-size:16px}
+.vsub,.vcard{border:0;background:#fff url(art/m_paperbg.webp) center/300px;box-shadow:3px 4px 0 rgba(23,19,32,.5)}
+.vcard.me{box-shadow:3px 4px 0 rgba(23,19,32,.5),0 0 0 3px var(--ink)}
+.vname{color:#fff}
+.vname i{text-shadow:.03em .03em 0 var(--black),.06em .06em 0 var(--black),.1em .12em 0 var(--vc),calc(.1em + 3px) calc(.12em + 4px) 0 var(--black)}
+/* ---- the results: the wall, the placard ---- */
+#end{background:#17131F url(art/m_wall.webp) center top/cover no-repeat;box-shadow:0 -1px 0 rgba(255,255,255,.1),0 24px 48px rgba(6,2,16,.6)}
+#end::before{background:url(art/m_tape3.webp) center/100% 100% no-repeat;width:120px;height:34px;margin-left:-60px;top:-16px;transform:rotate(-2deg);clip-path:none}
+.rtitle{font-size:clamp(40px,12vw,58px);transform:skewX(-9deg) rotate(-3deg);color:#fff;text-shadow:.04em .04em 0 var(--black),.09em .09em 0 rgba(0,0,0,.5)}
+.rsplat{-webkit-mask:url(art/m_splat.webp) center/100% 100% no-repeat;mask:url(art/m_splat.webp) center/100% 100% no-repeat;background:var(--ink);fill:none;left:-18%;top:-75%;width:136%;height:250%}
+.rsplat path,.rsplat circle{display:none}
+.rtitle.lose .rsplat{background:#5A1420}
+.rtitle.draw .rsplat{background:#4A4259}
+.brow::before{border:0;background:linear-gradient(90deg,var(--c) 0 var(--cap),rgba(0,0,0,.25) var(--cap) calc(var(--cap) + 2px),#fff calc(var(--cap) + 2px));box-shadow:3px 4px 0 rgba(0,0,0,.45)}
+.brow.you::before{box-shadow:3px 4px 0 rgba(0,0,0,.45),0 0 0 3px var(--ink)}
+.reprow{border:0;background:#fff url(art/m_paperbg.webp) center/300px;box-shadow:3px 4px 0 rgba(0,0,0,.45)}
+.commdone .cd{border:0;box-shadow:3px 4px 0 rgba(0,0,0,.45)}
+.jbar{border:0;background:rgba(255,255,255,.12);box-shadow:inset 0 2px 4px rgba(0,0,0,.5),0 1px 0 rgba(255,255,255,.1)}
+.jbar i+i{border-left:3px solid #17131F}
+#end .btn::before{background:url(art/m_tape1.webp) center/100% 100% no-repeat}
+#end .btn.play::before,#end .btn.play:nth-child(2n)::before{background:var(--ink);transform:none}
+#end .btn:nth-child(2n)::before{background-image:url(art/m_tape2.webp)}
+#end .btn,#end .row .btn{color:#2A2437}
+#end .btn.play,.card .btn.play,.sheet .btn.play{color:#fff}
+/* ---- the pause: a stamp on the canvas ---- */
+#pause .card{background:#fff url(art/m_paperbg.webp) center/420px;transform:rotate(-1.5deg)}
+#pause .ctitle{font-size:34px}
+/* ---- the name: a name badge ---- */
+#nameModal .card{background:#fff;padding-top:54px}
+#nameModal .card::before{background:var(--ink);width:100%;height:40px;margin-left:-50%;top:0;left:50%;transform:none;border-radius:3px 3px 0 0;opacity:1}
+#nameModal .ctitle{position:absolute;top:9px;left:0;right:0;color:#fff;font-size:18px;letter-spacing:.08em;transform:none;text-shadow:none}
+#nameModal .cnote{margin-top:0}
+.namefield input{border:0;background:#fff;box-shadow:inset 0 0 0 2px #E6DECF,inset 0 3px 0 rgba(0,0,0,.06);font-size:30px}
+.namefield input:focus{box-shadow:inset 0 0 0 3px var(--ink)}
+.dice{border:0;background:#F3EEE4;box-shadow:3px 3px 0 rgba(23,19,32,.2)}
+/* ---- settings: a clipboard ---- */
+#setModal .card{width:min(100%,340px);aspect-ratio:432/695;background:url(art/m_clip.webp) center/100% 100% no-repeat;padding:27% 13% 12%;gap:10px;box-shadow:none;filter:drop-shadow(8px 12px 0 rgba(23,19,32,.22)) drop-shadow(0 24px 30px rgba(6,2,16,.25));overflow:visible}
+#setModal .card::before{display:none}
+#setModal .ctitle{font-size:24px}
+#setModal .gnote{min-height:0;font-size:13px}
+@media (max-height:520px){#setModal .card{aspect-ratio:auto;background:#F6F1E8 url(art/m_paperbg.webp) center/420px;padding:22px 18px 18px;filter:none;box-shadow:6px 8px 0 rgba(23,19,32,.22)}#setModal .card::before{display:block}}
+/* ---- how to play: Polaroids ---- */
+#howModal .card{background:none;box-shadow:none;padding:0;overflow:visible;max-height:none}
+#howModal .card::before{display:none}
+#howModal .ctitle{color:#fff;text-shadow:.04em .04em 0 var(--black),.09em .09em 0 rgba(0,0,0,.5);margin-bottom:4px}
+.pols{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding:18px 6px 24px;margin:0 -16px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.pols::-webkit-scrollbar{display:none}
+.pol{flex:0 0 min(78vw,290px);scroll-snap-align:center;display:grid;grid-template-rows:auto 1fr;gap:10px;box-sizing:border-box;padding:12px 12px 16px;background:#fff;border-radius:2px;box-shadow:6px 8px 0 rgba(23,19,32,.35),0 20px 40px rgba(0,0,0,.4);transform:rotate(var(--r,0deg));color:var(--black)}
+.pol:nth-child(odd){--r:-1.6deg}.pol:nth-child(even){--r:1.4deg}
+.pol .pic{aspect-ratio:1/.78;border-radius:1px;background:#1A1430;display:grid;place-items:center;overflow:hidden;position:relative}
+.pol .pic .ink{position:absolute;inset:0;background:var(--pc,var(--ink));-webkit-mask:url(art/m_splat2.webp) center/70% no-repeat;mask:url(art/m_splat2.webp) center/70% no-repeat;opacity:.95}
+.pol .pic .ink.stroke{-webkit-mask-image:url(art/m_stroke.webp);mask-image:url(art/m_stroke.webp);-webkit-mask-size:90%;mask-size:90%}
+.pol .pic .ink.drip{-webkit-mask-image:url(art/m_drip.webp);mask-image:url(art/m_drip.webp);-webkit-mask-size:auto 90%;mask-size:auto 90%;-webkit-mask-position:center top;mask-position:center top}
+.pol .pic .glyph{position:relative;font:400 64px/1 var(--font-display);color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.4)}
+.pol .pic .glyph.sm{font-size:40px}
+.pol .pic .cap{position:absolute;left:0;right:0;bottom:0;padding:6px 10px;background:rgba(23,19,32,.75);color:#fff;font:800 11px/1 var(--font-ui);letter-spacing:.14em;text-transform:uppercase}
+.pol b{display:block;font:900 15px/1.1 var(--font-head);text-transform:uppercase;transform:skewX(-6deg)}
+.pol p{margin:4px 0 0;font:700 13px/1.4 var(--font-ui);color:#3E3754;text-wrap:pretty}
+.pol .kbd{display:inline-block;padding:2px 7px;border-radius:4px;background:var(--black);color:#fff;font:900 10.5px/1.4 var(--font-ui);letter-spacing:.06em;text-transform:uppercase;vertical-align:1px}
+#howModal .btn.play{width:min(100%,300px);justify-self:center}
+#howModal .ver{color:rgba(255,255,255,.6)}
+/* ---- the customizer: the wardrobe sheet ---- */
+.lookp .ctitle{font-size:26px}
+.ltile{border:0;background:#fff;box-shadow:2px 3px 0 rgba(23,19,32,.14)}
+.ltile[aria-pressed="true"]{box-shadow:3px 4px 0 rgba(23,19,32,.2),0 0 0 3px var(--ink)}
+.ltile.locked{background:#EFE9DD;box-shadow:none}
+.lnbtn{border:0;box-shadow:3px 4px 0 rgba(23,19,32,.2)}
+/* ---- loading: the canvas being primed, a drip running down ---- */
+.boot{background:#F6F1E8 url(art/m_paperbg.webp) center/420px}
+.boot::before{display:none}
+.bootdrip{position:absolute;left:50%;top:-6%;width:min(30vw,150px);aspect-ratio:450/688;margin-left:min(-15vw,-75px);background:var(--ink);-webkit-mask:url(art/m_drip.webp) center/100% 100% no-repeat;mask:url(art/m_drip.webp) center/100% 100% no-repeat;transform-origin:50% 0;animation:bootdrip 5.5s cubic-bezier(.3,.1,.3,1) both;opacity:.95}
+@keyframes bootdrip{0%{transform:scaleY(0)}100%{transform:scaleY(1)}}
+.bootbar{border:0;border-radius:3px;background:#fff;box-shadow:inset 0 0 0 2px #E6DECF,3px 3px 0 rgba(23,19,32,.18)}
+.bootbar i{background:var(--ink)}
+.bootdrop{display:none}
+.boot .boottc{filter:drop-shadow(4px 6px 0 rgba(23,19,32,.2))}
+.bootmsg{font:900 14px/1.4 var(--font-head);text-transform:uppercase;letter-spacing:.1em;color:#2A2437}
+/* ---- the orientation pick ---- */
+.orient{background:#F6F1E8 url(art/m_paperbg.webp) center/420px}
+.orient::before{display:none}
+.otitle{transform:skewX(-6deg);text-shadow:.04em .04em 0 var(--cream),.08em .08em 0 var(--black)}
+.ocard{border:0;background:#fff;box-shadow:0 1px 0 rgba(255,255,255,.8) inset,5px 6px 0 rgba(23,19,32,.22)}
+.ocard::before{background:url(art/m_tape3.webp) center/100% 100% no-repeat;width:76px;height:22px;margin-left:-38px;top:-11px;clip-path:none}
+.ocard[aria-checked="true"]{box-shadow:0 1px 0 rgba(255,255,255,.8) inset,7px 8px 0 rgba(23,19,32,.22),0 0 0 3px var(--ink)}
+.ocheck{border:0;background:url(art/m_dot.webp) center/contain no-repeat;width:34px;height:34px;box-shadow:none}
+.ocheck svg{display:none}
+/* ---- the HUD: ink chips ---- */
+.score{background:rgba(23,19,32,.88);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),3px 4px 0 rgba(23,19,32,.3)}
+.hud .ib{background:rgba(23,19,32,.88)}
+/* ---- new item: wet paint ---- */
+.nikick{font:900 14px/1 var(--font-head);letter-spacing:.2em;text-transform:uppercase;color:var(--ink)}
+@media (prefers-reduced-motion:reduce){.lobbyfx i,.playbtn::before,.playbtn .sheen::after,.plate,.ltop,.lcol,.lbot,.mhome.lobby .logo,.bootdrip{animation:none}}
 </style>
 
 <div id="stage">
@@ -1145,6 +1383,7 @@ kbd{background:#fff;border-color:var(--black)}
 
   <section class="menu" id="menu" data-page="home">
     <div class="mhome lobby" id="mHome">
+      <div class="lobbyfx" aria-hidden="true"><i></i><i></i></div>
       <div class="ltop" id="lobbyTop">
         <button class="swatch me nametag" id="nameBtn" type="button" aria-label="Change your name"><span class="swc"><span class="nface" id="nameFace" aria-hidden="true"></span></span><span class="swt"><b id="nameShow">Player</b><small id="repName">Unknown</small><span class="repbar" aria-hidden="true"><i id="repFill"></i></span></span><span class="swlvl" id="repLvl" aria-label="Reputation level">1</span></button>
         <div class="ltools"><span class="tape exhib" id="seasonTag"><b>Season 1</b> Halloween</span><button class="ib2 setb" id="setBtn" type="button" aria-label="Settings" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.7 12.6L22.2 13.9L20.6 17.9L17.9 17.0L17.0 17.9L17.9 20.6L13.9 22.2L12.6 19.7L11.4 19.7L10.1 22.2L6.1 20.6L7.0 17.9L6.1 17.0L3.4 17.9L1.8 13.9L4.3 12.6L4.3 11.4L1.8 10.1L3.4 6.1L6.1 7.0L7.0 6.1L6.1 3.4L10.1 1.8L11.4 4.3L12.6 4.3L13.9 1.8L17.9 3.4L17.0 6.1L17.9 7.0L20.6 6.1L22.2 10.1L19.7 11.4ZM15.2 12a3.2 3.2 0 1 0 -6.4 0a3.2 3.2 0 1 0 6.4 0Z" fill="currentColor" fill-rule="evenodd"/></svg></button></div>
@@ -1163,7 +1402,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="lineup" id="lineup" aria-label="Who's in the exhibition"></div>
         <div class="lgo" id="mCta">
           <button class="show" id="stageBtn" type="button" aria-label="Pick the exhibition"><img class="sthumb" id="stageThumb" alt=""><span class="stxt"><small>Exhibition</small><b id="lobbyStage">The Studio</b><em id="lobbyMode">1v1</em></span><span class="sarrow" aria-hidden="true">&#9656;</span></button>
-          <button class="playbtn" id="homePlay" type="button"><span class="pbl">Play</span></button>
+          <button class="playbtn" id="homePlay" type="button"><span class="sheen" aria-hidden="true"></span><span class="pbl">Play</span></button>
         </div>
       </div>
     </div>
@@ -1189,18 +1428,18 @@ kbd{background:#fff;border-color:var(--black)}
   <div class="modal" id="howModal" hidden>
     <div class="card" role="dialog" aria-modal="true" aria-labelledby="howTitle">
       <h2 class="ctitle" id="howTitle">How to play</h2>
-      <ul class="rules">
-        <li><span class="dot hand">↔</span><span id="howCtl">Drag sideways to steer. Tap to jump, swipe up to roll. Hold to stop, then pull down and let go to fling. The arrow button pounds.</span></li>
-        <li><span class="dot holy"></span><span id="howGoal"></span></li>
-        <li><span class="dot ink"></span><span id="howInk"></span></li>
-        <li><span class="dot hand">↓</span><span id="howRoll"></span></li>
-        <li><span class="dot hand">➚</span><span id="howFling"></span></li>
-        <li><span class="dot hand">⇅</span><span id="howBurst"></span></li>
-        <li><span class="dot sun"></span><span id="howSun"></span></li>
-        <li><span class="dot orbd"></span><span id="howOrb"></span></li>
-      </ul>
+      <div class="pols" id="pols">
+        <div class="pol"><div class="pic"><span class="ink stroke"></span><span class="glyph">&#8596;</span><span class="cap">Move</span></div><div><b>Steer, jump, roll</b><p id="howCtl">Drag sideways to steer. Tap to jump, swipe up to roll. Hold to stop, then pull down and let go to fling. The arrow button pounds.</p></div></div>
+        <div class="pol"><div class="pic"><span class="ink"></span><span class="glyph sm">%</span><span class="cap">The goal</span></div><div><b>Own the canvas</b><p id="howGoal"></p></div></div>
+        <div class="pol"><div class="pic"><span class="ink drip"></span><span class="cap">Your paint</span></div><div><b>Stay wet</b><p id="howInk"></p></div></div>
+        <div class="pol"><div class="pic" style="--pc:#2E9BFF"><span class="ink"></span><span class="glyph">&#8595;</span><span class="cap">Contact</span></div><div><b>Roll and pound</b><p id="howRoll"></p></div></div>
+        <div class="pol"><div class="pic"><span class="ink stroke"></span><span class="glyph">&#10138;</span><span class="cap">Fling</span></div><div><b>Fling and missile</b><p id="howFling"></p></div></div>
+        <div class="pol"><div class="pic"><span class="ink drip"></span><span class="glyph">&#8645;</span><span class="cap">Refill</span></div><div><b>Hide and burst</b><p id="howBurst"></p></div></div>
+        <div class="pol"><div class="pic" style="--pc:#F29A3A"><span class="ink"></span><span class="glyph sm">&#9728;</span><span class="cap">Weather</span></div><div><b>Heat and rain</b><p id="howSun"></p></div></div>
+        <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
+      </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 1.0</p>
+      <p class="ver">Version 73</p>
     </div>
   </div>
 
@@ -1298,7 +1537,7 @@ kbd{background:#fff;border-color:var(--black)}
     </div>
   </div>
   <div class="iris" id="iris" hidden aria-hidden="true"><i></i><b id="irisText"></b></div>
-  <div class="boot" id="boot" role="status"><span class="tcard boottc" aria-hidden="true"></span><span class="bootdrop" aria-hidden="true"></span><div class="bootbar" aria-hidden="true"><i id="bootFill"></i></div><p class="bootmsg" id="bootMsg">Loading</p></div>
+  <div class="boot" id="boot" role="status"><span class="bootdrip" aria-hidden="true"></span><span class="tcard boottc" aria-hidden="true"></span><span class="bootdrop" aria-hidden="true"></span><div class="bootbar" aria-hidden="true"><i id="bootFill"></i></div><p class="bootmsg" id="bootMsg">Loading</p></div>
 
   <section class="victory" id="victory" hidden aria-live="polite">
     <div class="vtop"><b class="vplace" id="vPlace">1<small>st</small></b><span class="vtag" id="vTag"><i class="reddot" id="vDot" hidden></i><span id="vTagTxt">Winner</span></span></div>
@@ -10919,6 +11158,12 @@ function vicName(name) {
   let h = '', k = 0; for (const l of lines) { h += '<span class="ln">'; for (const ch of l) h += ch === ' ' ? ' ' : '<i style="animation-delay:' + (0.48 + 0.055 * k++).toFixed(3) + 's">' + ch.replace(/&/g, '&amp;') + '</i>'; h += '</span>'; }
   el.innerHTML = h; el.setAttribute('aria-label', name);
 }
+// a splat bursting behind an element (the Ludo sprite sheet, 6x6 frames, played once)
+function stampBurst(el, delay) {
+  if (reduceMotion) return; const b = document.createElement('i'); b.className = 'burst'; b.style.cssText = 'position:absolute;left:50%;top:50%;width:260px;height:146px;margin:-73px 0 0 -130px;z-index:-1;pointer-events:none;background:url(art/splat_burst.webp) 0 0/1560px 876px no-repeat;filter:hue-rotate(0)';
+  const host = el.parentElement; if (getComputedStyle(host).position === 'static') host.style.position = 'relative'; host.insertBefore(b, el);
+  let f = 0; const t0 = performance.now() + (delay || 300); const step = () => { const t = performance.now(); if (t < t0) return requestAnimationFrame(step); f = Math.min(35, Math.floor((t - t0) / 42)); b.style.backgroundPosition = (-(f % 6) * 260) + 'px ' + (-Math.floor(f / 6) * 146) + 'px'; if (f < 35) requestAnimationFrame(step); else setTimeout(() => b.remove(), 400); }; requestAnimationFrame(step);
+}
 function vicTag(t, dot) { $('vTagTxt').textContent = t; $('vDot').hidden = !dot; }
 function startVictory() {
   if (vic || state !== 'dead') return;
@@ -10947,7 +11192,7 @@ function startVictory() {
   else { pl.className = 'vplace'; pl.innerHTML = '1<small>st</small>'; vicTag(lead === P ? 'Sold' : me.place === 2 ? 'You came 2nd' : 'You came ' + me.place + (me.place === 3 ? 'rd' : 'th'), lead === P); vicName(nameOf(lead)); $('vSub').innerHTML = '<b>' + board[0].pct + '%</b> of the canvas'; }
   $('vCards').innerHTML = solo ? '' : board.filter(e => !feat.includes(e.D)).map((e, i) => '<div class="vcard' + (e.D === P ? ' me' : '') + '" style="--cc:' + (e.D === P ? 'var(--ink-hi)' : e.D === H ? 'var(--holy-hi)' : 'var(--wolf-hi)') + ';animation-delay:' + (1.15 + i * 0.12).toFixed(2) + 's"><b class="vrank">' + e.place + '</b>' + faceIcon(e.D, false) + '<span><span class="vcn">' + nameOf(e.D) + '</span><b class="vcp">' + e.pct + '%</b></span></div>').join('');
   $('vTap').textContent = 'Tap to see the canvas';
-  vicEl.classList.remove('out'); vicEl.hidden = false; reAdd.delete(bannerEl); bannerEl.classList.remove('on'); vicFit(); flashScreen();
+  stampBurst($('vPlace')); vicEl.classList.remove('out'); vicEl.hidden = false; reAdd.delete(bannerEl); bannerEl.classList.remove('on'); vicFit(); flashScreen();
   hud.classList.add('off'); hintEl.classList.remove('on'); bannerEl.classList.remove('on'); $('vig').className = 'vig';
   const id = runId;
   AU.whoosh(); setTimeout(() => { if (!vic || id !== runId) return; AU.splat(1.2); const won = solo ? info.newBest : info.winner === P; AU.sting(won ? 'win' : info.winner ? 'lose' : 'draw'); setTimeout(() => AU.say(solo ? (info.newBest ? 'best' : 'time') : won ? 'victory' : info.winner ? 'defeat' : 'draw'), 650); if (won) setTimeout(() => AU.vox('yay'), 380); AU.music(won ? 'win' : 'lost'); buzz(won ? [30, 40, 30] : 20); }, 500);
@@ -11073,6 +11318,8 @@ void main(){
   float d = cap(p, f - dir * 1.7, f + dir * 1.7, 0.05) + (hs(floor(p * 260.0)) - 0.5) * 0.006;
   float k = 1.0 - smoothstep(-0.003, 0.003, d); vec3 ink = uCol * (0.93 + 0.14 * smoothstep(0.0, 0.05, -d - 0.035));
   c = mix(c, ink, k);
+  vec2 fp = p * 150.0 + vec2(uTime * 0.6, uTime * 0.25); vec2 fi = floor(fp), ff = fract(fp) - 0.5; float fh = hs(fi); float fl = step(0.985, fh) * (1.0 - smoothstep(0.0, 0.12 + 0.1 * fract(fh * 7.0), length(ff)));
+  c = mix(c, uCol * 0.9, fl * 0.55 * (1.0 - k));
   float v = smoothstep(1.4, 0.5, length((vUv - vec2(0.5, 0.52)) * vec2(1.0, 1.1))); c *= 0.9 + 0.1 * v;
   c *= 1.0 - uDim; gl_FragColor = vec4(c, 1.0);
   #include <colorspace_fragment>
@@ -11105,7 +11352,7 @@ function lobbyFrame() {
   if (!(x1 - x0 > 60) || !(y1 - y0 > 60)) return heroDist;
   const fw = x1 - x0, fh = y1 - y0, tx = (x0 + x1) / 2, feetY = y0 + fh * (land ? 0.82 : 0.8);
   const tall = myLook.head === 'hat' ? 1.25 : myLook.head === 'tophat' ? 1.18 : myLook.head === 'tiara' ? 1.05 : myLook.head === 'pirate' ? 1.12 : myLook.head ? 1.05 : 0.88;
-  const px = Math.min(fh * (land ? 0.68 : 0.64), fw * 0.56, Hh * 0.42);
+  const px = Math.min(fh * (land ? 0.72 : 0.74), fw * 0.6, Hh * 0.48);
   const tv = Math.tan(heroFov() * Math.PI / 360), dist = clamp(tall * Hh / (2 * tv * px), 1.65, 12), ly = 0.36;
   heroDist = dist; hero.mx = P.x; hero.mz = P.z;
   const lookY = feetY - ly * Hh / (2 * tv * dist); heroOff.x = W / 2 - tx; heroOff.y = Hh / 2 - lookY;
@@ -11989,7 +12236,7 @@ function start() {
   if (menuPage === 'worlds') { menuPage = 'home'; menu.dataset.page = 'home'; $('mWorld').hidden = true; $('mHome').hidden = false; }
   if (lookOpen) closeLook();
   if (!mapUsed && GEN.key !== mapKey()) mapUsed = true; // the canvas waiting in the menu was made for another stage, mode or difficulty
-  rollRivalLooks(); AU.init(); AU.music('end');
+  rollRivalLooks(); AU.init(); AU.music('end'); menu.classList.add('leaving'); setTimeout(() => menu.classList.remove('leaving'), 900);
   // through the wipe: a fresh canvas is laid out while it's dark (it says so), then the match opens on your drop forming
   irisClose(() => {
     menu.hidden = true; end.hidden = true; pauseEl.hidden = true; howModal.hidden = true;
@@ -12098,6 +12345,7 @@ function showRep(info) {
     xpFrame(m, (XP_FRAMES - 1) * f); if (u < 1) repAnim = requestAnimationFrame(step); };
   row.classList.remove('lv'); repAnim = requestAnimationFrame(step);
 }
+function countUp(el, to, dur) { const t0 = performance.now(), suf = /%$/.test(el.textContent) ? '%' : ''; const step = () => { const u = clamp((performance.now() - t0) / dur, 0, 1), e = 1 - Math.pow(1 - u, 3); el.textContent = Math.round(to * e) + suf; if (u < 1) requestAnimationFrame(step); }; requestAnimationFrame(step); }
 function judgeGo() {
   const box = $('jNums'), nums = Array.from(box.children), W = box.offsetWidth, last = nums.length - 1;
   for (const b of nums) if (b.dataset.to) b.textContent = b.dataset.to + '%';

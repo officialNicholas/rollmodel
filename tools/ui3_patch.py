@@ -153,6 +153,8 @@ void main(){
   float d = cap(p, f - dir * 1.7, f + dir * 1.7, 0.05) + (hs(floor(p * 260.0)) - 0.5) * 0.006;
   float k = 1.0 - smoothstep(-0.003, 0.003, d); vec3 ink = uCol * (0.93 + 0.14 * smoothstep(0.0, 0.05, -d - 0.035));
   c = mix(c, ink, k);
+  vec2 fp = p * 150.0 + vec2(uTime * 0.6, uTime * 0.25); vec2 fi = floor(fp), ff = fract(fp) - 0.5; float fh = hs(fi); float fl = step(0.985, fh) * (1.0 - smoothstep(0.0, 0.12 + 0.1 * fract(fh * 7.0), length(ff)));
+  c = mix(c, uCol * 0.9, fl * 0.55 * (1.0 - k));
   float v = smoothstep(1.4, 0.5, length((vUv - vec2(0.5, 0.52)) * vec2(1.0, 1.1))); c *= 0.9 + 0.1 * v;
   c *= 1.0 - uDim; gl_FragColor = vec4(c, 1.0);
   #include <colorspace_fragment>
@@ -185,7 +187,7 @@ function lobbyFrame() {
   if (!(x1 - x0 > 60) || !(y1 - y0 > 60)) return heroDist;
   const fw = x1 - x0, fh = y1 - y0, tx = (x0 + x1) / 2, feetY = y0 + fh * (land ? 0.82 : 0.8);
   const tall = myLook.head === 'hat' ? 1.25 : myLook.head === 'tophat' ? 1.18 : myLook.head === 'tiara' ? 1.05 : myLook.head === 'pirate' ? 1.12 : myLook.head ? 1.05 : 0.88;
-  const px = Math.min(fh * (land ? 0.68 : 0.64), fw * 0.56, Hh * 0.42);
+  const px = Math.min(fh * (land ? 0.72 : 0.74), fw * 0.6, Hh * 0.48);
   const tv = Math.tan(heroFov() * Math.PI / 360), dist = clamp(tall * Hh / (2 * tv * px), 1.65, 12), ly = 0.36;
   heroDist = dist; hero.mx = P.x; hero.mz = P.z;
   const lookY = feetY - ly * Hh / (2 * tv * dist); heroOff.x = W / 2 - tx; heroOff.y = Hh / 2 - lookY;
