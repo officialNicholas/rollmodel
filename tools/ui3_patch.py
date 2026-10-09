@@ -138,24 +138,39 @@ rep('''    <div class="board" id="board" role="list" aria-label="Scores"></div>
 # ---------- JS: the Studio render path (your blob on a stroke of your paint, over sketchbook paper, on its own camera layer) ----------
 rep('''// ---------- your painting: a top-down snapshot of the canvas ----------''', r'''// ---------- the Studio: your blob alone on a roller stroke of its own paint, over sketchbook paper. Its own camera layer over a
 // shader backdrop (the way the victory screen draws the winner), so the canvas never shows in the menu ----------
-const lobbyU = { uTime: { value: 0 }, uAsp: { value: 1 }, uDim: { value: 0 }, uCol: { value: new THREE.Color(0xE3122F) }, uFeet: { value: new THREE.Vector2(0.5, 0.3) } };
+const lobbyU = { uTime: { value: 0 }, uDim: { value: 0 }, uCol: { value: new THREE.Color(0xE3122F) }, uInvPV: { value: new THREE.Matrix4() }, uCam: { value: new THREE.Vector3() }, uBlob: { value: new THREE.Vector3() }, uWallN: { value: new THREE.Vector2(0, 1) } };
 const lobbyBg = new THREE.Scene();
+// the studio: a paper floor and a back wall, cast from the live camera so the stroke runs under the blob's feet in true perspective
 lobbyBg.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({ uniforms: lobbyU, depthTest: false, depthWrite: false, vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
-  fragmentShader: `uniform float uTime, uAsp, uDim; uniform vec3 uCol; uniform vec2 uFeet; varying vec2 vUv;
-float cap(vec2 p, vec2 a, vec2 b, float r){ vec2 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0); return length(pa - ba * h) - r; }
+  fragmentShader: `uniform mat4 uInvPV; uniform vec3 uCam, uBlob, uCol; uniform vec2 uWallN; uniform float uTime, uDim; varying vec2 vUv;
 float hs(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(hs(i), hs(i + vec2(1.0, 0.0)), f.x), mix(hs(i + vec2(0.0, 1.0)), hs(i + vec2(1.0, 1.0)), f.x), f.y); }
 void main(){
-  vec2 p = vec2(vUv.x * uAsp, vUv.y);
-  vec3 c = vec3(0.905, 0.855, 0.77);
-  vec2 g = fract(p * 13.0); float ln = 1.0 - smoothstep(0.0, 0.045, min(g.x, g.y)); c *= 1.0 - 0.12 * ln;
-  c *= 0.985 + 0.03 * hs(floor(p * 420.0));
-  vec2 f = vec2(uFeet.x * uAsp, uFeet.y - 0.015), dir = normalize(vec2(1.0, 0.2));
-  float d = cap(p, f - dir * 1.7, f + dir * 1.7, 0.05) + (hs(floor(p * 260.0)) - 0.5) * 0.006;
-  float k = 1.0 - smoothstep(-0.003, 0.003, d); vec3 ink = uCol * (0.93 + 0.14 * smoothstep(0.0, 0.05, -d - 0.035));
-  c = mix(c, ink, k);
-  vec2 fp = p * 150.0 + vec2(uTime * 0.6, uTime * 0.25); vec2 fi = floor(fp), ff = fract(fp) - 0.5; float fh = hs(fi); float fl = step(0.985, fh) * (1.0 - smoothstep(0.0, 0.12 + 0.1 * fract(fh * 7.0), length(ff)));
-  c = mix(c, uCol * 0.9, fl * 0.55 * (1.0 - k));
-  float v = smoothstep(1.4, 0.5, length((vUv - vec2(0.5, 0.52)) * vec2(1.0, 1.1))); c *= 0.9 + 0.1 * v;
+  vec4 w = uInvPV * vec4(vUv * 2.0 - 1.0, 1.0, 1.0); vec3 dir = normalize(w.xyz / w.w - uCam);
+  vec3 n3 = vec3(uWallN.x, 0.0, uWallN.y); vec2 t2 = vec2(-uWallN.y, uWallN.x); vec3 W = uBlob - n3 * 2.4;
+  float dn = dot(dir, n3); float tw = dn < -1e-4 ? dot(W - uCam, n3) / dn : -1.0;
+  float tf = dir.y < -1e-4 ? -uCam.y / dir.y : -1.0;
+  vec3 paper = vec3(0.93, 0.885, 0.80); vec3 c;
+  bool onFloor = tf > 0.0 && (tw <= 0.0 || tf < tw);
+  if (onFloor) {
+    vec3 h = uCam + dir * tf; vec2 q = h.xz;
+    c = paper * (0.985 + 0.03 * hs(floor(q * 60.0)));
+    vec2 g = fract(q * 1.1); float ln = 1.0 - smoothstep(0.0, 0.03, min(g.x, g.y)); c *= 1.0 - 0.045 * ln;
+    vec2 rel = q - uBlob.xz; float along = dot(rel, t2), across = dot(rel, uWallN) + 0.1 * sin(along * 0.9) - 0.1;
+    float edge = (hs(floor(vec2(along * 14.0, 0.0))) - 0.5) * 0.08, d = abs(across) - (0.66 + edge);
+    float bristle = 0.9 + 0.2 * vn(vec2(along * 2.0, across * 24.0)), k = (1.0 - smoothstep(-0.012, 0.012, d)) * (1.0 - smoothstep(7.5, 9.0, abs(along)));
+    c = mix(c, uCol * bristle, k);
+    c *= 0.8 + 0.2 * smoothstep(0.0, 1.6, dot(h - W, n3));
+    vec2 fp = q * 22.0 + vec2(uTime * 0.08, uTime * 0.03); vec2 fi = floor(fp), ff = fract(fp) - 0.5; float fh = hs(fi); float fl = step(0.975, fh) * (1.0 - smoothstep(0.0, 0.12 + 0.1 * fract(fh * 7.0), length(ff)));
+    c = mix(c, uCol * 0.9, fl * 0.5 * (1.0 - k));
+  } else if (tw > 0.0) {
+    vec3 h = uCam + dir * tw; vec2 wq = vec2(dot(h.xz - W.xz, t2), h.y);
+    c = paper * 0.95 * (0.985 + 0.03 * hs(floor(wq * 60.0)));
+    vec2 g = fract(wq * 1.1); float ln = 1.0 - smoothstep(0.0, 0.03, min(g.x, g.y)); c *= 1.0 - 0.035 * ln;
+    float pool = smoothstep(2.8, 0.3, length((wq - vec2(dot(uBlob.xz - W.xz, t2), 1.2)) * vec2(0.75, 1.0)));
+    c *= 0.84 + 0.2 * pool; c *= 1.0 - 0.14 * smoothstep(1.5, 4.5, wq.y); c *= 0.88 + 0.12 * smoothstep(0.0, 0.45, wq.y);
+  } else { c = paper * 0.78; }
+  float v = smoothstep(1.5, 0.55, length((vUv - 0.5) * vec2(1.0, 1.1))); c *= 0.86 + 0.14 * v;
   c *= 1.0 - uDim; gl_FragColor = vec4(c, 1.0);
   #include <colorspace_fragment>
 }` })));
@@ -164,19 +179,22 @@ const lobbyShadow = (() => { const c = document.createElement('canvas'); c.width
   const t = new THREE.CanvasTexture(c), m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.layers.set(4); m.visible = false; m.renderOrder = -1; scene.add(m); return m; })();
 let warming = false;
 const lobbyOn = () => state === 'menu' && !vic && !warming && (menuPage === 'home' || lookOpen);
-const lobbyKey = new THREE.Color(0xFFF4EA);
+const lobbyKey = new THREE.Color(0xFFF1E2), lobbySunPos = new THREE.Vector3(), lobbyTgt = new THREE.Vector3();
 const heroSay = $('heroSay');
 function renderLobby() {
   vicLayer(P, true); drop.visible = true; strand.layers.enable(4);
   const sc = 0.9 + 0.5 * clamp(P.y, 0, 1); lobbyShadow.visible = true; lobbyShadow.position.set(P.x, 0.01, P.z); lobbyShadow.scale.set(sc, sc, 1); lobbyShadow.material.opacity = clamp(1 - P.y * 0.6, 0.3, 1);
   lobbyCam.copy(camera, false); lobbyCam.layers.set(4); lobbyCam.updateMatrixWorld();
-  const v = tv1.set(P.x, 0, P.z).project(camera); lobbyU.uFeet.value.set(v.x * 0.5 + 0.5, v.y * 0.5 + 0.5); lobbyU.uAsp.value = viewW / Math.max(1, viewH); lobbyU.uTime.value = clock; lobbyU.uDim.value = lookOpen ? 0.04 : 0; lobbyU.uCol.value.setHex(TEAMS[0].wet);
+  camera.updateMatrixWorld(); camera.matrixWorldInverse.copy(camera.matrixWorld).invert(); lobbyU.uInvPV.value.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse).invert(); lobbyU.uCam.value.copy(camera.position); lobbyU.uBlob.value.set(P.x, 0, P.z);
+  const nx = camera.position.x - P.x, nz = camera.position.z - P.z, nl = Math.hypot(nx, nz) || 1; lobbyU.uWallN.value.set(nx / nl, nz / nl); lobbyU.uTime.value = clock; lobbyU.uDim.value = lookOpen ? 0.04 : 0; lobbyU.uCol.value.setHex(TEAMS[0].wet);
   // what it's saying, by its head
   if (!heroSay.hidden) { const h = tv2.set(P.x, 0.98, P.z).project(camera), sx = (h.x * 0.5 + 0.5) * viewW, sy = (0.5 - h.y * 0.5) * viewH, flip = sx > viewW * 0.58; heroSay.classList.toggle('flip', flip); heroSay.style.left = (flip ? sx - 14 : sx + 14).toFixed(0) + 'px'; heroSay.style.top = (sy - 8).toFixed(0) + 'px'; }
   renderer.setRenderTarget(null); renderer.render(lobbyBg, vicBgCam);
-  const hi = hemi.intensity, si = sun.intensity; keySave.copy(sun.color); hemi.intensity = Math.max(hi, 0.95 * LIGHT_K); sun.intensity = Math.max(si, 0.9 * LIGHT_K); sun.color.copy(lobbyKey);
+  const hi = hemi.intensity, si = sun.intensity; keySave.copy(sun.color); lobbySunPos.copy(sun.position); lobbyTgt.copy(sun.target.position);
+  hemi.intensity = Math.max(hi, 0.8 * LIGHT_K); sun.intensity = Math.max(si, 1.15 * LIGHT_K); sun.color.copy(lobbyKey);
+  sun.position.set(P.x + nx / nl * 3 - nz / nl * 3.2, 5.5, P.z + nz / nl * 3 + nx / nl * 3.2); sun.target.position.set(P.x, 0.4, P.z); sun.target.updateMatrixWorld();
   const ac = renderer.autoClear; renderer.autoClear = false; renderer.clearDepth(); renderer.render(scene, lobbyCam); renderer.autoClear = ac;
-  hemi.intensity = hi; sun.intensity = si; sun.color.copy(keySave);
+  hemi.intensity = hi; sun.intensity = si; sun.color.copy(keySave); sun.position.copy(lobbySunPos); sun.target.position.copy(lobbyTgt); sun.target.updateMatrixWorld();
 }
 // where the blob stands: the space the top bar, the side plates and the dock leave, its feet low in it
 function lobbyFrame() {
@@ -185,9 +203,9 @@ function lobbyFrame() {
   const top = rc('lobbyTop'), lg = rc('logo'), L = rc('lobbyRail'), R = rc('lobbyRight'), bot = rc('lobbyBot');
   const x0 = (L.right || r.left) - r.left + 6, x1 = (R.left || r.right) - r.left - 6, y0 = Math.max(top.bottom, lg.bottom || 0) - r.top, y1 = (bot.top || r.bottom) - r.top;
   if (!(x1 - x0 > 60) || !(y1 - y0 > 60)) return heroDist;
-  const fw = x1 - x0, fh = y1 - y0, tx = (x0 + x1) / 2, feetY = y0 + fh * (land ? 0.82 : 0.8);
+  const fw = x1 - x0, fh = y1 - y0, tx = (x0 + x1) / 2, feetY = y0 + fh * (land ? 0.86 : 0.86);
   const tall = myLook.head === 'hat' ? 1.25 : myLook.head === 'tophat' ? 1.18 : myLook.head === 'tiara' ? 1.05 : myLook.head === 'pirate' ? 1.12 : myLook.head ? 1.05 : 0.88;
-  const px = Math.min(fh * (land ? 0.72 : 0.74), fw * 0.6, Hh * 0.48);
+  const px = Math.min(fh * (land ? 0.9 : 0.92), fw * 0.74, Hh * 0.6);
   const tv = Math.tan(heroFov() * Math.PI / 360), dist = clamp(tall * Hh / (2 * tv * px), 1.65, 12), ly = 0.36;
   heroDist = dist; hero.mx = P.x; hero.mz = P.z;
   const lookY = feetY - ly * Hh / (2 * tv * dist); heroOff.x = W / 2 - tx; heroOff.y = Hh / 2 - lookY;
@@ -223,7 +241,7 @@ rep('''  if (lookOpen) return lookFrame();
   const r = stage.getBoundingClientRect(), d = $('mCta').getBoundingClientRect(), l = $('logo').getBoundingClientRect(), W = r.width, Hh = r.height;
   if (!(d.height > 0)) return heroDist;''')
 rep('''    else { const a = hero.yaw + clock * 0.045, R = ARENA * 0.66, Y = 10.5 + ARENA * 0.14 + Math.sin(clock * 0.3) * 0.35; dPos.set(Math.sin(a) * R, Y, Math.cos(a) * R); dLook.set(-Math.sin(a) * R * 0.22, 0.4, -Math.cos(a) * R * 0.22); }''',
-    '''    else { const a = hero.yaw + Math.sin(clock * 0.21) * 0.05, ly = 0.36, d2 = dist; dPos.set(hero.mx + Math.sin(a) * d2, ly + 0.08 + d2 * 0.2 + Math.sin(clock * 0.47) * 0.03, hero.mz + Math.cos(a) * d2); dLook.set(hero.mx, ly, hero.mz); }
+    '''    else { const a = hero.yaw + Math.sin(clock * 0.21) * 0.05, ly = 0.36, d2 = dist; dPos.set(hero.mx + Math.sin(a) * d2, ly + 0.02 + d2 * 0.13 + Math.sin(clock * 0.47) * 0.025, hero.mz + Math.cos(a) * d2); dLook.set(hero.mx, ly + 0.02, hero.mz); }
     sayTick(rdt);''')
 rep('''  drop.visible = shadowBlob.visible = false; LH.drop.visible = LH.shadow.visible = false; L2.drop.visible = L2.shadow.visible = false; // the menu shows the canvas, not the blobs''',
     '''  drop.visible = true; shadowBlob.visible = false; LH.drop.visible = LH.shadow.visible = false; L2.drop.visible = L2.shadow.visible = false; // the studio shows your blob alone (the rivals wait for the opening night)''')

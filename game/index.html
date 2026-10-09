@@ -1347,6 +1347,64 @@ kbd{background:#fff;border-color:var(--black)}
 /* ---- new item: wet paint ---- */
 .nikick{font:900 14px/1 var(--font-head);letter-spacing:.2em;text-transform:uppercase;color:var(--ink)}
 @media (prefers-reduced-motion:reduce){.lobbyfx i,.playbtn::before,.playbtn .sheen::after,.plate,.ltop,.lcol,.lbot,.mhome.lobby .logo,.bootdrip{animation:none}}
+
+/* ===== the hero pass: hierarchy, the HUD in the language, ambient motion ===== */
+/* one huge thing per screen: Play */
+.playbtn{min-width:176px;min-height:84px;padding:12px 30px 18px}
+.playbtn .pbl{font-size:42px}
+.lcol.right .plate{width:58px;padding:9px 3px 6px;opacity:.92}
+.lcol.right .plate.stat b{font-size:16px}
+.lineup .lu{animation:bob 3.8s ease-in-out infinite}
+.lineup .lu:nth-child(3){animation-delay:-1.9s}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-2px) rotate(-.8deg)}}
+/* the logo drips while you wait */
+.mhome.lobby .logo .tcard{position:relative}
+.mhome.lobby .logo .tcard::after{content:"";position:absolute;left:30%;top:74%;width:22%;height:70%;background:var(--ink);-webkit-mask:url(art/m_drip.webp) center top/100% 100% no-repeat;mask:url(art/m_drip.webp) center top/100% 100% no-repeat;transform-origin:50% 0;animation:logodrip 11s cubic-bezier(.4,0,.6,1) infinite;opacity:.92;pointer-events:none}
+@keyframes logodrip{0%{transform:scaleY(.08)}70%{transform:scaleY(1)}92%{transform:scaleY(1);opacity:.92}96%{opacity:0}100%{transform:scaleY(.08);opacity:0}}
+.mhome.lobby .season{animation:seasontape 5s ease-in-out infinite}
+@keyframes seasontape{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(-1.2deg)}}
+/* ---- the HUD: a paper strip for the score, the clock on tape, the tug a smear of paint, the pound a red sticker ---- */
+.top{align-items:start}
+.score{position:relative;width:min(100%,280px);padding:9px 14px 10px;border-radius:2px;background:#FBF8F1 url(art/m_paperbg.webp) center/300px;box-shadow:0 1px 0 rgba(255,255,255,.8) inset,4px 5px 0 rgba(23,19,32,.28);transform:rotate(-.8deg);color:var(--black)}
+.score::before{content:"";position:absolute;left:-14px;top:-9px;width:56px;height:18px;background:url(art/m_tape3.webp) center/100% 100% no-repeat;transform:rotate(-14deg);pointer-events:none}
+.score::after{content:"";position:absolute;right:-12px;top:-7px;width:50px;height:17px;background:url(art/m_tape3.webp) center/100% 100% no-repeat;transform:rotate(12deg);pointer-events:none}
+.vsn{font:900 30px/1 var(--font-head);font-style:italic;letter-spacing:-.02em;text-shadow:.05em .05em 0 var(--black)}
+.vsn.you{color:var(--ink)}
+.vsn.cpu{color:#2E9BFF}
+.vsn.cpu2{color:#8E5CFF}
+.hud.solo .vsn.cpu{color:var(--gold-lo)}
+.hud.solo .vsn.cpu::before{color:var(--muted)}
+.clock{font:900 15px/1 var(--font-head);color:#2A2437;background:url(art/m_tape3.webp) center/100% 100% no-repeat;border-radius:0;padding:7px 12px;min-width:4.2ch;transform:rotate(2deg)}
+.clock.hurry{background:url(art/m_tape3.webp) center/100% 100% no-repeat;color:var(--ink)}
+.tug{height:13px;border-radius:0;background:#E6DECF;-webkit-mask:url(art/m_stroke2.webp) center/100% 100% no-repeat;mask:url(art/m_stroke2.webp) center/100% 100% no-repeat;overflow:visible}
+.tug i{box-shadow:none}
+.hud .ib{background:#FBF8F1 url(art/m_paperbg.webp) center/300px;color:var(--black);border-radius:3px;box-shadow:3px 4px 0 rgba(23,19,32,.28)}
+.chip{background:url(art/m_tape3.webp) center/100% 100% no-repeat;color:#2A2437;border-radius:0;box-shadow:none;padding:7px 14px;font:900 13px/1 var(--font-head);text-transform:uppercase;transform:rotate(-1.5deg)}
+.chip.wx.sun,.chip.wx.warn,.chip.wx.rain,.chip.wx.dusk,.chip.wx.sun.safe,.chip.pw{background:url(art/m_tape3.webp) center/100% 100% no-repeat;color:#2A2437}
+.chip.wx.sun.burn{color:var(--ink)}
+.chip.pw i{background:conic-gradient(var(--ink) 360deg,rgba(23,19,32,.2) 0)}
+.hint span{background:#FBF8F1 url(art/m_paperbg.webp) center/300px;color:var(--black);border:0;border-radius:3px;box-shadow:3px 4px 0 rgba(23,19,32,.3);font-weight:800}
+#bannerBig{font:900 clamp(40px,12vw,60px)/.95 var(--font-head);text-transform:uppercase;color:#fff;transform:skewX(-7deg) rotate(-3deg);text-shadow:.04em .04em 0 var(--black),.09em .09em 0 rgba(0,0,0,.45)}
+#bannerSmall{background:url(art/m_tape3.webp) center/100% 100% no-repeat;color:#2A2437;border:0;border-radius:0;font:900 14px/1 var(--font-head);text-transform:uppercase;padding:8px 16px}
+.pop{font:900 24px/1 var(--font-head);font-style:italic;color:#fff;text-shadow:.05em .05em 0 var(--black)}
+.slamBtn{width:96px;height:96px;margin-bottom:14px;border:0;border-radius:50%;background:url(art/m_dot.webp) center/100% 100% no-repeat;box-shadow:none;filter:drop-shadow(4px 6px 0 rgba(23,19,32,.3))}
+.slamBtn:active{transform:translateY(4px) scale(.96);box-shadow:none;filter:drop-shadow(1px 2px 0 rgba(23,19,32,.3))}
+.slamBtn svg{width:44px;height:44px;stroke-width:1.6;filter:drop-shadow(0 2px 0 rgba(0,0,0,.3))}
+.slamBtn::after{border-radius:50%;background:conic-gradient(rgba(23,19,32,.55) var(--cd,0deg),transparent 0)}
+.slamBtn.off{background:url(art/m_dot.webp) center/100% 100% no-repeat;filter:grayscale(1) brightness(.72) drop-shadow(4px 6px 0 rgba(23,19,32,.3))}
+.slamBtn.boost{background:url(art/m_dot.webp) center/100% 100% no-repeat;filter:hue-rotate(-28deg) saturate(1.3) drop-shadow(4px 6px 0 rgba(23,19,32,.3))}
+.slamBtn.ready{animation:slamin .4s cubic-bezier(.3,1.7,.5,1),stickerpulse 1.4s ease-in-out .4s infinite}
+.slamBtn.boost.ready{animation:slamin .4s cubic-bezier(.3,1.7,.5,1),stickerpulse .7s ease-in-out .4s infinite}
+@keyframes stickerpulse{50%{transform:scale(1.06)}}
+.slamBtn.press::before{border-color:var(--ink)}
+.count b{color:#fff;-webkit-text-stroke:0;font:900 clamp(120px,36vw,200px)/1 var(--font-head);font-style:italic;text-shadow:.04em .04em 0 var(--black),.1em .1em 0 rgba(0,0,0,.4);transform:skewX(-6deg)}
+.count b.go{color:var(--ink)}
+.threat{background:url(art/m_tape3.webp) center/100% 100% no-repeat;border:0;border-radius:0;box-shadow:none;color:var(--ink);font:900 15px/1 var(--font-head);text-transform:uppercase}
+.threat b{background:var(--ink);color:#fff}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.score{width:100%;max-width:250px;padding:6px 10px 8px}.vsn{font-size:24px}.clock{font-size:13px;padding:5px 9px}.slamBtn{width:84px;height:84px}}
+@media (prefers-reduced-motion:reduce){.lineup .lu,.mhome.lobby .logo .tcard::after,.mhome.lobby .season,.slamBtn.ready,.slamBtn.boost.ready{animation:none}}
+
+@media (max-width:420px) and (max-aspect-ratio:1/1){.playbtn{min-width:150px;padding:12px 22px 18px}.playbtn .pbl{font-size:36px}.show{padding:5px 8px 5px 5px;gap:8px}.sthumb{width:56px;height:44px}.stxt b{font-size:13px}.stxt em{font-size:10px}.sarrow{display:none}}
 </style>
 
 <div id="stage">
@@ -10793,7 +10851,7 @@ function visuals(dt, rdt) {
       const a = hero.yaw, ly0 = myLook.head === 'hat' ? 0.44 : myLook.head === 'tophat' || myLook.head === 'pirate' ? 0.41 : 0.36, fk = faceK * faceK * (3 - 2 * faceK), d2 = dist * (1 - 0.34 * fk), ly = ly0 + (0.62 - ly0) * fk;
       dPos.set(hero.mx + Math.sin(a) * d2, ly + 0.06 + d2 * 0.16 * (1 - 0.6 * fk) + Math.sin(clock * 0.47) * 0.04, hero.mz + Math.cos(a) * d2); dLook.set(hero.mx, ly, hero.mz); }
     // the title screen: a slow, high drift around the canvas, like the opening shot of a match
-    else { const a = hero.yaw + Math.sin(clock * 0.21) * 0.05, ly = 0.36, d2 = dist; dPos.set(hero.mx + Math.sin(a) * d2, ly + 0.08 + d2 * 0.2 + Math.sin(clock * 0.47) * 0.03, hero.mz + Math.cos(a) * d2); dLook.set(hero.mx, ly, hero.mz); }
+    else { const a = hero.yaw + Math.sin(clock * 0.21) * 0.05, ly = 0.36, d2 = dist; dPos.set(hero.mx + Math.sin(a) * d2, ly + 0.02 + d2 * 0.13 + Math.sin(clock * 0.47) * 0.025, hero.mz + Math.cos(a) * d2); dLook.set(hero.mx, ly + 0.02, hero.mz); }
     sayTick(rdt);
   }
   else if (state === 'intro') { rdtCam = rdt; introCam(false); }
@@ -11303,24 +11361,39 @@ function renderVictory() {
 
 // ---------- the Studio: your blob alone on a roller stroke of its own paint, over sketchbook paper. Its own camera layer over a
 // shader backdrop (the way the victory screen draws the winner), so the canvas never shows in the menu ----------
-const lobbyU = { uTime: { value: 0 }, uAsp: { value: 1 }, uDim: { value: 0 }, uCol: { value: new THREE.Color(0xE3122F) }, uFeet: { value: new THREE.Vector2(0.5, 0.3) } };
+const lobbyU = { uTime: { value: 0 }, uDim: { value: 0 }, uCol: { value: new THREE.Color(0xE3122F) }, uInvPV: { value: new THREE.Matrix4() }, uCam: { value: new THREE.Vector3() }, uBlob: { value: new THREE.Vector3() }, uWallN: { value: new THREE.Vector2(0, 1) } };
 const lobbyBg = new THREE.Scene();
+// the studio: a paper floor and a back wall, cast from the live camera so the stroke runs under the blob's feet in true perspective
 lobbyBg.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({ uniforms: lobbyU, depthTest: false, depthWrite: false, vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
-  fragmentShader: `uniform float uTime, uAsp, uDim; uniform vec3 uCol; uniform vec2 uFeet; varying vec2 vUv;
-float cap(vec2 p, vec2 a, vec2 b, float r){ vec2 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0); return length(pa - ba * h) - r; }
+  fragmentShader: `uniform mat4 uInvPV; uniform vec3 uCam, uBlob, uCol; uniform vec2 uWallN; uniform float uTime, uDim; varying vec2 vUv;
 float hs(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(hs(i), hs(i + vec2(1.0, 0.0)), f.x), mix(hs(i + vec2(0.0, 1.0)), hs(i + vec2(1.0, 1.0)), f.x), f.y); }
 void main(){
-  vec2 p = vec2(vUv.x * uAsp, vUv.y);
-  vec3 c = vec3(0.905, 0.855, 0.77);
-  vec2 g = fract(p * 13.0); float ln = 1.0 - smoothstep(0.0, 0.045, min(g.x, g.y)); c *= 1.0 - 0.12 * ln;
-  c *= 0.985 + 0.03 * hs(floor(p * 420.0));
-  vec2 f = vec2(uFeet.x * uAsp, uFeet.y - 0.015), dir = normalize(vec2(1.0, 0.2));
-  float d = cap(p, f - dir * 1.7, f + dir * 1.7, 0.05) + (hs(floor(p * 260.0)) - 0.5) * 0.006;
-  float k = 1.0 - smoothstep(-0.003, 0.003, d); vec3 ink = uCol * (0.93 + 0.14 * smoothstep(0.0, 0.05, -d - 0.035));
-  c = mix(c, ink, k);
-  vec2 fp = p * 150.0 + vec2(uTime * 0.6, uTime * 0.25); vec2 fi = floor(fp), ff = fract(fp) - 0.5; float fh = hs(fi); float fl = step(0.985, fh) * (1.0 - smoothstep(0.0, 0.12 + 0.1 * fract(fh * 7.0), length(ff)));
-  c = mix(c, uCol * 0.9, fl * 0.55 * (1.0 - k));
-  float v = smoothstep(1.4, 0.5, length((vUv - vec2(0.5, 0.52)) * vec2(1.0, 1.1))); c *= 0.9 + 0.1 * v;
+  vec4 w = uInvPV * vec4(vUv * 2.0 - 1.0, 1.0, 1.0); vec3 dir = normalize(w.xyz / w.w - uCam);
+  vec3 n3 = vec3(uWallN.x, 0.0, uWallN.y); vec2 t2 = vec2(-uWallN.y, uWallN.x); vec3 W = uBlob - n3 * 2.4;
+  float dn = dot(dir, n3); float tw = dn < -1e-4 ? dot(W - uCam, n3) / dn : -1.0;
+  float tf = dir.y < -1e-4 ? -uCam.y / dir.y : -1.0;
+  vec3 paper = vec3(0.93, 0.885, 0.80); vec3 c;
+  bool onFloor = tf > 0.0 && (tw <= 0.0 || tf < tw);
+  if (onFloor) {
+    vec3 h = uCam + dir * tf; vec2 q = h.xz;
+    c = paper * (0.985 + 0.03 * hs(floor(q * 60.0)));
+    vec2 g = fract(q * 1.1); float ln = 1.0 - smoothstep(0.0, 0.03, min(g.x, g.y)); c *= 1.0 - 0.045 * ln;
+    vec2 rel = q - uBlob.xz; float along = dot(rel, t2), across = dot(rel, uWallN) + 0.1 * sin(along * 0.9) - 0.1;
+    float edge = (hs(floor(vec2(along * 14.0, 0.0))) - 0.5) * 0.08, d = abs(across) - (0.66 + edge);
+    float bristle = 0.9 + 0.2 * vn(vec2(along * 2.0, across * 24.0)), k = (1.0 - smoothstep(-0.012, 0.012, d)) * (1.0 - smoothstep(7.5, 9.0, abs(along)));
+    c = mix(c, uCol * bristle, k);
+    c *= 0.8 + 0.2 * smoothstep(0.0, 1.6, dot(h - W, n3));
+    vec2 fp = q * 22.0 + vec2(uTime * 0.08, uTime * 0.03); vec2 fi = floor(fp), ff = fract(fp) - 0.5; float fh = hs(fi); float fl = step(0.975, fh) * (1.0 - smoothstep(0.0, 0.12 + 0.1 * fract(fh * 7.0), length(ff)));
+    c = mix(c, uCol * 0.9, fl * 0.5 * (1.0 - k));
+  } else if (tw > 0.0) {
+    vec3 h = uCam + dir * tw; vec2 wq = vec2(dot(h.xz - W.xz, t2), h.y);
+    c = paper * 0.95 * (0.985 + 0.03 * hs(floor(wq * 60.0)));
+    vec2 g = fract(wq * 1.1); float ln = 1.0 - smoothstep(0.0, 0.03, min(g.x, g.y)); c *= 1.0 - 0.035 * ln;
+    float pool = smoothstep(2.8, 0.3, length((wq - vec2(dot(uBlob.xz - W.xz, t2), 1.2)) * vec2(0.75, 1.0)));
+    c *= 0.84 + 0.2 * pool; c *= 1.0 - 0.14 * smoothstep(1.5, 4.5, wq.y); c *= 0.88 + 0.12 * smoothstep(0.0, 0.45, wq.y);
+  } else { c = paper * 0.78; }
+  float v = smoothstep(1.5, 0.55, length((vUv - 0.5) * vec2(1.0, 1.1))); c *= 0.86 + 0.14 * v;
   c *= 1.0 - uDim; gl_FragColor = vec4(c, 1.0);
   #include <colorspace_fragment>
 }` })));
@@ -11329,19 +11402,22 @@ const lobbyShadow = (() => { const c = document.createElement('canvas'); c.width
   const t = new THREE.CanvasTexture(c), m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.layers.set(4); m.visible = false; m.renderOrder = -1; scene.add(m); return m; })();
 let warming = false;
 const lobbyOn = () => state === 'menu' && !vic && !warming && (menuPage === 'home' || lookOpen);
-const lobbyKey = new THREE.Color(0xFFF4EA);
+const lobbyKey = new THREE.Color(0xFFF1E2), lobbySunPos = new THREE.Vector3(), lobbyTgt = new THREE.Vector3();
 const heroSay = $('heroSay');
 function renderLobby() {
   vicLayer(P, true); drop.visible = true; strand.layers.enable(4);
   const sc = 0.9 + 0.5 * clamp(P.y, 0, 1); lobbyShadow.visible = true; lobbyShadow.position.set(P.x, 0.01, P.z); lobbyShadow.scale.set(sc, sc, 1); lobbyShadow.material.opacity = clamp(1 - P.y * 0.6, 0.3, 1);
   lobbyCam.copy(camera, false); lobbyCam.layers.set(4); lobbyCam.updateMatrixWorld();
-  const v = tv1.set(P.x, 0, P.z).project(camera); lobbyU.uFeet.value.set(v.x * 0.5 + 0.5, v.y * 0.5 + 0.5); lobbyU.uAsp.value = viewW / Math.max(1, viewH); lobbyU.uTime.value = clock; lobbyU.uDim.value = lookOpen ? 0.04 : 0; lobbyU.uCol.value.setHex(TEAMS[0].wet);
+  camera.updateMatrixWorld(); camera.matrixWorldInverse.copy(camera.matrixWorld).invert(); lobbyU.uInvPV.value.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse).invert(); lobbyU.uCam.value.copy(camera.position); lobbyU.uBlob.value.set(P.x, 0, P.z);
+  const nx = camera.position.x - P.x, nz = camera.position.z - P.z, nl = Math.hypot(nx, nz) || 1; lobbyU.uWallN.value.set(nx / nl, nz / nl); lobbyU.uTime.value = clock; lobbyU.uDim.value = lookOpen ? 0.04 : 0; lobbyU.uCol.value.setHex(TEAMS[0].wet);
   // what it's saying, by its head
   if (!heroSay.hidden) { const h = tv2.set(P.x, 0.98, P.z).project(camera), sx = (h.x * 0.5 + 0.5) * viewW, sy = (0.5 - h.y * 0.5) * viewH, flip = sx > viewW * 0.58; heroSay.classList.toggle('flip', flip); heroSay.style.left = (flip ? sx - 14 : sx + 14).toFixed(0) + 'px'; heroSay.style.top = (sy - 8).toFixed(0) + 'px'; }
   renderer.setRenderTarget(null); renderer.render(lobbyBg, vicBgCam);
-  const hi = hemi.intensity, si = sun.intensity; keySave.copy(sun.color); hemi.intensity = Math.max(hi, 0.95 * LIGHT_K); sun.intensity = Math.max(si, 0.9 * LIGHT_K); sun.color.copy(lobbyKey);
+  const hi = hemi.intensity, si = sun.intensity; keySave.copy(sun.color); lobbySunPos.copy(sun.position); lobbyTgt.copy(sun.target.position);
+  hemi.intensity = Math.max(hi, 0.8 * LIGHT_K); sun.intensity = Math.max(si, 1.15 * LIGHT_K); sun.color.copy(lobbyKey);
+  sun.position.set(P.x + nx / nl * 3 - nz / nl * 3.2, 5.5, P.z + nz / nl * 3 + nx / nl * 3.2); sun.target.position.set(P.x, 0.4, P.z); sun.target.updateMatrixWorld();
   const ac = renderer.autoClear; renderer.autoClear = false; renderer.clearDepth(); renderer.render(scene, lobbyCam); renderer.autoClear = ac;
-  hemi.intensity = hi; sun.intensity = si; sun.color.copy(keySave);
+  hemi.intensity = hi; sun.intensity = si; sun.color.copy(keySave); sun.position.copy(lobbySunPos); sun.target.position.copy(lobbyTgt); sun.target.updateMatrixWorld();
 }
 // where the blob stands: the space the top bar, the side plates and the dock leave, its feet low in it
 function lobbyFrame() {
@@ -11350,9 +11426,9 @@ function lobbyFrame() {
   const top = rc('lobbyTop'), lg = rc('logo'), L = rc('lobbyRail'), R = rc('lobbyRight'), bot = rc('lobbyBot');
   const x0 = (L.right || r.left) - r.left + 6, x1 = (R.left || r.right) - r.left - 6, y0 = Math.max(top.bottom, lg.bottom || 0) - r.top, y1 = (bot.top || r.bottom) - r.top;
   if (!(x1 - x0 > 60) || !(y1 - y0 > 60)) return heroDist;
-  const fw = x1 - x0, fh = y1 - y0, tx = (x0 + x1) / 2, feetY = y0 + fh * (land ? 0.82 : 0.8);
+  const fw = x1 - x0, fh = y1 - y0, tx = (x0 + x1) / 2, feetY = y0 + fh * (land ? 0.86 : 0.86);
   const tall = myLook.head === 'hat' ? 1.25 : myLook.head === 'tophat' ? 1.18 : myLook.head === 'tiara' ? 1.05 : myLook.head === 'pirate' ? 1.12 : myLook.head ? 1.05 : 0.88;
-  const px = Math.min(fh * (land ? 0.72 : 0.74), fw * 0.6, Hh * 0.48);
+  const px = Math.min(fh * (land ? 0.9 : 0.92), fw * 0.74, Hh * 0.6);
   const tv = Math.tan(heroFov() * Math.PI / 360), dist = clamp(tall * Hh / (2 * tv * px), 1.65, 12), ly = 0.36;
   heroDist = dist; hero.mx = P.x; hero.mz = P.z;
   const lookY = feetY - ly * Hh / (2 * tv * dist); heroOff.x = W / 2 - tx; heroOff.y = Hh / 2 - lookY;
