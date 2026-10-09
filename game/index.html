@@ -1841,7 +1841,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 102</p>
+      <p class="ver">Version 103</p>
     </div>
   </div>
 
@@ -11859,6 +11859,16 @@ void main(){
     c *= 0.8 + 0.2 * smoothstep(0.0, 1.6, dot(h - W, n3));
     vec2 fp = q * 22.0 + vec2(uTime * 0.08, uTime * 0.03); vec2 fi = floor(fp), ff = fract(fp) - 0.5; float fh = hs(fi); float fl = step(0.975, fh) * (1.0 - smoothstep(0.0, 0.12 + 0.1 * fract(fh * 7.0), length(ff)));
     c = mix(c, uCol * 0.9, fl * 0.5 * (1.0 - k));
+    if (uLook > 0.001) {
+      float dl = length(rel * vec2(1.0, 1.3)), pool2 = smoothstep(2.3, 0.2, dl); pool2 *= pool2;
+      float pour = 1.0 - smoothstep(-0.15, 0.15, dl - uSweep * 3.5); vec3 ink = mix(uCol2, uCol, pour);
+      vec3 dark = vec3(0.07, 0.05, 0.09) * (0.9 + 0.2 * hs(floor(q * 60.0)));
+      vec3 lit = mix(dark, vec3(0.8, 0.74, 0.68), pool2 * pool2 * 0.95);
+      lit = mix(lit, ink * bristle * (0.12 + 0.88 * pool2), k);
+      lit += ink * 0.16 * smoothstep(4.5, 1.0, dl) * (1.0 - pool2);
+      lit = mix(lit, vec3(1.0), fl * 0.7 * pool2);
+      c = mix(c, lit, uLook);
+    }
   } else if (tw > 0.0) {
     vec3 h = uCam + dir * tw; vec2 wq = vec2(dot(h.xz - W.xz, t2), h.y);
     c = paper * 0.95 * (0.985 + 0.03 * hs(floor(wq * 60.0)));
@@ -11866,18 +11876,17 @@ void main(){
     float pool = smoothstep(2.8, 0.3, length((wq - vec2(dot(uBlob.xz - W.xz, t2), 1.2)) * vec2(0.75, 1.0)));
     c *= 0.84 + 0.2 * pool; c *= 1.0 - 0.14 * smoothstep(1.5, 4.5, wq.y); c *= 0.88 + 0.12 * smoothstep(0.0, 0.45, wq.y);
     if (uLook > 0.001) {
-      // the locker: a fresh coat of your ink across the upper left of the wall, its edge torn, a few drips hanging; a new color pours
-      // in along the same diagonal when you pick one
-      vec2 sp = vec2(vUv.x, 1.0 - vUv.y); float d = sp.x * 0.72 + sp.y * 0.62;
-      float tear = (vn(sp * 16.0) - 0.5) * 0.07 + (vn(sp * 48.0 + 3.0) - 0.5) * 0.02;
-      float col = floor(sp.x * 26.0), dr = step(0.86, hs(vec2(col, 2.0))) * (0.05 + 0.12 * hs(vec2(col, 5.0))) * smoothstep(0.5, 0.0, abs(fract(sp.x * 26.0) - 0.5) * 2.0 - 0.45);
-      float inkK = (1.0 - smoothstep(-0.006, 0.006, d + tear - 0.66 - dr)) * (1.0 - 0.75 * uLook * 0.0);
-      float pour = 1.0 - smoothstep(-0.008, 0.008, (d + tear) - uSweep * 1.5);
-      vec3 ink = mix(uCol2, uCol, pour); vec3 wet = ink * (0.86 + 0.2 * vn(wq * 1.7 + 11.0)) + 0.1 * smoothstep(0.86, 0.97, vn(wq * 3.1 + uTime * 0.05));
-      wet *= 0.82 + 0.22 * pool; float lip = smoothstep(0.03, 0.0, abs(d + tear - 0.66 - dr)) * 0.35;
-      c = mix(c, wet + lip, inkK * uLook);
+      vec2 rw = wq - vec2(dot(uBlob.xz - W.xz, t2), 1.05); float dw = length(rw);
+      float spot = smoothstep(2.7, 0.0, length(rw * vec2(0.85, 1.0)));
+      float beam = smoothstep(1.0, 0.0, abs(rw.x) / (0.5 + max(0.0, rw.y) * 0.55)) * smoothstep(-0.6, 2.4, rw.y) * (0.75 + 0.25 * vn(vec2(rw.y * 3.0 - uTime * 0.4, rw.x * 2.0)));
+      float pour = 1.0 - smoothstep(-0.15, 0.15, dw - uSweep * 3.5); vec3 ink = mix(uCol2, uCol, pour);
+      vec3 dark = vec3(0.06, 0.045, 0.085) * (0.9 + 0.2 * hs(floor(wq * 60.0)));
+      vec3 lit = mix(dark, vec3(0.88, 0.82, 0.76), clamp(spot * spot * 0.95 + beam * 0.3, 0.0, 1.0));
+      lit += ink * 0.22 * smoothstep(5.0, 0.9, dw) * (1.0 - spot);
+      lit = mix(lit, vec3(1.0), smoothstep(0.986, 1.0, vn(wq * 7.0 + vec2(uTime * 0.06, uTime * 0.11))) * spot * 0.5);
+      c = mix(c, lit, uLook);
     }
-  } else { c = paper * 0.78; }
+  } else { c = mix(paper * 0.78, vec3(0.05, 0.04, 0.07), uLook); }
   float v = smoothstep(1.5, 0.55, length((vUv - 0.5) * vec2(1.0, 1.1))); c *= 0.86 + 0.14 * v;
   c *= 1.0 - uDim; gl_FragColor = vec4(c, 1.0);
   #include <colorspace_fragment>
@@ -11887,7 +11896,7 @@ const lobbyShadow = (() => { const c = document.createElement('canvas'); c.width
   const t = new THREE.CanvasTexture(c), m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.layers.set(4); m.visible = false; m.renderOrder = -1; scene.add(m); return m; })();
 let warming = false;
 const lobbyOn = () => state === 'menu' && !vic && !warming && (menuPage === 'home' || lookOpen);
-const lobbyKey = new THREE.Color(0xFFF1E2), lobbySunPos = new THREE.Vector3(), lobbyTgt = new THREE.Vector3();
+const lobbyKey = new THREE.Color(0xFFF1E2), lobbySunPos = new THREE.Vector3(), lobbyTgt = new THREE.Vector3(), lkRimSave = new THREE.Color();
 const heroSay = $('heroSay');
 function renderLobby() {
   vicLayer(P, true); drop.visible = true; strand.layers.enable(4);
@@ -11899,10 +11908,11 @@ function renderLobby() {
   if (!heroSay.hidden) placeSay();
   renderer.setRenderTarget(null); renderer.render(lobbyBg, vicBgCam);
   const hi = hemi.intensity, si = sun.intensity; keySave.copy(sun.color); lobbySunPos.copy(sun.position); lobbyTgt.copy(sun.target.position);
-  hemi.intensity = Math.max(hi, 0.8 * LIGHT_K); sun.intensity = Math.max(si, 1.15 * LIGHT_K); sun.color.copy(lobbyKey);
+  const lk = lobbyU.uLook.value; hemi.intensity = Math.max(hi, 0.8 * LIGHT_K) * (1 - 0.32 * lk); sun.intensity = Math.max(si, 1.15 * LIGHT_K) * (1 + 0.3 * lk); sun.color.copy(lobbyKey);
+  lkRimSave.copy(RIG.uRigRimC.value); RIG.uRigRimC.value.set(0xE8F0FF).lerp(lobbyU.uCol.value, 0.3).multiplyScalar(1 + 0.8 * lk);
   sun.position.set(P.x + nx / nl * 3 - nz / nl * 3.2, 5.5, P.z + nz / nl * 3 + nx / nl * 3.2); sun.target.position.set(P.x, 0.4, P.z); sun.target.updateMatrixWorld();
   const ac = renderer.autoClear; renderer.autoClear = false; renderer.clearDepth(); renderer.render(scene, lobbyCam); renderer.autoClear = ac;
-  hemi.intensity = hi; sun.intensity = si; sun.color.copy(keySave); sun.position.copy(lobbySunPos); sun.target.position.copy(lobbyTgt); sun.target.updateMatrixWorld();
+  hemi.intensity = hi; sun.intensity = si; sun.color.copy(keySave); sun.position.copy(lobbySunPos); sun.target.position.copy(lobbyTgt); sun.target.updateMatrixWorld(); RIG.uRigRimC.value.copy(lkRimSave);
 }
 // where the blob stands: the space the top bar, the side plates and the dock leave, its feet low in it
 function lobbyFrame() {
