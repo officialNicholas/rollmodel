@@ -1772,52 +1772,8 @@ kbd{background:#fff;border-color:var(--black)}
 @media (max-height:520px) and (min-aspect-ratio:1/1){.itemBtn{left:auto;right:max(156px,calc(env(safe-area-inset-right) + 148px));bottom:max(22px,calc(env(safe-area-inset-bottom) + 14px));width:70px;height:70px}.itemBtn svg{width:34px;height:34px;margin-top:-10px}.itemBtn .ilbl{bottom:11px;font-size:9px}}
 @media (prefers-reduced-motion:reduce){.itemBtn.in,.itemBtn.nope{animation:none}}
 
-/* ===== the locker as an ink board: a dark panel that belongs to the spotlight stage above it, cream type, your colour as the accent ===== */
-.sheet.lookp{background:#1B1626 url(art/m_wall.webp) center top/cover no-repeat;color:#F4EEE3;box-shadow:0 -2px 0 #F4EEE3,0 -6px 0 rgba(23,19,32,.5),0 24px 48px rgba(6,2,16,.6)}
-.sheet.lookp::before{display:none}
-.lookp .ctitle{color:#F4EEE3;text-shadow:.04em .04em 0 var(--ink),.08em .08em 0 rgba(0,0,0,.5)}
-.lkbal{background:#2A2338;color:#F4EEE3;box-shadow:0 0 0 2px rgba(244,238,227,.14),3px 4px 0 rgba(0,0,0,.35);font-weight:900}
-.lnbtn{background:#F4EEE3;color:#17131F;box-shadow:3px 4px 0 rgba(0,0,0,.4)}
-.lnbtn svg{color:#17131F}
-/* the paint: glossy dabs, the chosen one on a cream ring */
-.sw{width:50px;height:50px}
-.sw i{width:42px;height:42px;filter:drop-shadow(1px 2px 0 rgba(0,0,0,.45))}
-.sw i::after{content:"";position:absolute;left:30%;top:22%;width:26%;height:18%;border-radius:50%;background:rgba(255,255,255,.55);transform:rotate(-20deg)}
-.sw[aria-pressed="true"]{transform:scale(1.22)}
-.sw[aria-pressed="true"] i{filter:drop-shadow(0 0 0 #F4EEE3) drop-shadow(0 0 0 #F4EEE3) drop-shadow(1px 2px 0 rgba(0,0,0,.45))}
-.sw[aria-pressed="true"]::after{background:#F4EEE3;width:7px;height:7px;bottom:-5px}
-/* the eyes: cream chips, the chosen one in your colour */
-.lookp .leyes .lhead,.lookp .lhead{color:rgba(244,238,227,.6);letter-spacing:.2em}
-.eyes{background:#F4EEE3;box-shadow:2px 3px 0 rgba(0,0,0,.4)}
-.eyec{box-shadow:2px 3px 0 rgba(0,0,0,.4)}
-.eyes[aria-pressed="true"]{box-shadow:0 0 0 2.5px var(--ink),2px 3px 0 rgba(0,0,0,.45)}
-.eyec{border-color:#F4EEE3}
-.eyec[aria-pressed="true"]{border-color:var(--ink)}
-.irises.off{opacity:.3}
-/* the slot cards: dark plates, cream type; the open one in your colour with a cream rim */
-.seg.lcats button,.seg.lcats button[aria-selected="true"]{background:#2A2338;color:#F4EEE3;box-shadow:0 0 0 2px rgba(244,238,227,.1),3px 4px 0 rgba(0,0,0,.4);border-radius:5px}
-.seg.lcats button small{color:rgba(244,238,227,.55)}
-.seg.lcats button .lci svg{filter:drop-shadow(0 1px 0 rgba(0,0,0,.3))}
-.seg.lcats button[aria-selected="true"]{background:var(--ink);color:#fff;box-shadow:0 0 0 2.5px #F4EEE3,3px 4px 0 rgba(0,0,0,.45);transform:translateY(-2px)}
-.seg.lcats button[aria-selected="true"] small{color:rgba(255,255,255,.8)}
-.lcat.fresh::after{background:#F4EEE3;box-shadow:0 0 0 2.5px #1B1626}
-/* the tiles: cream, framed, on a hard shadow; the worn one rimmed in your colour; locked ones sunk into the board */
-.ltile{background:#F7F2E9;box-shadow:0 0 0 2px rgba(244,238,227,.12),3px 4px 0 rgba(0,0,0,.4);border-radius:5px}
-.ltile[aria-pressed="true"]{background:#F7F2E9;box-shadow:0 0 0 2.5px var(--ink),3px 4px 0 rgba(0,0,0,.45);transform:translateY(-3px)}
-.ltile.locked{background:rgba(244,238,227,.07);border:2px dashed rgba(244,238,227,.25);box-shadow:none}
-.ltile.locked .ltn{color:rgba(244,238,227,.5)}
-.ltile.locked .lk{background:#F4EEE3;color:#17131F}
-.ltile.sale{border:0;background:#F7F2E9;box-shadow:0 0 0 2px var(--ink),3px 4px 0 rgba(0,0,0,.4)}
-.ltile .ltag{background:#F4EEE3;color:#17131F;box-shadow:2px 2px 0 rgba(0,0,0,.4)}
-.ltile .ltag .dropi{filter:none}
-.ltile.broke .ltag{background:#8E8698;color:#fff}
-.ltn{color:#2A2437}
-.lrail.more::after{background:linear-gradient(90deg,rgba(27,22,38,0),#1B1626)}
-/* the code line */
-.ulink{color:rgba(244,238,227,.6)}
-.uform input{background:#F4EEE3;color:#17131F}
-.lnote{background:#F4EEE3;color:#17131F}
-@media (max-height:520px) and (min-aspect-ratio:1/1){.sw{width:40px;height:40px}.sw i{width:33px;height:33px}}
+.ltile.locked .ltag{background:#8E8698;color:#fff}
+.ltile.locked .ltag .dropi{opacity:.85}
 </style>
 
 <div id="stage">
@@ -1911,7 +1867,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 107</p>
+      <p class="ver">Version 109</p>
     </div>
   </div>
 
@@ -5322,7 +5278,7 @@ void slimeSSS(const in IncidentLight L, const in vec3 N, const in vec3 V, const 
     const ink = new THREE.MeshBasicMaterial({ color: C.outline, side: THREE.BackSide, transparent: true });
     ink.onBeforeCompile = sh2 => {
       Object.assign(sh2.uniforms, U, { sLine: SLIME_LINE });
-      sh2.vertexShader = DEF_GLSL + '\nuniform float sLine;\n' + sh2.vertexShader.replace('#include <begin_vertex>', 'vec3 sN = normal; vec3 transformed = slimeDef(position, sN); { float dz = -(modelViewMatrix * vec4(transformed, 1.0)).z, sc = 0.5 * (length(modelMatrix[0].xyz) + length(modelMatrix[1].xyz)); transformed += sN * clamp(0.34 * sLine * dz / max(sc, 1e-3), 0.004, 0.019); }');
+      sh2.vertexShader = DEF_GLSL + '\nuniform float sLine;\n' + sh2.vertexShader.replace('#include <begin_vertex>', 'vec3 sN = normal; vec3 transformed = slimeDef(position, sN); { float dz = -(modelViewMatrix * vec4(transformed, 1.0)).z, sc = 0.5 * (length(modelMatrix[0].xyz) + length(modelMatrix[1].xyz)); transformed += sN * clamp(0.24 * sLine * dz / max(sc, 1e-3), 0.003, 0.0135); }');
     };
     ink.customProgramCacheKey = () => 'slime-ink';
     const xray = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55, depthWrite: false, depthFunc: THREE.GreaterDepth });
@@ -12148,7 +12104,8 @@ function eyeShowFace(E) {
 // what you've found so far (everything starts locked)
 const OWNED = new Set(Array.isArray(store.owned) ? store.owned.filter(id => WEAR.some(w => w.id === id)) : []);
 // drops: paint earned at the end of a match. A found item goes on sale in the locker; it is worn once it is bought
-const PRICE = w => w.season ? 150 : w.slot === 'head' ? 120 : 80;
+const PRICES = { flower: 170, bowtie: 220, lashes: 260, glasses: 320, patch: 390, fangs: 470, tiara: 560, tophat: 680, pirate: 820, hat: 1000, halo: 1300 };
+const PRICE = w => PRICES[w.id] || (w.season ? 1000 : w.slot === 'head' ? 600 : 300);
 const BOUGHT = new Set(Array.isArray(store.bought) ? store.bought.filter(id => OWNED.has(id)) : [...OWNED]);
 if (!Array.isArray(store.bought)) { store.bought = [...BOUGHT]; }
 if (!(store.drops >= 0)) store.drops = 0;
@@ -12475,7 +12432,7 @@ function renderLook() {
     b.innerHTML = '<small>' + b.dataset.label + '</small><span class="lci">' + (w0 ? '<svg viewBox="0 0 40 40" aria-hidden="true">' + WEAR_ICON[w0.id] + '</svg>' : '<i class="none"></i>') + '</span><b>' + (w0 ? (worn.length > 1 ? w0.name + ' +' + (worn.length - 1) : w0.name) : 'Nothing on') + '</b>'; }
   const rail = $('lookRail'); rail.setAttribute('aria-labelledby', 'lc-' + lookCat);
   rail.innerHTML = WEAR.filter(w => w.cat === lookCat).map(w => { const found = owns(w.id), own = found && bought(w.id), sale = found && !own, fr = own && fresh.has(w.id), broke = sale && (store.drops || 0) < PRICE(w);
-    return '<button class="ltile' + (own ? '' : sale ? ' sale' : ' locked') + (broke ? ' broke' : '') + (fr ? ' fresh' : '') + '" type="button" data-w="' + w.id + '"' + (own ? ' aria-pressed="' + (myLook[w.slot] === w.id) + '"' : sale ? '' : ' aria-disabled="true"') + ' aria-label="' + w.name + (own ? (fr ? ', new' : '') : sale ? ', ' + PRICE(w) + ' dabs' : ', locked') + '">' + (sale ? '<span class="ltag">' + DROP_SVG + PRICE(w) + '</span>' : '') + '<svg viewBox="0 0 40 40" aria-hidden="true">' + WEAR_ICON[w.id] + '</svg><span class="ltn">' + w.name + '</span>' + (found ? '' : LOCK_ICON) + '</button>'; }).join('');
+    return '<button class="ltile' + (own ? '' : sale ? ' sale' : ' locked') + (broke ? ' broke' : '') + (fr ? ' fresh' : '') + '" type="button" data-w="' + w.id + '"' + (own ? ' aria-pressed="' + (myLook[w.slot] === w.id) + '"' : sale ? '' : ' aria-disabled="true"') + ' aria-label="' + w.name + (own ? (fr ? ', new' : '') : sale ? ', ' + PRICE(w) + ' dabs' : ', locked') + '">' + (own ? '' : '<span class="ltag">' + DROP_SVG + PRICE(w) + '</span>') + '<svg viewBox="0 0 40 40" aria-hidden="true">' + WEAR_ICON[w.id] + '</svg><span class="ltn">' + w.name + '</span>' + (found ? '' : LOCK_ICON) + '</button>'; }).join('');
   showDrops();
   const ES_ICON = { round: '<svg viewBox="0 0 40 40"><ellipse cx="20" cy="20" rx="13" ry="12" fill="#fff" stroke="#171320" stroke-width="2.5"/><circle cx="21" cy="21" r="6" fill="#8A5636"/><circle cx="21.5" cy="21.5" r="3" fill="#171320"/><circle cx="19" cy="18.5" r="1.6" fill="#fff"/></svg>', edgy: '<svg viewBox="0 0 40 40"><path d="M3 20C8 11 16 9 23 12L37 8L30 16C33 20 30 26 24 29L15 36L13 29C7 28 3 24 3 20Z" fill="#171320"/><path d="M10 20C13 14 20 13 26 16C25 23 18 27 11 25C9.5 24 9.5 22 10 20Z" fill="#fff"/><path d="M10 9L22 5L21 9Z" fill="#171320"/><circle cx="18.5" cy="19.5" r="5.6" fill="#8A5636"/><circle cx="19" cy="20" r="3" fill="#171320"/><circle cx="16.4" cy="17.2" r="1.9" fill="#fff"/></svg>', dot: '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="9.5" fill="#171320"/><circle cx="16.5" cy="16.5" r="3" fill="#fff"/></svg>' };
   $('eyeStyles').innerHTML = Object.keys(EYE_STYLES).map(k => '<button class="eyes" type="button" data-es="' + k + '" aria-label="' + EYE_STYLES[k] + ' eyes" title="' + EYE_STYLES[k] + '" aria-pressed="' + (myLook.eyes === k) + '">' + ES_ICON[k] + '</button>').join('');
