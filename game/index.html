@@ -1818,7 +1818,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 86</p>
+      <p class="ver">Version 87</p>
     </div>
   </div>
 
@@ -8208,10 +8208,10 @@ function makeAudio() {
     music(mode) {
       if (!ctx) { lastMode = mode; if (mode === 'menu') trkDecode('menu'); return false; }
       const t = T(), vol = (v, tau) => { mus.gain.cancelScheduledValues(t); mus.gain.setTargetAtTime(v, t, tau); };
-      musLP.frequency.cancelScheduledValues(t); musLP.frequency.setTargetAtTime(mode === 'pause' ? 650 : 20000, t, mode === 'pause' ? 0.06 : 0.12);
+      musLP.frequency.cancelScheduledValues(t); musLP.frequency.setTargetAtTime(mode === 'pause' ? 650 : mode === 'vs' ? 2600 : 20000, t, mode === 'pause' ? 0.06 : mode === 'vs' ? 0.25 : 0.12);
       // a recorded track for this moment, when there's one ready: the synth steps aside for it
-      trkBus.gain.cancelScheduledValues(t); trkBus.gain.setTargetAtTime(mode === 'pause' ? 0.7 : 1, t, 0.12);
-      if (mode === 'pause') { if (trk) { lastMode = mode; return true; } }
+      trkBus.gain.cancelScheduledValues(t); trkBus.gain.setTargetAtTime(mode === 'pause' ? 0.7 : mode === 'vs' ? 0.82 : 1, t, mode === 'vs' ? 0.3 : 0.12);
+      if (mode === 'pause' || mode === 'vs') { if (trk || (trkPend === 'menu' && mode === 'vs')) { lastMode = mode; return true; } }
       else {
         const key = mode === 'menu' ? 'menu' : mode === 'play' ? stageTrk() : mode === 'win' || mode === 'lost' ? mode : null; trkWant = key; trkPend = null;
         if (key) trkDecode(key);
@@ -8226,6 +8226,7 @@ function makeAudio() {
         if (key && !TRK[key].fail && (mode === 'menu' || mode === 'play')) { trkPend = mode; musOn = false; vol(0, 0.15); lastMode = mode; return false; }
       }
       if (mode === 'pause') vol(MUS_PLAY * 0.7, 0.12);
+      else if (mode === 'vs') vol(MUS_MENU * 0.8, 0.3);
       else if (mode === 'play') { if (lastMode !== 'pause') { arr = 'play'; seqS = 0; seqT = t + 0.06; } musOn = true; vol(MUS_PLAY, 0.15); }
       else if (mode === 'menu') { if (lastMode !== 'menu') { arr = 'menu'; seqS = 0; seqT = t + 0.1; } musOn = true; vol(MUS_MENU, 0.4); }
       else if (mode === 'end') { musOn = false; vol(0, 0.12); }
@@ -12731,7 +12732,7 @@ function start() {
   if (menuPage === 'worlds') { menuPage = 'home'; menu.dataset.page = 'home'; $('mWorld').hidden = true; $('mHome').hidden = false; }
   if (lookOpen) closeLook();
   if (!mapUsed && GEN.key !== mapKey()) mapUsed = true; // the canvas waiting in the menu was made for another stage, mode or difficulty
-  rollRivalLooks(); AU.init(); AU.music('end'); menu.classList.add('leaving'); setTimeout(() => menu.classList.remove('leaving'), 900);
+  rollRivalLooks(); AU.init(); AU.music('vs'); menu.classList.add('leaving'); setTimeout(() => menu.classList.remove('leaving'), 900);
   // through the wipe: a fresh canvas is laid out while it's dark (it says so), then the match opens on your drop forming
   irisClose(() => {
     menu.hidden = true; end.hidden = true; pauseEl.hidden = true; howModal.hidden = true;
@@ -12778,11 +12779,11 @@ function showVS(cb) {
   for (const [D, , pose] of list) { if (D !== P) { D.look.drop.visible = true; D.yaw = P.yaw; D.flatT = 0; D.stunT = 0; D.dry = false; D.vsSt = D.st; D.st = 'play'; }
     D.vsIp = D.ip; D.ip = Object.assign({ hop: 0, spin: 0, pitch: 0, roll: 0, sq: null, rise: null, sink: null, coat: null, watch: null, expr: null, shut: false, stars: false }, pose.ip); }
   vsSnap = { t: 2, list, id: runId }; $('vsTitle').innerHTML = '<b>' + escAttr(TH.label) + '</b> \u00b7 ' + (mode === 'solo' ? 'Solo, 60 seconds' : md[1] + ', CPU ' + (CRITICS[diff] || 'fair').toLowerCase());
-  el.hidden = false; AU.whoosh(); for (const k of ['cd3', 'cd2', 'cd1', 'go']) AU.say(k, 0); setTimeout(() => AU.say('ready'), 350); buzz([15, 30, 15]);
-  const id = runId, wipe = win => slashWipe({ dur: 1.0, onPeak: () => { el.hidden = true; el.classList.remove('voting'); $('vvote').hidden = true;
+  el.hidden = false; AU.whoosh(); for (const k of ['ready', 'cd3', 'cd2', 'cd1', 'go']) AU.say(k, 0); buzz([15, 30, 15]);
+  const id = runId, wipe = win => { AU.music('end'); slashWipe({ dur: 1.0, onPeak: () => { el.hidden = true; el.classList.remove('voting'); $('vvote').hidden = true;
     if (win && TH.id !== win) { building = true; genWorld((Math.random() * 4294967296) >>> 0, { avoid: TH.id, themes: [win] }); mapUsed = false; clearTimeout(warmQ); warmRender(); building = false; }
-    cb(); } });
-  if (mode === 'solo' || window.__noVote) { setTimeout(() => { if (id !== runId && state !== 'menu') { el.hidden = true; return cb(); } wipe(null); }, 2100); return; }
+    cb(); } }); };
+  if (mode === 'solo' || window.__noVote) { setTimeout(() => { if (!(id !== runId && state !== 'menu')) AU.say('ready'); }, 900); setTimeout(() => { if (id !== runId && state !== 'menu') { el.hidden = true; return cb(); } wipe(null); }, 2100); return; }
   setTimeout(() => { if (id !== runId && state !== 'menu') { el.hidden = true; return cb(); } openVote(id, win => { if (id !== runId && state !== 'menu') { el.hidden = true; return cb(); } wipe(win); }); }, 1000);
 }
 // ---------- the vote: the open canvases in a row; your splat sits on your pick (your canvas from the lobby until you tap another), the
@@ -12808,7 +12809,7 @@ function openVote(id, done) {
     // the spin: round the voted canvases, slowing, stopping on the winner
     const steps = []; let cur = cands.indexOf(win), total = cands.length * 2 + 2; for (let k = total; k >= 0; k--) steps.push(cands[((cur - k) % cands.length + cands.length) % cands.length]);
     let t = 0; steps.forEach((sid, k) => { const gap = 70 + Math.pow(k / steps.length, 2.2) * 260; t += gap; at(t, () => { for (const b of row.children) b.classList.toggle('spin', b.dataset.s === sid); if (k < steps.length - 1) AU.tick ? AU.tick(0) : 0; }); });
-    at(t + 60, () => { for (const b of row.children) { b.classList.remove('spin'); b.classList.toggle('win', b.dataset.s === win); } box.classList.add('done'); $('vvWin').textContent = themeLabel(win); AU.pop(); buzz([14, 30, 14]); });
+    at(t + 60, () => { for (const b of row.children) { b.classList.remove('spin'); b.classList.toggle('win', b.dataset.s === win); } box.classList.add('done'); $('vvWin').textContent = themeLabel(win); AU.pop(); AU.say('ready'); buzz([14, 30, 14]); });
     at(t + 1100, () => { voteState = null; done(win); });
   });
 }
