@@ -1833,7 +1833,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 95</p>
+      <p class="ver">Version 96</p>
     </div>
   </div>
 
@@ -4898,6 +4898,7 @@ void slimeFace(vec3 p, vec3 nrm){
   // the face on the skin: the eye layer (or the blink), pupils where the whites show, then the mouth; faceInk says how much is face
   const FACE_GLSL = `
 uniform sampler2D fCol, fMsk; uniform vec4 fCells, fMix, fPupil, fComp, fLash, fStrap, sCoat, mFace, mHead; uniform vec3 sPaint, fIris; uniform float fStyle;
+float fCone(vec2 p, vec2 a, vec2 b, float w0, float w1) { vec2 ab = b - a; float t = clamp(dot(p - a, ab) / dot(ab, ab), 0.0, 1.0); float d = length(p - a - ab * t) - mix(w0, w1, t); return 1.0 - smoothstep(-0.004, 0.012, d); }
 varying vec3 vFace, vSlimeP;
 uniform sampler2D uScales; uniform vec4 uScaleK, sWade, mBelly, mSpot, sDry; varying vec3 vSlimeN; varying vec2 vSlimeE, vSlimeB; varying float vSlimeAO, vSlimeTh, vSlimeCt, vSlimeH;
 // the same noise with its exact slope (x the value, yzw the gradient), so bumps made from it come out smooth pixel by pixel
@@ -4931,7 +4932,7 @@ if (fLash.z > 0.0) { float sb = abs(dot((vSlimeP - mHead.xyz) / mHead.w, fStrap.
 if (vFace.z > 0.01 && abs(vFace.x * fComp.x) < 0.985 && abs(vFace.y * fComp.y) < 0.985) {
   vec2 fq = vFace.xy * fComp.xy; vec2 cuv = fq * 0.5 + 0.5;
   // the eye style: 1 narrows and slants the eyes into almonds and rims them in ink; 2 draws them as solid dots
-  vec2 fqe = fq; if (fStyle > 0.5 && fStyle < 1.5) { float sd0 = fq.x < 0.0 ? -1.0 : 1.0; vec2 pc0 = vec2(sd0 * 0.4, 0.16); vec2 l = fq - pc0; l.y = l.y * 1.4 + 0.03; l.x = (l.x + l.y * sd0 * 0.5) * 1.06; fqe = pc0 + l; }
+  float sqd = (fStyle > 0.5 && fStyle < 1.5) ? 1.0 : 0.0; vec2 fqe = fq; if (sqd > 0.5) { float sd0 = fq.x < 0.0 ? -1.0 : 1.0; vec2 pc0 = vec2(sd0 * 0.4, 0.16); vec2 l = fq - pc0; l.y = l.y * 1.18 + 0.02; l.x = (l.x + l.y * sd0 * 0.28) * 0.95; fqe = pc0 + l; }
   vec2 cuvE = fqe * 0.5 + 0.5;
   vec4 eA = texture2D(fCol, fCell(fCells.x, cuvE)), eB = texture2D(fCol, fCell(fCells.z, cuvE)), eye = mix(eA, eB, fMix.x);
   vec3 emL = mix(texture2D(fMsk, fCell(fCells.x, cuvE)).rgb, texture2D(fMsk, fCell(fCells.z, cuvE)).rgb, fMix.x); vec2 em = emL.rg;
@@ -4940,18 +4941,26 @@ if (vFace.z > 0.01 && abs(vFace.x * fComp.x) < 0.985 && abs(vFace.y * fComp.y) <
   // the lashes (when worn): the mask's blue, crossfading and blinking with the eyes; fLash says how much on each eye
   float lsh = 0.0; if (fLash.x + fLash.y > 0.0) lsh = mix(emL.b, texture2D(fMsk, fCell(fMix.w, cuvE)).b, fMix.y) * (fq.x < 0.0 ? fLash.x : fLash.y);
   vec3 c = mix(diffuseColor.rgb, eye.rgb, eye.a);
-  if (fStyle > 0.5 && fStyle < 1.5) { float d1 = max(max(texture2D(fCol, fCell(fCells.x, cuvE + vec2(0.024, 0.0))).a, texture2D(fCol, fCell(fCells.x, cuvE - vec2(0.024, 0.0))).a), max(texture2D(fCol, fCell(fCells.x, cuvE + vec2(0.0, 0.028))).a, texture2D(fCol, fCell(fCells.x, cuvE - vec2(0.0, 0.028))).a));
-    float rim = clamp(d1 - eye.a, 0.0, 1.0) * (1.0 - 0.5 * fMix.y); c = mix(c, vec3(0.03, 0.012, 0.02), rim); dotK = rim; }
+  if (sqd > 0.5) { float d1 = 0.0; for (int k = 0; k < 16; k++) { float a = float(k) * 0.3927; d1 = max(d1, texture2D(fCol, fCell(0.0, cuvE + vec2(cos(a) * 0.064, sin(a) * 0.072))).a); }
+    float hole = texture2D(fCol, fCell(0.0, cuvE)).a, rim = clamp(d1 - hole, 0.0, 1.0), sp = 0.0; // (the mask keeps the open eye's shape whatever the eye inside is doing)
+    for (int i = 0; i < 2; i++) { float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16);
+      vec2 dw = normalize(vec2(sd, 0.5)); vec2 a = pc + dw * 0.2, b = a + dw * 0.3; sp = max(sp, fCone(fqe, a, b, 0.1, 0.003));
+      vec2 di = normalize(vec2(-sd, -0.75)); a = pc + di * 0.18; b = a + di * 0.19; sp = max(sp, fCone(fqe, a, b, 0.085, 0.003));
+      vec2 b0 = pc + vec2(sd * 0.2, 0.37), b1 = pc + vec2(-sd * 0.04, 0.3); sp = max(sp, fCone(fq, b0, b1, 0.042, 0.018)); }
+    float mk = max(rim, sp); c = mix(c, vec3(0.03, 0.012, 0.02), mk);
+    // lids down: the almond fills with ink and the lid line shows as a lighter crease
+    float lidLine = eye.a * step(dot(eye.rgb, vec3(0.333)), 0.3); c = mix(c, vec3(0.03, 0.012, 0.02), hole * (1.0 - eye.a) * (1.0 - mk)); c = mix(c, vec3(0.46, 0.3, 0.38), hole * lidLine * (1.0 - mk)); dotK = max(mk, hole * (1.0 - eye.a)); }
   if (fStyle > 1.5) { float bk = 1.0 - fMix.y * 0.92; for (int i = 0; i < 2; i++) { float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16 + fPupil.w) + fPupil.xy * 0.6; vec2 dd = (fq - pc) * vec2(1.0, 1.0 / max(0.08, bk)); float r = length(dd);
     float dk = 1.0 - smoothstep(0.125, 0.145, r); c = mix(c, vec3(0.03, 0.012, 0.02), dk); float hl = 1.0 - smoothstep(0.03, 0.046, length((fq - pc - vec2(-0.045, 0.05)) * vec2(1.0, 1.0 / max(0.08, bk)))); c = mix(c, vec3(1.0), hl * dk); dotK = max(dotK, dk); } }
   // the pupils: a deep brown iris with a black pupil and two catchlights, shaded under the lid
   for (int i = 0; i < 2; i++) {
-    float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16 + fPupil.w) + fPupil.xy, dd = (fqe - pc) * vec2(1.0, 0.92); float r = length(dd), ri = 0.165 * fPupil.z, rp = 0.092 * fPupil.z;
+    float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16 + fPupil.w) + fPupil.xy, dd = (fqe - pc) * vec2(1.0, 0.92); float r = length(dd), ri = mix(0.165, 0.205, sqd) * fPupil.z, rp = mix(0.092, 0.1, sqd) * fPupil.z;
     float ia = (1.0 - smoothstep(ri - 0.014, ri, r)) * em.r;
     vec3 ic = mix(fIris, fIris * 0.2, smoothstep(0.0, ri, r)); ic = mix(ic, vec3(0.004, 0.002, 0.003), 1.0 - smoothstep(rp - 0.012, rp, r));
     ic += fIris * 1.12 * smoothstep(ri * 0.35, ri * 0.95, r) * smoothstep(0.2, -0.6, dd.y / ri) * (1.0 - smoothstep(ri * 0.95, ri, r));
+    ic = mix(ic, vec3(0.02, 0.008, 0.014), sqd * smoothstep(ri - 0.045, ri - 0.012, r));
     c = mix(c, ic * (1.0 - 0.55 * em.g), ia);
-    float cl = (1.0 - smoothstep(0.03, 0.042, length(fqe - pc - vec2(-0.055, 0.06) * fPupil.z))) + 0.8 * (1.0 - smoothstep(0.012, 0.02, length(fqe - pc - vec2(0.05, -0.05) * fPupil.z)));
+    float cl = (1.0 - smoothstep(mix(0.03, 0.05, sqd), mix(0.042, 0.06, sqd), length(fqe - pc - vec2(-0.055, 0.06) * (1.0 + 0.3 * sqd) * fPupil.z))) + 0.8 * (1.0 - smoothstep(0.012, mix(0.02, 0.026, sqd), length(fqe - pc - vec2(0.05, -0.05) * (1.0 + 0.3 * sqd) * fPupil.z)));
     c = mix(c, vec3(1.0), clamp(cl, 0.0, 1.0) * em.r * (1.0 - 0.85 * em.g));
   }
   c = mix(c, vec3(0.016, 0.0025, 0.007), lsh);
@@ -11978,7 +11987,7 @@ const WEAR_WHERE = { island: 'Palette Island', blank: 'Blank Canvas', halloween:
 const EYE_COLS = { brown: { name: 'Brown', lin: [0.16, 0.06, 0.035], css: '#8A5636' }, blue: { name: 'Blue', lin: [0.03, 0.1, 0.32], css: '#3B7BE0' }, green: { name: 'Green', lin: [0.04, 0.18, 0.05], css: '#46A853' },
   violet: { name: 'Violet', lin: [0.14, 0.045, 0.28], css: '#8E52DA' }, gold: { name: 'Gold', lin: [0.34, 0.17, 0.016], css: '#D8A41F' } };
 const EYE_KEYS = Object.keys(EYE_COLS);
-const EYE_STYLES = { round: 'Round', edgy: 'Edgy', dot: 'Dot' }, EYE_STYLE_K = { round: 0, edgy: 1, dot: 2 };
+const EYE_STYLES = { round: 'Round', edgy: 'Squid', dot: 'Dot' }, EYE_STYLE_K = { round: 0, edgy: 1, dot: 2 };
 const WEAR_CAT = { head: 'head', side: 'head', eye: 'face', lash: 'face', mouth: 'face', neck: 'cloth', back: 'cloth' };
 for (const w of WEAR) w.cat = WEAR_CAT[w.slot] || 'face';
 let lookCat = 'head'; // the category open in Customize
@@ -12325,7 +12334,7 @@ function renderLook() {
   rail.innerHTML = WEAR.filter(w => w.cat === lookCat).map(w => { const found = owns(w.id), own = found && bought(w.id), sale = found && !own, fr = own && fresh.has(w.id), broke = sale && (store.drops || 0) < PRICE(w);
     return '<button class="ltile' + (own ? '' : sale ? ' sale' : ' locked') + (broke ? ' broke' : '') + (fr ? ' fresh' : '') + '" type="button" data-w="' + w.id + '"' + (own ? ' aria-pressed="' + (myLook[w.slot] === w.id) + '"' : sale ? '' : ' aria-disabled="true"') + ' aria-label="' + w.name + (own ? (fr ? ', new' : '') : sale ? ', ' + PRICE(w) + ' drops' : ', locked') + '">' + (sale ? '<span class="ltag">' + DROP_SVG + PRICE(w) + '</span>' : '') + '<svg viewBox="0 0 40 40" aria-hidden="true">' + WEAR_ICON[w.id] + '</svg><span class="ltn">' + w.name + '</span>' + (found ? '' : LOCK_ICON) + '</button>'; }).join('');
   showDrops();
-  const ES_ICON = { round: '<svg viewBox="0 0 40 40"><ellipse cx="20" cy="20" rx="13" ry="12" fill="#fff" stroke="#171320" stroke-width="2.5"/><circle cx="21" cy="21" r="6" fill="#8A5636"/><circle cx="21.5" cy="21.5" r="3" fill="#171320"/><circle cx="19" cy="18.5" r="1.6" fill="#fff"/></svg>', edgy: '<svg viewBox="0 0 40 40"><path d="M6 23C10 13 22 11 34 15C30 24 18 29 6 23Z" fill="#171320"/><path d="M8.5 22.5C12 15.5 22 14 31.5 16.5C28 23 18 26.5 8.5 22.5Z" fill="#fff"/><circle cx="20" cy="20" r="4.6" fill="#8A5636"/><circle cx="20.5" cy="20.4" r="2.4" fill="#171320"/><circle cx="18.6" cy="18.4" r="1.3" fill="#fff"/></svg>', dot: '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="9.5" fill="#171320"/><circle cx="16.5" cy="16.5" r="3" fill="#fff"/></svg>' };
+  const ES_ICON = { round: '<svg viewBox="0 0 40 40"><ellipse cx="20" cy="20" rx="13" ry="12" fill="#fff" stroke="#171320" stroke-width="2.5"/><circle cx="21" cy="21" r="6" fill="#8A5636"/><circle cx="21.5" cy="21.5" r="3" fill="#171320"/><circle cx="19" cy="18.5" r="1.6" fill="#fff"/></svg>', edgy: '<svg viewBox="0 0 40 40"><path d="M3 20C8 11 16 9 23 12L37 8L30 16C33 20 30 26 24 29L15 36L13 29C7 28 3 24 3 20Z" fill="#171320"/><path d="M10 20C13 14 20 13 26 16C25 23 18 27 11 25C9.5 24 9.5 22 10 20Z" fill="#fff"/><path d="M10 9L22 5L21 9Z" fill="#171320"/><circle cx="18.5" cy="19.5" r="5.6" fill="#8A5636"/><circle cx="19" cy="20" r="3" fill="#171320"/><circle cx="16.4" cy="17.2" r="1.9" fill="#fff"/></svg>', dot: '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="9.5" fill="#171320"/><circle cx="16.5" cy="16.5" r="3" fill="#fff"/></svg>' };
   $('eyeStyles').innerHTML = Object.keys(EYE_STYLES).map(k => '<button class="eyes" type="button" data-es="' + k + '" aria-label="' + EYE_STYLES[k] + ' eyes" title="' + EYE_STYLES[k] + '" aria-pressed="' + (myLook.eyes === k) + '">' + ES_ICON[k] + '</button>').join('');
   $('irises').innerHTML = EYE_KEYS.map(k => '<button class="eyec" type="button" data-i="' + k + '" style="--ic:' + EYE_COLS[k].css + '" aria-label="' + EYE_COLS[k].name + ' eyes" title="' + EYE_COLS[k].name + '" aria-pressed="' + (myLook.iris === k) + '"><i></i></button>').join('');
   railEdge(); $('lookNameTxt').textContent = playerName();
