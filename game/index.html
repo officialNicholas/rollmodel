@@ -1876,7 +1876,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 110</p>
+      <p class="ver">Version 111</p>
     </div>
   </div>
 
@@ -12102,7 +12102,7 @@ function eyeShowFace(E) {
 // what you've found so far (everything starts locked)
 const OWNED = new Set(Array.isArray(store.owned) ? store.owned.filter(id => WEAR.some(w => w.id === id)) : []);
 // drops: paint earned at the end of a match. A found item goes on sale in the locker; it is worn once it is bought
-const PRICES = { flower: 170, bowtie: 220, lashes: 260, glasses: 320, patch: 390, fangs: 470, tiara: 560, tophat: 680, pirate: 820, hat: 1000, halo: 1300 };
+const PRICES = { flower: 170, bowtie: 220, lashes: 260, glasses: 320, patch: 390, fangs: 470, tiara: 560, tophat: 680, pirate: 820, halo: 1000, hat: 1300 };
 const PRICE = w => PRICES[w.id] || (w.season ? 1000 : w.slot === 'head' ? 600 : 300);
 const BOUGHT = new Set(Array.isArray(store.bought) ? store.bought.filter(id => OWNED.has(id)) : [...OWNED]);
 if (!Array.isArray(store.bought)) { store.bought = [...BOUGHT]; }
