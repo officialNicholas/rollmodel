@@ -1841,7 +1841,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 98</p>
+      <p class="ver">Version 99</p>
     </div>
   </div>
 
@@ -12843,7 +12843,8 @@ function portraitOf(D, W, Hh, o) {
   const hi = hemi.intensity, si = sun.intensity; keySave.copy(sun.color); lobbySunPos.copy(sun.position); lobbyTgt.copy(sun.target.position);
   hemi.intensity = Math.max(hi, 0.8 * LIGHT_K); sun.intensity = Math.max(si, 1.15 * LIGHT_K); sun.color.copy(lobbyKey);
   sun.position.set(D.x + fx * 3 - fz * 3.2, 5.5, D.z + fz * 3 + fx * 3.2); sun.target.position.set(D.x, 0.4, D.z); sun.target.updateMatrixWorld();
-  renderer.setRenderTarget(portRT); renderer.setClearColor(0x000000, 0); renderer.clear(); renderer.render(scene, portCam);
+  const gk = RIG.uGrabK.value, gfn = JELLY_GRAB.fn; RIG.uGrabK.value = 0; JELLY_GRAB.fn = null; // (and no grab taken mid-portrait either)
+  renderer.setRenderTarget(portRT); renderer.setClearColor(0x000000, 0); renderer.clear(); renderer.render(scene, portCam); RIG.uGrabK.value = gk; JELLY_GRAB.fn = gfn;
   const buf = new Uint8Array(W * Hh * 4); renderer.readRenderTargetPixels(portRT, 0, 0, W, Hh, buf); renderer.setRenderTarget(null); renderer.setClearColor(0x120A24, 1);
   hemi.intensity = hi; sun.intensity = si; sun.color.copy(keySave); sun.position.copy(lobbySunPos); sun.target.position.copy(lobbyTgt); sun.target.updateMatrixWorld();
   lobbyShadow.visible = shWas; strand.visible = stWas; for (const o of [P, H, H2]) vicLayer(o, o === P && state === 'menu');
