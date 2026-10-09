@@ -1774,6 +1774,15 @@ kbd{background:#fff;border-color:var(--black)}
 
 .ltile.locked .ltag{background:#8E8698;color:#fff}
 .ltile.locked .ltag .dropi{opacity:.85}
+
+/* the ribbon under the winner: a dark band on a slant with a sharp cream edge, the settings board's splats on it */
+.victory{isolation:isolate}
+.vrib{position:absolute;left:-12%;width:124%;bottom:-16%;height:50%;z-index:-1;transform:rotate(-5deg);transform-origin:50% 50%;background:var(--vrib,#2B1232);border-top:7px solid #F4EEE3;box-shadow:0 -4px 0 rgba(0,0,0,.25);animation:vribin .5s .1s cubic-bezier(.2,1.1,.3,1) both}
+.vrib::after{content:"";position:absolute;inset:0;background:rgba(255,255,255,.07);-webkit-mask:url(art/m_splat2.webp) 10px 20px/96px 96px repeat,url(art/m_splat.webp) 70px 90px/120px 120px repeat,url(art/m_drip.webp) 40px -10px/70px 90px repeat;mask:url(art/m_splat2.webp) 10px 20px/96px 96px repeat,url(art/m_splat.webp) 70px 90px/120px 120px repeat,url(art/m_drip.webp) 40px -10px/70px 90px repeat;animation:vribdrift 14s linear infinite}
+@keyframes vribin{from{transform:rotate(-5deg) translateY(60%)}}
+@keyframes vribdrift{to{-webkit-mask-position:106px 20px,166px 90px,110px -10px;mask-position:106px 20px,166px 90px,110px -10px}}
+@media (min-aspect-ratio:1/1){.vrib{height:46%;bottom:-20%;transform:rotate(-3.5deg)}}
+@media (prefers-reduced-motion:reduce){.vrib,.vrib::after{animation:none}}
 </style>
 
 <div id="stage">
@@ -1867,7 +1876,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 109</p>
+      <p class="ver">Version 110</p>
     </div>
   </div>
 
@@ -1971,6 +1980,7 @@ kbd{background:#fff;border-color:var(--black)}
   <div class="boot" id="boot" role="status"><span class="bootdrip" aria-hidden="true"></span><span class="tcard boottc" aria-hidden="true"></span><span class="bootdrop" aria-hidden="true"></span><div class="bootbar" aria-hidden="true"><i id="bootFill"></i></div><p class="bootmsg" id="bootMsg">Loading</p></div>
 
   <section class="victory" id="victory" hidden aria-live="polite">
+    <div class="vrib" aria-hidden="true"></div>
     <div class="vtop">
       <h2 class="vname" id="vName"></h2>
       <div class="vline"><span class="vtag" id="vTag"><i class="reddot" id="vDot" hidden></i><span id="vTagTxt">Winner</span></span><span class="vstage" id="vStage"></span></div>
@@ -11679,18 +11689,6 @@ void main(){
     float rr = 0.07 + 0.06 * fi2, dd = length(p - c); float disc = (1.0 - smoothstep(rr * 0.6, rr, dd)) * 0.08, ring = (1.0 - smoothstep(0.0, 0.012, abs(dd - rr))) * 0.22;
     vec3 fc = i == 2 ? mix(vec3(1.0), hue(fract(atan(p.y - c.y, p.x - c.x) / 6.2831853 + uTime * 0.05)), 0.7) : vec3(1.0);
     col += fc * (disc + ring); }
-  // the ribbon: a dark stripe across the lower part, its edges torn, drops and splats streaming along it, a cream lip
-  float ca = cos(-0.2), sa = sin(-0.2); vec2 t = vec2(ca, sa), n = vec2(-sa, ca);
-  vec2 bq = vec2(dot(p, t), dot(p, n)); float tear = (vn(bq * 5.0 + uTime * 0.12) - 0.5) * 0.035;
-  float inB = 0.16 - abs(bq.y + 0.5) + tear;
-  float band = smoothstep(-0.004, 0.004, inB), lip = smoothstep(0.016, 0.0, abs(inB));
-  vec3 bc = ink * (0.96 + 0.08 * vn(bq * 6.0));
-  vec2 cu = bq * 3.4 + vec2(uTime * 0.42, 0.0); vec2 ci = floor(cu); float odd = mod(ci.y, 2.0); cu.x += odd * 0.5; ci = floor(cu); vec2 cf = fract(cu) - 0.5;
-  float ch = h2(ci); float rot = (ch - 0.5) * 0.7; vec2 qq = vec2(cf.x * cos(rot) - cf.y * sin(rot), cf.x * sin(rot) + cf.y * cos(rot)) * (1.55 - 0.3 * fract(ch * 7.0));
-  float d = ch > 0.5 ? sdDrop(qq) : sdSplat(qq);
-  float icon = (1.0 - smoothstep(-0.012, 0.012, d)) * step(0.18, ch);
-  bc = mix(bc, mix(uA, ink, 0.35), icon);
-  col = mix(col, bc, band); col = mix(col, cream, lip * 0.9);
   col *= 1.0 - 0.3 * smoothstep(0.75, 1.6, length(p));
   gl_FragColor = vec4(mix(vec3(1.0), col, smoothstep(0.0, 0.5, uK)), 1.0);
   #include <tonemapping_fragment>
@@ -11776,7 +11774,7 @@ function startVictory() {
   });
   vicU.uA.value.copy(col); vicU.uB.value.copy(col).multiplyScalar(0.3); vicU.uC.value.copy(col).lerp(COL_WHITE, 0.72); vicU.uK.value = 0;
   // the words
-  vicEl.style.setProperty('--vc', hexCss(TEAMS[lead.team].wet)); vicEl.style.setProperty('--vc-hi', lead === P ? 'var(--ink-hi)' : lead === H ? 'var(--holy-hi)' : 'var(--wolf-hi)');
+  vicEl.style.setProperty('--vc', hexCss(TEAMS[lead.team].wet)); vicEl.style.setProperty('--vrib', '#' + new THREE.Color(TEAMS[lead.team].wet).multiplyScalar(0.3).lerp(new THREE.Color(0x120B1A), 0.7).getHexString()); vicEl.style.setProperty('--vc-hi', lead === P ? 'var(--ink-hi)' : lead === H ? 'var(--holy-hi)' : 'var(--wolf-hi)');
   const pl = $('vPlace'), me = board.find(e => e.D === P);
   if (solo) { pl.className = 'vplace word'; pl.textContent = Math.round(info.you) + '%'; vicTag(info.newBest ? 'New best!' : "Time's up", info.newBest); vicName(playerName()); $('vSub').innerHTML = info.newBest ? (info.prevBest ? 'Old best ' + info.prevBest + '%' : 'Your first canvas') : 'Your best is <b>' + info.best + '%</b>'; }
   else if (feat.length > 1 || !info.winner) { pl.className = 'vplace word'; pl.textContent = 'Draw'; vicTag('Dead even', false); vicName(feat.length > 1 ? playerName() + ' & ' + nameOf(feat[1]) : playerName()); $('vSub').innerHTML = '<b>' + me.pct + '%</b> each'; }
