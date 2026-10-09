@@ -1758,6 +1758,19 @@ kbd{background:#fff;border-color:var(--black)}
 .slamBtn.off .sdisc{filter:brightness(.5) saturate(.55)}
 .slamBtn.boost{filter:drop-shadow(4px 6px 0 rgba(23,19,32,.3))}
 .slamBtn.boost .sdisc{background:url(art/m_dot.webp) center/100% 100% no-repeat,#FF7A1F}
+
+/* the item button: what you are holding, on a cream sticker by the pound button; tap it when you want it */
+.itemBtn{position:absolute;left:max(22px,calc(env(safe-area-inset-left) + 14px));bottom:max(24px,calc(env(safe-area-inset-bottom) + 16px));width:80px;height:80px;padding:0;border:0;border-radius:50%;background:none;cursor:pointer;pointer-events:auto;display:grid;place-items:center;filter:drop-shadow(4px 6px 0 rgba(23,19,32,.3));z-index:5;-webkit-tap-highlight-color:transparent;touch-action:none}
+.itemBtn .sdisc{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 36% 30%,#FFFCF5,#F3EBDC 62%,#D8CCB6);-webkit-mask:url(art/m_dot.webp) center/100% 100% no-repeat;mask:url(art/m_dot.webp) center/100% 100% no-repeat}
+.itemBtn svg{position:relative;z-index:1;width:38px;height:38px;fill:var(--ink);stroke:var(--black);stroke-width:1.6;stroke-linejoin:round;margin-top:-12px;filter:drop-shadow(0 2px 0 rgba(0,0,0,.25))}
+.itemBtn .ilbl{position:absolute;left:50%;bottom:13px;transform:translateX(-50%);z-index:1;font:900 10px/1 var(--font-head);font-style:italic;text-transform:uppercase;letter-spacing:.08em;color:var(--black);white-space:nowrap}
+.itemBtn.in{animation:slamin .4s cubic-bezier(.3,1.7,.5,1),itemglow 1.6s ease-in-out .4s infinite}
+@keyframes itemglow{50%{filter:drop-shadow(4px 6px 0 rgba(23,19,32,.3)) drop-shadow(0 0 12px rgba(var(--ink-rgb),.8))}}
+.itemBtn:active{transform:translateY(3px) scale(.95)}
+.itemBtn.nope{animation:nope .35s}
+.hud.off .itemBtn{pointer-events:none;opacity:0}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.itemBtn{left:auto;right:max(156px,calc(env(safe-area-inset-right) + 148px));bottom:max(22px,calc(env(safe-area-inset-bottom) + 14px));width:70px;height:70px}.itemBtn svg{width:34px;height:34px;margin-top:-10px}.itemBtn .ilbl{bottom:11px;font-size:9px}}
+@media (prefers-reduced-motion:reduce){.itemBtn.in,.itemBtn.nope{animation:none}}
 </style>
 
 <div id="stage">
@@ -1780,7 +1793,7 @@ kbd{background:#fff;border-color:var(--black)}
     </div>
     <div class="chips"><span class="chip wx" id="wx" hidden></span><span class="chip pw" id="pw" hidden><i id="pwRing"></i><span id="pwText"></span></span></div>
     <div class="spacer"></div>
-    <button class="slamBtn" id="slamBtn" type="button" aria-label="Ground pound" hidden><i class="sdisc" aria-hidden="true"></i><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M14 3h12v13h7.5L20 30.5 6.5 16H14z"/><path class="gnd" d="M6 36h28M7 30l-3.5-3M33 30l3.5-3" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/><path class="trail" d="M14 31v6M20 32.5v6M26 31v6" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/></svg></button>
+    <button class="itemBtn" id="itemBtn" type="button" aria-label="Use item" hidden></button><button class="slamBtn" id="slamBtn" type="button" aria-label="Ground pound" hidden><i class="sdisc" aria-hidden="true"></i><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M14 3h12v13h7.5L20 30.5 6.5 16H14z"/><path class="gnd" d="M6 36h28M7 30l-3.5-3M33 30l3.5-3" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/><path class="trail" d="M14 31v6M20 32.5v6M26 31v6" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/></svg></button>
     <div class="tank gone hide" id="bar"><div class="ttrack" id="ttrack" role="meter" aria-label="Paint" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><span><i></i></span><span><i></i></span><span><i></i></span><span><i></i></span></div><em class="tdry" aria-live="assertive"><span id="tdryW">Find a refill</span> <b id="tdryN">4</b></em></div>
   </div>
   <div class="orbs" id="orbs"></div>
@@ -1851,7 +1864,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 105</p>
+      <p class="ver">Version 106</p>
     </div>
   </div>
 
@@ -6723,6 +6736,7 @@ arrow.visible = false; scene.add(arrow);
 // ---------- power-up: the Roller, floating in a bubble ----------
 const PU = {
   roller: { name: 'Roller', dur: 9, tip: 'Roller! Wide stripes for 9 seconds. Paint refilled.' },
+  turret: { name: 'Turret', dur: 7, tip: 'Turret! Plant and fire paint for 7 seconds.' },
   slam: { name: 'Slam', dur: 0, tip: 'Slam saved! Tap the slam button to smash down a huge circle.' },
 };
 const puIconMat = toon(0xE3122F), puHaloMat = toon(0xFFFFFF);
@@ -6891,19 +6905,47 @@ function makePowerMesh(type) {
   const V = (x, y, z) => new THREE.Vector3(x, y, z);
   let eyes = null;
   if (type === 'roller') { const K = ROLLER, rl = new THREE.Group(); rl.position.y = 0.05; spin.add(rl); for (const [geo, m] of [[K.roll, K.rollM], [K.solid, stGlossM], [K.wire, K.chromeM], [K.hull, outlineMat]]) { const o = new THREE.Mesh(geo, m); o.castShadow = m !== outlineMat; rl.add(o); } eyes = rl; }
+  else if (type === 'turret') { const t = new THREE.Group(); t.position.y = -0.12; t.scale.setScalar(0.72); spin.add(t); for (const geo of [TURRET_RIG.baseG, TURRET_RIG.barrelG]) { const o = new THREE.Mesh(geo, rigSolidM); o.castShadow = true; t.add(o); const h = new THREE.Mesh(geo, outlineMat); h.scale.setScalar(1.12); t.add(h); } eyes = t; }
   else { add(PU_G.tip, puIconMat, V(0, -0.13, 0), [Math.PI, 0, 0]); add(PU_G.neck, puIconMat, V(0, 0.18, 0)); }
   const bub = new THREE.Mesh(bubbleG, bubbleMat); bub.renderOrder = 8; g.add(bub);
   scene.add(g); return { g, spin, bub, eyes };
 }
 function placePower(pw, type, spot) { if (pw.g) scene.remove(pw.g); const m = makePowerMesh(type); Object.assign(pw, { type, x: spot[0], y: spot[1], z: spot[2], g: m.g, spin: m.spin, bub: m.bub, eyes: m.eyes, gone: 0, pop: 0 }); }
+const itemSpawn = { t: 7, last: null };
 function placePowers() {
-  powers.forEach(pw => pw.g && scene.remove(pw.g)); powers = [];
-  POWER_SPOTS.filter(s => s[3]).forEach((s, i) => { const pw = { phase: i * 2.1 }; placePower(pw, s[3], s); powers.push(pw); });
+  powers.forEach(pw => pw.g && scene.remove(pw.g)); powers = []; itemSpawn.t = 6 + Math.random() * 3; itemSpawn.last = null;
 }
-function respawnPower(pw) {
-  const free = POWER_SPOTS.filter(s => Math.hypot(s[0] - P.x, s[2] - P.z) > 8 && !powers.some(o => o !== pw && o.g && Math.hypot(o.x - s[0], o.z - s[2]) < 3));
-  const s = free.length ? free[(Math.random() * free.length) | 0] : POWER_SPOTS[0];
-  placePower(pw, 'roller', s);
+function spawnItem() {
+  const alive = ACTIVE.filter(D => D.st !== 'out');
+  const spots = POWER_SPOTS.filter(sp => alive.every(D => Math.hypot(D.x - sp[0], D.z - sp[2]) > 5) && !powers.some(o => Math.hypot(o.x - sp[0], o.z - sp[2]) < 3));
+  if (!spots.length) { itemSpawn.t = 2; return; }
+  let trail = alive[0]; for (const D of alive) if (teamCov(D.team) < teamCov(trail.team)) trail = D;
+  let best = null, bs = 1e9; for (const sp of spots) { const sc = Math.hypot(trail.x - sp[0], trail.z - sp[2]) + Math.random() * 9; if (sc < bs) { bs = sc; best = sp; } }
+  const type = itemSpawn.last === 'roller' ? (Math.random() < 0.65 ? 'turret' : 'roller') : (Math.random() < 0.65 ? 'roller' : 'turret');
+  const pw = { phase: Math.random() * 6, pop: 0, grace: 0, owner: null }; placePower(pw, type, best); powers.push(pw); itemSpawn.last = type; itemSpawn.t = 9 + Math.random() * 4;
+  if (Math.hypot(P.x - best[0], P.z - best[2]) < 16) AU.spot();
+}
+function itemTick(dt) {
+  const alive = ACTIVE.filter(D => D.st !== 'out'), busy = alive.filter(D => D.held || D.power || D.turret).length, cap = mode === 'trio' ? 2 : 1;
+  itemSpawn.t -= dt;
+  if (itemSpawn.t <= 0 && powers.length < cap && powers.length + busy < alive.length && matchLeft > 6) spawnItem();
+  for (const pw of powers) { if (pw.pop < 1) pw.pop = Math.min(1, pw.pop + dt * 3); if (pw.grace > 0) pw.grace -= dt; }
+}
+// what you hold goes back on the stage when you pick up something else, dropped just behind you
+function dropHeld(D) {
+  const x = D.x - Math.sin(D.yaw) * 1.1, z = D.z - Math.cos(D.yaw) * 1.1, gy = surfaceUnder(x, z, D.y + 0.5, true);
+  const pw = { phase: Math.random() * 6, pop: 0, grace: 2.5, owner: D }; placePower(pw, D.held, [x, gy > -Infinity ? gy : D.y, z]); powers.push(pw); D.held = null;
+}
+// using what you hold: the roller rolls, the turret plants (on the ground)
+function useHeld(D) {
+  if (!D.held || D.st !== 'play' || D.flatT > 0 || D.stunT > 0 || D.rocket || D.turret || D.giantT > 0 || D.knockT > 0) return false;
+  const type = D.held; if (type === 'turret' && D.air) return false;
+  D.held = null; D.heldT = 0;
+  if (type === 'turret') { startTurret(D); for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0; return true; }
+  D.paint = 1; burst2(D, 16); D.power = { type, t: PU[type].dur }; emote(D, 'glee', 0.9);
+  if (D === P) { shake = Math.max(shake, 0.08); AU.power(); buzz(15); banner('Roller!', 'Wide stripes. Paint refilled'); } else if (hearable(D)) AU.power();
+  for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0;
+  return true;
 }
 
 // ---------- the giant orb: a glowing, color-shifting orb that drifts around the canvas. Touch it any way you can to grow three times your size for 4 seconds ----------
@@ -7066,7 +7108,7 @@ function takeOrb(D) {
   orb.on = false; orb.pull = 0; orb.g.visible = false; orb.ring.visible = false; orb.spawnT = 16 + Math.random() * 6;
   for (let i = 0; i < 26; i++) { const a = Math.random() * 6.283; spawnPart(orb.x, orb.y, orb.z, Math.cos(a) * 4, 1 + Math.random() * 4, Math.sin(a) * 4, 0.55, orbPartMats[i % orbPartMats.length], 0.6); }
   shockwave(orb.x, D.y, orb.z, 2.6, 0xFFFFFF);
-  const gift = window.__orbKind || ['giant', 'rocket', 'turret'][(Math.random() * 3) | 0];
+  const gift = window.__orbKind || ['giant', 'rocket'][(Math.random() * 2) | 0];
   if (gift === 'rocket') { startRocket(D); for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0; return; }
   if (gift === 'turret') { startTurret(D); for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0; return; }
   D.giantT = GIANT_T; D.wob = 1; D.squash = 0.8; D.inkRush = true; emote(D, 'glee', 1.1); AU.grow(); if (D === P) AU.vox('hoh'); // a full tank that doesn't drain while it lasts
@@ -8099,7 +8141,7 @@ function makeAudio() {
     count(n) { return P_(n <= 3 ? 'count_hi' : 'count_lo', { vary: 0 }); },
     tick(i) { const sc = [0, 2, 4, 7, 9], k = (((i | 0) % 15) + 15) % 15; return P_(['tick_a', 'tick_b', 'tick_c'][Math.floor(k / 5)], { rate: Math.pow(2, sc[k % 5] / 12), vary: 0 }); },
     horn() { if (!P_('horn', { vary: 0 })) return false; duck(0.7, 1.4); return true; },
-    cd(n) { return P_('cd' + Math.min(3, Math.max(1, n | 0)), { vary: 0 }); },
+    cd(n) { return P_('cd' + Math.min(3, Math.max(1, n | 0)), { vary: 0, v: 1.25 }); },
     sting(kind) { if (!P_(kind === 'win' ? 'sting_win' : kind === 'lose' ? 'sting_lose' : 'sting_draw', { vary: 0 })) return false; duck(kind === 'lose' ? 0.5 : 0.38, kind === 'lose' ? 1.9 : 1.1); return true; },
     turret() { return P_('turret', { vary: 0.02 }); },
     shoot() { return P_('shoot'); },
@@ -8357,7 +8399,7 @@ function resetRun() {
   abortVictory(); outK = 0; outroFrac = 1; runId++; cfg = VS_CFG; clearTrail(); placeObjects(level);
   resetBlob(P, START.x, START.z, START.yaw); resetBlob(H, CSTART.x, CSTART.z, CSTART.yaw); aiReset(H); resetBlob(H2, CSTART2.x, CSTART2.z, CSTART2.yaw); aiReset(H2);
   if (mode === 'solo') H.st = 'out'; if (mode !== 'trio') H2.st = 'out';
-  for (const D of [P, H, H2]) { D.slamCD = D.slamMax = SLAM_FIRST; D.wearOff = false; D.wearPop = 1; } // the pound builds up before the first one
+  for (const D of [P, H, H2]) { D.slamCD = D.slamMax = SLAM_FIRST; D.wearOff = false; D.wearPop = 1; D.held = null; D.heldT = 0; } // the pound builds up before the first one
   wasReady = false; holdCharge = false; pullTgt = 0; slingOff();
   camYaw = P.yaw; camYawV = 0; look.spd = 0; look.lean = 0; look.drop = 0; look.flat = 1; look.roll = 0; Object.assign(lookC, { spd: 0, lean: 0, drop: 0, flat: 1, roll: 0, flatK: 0 }); lookFlatP = 0; aimRing.visible = false; arrow.visible = false;
   drop.visible = true; shadowBlob.visible = true; LH.drop.visible = LH.shadow.visible = mode !== 'solo'; L2.drop.visible = L2.shadow.visible = mode === 'trio'; Object.assign(L2.look, { spd: 0, lean: 0, drop: 0, flat: 1, roll: 0, flatK: 0 }); hud.classList.toggle('trio', mode === 'trio'); hud.classList.toggle('solo', mode === 'solo');
@@ -9157,9 +9199,10 @@ function slamLand(D) {
 }
 function collectPower(D, pw) {
   const type = pw.type; shockwave(pw.x, pw.y + 1.05, pw.z, 1.2); for (let i = 0; i < 12; i++) { const a = i / 12 * 6.283; spawnPart(pw.x, pw.y + 1.05, pw.z, Math.cos(a) * 4, 1 + Math.random() * 2, Math.sin(a) * 4, 0.35, puHaloMat, 0.6); }
-  scene.remove(pw.g); pw.g = null; pw.gone = 7;
-  D.paint = 1; burst2(D, 16); D.power = { type, t: PU[type].dur }; emote(D, 'glee', 0.9);
-  if (D === P) { shake = Math.max(shake, 0.08); AU.pop(); AU.power(); buzz(15); }
+  scene.remove(pw.g); pw.g = null; const ix = powers.indexOf(pw); if (ix >= 0) powers.splice(ix, 1);
+  if (D.held) dropHeld(D);
+  D.held = type; D.heldT = 0; emote(D, 'glee', 0.6); itemSpawn.t = Math.max(itemSpawn.t, 8 + Math.random() * 4);
+  if (D === P) { shake = Math.max(shake, 0.06); AU.pop(); buzz(12); hint('item', say('Got the ' + PU[type].name.toLowerCase() + '. Tap its button to use it', 'Got the ' + PU[type].name.toLowerCase() + '. Press F to use it'), 3.5); }
 }
 const deathColor = (D, r) => r === 'sun' ? (D.cpu ? 0xDDEEFF : 0x4A4052) : r === 'dry' ? 0x5E4F5C : TEAMS[D.team].wet;
 const deathRing = r => r === 'sun' ? 0xFFC46B : r === 'pound' || r === 'coffin' ? 0xFFD86B : 0xFFFFFF;
@@ -9543,7 +9586,7 @@ function stepBlob(D, dt) {
   if (D.flung && D.st === 'play') for (const p of pots) if (p.occ && p.occ !== D && !(p.occ.spawnImm && p.occ.immuneT > 0) && potUp(p) && Math.abs(D.y - p.y) < 1.1 && Math.hypot(D.x - p.x, D.z - p.z) < 0.62 + PR) { bumpFromCoffin(p.occ, D); break; }
   if (D.slam) return;
   if (D.giantT <= 0) for (const p of pots) if (potUp(p) && !p.occ && p.ink > 0.02 && p.cool <= 0 && Math.abs(D.y - p.y) < 0.9 && Math.hypot(D.x - p.x, D.z - p.z) < 0.5 + PR * 0.95) { enterPot(D, p); break; }
-  if (D.st === 'play') for (const pw of powers) if (pw.g && Math.abs(D.y - pw.y) < 1.6 && Math.hypot(D.x - pw.x, D.z - pw.z) < 0.95) { collectPower(D, pw); break; }
+  if (D.st === 'play') for (const pw of powers) if (pw.g && !(pw.grace > 0 && pw.owner === D) && Math.abs(D.y - pw.y) < 1.6 && Math.hypot(D.x - pw.x, D.z - pw.z) < 0.95) { collectPower(D, pw); break; }
 }
 function step(dt) {
   clock += dt; stepNo++; updateMovers();
@@ -9585,7 +9628,7 @@ function step(dt) {
     if (r.target === 1 && !r.on && r.k > 0.7) { r.on = true; r.life = PUD_LIFE + Math.random() * 8; }
     r.g.visible = r.k > 0.02; r.g.scale.setScalar(Math.max(0.02, r.k));
   }
-  for (const pw of powers) { if (!pw.g && pw.gone > 0) { pw.gone -= dt; if (pw.gone <= 0) respawnPower(pw); } else if (pw.g && pw.pop < 1) pw.pop = Math.min(1, pw.pop + dt * 3); }
+  itemTick(dt);
   stepCoffins(dt);
   updateTrail(dryClock + outroAge);
   if (hintTimer > 0) { hintTimer -= dt; if (hintTimer <= 0 && P.st !== 'ko') hintEl.classList.remove('on'); }
@@ -10247,7 +10290,7 @@ function aiThink(D) {
     if (stuck && !slamReady(D) && od < 7 && Math.random() < AI.ram * 0.6 && pn) return aiGo(D, pn, 'hunt');
   }
   // 5) a roller nearby is free paint
-  if (Math.random() < AI.grab) { let best = null, bd = 8; for (const pw of powers) { if (!pw.g) continue; const n = NAV.at(pw.x, pw.z, pw.y); if (n && nDist[n.id] < bd) { bd = nDist[n.id]; best = n; } } if (best) return aiGo(D, best, 'grab'); }
+  if (!D.held && Math.random() < AI.grab) { let best = null, bd = 8; for (const pw of powers) { if (!pw.g || (pw.grace > 0 && pw.owner === D)) continue; const n = NAV.at(pw.x, pw.z, pw.y); if (n && nDist[n.id] < bd) { bd = nDist[n.id]; best = n; } } if (best) return aiGo(D, best, 'grab'); }
   // 6) paint: the route that sweeps through the most fresh and stolen ground for its length.
   //    With a pound coming up, a spot also counts what pounding it would paint (a pound covers as much as ~15 s of rolling),
   //    and a pound next to boiling water refills the tank too.
@@ -10489,6 +10532,8 @@ function aiStep(D, dt) {
   if (mode === 'trio' && (ai.focusT = (ai.focusT || 0) - dt) <= 0) { ai.focusT = 1.2 + Math.random() * 0.8; const f = pickFocus(D); if (f && f !== D.focus) { D.focus = f; ai.o = null; ai.seenT = 0; } }
   ai.seenT -= dt; if (ai.seenT <= 0 || !ai.o) { ai.seenT = AI.react; aiSee(D); }
   if (D.st === 'ko') { ai.path = null; ai.plan = null; ai.flight = null; ai.evadeT = 0; ai.attackT = 0; ai.wasRdy = false; return; }
+  if (D.held && D.st === 'play') { D.heldT = (D.heldT || 0) + dt; const O = other(D), near = O && O.st === 'play' && Math.hypot(O.x - D.x, O.z - D.z) < TURRET_FAR * 0.75;
+    if (!D.air && !D.charging && (D.held === 'turret' ? (near && D.heldT > 0.6) || D.heldT > 6 : D.heldT > 1 + Math.random() * 1.5)) useHeld(D); }
   // the pound just came back and it knows roughly where you are: sometimes it saves it for you and comes over
   const rdy = slamReady(D);
   if (rdy && !ai.wasRdy) { const o = ai.o; if (o && o.st === 'play' && runT - o.t < AI.memory && Math.hypot(o.x - D.x, o.z - D.z) < 24 && D.paint > 0.45 && wxPhase !== 'sun' && wxPhase !== 'warn' && Math.random() < AI.attack) { ai.attackT = 4 + Math.random() * 1.5; ai.attackRoll = 2.5; ai.thinkT = 0; } }
@@ -11258,6 +11303,8 @@ function visuals(dt, rdt) {
   // paint shots in flight: a glob stretched along its path, wobbling
   drawShots();
   for (const pw of powers) if (pw.g) { const k = pw.pop < 1 ? 1 - Math.pow(1 - pw.pop, 3) : 1; pw.g.scale.setScalar(Math.max(0.01, k)); pw.g.position.set(pw.x, pw.y + 1.05 + Math.sin(clock * 2.2 + pw.phase) * 0.14, pw.z); if (pw.eyes) { const yaw = Math.atan2(camera.position.x - pw.x, camera.position.z - pw.z); pw.spin.rotation.set(Math.sin(clock * 2.6 + pw.phase) * 0.1, yaw + Math.sin(clock * 1.5 + pw.phase) * 0.5, Math.sin(clock * 2.1 + pw.phase) * 0.16); } else pw.spin.rotation.y = clock * 2.1 + pw.phase; let nr = 0; for (const D of ACTIVE) if (D.st === 'play') nr = Math.max(nr, 1 - Math.hypot(D.x - pw.x, D.z - pw.z) / 3.2); nr = Math.max(0, nr); const jw = Math.sin(clock * (3.1 + 9 * nr) + pw.phase) * (0.03 + 0.07 * nr); pw.bub.scale.set(1 + jw, 1 - jw, 1 + jw * 0.5); } // the bubble gets jittery as someone rolls up to it
+  { const ib = $('itemBtn'), held = state === 'play' && P.st === 'play' ? P.held : null; if (ib.hidden === !!held) ib.hidden = !held;
+    if (held && ib.dataset.k !== held) { ib.dataset.k = held; ib.innerHTML = '<i class="sdisc" aria-hidden="true"></i>' + ITEM_ICON[held] + '<span class="ilbl">' + PU[held].name + '</span>'; ib.setAttribute('aria-label', 'Use the ' + PU[held].name.toLowerCase()); restartCls(ib, 'in'); } else if (!held) ib.dataset.k = ''; }
   const pwc = $('pw');
   if (P.rocket && pIn) { pwc.hidden = false; const R = P.rocket, left = R.ph === 'hover' ? Math.max(0, ROCKET_HOVER - R.t) : 0, tx = R.ph === 'hover' ? 'Rocket ' + Math.ceil(left) + 's' : 'Rocket'; if ($('pwText').textContent !== tx) $('pwText').textContent = tx; $('pwRing').style.background = 'conic-gradient(#fff ' + (R.ph === 'up' ? 360 : left / ROCKET_HOVER * 360).toFixed(0) + 'deg, rgba(255,255,255,.3) 0)'; }
   else if (P.turret && pIn) { pwc.hidden = false; const tx = 'Turret ' + Math.ceil(P.turret.t) + 's'; if ($('pwText').textContent !== tx) $('pwText').textContent = tx; $('pwRing').style.background = 'conic-gradient(#fff ' + (P.turret.t / TURRET_T * 360).toFixed(0) + 'deg, rgba(255,255,255,.3) 0)'; }
@@ -12595,7 +12642,7 @@ function introStep(rdt) {
     D.y = (D.introY0 || 0) + INTRO_H + Math.sin(clock * 2.4 + D.team * 1.7) * 0.05; D.wob = Math.max(0, D.wob - rdt * 1.6); }
   while (introN < 4 && introT >= INTRO_AT[introN]) {
     const n = 3 - introN; introN++;
-    if (n > 0) { showCount(String(n)); AU.cd(n); AU.say('cd' + n, 0.9); buzz(8);
+    if (n > 0) { showCount(String(n)); AU.cd(n); buzz(8);
       for (const D of ACTIVE) { if (D.st === 'out' || D.pot) continue; D.fT = n === 3 ? 0.62 : 1; D.fV += 3.2; D.wob = 1; if (n <= 2 && !D.introBare) { D.introBare = true; D.ipBurst = true; } }
       // paint flying in from all round to join the drop
       if (!P.pot) for (let i = 0; i < 10; i++) { const a = i / 10 * 6.283 + Math.random() * 0.5, r = 0.75 + Math.random() * 0.4, h = (Math.random() - 0.35) * 0.7, x = P.x + Math.cos(a) * r, y = P.y + 0.12 + h, z = P.z + Math.sin(a) * r, T = 0.15 + Math.random() * 0.06; spawnPart(x, y, z, (P.x - x) / T, (P.y + 0.12 - y) / T, (P.z - z) / T, T, tmat(P), 0.5 + Math.random() * 0.35, 0); }
@@ -12909,7 +12956,7 @@ function showVS(cb) {
   for (const [D, , pose] of list) { D.wearPop = 1; D.wearOff = false; D.wearHid = false; if (D !== P) { D.look.drop.visible = true; D.yaw = P.yaw; D.flatT = 0; D.stunT = 0; D.dry = false; D.vsSt = D.st; D.st = 'play'; }
     D.vsIp = D.ip; D.ip = Object.assign({ hop: 0, spin: 0, pitch: 0, roll: 0, sq: null, rise: null, sink: null, coat: null, watch: null, expr: null, shut: false, stars: false }, pose.ip); }
   vsSnap = { t: 2, list, id: runId }; $('vsTitle').innerHTML = '<b>' + escAttr(TH.label) + '</b> \u00b7 ' + (mode === 'solo' ? 'Solo, 60 seconds' : md[1] + ', CPU ' + (CRITICS[diff] || 'fair').toLowerCase());
-  el.hidden = false; AU.whoosh(); for (const k of ['ready', 'cd3', 'cd2', 'cd1', 'go']) AU.say(k, 0); buzz([15, 30, 15]);
+  el.hidden = false; AU.whoosh(); for (const k of ['ready', 'go']) AU.say(k, 0); buzz([15, 30, 15]);
   const id = runId, wipe = win => { AU.music('end'); slashWipe({ dur: 1.0, onPeak: () => { el.hidden = true; el.classList.remove('voting'); $('vvote').hidden = true;
     if (win && TH.id !== win) { building = true; genWorld((Math.random() * 4294967296) >>> 0, { avoid: TH.id, themes: [win] }); mapUsed = false; clearTimeout(warmQ); warmRender(); building = false; }
     cb(); } }); };
@@ -13148,6 +13195,9 @@ $('replayBtn').addEventListener('click', uiClick(replay));
 $('menuBtn').addEventListener('click', uiClick(toMenu));
 $('pauseBtn').addEventListener('click', uiClick(pause));
 $('slamBtn').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); AU.init(); if (state === 'play') useSlam(P); });
+const ITEM_ICON = { roller: '<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="5" y="9" width="30" height="13" rx="6.5"/><path d="M20 22v7h7" fill="none" stroke-width="3.2" stroke-linecap="round"/><rect x="25" y="27" width="7" height="9" rx="2"/></svg>', turret: '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M7 30a13 13 0 0 1 26 0z"/><path d="M20 20L33 9" fill="none" stroke-width="5" stroke-linecap="round"/><circle cx="20" cy="21" r="4.5"/></svg>' };
+$('itemBtn').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); AU.init(); if (state === 'play' && !useHeld(P)) { AU.nope(); kick($('itemBtn'), 'nope'); } });
+$('itemBtn').addEventListener('click', e => { e.preventDefault(); if (state === 'play' && e.detail === 0) useHeld(P); });
 $('slamBtn').addEventListener('click', e => { e.preventDefault(); if (state === 'play' && e.detail === 0) useSlam(P); });
 $('resumeBtn').addEventListener('click', uiClick(resume));
 $('restartBtn').addEventListener('click', uiClick(replay));
@@ -13274,6 +13324,7 @@ window.addEventListener('keydown', e => {
   if ((k === 'r' || k === 'R') && !e.repeat && (state === 'paused' || endUp)) { replay(); return; }
   if (k === 'm' || k === 'M') { toggleSound(); return; }
   if ((k === 'e' || k === 'E') && !e.repeat) { e.preventDefault(); if (state === 'play') useSlam(P); return; }
+  if ((k === 'f' || k === 'F') && !e.repeat) { e.preventDefault(); if (state === 'play' && !useHeld(P)) AU.nope(); return; }
   if ((k === 'Shift' || k === 'q' || k === 'Q') && !e.repeat) { e.preventDefault(); if (state === 'play') dodgeRoll(P); return; }
   if (P.turret && state === 'play' && (k === 'ArrowUp' || k === 'w' || k === 'W' || k === 'ArrowDown' || k === 's' || k === 'S')) { e.preventDefault(); aimKey = k === 'ArrowUp' || k === 'w' || k === 'W' ? 1 : -1; return; }
   if (k === 'ArrowLeft' || k === 'a' || k === 'A') { keyL = true; e.preventDefault(); }
