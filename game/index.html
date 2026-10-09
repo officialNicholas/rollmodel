@@ -1599,10 +1599,10 @@ kbd{background:#fff;border-color:var(--black)}
 @media (prefers-reduced-motion:reduce){.vvote{transition:none}.vt .vch i{animation:none}}
 
 /* ===== drops: the paint you earn, and what a found item costs ===== */
-.dropi{width:.8em;height:1em;fill:var(--ink);vertical-align:-.12em;filter:drop-shadow(1px 1px 0 rgba(23,19,32,.35))}
+.dropi{width:1.05em;height:1.05em;fill:var(--ink);vertical-align:-.16em;filter:drop-shadow(1px 1px 0 rgba(23,19,32,.35))}
 .plate.stat.drops b{display:inline-flex;align-items:center;gap:3px}
 .lkbal{display:inline-flex;align-items:center;gap:5px;margin-left:auto;margin-right:8px;padding:6px 10px 6px 8px;background:#fff url(art/m_paperbg.webp) center/300px;border-radius:4px;box-shadow:3px 4px 0 rgba(23,19,32,.2);font:900 15px/1 var(--font-head);color:var(--black);white-space:nowrap}
-.lkbal .dropi{width:13px;height:16px}
+.lkbal .dropi{width:16px;height:16px}
 .lkbal.bump{animation:tilepop .42s cubic-bezier(.2,1.6,.4,1)}
 .dropgain{display:grid;justify-items:end;gap:2px;font:900 15px/1 var(--font-head);color:var(--black);white-space:nowrap}
 .dropgain small{font:800 9px/1 var(--font-ui);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
@@ -1610,11 +1610,11 @@ kbd{background:#fff;border-color:var(--black)}
 .ltile.sale{border:2px solid var(--ink);background:#fff;box-shadow:2px 3px 0 rgba(23,19,32,.14)}
 .ltile.sale svg{filter:none;opacity:1}
 .ltile .ltag{position:absolute;left:50%;top:-9px;transform:translateX(-50%) rotate(-3deg);display:inline-flex;align-items:center;gap:2px;padding:3px 7px;background:var(--ink);color:#fff;border-radius:3px;font:900 11px/1 var(--font-head);box-shadow:2px 2px 0 rgba(23,19,32,.35);white-space:nowrap}
-.ltile .ltag .dropi{fill:#fff;width:9px;height:11px;filter:none}
+.ltile .ltag .dropi{fill:#fff;width:12px;height:12px;filter:none}
 .ltile.sale .ltn{color:var(--black)}
 .ltile.broke .ltag{background:#8E8698}
 .niprice{display:inline-flex;align-items:center;gap:4px;margin-left:8px;padding:2px 8px;border-radius:3px;background:var(--ink);color:#fff;font:900 13px/1 var(--font-head)}
-.niprice .dropi{fill:#fff;width:9px;height:12px;filter:none}
+.niprice .dropi{fill:#fff;width:12px;height:12px;filter:none}
 @media (max-height:520px) and (min-aspect-ratio:1/1){.lkbal{padding:4px 8px 4px 6px;font-size:13px}}
 /* the orientation preview keeps to its box (a percentage height inside an auto grid row resolved to nothing) */
 .oart{display:flex;justify-content:center;align-items:center}
@@ -1737,7 +1737,7 @@ kbd{background:#fff;border-color:var(--black)}
 .lcol.right .plate.stat b{font:900 27px/1 var(--font-head);font-style:italic;letter-spacing:-.03em;color:#17131F;padding-top:1px;text-shadow:.07em .07em 0 rgba(var(--ink-rgb),.28)}
 .lcol.right .plate.stat span{font:800 8.5px/1 var(--font-ui);letter-spacing:.16em;color:var(--muted);margin-top:1px}
 .lcol.right .plate.stat.drops b{gap:4px}
-.lcol.right .plate.stat.drops b .dropi{width:13px;height:16px;filter:none}
+.lcol.right .plate.stat.drops b .dropi{width:17px;height:17px;filter:none}
 .lcol.right .plate.stat+.plate.stat{border-top:2px dashed rgba(23,19,32,.14);padding-top:6px}
 .lcol.right{gap:4px}
 
@@ -1798,7 +1798,7 @@ kbd{background:#fff;border-color:var(--black)}
       <div class="lcol right" id="lobbyRight">
         <div class="plate stat" title="Wins"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3M12 14v3M8.5 20h7M9.5 17h5" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg><b id="statWins">0</b><span>Wins</span></div>
         <div class="plate stat" title="Best coverage"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5s6 7 6 11.2a6 6 0 0 1-12 0C6 10.5 12 3.5 12 3.5z" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"/></svg><b id="statBest">0%</b><span>Best</span></div>
-        <div class="plate stat drops" title="Drops"><b id="statDrops"><svg class="dropi" viewBox="0 0 16 20" aria-hidden="true"><path d="M8 1.5C8 1.5 2 9 2 12.5a6 6 0 0 0 12 0C14 9 8 1.5 8 1.5z"/></svg>0</b><span>Drops</span></div>
+        <div class="plate stat drops" title="Dabs"><b id="statDrops"><svg class="dropi" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#F2C14E" stroke="#8A5A12" stroke-width="1.6"/><circle cx="10" cy="10" r="6.7" fill="none" stroke="#C98E22" stroke-width="1"/><path d="M10 5.2c.9 0 1.3 1.1 2 1.5 1 .5 2.2-.3 2.6.7.4 1-.9 1.6-.9 2.6s1.2 1.6.7 2.5c-.5.9-1.6.2-2.5.6-.8.4-1 1.7-1.9 1.7s-1.1-1.3-2-1.7c-.9-.4-2 .3-2.5-.6s.7-1.5.7-2.5-1.3-1.6-.9-2.6c.4-1 1.6-.2 2.6-.7.7-.4 1.1-1.5 2.1-1.5z"/></svg>0</b><span>Dabs</span></div>
       </div>
       <div class="lbot" id="lobbyBot">
         <div class="lgo" id="mCta">
@@ -1841,7 +1841,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 101</p>
+      <p class="ver">Version 102</p>
     </div>
   </div>
 
@@ -1886,7 +1886,7 @@ kbd{background:#fff;border-color:var(--black)}
   </div>
 
   <section class="sheet lookp" id="look" hidden role="dialog" aria-labelledby="lookTitle">
-    <div class="lktop"><h2 class="ctitle" id="lookTitle">Locker</h2><span class="lkbal" id="lkBal" aria-label="Drops"><svg class="dropi" viewBox="0 0 16 20" aria-hidden="true"><path d="M8 1.5C8 1.5 2 9 2 12.5a6 6 0 0 0 12 0C14 9 8 1.5 8 1.5z"/></svg><b id="lkBalN">0</b></span><button class="lnbtn" id="lookNameBtn" type="button" aria-label="Change your name"><span id="lookNameTxt">You</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l1-4.2L15.4 5.4a1.9 1.9 0 0 1 2.7 0l.5.5a1.9 1.9 0 0 1 0 2.7L8.7 18.5z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M13.6 7.2l3.2 3.2" stroke="currentColor" stroke-width="2.2"/></svg></button></div>
+    <div class="lktop"><h2 class="ctitle" id="lookTitle">Locker</h2><span class="lkbal" id="lkBal" aria-label="Dabs"><svg class="dropi" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#F2C14E" stroke="#8A5A12" stroke-width="1.6"/><circle cx="10" cy="10" r="6.7" fill="none" stroke="#C98E22" stroke-width="1"/><path d="M10 5.2c.9 0 1.3 1.1 2 1.5 1 .5 2.2-.3 2.6.7.4 1-.9 1.6-.9 2.6s1.2 1.6.7 2.5c-.5.9-1.6.2-2.5.6-.8.4-1 1.7-1.9 1.7s-1.1-1.3-2-1.7c-.9-.4-2 .3-2.5-.6s.7-1.5.7-2.5-1.3-1.6-.9-2.6c.4-1 1.6-.2 2.6-.7.7-.4 1.1-1.5 2.1-1.5z"/></svg><b id="lkBalN">0</b></span><button class="lnbtn" id="lookNameBtn" type="button" aria-label="Change your name"><span id="lookNameTxt">You</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l1-4.2L15.4 5.4a1.9 1.9 0 0 1 2.7 0l.5.5a1.9 1.9 0 0 1 0 2.7L8.7 18.5z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M13.6 7.2l3.2 3.2" stroke="currentColor" stroke-width="2.2"/></svg></button></div>
     <div class="swatches" id="swatches" role="group" aria-label="Your color"></div>
     <div class="leyes"><p class="lhead">Eyes</p><div class="irises estyles" id="eyeStyles" role="group" aria-label="Eye style"></div><div class="irises" id="irises" role="group" aria-label="Eye color"></div></div>
     <div class="seg lcats" id="lookCats" role="tablist" aria-label="Accessories"><button class="lcat" type="button" role="tab" id="lc-head" data-cat="head" data-label="Headgear" aria-controls="lookRail" aria-selected="true">Headgear</button><button class="lcat" type="button" role="tab" id="lc-face" data-cat="face" data-label="Facial" aria-controls="lookRail" aria-selected="false" tabindex="-1">Facial</button><button class="lcat" type="button" role="tab" id="lc-cloth" data-cat="cloth" data-label="Clothing" aria-controls="lookRail" aria-selected="false" tabindex="-1">Clothing</button></div>
@@ -1914,7 +1914,7 @@ kbd{background:#fff;border-color:var(--black)}
     </div>
     <div class="judge" id="judge" aria-hidden="true"><div class="jnums" id="jNums"></div><div class="jbar" id="jBar"></div></div>
     <div class="board" id="board" role="list" aria-label="Scores"></div>
-    <div class="reprow" id="repRow" hidden><div class="repl"><small>Reputation</small><b id="repRowName">Unknown</b></div><div class="xpmeter" id="xpMeter" role="meter" aria-label="Reputation"></div><b class="xpgain" id="xpGain">+0<small>XP</small></b><b class="dropgain" id="dropGain" hidden>+0<small>drops</small></b></div>
+    <div class="reprow" id="repRow" hidden><div class="repl"><small>Reputation</small><b id="repRowName">Unknown</b></div><div class="xpmeter" id="xpMeter" role="meter" aria-label="Reputation"></div><b class="xpgain" id="xpGain">+0<small>XP</small></b><b class="dropgain" id="dropGain" hidden>+0<small>dabs</small></b></div>
     <div class="commdone" id="commDone"></div>
     <button class="btn play two" id="endBtn" type="button"><span>Rematch</span><small>New canvas</small></button>
     <div class="row"><button class="btn" id="replayBtn" type="button">Same canvas</button><button class="btn" id="menuBtn" type="button">Menu</button></div>
@@ -12361,7 +12361,7 @@ function renderLook() {
     b.innerHTML = '<small>' + b.dataset.label + '</small><span class="lci">' + (w0 ? '<svg viewBox="0 0 40 40" aria-hidden="true">' + WEAR_ICON[w0.id] + '</svg>' : '<i class="none"></i>') + '</span><b>' + (w0 ? (worn.length > 1 ? w0.name + ' +' + (worn.length - 1) : w0.name) : 'Nothing on') + '</b>'; }
   const rail = $('lookRail'); rail.setAttribute('aria-labelledby', 'lc-' + lookCat);
   rail.innerHTML = WEAR.filter(w => w.cat === lookCat).map(w => { const found = owns(w.id), own = found && bought(w.id), sale = found && !own, fr = own && fresh.has(w.id), broke = sale && (store.drops || 0) < PRICE(w);
-    return '<button class="ltile' + (own ? '' : sale ? ' sale' : ' locked') + (broke ? ' broke' : '') + (fr ? ' fresh' : '') + '" type="button" data-w="' + w.id + '"' + (own ? ' aria-pressed="' + (myLook[w.slot] === w.id) + '"' : sale ? '' : ' aria-disabled="true"') + ' aria-label="' + w.name + (own ? (fr ? ', new' : '') : sale ? ', ' + PRICE(w) + ' drops' : ', locked') + '">' + (sale ? '<span class="ltag">' + DROP_SVG + PRICE(w) + '</span>' : '') + '<svg viewBox="0 0 40 40" aria-hidden="true">' + WEAR_ICON[w.id] + '</svg><span class="ltn">' + w.name + '</span>' + (found ? '' : LOCK_ICON) + '</button>'; }).join('');
+    return '<button class="ltile' + (own ? '' : sale ? ' sale' : ' locked') + (broke ? ' broke' : '') + (fr ? ' fresh' : '') + '" type="button" data-w="' + w.id + '"' + (own ? ' aria-pressed="' + (myLook[w.slot] === w.id) + '"' : sale ? '' : ' aria-disabled="true"') + ' aria-label="' + w.name + (own ? (fr ? ', new' : '') : sale ? ', ' + PRICE(w) + ' dabs' : ', locked') + '">' + (sale ? '<span class="ltag">' + DROP_SVG + PRICE(w) + '</span>' : '') + '<svg viewBox="0 0 40 40" aria-hidden="true">' + WEAR_ICON[w.id] + '</svg><span class="ltn">' + w.name + '</span>' + (found ? '' : LOCK_ICON) + '</button>'; }).join('');
   showDrops();
   const ES_ICON = { round: '<svg viewBox="0 0 40 40"><ellipse cx="20" cy="20" rx="13" ry="12" fill="#fff" stroke="#171320" stroke-width="2.5"/><circle cx="21" cy="21" r="6" fill="#8A5636"/><circle cx="21.5" cy="21.5" r="3" fill="#171320"/><circle cx="19" cy="18.5" r="1.6" fill="#fff"/></svg>', edgy: '<svg viewBox="0 0 40 40"><path d="M3 20C8 11 16 9 23 12L37 8L30 16C33 20 30 26 24 29L15 36L13 29C7 28 3 24 3 20Z" fill="#171320"/><path d="M10 20C13 14 20 13 26 16C25 23 18 27 11 25C9.5 24 9.5 22 10 20Z" fill="#fff"/><path d="M10 9L22 5L21 9Z" fill="#171320"/><circle cx="18.5" cy="19.5" r="5.6" fill="#8A5636"/><circle cx="19" cy="20" r="3" fill="#171320"/><circle cx="16.4" cy="17.2" r="1.9" fill="#fff"/></svg>', dot: '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="9.5" fill="#171320"/><circle cx="16.5" cy="16.5" r="3" fill="#fff"/></svg>' };
   $('eyeStyles').innerHTML = Object.keys(EYE_STYLES).map(k => '<button class="eyes" type="button" data-es="' + k + '" aria-label="' + EYE_STYLES[k] + ' eyes" title="' + EYE_STYLES[k] + '" aria-pressed="' + (myLook.eyes === k) + '">' + ES_ICON[k] + '</button>').join('');
@@ -12369,7 +12369,7 @@ function renderLook() {
   railEdge(); $('lookNameTxt').textContent = playerName();
   $('unlockLink').parentNode.hidden = WEAR.every(w => owns(w.id)); // (nothing left to unlock: no link)
 }
-const DROP_SVG = '<svg class="dropi" viewBox="0 0 16 20" aria-hidden="true"><path d="M8 1.5C8 1.5 2 9 2 12.5a6 6 0 0 0 12 0C14 9 8 1.5 8 1.5z"/></svg>';
+const DROP_SVG = '<svg class="dropi" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#F2C14E" stroke="#8A5A12" stroke-width="1.6"/><circle cx="10" cy="10" r="6.7" fill="none" stroke="#C98E22" stroke-width="1"/><path d="M10 5.2c.9 0 1.3 1.1 2 1.5 1 .5 2.2-.3 2.6.7.4 1-.9 1.6-.9 2.6s1.2 1.6.7 2.5c-.5.9-1.6.2-2.5.6-.8.4-1 1.7-1.9 1.7s-1.1-1.3-2-1.7c-.9-.4-2 .3-2.5-.6s.7-1.5.7-2.5-1.3-1.6-.9-2.6c.4-1 1.6-.2 2.6-.7.7-.4 1.1-1.5 2.1-1.5z"/></svg>';
 const LOCK_ICON = '<span class="lk" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M4.5 7V5.2a3.5 3.5 0 0 1 7 0V7" fill="none" stroke="currentColor" stroke-width="2"/><rect x="3" y="7" width="10" height="7.5" rx="2" fill="currentColor"/></svg></span>';
 // a soft fade on whichever side of the slider has more to see
 function railEdge() { const r = $('lookRail'), max = r.scrollWidth - r.clientWidth; r.classList.toggle('more', max > 4 && r.scrollLeft < max - 4); r.classList.toggle('less', max > 4 && r.scrollLeft > 4); }
@@ -12395,7 +12395,7 @@ const lookNote = $('lookNote'); let noteT = 0; const note = (t, bad) => { lookNo
   lookNote.style.left = (side ? (k.left - r.left) / 2 : k.left - r.left + k.width / 2).toFixed(0) + 'px'; lookNote.style.top = (side ? r.height - 28 : k.top - r.top - 12).toFixed(0) + 'px'; restartCls(lookNote, 'on'); clearTimeout(noteT); noteT = setTimeout(() => lookNote.classList.remove('on'), 3200); };
 const wearPick = e => { const b = e.target.closest('.ltile'); if (!b) return; AU.init(); const w = WEAR.find(x => x.id === b.dataset.w); if (!w) return;
   if (!owns(w.id)) { AU.nope(); kick(b, 'nope'); note('Find the ' + w.name.toLowerCase() + ' on ' + WEAR_WHERE[w.stage] + '.'); return; }
-  if (!bought(w.id)) { if (!buyItem(w.id)) { AU.nope(); kick(b, 'nope'); note('Needs ' + (PRICE(w) - (store.drops || 0)) + ' more drops. Matches pay in drops.', true); return; } AU.power(); note('Bought the ' + w.name.toLowerCase() + '!'); kick($('lkBal'), 'bump'); }
+  if (!bought(w.id)) { if (!buyItem(w.id)) { AU.nope(); kick(b, 'nope'); note('Needs ' + (PRICE(w) - (store.drops || 0)) + ' more dabs. Matches pay in dabs.', true); return; } AU.power(); note('Bought the ' + w.name.toLowerCase() + '!'); kick($('lkBal'), 'bump'); }
   if (store.fresh && store.fresh.includes(w.id)) store.fresh = store.fresh.filter(x => x !== w.id);
   const on = myLook[w.slot] !== w.id;
   if (on && w.cat !== 'face') for (const o of WEAR) if (o.cat === w.cat && o.slot !== w.slot && myLook[o.slot] === o.id) myLook[o.slot] = null; // (one of each)
@@ -13010,7 +13010,7 @@ function showRep(info) {
   if (!info || !(info.xp > 0)) { row.hidden = true; $('commDone').innerHTML = ''; return; }
   const r0 = repOf(info.xp0), r1 = repOf(info.xp0 + info.xp), up = r1.lv > r0.lv; row.hidden = false; row.classList.toggle('up', up);
   $('repRowName').textContent = r0.name; $('xpGain').innerHTML = '+' + info.xp + '<small>XP</small>'; xpFrame(m, (XP_FRAMES - 1) * r0.x / r0.need);
-  const dg = $('dropGain'); dg.hidden = !(info.drops > 0); if (info.drops > 0) dg.innerHTML = '+' + info.drops + DROP_SVG + '<small>drops</small>';
+  const dg = $('dropGain'); dg.hidden = !(info.drops > 0); if (info.drops > 0) dg.innerHTML = '+' + info.drops + DROP_SVG + '<small>dabs</small>';
   $('commDone').innerHTML = (info.comms || []).map((k, i) => '<div class="cd" style="animation-delay:' + (1.6 + i * 0.15).toFixed(2) + 's">Commission done: ' + k.t + '<b>+' + COMM_XP + ' XP</b></div>').join('');
   const t0 = performance.now(), dur = up ? 1700 : 1100, f0 = r0.x / r0.need, f1 = r1.x / r1.need;
   const step = () => { const u = clamp((performance.now() - t0 - 900) / dur, 0, 1), e = u * u * (3 - 2 * u); let f;
