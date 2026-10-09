@@ -68,6 +68,12 @@ CSS = '''
 .mworld .lhead.critics{color:#B8B0C8;letter-spacing:.2em}
 .mworld .ibtn{background:#fff url(art/m_paperbg.webp) center/300px;color:var(--black);box-shadow:3px 4px 0 rgba(0,0,0,.45);border-radius:3px}
 .wgo .btn.play{color:#fff}
+/* the paint tank stands up: the same painted tube turned on end, cap at the bottom, paint rising */
+.ttrack{width:50px;height:88px;background:none;filter:none}
+.ttrack::before{content:"";position:absolute;left:-19px;top:19px;width:88px;height:50px;background:url(art/meter_fill.webp) var(--tf,0 0)/528px 300px no-repeat;transform:rotate(-90deg);filter:drop-shadow(2px 2px 0 rgba(23,19,32,.3))}
+.tank.low .ttrack{filter:none}
+@keyframes lowglow2{to{filter:drop-shadow(0 0 8px rgba(232,33,58,.9))}}
+@keyframes hueroll{to{filter:hue-rotate(360deg)}}
 /* the locker: a wardrobe. Paint splats for the colors, tape tabs, white cards on the rail, the blob big under the mirror light */
 .lookp{gap:11px}
 .lookp .ctitle{font-size:28px}
@@ -150,6 +156,9 @@ rep("  $('pMeta').textContent = TH.label + ', ' + fmtTime(info.time);", "  $('pM
 rep("function showMenu() {\n  pickRivalNames(); state = 'menu';", "function showMenu() {\n  $('gframe').hidden = true; $('gwall').hidden = true; pickRivalNames(); state = 'menu';")
 rep("window.addEventListener('resize', () => { if (!end.hidden) measureOutro(); });", "window.addEventListener('resize', () => { if (!end.hidden) measureOutro(); });\nif (window.ResizeObserver) new ResizeObserver(() => { if (!end.hidden) measureOutro(); }).observe(end);")
 rep('<p class="ver">Version 73</p>', '<p class="ver">Version 75</p>')
+# the tank frame goes to the rotated face; the glide box is the tank's standing shape
+rep("tankTrack.style.backgroundPosition = (-(fk % 6) * 88) + 'px ' + (-Math.floor(fk / 6) * 50) + 'px'; }", "tankTrack.style.setProperty('--tf', (-(fk % 6) * 88) + 'px ' + (-Math.floor(fk / 6) * 50) + 'px'); }")
+rep("W = 88, Hh = 50, off = Math.max(20, rp + 8);", "W = 50, Hh = 88, off = Math.max(20, rp + 8);")
 rep("function beginMatch() {", "function beginMatch() {\n  $('gframe').hidden = true; $('gwall').hidden = true;")
 # the locker blob, bigger
 rep("heroDist = clamp(Math.max(tall * Hh / (2 * tv * 0.78 * fh), wide * W / (2 * tv * asp * 0.94 * fw)), 1.65, 9);", "heroDist = clamp(Math.max(tall * Hh / (2 * tv * 0.92 * fh), wide * W / (2 * tv * asp * 0.98 * fw)), 1.5, 9);")

@@ -1463,6 +1463,12 @@ kbd{background:#fff;border-color:var(--black)}
 .mworld .lhead.critics{color:#B8B0C8;letter-spacing:.2em}
 .mworld .ibtn{background:#fff url(art/m_paperbg.webp) center/300px;color:var(--black);box-shadow:3px 4px 0 rgba(0,0,0,.45);border-radius:3px}
 .wgo .btn.play{color:#fff}
+/* the paint tank stands up: the same painted tube turned on end, cap at the bottom, paint rising */
+.ttrack{width:50px;height:88px;background:none;filter:none}
+.ttrack::before{content:"";position:absolute;left:-19px;top:19px;width:88px;height:50px;background:url(art/meter_fill.webp) var(--tf,0 0)/528px 300px no-repeat;transform:rotate(-90deg);filter:drop-shadow(2px 2px 0 rgba(23,19,32,.3))}
+.tank.low .ttrack{filter:none}
+@keyframes lowglow2{to{filter:drop-shadow(0 0 8px rgba(232,33,58,.9))}}
+@keyframes hueroll{to{filter:hue-rotate(360deg)}}
 /* the locker: a wardrobe. Paint splats for the colors, tape tabs, white cards on the rail, the blob big under the mirror light */
 .lookp{gap:11px}
 .lookp .ctitle{font-size:28px}
@@ -11035,7 +11041,7 @@ function placeTank(rdt) {
   if (on !== tankOn) { tankOn = on; tankEl.classList.toggle('gone', !on); tankS.set = false; tankLastP = P.paint; }
   if (!on) return;
   const pc = Math.round(P.paint * 100); if (pc !== tankPct) { tankPct = pc; tankTrack.setAttribute('aria-valuenow', String(Math.max(0, pc))); }
-  const fk = Math.round(clamp(P.paint, 0, 1) * 35); if (fk !== tankFrame) { tankFrame = fk; tankTrack.style.backgroundPosition = (-(fk % 6) * 88) + 'px ' + (-Math.floor(fk / 6) * 50) + 'px'; }
+  const fk = Math.round(clamp(P.paint, 0, 1) * 35); if (fk !== tankFrame) { tankFrame = fk; tankTrack.style.setProperty('--tf', (-(fk % 6) * 88) + 'px ' + (-Math.floor(fk / 6) * 50) + 'px'); }
   // spent a chunk (a pound) or just climbed out of a refill: show it for a moment
   if (tankLastP - P.paint > 0.05) pingTank(1.4); if (tankLastSt === 'hide' && P.st === 'play') pingTank(1); tankLastP = P.paint; tankLastSt = P.st;
   tankPing = Math.max(0, tankPing - rdt);
@@ -11046,7 +11052,7 @@ function placeTank(rdt) {
   camera.updateMatrixWorld(); tv1.set(P.x, cy, P.z).project(camera);
   if (tv1.z > 1 || !Number.isFinite(tv1.x + tv1.y)) return;
   tv2.setFromMatrixColumn(camera.matrixWorld, 0).multiplyScalar(r * 1.25).add(tv3.set(P.x, cy, P.z)).project(camera);
-  const sx = (tv1.x * 0.5 + 0.5) * viewW, sy = (0.5 - tv1.y * 0.5) * viewH, rp = Math.abs(tv2.x - tv1.x) * 0.5 * viewW, W = 88, Hh = 50, off = Math.max(20, rp + 8);
+  const sx = (tv1.x * 0.5 + 0.5) * viewW, sy = (0.5 - tv1.y * 0.5) * viewH, rp = Math.abs(tv2.x - tv1.x) * 0.5 * viewW, W = 50, Hh = 88, off = Math.max(20, rp + 8);
   const wide = tankEl.classList.contains('dry') ? 150 : 40; if (!tankFlip && sx + off + W + wide > viewW - 6) tankFlip = true; else if (tankFlip && sx + off + W + wide < viewW - 46) tankFlip = false;
   tankEl.classList.toggle('flip', tankFlip);
   const tx = clamp(tankFlip ? sx - off - W : sx + off, 6, viewW - W - 6), ty = clamp(sy - Hh / 2, 70, viewH - Hh - 90);
