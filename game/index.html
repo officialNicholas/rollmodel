@@ -1744,6 +1744,10 @@ kbd{background:#fff;border-color:var(--black)}
 /* the tip plate: below the banner's spot, clear of the score strip */
 .hint{top:calc(24% + 148px)}
 @media (min-aspect-ratio:1/1){.hint{top:calc(20% + 128px)}}
+
+/* dot eyes have no iris: the colours stand down until another style is picked */
+.irises.off{opacity:.32;filter:grayscale(1);pointer-events:none;transition:opacity .25s,filter .25s}
+.irises.off .eyec{cursor:default;transform:none}
 </style>
 
 <div id="stage">
@@ -1837,7 +1841,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 97</p>
+      <p class="ver">Version 98</p>
     </div>
   </div>
 
@@ -12340,7 +12344,7 @@ function renderLook() {
   showDrops();
   const ES_ICON = { round: '<svg viewBox="0 0 40 40"><ellipse cx="20" cy="20" rx="13" ry="12" fill="#fff" stroke="#171320" stroke-width="2.5"/><circle cx="21" cy="21" r="6" fill="#8A5636"/><circle cx="21.5" cy="21.5" r="3" fill="#171320"/><circle cx="19" cy="18.5" r="1.6" fill="#fff"/></svg>', edgy: '<svg viewBox="0 0 40 40"><path d="M3 20C8 11 16 9 23 12L37 8L30 16C33 20 30 26 24 29L15 36L13 29C7 28 3 24 3 20Z" fill="#171320"/><path d="M10 20C13 14 20 13 26 16C25 23 18 27 11 25C9.5 24 9.5 22 10 20Z" fill="#fff"/><path d="M10 9L22 5L21 9Z" fill="#171320"/><circle cx="18.5" cy="19.5" r="5.6" fill="#8A5636"/><circle cx="19" cy="20" r="3" fill="#171320"/><circle cx="16.4" cy="17.2" r="1.9" fill="#fff"/></svg>', dot: '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="9.5" fill="#171320"/><circle cx="16.5" cy="16.5" r="3" fill="#fff"/></svg>' };
   $('eyeStyles').innerHTML = Object.keys(EYE_STYLES).map(k => '<button class="eyes" type="button" data-es="' + k + '" aria-label="' + EYE_STYLES[k] + ' eyes" title="' + EYE_STYLES[k] + '" aria-pressed="' + (myLook.eyes === k) + '">' + ES_ICON[k] + '</button>').join('');
-  $('irises').innerHTML = EYE_KEYS.map(k => '<button class="eyec" type="button" data-i="' + k + '" style="--ic:' + EYE_COLS[k].css + '" aria-label="' + EYE_COLS[k].name + ' eyes" title="' + EYE_COLS[k].name + '" aria-pressed="' + (myLook.iris === k) + '"><i></i></button>').join('');
+  $('irises').innerHTML = EYE_KEYS.map(k => '<button class="eyec" type="button" data-i="' + k + '" style="--ic:' + EYE_COLS[k].css + '" aria-label="' + EYE_COLS[k].name + ' eyes" title="' + EYE_COLS[k].name + '" aria-pressed="' + (myLook.iris === k) + '"><i></i></button>').join(''); $('irises').classList.toggle('off', myLook.eyes === 'dot'); $('irises').setAttribute('aria-disabled', myLook.eyes === 'dot' ? 'true' : 'false');
   railEdge(); $('lookNameTxt').textContent = playerName();
   $('unlockLink').parentNode.hidden = WEAR.every(w => owns(w.id)); // (nothing left to unlock: no link)
 }
@@ -12385,7 +12389,7 @@ const wearPick = e => { const b = e.target.closest('.ltile'); if (!b) return; AU
   if (w.slot === 'lash' && myLook.lash) { shim.tgt = Math.round(shim.tgt / 6.2832) * 6.2832; setTimeout(() => { if (lookOpen && VP.slime && VP.slime.flutter) VP.slime.flutter(3); }, 380); } };
 $('lookRail').addEventListener('click', wearPick);
 $('eyeStyles').addEventListener('click', e => { const b = e.target.closest('.eyes'); if (!b || b.dataset.es === myLook.eyes) return; AU.init(); myLook.eyes = b.dataset.es; saveLook(); const sl = $('lookRail').scrollLeft; renderLook(); $('lookRail').scrollLeft = sl; railEdge(); AU.pop(); { const t = $('eyeStyles').querySelector('[data-es="' + myLook.eyes + '"]'); if (t) kick(t, 'tpop'); } eyeShow = { t: 0, kind: 0 }; idle.t = Math.max(idle.t, 4); });
-$('irises').addEventListener('click', e => { const b = e.target.closest('.eyec'); if (!b || b.dataset.i === myLook.iris) return; AU.init(); myLook.iris = b.dataset.i; saveLook(); const sl = $('lookRail').scrollLeft; renderLook(); $('lookRail').scrollLeft = sl; railEdge(); AU.pop(); { const t = $('irises').querySelector('[data-i="' + myLook.iris + '"]'); if (t) kick(t, 'tpop'); } eyeShow = { t: 0, kind: (eyeShow ? eyeShow.kind + 1 + (Math.random() * 2 | 0) : Math.random() * 3 | 0) % 3 }; idle.t = Math.max(idle.t, 4); shim.tgt = Math.round(shim.tgt / 6.2832) * 6.2832; });
+$('irises').addEventListener('click', e => { const b = e.target.closest('.eyec'); if (!b || b.dataset.i === myLook.iris || myLook.eyes === 'dot') return; AU.init(); myLook.iris = b.dataset.i; saveLook(); const sl = $('lookRail').scrollLeft; renderLook(); $('lookRail').scrollLeft = sl; railEdge(); AU.pop(); { const t = $('irises').querySelector('[data-i="' + myLook.iris + '"]'); if (t) kick(t, 'tpop'); } eyeShow = { t: 0, kind: (eyeShow ? eyeShow.kind + 1 + (Math.random() * 2 | 0) : Math.random() * 3 | 0) % 3 }; idle.t = Math.max(idle.t, 4); shim.tgt = Math.round(shim.tgt / 6.2832) * 6.2832; });
 // the code that unlocks everything
 $('unlockLink').addEventListener('click', () => { AU.init(); AU.ui(); $('unlockLink').hidden = true; $('unlockForm').hidden = false; setTimeout(() => $('unlockCode').focus(), 30); });
 $('unlockCode').addEventListener('keydown', e => e.stopPropagation());
