@@ -1783,6 +1783,9 @@ kbd{background:#fff;border-color:var(--black)}
 @keyframes vribdrift{to{-webkit-mask-position:106px 20px,166px 90px,110px -10px;mask-position:106px 20px,166px 90px,110px -10px}}
 @media (min-aspect-ratio:1/1){.vrib{height:46%;bottom:-20%;transform:rotate(-3.5deg)}}
 @media (prefers-reduced-motion:reduce){.vrib,.vrib::after{animation:none}}
+
+/* the gear sits at the top of the bar, at the same height as the sound button beside it, whatever the nametag's height or the notch */
+.mhome.lobby .ltools{align-self:flex-start;margin-top:calc(max(12px,env(safe-area-inset-top)) - max(8px,env(safe-area-inset-top)))}
 </style>
 
 <div id="stage">
@@ -1877,7 +1880,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 112</p>
+      <p class="ver">Version 113</p>
     </div>
   </div>
 
