@@ -308,7 +308,7 @@ button{font-family:var(--font-ui)}
 .ltile .lk svg{width:11px;height:11px;filter:none;opacity:1}
 .ltile.fresh::after{content:"";position:absolute;top:6px;right:6px;width:10px;height:10px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 2.5px var(--plum),0 0 10px 2px rgba(255,216,107,.6)}
 .ltile.nope,.uform.nope{animation:nope .35s}
-.ltile.pop,.eyec.pop{animation:tilepop .42s cubic-bezier(.2,1.6,.4,1)}
+.ltile.tpop,.eyec.tpop{animation:tilepop .42s cubic-bezier(.2,1.6,.4,1)}
 @keyframes tilepop{0%{scale:.84}55%{scale:1.07}100%{scale:1}}
 .lgroup{display:grid;gap:8px}
 .lhead{margin:0;display:flex;align-items:center;gap:6px;font:800 14px/1 var(--font-ui);color:var(--muted)}
@@ -699,7 +699,7 @@ kbd{display:inline-block;min-width:1.4em;padding:1px 5px;margin:0 1px;border:2px
   .orb{transition:none}
   .chip,.chip.wx.sun.burn,.ttrack span.full,.ttrack span.empty,.ttrack.nope,.slamBtn.press::before{animation:none}
   .hud .top{transition:none}
-  .orbptr i,.orbptr.edge i,.giftptr i,.giftptr.edge i,.lopt.fresh::after,.ltile.pop,.eyec.pop,.lrail.in .ltile,.ltile.nope,.uform.nope,.orbflash.on,.tank.giant .ttrack i,.tank.low .ttrack,.vig.low,.vig.heat,.sheet,.tank.fill .ttrack i,.slamBtn,.slamBtn.ready,.tank.heat .ttrack i,.tdry{animation:none}
+  .orbptr i,.orbptr.edge i,.giftptr i,.giftptr.edge i,.lopt.fresh::after,.ltile.tpop,.eyec.tpop,.lrail.in .ltile,.ltile.nope,.uform.nope,.orbflash.on,.tank.giant .ttrack i,.tank.low .ttrack,.vig.low,.vig.heat,.sheet,.tank.fill .ttrack i,.slamBtn,.slamBtn.ready,.tank.heat .ttrack i,.tdry{animation:none}
   .threat.on,.threatArrow i{animation:none}
   .vplace,.vtag,.vname i,.vsub,.vcard,.victory.out,.bootdrop,.bootbar i,.boot.tap .bootmsg{animation:none}
   .vtap{animation:none;opacity:.8}
@@ -1718,7 +1718,7 @@ kbd{background:#fff;border-color:var(--black)}
 .eyes{appearance:none;width:36px;height:36px;padding:0;border:0;border-radius:6px;background:#fff;box-shadow:2px 3px 0 rgba(23,19,32,.18);cursor:pointer;display:grid;place-items:center;transition:transform .2s cubic-bezier(.3,1.6,.5,1)}
 .eyes svg{width:30px;height:30px}
 .eyes[aria-pressed="true"]{box-shadow:0 0 0 2.5px var(--ink),2px 3px 0 rgba(23,19,32,.25);transform:translateY(-2px)}
-.eyes.pop{animation:tilepop .42s cubic-bezier(.2,1.6,.4,1)}
+.eyes.tpop{animation:tilepop .42s cubic-bezier(.2,1.6,.4,1)}
 .whead h2{position:relative}
 .whead h2::after{content:attr(data-sub);position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:4px;font:800 10px/1 var(--font-ui);letter-spacing:.16em;text-transform:uppercase;color:#B8B0C8;white-space:nowrap;text-shadow:none}
 .mworld.sopen .whead h2::after{display:none}
@@ -1822,7 +1822,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 90</p>
+      <p class="ver">Version 91</p>
     </div>
   </div>
 
@@ -12303,13 +12303,13 @@ const wearPick = e => { const b = e.target.closest('.ltile'); if (!b) return; AU
   if (on && w.cat === 'head') { idle.act = 'tilt'; idle.dur = 1.25; idle.u = 0; idle.side = w.slot === 'side' ? 1 : -idle.side || 1; idle.t = 2.8; menuReact = 0; AU.pop(); setTimeout(() => AU.vox('ooh', 0.9), 120); }
   else if (on && w.cat === 'cloth') { idle.act = 'show'; idle.dur = 1.15; idle.u = 0; idle.t = 2.8; menuReact = 0; emote(P, 'glee', 1.0); AU.pop(); setTimeout(() => AU.vox('giggle', 0.9), 90); }
   else lookPop();
-  { const t = $('lookRail').querySelector('[data-w="' + w.id + '"]'); if (t) kick(t, 'pop'); } if (on) glance = { t: 0, T: w.cat === 'head' ? 1.15 : 0.8, look: w.cat === 'head' ? [0.03 * idle.side, 0.2] : w.cat === 'cloth' ? [0, -0.15] : w.slot === 'side' ? [-0.12, 0.12] : [0.06, 0.06] }; if (w.slot === 'back' && myLook.back) shim.tgt = Math.round(shim.tgt / 6.2832) * 6.2832 + 2.6;
+  { const t = $('lookRail').querySelector('[data-w="' + w.id + '"]'); if (t) kick(t, 'tpop'); } if (on) glance = { t: 0, T: w.cat === 'head' ? 1.15 : 0.8, look: w.cat === 'head' ? [0.03 * idle.side, 0.2] : w.cat === 'cloth' ? [0, -0.15] : w.slot === 'side' ? [-0.12, 0.12] : [0.06, 0.06] }; if (w.slot === 'back' && myLook.back) shim.tgt = Math.round(shim.tgt / 6.2832) * 6.2832 + 2.6;
   if (w.slot === 'side' && myLook.side) shim.tgt = Math.round(shim.tgt / 6.2832) * 6.2832 - 0.75; else if (w.slot === 'eye' && myLook.eye) shim.tgt = Math.round(shim.tgt / 6.2832) * 6.2832 + 0.35;
   if (w.slot === 'eye' && myLook.eye === 'glasses') shim.tgt = Math.round(shim.tgt / 6.2832) * 6.2832;
   if (w.slot === 'lash' && myLook.lash) { shim.tgt = Math.round(shim.tgt / 6.2832) * 6.2832; setTimeout(() => { if (lookOpen && VP.slime && VP.slime.flutter) VP.slime.flutter(3); }, 380); } };
 $('lookRail').addEventListener('click', wearPick);
-$('eyeStyles').addEventListener('click', e => { const b = e.target.closest('.eyes'); if (!b || b.dataset.es === myLook.eyes) return; AU.init(); myLook.eyes = b.dataset.es; saveLook(); const sl = $('lookRail').scrollLeft; renderLook(); $('lookRail').scrollLeft = sl; railEdge(); AU.pop(); { const t = $('eyeStyles').querySelector('[data-es="' + myLook.eyes + '"]'); if (t) kick(t, 'pop'); } eyeShow = { t: 0, kind: 0 }; idle.t = Math.max(idle.t, 4); });
-$('irises').addEventListener('click', e => { const b = e.target.closest('.eyec'); if (!b || b.dataset.i === myLook.iris) return; AU.init(); myLook.iris = b.dataset.i; saveLook(); const sl = $('lookRail').scrollLeft; renderLook(); $('lookRail').scrollLeft = sl; railEdge(); AU.pop(); { const t = $('irises').querySelector('[data-i="' + myLook.iris + '"]'); if (t) kick(t, 'pop'); } eyeShow = { t: 0, kind: (eyeShow ? eyeShow.kind + 1 + (Math.random() * 2 | 0) : Math.random() * 3 | 0) % 3 }; idle.t = Math.max(idle.t, 4); shim.tgt = Math.round(shim.tgt / 6.2832) * 6.2832; });
+$('eyeStyles').addEventListener('click', e => { const b = e.target.closest('.eyes'); if (!b || b.dataset.es === myLook.eyes) return; AU.init(); myLook.eyes = b.dataset.es; saveLook(); const sl = $('lookRail').scrollLeft; renderLook(); $('lookRail').scrollLeft = sl; railEdge(); AU.pop(); { const t = $('eyeStyles').querySelector('[data-es="' + myLook.eyes + '"]'); if (t) kick(t, 'tpop'); } eyeShow = { t: 0, kind: 0 }; idle.t = Math.max(idle.t, 4); });
+$('irises').addEventListener('click', e => { const b = e.target.closest('.eyec'); if (!b || b.dataset.i === myLook.iris) return; AU.init(); myLook.iris = b.dataset.i; saveLook(); const sl = $('lookRail').scrollLeft; renderLook(); $('lookRail').scrollLeft = sl; railEdge(); AU.pop(); { const t = $('irises').querySelector('[data-i="' + myLook.iris + '"]'); if (t) kick(t, 'tpop'); } eyeShow = { t: 0, kind: (eyeShow ? eyeShow.kind + 1 + (Math.random() * 2 | 0) : Math.random() * 3 | 0) % 3 }; idle.t = Math.max(idle.t, 4); shim.tgt = Math.round(shim.tgt / 6.2832) * 6.2832; });
 // the code that unlocks everything
 $('unlockLink').addEventListener('click', () => { AU.init(); AU.ui(); $('unlockLink').hidden = true; $('unlockForm').hidden = false; setTimeout(() => $('unlockCode').focus(), 30); });
 $('unlockCode').addEventListener('keydown', e => e.stopPropagation());
