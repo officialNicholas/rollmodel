@@ -1578,7 +1578,7 @@ kbd{background:#fff;border-color:var(--black)}
 .vvh b{font:900 16px/1 var(--font-head);font-style:italic;letter-spacing:.02em;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vtimer{height:5px;margin:0 2px 10px;background:rgba(255,255,255,.12);border-radius:3px;overflow:hidden}
 .vtimer i{display:block;height:100%;width:100%;background:var(--ink);transform-origin:left center}
-.vvote.ticking .vtimer i{transition:transform var(--vt,3.2s) linear;transform:scaleX(0)}
+.vvote.ticking .vtimer i{transition:transform var(--vt,4.9s) linear;transform:scaleX(0)}
 .vts{display:flex;gap:8px;justify-content:center;align-items:end}
 .vt{appearance:none;position:relative;flex:1;min-width:0;max-width:86px;padding:0;border:0;background:none;color:#fff;cursor:pointer;display:grid;justify-items:center;gap:5px;transition:transform .3s cubic-bezier(.3,1.5,.5,1),opacity .3s;-webkit-tap-highlight-color:transparent}
 .vt img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border:3px solid #fff;box-sizing:border-box;box-shadow:0 0 0 2px var(--black),3px 4px 0 rgba(0,0,0,.5);background:#1F0C42;transition:box-shadow .15s}
@@ -1841,7 +1841,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 99</p>
+      <p class="ver">Version 100</p>
     </div>
   </div>
 
@@ -12891,8 +12891,8 @@ function openVote(id, done) {
   const at = (ms, fn) => st.timers.push(setTimeout(() => { if (st !== voteState || id !== runId) return; fn(); }, ms));
   row.onclick = e => { const b = e.target.closest('.vt'); if (!b || !st.open || st !== voteState) return; if (votes.get(P) !== b.dataset.s) { votes.set(P, b.dataset.s); draw(); AU.ui(); buzz(8); } };
   requestAnimationFrame(() => { box.classList.add('on'); requestAnimationFrame(() => box.classList.add('ticking')); });
-  who.slice(1).forEach((D, i) => at(1300 + i * 650 + Math.random() * 500, () => { votes.set(D, VOTE_STAGES[(Math.random() * VOTE_STAGES.length) | 0]); draw(); AU.plop(); }));
-  at(3300, () => {
+  who.slice(1).forEach((D, i) => at(1700 + i * 900 + Math.random() * 600, () => { votes.set(D, VOTE_STAGES[(Math.random() * VOTE_STAGES.length) | 0]); draw(); AU.plop(); }));
+  at(5000, () => {
     st.open = false; const tickets = [...votes.values()], win = tickets[(Math.random() * tickets.length) | 0], cands = VOTE_STAGES.filter(sid => tickets.includes(sid)), btn = sid => row.querySelector('[data-s="' + sid + '"]');
     $('vvLbl').textContent = 'The canvas is';
     // the spin: round the voted canvases, slowing, stopping on the winner
