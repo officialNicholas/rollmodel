@@ -1833,7 +1833,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 94</p>
+      <p class="ver">Version 95</p>
     </div>
   </div>
 
@@ -7045,7 +7045,7 @@ function takeOrb(D) {
   D.giantT = GIANT_T; D.wob = 1; D.squash = 0.8; D.inkRush = true; emote(D, 'glee', 1.1); AU.grow(); if (D === P) AU.vox('hoh'); // a full tank that doesn't drain while it lasts
   hitStop(0.08, D);
   if (D === P) { shake = Math.max(shake, 0.3); buzz([20, 20, 40]); flashScreen(); banner('Giant!'); }
-  else banner('It went giant!', 'Keep away');
+  else banner(nameOf(D) + ' went giant!', 'Keep away');
   for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0;
 }
 // ---------- the rocket: up it goes, way over the canvas, and hangs there while you steer it over where you want to come down (a target on
@@ -8381,7 +8381,7 @@ function burstPush(O, p, D) {
   O.knockT = 0.9; O.flung = false; O.flingC = 0; O.wob = 1; O.squash = 0.8; O.lastHit = { by: D, t: runT }; emote(O, 'ouch', 0.9); emote(D, 'glee', 1.0); fxTumble(O, 0.7 + 0.3 * k, Math.random() - 0.5);
   for (let i = 0; i < 16; i++) { const a = O.yaw + (Math.random() - 0.5) * 1.4; spawnPart(O.x, O.y + 0.4, O.z, Math.sin(a) * 4, 2 + Math.random() * 2.5, Math.cos(a) * 4, 0.5, i % 2 ? tmat(D) : tmat(O), 0.7); }
   hitStop(0.08, O, D);
-  if (O === P) { shake = Math.max(shake, 0.45); buzz([30, 20, 30]); banner('Blasted!'); } else if (D === P) { shake = Math.max(shake, 0.3); buzz(20); banner('Blasted it!'); }
+  if (O === P) { shake = Math.max(shake, 0.45); buzz([30, 20, 30]); banner('Blasted!'); } else if (D === P) { shake = Math.max(shake, 0.3); buzz(20); banner('Blasted ' + nameOf(O) + '!'); }
   if (O.ai) O.ai.thinkT = 0;
 }
 // a pound on a giant doesn't knock it out: it knocks the giant out of it
@@ -8397,7 +8397,7 @@ function unGiant(B, A) {
   if (!B.air) { B.air = true; B.stroke++; } B.vy = Math.max(B.vy, 5.5); B.slam = false; B.missile = false; fxKnock(B, B.x - A.x, B.z - A.z, 0.8);
   shockwave(B.x, B.y, B.z, 2.4, 0xFFFFFF); for (let i = 0; i < 18; i++) { const a = Math.random() * 6.283; spawnPart(B.x, B.y + 0.5, B.z, Math.cos(a) * 4.5, 2 + Math.random() * 3, Math.sin(a) * 4.5, 0.55, orbPartMats[i % orbPartMats.length], 0.65); }
   if (hearable(B)) { AU.shrink(); AU.bonk(1); } if (B === P) { AU.vox('eep'); hitEdge(A); } hitStop(0.1, A, B);
-  if (B === P) { shake = Math.max(shake, 0.5); buzz([30, 20, 40]); banner('Shrunk!'); } else if (A === P) { shake = Math.max(shake, 0.35); buzz(20); banner('Shrunk it!'); }
+  if (B === P) { shake = Math.max(shake, 0.5); buzz([30, 20, 40]); banner('Shrunk!'); } else if (A === P) { shake = Math.max(shake, 0.35); buzz(20); banner('Shrunk ' + nameOf(B) + '!'); }
   if (B.ai) B.ai.thinkT = 0;
 }
 const dp0 = D => Math.hypot(D.x - P.x, D.z - P.z);
@@ -8996,7 +8996,7 @@ function bumpFromCoffin(O, D) {
   if (hearable(D) || hearable(O)) { AU.bonk(1); AU.pop(); }
   hitStop(0.07, O, D);
   if (O === P) { shake = Math.max(shake, 0.35); buzz([25, 30, 25]); banner('Bounced out!'); }
-  else if (D === P) { shake = Math.max(shake, 0.25); buzz(20); banner('Bounced it out!'); }
+  else if (D === P) { shake = Math.max(shake, 0.25); buzz(20); banner('Bounced ' + nameOf(O) + ' out!'); }
   if (p.ink <= 0.02) sinkCoffin(p);
 }
 // out of a basin in play: a hop out (a tap), or, swiping up (roll), it balls up and rolls out over the rim, a low tumble onto the floor,
@@ -9137,8 +9137,8 @@ function collectPower(D, pw) {
 const deathColor = (D, r) => r === 'sun' ? (D.cpu ? 0xDDEEFF : 0x4A4052) : r === 'dry' ? 0x5E4F5C : TEAMS[D.team].wet;
 const deathRing = r => r === 'sun' ? 0xFFC46B : r === 'pound' || r === 'coffin' ? 0xFFD86B : 0xFFFFFF;
 const KO_MSG = { pound: 'Pounded!', coffin: 'Nailed!', fall: 'Fell off', sun: 'Baked!', crush: 'Crushed!', dry: 'Dried up!' };
-const CPU_KO_MSG = { pound: 'Got it!', coffin: 'Nailed it!', fall: 'It fell off', sun: 'Baked it!', crush: 'Crushed it!', dry: 'It dried up!' };
-const koLine = (reason, mine) => reason === 'coffin' && TH.pot === 'can' ? (mine ? 'Canned!' : 'Canned it!') : reason === 'coffin' && (TH.pot === 'tiki' || TH.pot === 'tank') ? (mine ? 'Dunked!' : 'Dunked it!') : (mine ? KO_MSG : CPU_KO_MSG)[reason];
+const CPU_KO_MSG = { pound: n => 'Got ' + n + '!', coffin: n => 'Nailed ' + n + '!', fall: n => n + ' fell off', sun: n => 'Baked ' + n + '!', crush: n => 'Crushed ' + n + '!', dry: n => n + ' dried up!' };
+const koLine = (reason, mine, n) => reason === 'coffin' && TH.pot === 'can' ? (mine ? 'Canned!' : 'Canned ' + n + '!') : reason === 'coffin' && (TH.pot === 'tiki' || TH.pot === 'tank') ? (mine ? 'Dunked!' : 'Dunked ' + n + '!') : mine ? KO_MSG[reason] : CPU_KO_MSG[reason] && CPU_KO_MSG[reason](n);
 // out for 5 seconds, then back in a coffin
 function knockOut(D, reason, by) {
   if (D.st === 'ko' || state !== 'play') return;
@@ -9150,7 +9150,7 @@ function knockOut(D, reason, by) {
   if (reason === 'fall') { if (loud) AU.fall(); if (D === P) AU.vox('waah', 0.8); }
   else { burst(D, deathColor(D, reason)); shockwave(D.x, D.y, D.z, 1.6, deathRing(reason)); if (loud) AU.die(reason === 'coffin' || reason === 'crush' ? 'pound' : reason); if (D === P) AU.vox('waah'); if (reason === 'coffin' && pot) pot.bounce = 1; }
   if (D === P) { drop.visible = false; shadowBlob.visible = false; AU.roll(0, 0); hold = 0.08; slow = 0.35; shake = 0.4; buzz([40, 30, 40]); banner((reason === 'fall' && by ? 'Knocked off!' : koLine(reason, true)) || 'Out!'); }
-  else { if (by === P) { hold = Math.max(hold, 0.09); shake = Math.max(shake, 0.3); } D.look.drop.visible = false; D.look.shadow.visible = false; if (mode !== 'trio' || by === P) banner((reason === 'fall' && by ? 'Knocked it off!' : koLine(reason, false)) || 'Got it!'); else if (loud) popText(nameOf(D) + ' is out'); if (by === P) buzz([20, 30, 20]); }
+  else { if (by === P) { hold = Math.max(hold, 0.09); shake = Math.max(shake, 0.3); } D.look.drop.visible = false; D.look.shadow.visible = false; if (mode !== 'trio' || by === P) banner((reason === 'fall' && by ? 'Knocked ' + nameOf(D) + ' off!' : koLine(reason, false, nameOf(D))) || 'Got ' + nameOf(D) + '!'); else if (loud) popText(nameOf(D) + ' is out'); if (by === P) buzz([20, 30, 20]); }
 }
 function openRun(x, z, y, a, r0, L) {
   const dx = Math.sin(a), dz = Math.cos(a); let d = 0;
@@ -9223,7 +9223,7 @@ function shove(A, B) {
   if (hearable(A) || hearable(B)) { AU.bonk(1); AU.whoosh(); }
   hitStop(0.08, A, B);
   if (B === P) { shake = Math.max(shake, 0.35); buzz([20, 25, 30]); popText('Bounced!'); }
-  else if (A === P) { shake = Math.max(shake, 0.25); buzz(18); popText('Bounced it!'); }
+  else if (A === P) { shake = Math.max(shake, 0.25); buzz(18); popText('Bounced ' + nameOf(B) + '!'); }
 }
 // rolled into: seeing stars for 2 seconds, can't move or act (a pound will finish you), then a moment where it can't happen again
 const STUN_T = 2;
@@ -9235,7 +9235,7 @@ function stun(B, A) {
   for (let i = 0; i < 12; i++) { const a = i / 12 * 6.283; spawnPart(B.x, B.y + 0.5, B.z, Math.cos(a) * 2.6, 1 + Math.random() * 1.5, Math.sin(a) * 2.6, 0.4, puHaloMat, 0.5); }
   if (hearable(A) || hearable(B)) { AU.bonk(1); AU.pop(); } if (B === P) { AU.vox('oof'); hitEdge(A); } hitStop(0.07, A, B);
   if (B === P) { shake = Math.max(shake, 0.3); buzz([25, 30, 25]); banner('Stunned!'); }
-  else if (A === P) { shake = Math.max(shake, 0.2); buzz(18); banner('Stunned it!', 'Pound it!'); }
+  else if (A === P) { shake = Math.max(shake, 0.2); buzz(18); banner('Stunned ' + nameOf(B) + '!', 'Pound ' + nameOf(B) + '!'); }
 }
 // two blobs touching: land on top or hit harder to flatten, otherwise bounce apart
 // every pair that can touch (P and H here are just the two in this pair)
