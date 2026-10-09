@@ -1723,6 +1723,12 @@ kbd{background:#fff;border-color:var(--black)}
 .whead h2::after{content:attr(data-sub);position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:4px;font:800 10px/1 var(--font-ui);letter-spacing:.16em;text-transform:uppercase;color:#B8B0C8;white-space:nowrap;text-shadow:none}
 .mworld.sopen .whead h2::after{display:none}
 @media (max-height:520px) and (min-aspect-ratio:1/1){.eyes{width:30px;height:30px}.eyes svg{width:24px;height:24px}}
+
+/* the results live on the gallery wall itself */
+#end,#end.sheet{background:none;border:0;border-radius:0;box-shadow:none}
+#end::before{display:none}
+@media (min-width:700px){#end{bottom:0;padding-bottom:max(18px,env(safe-area-inset-bottom))}}
+@media (max-height:520px) and (min-aspect-ratio:1/1){#end{bottom:max(6px,env(safe-area-inset-bottom));top:max(6px,env(safe-area-inset-top));gap:6px;padding:8px 14px 8px}#end .rhead{gap:3px}#end .jnums{height:30px}#end .jnums b{font-size:26px}#end .jbar{height:12px}#end .brow{min-height:36px}#end .bico{width:28px;height:28px}#end .reprow{padding:4px 10px}#end .xpmeter{width:90px;height:51px;background-size:540px 306px}#end .btn.play{min-height:42px;padding-top:5px;padding-bottom:5px}#end .row .btn{min-height:36px}}
 </style>
 
 <div id="stage">
@@ -1816,7 +1822,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 88</p>
+      <p class="ver">Version 89</p>
     </div>
   </div>
 
@@ -8302,7 +8308,7 @@ const bestFoeCov = D => { let m = 0; for (const o of foes(D)) m = Math.max(m, te
 // the rival in front of you, roughly where you're pointing (aim assist and the missile's homing)
 function coneFoe(D, cone, maxD) { let best = null; for (const O of foes(D)) { if (O.st !== 'play' || O.immuneT > 0.3 || O.rocket) continue; const dx = O.x - D.x, dz = O.z - D.z, d = Math.hypot(dx, dz); if (d < 0.8 || d > maxD) continue; const err = wrapA(Math.atan2(dx, dz) - D.yaw); if (Math.abs(err) > cone) continue; if (!best || Math.abs(err) < Math.abs(best.err)) best = { O, d, err }; } return best; }
 const hearable = D => { if (D === P) return true; const ok = Math.hypot(D.x - P.x, D.z - P.z) < 14; if (ok) AU.at(D.x, D.z); return ok; };
-let keyL = false, keyR = false, kbCharge = false, deathReason = null, outro = false, outroAge = 0, outroT = 0, outroOffY = 0, outroOffX = 0, outroSide = false, outroFrac = 1, outroSc = 1, outK = 0, celebrating = false, endInfo = null;
+let keyL = false, keyR = false, kbCharge = false, deathReason = null, outro = false, outroAge = 0, outroT = 0, outroOffY = 0, outroOffX = 0, outroSide = false, outroFrac = 1, outroSc = 1, outroBase = 0, outK = 0, fogK = 0, celebrating = false, endInfo = null;
 // weather cycle: clear (paint stays wet) -> warn -> sun (burns anyone in the open, hardens paint on the ground) -> dusk -> rain (paint softens) -> clear
 let dryClock = 0, wxPhase = 'clear', wxLeft = 24, speedMul = 1, rainK = 0, heatK = 0, dayK = 0, heatCrack = 0, sunsSeen = 0;
 let rainsSeen = 0, lives = 1, overtimeUsed = false, lastLead = 0, lastLeadT = -9, leadAcc = 0;
@@ -11212,7 +11218,7 @@ function visuals(dt, rdt) {
     gyCam += (gy - gyCam) * (1 - Math.exp(-rdt * 6)); camCharge = 0;
   }
   else if (state === 'dead' || state === 'paused') {
-    if (state === 'dead' && outro) { outroT += rdt; camYaw += rdt * 0.07; const sc = end.hidden ? ARENA / 26.4 * Math.max(clamp(0.5 / (Math.tan(camera.fov * Math.PI / 360) * camera.aspect), 1, 1.7), 1.2) : outroSc, fx = Math.sin(camYaw), fz = Math.cos(camYaw); dPos.set(-fx * 31 * sc, 37 * sc, -fz * 31 * sc); dLook.set(fx * 3 * sc, -12 * sc, fz * 3 * sc); }
+    if (state === 'dead' && outro) { outroT += rdt; { const ty = outroBase + Math.sin(outroT * 0.3) * 0.2; camYaw += (ty - camYaw) * (1 - Math.exp(-rdt * 1.4)); } const sc = end.hidden ? ARENA / 26.4 * Math.max(clamp(0.5 / (Math.tan(camera.fov * Math.PI / 360) * camera.aspect), 1, 1.7), 1.2) : outroSc, fx = Math.sin(camYaw), fz = Math.cos(camYaw); dPos.set(-fx * 31 * sc, 37 * sc, -fz * 31 * sc); dLook.set(fx * 3 * sc, -12 * sc, fz * 3 * sc); }
     else if (state === 'dead') dPos.lerp(dLook, Math.min(1, rdt * 0.5));
   } else {
     camTurnS += ((P.st === 'play' ? P.turn : 0) - camTurnS) * (1 - Math.exp(-rdt * 9));
@@ -11265,8 +11271,9 @@ function visuals(dt, rdt) {
   heatCrack += ((hardPhase && live ? 1 : 0) - heatCrack) * Math.min(1, dt * (hardPhase ? 1 : 0.25)); paintUniforms.uHeat.value = heatCrack;
   skyU.rain.value = rainK; skyU.heat.value = heatK; skyU.day.value = dayK; skyU.uTime.value = clock;
   scene.fog.color.copy(HOR).lerp(HOR_HEAT, dayK).lerp(HOR_RAIN, rainK * (1 - dayK));
-  hemi.color.copy(NIGHT.sky).lerp(DAY.sky, dayK); hemi.groundColor.copy(NIGHT.gnd).lerp(DAY.gnd, dayK); hemi.intensity = (NIGHT.hemi + (DAY.hemi - NIGHT.hemi) * dayK - 0.08 * rainK) * LK.hemi * LIGHT_K;
-  sun.color.copy(NIGHT.key).lerp(DAY.key, dayK); sun.intensity = (NIGHT.keyI + (DAY.keyI - NIGHT.keyI) * dayK - 0.18 * rainK) * LK.key * LIGHT_K;
+  fogK += ((state === 'dead' && outro ? 1 : 0) - fogK) * (1 - Math.exp(-rdt * 2)); { const fn = TH.fog ? TH.fog[0] : 70, ff = TH.fog ? TH.fog[1] : 200; scene.fog.near = fn + 4000 * fogK; scene.fog.far = ff + 8000 * fogK; }
+  hemi.color.copy(NIGHT.sky).lerp(DAY.sky, dayK); hemi.groundColor.copy(NIGHT.gnd).lerp(DAY.gnd, dayK); hemi.intensity = (NIGHT.hemi + (DAY.hemi - NIGHT.hemi) * dayK - 0.08 * rainK) * LK.hemi * LIGHT_K * (1 + 0.7 * outK * (1 - dayK));
+  sun.color.copy(NIGHT.key).lerp(DAY.key, dayK); sun.intensity = (NIGHT.keyI + (DAY.keyI - NIGHT.keyI) * dayK - 0.18 * rainK) * LK.key * LIGHT_K * (1 + 0.35 * outK * (1 - dayK));
   if (HI) paintLight();
   AU.mood(playing && matchLeft <= 15, playing && P.giantT > 0, playing && (wxPhase === 'warn' || wxPhase === 'sun'), playing && overtimeUsed);
   AU.sizzle(playing && P.st === 'play' ? (P.exposed ? 1 : P.slowed ? 0.3 : 0) : 0);
@@ -11670,7 +11677,7 @@ function restoreVictory() {
 function endVictory() {
   if (!vic || vic.t < 0.8) return;
   restoreVictory(); vicEl.classList.add('out'); setTimeout(() => { if (!vic) vicEl.hidden = true; }, 330); flashScreen(); AU.whoosh();
-  outro = true; outroT = 0; const id = runId;
+  outro = true; outroT = 0; outroBase = Math.round(camYaw / (Math.PI / 2)) * (Math.PI / 2); const id = runId;
   if (endInfo && (endInfo.mode === 'solo' ? endInfo.newBest : endInfo.win > 0)) confetti(P.x, P.y + 1, P.z, 110, 5);
   setTimeout(() => { if (id === runId && state === 'dead') { if (newItem) showNewItem(newItem); else showEnd(endImg); } }, 650);
 }
@@ -12975,12 +12982,13 @@ function measureOutro() {
   const freeMin = Math.min(ax1 - ax0, ay1 - ay0), tiny = freeMin < 120, noPlac = ay1 - ay0 < 190;
   if (noPlac) ay1 += 20;
   gf.style.removeProperty('--gb'); const B = tiny ? 0 : Math.min(parseFloat(getComputedStyle(gf).borderTopWidth) || 38, Math.round(freeMin * 0.16)); gf.classList.toggle('noplac', noPlac);
-  const mw = Math.max(60, ax1 - ax0 - 2 * B), mh = Math.max(60, ay1 - ay0 - 2 * B), fit = outroFit(mw * 0.94, mh * 0.9);
+  const mw = Math.max(60, ax1 - ax0 - 2 * B), mh = Math.max(60, ay1 - ay0 - 2 * B), fit = outroFit(mw * 1.06, mh * 1.04);
   outroSc = fit.s;
-  const ww = clamp(fit.bw / 0.94, 60, mw), wh = clamp(fit.bh / 0.9, 60, mh), wcx = (ax0 + ax1) / 2, wcy = (ay0 + ay1) / 2;
+  const ww = clamp(fit.bw / 1.06, 60, mw), wh = clamp(fit.bh / 1.04, 60, mh), wcx = (ax0 + ax1) / 2, wcy = (ay0 + ay1) / 2;
   outroOffX = viewW / 2 + fit.cx - wcx; outroOffY = viewH / 2 - fit.cy - wcy;
   if (!end.hidden) {
-    gf.hidden = tiny; gw.hidden = tiny;
+    gf.hidden = tiny; gw.hidden = false;
+    if (tiny) { gw.style.cssText = '--sx:50%;--sy:0%;clip-path:none'; return; }
     const x0 = Math.round(wcx - ww / 2), y0 = Math.round(wcy - wh / 2), x1 = Math.round(wcx + ww / 2), y1 = Math.round(wcy + wh / 2);
     gf.style.cssText = '--gb:' + B + 'px;left:' + (x0 - B) + 'px;top:' + (y0 - B) + 'px;width:' + (x1 - x0 + 2 * B) + 'px;height:' + (y1 - y0 + 2 * B) + 'px';
     gw.style.cssText = '--sx:' + Math.round(wcx / viewW * 100) + '%;--sy:' + Math.round((y0 - B) / viewH * 100 - 4) + '%;clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,' + x0 + 'px ' + y0 + 'px,' + x0 + 'px ' + y1 + 'px,' + x1 + 'px ' + y1 + 'px,' + x1 + 'px ' + y0 + 'px,' + x0 + 'px ' + y0 + 'px)';
@@ -12993,8 +13001,8 @@ function outroFit(tw, th) {
   fitCam.fov = baseFov; fitCam.aspect = viewW / Math.max(1, viewH); fitCam.updateProjectionMatrix();
   const R = ARENA + 1, hx = viewW / 2, hy = viewH / 2;
   const box = s => { let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9, ok = true;
-    for (let k = 0; k < 24; k++) {
-      const yw = k / 24 * Math.PI * 2, fx = Math.sin(yw), fz = Math.cos(yw);
+    for (let k = 0; k < 9; k++) {
+      const yw = outroBase + (k / 8 - 0.5) * 0.5, fx = Math.sin(yw), fz = Math.cos(yw);
       fitCam.position.set(-fx * 31, 37, -fz * 31); fitCam.up.set(0, 1, 0); fitCam.lookAt(fx * 3, -12, fz * 3); fitCam.updateMatrixWorld();
       for (const [cx, cz] of [[R, R], [R, -R], [-R, R], [-R, -R]]) { tv3.set(cx / s, 0, cz / s).project(fitCam); if (tv3.z >= 1) ok = false; const px = tv3.x * hx, py = tv3.y * hy; x0 = Math.min(x0, px); x1 = Math.max(x1, px); y0 = Math.min(y0, py); y1 = Math.max(y1, py); } }
     return { ok, x0, x1, y0, y1 }; };
