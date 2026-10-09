@@ -1748,6 +1748,16 @@ kbd{background:#fff;border-color:var(--black)}
 /* dot eyes have no iris: the colours stand down until another style is picked */
 .irises.off{opacity:.32;filter:grayscale(1);pointer-events:none;transition:opacity .25s,filter .25s}
 .irises.off .eyec{cursor:default;transform:none}
+
+/* the pound button in your ink: the sticker's light and curl over the colour, dimmed on cooldown rather than greyed */
+.slamBtn,.slamBtn.off,.slamBtn.boost{background:none}
+.slamBtn .sdisc{position:absolute;inset:0;border-radius:50%;background:url(art/m_dot.webp) center/100% 100% no-repeat,var(--ink);background-blend-mode:luminosity;-webkit-mask:url(art/m_dot.webp) center/100% 100% no-repeat;mask:url(art/m_dot.webp) center/100% 100% no-repeat;transition:filter .25s}
+.slamBtn svg{position:relative;z-index:1}
+.slamBtn::after{z-index:1}
+.slamBtn.off{filter:drop-shadow(4px 6px 0 rgba(23,19,32,.3))}
+.slamBtn.off .sdisc{filter:brightness(.5) saturate(.55)}
+.slamBtn.boost{filter:drop-shadow(4px 6px 0 rgba(23,19,32,.3))}
+.slamBtn.boost .sdisc{background:url(art/m_dot.webp) center/100% 100% no-repeat,#FF7A1F}
 </style>
 
 <div id="stage">
@@ -1770,7 +1780,7 @@ kbd{background:#fff;border-color:var(--black)}
     </div>
     <div class="chips"><span class="chip wx" id="wx" hidden></span><span class="chip pw" id="pw" hidden><i id="pwRing"></i><span id="pwText"></span></span></div>
     <div class="spacer"></div>
-    <button class="slamBtn" id="slamBtn" type="button" aria-label="Ground pound" hidden><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M14 3h12v13h7.5L20 30.5 6.5 16H14z"/><path class="gnd" d="M6 36h28M7 30l-3.5-3M33 30l3.5-3" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/><path class="trail" d="M14 31v6M20 32.5v6M26 31v6" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/></svg></button>
+    <button class="slamBtn" id="slamBtn" type="button" aria-label="Ground pound" hidden><i class="sdisc" aria-hidden="true"></i><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M14 3h12v13h7.5L20 30.5 6.5 16H14z"/><path class="gnd" d="M6 36h28M7 30l-3.5-3M33 30l3.5-3" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/><path class="trail" d="M14 31v6M20 32.5v6M26 31v6" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/></svg></button>
     <div class="tank gone hide" id="bar"><div class="ttrack" id="ttrack" role="meter" aria-label="Paint" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><span><i></i></span><span><i></i></span><span><i></i></span><span><i></i></span></div><em class="tdry" aria-live="assertive"><span id="tdryW">Find a refill</span> <b id="tdryN">4</b></em></div>
   </div>
   <div class="orbs" id="orbs"></div>
@@ -1841,7 +1851,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 104</p>
+      <p class="ver">Version 105</p>
     </div>
   </div>
 
