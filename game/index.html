@@ -831,13 +831,13 @@ kbd{background:#fff;border-color:var(--black)}
 .plate.stat b{font:400 17px/1 var(--font-display);padding-top:2px}
 .plate.stat span{font:800 9px/1 var(--font-ui);color:var(--muted);letter-spacing:.08em}
 /* what the slime says */
-.lsay{position:absolute;z-index:3;max-width:min(52vw,220px);padding:9px 13px 10px;background:#fff;border:2.5px solid var(--black);border-radius:14px;box-shadow:3px 3px 0 var(--black);font:800 13.5px/1.25 var(--font-ui);color:var(--black);pointer-events:none;transform:translate(0,-100%);animation:sayin .35s cubic-bezier(.3,1.6,.5,1) both;text-wrap:balance}
-.lsay::after{content:"";position:absolute;left:14px;bottom:-11px;width:16px;height:16px;background:#fff;border:2.5px solid var(--black);border-top:0;border-right:0;transform:skewX(20deg) rotate(-45deg);box-shadow:-2px 2px 0 rgba(23,19,32,.9)}
-.lsay.flip{transform:translate(-100%,-100%)}
-.lsay.flip::after{left:auto;right:14px;transform:skewX(-20deg) rotate(-45deg)}
+.lsay{position:absolute;z-index:3;max-width:min(60vw,220px);padding:9px 13px 10px;background:#fff;border:2.5px solid var(--black);border-radius:14px;box-shadow:3px 3px 0 var(--black);font:800 13.5px/1.25 var(--font-ui);color:var(--black);pointer-events:none;transform:translate(0,-100%);animation:sayin .35s cubic-bezier(.3,1.6,.5,1) both;text-wrap:balance}
+.lsay::after{content:"";position:absolute;left:var(--tx,14px);bottom:-11px;width:16px;height:16px;background:#fff;border:2.5px solid var(--black);border-top:0;border-right:0;transform:skewX(20deg) rotate(-45deg);box-shadow:-2px 2px 0 rgba(23,19,32,.9)}
+.lsay.flip{transform:translate(0,-100%)}
+.lsay.flip::after{transform:skewX(-20deg) rotate(-45deg)}
 @keyframes sayin{from{opacity:0;transform:translate(0,-100%) scale(.6)}}
 .lsay.flip{animation-name:sayinf}
-@keyframes sayinf{from{opacity:0;transform:translate(-100%,-100%) scale(.6)}}
+@keyframes sayinf{from{opacity:0;transform:translate(0,-100%) scale(.6)}}
 /* the bottom: who's in the show, the exhibition card, and Play */
 .lbot{grid-area:bot;display:grid;gap:12px;width:min(100%,480px);justify-self:center;pointer-events:auto;animation:dockin .55s .08s cubic-bezier(.25,1.3,.45,1) both}
 .lineup{display:flex;align-items:center;justify-content:center;gap:8px;min-height:36px}
@@ -1818,7 +1818,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 85</p>
+      <p class="ver">Version 86</p>
     </div>
   </div>
 
@@ -11784,7 +11784,7 @@ function renderLobby() {
   camera.updateMatrixWorld(); camera.matrixWorldInverse.copy(camera.matrixWorld).invert(); lobbyU.uInvPV.value.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse).invert(); lobbyU.uCam.value.copy(camera.position); lobbyU.uBlob.value.set(P.x, 0, P.z);
   const nx = camera.position.x - P.x, nz = camera.position.z - P.z, nl = Math.hypot(nx, nz) || 1; lobbyU.uWallN.value.set(nx / nl, nz / nl); lobbyU.uTime.value = clock; lobbyU.uDim.value = lookOpen ? 0.04 : 0; lobbyU.uCol.value.setHex(TEAMS[0].wet); lobbyU.uLook.value += ((lookOpen ? 1 : 0) - lobbyU.uLook.value) * 0.1; if (lobbyU.uSweep.value < 2) lobbyU.uSweep.value = Math.min(2, lobbyU.uSweep.value + 0.028);
   // what it's saying, by its head
-  if (!heroSay.hidden) { const h = tv2.set(P.x, 0.98, P.z).project(camera), sx = (h.x * 0.5 + 0.5) * viewW, sy = (0.5 - h.y * 0.5) * viewH, flip = sx > viewW * 0.58; heroSay.classList.toggle('flip', flip); heroSay.style.left = (flip ? sx - 14 : sx + 14).toFixed(0) + 'px'; heroSay.style.top = (sy - 8).toFixed(0) + 'px'; }
+  if (!heroSay.hidden) placeSay();
   renderer.setRenderTarget(null); renderer.render(lobbyBg, vicBgCam);
   const hi = hemi.intensity, si = sun.intensity; keySave.copy(sun.color); lobbySunPos.copy(sun.position); lobbyTgt.copy(sun.target.position);
   hemi.intensity = Math.max(hi, 0.8 * LIGHT_K); sun.intensity = Math.max(si, 1.15 * LIGHT_K); sun.color.copy(lobbyKey);
@@ -11809,8 +11809,36 @@ function lobbyFrame() {
 }
 // what it says in the studio
 const SAY_LINES = ["Let's roll.", "Who's getting painted today?", 'Fresh canvas. Big feelings.', 'I feel fast today.', 'Paint first. Think later.', 'The critics are watching.', 'Nice look, by the way.', 'One more. Just one more.', 'I was born for this.', 'Mind the wet paint.'];
-let sayT = 0, sayLast = -1;
-function heroSpeak(t) { $('heroSayTxt').textContent = t; heroSay.hidden = false; heroSay.style.animation = 'none'; void heroSay.offsetWidth; heroSay.style.animation = ''; sayT = 7 + Math.random() * 3; }
+let sayT = 0, sayLast = -1, sayObs = [], sayObsT = 0;
+// the lobby pieces the bubble must not cover (measured when it appears, then every half second)
+function sayObstacles() {
+  const out = [], ids = ['lobbyTop', 'logo', 'lobbyBot'], els = [...ids.map(id => $(id)), ...$('lobbyRail').children, ...$('lobbyRight').children];
+  for (const el of els) { if (!el || el.hidden) continue; const r = el.getBoundingClientRect(); if (r.width > 0 && r.height > 0) out.push({ l: r.left, t: r.top, r: r.right, b: r.bottom }); }
+  return out;
+}
+function placeSay() {
+  const h = tv2.set(P.x, 0.98, P.z).project(camera), sx = (h.x * 0.5 + 0.5) * viewW, sy = (0.5 - h.y * 0.5) * viewH;
+  const now = performance.now(); if (now > sayObsT) { sayObs = sayObstacles(); sayObsT = now + 500; }
+  const bw = heroSay.offsetWidth || 160, bh = heroSay.offsetHeight || 40, M = 8, flip = sx > viewW * 0.58;
+  let left = flip ? sx - 14 - bw : sx + 14, top = sy - 8 - bh;
+  // keep inside the window
+  left = clamp(left, M, viewW - bw - M); top = Math.max(M, top);
+  const hit = o => left < o.r + M && left + bw > o.l - M && top < o.b + M && top + bh > o.t - M;
+  for (let pass = 0; pass < 3; pass++) {
+    for (const o of sayObs) {
+      if (!hit(o)) continue;
+      const dxL = left + bw - (o.l - M), dxR = (o.r + M) - left, dy = (o.b + M) - top; // how far to slide left, right, or down to clear it
+      const roomL = left - dxL >= M, roomR = left + dxR + bw <= viewW - M;
+      if (dy <= Math.min(dxL, dxR) * 0.6 || (!roomL && !roomR)) top += dy;
+      else if (dxL <= dxR ? roomL : !roomR) left -= dxL; else left += dxR;
+    }
+  }
+  // the tail points at the head wherever the bubble ended up
+  const tx = clamp(sx - left - 8, 12, bw - 30);
+  heroSay.classList.toggle('flip', tx > bw * 0.5); heroSay.style.setProperty('--tx', tx.toFixed(0) + 'px');
+  heroSay.style.left = left.toFixed(0) + 'px'; heroSay.style.top = (top + bh).toFixed(0) + 'px';
+}
+function heroSpeak(t) { $('heroSayTxt').textContent = t; heroSay.hidden = false; sayObsT = 0; placeSay(); heroSay.style.animation = 'none'; void heroSay.offsetWidth; heroSay.style.animation = ''; sayT = 7 + Math.random() * 3; }
 function sayRandom() { let i; do { i = (Math.random() * SAY_LINES.length) | 0; } while (i === sayLast); sayLast = i; heroSpeak(SAY_LINES[i]); }
 function sayTick(rdt) { if (!(state === 'menu' && menuPage === 'home' && !lookOpen && $('orient').hidden)) { if (!heroSay.hidden) heroSay.hidden = true; sayT = Math.min(sayT, 1.2); return; } sayT -= rdt; if (sayT <= 0) sayRandom(); }
 
