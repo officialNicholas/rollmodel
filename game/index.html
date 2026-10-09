@@ -867,7 +867,6 @@ kbd{background:#fff;border-color:var(--black)}
   .plate{width:62px;padding:9px 4px 6px}
   .plate svg{width:26px;height:26px}
   .lbot{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"lineup go";width:100%;gap:14px;align-items:end}
-  .lineup{grid-area:lineup;justify-content:flex-start;padding-left:4px}
   .lgo{grid-area:go;grid-template-columns:auto auto;padding:0}
   .show{min-width:200px}
   .playbtn{min-height:60px}
@@ -1777,7 +1776,6 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="plate stat drops" title="Drops"><b id="statDrops"><svg class="dropi" viewBox="0 0 16 20" aria-hidden="true"><path d="M8 1.5C8 1.5 2 9 2 12.5a6 6 0 0 0 12 0C14 9 8 1.5 8 1.5z"/></svg>0</b><span>Drops</span></div>
       </div>
       <div class="lbot" id="lobbyBot">
-        <div class="lineup" id="lineup" aria-label="Who's in the exhibition"></div>
         <div class="lgo" id="mCta">
           <button class="show" id="stageBtn" type="button" aria-label="Pick the exhibition"><img class="sthumb" id="stageThumb" alt=""><span class="stxt"><small>Canvases &middot; your pick</small><b id="lobbyStage">The Studio</b><em id="lobbyMode">1v1</em></span><span class="sarrow" aria-hidden="true">&#9656;</span></button>
           <button class="playbtn" id="homePlay" type="button"><span class="sheen" aria-hidden="true"></span><span class="pbl">Play</span></button>
@@ -1818,7 +1816,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 87</p>
+      <p class="ver">Version 88</p>
     </div>
   </div>
 
@@ -12010,8 +12008,6 @@ function renderLobbyUI() {
   let wins = 0; for (const k in (store.wins || {})) wins += store.wins[k] || 0; $('statWins').textContent = wins; showDrops();
   let best = 0; for (const k in (store.bestCov || {})) best = Math.max(best, store.bestCov[k] || 0); $('statBest').textContent = best + '%';
   try { $('nameFace').innerHTML = faceIcon(P, false); } catch (e) {}
-  const lu = [swatchOf(P, playerName(), true)]; if (mode !== 'solo') { lu.push('<span class="vs">vs</span>', swatchOf(H, NAMES[1], false)); if (mode === 'trio') lu.push(swatchOf(H2, NAMES[2], false)); }
-  $('lineup').innerHTML = lu.join('');
   const c = commState(), fresh = c.done.length - (store.commSeen || 0); $('commBadge').hidden = fresh <= 0; $('commBadge').textContent = fresh;
 }
 
@@ -12023,7 +12019,7 @@ function renderStages() {
   for (const b of el.children) b.setAttribute('aria-pressed', String(b.dataset.d === diff));
   $('cvName').textContent = TH.label; $('shuffleBtn').setAttribute('aria-label', 'Shuffle the canvas. Now: ' + TH.label);
   for (const b of el.children) b.textContent = CRITICS[b.dataset.d] || b.textContent;
-  renderWorlds(); if (typeof renderLobbyUI === 'function' && $('lineup')) renderLobbyUI();
+  renderWorlds(); if (typeof renderLobbyUI === 'function' && $('lobbyStage')) renderLobbyUI();
 }
 // ---------- the world select: a gallery of framed paintings. On a phone it's a carousel, and the painting in the middle is the one you'll play ----------
 let menuPage = 'home', galT = 0;
