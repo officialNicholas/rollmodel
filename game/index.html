@@ -1740,6 +1740,10 @@ kbd{background:#fff;border-color:var(--black)}
 .lcol.right .plate.stat.drops b .dropi{width:13px;height:16px;filter:none}
 .lcol.right .plate.stat+.plate.stat{border-top:2px dashed rgba(23,19,32,.14);padding-top:6px}
 .lcol.right{gap:4px}
+
+/* the tip plate: below the banner's spot, clear of the score strip */
+.hint{top:calc(24% + 148px)}
+@media (min-aspect-ratio:1/1){.hint{top:calc(20% + 128px)}}
 </style>
 
 <div id="stage">
@@ -1833,7 +1837,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 96</p>
+      <p class="ver">Version 97</p>
     </div>
   </div>
 
