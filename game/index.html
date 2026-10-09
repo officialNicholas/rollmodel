@@ -1811,6 +1811,43 @@ kbd{background:#fff;border-color:var(--black)}
 .lookp .btn.play.sm{min-height:44px}
 .ucode{margin-top:-6px}
 .ulink{font-size:12px;padding:2px 8px}
+
+/* the tally: paint counted up, eliminations added on, then the winner */
+.tally{position:absolute;inset:0;z-index:11;display:flex;flex-direction:column;justify-content:center;gap:18px;box-sizing:border-box;padding:max(20px,env(safe-area-inset-top)) clamp(16px,5vw,48px) max(20px,env(safe-area-inset-bottom));background:rgba(20,14,30,.84);cursor:pointer;-webkit-tap-highlight-color:transparent;animation:fadein .3s both}
+.tally::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 40%,rgba(255,255,255,.08),rgba(255,255,255,0) 70%);pointer-events:none}
+.tally.out{animation:vicout .3s ease-in forwards;pointer-events:none}
+.tyhead{position:relative;display:grid;justify-items:center;gap:8px;text-align:center}
+.tyword{font:400 clamp(30px,8.5vw,58px)/.95 var(--font-display);color:var(--cream);text-shadow:.05em .06em 0 var(--ink),calc(.05em + 3px) calc(.06em + 3px) 0 var(--black);transform:rotate(-4deg)}
+.tyword.in{animation:vslam .45s cubic-bezier(.2,1.6,.4,1) both}
+.tysub{font:800 13px/1.3 var(--font-ui);color:#B8B0C8;letter-spacing:.08em;text-transform:uppercase}
+.tysub b{color:var(--cream);font-weight:900}
+.tyrows{position:relative;display:grid;gap:12px;width:min(100%,520px);margin:0 auto}
+.tyrow{position:relative;display:grid;grid-template-columns:46px minmax(0,1fr) auto;align-items:center;gap:10px;padding:8px 12px 8px 8px;border:2.5px solid var(--black);border-radius:8px;background:var(--paper);color:var(--black);box-shadow:5px 5px 0 rgba(255,255,255,.18);transition:transform .55s cubic-bezier(.3,1.3,.4,1);animation:rowin .5s cubic-bezier(.2,1.2,.35,1) both;animation-delay:var(--d,0s)}
+.tyrows.set .tyrow{animation:none}
+.tyrow.you{box-shadow:5px 5px 0 rgba(255,255,255,.18),0 0 0 2.5px var(--ink)}
+.tyrow.win{box-shadow:5px 5px 0 rgba(255,255,255,.18),0 0 0 3px var(--gold)}
+.tyrow.win.you{box-shadow:5px 5px 0 rgba(255,255,255,.18),0 0 0 2.5px var(--ink),0 0 0 5.5px var(--gold)}
+.tyrow .bico{width:46px;height:46px;border-color:var(--black)}
+.tyrow .bico .crown{top:-18px;stroke:var(--black);animation-delay:.1s}
+.tymain{min-width:0}
+.tyname{display:flex;align-items:center;gap:6px;min-width:0}
+.tyname b{min-width:0;font:900 15px/1.1 var(--font-head);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tyname i{flex:none;font:800 10px/1 var(--font-ui);font-style:normal;padding:3px 6px;border-radius:99px;background:var(--ink);color:#fff}
+.tykos{display:inline-flex;flex-wrap:wrap;justify-content:flex-end;gap:1px;margin-left:auto}
+.tykos:empty{display:none}
+.tykos svg{width:17px;height:17px;fill:var(--gold);stroke:var(--black);stroke-width:1.6;stroke-linejoin:round;animation:koin .35s cubic-bezier(.3,1.7,.5,1) both}
+@keyframes koin{from{opacity:0;transform:scale(2.4) rotate(-50deg)}}
+.tybar{position:relative;height:16px;margin-top:6px;border:2px solid var(--black);border-radius:4px;background:#fff;overflow:hidden}
+.tybar i{position:absolute;top:0;bottom:0;left:0;width:0}
+.tybar .tyf{background:var(--c)}
+.tybar .tyk{background:repeating-linear-gradient(-45deg,var(--chi) 0 5px,var(--c) 5px 10px);border-left:2px solid var(--black);box-sizing:border-box}
+.tynum{font:400 30px/1 var(--font-display);color:var(--c);text-shadow:2px 2px 0 var(--black);font-variant-numeric:tabular-nums;min-width:2.3em;text-align:right}
+.tynum.tick{animation:tick .22s ease-out}
+.tyup{position:absolute;right:8px;top:-4px;font:400 20px/1 var(--font-display);color:var(--gold);text-shadow:2px 2px 0 var(--black);animation:tyup .85s ease-out forwards;pointer-events:none}
+@keyframes tyup{from{opacity:0;transform:translateY(10px) scale(.6)}25%{opacity:1;transform:scale(1.25)}to{opacity:0;transform:translateY(-36px)}}
+.tytap{position:relative;text-align:center;margin:0;font:800 13px/1 var(--font-ui);color:#B8B0C8;opacity:0;animation:vtap 1.6s 1.4s ease-in-out infinite}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.tally{gap:10px;padding:max(10px,env(safe-area-inset-top)) max(24px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(24px,env(safe-area-inset-left))}.tyhead{gap:4px}.tyword{font-size:min(48px,11vh)}.tysub{font-size:12px}.tyrows{gap:8px;width:min(100%,560px)}.tyrow{padding:5px 10px 5px 6px;grid-template-columns:36px minmax(0,1fr) auto}.tyrow .bico{width:36px;height:36px}.tyrow .bico .crown{top:-14px;width:20px;height:16px;margin-left:-10px}.tybar{height:12px;margin-top:4px}.tynum{font-size:24px}.tyname b{font-size:13px}.tykos svg{width:14px;height:14px}.tytap{display:none}}
+@media (prefers-reduced-motion:reduce){.tally,.tyrow,.tyword.in,.tykos svg,.tynum.tick,.tytap{animation:none}.tytap{opacity:.7}.tyrow{transition:none}}
 </style>
 
 <div id="stage">
@@ -1905,7 +1942,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 114</p>
+      <p class="ver">Version 115</p>
     </div>
   </div>
 
@@ -2008,6 +2045,11 @@ kbd{background:#fff;border-color:var(--black)}
   <div class="iris" id="iris" hidden aria-hidden="true"><i></i><b id="irisText"></b></div>
   <div class="boot" id="boot" role="status"><span class="bootdrip" aria-hidden="true"></span><span class="tcard boottc" aria-hidden="true"></span><span class="bootdrop" aria-hidden="true"></span><div class="bootbar" aria-hidden="true"><i id="bootFill"></i></div><p class="bootmsg" id="bootMsg">Loading</p></div>
 
+  <section class="tally" id="tally" hidden aria-live="polite">
+    <div class="tyhead"><b class="tyword" id="tyWord">Paint</b><span class="tysub" id="tySub"></span></div>
+    <div class="tyrows" id="tyRows" role="list"></div>
+    <p class="tytap">Tap to skip</p>
+  </section>
   <section class="victory" id="victory" hidden aria-live="polite">
     <div class="vrib" aria-hidden="true"></div>
     <div class="vtop">
@@ -8410,6 +8452,7 @@ const P = newBlob(0, false), H = newBlob(1, true), H2 = newBlob(2, true); // you
 const MODES = [['solo', 'Solo', 'Just you, 60 seconds'], ['duel', '1v1', 'You and one rival'], ['trio', '3-way', 'You and two rivals']];
 let mode = MODES.some(m => m[0] === store.mode) ? store.mode : 'duel', ACTIVE = [P, H];
 const NAMES = ['You', 'Smudge', 'Doodle'], nameOf = D => D === P ? playerName() : NAMES[D.team];
+const KO_PCT = 2; // each elimination counts for this much of the canvas at the tally
 const RIVAL_NAMES = ['Smudge', 'Blot', 'Splodge', 'Dribble', 'Doodle', 'Squiggle', 'Speckle', 'Glop', 'Drizzle', 'Swirl', 'Dabs', 'Gloop', 'Sploosh', 'Tinty', 'Smear', 'Daub'];
 function pickRivalNames() { const me = playerName().toLowerCase(), pool = RIVAL_NAMES.filter(n => n.toLowerCase() !== me); const a = pool.splice(Math.floor(Math.random() * pool.length), 1)[0]; NAMES[1] = a; NAMES[2] = pool[Math.floor(Math.random() * pool.length)]; }
 // your name: asked for before your first match, changed any time from the nameplate on the menu
@@ -9383,14 +9426,15 @@ function pairContact(P, H) {
 function endMatch() {
   if (state !== 'play') return;
   const you = teamCov(0), cpu = teamCov(1), cpu2 = teamCov(2), id = runId, ry = Math.round(you), rc = Math.round(cpu), rc2 = Math.round(cpu2); // decided on the whole numbers everyone sees
-  const rest = mode === 'trio' ? Math.max(rc, rc2) : rc, win = mode === 'solo' ? 1 : ry > rest ? 1 : rest > ry ? -1 : 0, winner = win > 0 ? P : win < 0 ? (mode === 'trio' && rc2 > rc ? H2 : H) : null;
+  const kos = [P.kos | 0, H.kos | 0, mode === 'trio' ? H2.kos | 0 : 0], tot = [ry + kos[0] * KO_PCT, rc + kos[1] * KO_PCT, mode === 'trio' ? rc2 + kos[2] * KO_PCT : 0], sy = tot[0], sc = tot[1], sc2 = tot[2];
+  const rest = mode === 'trio' ? Math.max(sc, sc2) : sc, win = mode === 'solo' ? 1 : sy > rest ? 1 : rest > sy ? -1 : 0, winner = win > 0 ? P : win < 0 ? (mode === 'trio' && sc2 > sc ? H2 : H) : null;
   // dead even at the buzzer: ten more seconds, once
   if (mode !== 'solo' && !win && !overtimeUsed) { overtimeUsed = true; matchLeft = OT_T; lastCount = 99; banner('Overtime!', OT_T + ' more seconds', true); AU.horn(); buzz([30, 40, 30]); return; }
   state = 'dead'; for (const D of ACTIVE) if (D.charging) clearCharge(D);
   aimRing.visible = false; arrow.visible = false; hintEl.classList.remove('on');
   AU.chargeStop(); AU.roll(0, 0); AU.sizzle(0); AU.music('end'); AU.horn();
   if (!hardPhase) { hardPhase = true; hardStart = dryClock; } // the painting dries as the camera pulls back
-  endInfo = { you, cpu, cpu2, win, winner, time: runT, mode };
+  endInfo = { you, cpu, cpu2, win, winner, time: runT, mode, kos, tot };
   const key = mode === 'duel' ? '' : mode; // a best and a win count per mode (and per skill, against CPUs)
   store.wins = store.wins || {}; store.played = store.played || {}; store.bestCov = store.bestCov || {};
   const slot = mode === 'solo' ? 'solo' : key + diff, prev = store.bestCov[slot] || 0, newBest = ry > prev; endInfo.best = Math.max(prev, ry); endInfo.prevBest = prev;
@@ -9407,7 +9451,7 @@ function endMatch() {
   save();
   banner(mode === 'solo' ? "Time's up!" : 'Time!', '', false); buzz([40, 30, 40]); slow = 0.6;
   if (mode === 'solo' ? newBest : win > 0) celebrating = true;
-  setTimeout(() => { if (id !== runId || state !== 'dead') return; startVictory(); }, 1450);
+  setTimeout(() => { if (id !== runId || state !== 'dead') return; startTally(); }, 1450);
 }
 // percentages for display: always whole numbers
 function fmtPair(a, b) { return [Math.round(a) + '%', Math.round(b) + '%']; }
@@ -11217,6 +11261,7 @@ function smoothDamp(cur, vel, tgt, T, dt) { if (dt <= 0) return; const om = 2 / 
 function visuals(dt, rdt) {
   visFrame++;
   wearDt = dt; idleStep(rdt);
+  if (tal) talFrame();
   if (vic) vicFrame(rdt);
   if (state === 'intro') introStep(rdt);
   const ke = 1 - Math.exp(-dt * 10), kf = 1 - Math.exp(-dt * 16), playing = state === 'play', pIn = playing && (P.st === 'play' || P.st === 'hide');
@@ -11786,11 +11831,11 @@ function stampBurst(el, delay) {
 function vicTag(t, dot) { $('vTagTxt').textContent = t; $('vDot').hidden = !dot; }
 function startVictory() {
   if (vic || state !== 'dead') return;
-  const info = endInfo, solo = info.mode === 'solo', board = ACTIVE.map(D => ({ D, pct: Math.round(teamCov(D.team)) })).sort((a, b) => b.pct - a.pct);
+  const info = endInfo, solo = info.mode === 'solo', board = ACTIVE.map(D => ({ D, pct: solo ? Math.round(info.you) : info.tot[D.team] })).sort((a, b) => b.pct - a.pct);
   for (const e of board) e.place = 1 + board.filter(o => o.pct > e.pct).length;
   let feat;
   if (solo || info.winner) feat = [solo ? P : info.winner];
-  else { const tie = board.find(e => e.D !== P && e.pct === Math.round(info.you)); feat = tie ? [P, tie.D] : [P]; }
+  else { const tie = board.find(e => e.D !== P && e.pct === info.tot[0]); feat = tie ? [P, tie.D] : [P]; }
   const happy = solo ? info.newBest : !!info.winner, lead = feat[0], col = new THREE.Color(TEAMS[lead.team].wet);
   vic = { t: 0, feat, happy, yaw: Math.atan2(sun.position.x, sun.position.z) - 0.45, saved: feat.map(D => ({ D, x: D.x, y: D.y, z: D.z, yaw: D.yaw, st: D.st, paint: D.paint, power: D.power, vis: lookRoot(D).visible })) };
   // the featured blobs, awake and full, on their marks (side by side for a draw)
@@ -11808,7 +11853,7 @@ function startVictory() {
   const pl = $('vPlace'), me = board.find(e => e.D === P);
   if (solo) { pl.className = 'vplace word'; pl.textContent = Math.round(info.you) + '%'; vicTag(info.newBest ? 'New best!' : "Time's up", info.newBest); vicName(playerName()); $('vSub').innerHTML = info.newBest ? (info.prevBest ? 'Old best ' + info.prevBest + '%' : 'Your first canvas') : 'Your best is <b>' + info.best + '%</b>'; }
   else if (feat.length > 1 || !info.winner) { pl.className = 'vplace word'; pl.textContent = 'Draw'; vicTag('Dead even', false); vicName(feat.length > 1 ? playerName() + ' & ' + nameOf(feat[1]) : playerName()); $('vSub').innerHTML = '<b>' + me.pct + '%</b> each'; }
-  else { pl.className = 'vplace'; pl.innerHTML = '1<small>st</small>'; vicTag(lead === P ? 'Sold' : me.place === 2 ? 'You came 2nd' : 'You came ' + me.place + (me.place === 3 ? 'rd' : 'th'), lead === P); vicName(nameOf(lead)); $('vSub').innerHTML = '<b>' + board[0].pct + '%</b> of the canvas'; }
+  else { pl.className = 'vplace'; pl.innerHTML = '1<small>st</small>'; vicTag(lead === P ? 'Sold' : me.place === 2 ? 'You came 2nd' : 'You came ' + me.place + (me.place === 3 ? 'rd' : 'th'), lead === P); vicName(nameOf(lead)); $('vSub').innerHTML = '<b>' + board[0].pct + '%</b>' + (info.kos[lead.team] ? ' with ' + info.kos[lead.team] + (info.kos[lead.team] === 1 ? ' elimination' : ' eliminations') : ' of the canvas'); }
   $('vCards').innerHTML = solo ? '' : board.filter(e => !feat.includes(e.D)).map((e, i) => '<div class="vcard' + (e.D === P ? ' me' : '') + '" style="--cc:' + (e.D === P ? 'var(--ink-hi)' : e.D === H ? 'var(--holy-hi)' : 'var(--wolf-hi)') + ';animation-delay:' + (1.15 + i * 0.12).toFixed(2) + 's"><b class="vrank">' + e.place + '</b>' + faceIcon(e.D, false) + '<span><span class="vcn">' + nameOf(e.D) + '</span><b class="vcp">' + e.pct + '%</b></span></div>').join('');
   $('vTap').textContent = 'Tap to see the canvas'; $('vStage').textContent = TH.label + ' \u00b7 ' + (solo ? 'Solo' : (MODES.find(m => m[0] === mode) || MODES[0])[1]);
   stampBurst($('vPlace')); vicEl.classList.remove('out'); vicEl.hidden = false; reAdd.delete(bannerEl); bannerEl.classList.remove('on'); vicFit(); flashScreen();
@@ -11909,7 +11954,7 @@ function hideNewItem() { const el = $('newItem'); el.classList.remove('on'); el.
 $('niGo').addEventListener('click', () => { AU.init(); AU.ui(); hideNewItem(); if (state === 'dead') showEnd(endImg); });
 $('niTry').addEventListener('click', () => { AU.init(); AU.ui(); const id = newItem, w = WEAR.find(x => x.id === id); hideNewItem(); if (w) { lookCat = w.cat; if (bought(w.id)) { if (w.cat !== 'face') for (const o of WEAR) if (o.cat === w.cat && o.slot !== w.slot) myLook[o.slot] = null; myLook[w.slot] = w.id; store.fresh = (store.fresh || []).filter(x => x !== id); saveLook(); } }
   irisClose(() => { end.hidden = true; showMenu(); camSnap = true; irisOpen(); openLook(); const t = w && $('lookRail').querySelector('[data-w="' + w.id + '"]'); if (t) { const r = $('lookRail'); r.scrollLeft = Math.max(0, t.offsetLeft - (r.clientWidth - t.offsetWidth) / 2); railEdge(); } }); });
-function abortVictory() { if (vic) restoreVictory(); vicEl.hidden = true; vicEl.classList.remove('out'); }
+function abortVictory() { if (vic) restoreVictory(); vicEl.hidden = true; vicEl.classList.remove('out'); if (tal) hideTally(); }
 vicEl.addEventListener('click', () => { AU.init(); endVictory(); });
 const vicKey = new THREE.Color(0xFFF4E8), keySave = new THREE.Color();
 function renderVictory() {
@@ -13053,6 +13098,55 @@ const KO_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.8l2.3
 const MEDAL_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 1.5h4l1 5 1-5h4l-3.2 7.6" fill="#E3122F" stroke="#1A1030" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="15" r="7.2" fill="#FFF4C9" stroke="#1A1030" stroke-width="1.8"/><path d="M12 10.6l1.3 2.7 3 .4-2.2 2.1.6 3-2.7-1.5-2.7 1.5.6-3-2.2-2.1 3-.4z" fill="#E8A21C"/></svg>';
 const TROPHY_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h10v5.2a5 5 0 0 1-10 0zM7 5.5H4.2c0 3 1.2 4.6 3.3 5M17 5.5h2.8c0 3-1.2 4.6-3.3 5M10.2 13.4h3.6l.6 3.6h-4.8zM8 17h8v3.4H8z" fill="#FFD86B" stroke="#1A1030" stroke-width="1.6" stroke-linejoin="round"/></svg>';
 const ordinal = n => n + (n % 10 === 1 && n % 100 !== 11 ? 'st' : n % 10 === 2 && n % 100 !== 12 ? 'nd' : n % 10 === 3 && n % 100 !== 13 ? 'rd' : 'th');
+// ---------- the tally: everyone's paint counted up, then each elimination laid on top of it, then the winner ----------
+const talEl = $('tally'); let tal = null;
+function startTally() {
+  if (state !== 'dead' || vic || tal) return; const info = endInfo;
+  if (info.mode === 'solo' || !info.tot || window.__instant) return startVictory();
+  const ppl = ACTIVE.map(D => ({ D, cov: Math.round([info.you, info.cpu, info.cpu2][D.team] || 0), kos: info.kos[D.team] || 0, tot: info.tot[D.team] })).sort((a, b) => b.cov - a.cov || (b.D === P) - (a.D === P));
+  const maxK = Math.max(0, ...ppl.map(e => e.kos)), scale = Math.min(100, Math.max(12, Math.max(...ppl.map(e => e.tot)) * 1.12));
+  const KO0 = 2.5, KOD = 0.42, KOEND = KO0 + (maxK ? maxK * KOD + 0.6 : 1);
+  tal = { t0: performance.now(), t: 0, ppl, scale, maxK, T0: 0.55, T1: 2.05, KO0, KOD, KOEND, END: KOEND + 1.7, ticks: 0, phase: 0, id: runId, lastTick: 0 };
+  $('tyRows').innerHTML = ppl.map((e, i) => { const [c, hi] = colVars(e.D), me = e.D === P;
+    return '<div class="tyrow' + (me ? ' you' : '') + '" role="listitem" style="--c:' + c + ';--chi:' + hi + ';--d:' + (0.1 + i * 0.1).toFixed(2) + 's">' + faceIcon(e.D, false)
+      + '<div class="tymain"><div class="tyname"><b>' + escAttr(nameOf(e.D)) + '</b>' + (me ? '<i>You</i>' : '') + '<span class="tykos" aria-hidden="true"></span></div><div class="tybar" aria-hidden="true"><i class="tyf"></i><i class="tyk"></i></div></div><b class="tynum">0%</b></div>'; }).join('');
+  ppl.forEach((e, i) => { const r = $('tyRows').children[i]; e.el = r; e.f = r.querySelector('.tyf'); e.k = r.querySelector('.tyk'); e.n = r.querySelector('.tynum'); e.s = r.querySelector('.tykos'); e.shown = 0; e.num = -1; });
+  $('tyRows').classList.remove('set'); talHead('Paint', 'How much of the canvas');
+  talEl.classList.remove('out'); talEl.hidden = false; hud.classList.add('off'); hintEl.classList.remove('on'); reAdd.delete(bannerEl); bannerEl.classList.remove('on');
+  AU.whoosh();
+}
+function talHead(w, sub) { const el = $('tyWord'); el.textContent = w; restartCls(el, 'in'); $('tySub').innerHTML = sub; }
+function talFrame() {
+  if (!tal) return; if (state !== 'dead' || tal.id !== runId) return hideTally();
+  const now = performance.now(), t = tal.t = (now - tal.t0) / 1000;
+  const k0 = clamp((t - tal.T0) / (tal.T1 - tal.T0), 0, 1), k = 1 - Math.pow(1 - k0, 3);
+  if (k0 > 0 && k0 < 1 && now - tal.lastTick > 85) { tal.lastTick = now; AU.tick(tal.ticks++); }
+  if (k0 >= 1 && tal.phase === 0) { tal.phase = 1; AU.pop(); }
+  if (t >= tal.KO0 && tal.phase === 1) { tal.phase = 2; talHead('Eliminations', tal.maxK ? '<b>+' + KO_PCT + '%</b> of the canvas each' : 'None this match'); AU.whoosh(); }
+  for (const e of tal.ppl) {
+    const cov = e.cov * k, n = t >= tal.KO0 ? clamp(Math.floor((t - tal.KO0) / tal.KOD) + 1, 0, e.kos) : 0, x = cov / tal.scale * 100;
+    e.f.style.width = x.toFixed(2) + '%'; e.k.style.left = x.toFixed(2) + '%'; e.k.style.width = (n * KO_PCT / tal.scale * 100).toFixed(2) + '%'; e.k.style.display = n ? '' : 'none';
+    if (n !== e.shown) { e.shown = n; e.s.innerHTML = KO_SVG.repeat(n); AU.pop(); restartCls(e.n, 'tick'); if (!reduceMotion) { const up = document.createElement('em'); up.className = 'tyup'; up.textContent = '+' + KO_PCT + '%'; e.el.appendChild(up); setTimeout(() => up.remove(), 900); } }
+    const num = Math.round(cov) + n * KO_PCT; if (num !== e.num) { e.num = num; e.n.textContent = num + '%'; }
+  }
+  if (t >= tal.KOEND && tal.phase === 2) { tal.phase = 3; talWinner(); }
+  if (t >= tal.END) { hideTally(); startVictory(); }
+}
+// the rows settle into their final order, the winner takes the crown
+function talWinner() {
+  const info = endInfo, ppl = tal.ppl, order = ppl.slice().sort((a, b) => b.tot - a.tot || (b.D === P) - (a.D === P));
+  const before = ppl.map(e => e.el.getBoundingClientRect().top);
+  $('tyRows').classList.add('set'); order.forEach((e, i) => { e.el.style.order = i; });
+  ppl.forEach((e, i) => { const d = before[i] - e.el.getBoundingClientRect().top; if (Math.abs(d) > 1 && !reduceMotion) { e.el.style.transition = 'none'; e.el.style.transform = 'translateY(' + d + 'px)'; void e.el.offsetHeight; e.el.style.transition = ''; e.el.style.transform = ''; } });
+  const w = info.winner, wk = w ? info.kos[w.team] : 0;
+  if (w) { const e = ppl.find(e => e.D === w); e.el.classList.add('win'); e.el.querySelector('.bico').insertAdjacentHTML('beforeend', CROWN_SVG); }
+  talHead(w === P ? 'You win!' : w ? nameOf(w) + ' wins' : 'Draw', w ? '<b>' + info.tot[w.team] + '%</b>' + (wk ? ' with ' + wk + (wk === 1 ? ' elimination' : ' eliminations') : ' of the canvas') : 'Dead even');
+  AU.splat(1); buzz(w === P ? [30, 40, 30] : 20); flashScreen();
+}
+function hideTally() { if (!tal) return; tal = null; talEl.classList.add('out'); setTimeout(() => { if (!tal) talEl.hidden = true; }, 320); }
+// a tap skips to the end of the step it is on
+function talSkip() { if (!tal) return; const t = tal.t, to = t < tal.T1 ? tal.T1 : t < tal.KOEND ? tal.KOEND : tal.END; tal.t0 -= (to - t) * 1000 + 1; }
+talEl.addEventListener('click', () => { AU.init(); talSkip(); });
 function showEnd(img) {
   const info = endInfo, n = store.runs || 1, w = colorOf().words, solo = info.mode === 'solo', trio = info.mode === 'trio';
   const covOf = D => Math.max(0, [info.you, info.cpu, info.cpu2][D.team] || 0);
@@ -13083,14 +13177,14 @@ function showEnd(img) {
   }
   $('jBar').innerHTML = jb; $('jNums').innerHTML = jn; $('judge').classList.remove('go'); jLiq = makeLiquid($('jBar')); jLiq.set(jLiqFinal.map(f => ({ x0: f.anchor === 'right' ? 1 : f.anchor === 'left' ? 0 : (f.x0 + f.x1) / 2, x1: f.anchor === 'right' ? 1 : f.anchor === 'left' ? 0 : (f.x0 + f.x1) / 2, col: f.col }))); jLiq.tick(performance.now());
   // the board: who painted the most first; the crown on the winner; most eliminations (only if it's one player's alone)
-  const ppl = (solo ? [P] : trio ? [P, H, H2] : [P, H]).map(D => ({ D, pct: Math.round(covOf(D)), kos: D.kos || 0 }));
+  const ppl = (solo ? [P] : trio ? [P, H, H2] : [P, H]).map(D => ({ D, pct: solo ? Math.round(covOf(D)) : info.tot[D.team], kos: info.kos ? info.kos[D.team] : D.kos || 0 }));
   for (const e of ppl) e.place = 1 + ppl.filter(o => o.pct > e.pct).length;
   ppl.sort((a, b) => a.place - b.place || (b.D === info.winner) - (a.D === info.winner) || (b.D === P) - (a.D === P));
   const maxK = Math.max(0, ...ppl.map(e => e.kos)), tops = ppl.filter(e => e.kos === maxK), topK = !solo && maxK > 0 && tops.length === 1 ? tops[0].D : null;
-  let h = solo ? '' : '<div class="bhead" aria-hidden="true"><span></span><span></span><span></span><span>Eliminations</span><span>Paint</span></div>';
+  let h = solo ? '' : '<div class="bhead" aria-hidden="true"><span></span><span></span><span></span><span>Eliminations</span><span>Score</span></div>';
   ppl.forEach((e, i) => {
     const D = e.D, me = D === P, [c, hi] = colVars(D), top = topK === D, nm = me ? playerName() : nameOf(D);
-    const say = ordinal(e.place) + ', ' + nm + (me ? ' (you)' : '') + ', ' + e.pct + '% painted' + (solo ? '' : ', ' + e.kos + (e.kos === 1 ? ' elimination' : ' eliminations') + (top ? ', most eliminations' : ''));
+    const say = ordinal(e.place) + ', ' + nm + (me ? ' (you)' : '') + ', ' + e.pct + (solo ? '% painted' : '% score') + (solo ? '' : ', ' + e.kos + (e.kos === 1 ? ' elimination' : ' eliminations') + (top ? ', most eliminations' : ''));
     h += '<div class="brow' + (me ? ' you' : '') + '" role="listitem" aria-label="' + escAttr(say) + '" style="--c:' + c + ';--chi:' + hi + ';--d:' + (0.22 + i * 0.09).toFixed(2) + 's">'
       + '<b class="brank" aria-hidden="true">' + e.place + '</b>' + faceIcon(D, !solo && info.winner === D)
       + '<span class="bname" aria-hidden="true"><span class="bn"><b>' + escAttr(nm) + '</b>' + (me && !solo ? '<i>You</i>' : '') + '</span>' + (me && top ? '<em class="medal">' + MEDAL_SVG + 'Most eliminations</em>' : '') + '</span>'
