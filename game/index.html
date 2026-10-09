@@ -1874,9 +1874,10 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic"><span class="ink drip"></span><span class="glyph">&#8645;</span><span class="cap">Refill</span></div><div><b>Hide and burst</b><p id="howBurst"></p></div></div>
         <div class="pol"><div class="pic" style="--pc:#F29A3A"><span class="ink"></span><span class="glyph sm">&#9728;</span><span class="cap">Weather</span></div><div><b>Heat and rain</b><p id="howSun"></p></div></div>
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
+        <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 111</p>
+      <p class="ver">Version 112</p>
     </div>
   </div>
 
@@ -8442,7 +8443,8 @@ function paintHow() {
   $('howFling').textContent = 'Fling into ' + riv + ' to knock it flying, or pound mid-fling to fire a missile that steers toward it. Ram it while you\'re faster, or land on it, to flatten it.';
   $('howBurst').textContent = 'Hide in a ' + pw + ' to refill. Burst out of it, then swipe up or down in mid-air to dash forward or back. You can\'t be touched while you dash. Roll into a taken ' + pw + ' to kick out whoever\'s inside and climb in.';
   $('howSun').textContent = 'A heat wave bakes anything out in the open, so hide in a ' + pw + ' or the shade. Rain: everyone speeds up and puddles water your paint down. Pound a puddle to water down their paint all around it.';
-  $('howOrb').textContent = 'Roll up to the glowing orb (or jump into it) to go giant for 5 seconds. Roll into ' + riv + ' while you\'re giant and it\'s out.';
+  $('howOrb').textContent = 'Roll up to the glowing orb (or jump into it) for a super move: go giant for 5 seconds, or ride a rocket and come down like a giant\'s pound. Roll into ' + riv + ' while you\'re giant and it\'s out.';
+  $('howItems').textContent = 'A roller or a turret turns up on the canvas now and then. Grab it and it waits in your hand: ' + say('tap its button', 'press F') + ' when you want it. The roller lays wide stripes and refills you; the turret plants you and fires paint. Picking up another drops the one you hold.';
   const el = $('howCtl'); if (el) el.innerHTML = keysUI ? '<kbd>A</kbd> <kbd>D</kbd> or the arrows steer. <kbd>Space</kbd> jumps, <kbd>Shift</kbd> rolls. Hold <kbd>S</kbd> to stop and load a fling, let go to fling. <kbd>E</kbd> pounds. <kbd>P</kbd> pauses, <kbd>M</kbd> mutes.' : 'Drag sideways to steer. Tap to jump, swipe up to roll. Hold to stop, then pull down and let go to fling. The arrow button pounds.'; }
 paintHow();
 const bannerEl = $('banner'); let bannerUntil = 0, bannerWx = false;
@@ -13318,6 +13320,7 @@ window.addEventListener('keydown', e => {
   if (vic) { if (e.key === ' ' || e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); endVictory(); } return; }
   const k = e.key; AU.init();
   if (!howModal.hidden) { if (k === 'Escape') { e.preventDefault(); closeHow(); } return; }
+  if (!$('commModal').hidden) { if (k === 'Escape' || k === 'Backspace') { e.preventDefault(); closeComms(); } return; }
   if (!setModal.hidden) { if (k === 'Escape') { e.preventDefault(); closeSettings(); } return; }
   if (state === 'menu' && menuPage === 'worlds') { if (k === 'Escape' || k === 'Backspace') { e.preventDefault(); closeWorlds(); return; } if ((k === 'ArrowLeft' || k === 'ArrowRight') && !e.repeat) { e.preventDefault(); stepWorld(k === 'ArrowLeft' ? -1 : 1); return; } }
   if (!keysUI && (k.startsWith('Arrow') || k === 'Shift' || (k.length === 1 && 'wasdeqWASDEQ '.includes(k)))) { keysUI = true; paintHow(); }

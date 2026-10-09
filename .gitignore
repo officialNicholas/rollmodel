@@ -1,3 +1,5 @@
-tools/ios/build/
 *.pyc
+RollModel-iOS.zip
 __pycache__/
+ios/RollModel/RollModel/www/
+tools/ios/build/
