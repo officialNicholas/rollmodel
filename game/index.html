@@ -1729,6 +1729,17 @@ kbd{background:#fff;border-color:var(--black)}
 #end::before{display:none}
 @media (min-width:700px){#end{bottom:0;padding-bottom:max(18px,env(safe-area-inset-bottom))}}
 @media (max-height:520px) and (min-aspect-ratio:1/1){#end{bottom:max(6px,env(safe-area-inset-bottom));top:max(6px,env(safe-area-inset-top));gap:6px;padding:8px 14px 8px}#end .rhead{gap:3px}#end .jnums{height:30px}#end .jnums b{font-size:26px}#end .jbar{height:12px}#end .brow{min-height:36px}#end .bico{width:28px;height:28px}#end .reprow{padding:4px 10px}#end .xpmeter{width:90px;height:51px;background-size:540px 306px}#end .btn.play{min-height:42px;padding-top:5px;padding-bottom:5px}#end .row .btn{min-height:36px}}
+
+/* the lobby stats: ink written straight on the paper, no plate, no tape, no shadow: nothing that says "press me" */
+.lcol.right .plate.stat{background:none;box-shadow:none;border:0;border-radius:0;width:76px;padding:2px 2px 6px;gap:0;animation:none;cursor:default}
+.lcol.right .plate.stat::before,.lcol.right .plate.stat::after{display:none}
+.lcol.right .plate.stat svg{width:20px;height:20px;color:var(--ink);opacity:.95}
+.lcol.right .plate.stat b{font:900 27px/1 var(--font-head);font-style:italic;letter-spacing:-.03em;color:#17131F;padding-top:1px;text-shadow:.07em .07em 0 rgba(var(--ink-rgb),.28)}
+.lcol.right .plate.stat span{font:800 8.5px/1 var(--font-ui);letter-spacing:.16em;color:var(--muted);margin-top:1px}
+.lcol.right .plate.stat.drops b{gap:4px}
+.lcol.right .plate.stat.drops b .dropi{width:13px;height:16px;filter:none}
+.lcol.right .plate.stat+.plate.stat{border-top:2px dashed rgba(23,19,32,.14);padding-top:6px}
+.lcol.right{gap:4px}
 </style>
 
 <div id="stage">
@@ -1822,7 +1833,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 93</p>
+      <p class="ver">Version 94</p>
     </div>
   </div>
 
