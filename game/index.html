@@ -1786,6 +1786,31 @@ kbd{background:#fff;border-color:var(--black)}
 
 /* the gear sits at the top of the bar, at the same height as the sound button beside it, whatever the nametag's height or the notch */
 .mhome.lobby .ltools{align-self:flex-start;margin-top:calc(max(12px,env(safe-area-inset-top)) - max(8px,env(safe-area-inset-top)))}
+
+/* the locker, folded: one strip of tabs, one row of what the tab holds */
+.lookp{gap:8px;padding-top:10px}
+@media (max-aspect-ratio:1/1){.sheet.lookp{max-height:45%}}
+.lookp .lktop{min-height:38px}
+.lookp .ctitle{font-size:22px}
+.lnbtn{height:38px;font-size:15px}
+.lookp .swatches,.lookp .leyes,.lookp .lrail{display:none}
+.lookp[data-tab="paint"] .swatches{display:flex;justify-content:space-around;padding:6px 0 2px}
+.lookp[data-tab="eyes"] .leyes{display:flex;justify-content:space-between;margin:4px 0 0}
+.lookp[data-tab="eyes"] .leyes .lhead{display:none}
+.lookp[data-tab="head"] .lrail,.lookp[data-tab="face"] .lrail,.lookp[data-tab="cloth"] .lrail{display:flex}
+.seg.lcats{grid-template-columns:repeat(5,1fr);gap:5px}
+.seg.lcats button,.seg.lcats button[aria-selected="true"]{min-height:58px;padding:5px 2px 6px;gap:2px}
+.seg.lcats button small{font-size:7.5px;letter-spacing:.1em}
+.seg.lcats button .lci{width:24px;height:24px}
+.seg.lcats button .lci svg{width:22px;height:22px}
+.seg.lcats button b{font-size:9px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seg.lcats button .lci .dab{display:block;width:24px;height:24px;background:var(--c);-webkit-mask:url(art/m_splat2.webp) center/contain no-repeat;mask:url(art/m_splat2.webp) center/contain no-repeat}
+.sw{width:44px;height:44px}
+.sw i{width:38px;height:38px}
+.ltile{width:76px;height:80px}
+.lookp .btn.play.sm{min-height:44px}
+.ucode{margin-top:-6px}
+.ulink{font-size:12px;padding:2px 8px}
 </style>
 
 <div id="stage">
@@ -1880,7 +1905,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 113</p>
+      <p class="ver">Version 114</p>
     </div>
   </div>
 
@@ -1928,7 +1953,7 @@ kbd{background:#fff;border-color:var(--black)}
     <div class="lktop"><h2 class="ctitle" id="lookTitle">Locker</h2><span class="lkbal" id="lkBal" aria-label="Dabs"><svg class="dropi" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#F2C14E" stroke="#8A5A12" stroke-width="1.6"/><circle cx="10" cy="10" r="6.7" fill="none" stroke="#C98E22" stroke-width="1"/><path d="M10 5.2c.9 0 1.3 1.1 2 1.5 1 .5 2.2-.3 2.6.7.4 1-.9 1.6-.9 2.6s1.2 1.6.7 2.5c-.5.9-1.6.2-2.5.6-.8.4-1 1.7-1.9 1.7s-1.1-1.3-2-1.7c-.9-.4-2 .3-2.5-.6s.7-1.5.7-2.5-1.3-1.6-.9-2.6c.4-1 1.6-.2 2.6-.7.7-.4 1.1-1.5 2.1-1.5z"/></svg><b id="lkBalN">0</b></span><button class="lnbtn" id="lookNameBtn" type="button" aria-label="Change your name"><span id="lookNameTxt">You</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l1-4.2L15.4 5.4a1.9 1.9 0 0 1 2.7 0l.5.5a1.9 1.9 0 0 1 0 2.7L8.7 18.5z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M13.6 7.2l3.2 3.2" stroke="currentColor" stroke-width="2.2"/></svg></button></div>
     <div class="swatches" id="swatches" role="group" aria-label="Your color"></div>
     <div class="leyes"><p class="lhead">Eyes</p><div class="irises estyles" id="eyeStyles" role="group" aria-label="Eye style"></div><div class="irises" id="irises" role="group" aria-label="Eye color"></div></div>
-    <div class="seg lcats" id="lookCats" role="tablist" aria-label="Accessories"><button class="lcat" type="button" role="tab" id="lc-head" data-cat="head" data-label="Headgear" aria-controls="lookRail" aria-selected="true">Headgear</button><button class="lcat" type="button" role="tab" id="lc-face" data-cat="face" data-label="Facial" aria-controls="lookRail" aria-selected="false" tabindex="-1">Facial</button><button class="lcat" type="button" role="tab" id="lc-cloth" data-cat="cloth" data-label="Clothing" aria-controls="lookRail" aria-selected="false" tabindex="-1">Clothing</button></div>
+    <div class="seg lcats" id="lookCats" role="tablist" aria-label="Your look"><button class="lcat" type="button" role="tab" id="lc-paint" data-cat="paint" data-label="Paint" aria-controls="swatches" aria-selected="true">Paint</button><button class="lcat" type="button" role="tab" id="lc-eyes" data-cat="eyes" data-label="Eyes" aria-controls="eyeStyles" aria-selected="false" tabindex="-1">Eyes</button><button class="lcat" type="button" role="tab" id="lc-head" data-cat="head" data-label="Headgear" aria-controls="lookRail" aria-selected="false" tabindex="-1">Headgear</button><button class="lcat" type="button" role="tab" id="lc-face" data-cat="face" data-label="Facial" aria-controls="lookRail" aria-selected="false" tabindex="-1">Facial</button><button class="lcat" type="button" role="tab" id="lc-cloth" data-cat="cloth" data-label="Clothing" aria-controls="lookRail" aria-selected="false" tabindex="-1">Clothing</button></div>
     <div class="lrail" id="lookRail" role="tabpanel" aria-labelledby="lc-head"></div>
     <button class="btn play sm" id="lookDone" type="button">Done</button>
     <div class="ucode"><button class="ulink" id="unlockLink" type="button">Unlock all items</button><form class="uform" id="unlockForm" hidden><input id="unlockCode" type="text" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="Code" aria-label="Unlock code"><button class="ugo" type="submit">Unlock</button></form></div>
@@ -12092,7 +12117,7 @@ const EYE_KEYS = Object.keys(EYE_COLS);
 const EYE_STYLES = { round: 'Round', edgy: 'Squid', dot: 'Dot' }, EYE_STYLE_K = { round: 0, edgy: 1, dot: 2 };
 const WEAR_CAT = { head: 'head', side: 'head', eye: 'face', lash: 'face', mouth: 'face', neck: 'cloth', back: 'cloth' };
 for (const w of WEAR) w.cat = WEAR_CAT[w.slot] || 'face';
-let lookCat = 'head'; // the category open in Customize
+let lookCat = 'paint'; // the category open in the locker
 // showing off new eyes: the camera moves in on its face and it pulls a funny face (kind 0 an eye roll, 1 wide-eyed darting glances, 2 a
 // surprised look up then a flutter of blinks)
 let eyeShow = null, faceK = 0, glance = null; const EYE_SHOW_T = 2.1;
@@ -12427,17 +12452,22 @@ const WEAR_ICON = {
   hat: '<path d="M14 26c3-6 5-13 9-19 1 4 2 9 4 13l-1 6z" fill="#4A3378" stroke="#D9C8FF" stroke-width="1.6" stroke-linejoin="round"/><ellipse cx="20" cy="27.5" rx="15" ry="3.6" fill="#4A3378" stroke="#D9C8FF" stroke-width="1.6"/><path d="M14.2 23.2c3.6 1.2 8.4 1.2 12.6 0l.5 2.6c-4.4 1.4-9.4 1.4-13.8 0z" fill="#FF8A1F"/>',
   horns: '<path d="M9 30c-1-8 1-15 6-19-1 5 0 10 3 14zM31 30c1-8-1-15-6-19 1 5 0 10-3 14z" fill="#E1283E" stroke="#FFC2CC" stroke-width="1.6" stroke-linejoin="round"/>',
 };
+const ES_ICON_T = { round: '<svg viewBox="0 0 40 40"><ellipse cx="20" cy="20" rx="13" ry="12" fill="#fff" stroke="#171320" stroke-width="2.5"/><circle cx="21" cy="21" r="6" fill="#8A5636"/><circle cx="21.5" cy="21.5" r="3" fill="#171320"/><circle cx="19" cy="18.5" r="1.6" fill="#fff"/></svg>', edgy: '<svg viewBox="0 0 40 40"><path d="M3 20C8 11 16 9 23 12L37 8L30 16C33 20 30 26 24 29L15 36L13 29C7 28 3 24 3 20Z" fill="#171320"/><path d="M10 20C13 14 20 13 26 16C25 23 18 27 11 25C9.5 24 9.5 22 10 20Z" fill="#fff"/><path d="M10 9L22 5L21 9Z" fill="#171320"/><circle cx="18.5" cy="19.5" r="5.6" fill="#8A5636"/><circle cx="19" cy="20" r="3" fill="#171320"/><circle cx="16.4" cy="17.2" r="1.9" fill="#fff"/></svg>', dot: '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="9.5" fill="#171320"/><circle cx="16.5" cy="16.5" r="3" fill="#fff"/></svg>' };;
 function renderLook() {
   const fresh = new Set(store.fresh || []);
+  if (!['paint', 'eyes', 'head', 'face', 'cloth'].includes(lookCat)) lookCat = 'paint';
   for (const b of document.querySelectorAll('#lookCats .lcat')) { const c = b.dataset.cat, sel = c === lookCat; b.setAttribute('aria-selected', String(sel)); b.tabIndex = sel ? 0 : -1;
     b.classList.toggle('fresh', WEAR.some(w => w.cat === c && owns(w.id) && fresh.has(w.id)));
+    if (c === 'paint') { b.innerHTML = '<small>Paint</small><span class="lci"><i class="dab" style="--c:' + TEAMS[0].css + '"></i></span><b>' + colorOf().name + '</b>'; continue; }
+    if (c === 'eyes') { b.innerHTML = '<small>Eyes</small><span class="lci">' + ES_ICON_T[myLook.eyes || 'round'] + '</span><b>' + (EYE_STYLES[myLook.eyes || 'round'] || 'Round') + '</b>'; continue; }
     const worn = WEAR.filter(w => w.cat === c && myLook[w.slot] === w.id), w0 = worn[0];
     b.innerHTML = '<small>' + b.dataset.label + '</small><span class="lci">' + (w0 ? '<svg viewBox="0 0 40 40" aria-hidden="true">' + WEAR_ICON[w0.id] + '</svg>' : '<i class="none"></i>') + '</span><b>' + (w0 ? (worn.length > 1 ? w0.name + ' +' + (worn.length - 1) : w0.name) : 'Nothing on') + '</b>'; }
+  $('look').dataset.tab = lookCat;
   const rail = $('lookRail'); rail.setAttribute('aria-labelledby', 'lc-' + lookCat);
   rail.innerHTML = WEAR.filter(w => w.cat === lookCat).map(w => { const found = owns(w.id), own = found && bought(w.id), sale = found && !own, fr = own && fresh.has(w.id), broke = sale && (store.drops || 0) < PRICE(w);
     return '<button class="ltile' + (own ? '' : sale ? ' sale' : ' locked') + (broke ? ' broke' : '') + (fr ? ' fresh' : '') + '" type="button" data-w="' + w.id + '"' + (own ? ' aria-pressed="' + (myLook[w.slot] === w.id) + '"' : sale ? '' : ' aria-disabled="true"') + ' aria-label="' + w.name + (own ? (fr ? ', new' : '') : sale ? ', ' + PRICE(w) + ' dabs' : ', locked') + '">' + (own ? '' : '<span class="ltag">' + DROP_SVG + PRICE(w) + '</span>') + '<svg viewBox="0 0 40 40" aria-hidden="true">' + WEAR_ICON[w.id] + '</svg><span class="ltn">' + w.name + '</span>' + (found ? '' : LOCK_ICON) + '</button>'; }).join('');
   showDrops();
-  const ES_ICON = { round: '<svg viewBox="0 0 40 40"><ellipse cx="20" cy="20" rx="13" ry="12" fill="#fff" stroke="#171320" stroke-width="2.5"/><circle cx="21" cy="21" r="6" fill="#8A5636"/><circle cx="21.5" cy="21.5" r="3" fill="#171320"/><circle cx="19" cy="18.5" r="1.6" fill="#fff"/></svg>', edgy: '<svg viewBox="0 0 40 40"><path d="M3 20C8 11 16 9 23 12L37 8L30 16C33 20 30 26 24 29L15 36L13 29C7 28 3 24 3 20Z" fill="#171320"/><path d="M10 20C13 14 20 13 26 16C25 23 18 27 11 25C9.5 24 9.5 22 10 20Z" fill="#fff"/><path d="M10 9L22 5L21 9Z" fill="#171320"/><circle cx="18.5" cy="19.5" r="5.6" fill="#8A5636"/><circle cx="19" cy="20" r="3" fill="#171320"/><circle cx="16.4" cy="17.2" r="1.9" fill="#fff"/></svg>', dot: '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="9.5" fill="#171320"/><circle cx="16.5" cy="16.5" r="3" fill="#fff"/></svg>' };
+  const ES_ICON = ES_ICON_T;
   $('eyeStyles').innerHTML = Object.keys(EYE_STYLES).map(k => '<button class="eyes" type="button" data-es="' + k + '" aria-label="' + EYE_STYLES[k] + ' eyes" title="' + EYE_STYLES[k] + '" aria-pressed="' + (myLook.eyes === k) + '">' + ES_ICON[k] + '</button>').join('');
   $('irises').innerHTML = EYE_KEYS.map(k => '<button class="eyec" type="button" data-i="' + k + '" style="--ic:' + EYE_COLS[k].css + '" aria-label="' + EYE_COLS[k].name + ' eyes" title="' + EYE_COLS[k].name + '" aria-pressed="' + (myLook.iris === k) + '"><i></i></button>').join(''); $('irises').classList.toggle('off', myLook.eyes === 'dot'); $('irises').setAttribute('aria-disabled', myLook.eyes === 'dot' ? 'true' : 'false');
   railEdge(); $('lookNameTxt').textContent = playerName();
@@ -12450,7 +12480,7 @@ function railEdge() { const r = $('lookRail'), max = r.scrollWidth - r.clientWid
 $('lookRail').addEventListener('scroll', railEdge, { passive: true });
 function openCat(c, focus) { if (c === lookCat) return; AU.init(); AU.ui(); lookCat = c; glance = { t: 0, T: 0.6, look: [0, -0.13] }; renderLook(); $('lookRail').scrollLeft = 0; restartCls($('lookRail'), 'in'); if (focus) $('lc-' + c).focus(); }
 $('lookCats').addEventListener('click', e => { const b = e.target.closest('.lcat'); if (b) openCat(b.dataset.cat); });
-$('lookCats').addEventListener('keydown', e => { const cats = ['head', 'face', 'cloth'], i = cats.indexOf(lookCat); if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); e.stopPropagation(); openCat(cats[(i + (e.key === 'ArrowRight' ? 1 : 2)) % 3], true); } });
+$('lookCats').addEventListener('keydown', e => { const cats = ['paint', 'eyes', 'head', 'face', 'cloth'], i = cats.indexOf(lookCat); if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); e.stopPropagation(); openCat(cats[(i + (e.key === 'ArrowRight' ? 1 : 4)) % 5], true); } });
 function saveLook() { store.look = Object.assign({}, myLook); save(); }
 function openLook() {
   if (state !== 'menu' || building) return;
