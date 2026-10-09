@@ -14,7 +14,7 @@ CSS = '''
 /* ===== the fight card: one column per blob, even, each in its color ===== */
 .vsx{display:block}
 .vsx::before,.vsx .vband.top{display:none}
-.vsrow{position:absolute;inset:0;display:flex;align-items:stretch;gap:0;padding:0;width:auto}
+.vsx .vsrow{position:absolute;inset:0;display:flex;align-items:stretch;gap:0;padding:0;width:auto}
 .vcol{position:relative;flex:1;min-width:0;overflow:hidden;background:linear-gradient(180deg,var(--sc) 0%,var(--cd) 100%);animation:colin .5s cubic-bezier(.2,1.2,.35,1) both}
 .vcol.foe{animation-delay:.08s}
 .vcol.foe2{animation-delay:.16s}
@@ -26,16 +26,20 @@ CSS = '''
 .vhead{position:relative;z-index:2;min-height:62px;padding:8px 8px 7px;background:rgba(23,19,32,.94);display:grid;align-content:center;justify-items:center;text-align:center;box-shadow:0 4px 0 rgba(0,0,0,.25)}
 .vhead small{font:800 10px/1 var(--font-ui);letter-spacing:.22em;text-transform:uppercase;color:var(--sc);margin-bottom:4px}
 .vhead b{display:block;max-width:100%;font:900 clamp(18px,7vw,34px)/1 var(--font-head);font-style:italic;text-transform:uppercase;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:.05em .05em 0 var(--black)}
-.vsrow.trio .vhead b{font-size:clamp(13px,4.6vw,26px)}
+.vsx .vsrow.trio .vhead b{font-size:clamp(13px,4.6vw,26px)}
 .vcol .vbox{position:absolute;left:50%;top:50%;width:150%;max-width:none;aspect-ratio:5/6;transform:translate(-50%,-44%);z-index:1;animation:figin .6s .18s cubic-bezier(.2,1.2,.35,1) both}
-.vsrow.trio .vcol .vbox{width:170%}
+.vsx .vsrow.trio .vcol .vbox{width:170%}
 .vcol .vbox::before,.vcol .vbox::after{display:none}
 .vcol .vbox canvas{filter:drop-shadow(0 18px 14px rgba(0,0,0,.5))}
 @keyframes figin{from{opacity:0;transform:translate(-50%,-30%)}}
+.vcol.me .vbox{margin-left:5%}
+.vcol.foe .vbox{margin-left:-5%}
+.vcol.foe2 .vbox{margin-left:3%}
+@media (min-width:560px) and (max-aspect-ratio:1/1){.vcol .vbox{width:112%}.vsx .vsrow.trio .vcol .vbox{width:124%}}
 .vsx .vband.bot{z-index:2;bottom:-10%;height:26%}
 .vstitle{position:absolute;left:0;right:0;bottom:4.5%;z-index:3;margin:0;padding:0 16px;font:900 clamp(16px,5vw,26px)/1.2 var(--font-head);font-style:italic;text-transform:uppercase;color:#fff;text-shadow:.05em .05em 0 var(--black);animation:fadein .4s .5s both}
 .vstitle b{color:#fff}
-@media (min-aspect-ratio:1/1){.vcol .vbox{width:58%;top:15%;transform:translate(-50%,0)}.vsrow.trio .vcol .vbox{width:66%;top:15%}.vhead{min-height:54px}.vhead b{font-size:clamp(18px,4.5vw,32px)}.vsx .vband.bot{bottom:-14%;height:30%}.vstitle{bottom:3%;font-size:clamp(14px,2.8vw,22px)}@keyframes figin{from{opacity:0;transform:translate(-50%,14%)}}}
+@media (min-aspect-ratio:1/1){.vcol .vbox{width:58%;top:15%;transform:translate(-50%,0)}.vsx .vsrow.trio .vcol .vbox{width:66%;top:15%}.vhead{min-height:54px}.vhead b{font-size:clamp(18px,4.5vw,32px)}.vsx .vband.bot{bottom:-14%;height:30%}.vstitle{bottom:3%;font-size:clamp(14px,2.8vw,22px)}@keyframes figin{from{opacity:0;transform:translate(-50%,14%)}}}
 .vseam{position:absolute;left:-11px;top:-2%;bottom:-2%;width:22px;z-index:4;background:#FFF6E6;clip-path:polygon(44% 0,62% 0,52% 18%,74% 31%,46% 47%,68% 63%,42% 78%,60% 100%,40% 100%,48% 82%,26% 66%,52% 50%,30% 34%,50% 19%);filter:drop-shadow(0 0 5px #fff) drop-shadow(0 0 14px rgba(255,220,120,.9));animation:seamflick 1.1s steps(3) infinite}
 @keyframes seamflick{0%{opacity:1}33%{opacity:.75}66%{opacity:.95}}
 .vcol .pt{position:absolute;left:var(--x);bottom:-6%;width:var(--s);height:var(--s);border-radius:50%;background:#fff;opacity:0;mix-blend-mode:screen;animation:ptrise var(--d) linear var(--w) infinite;pointer-events:none;z-index:1}
