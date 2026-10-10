@@ -161,7 +161,7 @@ function tutWelcomeDone(open) { const el = $('tutGo'); el.classList.remove('on')
 function tutCard(on) {
   const el = $('tutGo'); if (!tut) on = false;
   if (on) { el.dataset.mode = 'rest'; tutCardText(TG_REST); tut.card = true; tut.slowK = 0; bannerEl.classList.remove('on'); try { $('tgAva').innerHTML = tutAva.innerHTML || '<span class="bico" style="--cd:#8C6A14">' + slimeIcon(0xF2C14E, lookOf(P)) + '</span>'; } catch (e) {} el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); AU.fanfare && AU.fanfare(); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60); return; }
-  el.classList.remove('on'); el.hidden = true; if (tut) { tut.card = false; tut.slowK = 1; }
+  el.classList.remove('on'); el.hidden = true; if (tut) { if (tut.card) { P.paint = 1; P.slamCD = 0; } /* (Let's do it: a full tank and the pound ready for the final push) */ tut.card = false; tut.slowK = 1; }
 }
 $('tgGo').addEventListener('click', () => { AU.init(); AU.ui(); if ($('tutGo').dataset.mode === 'welcome') tutWelcomeDone(true); else tutCard(false); });
 $('tgLater').addEventListener('click', () => { AU.init(); AU.ui(); tutWelcomeDone(false); });
