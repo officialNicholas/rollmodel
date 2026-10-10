@@ -30,6 +30,7 @@
 /* the slow-down: a gold frame and a soft vignette while a lesson is up */
 .tutslow{position:absolute;inset:0;z-index:7;pointer-events:none;opacity:0;transition:opacity .4s;background:radial-gradient(ellipse at center,transparent 58%,rgba(23,19,32,.42) 100%);box-shadow:inset 0 0 0 3px var(--gold)}
 .tutslow.on{opacity:1}
+.tutslow.dark{background:radial-gradient(ellipse at center,rgba(23,19,32,.34) 30%,rgba(23,19,32,.66) 100%)}
 @media (min-aspect-ratio:1/1){.tut[data-pos="top"]{top:64px}}
 @media (max-width:420px){.tut .ttext{font-size:16px}.tut .tplate{grid-template-columns:52px minmax(0,1fr);column-gap:11px;padding:8px 14px 12px 10px}.tut .tava{width:52px;height:52px}}
 @media (prefers-reduced-motion:reduce){.tut .thand,.tut.on .tplate{animation:none}}

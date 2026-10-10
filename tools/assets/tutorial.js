@@ -166,14 +166,15 @@ function tutCard(on) {
 $('tgGo').addEventListener('click', () => { AU.init(); AU.ui(); if ($('tutGo').dataset.mode === 'welcome') tutWelcomeDone(true); else tutCard(false); });
 $('tgLater').addEventListener('click', () => { AU.init(); AU.ui(); tutWelcomeDone(false); });
 // the first real match: no weather until halfway, then the sun and the rain each with the coach's word, then the zombie eyes turn up
-function tut2Begin() { tut2 = { ph: 'calm', tipT: 0, hold: 0 }; wxLeft = 1e9; wxPhase = 'clear'; gift.id = null; gift.on = false; gift.got = false; giftM.visible = giftRing.visible = giftBeam.visible = false; }
+function tut2Begin() { tut2 = { ph: 'calm', tipT: 0, hold: 0, slowK: 1, slowT: 0 }; wxLeft = 1e9; wxPhase = 'clear'; gift.id = null; gift.on = false; gift.got = false; giftM.visible = giftRing.visible = giftBeam.visible = false; }
 function tut2Step(dt) {
   const t = tut2; if (!t || state !== 'play') return;
+  if (t.slowT > 0) { t.slowT -= dt / Math.max(t.slowK, 0.05); t.slowK = t.slowT > 0 ? 0.3 : 1; } /* (a weather tip: a couple of seconds slowed and dimmed so it sinks in) */
   if (t.tipT > 0) { t.tipT -= dt; if (t.tipT <= 0) tutHide(); }
   if (t.ph === 'calm') { wxLeft = Math.max(wxLeft, 1); if (matchLeft <= MATCH_T * 0.5) { t.ph = 'sun'; setWx('warn', SUN_WARN); AU.heatWarn(); t.tipT = SUN_WARN + SUN_TIME;
-      tutShow('The sun is coming up! Out in the open it dries your paint fast. Hide in the shade or a ' + potWord() + ' until it passes', null, 'wxsun', false, true); } }
+      t.slowK = 0.3; t.slowT = 2.4; tutShow('The sun is coming up! Out in the open it dries your paint fast. Hide in the shade or a ' + potWord() + ' until it passes', null, 'wxsun', false, true); } }
   else if (t.ph === 'sun') { if (wxPhase === 'dusk' && t.tipT > 0.4) t.tipT = 0.4; if (wxPhase === 'rain') { t.ph = 'rain'; t.tipT = RAIN_TIME;
-      tutShow('Rain! Everyone speeds up and hard paint goes soft. Fresh puddles water your paint down, so roll around them', null, 'wxrain', false, true); } }
+      t.slowK = 0.3; t.slowT = 2.4; tutShow('Rain! Everyone speeds up and hard paint goes soft. Fresh puddles water your paint down, so roll around them', null, 'wxrain', false, true); } }
   else if (t.ph === 'rain') { if (wxPhase !== 'rain') { if (owns('zombie')) { t.ph = 'done'; return; } t.ph = 'gift'; gift.id = 'zombie'; gift.got = false; gift.on = false; gift.at = runT + 0.8; wxLeft = Math.max(wxLeft, 30); } }
   else if (t.ph === 'gift') {
     if (gift.on && !gift.got) tutShow('Something rare! *GRAB IT!*', null, 'zgift', true, true);
@@ -240,7 +241,7 @@ function tutGuide() {
 function tutFrame(rdt) {
   { const bUp = state === 'play' && performance.now() < bannerUntil; if (bUp && tut) tut.bannerSeen = true; if (tutEl.classList.contains('wait') !== bUp) tutEl.classList.toggle('wait', bUp); } /* (a game banner up: the coach waits out of sight) */
   if (tut) { if (state === 'play' && tut.step >= 0) { tut.st += rdt; if (tut.st > TUT_STEPS[tut.step].max) tutNext(); } const on = state === 'play' && tut.slowK < 1 && !tut.card; if (tutSlowEl.classList.contains('on') !== on) tutSlowEl.classList.toggle('on', on); }
-  else { if (tutSlowEl.classList.contains('on')) tutSlowEl.classList.remove('on'); if (!(tut2 && state === 'play')) tutMenuTick(); } // (the first real match runs its own tips)
+  else { const on2 = !!tut2 && state === 'play' && tut2.slowK < 1; if (tutSlowEl.classList.contains('on') !== on2) { tutSlowEl.classList.toggle('on', on2); tutSlowEl.classList.toggle('dark', on2); } if (!(tut2 && state === 'play')) tutMenuTick(); } // (the first real match runs its own tips)
   if (tutTip) tutPlace(); else if (popMoved) { popMoved = false; $('pop').style.top = ''; }
   if (tut || tut2) tutGuide(); else if (!tutArrowEl.hidden) tutArrowEl.hidden = true;
   if (tut || tutPipsEl.classList.contains('on')) tutPipsTick();

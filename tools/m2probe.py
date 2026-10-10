@@ -8,17 +8,19 @@ async def main():
         await ctx.add_init_script("window.__tut = true; try { localStorage.setItem('paint-world-red.v1', JSON.stringify({ orient:'port', name:'Dusk', seen:{steer:1,jump:1,hold:1,roll:1,missile:1,pound:1,burst:1,orb:1,look:1,items:1,dilute:1,dry:1}, runs: 1, drops: 40, stage:'crypt', tut: { ph: 'match2' } })); } catch (e) {}")
         pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)[:300]))
         async def wait(js, t=90000): await pg.wait_for_function(js, timeout=t, polling=150)
-        tip = "[__T.tut2 && __T.tut2.ph, __T.wx, __T.tutTip && __T.tutTip.key, __T.tutTip && __T.tutTip.text, document.getElementById('banner').classList.contains('on'), document.getElementById('tutArrow').hidden]"
+        tip = "[__T.tut2 && __T.tut2.ph, __T.wx, __T.tutTip && __T.tutTip.key, __T.tutTip && __T.tutTip.text, document.getElementById('banner').classList.contains('on'), document.getElementById('tutArrow').hidden, __T.tut2 && __T.tut2.slowK, document.getElementById('tutSlow').className]"
         await pg.goto('http://localhost:8765/pc_h.html', timeout=240000); await wait('typeof __T === "object"', 240000); await pg.wait_for_timeout(1200)
+        await pg.evaluate("(() => { const r = __T.renderer; window.__o = r.render.bind(r); window.__off = () => { r.render = () => {}; }; window.__on = () => { r.render = window.__o; }; })(); 0")
         await pg.evaluate("document.getElementById('homePlay').click()"); await wait("__T.state === 'play'")
         await pg.wait_for_timeout(1500); print('calm', await pg.evaluate(tip), await pg.evaluate("[__T.wxLeft > 1000, __T.gift.id]"))
-        await pg.evaluate("__T.matchLeft = 46"); await wait("__T.tut2 && __T.tut2.ph === 'sun'"); await pg.wait_for_timeout(500); print('sun', await pg.evaluate(tip)); await pg.screenshot(path=f'{WS}/ui/m2_sun.png')
+        await pg.evaluate("__T.matchLeft = 46"); await wait("__T.tut2 && __T.tut2.ph === 'sun'"); await pg.wait_for_timeout(500); print('sun', await pg.evaluate(tip)); await pg.screenshot(path=f'{WS}/ui/m2_sun.png'); await pg.evaluate('__off(); 0'); await wait("__T.tut2.slowK === 1", 120000); print('sun after', await pg.evaluate(tip))
         for k in range(12):
             if await pg.evaluate("__T.tut2.ph") != 'sun': break
             await pg.evaluate("__T.setWx(__T.wx, 0.02)"); await pg.wait_for_timeout(500)
-        await wait("__T.tut2.ph === 'rain'"); await pg.wait_for_timeout(400); print('rain', await pg.evaluate(tip)); await pg.screenshot(path=f'{WS}/ui/m2_rain.png')
+        await wait("__T.tut2.ph === 'rain'"); await pg.evaluate('__on(); 0'); await pg.wait_for_timeout(400); print('rain', await pg.evaluate(tip)); await pg.screenshot(path=f'{WS}/ui/m2_rain.png'); await pg.evaluate('__off(); 0')
+        await wait("__T.tut2.slowK === 1", 120000); print('rain after', await pg.evaluate(tip))
         await pg.evaluate("__T.setWx('rain', 0.02)"); await wait("__T.tut2.ph === 'gift'"); await wait("__T.gift.on", 60000); await pg.wait_for_timeout(800)
-        print('gift', await pg.evaluate(tip), await pg.evaluate("[__T.gift.id, +__T.matchLeft.toFixed(1)]")); await pg.screenshot(path=f'{WS}/ui/m2_gift.png')
+        await pg.evaluate('__on(); 0'); print('gift', await pg.evaluate(tip), await pg.evaluate("[__T.gift.id, +__T.matchLeft.toFixed(1)]")); await pg.screenshot(path=f'{WS}/ui/m2_gift.png')
         await pg.evaluate("__T.P.x = __T.gift.x; __T.P.z = __T.gift.z;"); await wait("__T.gift.got", 30000); await pg.wait_for_timeout(500)
         print('got', await pg.evaluate("[__T.tut2.ph, __T.store.zombieDeal, __T.OWNED.has('zombie'), __T.store.drops]"))
         await pg.evaluate("__T.P.kos = 2; __T.matchLeft = 0.05;"); await wait("__T.state === 'dead'", 60000)
