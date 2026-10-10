@@ -2274,6 +2274,13 @@ svg{shape-rendering:geometricPrecision}
 .eyes.fresh{position:relative}
 @keyframes lkfresh{50%{box-shadow:0 0 0 3px var(--gold),0 0 26px 6px rgba(242,193,78,.85)}}
 @media (prefers-reduced-motion:reduce){.lcat.fresh,.ltile.fresh,.eyes.fresh{animation:none}}
+html.touchnav :focus-visible{outline:none!important}
+.orient .obody{gap:18px}
+.orient .ocards{margin-top:12px;align-items:stretch}
+.orient .ocard{grid-template-rows:1fr auto auto;align-content:stretch}
+.orient .ocard .oart{align-self:center}
+.orient #orientOk{margin-top:4px}
+@media (min-aspect-ratio:1/1) and (max-height:520px){.orient .obody{gap:12px}.orient .ocards{margin-top:14px;width:min(100%,520px)}.orient #orientOk{margin-top:0}}
 </style>
 
 <div id="stage">
@@ -2372,7 +2379,7 @@ svg{shape-rendering:geometricPrecision}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 187</p>
+      <p class="ver">Version 188</p>
     </div>
   </div>
 
@@ -14200,6 +14207,8 @@ $('setBtn').addEventListener('click', uiClick(openSettings));
 const ORIENT_NAMES = { port: 'upright', land: 'wide' };
 let orientPick = null;
 const touchy = () => matchMedia('(pointer: coarse)').matches;
+/* focus rings are for keyboards: while you play by touch none is drawn (a phone showed one as a black box round a focused button) */
+{ const R = document.documentElement; if (touchy()) R.classList.add('touchnav'); addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse') R.classList.add('touchnav'); }, true); addEventListener('keydown', e => { if (e.key === 'Tab' || e.key.startsWith('Arrow')) R.classList.remove('touchnav'); }, true); }
 function orientNative(v) { try { const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.orient; if (h) h.postMessage(v || ''); } catch (e) {} }
 function applyOrient() { const v = store.orient || ''; document.documentElement.dataset.orient = v; for (const b of $('orientPick').children) b.setAttribute('aria-pressed', String(b.dataset.o === v)); orientNative(v); checkRotate(); }
 function setOrient(v) { store.orient = v; save(); applyOrient(); heroT = 0; }
