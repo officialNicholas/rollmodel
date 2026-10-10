@@ -14,7 +14,12 @@ const TUT_AI_FIGHT = { speed: 1.08, dodge: 0, evade: 0 }; // (the dodge lesson: 
 // the dodge lesson's rival: steered at you, and a jump pound once it is close enough and you are on the floor
 // the pound lesson's rival: it comes to you and circles just inside the pound's reach, never pounding back
 function tutApproach(D) {
-  const dx = P.x - D.x, dz = P.z - D.z, d = Math.hypot(dx, dz); if (D.charging) cancelCharge(D);
+  const dx = P.x - D.x, dz = P.z - D.z, d = Math.hypot(dx, dz), ai = D.ai;
+  if (d > 5 && !lineClear(D, P.x, P.z, P.y)) { /* (a wall or a drop in the way: take the CPU's own route over to you) */
+    if (!ai.tutNavAt || runT - ai.tutNavAt > 0.6 || !ai.path) { ai.tutNavAt = runT; const s = NAV.at(D.x, D.z, D.y), g = NAV.at(P.x, P.z, P.y);
+      if (s && g) { nMult.fill(1, 0, NN); dijkstra(s.id); if (nDist[g.id] < Infinity) aiGo(D, g, 'hunt'); else ai.path = null; } }
+    const w = aiFollow(D); if (w) return aiSteer(D, w.x, w.z, 1 / 60, true); }
+  if (D.charging) cancelCharge(D);
   let a = Math.atan2(dx, dz); if (d < 3) a += Math.PI * 0.5 * (d < 2 ? 1.25 : 1); // (close: round you, not into you)
   D.steer = -clamp(wrapA(a - D.yaw) * 3, -1, 1);
 }
@@ -84,14 +89,17 @@ const TUT_STEPS = [
   { id: 'free1', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 7; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
   { id: 'basin', max: 45, enter() { if (P.paint > 0.42) P.paint = 0.42; pingTank(4); tut.slowK = 1; /* (a trip, not a move: full speed) */ tutShow('Low paint! Drop into a *' + potWord().toUpperCase() + '* to refill', 'bar', 'basin', true, true); },
     tick() { return P.st === 'hide'; } },
-  { id: 'pound', max: 80, exit() { tut.drive = null; tut.driveMode = null; TUT_AI.speed = 0.8; }, enter() { tut.hidePound = false; tut.keepAway = false; tut.drive = H; tut.driveMode = 'near'; TUT_AI.speed = 0.62; tutGivePound(); tut.kos0 = P.kos; tut.flat0 = P.flatted; tut.slowK = TUT_SLOW; tut.slowT = 3.5; tut.sub = ''; },
+  { id: 'pound', max: 80, exit() { tut.drive = null; tut.driveMode = null; TUT_AI.speed = 0.8; }, enter() { tut.hidePound = false; tut.keepAway = false; tut.drive = H; tut.driveMode = 'near'; TUT_AI.speed = 0.62; tutGivePound(); tut.kos0 = P.kos; tut.flat0 = P.flatted; tut.slowK = 1; tut.slowT = 0; tut.poundIn = false; tut.poundShown = false; tut.sub = ''; tutHide(); },
     tick(dt) { if (tut.slowT > 0) { tut.slowT -= dt / Math.max(tut.slowK, 0.05); if (tut.slowT <= 0) tut.slowK = 1; }
       if (P.st === 'play' && P.paint < 0.6) P.paint = Math.min(1, P.paint + dt * 1.6); if (P.slamCD > 1.5) P.slamCD = 1.5; // (paint and the pound keep coming back until one lands)
-      const near = H.st === 'play' && Math.hypot(H.x - P.x, H.z - P.z) < 11, sub = P.st === 'hide' ? 'burst' : P.air && P.flung && (P.flingC || 0) > 0.15 && near && !P.slam ? 'missile' : 'pound';
-      if (sub !== tut.sub) { tut.sub = sub; tutGivePound();
+      const hd = Math.hypot(H.x - P.x, H.z - P.z), near = H.st === 'play' && hd < 11; TUT_AI.speed = hd > 8 ? 1.3 : hd > 5 ? 0.9 : 0.62; /* (hurries over, then eases in) */ if ((H.st === 'play' && hd < 4.5 && Math.abs(H.y - P.y) < 1.2) || tut.st > 12) tut.poundIn = true; /* (the tip waits for the rival to come close) */
+      const sub = P.st === 'hide' ? 'burst' : P.air && P.flung && (P.flingC || 0) > 0.15 && near && !P.slam ? 'missile' : tut.poundIn ? 'pound' : 'wait';
+      if (sub !== tut.sub) { const first = sub === 'pound' && !tut.poundShown; tut.sub = sub; tutGivePound();
+        if (sub === 'wait') tutHide();
+        if (first) { tut.poundShown = true; tut.slowK = TUT_SLOW; tut.slowT = 3.5; }
         if (sub === 'burst') tutShow(say('Full tank! Tap *POUND* to burst out', 'Full tank! Press *E* to burst out'), 'slamBtn', 'burst', true);
         else if (sub === 'missile') { tut.slowK = 0.3; tutShow(say('*POUND* now to fire a missile!', 'Press *E* now to fire a missile!'), 'slamBtn', 'missile', true); }
-        else { if (tut.slowT <= 0) tut.slowK = 1; tutShow(say('Your Pound splats everything round you. Get close to the rival and tap it!', 'Your Pound (E) splats everything round you. Get close to the rival and press E!'), 'slamBtn', 'pound'); } }
+        else if (sub === 'pound') { if (tut.slowT <= 0) tut.slowK = 1; tutShow(hd < 6 ? say('Your Pound splats everything round you. The rival\u2019s close, tap it!', 'Your Pound (E) splats everything round you. The rival\u2019s close, press E!') : say('Your Pound splats everything round you. Get close to the rival and tap it!', 'Your Pound (E) splats everything round you. Get close to the rival and press E!'), 'slamBtn', 'pound'); } }
       return P.kos > tut.kos0 || P.flatted > tut.flat0; } },
   { id: 'dodge', max: 60, enter() { Object.assign(TUT_AI, TUT_AI_FIGHT); tut.drive = H; tut.driveMode = 'fight'; H.slamCD = 0; if (H.paint < 0.8) H.paint = 1; if (H.ai) { H.ai.plan = null; H.ai.path = null; } tut.rolled = false; tut.hits = 0; tut.wasKo = false; tut.slowK = 1; tut.sub = ''; tutShow(say('Rivals pound too. Swipe up just before it lands to dodge', 'Rivals pound too. Shift just before it lands to dodge'), null, 'dodge', false, true); },
     tick() { if (H.st === 'play' && !H.slam && H.slamCD > 1.2) H.slamCD = 1.2; if (H.paint < 0.5) H.paint = 1;
