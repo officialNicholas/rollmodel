@@ -1848,6 +1848,18 @@ kbd{background:#fff;border-color:var(--black)}
 .tysplash{position:absolute;left:50%;top:50%;width:170vmax;height:170vmax;margin:-85vmax 0 0 -85vmax;background:var(--c,#F4EEE3);-webkit-mask:url(art/m_splat.webp) center/contain no-repeat;mask:url(art/m_splat.webp) center/contain no-repeat;transform:scale(0);opacity:0;pointer-events:none}
 .tysplash.go{animation:tysplash 1.25s cubic-bezier(.2,.9,.3,1) forwards}
 @keyframes tysplash{0%{transform:scale(0) rotate(-25deg);opacity:1}40%{transform:scale(1) rotate(0);opacity:.96}100%{transform:scale(1.2) rotate(6deg);opacity:0}}
+.tydabs{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 16px);z-index:3;display:flex;align-items:center;gap:8px;padding:7px 16px 7px 9px;border-radius:999px;background:rgba(20,14,30,.88);border:2.5px solid var(--gold);box-shadow:0 4px 0 rgba(0,0,0,.35);color:#fff;font:400 22px/1 var(--font-display);font-variant-numeric:tabular-nums;opacity:0;transform:translate(-50%,-14px);transition:opacity .35s,transform .35s;pointer-events:none}
+.tydabs.on{opacity:1;transform:translate(-50%,0)}
+.tydabs .dropi{width:26px;height:26px}
+.tydabs.bump b{display:inline-block;animation:tydbump .22s ease-out}
+@keyframes tydbump{50%{transform:scale(1.18)}}
+.tygain{justify-self:center;display:flex;align-items:center;gap:6px;margin:12px 0 0;padding:6px 14px 6px 10px;border-radius:999px;background:var(--gold);color:#171320;font:400 22px/1 var(--font-display);box-shadow:0 4px 0 rgba(0,0,0,.35);opacity:0;transform:scale(.4);visibility:hidden}
+.tygain.on{visibility:visible;animation:tygain .45s cubic-bezier(.2,1.6,.4,1) forwards}
+.tygain .dropi{width:24px;height:24px}
+.tygain small{font:800 12px/1 var(--font-ui);letter-spacing:.08em;text-transform:uppercase}
+@keyframes tygain{to{opacity:1;transform:scale(1)}}
+.tyfly{position:absolute;left:0;top:0;z-index:4;width:24px;height:24px;margin:-12px 0 0 -12px;pointer-events:none;transition:transform .55s cubic-bezier(.45,0,.7,.25),opacity .18s .42s}
+.tyfly .dropi{width:100%;height:100%;display:block}
 .tytap{position:relative;text-align:center;margin:8px 0 0;font:800 12px/1 var(--font-ui);color:#B8B0C8;opacity:0;animation:vtap 1.6s 1.4s ease-in-out infinite}
 @media (max-height:520px) and (min-aspect-ratio:1/1){.tally{padding:0 max(24px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(24px,env(safe-area-inset-left))}.tyhead{margin-bottom:8px;min-height:44px;gap:3px}.tyword{font-size:min(54px,12vh)}.tysub{font-size:11px}.tystory{width:min(100%,560px)}.tyname{font-size:13px}.tynum{font-size:34px}.tybar{height:24px}.tytap{display:none}}
 @media (prefers-reduced-motion:reduce){.tally,.tystory,.tyword.in,.tyko.pop,.tynum.tick b,.tytap,.tysplash.go{animation:none}.tytap{opacity:.7}}
@@ -2353,7 +2365,7 @@ svg{shape-rendering:geometricPrecision}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 184</p>
+      <p class="ver">Version 185</p>
     </div>
   </div>
 
@@ -2505,11 +2517,13 @@ svg{shape-rendering:geometricPrecision}
 
   <section class="tally" id="tally" hidden aria-live="polite">
     <div class="tysplash" id="tySplash" aria-hidden="true"></div>
+    <div class="tydabs" id="tyDabs" aria-hidden="true"></div>
     <div class="tyhead"><b class="tyword" id="tyWord"></b><span class="tysub" id="tySub"></span></div>
     <div class="tystory">
       <div class="tynames"><span class="tyname l" id="tyNameL"></span><span class="tyname m" id="tyNameM" hidden></span><span class="tyname r" id="tyNameR"></span></div>
       <div class="tynums"><span class="tynum l" id="tyNumL"><b>0%</b></span><span class="tynum m" id="tyNumM" hidden><b>0%</b></span><span class="tynum r" id="tyNumR"><b>0%</b></span></div>
       <div class="tybar" id="tyBar" aria-hidden="true"></div>
+      <p class="tygain" id="tyGain"></p>
       <p class="tytap">Tap to skip</p>
     </div>
   </section>
@@ -13893,10 +13907,11 @@ function startTally() {
   const sum = ppl.reduce((q, e) => q + e.tot, 0), scale = Math.max(1, sum), koq = [], maxK = Math.max(0, ...ppl.map(e => e.kos)); { let x = 0; for (const e of ppl) { e.c = (x + e.tot / 2) / scale; x += e.tot; } } // (each one's place in the finished row: the middle one grows from its own)
   for (let k = 0; k < maxK; k++) for (const e of ppl) if (e.kos > k) koq.push(e); // (the eliminations land one at a time, taking turns)
   const KO0 = 2.7, KOD = 0.46, KOEND = KO0 + (koq.length ? koq.length * KOD + 0.7 : 0.8);
-  tal = { t0: performance.now(), t: 0, ppl, scale, koq, nk: 0, T0: 0.55, T1: 2.3, KO0, KOD, KOEND, END: KOEND + 2.1, ticks: 0, phase: 0, id: runId, lastTick: 0 };
+  const DAB0 = KOEND + 0.6, DAB1 = DAB0 + 0.7, DAB2 = DAB1 + 1.5; /* (the dabs: the pill, then the coins fly up to the bar and it counts) */
+  tal = { t0: performance.now(), t: 0, ppl, scale, koq, nk: 0, T0: 0.55, T1: 2.3, KO0, KOD, KOEND, DAB0, DAB1, DAB2, END: DAB2 + 0.8, ticks: 0, phase: 0, id: runId, lastTick: 0 };
   for (const e of ppl) { const u = e.side.toUpperCase(), nm = $('tyName' + u), nu = $('tyNum' + u); nm.hidden = nu.hidden = false; nm.textContent = nameOf(e.D); nm.style.setProperty('--c', e.col); nu.style.setProperty('--c', e.col); nu.className = 'tynum ' + e.side; nu.innerHTML = '<b>0%</b>'; e.nu = nu; }
   if (!trio) $('tyNameM').hidden = $('tyNumM').hidden = true;
-  $('tyWord').textContent = ''; $('tySub').textContent = TH.label + ' · ' + (MODES.find(m => m[0] === mode) || MODES[0])[1]; talEl.classList.remove('win'); $('tySplash').className = 'tysplash';
+  $('tyWord').textContent = ''; $('tySub').textContent = TH.label + ' · ' + (MODES.find(m => m[0] === mode) || MODES[0])[1]; talEl.classList.remove('win'); $('tySplash').className = 'tysplash'; $('tyDabs').className = 'tydabs'; $('tyGain').className = 'tygain'; talEl.querySelectorAll('.tyfly').forEach(q => q.remove());
   if (!tyLiq) tyLiq = makeLiquid($('tyBar')); tyLiq.segs = []; tyLiq.drops.length = 0; tyLiq.set(ppl.map(e => tySeg(e, 0))); tyLiq.clear();
   talEl.classList.remove('out'); talEl.hidden = false; hud.classList.add('off'); hintEl.classList.remove('on'); reAdd.delete(bannerEl); bannerEl.classList.remove('on');
   AU.whoosh();
@@ -13925,6 +13940,9 @@ function talFrame() {
     const num = Math.round(cov) + e.shown * KO_PCT; if (num !== e.num) { e.num = num; e.nu.firstChild.textContent = num + '%'; } }
   tyLiq.set(segs); tyLiq.tick(now);
   if (t >= tal.KOEND && tal.phase === 2) { tal.phase = 3; talWinner(); }
+  if (t >= tal.DAB0 && tal.phase === 3) { tal.phase = 4; talDabsShow(); }
+  if (t >= tal.DAB1 && tal.phase === 4) { tal.phase = 5; talDabsFly(); }
+  if (tal.phase === 5) talDabsCount(t);
   if (t >= tal.END) { hideTally(); startVictory(); }
 }
 // the paint splashes over the screen in the winner's color and the word goes up
@@ -13933,9 +13951,27 @@ function talWinner() {
   talEl.classList.add('win'); for (const q of tal.ppl) q.nu.classList.toggle('win', q.D === w);
   AU.tsplash(); buzz(w === P ? [30, 40, 30] : 20); /* (no full-screen splat here: the winner screen right after says who) */
 }
+// what the match paid, win or lose: a pill under the bar, then the coins fly up to your dab bar, which counts up
+function talDabsShow() {
+  const n = (endInfo && endInfo.drops) || 0; tal.gain = n; tal.from = Math.max(0, (store.drops || 0) - n); tal.shownD = -1;
+  const g = $('tyGain'); g.innerHTML = '+' + n + DROP_SVG + '<small>dabs</small>'; restartCls(g, 'on'); AU.pop();
+  const d = $('tyDabs'); d.innerHTML = DROP_SVG + '<b>' + tal.from + '</b>'; d.classList.add('on');
+}
+function talDabsFly() {
+  if (reduceMotion || !tal.gain) return; const r0 = talEl.getBoundingClientRect(), g = $('tyGain').getBoundingClientRect(), d = $('tyDabs').querySelector('.dropi').getBoundingClientRect();
+  const x0 = g.left + g.width / 2 - r0.left, y0 = g.top + g.height / 2 - r0.top, x1 = d.left + d.width / 2 - r0.left, y1 = d.top + d.height / 2 - r0.top, n = Math.min(12, Math.max(4, Math.round(tal.gain / 6)));
+  for (let i = 0; i < n; i++) { const q = document.createElement('i'); q.className = 'tyfly'; q.innerHTML = DROP_SVG; const jx = (Math.random() - 0.5) * 60, jy = (Math.random() - 0.5) * 24;
+    q.style.transform = 'translate(' + (x0 + jx).toFixed(0) + 'px,' + (y0 + jy).toFixed(0) + 'px)'; q.style.transitionDelay = (i * 0.07).toFixed(2) + 's,' + (i * 0.07 + 0.42).toFixed(2) + 's'; talEl.appendChild(q);
+    requestAnimationFrame(() => requestAnimationFrame(() => { q.style.transform = 'translate(' + x1.toFixed(0) + 'px,' + y1.toFixed(0) + 'px) scale(.7)'; q.style.opacity = '0'; })); setTimeout(() => q.remove(), 1500); }
+}
+function talDabsCount(t) {
+  const k = clamp((t - tal.DAB1 - 0.5) / (tal.DAB2 - tal.DAB1 - 0.5), 0, 1), v = tal.from + Math.round(tal.gain * k);
+  if (v !== tal.shownD) { tal.shownD = v; const d = $('tyDabs'); d.querySelector('b').textContent = v; restartCls(d, 'bump'); if (k < 1) AU.ttick(tal.ticks++); else AU.tick(); }
+  if (k >= 1) talEl.querySelectorAll('.tyfly').forEach(q => q.remove());
+}
 function hideTally() { if (!tal) return; tal = null; talEl.classList.add('out'); setTimeout(() => { if (!tal) talEl.hidden = true; }, 320); }
 // a tap skips to the end of the step it is on
-function talSkip() { if (!tal) return; const t = tal.t, to = t < tal.T1 ? tal.T1 : t < tal.KOEND ? tal.KOEND : tal.END; tal.t0 -= (to - t) * 1000 + 1; }
+function talSkip() { if (!tal) return; const t = tal.t, to = t < tal.T1 ? tal.T1 : t < tal.KOEND ? tal.KOEND : t < tal.DAB2 ? tal.DAB2 : tal.END; tal.t0 -= (to - t) * 1000 + 1; }
 talEl.addEventListener('click', () => { AU.init(); talSkip(); });
 function showEnd(img) {
   const info = endInfo, n = store.runs || 1, w = colorOf().words, solo = info.mode === 'solo', trio = info.mode === 'trio';
