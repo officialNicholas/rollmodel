@@ -55,7 +55,7 @@ button{font-family:var(--font-ui)}
 @keyframes flash{0%{opacity:.75}100%{opacity:0}}
 .orbflash{position:absolute;inset:0;pointer-events:none;z-index:5;opacity:0}
 .orbflash.on{animation:orbflash 1.8s ease-out}
-@keyframes orbflash{0%{opacity:1;box-shadow:inset 0 0 70px 22px #FF4D6D}25%{opacity:.9;box-shadow:inset 0 0 70px 22px #FFD23F}50%{opacity:.75;box-shadow:inset 0 0 70px 22px #4DA6FF}75%{opacity:.5;box-shadow:inset 0 0 70px 22px #C77DFF}100%{opacity:0;box-shadow:inset 0 0 70px 22px #4DFFB8}}
+@keyframes orbflash{0%{opacity:1}100%{opacity:0}}
 
 /* HUD: one scoreboard up top, the pound button and your blood down at your thumb */
 .hud{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;align-items:center;padding:max(12px,env(safe-area-inset-top)) 14px max(18px,env(safe-area-inset-bottom));transition:opacity .3s}
@@ -1993,12 +1993,32 @@ kbd{background:#fff;border-color:var(--black)}
 @media (max-height:720px) and (max-aspect-ratio:1/1){#end .judge{--jh:34px}#end .jl{font-size:12.5px}}
 @media (max-height:520px) and (min-aspect-ratio:1/1){#end .judge{--jh:30px}#end .jl{font-size:12px}#end .jnums b .jko{font-size:12px}}
 @media (prefers-reduced-motion:reduce){#end .jl{transition:none}}
+
+/* the orb's flash: five edge glows, one per colour, that only fade (a blurred inset shadow animated across the whole screen was a repaint every frame) */
+.orbflash{opacity:1;will-change:opacity}
+.orbflash i{position:absolute;inset:0;opacity:0;will-change:opacity}
+.orbflash i:nth-child(1){background:linear-gradient(to right,#FF4D6D 0,rgba(0,0,0,0) 16%,rgba(0,0,0,0) 84%,#FF4D6D 100%),linear-gradient(to bottom,#FF4D6D 0,rgba(0,0,0,0) 12%,rgba(0,0,0,0) 88%,#FF4D6D 100%)}
+.orbflash i:nth-child(2){background:linear-gradient(to right,#FFD23F 0,rgba(0,0,0,0) 16%,rgba(0,0,0,0) 84%,#FFD23F 100%),linear-gradient(to bottom,#FFD23F 0,rgba(0,0,0,0) 12%,rgba(0,0,0,0) 88%,#FFD23F 100%)}
+.orbflash i:nth-child(3){background:linear-gradient(to right,#4DA6FF 0,rgba(0,0,0,0) 16%,rgba(0,0,0,0) 84%,#4DA6FF 100%),linear-gradient(to bottom,#4DA6FF 0,rgba(0,0,0,0) 12%,rgba(0,0,0,0) 88%,#4DA6FF 100%)}
+.orbflash i:nth-child(4){background:linear-gradient(to right,#C77DFF 0,rgba(0,0,0,0) 16%,rgba(0,0,0,0) 84%,#C77DFF 100%),linear-gradient(to bottom,#C77DFF 0,rgba(0,0,0,0) 12%,rgba(0,0,0,0) 88%,#C77DFF 100%)}
+.orbflash i:nth-child(5){background:linear-gradient(to right,#4DFFB8 0,rgba(0,0,0,0) 16%,rgba(0,0,0,0) 84%,#4DFFB8 100%),linear-gradient(to bottom,#4DFFB8 0,rgba(0,0,0,0) 12%,rgba(0,0,0,0) 88%,#4DFFB8 100%)}
+@keyframes orbf1{0%{opacity:1}25%{opacity:0}}
+.orbflash.on i:nth-child(1){animation:orbf1 1.8s ease-out}
+@keyframes orbf2{0%{opacity:0}25%{opacity:.9}50%{opacity:0}}
+.orbflash.on i:nth-child(2){animation:orbf2 1.8s ease-out}
+@keyframes orbf3{25%{opacity:0}50%{opacity:.75}75%{opacity:0}}
+.orbflash.on i:nth-child(3){animation:orbf3 1.8s ease-out}
+@keyframes orbf4{50%{opacity:0}75%{opacity:.5}100%{opacity:0}}
+.orbflash.on i:nth-child(4){animation:orbf4 1.8s ease-out}
+@keyframes orbf5{75%{opacity:0}100%{opacity:0}}
+.orbflash.on i:nth-child(5){animation:orbf5 1.8s ease-out}
+@media (prefers-reduced-motion:reduce){.orbflash.on i{animation:none}}
 </style>
 
 <div id="stage">
   <canvas id="cv" aria-label="Roll Model game view"></canvas>
   <div class="vig" id="vig"></div>
-  <div class="orbflash" id="orbFlash"></div>
+  <div class="orbflash" id="orbFlash"><i></i><i></i><i></i><i></i><i></i></div>
   <div class="orbptr" id="orbPtr"><i></i><u><b></b></u></div>
   <div class="orbptr giftptr" id="giftPtr"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 11h15v9.2a1.6 1.6 0 0 1-1.6 1.6H6.1a1.6 1.6 0 0 1-1.6-1.6z" fill="#FFC61A" stroke="#1A1030" stroke-width="1.7"/><rect x="3" y="7.4" width="18" height="4.4" rx="1.4" fill="#FFD54F" stroke="#1A1030" stroke-width="1.7"/><path d="M10.4 7.6h3.2v14.1h-3.2z" fill="#FF3FA4"/><path d="M12 7.4C10.6 4 7.4 3.4 6.9 5.3c-.4 1.6 2 2.1 5.1 2.1zM12 7.4c1.4-3.4 4.6-4 5.1-2.1.4 1.6-2 2.1-5.1 2.1z" fill="#FF3FA4" stroke="#1A1030" stroke-width="1.4" stroke-linejoin="round"/></svg></i><u><b></b></u></div>
   <div class="foeptr" id="foePtr"><i></i><u><b></b></u></div>
@@ -2089,7 +2109,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 139</p>
+      <p class="ver">Version 140</p>
     </div>
   </div>
 
