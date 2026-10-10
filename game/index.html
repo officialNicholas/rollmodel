@@ -2039,7 +2039,7 @@ kbd{background:#fff;border-color:var(--black)}
     <div class="card" role="dialog" aria-modal="true" aria-labelledby="howTitle">
       <h2 class="ctitle" id="howTitle">How to play</h2>
       <div class="pols" id="pols">
-        <div class="pol"><div class="pic"><span class="ink stroke"></span><span class="glyph">&#8596;</span><span class="cap">Move</span></div><div><b>Steer, jump, roll</b><p id="howCtl">Drag sideways to steer. Tap to jump, swipe up to roll. Hold to stop, then pull down and let go to fling. The arrow button pounds.</p></div></div>
+        <div class="pol"><div class="pic"><span class="ink stroke"></span><span class="glyph">&#8596;</span><span class="cap">Move</span></div><div><b>Steer, jump, roll</b><p id="howCtl">Drag sideways to steer. Tap to jump, swipe up to roll, swipe up or down mid-jump to dash. Hold to stop, then pull down and let go to fling. The arrow button pounds.</p></div></div>
         <div class="pol"><div class="pic"><span class="ink"></span><span class="glyph sm">%</span><span class="cap">The goal</span></div><div><b>Own the canvas</b><p id="howGoal"></p></div></div>
         <div class="pol"><div class="pic"><span class="ink drip"></span><span class="cap">Your paint</span></div><div><b>Stay wet</b><p id="howInk"></p></div></div>
         <div class="pol"><div class="pic" style="--pc:#2E9BFF"><span class="ink"></span><span class="glyph">&#8595;</span><span class="cap">Contact</span></div><div><b>Roll and pound</b><p id="howRoll"></p></div></div>
@@ -2050,7 +2050,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 133</p>
+      <p class="ver">Version 134</p>
     </div>
   </div>
 
@@ -7105,14 +7105,31 @@ const TURRET_RIG = (() => {
   const muzzle = along(new THREE.LatheGeometry([[br * 0.86, 0.06], [br * 1.3, 0.06], [br * 1.36, 0], [br * 1.3, -0.12], [br * 1.06, -0.14]].map(q => V2(q[0], q[1])), seg), bl - 0.04);
   const inner = along(new THREE.CircleGeometry(br * 0.88, seg).rotateX(-Math.PI / 2), bl - 0.06);
   const barrelG = vcGeo([[tube, (x, y, z, o) => o.copy(SV)], [collar, SVD], [muzzle, SVL], [inner, GR]]);
-  // the glass dome the ink sits in: a sphere open at the bottom, meeting the collar
-  const domeG = new THREE.SphereGeometry(1.12, HI ? 48 : 28, HI ? 32 : 18, 0, 6.2832, 0, 2.28); domeG.translate(0, -0.1, 0);
-  const inkG = new THREE.SphereGeometry(0.98, 26, 18); inkG.translate(0, 0.98, 0); // (its base at the bottom, so it can be drained)
-  return { baseG, barrelG, domeG, inkG, inkY: -1.08, dir, tip: at(bl + 0.05) };
+  // the pod: a steel ball on a short neck in the collar, a seam round its crown, a bolted joint on each side; the barrel comes out of its front for a mouth
+  const podR = 0.95, podC = 0.05, pod = new THREE.SphereGeometry(podR, seg, HI ? 32 : 18).translate(0, podC, 0), neck = new THREE.CylinderGeometry(0.6, 0.68, 0.5, seg).translate(0, -0.62, 0);
+  const ear = sd => new THREE.CylinderGeometry(0.2, 0.2, 0.1, 16).rotateZ(Math.PI / 2).translate(sd * 0.93, podC + 0.02, 0), earBolt = sd => new THREE.CylinderGeometry(0.07, 0.07, 0.05, 10).rotateZ(Math.PI / 2).translate(sd * 0.99, podC + 0.02, 0);
+  const podG = vcGeo([[pod, (x, y, z, o) => o.copy(y > podC + 0.27 && y < podC + 0.34 ? SVD : y > podC + 0.34 ? SVL : SV)], [neck, SVD], [ear(1), SVD], [ear(-1), SVD], [earBolt(1), SVL], [earBolt(-1), SVL]]);
+  // the face: two big eyes on the front of the pod, each a white with a dark pupil and a shine, set along the pod's surface (their own mesh, so they can blink)
+  const WH = hexC(0xFFFFFF), INK = hexC(0x23102E), EY = 0.4, EX = 0.34, eye = [];
+  for (const sx of [-1, 1]) { const ex = sx * EX, ly = EY - podC, ez = Math.sqrt(podR * podR - ex * ex - ly * ly), n = new THREE.Vector3(ex, ly, ez).normalize(), q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), n), place = (g, fwd) => g.applyQuaternion(q).translate(ex + n.x * fwd, EY + n.y * fwd, ez + n.z * fwd);
+    eye.push([place(new THREE.SphereGeometry(0.21, 18, 14).scale(1, 1.2, 0.42), 0), WH]);
+    eye.push([place(new THREE.SphereGeometry(0.115, 16, 12).scale(1, 1.15, 0.5), 0.06), INK]);
+    eye.push([place(new THREE.SphereGeometry(0.042, 10, 8).translate(-0.04, 0.05, 0), 0.115), WH]); }
+  const eyesG = vcGeo(eye); eyesG.translate(0, -EY, 0); // (pivots on the eye line, so a blink closes them in place)
+  // the band round the pod in the team's colour, and the tank on top: a clear drum between two steel rings, with the paint in it
+  const bandG = new THREE.TorusGeometry(0.885, 0.06, 10, seg).rotateX(Math.PI / 2).translate(0, podC - 0.35, 0);
+  const tankY = podC + podR - 0.08, tankGlassG = new THREE.CylinderGeometry(0.3, 0.3, 0.6, seg, 1, true).translate(0, tankY + 0.3, 0);
+  const tankMetalG = vcGeo([[new THREE.CylinderGeometry(0.35, 0.35, 0.1, seg).translate(0, tankY + 0.62, 0), SVD], [new THREE.CylinderGeometry(0.36, 0.33, 0.12, seg).translate(0, tankY + 0.04, 0), SVD], [new THREE.CylinderGeometry(0.05, 0.05, 0.12, 8).translate(0, tankY + 0.72, 0), SVL]]);
+  const tankInkG = new THREE.CylinderGeometry(0.26, 0.26, 0.5, seg).translate(0, 0.25, 0); // (its base at the bottom, so it can drain)
+  const hullG = mergeGeos([new THREE.SphereGeometry(podR, 24, 16).translate(0, podC, 0), new THREE.CylinderGeometry(0.34, 0.34, 0.76, 20).translate(0, tankY + 0.36, 0)]);
+  return { baseG, barrelG, podG, eyesG, eyeY: EY, bandG, tankGlassG, tankMetalG, tankInkG, tankInkY: tankY + 0.08, hullG, dir, tip: at(bl + 0.05) };
 })();
 const turDomeM = HI ? charMat(new THREE.MeshPhysicalMaterial({ color: 0xF2F6FF, transparent: true, opacity: 0.2, roughness: 0.04, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.03, envMapIntensity: 2.4, depthWrite: false })) : new THREE.MeshToonMaterial({ color: 0xE4ECF8, gradientMap: grad, transparent: true, opacity: 0.17, depthWrite: false });
-const turMetalM = toon(0xFFFFFF, { vertexColors: true, transparent: true }, { metalness: 0.85, roughness: 0.28, envMapIntensity: 1.3 });
-function addTurret(V) { const g = new THREE.Group(); g.visible = false; const a = new THREE.Mesh(TURRET_RIG.baseG, turMetalM), bg = new THREE.Group(), b = new THREE.Mesh(TURRET_RIG.barrelG, turMetalM), d = new THREE.Mesh(TURRET_RIG.domeG, turDomeM), ink = new THREE.Mesh(TURRET_RIG.inkG, toon(0xE3122F, { transparent: true })); a.castShadow = b.castShadow = true; a.renderOrder = b.renderOrder = 31; d.renderOrder = 44; ink.renderOrder = 33; ink.position.y = TURRET_RIG.inkY; bg.add(b); g.add(a); g.add(bg); g.add(ink); g.add(d); g.userData.ink = ink; V.body.add(g); V.tur = g; V.turBarrel = bg; }
+const turMetalM = toon(0xFFFFFF, { vertexColors: true, transparent: true }, { metalness: 0.85, roughness: 0.28, envMapIntensity: 1.3 }), turFaceM = new THREE.MeshBasicMaterial({ vertexColors: true });
+function addTurret(V) { const R = TURRET_RIG, g = new THREE.Group(); g.visible = false; const a = new THREE.Mesh(R.baseG, turMetalM), bg = new THREE.Group(), b = new THREE.Mesh(R.barrelG, turMetalM), pod = new THREE.Mesh(R.podG, turMetalM), tm = new THREE.Mesh(R.tankMetalG, turMetalM), band = new THREE.Mesh(R.bandG, toon(0xE3122F)), ink = new THREE.Mesh(R.tankInkG, toon(0xE3122F, { transparent: true })), glass = new THREE.Mesh(R.tankGlassG, turDomeM), eyes = new THREE.Mesh(R.eyesG, turFaceM);
+  for (const m of [a, b, pod, tm, band]) { m.castShadow = true; m.renderOrder = 31; } ink.renderOrder = 33; ink.position.y = R.tankInkY; glass.renderOrder = 44; eyes.renderOrder = 34; eyes.position.y = R.eyeY;
+  if (!HI) { const o = new THREE.Mesh(R.hullG, outlineMat); o.scale.setScalar(1.05); o.renderOrder = 30.5; g.add(o); }
+  bg.add(b); g.add(a, bg, pod, tm, band, ink, glass, eyes); g.userData.ink = ink; g.userData.band = band; g.userData.eyes = eyes; V.body.add(g); V.tur = g; V.turBarrel = bg; }
 // the little ring on the ground where your turret's next shot will land (bigger and white when it's locked onto someone)
 const turretMark = (() => { const g = new THREE.Group(), po = { transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -10, polygonOffsetUnits: -10, fog: false }, mm = new THREE.MeshBasicMaterial(Object.assign({ color: 0xffffff, opacity: 0.9 }, po));
   g.add(new THREE.Mesh(new THREE.RingGeometry(0.5, 0.9, 40).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial(Object.assign({ color: C.outline, opacity: 0.5 }, po))), new THREE.Mesh(new THREE.RingGeometry(0.58, 0.8, 40).rotateX(-Math.PI / 2), mm), new THREE.Mesh(new THREE.CircleGeometry(0.14, 18).rotateX(-Math.PI / 2), mm));
@@ -7184,9 +7201,9 @@ function makePowerMesh(type) {
   const add = (geo, mat, pos, rot) => { const m = new THREE.Mesh(geo, mat); m.position.copy(pos); if (rot) m.rotation.set(rot[0], rot[1], rot[2]); m.castShadow = true; spin.add(m); const o = new THREE.Mesh(geo, outlineMat); o.position.copy(m.position); o.rotation.copy(m.rotation); o.scale.setScalar(1.16); spin.add(o); };
   const V = (x, y, z) => new THREE.Vector3(x, y, z);
   let eyes = null;
-  if (type === 'roller') { const K = ROLLER, rl = new THREE.Group(); rl.position.y = 0.05; spin.add(rl); for (const [geo, m] of [[K.roll, K.rollM], [K.solid, stGlossM], [K.wire, K.chromeM], [K.hull, outlineMat]]) { const o = new THREE.Mesh(geo, m); o.castShadow = m !== outlineMat; rl.add(o); } eyes = rl; }
-  else if (type === 'turret') { const t = new THREE.Group(); t.position.y = -0.12; t.scale.setScalar(0.42); spin.add(t); for (const geo of [TURRET_RIG.baseG, TURRET_RIG.barrelG]) { const o = new THREE.Mesh(geo, turMetalM); o.castShadow = true; t.add(o); const h = new THREE.Mesh(geo, outlineMat); h.scale.setScalar(1.12); t.add(h); }
-    const ink = new THREE.Mesh(new THREE.SphereGeometry(0.82, 22, 16), puIconMat); ink.position.y = -0.2; ink.scale.set(1, 0.82, 1); t.add(ink); const d = new THREE.Mesh(TURRET_RIG.domeG, turDomeM); d.renderOrder = 44; t.add(d); eyes = t; }
+  if (type === 'roller') { const K = ROLLER, rl = new THREE.Group(); rl.position.y = 0.05; spin.add(rl); for (const [geo, m] of [[K.roll, K.rollM], [K.solid, stGlossM], [K.wire, K.chromeM], [K.hull, outlineMat]]) { const o = new THREE.Mesh(geo, m); o.castShadow = m !== outlineMat; rl.add(o); } const fe = new THREE.Mesh(K.eyes, K.faceM); fe.position.y = 0.035; fe.renderOrder = 34; rl.add(fe); const fm = new THREE.Mesh(K.mouth, K.faceM); fm.renderOrder = 34; rl.add(fm); eyes = rl; }
+  else if (type === 'turret') { const R = TURRET_RIG, t = new THREE.Group(); t.position.y = -0.2; t.scale.setScalar(0.4); spin.add(t); for (const [geo, m] of [[R.baseG, turMetalM], [R.barrelG, turMetalM], [R.podG, turMetalM], [R.tankMetalG, turMetalM], [R.bandG, puIconMat]]) { const o = new THREE.Mesh(geo, m); o.castShadow = true; t.add(o); } for (const geo of [R.baseG, R.barrelG, R.hullG]) { const h = new THREE.Mesh(geo, outlineMat); h.scale.setScalar(1.08); t.add(h); }
+    const ink = new THREE.Mesh(R.tankInkG, puIconMat); ink.position.y = R.tankInkY; t.add(ink); const gl = new THREE.Mesh(R.tankGlassG, turDomeM); gl.renderOrder = 44; t.add(gl); const ey = new THREE.Mesh(R.eyesG, turFaceM); ey.position.y = R.eyeY; ey.renderOrder = 34; t.add(ey); eyes = t; }
   else { add(PU_G.tip, puIconMat, V(0, -0.13, 0), [Math.PI, 0, 0]); add(PU_G.neck, puIconMat, V(0, 0.18, 0)); }
   const bub = new THREE.Mesh(bubbleG, bubbleMat); bub.renderOrder = 8; g.add(bub);
   scene.add(g); return { g, spin, bub, eyes };
@@ -8724,11 +8741,11 @@ function paintHow() {
   $('howInk').textContent = 'Your color is a fast lane that refills your paint. A rival\'s color slows you down. Run dry and you crawl, except on your own color, and you have 4 seconds to reach a ' + pw + ' or your color before you dry up.';
   $('howRoll').textContent = 'Roll into ' + riv + ' to stun it for 2 seconds. Pound to splat a circle. Anything inside is out for a few seconds. Jump it, or time a roll: rolling makes you untouchable for half a second.';
   $('howFling').textContent = 'Fling into ' + riv + ' to knock it flying, or pound mid-fling to fire a missile that steers toward it. Ram it while you\'re faster, or land on it, to flatten it.';
-  $('howBurst').textContent = 'Hide in a ' + pw + ' to refill. Burst out of it, then swipe up or down in mid-air to dash forward or back. You can\'t be touched while you dash. Roll into a taken ' + pw + ' to kick out whoever\'s inside and climb in.';
+  $('howBurst').textContent = 'Hide in a ' + pw + ' to refill. Jump, or burst out of it, then swipe up or down in mid-air to dash forward or back. You can\'t be touched while you dash. Roll into a taken ' + pw + ' to kick out whoever\'s inside and climb in.';
   $('howSun').textContent = 'A heat wave bakes anything out in the open, so hide in a ' + pw + ' or the shade. Rain: everyone speeds up and puddles water your paint down. Pound a puddle to water down their paint all around it.';
   $('howOrb').textContent = 'Roll up to the glowing orb (or jump into it) for a super move: go giant for 5 seconds, or ride a rocket and come down like a giant\'s pound. Roll into ' + riv + ' while you\'re giant and it\'s out.';
   $('howItems').textContent = 'A roller or a turret turns up on the canvas now and then. Grab it and it waits in your hand: ' + say('tap its button', 'press F') + ' when you want it. The roller lays wide stripes and refills you; the turret plants you and fires paint. Picking up another drops the one you hold.';
-  const el = $('howCtl'); if (el) el.innerHTML = keysUI ? '<kbd>A</kbd> <kbd>D</kbd> or the arrows steer. <kbd>Space</kbd> jumps, <kbd>Shift</kbd> rolls. Hold <kbd>S</kbd> to stop and load a fling, let go to fling. <kbd>E</kbd> pounds. <kbd>P</kbd> pauses, <kbd>M</kbd> mutes.' : 'Drag sideways to steer. Tap to jump, swipe up to roll. Hold to stop, then pull down and let go to fling. The arrow button pounds.'; }
+  const el = $('howCtl'); if (el) el.innerHTML = keysUI ? '<kbd>A</kbd> <kbd>D</kbd> or the arrows steer. <kbd>Space</kbd> jumps, <kbd>Shift</kbd> rolls. Hold <kbd>S</kbd> to stop and load a fling, let go to fling. <kbd>E</kbd> pounds. <kbd>P</kbd> pauses, <kbd>M</kbd> mutes.' : 'Drag sideways to steer. Tap to jump, swipe up to roll, swipe up or down mid-jump to dash. Hold to stop, then pull down and let go to fling. The arrow button pounds.'; }
 paintHow();
 const bannerEl = $('banner'); let bannerUntil = 0, bannerWx = false;
 const reAdd = new Map(); let reAddQ = false;
@@ -9240,7 +9257,7 @@ function jump(D) {
   if (!canAct(D) || D.charging || D.slam) return;
   if (D.air) { if (D.coyote > 0) D.coyote = 0; else { D.buf = 0.15; return; } } // a moment of grace after rolling off a ledge
   else cap(D);
-  D.air = true; D.vy = JUMP_V; D.stroke++; D.squash = 0; D.buf = 0; fxLaunch(D, 1); if (D === P) { AU.jump(); if (Math.random() < 0.18) AU.vox('hup', 0.8); }
+  D.air = true; D.vy = JUMP_V; D.airSling = true; D.stroke++; D.squash = 0; D.buf = 0; fxLaunch(D, 1); if (D === P) { AU.jump(); if (Math.random() < 0.18) AU.vox('hup', 0.8); }
   if (!D.ai || D.ai.mode === 'orb') orbJumpAssist(D);
 }
 // out of a coffin, mid-air: a quick dash forward (swipe up) or back (swipe down), about as far as the old mid-air sling went,
@@ -11143,7 +11160,8 @@ function blobVisual(D, V, dt, ke, kf) {
     if (L.roll > 0.01) { V.rollPh = ((V.rollPh || 0) + (D.air ? 0 : D.spd) * dt / (ROLL_R * Math.max(0.1, rad))) % 6283.2; U.gRollPh.value = V.rollPh; } }
   if (V.tur) { const on = !!D.turret && D.st === 'play'; V.turK = (V.turK || 0) + ((on ? 1 : 0) - (V.turK || 0)) * Math.min(1, dt * (on ? 9 : 7)); const k = V.turK; V.tur.visible = k > 0.02 && D.st !== 'ko';
     if (V.tur.visible) { V.tur.scale.setScalar(Math.max(0.01, easeBack(Math.min(1, k * 1.1)))); V.turBarrel.position.copy(TURRET_RIG.dir).multiplyScalar(-0.22 * (D.turret ? D.turret.kick : 0)); const aimT = D.turret ? (D.turret.aim === undefined ? 0.4 : D.turret.aim) : 0.4; V.turPitch = (V.turPitch || 0) + (-(aimT - 0.4) * 0.6 - (V.turPitch || 0)) * Math.min(1, dt * 12); V.turBarrel.rotation.x = V.turPitch;
-      const ink = V.tur.userData.ink; if (ink) { const col = TEAMS[D.team].wet; if (V.turCol !== col) { V.turCol = col; ink.material.color.setHex(col); } const lv = D.turret ? clamp(D.turret.t / TURRET_T, 0, 1) : (V.turLv === undefined ? 1 : V.turLv); V.turLv = V.turLv === undefined ? lv : V.turLv + (lv - V.turLv) * Math.min(1, dt * 8); ink.scale.set(1 - 0.08 * (1 - V.turLv), Math.max(0.05, V.turLv), 1 - 0.08 * (1 - V.turLv)); } } }
+      const ink = V.tur.userData.ink; if (ink) { const col = TEAMS[D.team].wet; if (V.turCol !== col) { V.turCol = col; ink.material.color.setHex(col); const bd = V.tur.userData.band; if (bd) bd.material.color.setHex(col); } const lv = D.turret ? clamp(D.turret.t / TURRET_T, 0, 1) : (V.turLv === undefined ? 1 : V.turLv); V.turLv = V.turLv === undefined ? lv : V.turLv + (lv - V.turLv) * Math.min(1, dt * 8); ink.scale.set(1, Math.max(0.03, V.turLv), 1); }
+      const ey = V.tur.userData.eyes; if (ey) { V.turBT = (V.turBT === undefined ? 1.5 : V.turBT) - dt; if (V.turBT <= 0) { V.turBK = 0.12; V.turBT = 1.8 + Math.random() * 3; } if (V.turBK > 0) V.turBK -= dt; ey.scale.set(1, Math.min(V.turBK > 0 ? 0.1 : 1, 1 - 0.4 * (D.turret ? D.turret.kick : 0)), 1); } } }
   if (D === P) { const on = !!D.turret && D.st === 'play' && state === 'play'; turretMark.g.visible = on; if (on) { const k = PR, cy = Math.cos(D.yaw), sy = Math.sin(D.yaw), tp = TURRET_RIG.tip, tt = turretTarget(D, D.x + (tp.x * cy + tp.z * sy) * k, D.z + (-tp.x * sy + tp.z * cy) * k), gy = tt.foe ? tt.foe.y : tt.ty;
     turretMark.g.position.set(D.x + Math.sin(tt.a) * tt.d, gy + 0.05, D.z + Math.cos(tt.a) * tt.d); turretMark.g.scale.setScalar(tt.foe ? 1.25 + 0.1 * Math.sin(clock * 16) : 1); turretMark.mm.color.set(tt.foe ? 0xFFFFFF : TEAMS[D.team].wet).lerp(COL_WHITE, tt.foe ? 0 : 0.2); } }
   if (V.rk) { const R = D.rocket, on = !!R && D.st === 'play'; V.rkK = (V.rkK || 0) + ((on ? 1 : 0) - (V.rkK || 0)) * Math.min(1, dt * (on ? 10 : 7)); const k = V.rkK; V.rk.visible = k > 0.02 && D.st !== 'ko';
