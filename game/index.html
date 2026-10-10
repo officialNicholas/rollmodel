@@ -2117,7 +2117,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 143</p>
+      <p class="ver">Version 144</p>
     </div>
   </div>
 
@@ -2228,13 +2228,13 @@ kbd{background:#fff;border-color:var(--black)}
 // the paint pouring in while the game loads: a stream from the top into the tank, its surface sloshing up to the loading, drops where it lands
 (() => { const c = document.getElementById('bootC'), bar = document.querySelector('.bootbar'); if (!c || !c.getContext) return; const g = c.getContext('2d'); if (!g) return; let W = 0, H = 0, dpr = 1, t0 = performance.now(), last = t0, lvl = 0, drops = [], drips = [], hang = [], run = true, seed = Math.random() * 9;
   const col = () => getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#E3122F';
-  const size = () => { dpr = Math.min(2, window.devicePixelRatio || 1); W = innerWidth; H = innerHeight; c.width = W * dpr | 0; c.height = H * dpr | 0; c.style.width = W + 'px'; c.style.height = H + 'px'; };
+  const size = () => { dpr = Math.min(2, window.devicePixelRatio || 1); W = c.clientWidth || innerWidth; H = c.clientHeight || innerHeight; c.width = W * dpr | 0; c.height = H * dpr | 0; };
   size(); addEventListener('resize', size);
   const rr = (x, y, w, h, r) => { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h); };
   const frame = now => { if (!run) return; const dt = Math.min(0.05, (now - last) / 1000); last = now; const t = (now - t0) / 1000, p = Math.max(0, Math.min(1, window.__bootP || 0));
     try {
     lvl += (p - lvl) * Math.min(1, dt * 1.7); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H); const ink = col();
-    const r = bar ? bar.getBoundingClientRect() : { left: W * 0.2, top: H * 0.6, width: W * 0.6, height: 44 }, L = r.left + 3, T = r.top + 3, Wd = r.width - 6, Hh = r.height - 6, B = T + Hh;
+    if (c.clientWidth && (c.clientWidth !== W || c.clientHeight !== H)) size(); const cr = c.getBoundingClientRect(), rb = bar ? bar.getBoundingClientRect() : null, r = rb ? { left: rb.left - cr.left, top: rb.top - cr.top, width: rb.width, height: rb.height } : { left: W * 0.2, top: H * 0.6, width: W * 0.6, height: 44 }, L = r.left + 3, T = r.top + 3, Wd = r.width - 6, Hh = r.height - 6, B = T + Hh;
     // how far the paint has spread: its front is rounded, bulging forward in the middle like something thick being poured, and it wobbles
     const xf = L + Math.max(12, lvl * Wd), bul = 7 + 3 * Math.sin(t * 2.3 + seed), wob = 2.2 * Math.sin(t * 5.7) + 1.4 * Math.sin(t * 9.1 + 1);
     const front = y => { const u = (y - T) / Hh; return xf + bul * Math.sin(u * 3.1416) + wob * Math.sin(u * 6.28 + t * 4) - 10 * u * u; };
