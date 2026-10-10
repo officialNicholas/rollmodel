@@ -2095,6 +2095,11 @@ svg{shape-rendering:geometricPrecision}
 @keyframes shopout{to{opacity:0;transform:translateY(24px) scale(.985)}}
 .menu.shopping .mhome{visibility:visible;transition:opacity .25s;opacity:0;pointer-events:none}
 @media (prefers-reduced-motion:reduce){.shop,.shop.out{animation:none}}
+
+/* the canvas you chose is your vote, and the vote says so */
+.vt{padding-bottom:16px}
+.vt.mine::after{content:"Your vote";position:absolute;left:50%;bottom:0;transform:translateX(-50%);font:900 8.5px/1 var(--font-head);letter-spacing:.08em;text-transform:uppercase;color:var(--black);background:var(--gold);padding:3px 6px;border-radius:4px;border:1.5px solid var(--black);white-space:nowrap;box-shadow:1px 1px 0 var(--black)}
+.snote b{color:var(--cream)}
 </style>
 
 <div id="stage">
@@ -2152,7 +2157,7 @@ svg{shape-rendering:geometricPrecision}
       </div>
       <div class="lbot" id="lobbyBot">
         <div class="lgo" id="mCta">
-          <button class="show" id="stageBtn" type="button" aria-label="Pick the exhibition"><img class="sthumb" id="stageThumb" alt=""><span class="stxt"><small>Canvases &middot; your pick</small><b id="lobbyStage">The Studio</b><em id="lobbyMode">1v1</em></span><span class="sarrow" aria-hidden="true">&#9656;</span></button>
+          <button class="show" id="stageBtn" type="button" aria-label="Canvases: the mode, the CPU difficulty, and your vote"><img class="sthumb" id="stageThumb" alt=""><span class="stxt"><small id="lobbyPickLbl">Canvases &middot; your vote</small><b id="lobbyStage">The Studio</b><em id="lobbyMode">1v1</em></span><span class="sarrow" aria-hidden="true">&#9656;</span></button>
           <button class="playbtn" id="homePlay" type="button"><span class="sheen" aria-hidden="true"></span><span class="pbl">Play</span></button>
         </div>
       </div>
@@ -2192,7 +2197,7 @@ svg{shape-rendering:geometricPrecision}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 155</p>
+      <p class="ver">Version 156</p>
     </div>
   </div>
 
@@ -12686,7 +12691,7 @@ function renderModes() {
   const el = $('modes');
   if (!el.children.length) { let h = ''; for (const [k, name, tag] of MODES) h += '<button type="button" data-m="' + k + '" title="' + tag + '">' + name + '</button>'; el.innerHTML = h; }
   for (const b of el.children) b.setAttribute('aria-pressed', String(b.dataset.m === mode));
-  $('stages').hidden = mode === 'solo'; const sn = $('soloNote'); sn.hidden = mode !== 'solo';
+  $('stages').hidden = mode === 'solo'; const sn = $('soloNote'); sn.hidden = false;
   if (mode === 'solo') { const best = (store.bestCov && store.bestCov.solo) || 0; sn.textContent = 'Cover as much as you can in 60 seconds.' + (best ? ' Your best is ' + best + '%.' : ''); }
 }
 // switching mode builds a canvas for it (a 3-way one is bigger) and changes who's standing in the menu
@@ -12720,7 +12725,7 @@ $('commModal').addEventListener('click', e => { if (e.target === $('commModal'))
 const swatchOf = (D, name, me) => '<span class="lu' + (me ? ' me' : '') + '" style="--cd:' + mixHex(TEAMS[D.team].wet, 0x0C0620, 0.62) + '">' + faceIcon(D, false) + escAttr(name) + '</span>';
 function renderLobbyUI() {
   const r = repOf(store.xp || 0); $('repName').textContent = r.name; $('repLvl').textContent = r.lv; $('repFill').style.width = Math.round(100 * r.x / r.need) + '%';
-  $('lobbyStage').textContent = TH.label; const art = stageArt(); if (art && $('stageThumb').src !== art) $('stageThumb').src = art;
+  $('lobbyStage').textContent = TH.label; $('lobbyPickLbl').textContent = mode === 'solo' ? 'Canvases \u00b7 your canvas' : 'Canvases \u00b7 your vote'; const art = stageArt(); if (art && $('stageThumb').src !== art) $('stageThumb').src = art;
   const md = MODES.find(m => m[0] === mode) || MODES[0];
   $('lobbyMode').textContent = mode === 'solo' ? 'Solo \u00b7 60 seconds' : md[1] + ' \u00b7 CPU ' + (CRITICS[diff] || 'fair').toLowerCase();
   let wins = 0; for (const k in (store.wins || {})) wins += store.wins[k] || 0; $('statWins').textContent = wins; showDrops();
@@ -12735,7 +12740,8 @@ function renderStages() {
   $('shuffleBtn').hidden = false;
   if (!el.children.length) { let h = ''; for (const [k, name, tag] of DIFFS) h += '<button type="button" data-d="' + k + '" title="' + tag + '">' + name + '</button>'; el.innerHTML = h; }
   for (const b of el.children) b.setAttribute('aria-pressed', String(b.dataset.d === diff));
-  $('cvName').textContent = TH.label; $('shuffleBtn').setAttribute('aria-label', 'Shuffle the canvas. Now: ' + TH.label);
+  $('cvName').textContent = (mode === 'solo' ? '' : 'Your vote \u00b7 ') + TH.label; $('shuffleBtn').setAttribute('aria-label', (mode === 'solo' ? 'Shuffle the canvas. Now: ' : 'Shuffle your vote. Now: ') + TH.label);
+  { const sn = $('soloNote'); sn.innerHTML = mode === 'solo' ? '<b>Your canvas:</b> ' + escAttr(TH.label) + '. Solo plays the canvas you choose.' : '<b>Your vote:</b> ' + escAttr(TH.label) + '. Your rivals vote too, and one vote is drawn before the match.'; sn.hidden = false; }
   for (const b of el.children) b.textContent = CRITICS[b.dataset.d] || b.textContent;
   renderWorlds(); if (typeof renderLobbyUI === 'function' && $('lobbyStage')) renderLobbyUI();
 }
@@ -13633,7 +13639,7 @@ function openVote(id, done) {
   const box = $('vvote'), row = $('vts'), who = [P, H]; if (mode === 'trio') who.push(H2);
   const votes = new Map(); votes.set(P, VOTE_STAGES.includes(stageSel) ? stageSel : VOTE_STAGES[(Math.random() * VOTE_STAGES.length) | 0]);
   row.innerHTML = VOTE_STAGES.map(sid => '<button class="vt" type="button" data-s="' + sid + '"><span class="vch"></span><img alt="" src="' + stageArtOf(sid) + '"><small>' + escAttr(themeLabel(sid)) + '</small></button>').join('');
-  $('vvLbl').textContent = 'Vote for a canvas'; $('vvWin').textContent = ''; box.classList.remove('ticking', 'done'); box.hidden = false; $('vsx').classList.add('voting');
+  $('vvLbl').textContent = 'Vote for a canvas \u00b7 one vote is drawn'; $('vvWin').textContent = ''; box.classList.remove('ticking', 'done'); box.hidden = false; $('vsx').classList.add('voting');
   const draw = () => { for (const b of row.children) { const sid = b.dataset.s, chips = [...votes].filter(([, v]) => v === sid).map(([D]) => '<i style="--c:' + TEAMS[D.team].css + '"></i>').join(''); b.querySelector('.vch').innerHTML = chips; b.classList.toggle('mine', votes.get(P) === sid); } };
   draw(); const st = voteState = { id, votes, open: true, timers: [] };
   const at = (ms, fn) => st.timers.push(setTimeout(() => { if (st !== voteState || id !== runId) return; fn(); }, ms));
