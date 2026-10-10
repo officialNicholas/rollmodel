@@ -1954,6 +1954,21 @@ kbd{background:#fff;border-color:var(--black)}
 .boot .bootbar.plain i{display:block}
 .boot .boottc{position:relative;z-index:1;width:min(60vw,280px)}
 .boot .bootmsg{position:relative;z-index:1}
+
+/* the locker: room around its buttons */
+.lookp{gap:12px}
+.lookp[data-tab="paint"] .swatches{padding:4px 0 12px}
+.lookp[data-tab="eyes"] .leyes{margin:4px 0 6px}
+.seg.lcats{gap:10px}
+.lookp .btn.play.sm{margin-top:8px}
+.lookp .ulink{margin-top:14px}
+.lookp .ctitle{white-space:nowrap;font-size:clamp(19px,5.6vw,26px)}
+.lookp .lktop{align-items:center;min-width:0}
+.lookp .lktop .ctitle{flex:0 0 auto}
+.lookp .lktop .lkbal{flex:0 0 auto}
+.lookp .lktop .lnbtn{flex:0 1 auto;min-width:0;max-width:none}
+@media (max-aspect-ratio:1/1){.lookp .ctitle{font-size:20px}.lookp .lktop{gap:8px}}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.sheet.lookp{align-content:space-between}.lookp{gap:8px}.lookp[data-tab="paint"] .swatches{padding:0 0 9px}.lookp .sw{height:40px}.seg.lcats{gap:8px}.seg.lcats button,.seg.lcats button[aria-selected="true"]{min-height:58px;padding:4px 3px 5px}.lookp .btn.play.sm{min-height:44px;margin-top:4px;padding-top:0;padding-bottom:0}.lookp .ulink{margin-top:11px}.lookp .ctitle{font-size:20px}}
 </style>
 
 <div id="stage">
@@ -2050,7 +2065,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 134</p>
+      <p class="ver">Version 135</p>
     </div>
   </div>
 
