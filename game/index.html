@@ -2119,6 +2119,74 @@ svg{shape-rendering:geometricPrecision}
 .sbdial i::after{content:"";position:absolute;inset:5px;border-radius:50%;background:rgba(23,19,32,.82)}
 .sbdial b{position:absolute;inset:0;display:grid;place-items:center;font:400 15px/1 var(--font-display);color:var(--gold);text-shadow:0 1.5px 0 var(--black)}
 .slamBtn.off .sbdial{opacity:1}
+/* ---- the coach: a striped dark plate, the coach's name over a dashed rule, its face, and the line; a hand points at what it is about ---- */
+.tut{position:absolute;left:0;top:0;z-index:60;pointer-events:none;width:max-content;max-width:min(94vw,520px);opacity:0;transition:opacity .2s}
+.tut.on{opacity:1}
+.tut[data-pos="top"]{left:50%;top:96px;transform:translateX(-50%)}
+.tut[data-pos="above"]{transform:translateY(-100%)}
+.tut .tplate{position:relative;display:grid;grid-template-columns:60px minmax(0,1fr);grid-template-rows:auto auto;column-gap:14px;align-items:center;box-sizing:border-box;min-width:min(320px,94vw);padding:9px 20px 13px 12px;border-radius:14px;color:#fff;background:repeating-linear-gradient(-56deg,rgba(14,12,20,.86) 0 16px,rgba(44,40,54,.86) 16px 32px);box-shadow:0 8px 20px rgba(0,0,0,.45),inset 0 0 0 1.5px rgba(255,255,255,.09)}
+.tut .tname{grid-column:1/-1;justify-self:start;min-width:190px;padding-bottom:5px;margin-bottom:9px;border-bottom:3px dashed rgba(255,255,255,.42);font:400 19px/1 var(--font-display);color:#3BEBD0;text-shadow:2px 2px 0 rgba(0,0,0,.7);letter-spacing:.01em}
+.tut .tava{display:block;width:60px;height:60px;border-radius:12px;background:#9FE9DB;overflow:hidden;box-shadow:0 2px 0 rgba(0,0,0,.4),inset 0 0 0 2px rgba(255,255,255,.35)}
+.tut .tava .bico{display:block;width:100%;height:100%} .tut .tava svg{display:block;width:100%;height:100%}
+.tut .ttext{font:400 18px/1.22 var(--font-display);color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.7),0 0 3px rgba(0,0,0,.55);letter-spacing:.01em;text-wrap:balance}
+.tut .thand{position:absolute;left:var(--ax,50%);width:58px;height:76px;margin-left:-25px;display:none;animation:tutbob .6s ease-in-out infinite alternate}
+.tut[data-pos="above"] .thand{display:block;top:100%;margin-top:4px}
+.tut[data-pos="below"] .thand{display:block;bottom:100%;margin-bottom:4px;transform:scaleY(-1)}
+.tut .thand svg{width:100%;height:100%;filter:drop-shadow(3px 4px 0 rgba(0,0,0,.35))}
+.tut.on .tplate{animation:tutin .36s cubic-bezier(.2,1.2,.4,1) both}
+@keyframes tutin{from{transform:scale(.88);opacity:0}to{transform:none;opacity:1}}
+@keyframes tutbob{from{translate:0 0}to{translate:0 9px}}
+/* the short ones, for an action: a big outlined line, the words that matter in red (*so*), no plate */
+.tut .tcall{display:none;margin:0;padding:0 8px;max-width:min(94vw,560px);text-align:center;font:400 clamp(21px,5.6vw,30px)/1.1 var(--font-display);color:#fff;-webkit-text-stroke:1.5px #2A1B4F;paint-order:stroke fill;text-shadow:0 4px 0 #2A1B4F,0 6px 0 rgba(0,0,0,.25);letter-spacing:.01em;text-wrap:balance}
+.tut .tcall em{font-style:normal;color:#E3122F}
+.tut[data-style="call"] .tplate{display:none}
+.tut[data-style="call"] .tcall{display:block}
+.tut[data-style="call"][data-pos="top"]{top:22%}
+.tut.on[data-style="call"] .tcall{animation:tutin .36s cubic-bezier(.2,1.2,.4,1) both}
+/* behind the plate the screen goes dark, with a window left round what the plate points at; between matches only that window takes a tap */
+.tutdim{position:absolute;inset:0;z-index:59;pointer-events:none;background:rgba(23,19,32,.55);opacity:0;transition:opacity .25s,clip-path .22s;clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,50% 50%,50% 50%,50% 50%,50% 50%,50% 50%)}
+.tutdim.on{opacity:1}
+.tutdim.on.block{pointer-events:auto}
+.menu.tutoring #commBtn,.menu.tutoring #howBtn{display:none}
+/* the slow-down: a gold frame and a soft vignette while a lesson is up */
+.tutslow{position:absolute;inset:0;z-index:7;pointer-events:none;opacity:0;transition:opacity .4s;background:radial-gradient(ellipse at center,transparent 58%,rgba(23,19,32,.42) 100%);box-shadow:inset 0 0 0 3px var(--gold)}
+.tutslow.on{opacity:1}
+@media (min-aspect-ratio:1/1){.tut[data-pos="top"]{top:64px}}
+@media (max-width:420px){.tut .ttext{font-size:16px}.tut .tplate{grid-template-columns:52px minmax(0,1fr);column-gap:11px;padding:8px 14px 12px 10px}.tut .tava{width:52px;height:52px}}
+@media (prefers-reduced-motion:reduce){.tut .thand,.tut.on .tplate{animation:none}}
+/* ---- the lesson's own finish: the canvas seen through a slanted window in the dark, the title over it, and a warm panel ticking off what was learned ---- */
+.tutwin{position:absolute;inset:0;z-index:35;pointer-events:none;opacity:0;transition:opacity .3s}
+.tutwin.on{opacity:1}
+.tutwin .twdark,.tutwin .twrim{position:absolute;inset:0}
+.tutwin .twdark{background:#17131F;clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,0 18%,100% 15%,100% 79%,0 82%,0 18%)}
+.tutwin .twrim{background:#F4EEE3;clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,0 19.6%,100% 16.6%,100% 77.4%,0 80.4%,0 19.6%)}
+.tutwin .twtitle{position:absolute;left:0;right:0;top:max(16px,env(safe-area-inset-top));text-align:center;font:400 clamp(26px,7vw,58px)/1 var(--font-display);text-transform:uppercase;letter-spacing:.02em;transform:skewX(-7deg)}
+.tutwin .twtitle b{display:inline-block;padding:4px 18px 6px;background:#17131F;color:#fff;box-shadow:5px 5px 0 rgba(0,0,0,.35)}
+.tutwin .twtitle b.g{display:inline-block;margin-top:-4px;color:#3BE889;font-size:1.12em}
+.tutwin .twpanel{position:absolute;right:3%;top:18%;width:min(36%,360px);bottom:18%;box-sizing:border-box;padding:26px 24px;background:linear-gradient(168deg,#F9D23A 0%,#F4921C 100%);box-shadow:6px 8px 0 rgba(0,0,0,.35);transform:skewX(-5deg);overflow:hidden}
+.tutwin .twpanel>div{transform:skewX(5deg)}
+.tutwin .twpanel p{margin:0 0 16px;font:800 clamp(16px,2.6vw,22px)/1.25 var(--font-ui);color:#171320;text-wrap:balance}
+.tutwin .twpanel ul{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.tutwin .twpanel li{display:flex;align-items:center;gap:12px;font:800 clamp(14px,2.2vw,19px)/1 var(--font-ui);color:#171320;opacity:0;animation:twtick .35s ease-out forwards;animation-delay:calc(.35s + var(--i) * .1s)}
+.tutwin .twpanel li i{flex:none;display:grid;place-items:center;width:30px;height:30px;background:#17131F;transform:rotate(-7deg);box-shadow:2px 2px 0 rgba(0,0,0,.3)}
+.tutwin .twpanel li i svg{width:22px;height:22px;fill:none;stroke:#3BE889;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+@keyframes twtick{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+.tutwin #twNext{position:absolute;left:50%;bottom:max(18px,env(safe-area-inset-bottom));width:min(240px,60vw);transform:translateX(-50%);pointer-events:auto;margin:0}
+@media (min-aspect-ratio:1/1){
+.tutwin .twtitle{right:42%;font-size:clamp(22px,5.2vw,44px)}
+.tutwin .twpanel{top:14%;bottom:14%;padding:14px 18px}
+.tutwin .twpanel p{margin-bottom:10px;font-size:clamp(14px,2.2vw,18px)}
+.tutwin .twpanel ul{grid-template-columns:1fr 1fr;gap:7px 10px}
+.tutwin .twpanel li{font-size:clamp(12px,1.8vw,16px)} .tutwin .twpanel li i{width:24px;height:24px} .tutwin .twpanel li i svg{width:17px;height:17px}
+.tutwin #twNext{left:31%}
+}
+@media (max-aspect-ratio:1/1){
+.tutwin .twdark{clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,0 15%,100% 13%,100% 46%,0 48%,0 15%)}
+.tutwin .twrim{clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,0 16.4%,100% 14.4%,100% 44.6%,0 46.6%,0 16.4%)}
+.tutwin .twpanel{left:5%;right:5%;top:52%;bottom:auto;width:auto;padding:18px 20px;transform:skewX(-3deg)}
+.tutwin .twpanel>div{transform:skewX(3deg)}
+.tutwin .twpanel ul{grid-template-columns:1fr 1fr;gap:8px 12px}
+}
 </style>
 
 <div id="stage">
@@ -2151,6 +2219,7 @@ svg{shape-rendering:geometricPrecision}
   <svg class="sling" id="sling" aria-hidden="true"><line id="slBandO" x1="0" y1="0" x2="0" y2="0"/><line id="slBand" x1="0" y1="0" x2="0" y2="0"/><circle id="slA" r="15"/><circle id="slB" r="11"/></svg>
   <div class="pop" id="pop"></div>
   <div class="hint" id="hint" aria-live="polite"><span id="hintText"></span></div>
+  <div class="tutslow" id="tutSlow" aria-hidden="true"></div><div class="tutdim" id="tutDim" aria-hidden="true"></div><div class="tut" id="tut" hidden data-pos="top" role="status" aria-live="polite"><div class="tplate"><b class="tname">Coach</b><span class="tava" id="tutAva" aria-hidden="true"></span><span class="ttext" id="tutText"></span></div><p class="tcall" id="tutCall"></p><i class="thand" aria-hidden="true"><svg viewBox="0 0 64 84"><g fill="#F2C08A" stroke="#171320" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"><path d="M18 16c0-8 6-13 14-13h13c9 0 16 7 16 16v15c0 10-7 18-16 20H30c-6 0-10-3-12-9z"/><path d="M45 19c7-2 12 3 10 9M45 31c7-2 12 3 10 9M43 43c6-2 10 3 8 8" fill="none"/><path d="M18 16v53c0 6 4 11 9.5 11S37 75 37 69V34"/></g><ellipse cx="27.5" cy="71" rx="5" ry="4" fill="#E39A66"/></svg></i></div>
   <div class="threat" id="threat" aria-live="assertive"><b>!</b><span id="threatText">Missile!</span></div>
   <div class="threatArrow" id="threatArrow" aria-hidden="true"><i>!</i><u><b></b></u></div>
   <div class="banner" id="banner" aria-live="polite"><div class="plate"><span class="pem" id="bannerEm" aria-hidden="true"><i></i></span><div class="ptxt"><p id="bannerBig"></p><p id="bannerSmall"></p></div></div></div>
@@ -2216,7 +2285,7 @@ svg{shape-rendering:geometricPrecision}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 162</p>
+      <p class="ver">Version 163</p>
     </div>
   </div>
 
@@ -2245,6 +2314,10 @@ svg{shape-rendering:geometricPrecision}
         <p class="lhead">Visuals</p>
         <div class="seg duo" id="gfxPick" role="group" aria-label="Visuals"><button type="button" data-g="hi" aria-pressed="false">Graphics</button><button type="button" data-g="perf" aria-pressed="false">Performance</button></div>
         <p class="gnote" id="gfxNote" aria-live="polite"></p>
+      </div>
+      <div class="sgrp">
+        <p class="lhead">Tutorial</p>
+        <button class="btn sm" id="tutReplay" type="button">Replay the tutorial</button>
       </div>
       </div>
       <button class="btn play sm" id="setDone" type="button">Done</button>
@@ -2275,6 +2348,7 @@ svg{shape-rendering:geometricPrecision}
     <div class="ucode"><button class="ulink" id="unlockLink" type="button">Unlock all items</button><form class="uform" id="unlockForm" hidden><input id="unlockCode" type="text" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="Code" aria-label="Unlock code"><button class="ugo" type="submit">Unlock</button></form></div>
   </section>
   <p class="lnote" id="lookNote" aria-live="polite"></p>
+  <section class="tutwin" id="tutWin" hidden aria-labelledby="twTitle"><i class="twdark" aria-hidden="true"></i><i class="twrim" aria-hidden="true"></i><h2 class="twtitle" id="twTitle"><b>Basics</b><br><b class="g">Complete</b></h2><div class="twpanel"><div><p>Congratulations, you have learned the basics</p><ul id="twList"></ul></div></div><button class="btn play sm" id="twNext" type="button">Next</button></section>
   <section class="newitem" id="newItem" hidden role="dialog" aria-modal="true" aria-labelledby="niName">
     <div class="nirays" aria-hidden="true"></div>
     <div class="niconf" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -7392,7 +7466,7 @@ function spawnItem() {
 function itemTick(dt) {
   const alive = ACTIVE.filter(D => D.st !== 'out'), busy = alive.filter(D => D.held || D.power || D.turret).length, cap = mode === 'trio' ? 2 : 1;
   itemSpawn.t -= dt;
-  if (itemSpawn.t <= 0 && powers.length < cap && powers.length + busy < alive.length && matchLeft > 6) spawnItem();
+  if (itemSpawn.t <= 0 && !(tut && !tut.items) && powers.length < cap && powers.length + busy < alive.length && matchLeft > 6) spawnItem();
   for (const pw of powers) { if (pw.pop < 1) pw.pop = Math.min(1, pw.pop + dt * 3); if (pw.grace > 0) pw.grace -= dt; }
 }
 // what you hold goes back on the stage when you pick up something else, dropped just behind you
@@ -7552,7 +7626,7 @@ function updateOrb(dt) {
   if (orb.k < 0.5) return;
   // roll up next to it and it's drawn in: no jump (or paint) needed. The nearest blob in reach, on its level, with nothing between
   let puller = null, pd = ORB_PULL_R;
-  for (const D of ACTIVE) { if (D.st !== 'play' || D.giantT > 0 || D.rocket || D.turret) continue; const h = Math.hypot(D.x - orb.x, D.z - orb.z), dy = orb.base - D.y;
+  for (const D of ACTIVE) { if (D.st !== 'play' || D.giantT > 0 || D.rocket || D.turret || (tut && tut.orbMine && D !== P)) continue; const h = Math.hypot(D.x - orb.x, D.z - orb.z), dy = orb.base - D.y;
     if (h < pd && dy > -1.1 && dy < 1.3 && !blockedAt((D.x + orb.x) / 2, (D.z + orb.z) / 2, Math.max(D.y, orb.base) + 0.5)) { pd = h; puller = D; } }
   if (puller) {
     if (!orb.pull) AU.pop && AU.pop();
@@ -7572,7 +7646,7 @@ function takeOrb(D) {
   orb.on = false; orb.pull = 0; orb.g.visible = false; orb.ring.visible = false; orb.spawnT = 16 + Math.random() * 6;
   for (let i = 0; i < 26; i++) { const a = Math.random() * 6.283; spawnPart(orb.x, orb.y, orb.z, Math.cos(a) * 4, 1 + Math.random() * 4, Math.sin(a) * 4, 0.55, orbPartMats[i % orbPartMats.length], 0.6); }
   shockwave(orb.x, D.y, orb.z, 2.6, 0xFFFFFF);
-  const gift = window.__orbKind || ['giant', 'rocket'][(Math.random() * 2) | 0];
+  const gift = tut ? 'rocket' : window.__orbKind || ['giant', 'rocket'][(Math.random() * 2) | 0];
   if (gift === 'rocket') { startRocket(D); for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0; return; }
   if (gift === 'turret') { startTurret(D); for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0; return; }
   D.giantT = GIANT_T; D.wob = 1; D.squash = 0.8; D.inkRush = true; emote(D, 'glee', 1.1); AU.grow(); if (D === P) AU.vox('hoh'); // a full tank that doesn't drain while it lasts
@@ -8898,7 +8972,7 @@ const hintEl = $('hint'), hintText = $('hintText'); let hintTimer = 0;
 let shownLives = -1;
 function renderLives(pop, force) { const el = $('lives'); if (lives === shownLives && !force) return; let h = ''; for (let i = 0; i < lives; i++) h += '<i style="background:' + TEAMS[(P.team + i) % TEAMS.length].css + '"' + (pop && i === lives - 1 && lives > shownLives ? ' class="gain"' : '') + '></i>'; el.innerHTML = h; el.setAttribute('aria-label', lives + (lives === 1 ? ' life' : ' lives')); shownLives = lives; }
 // each tip shows once, ever
-function hint(id, text, dur) { if (store.seen[id] || hintTimer > 0.4) return; store.seen[id] = 1; save(); hintText.textContent = text; hintEl.classList.add('on'); hintTimer = dur || 3; }
+function hint(id, text, dur) { if (tut || store.seen[id] || hintTimer > 0.4) return; store.seen[id] = 1; save(); hintText.textContent = text; hintEl.classList.add('on'); hintTimer = dur || 3; }
 // on a phone the tips talk about touch; with a keyboard they name the keys
 let keysUI = !!(window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches);
 const say = (touch, keys) => keysUI ? keys : touch;
@@ -9591,7 +9665,7 @@ function useSlam(D) {
   return true;
 }
 function updateSlamBtn() {
-  const b = $('slamBtn'), show = state === 'play' && (P.st === 'play' || P.st === 'hide');
+  const b = $('slamBtn'), show = state === 'play' && (P.st === 'play' || P.st === 'hide') && !(tut && tut.hidePound);
   if (b.hidden === show) b.hidden = !show;
   if (!show) { wasReady = false; return; }
   const rk = P.rocket, ready = rk ? rk.ph === 'hover' || (rk.ph === 'dive' && rk.slow) : slamReady(P), cd = !rk && P.slamCD > 0 ? (P.slamCD / P.slamMax * 360).toFixed(0) + 'deg' : '0deg';
@@ -9858,7 +9932,7 @@ function endMatch() {
   endInfo.diff = diff; let gain = Math.round(16 + ry * 0.9 + (win > 0 ? 36 : win === 0 && mode !== 'solo' ? 12 : 0) + (newBest ? 14 : 0) + (mode === 'trio' ? 8 : 0));
   const fin = commProgress(endInfo); gain += fin.length * COMM_XP; endInfo.xp0 = store.xp || 0; store.xp = endInfo.xp0 + gain; endInfo.xp = gain; endInfo.comms = fin;
   const drops = Math.round(8 + ry * 0.35 + (win > 0 ? 30 : win === 0 && mode !== 'solo' ? 12 : 0) + (newBest ? 10 : 0) + (mode === 'trio' ? 6 : 0)) + fin.length * 20; store.drops = (store.drops || 0) + drops; endInfo.drops = drops;
-  save();
+  save(); tutEndMatch();
   banner(mode === 'solo' ? "Time's up!" : 'Time!', '', false); buzz([40, 30, 40]); slow = 0.6;
   if (mode === 'solo' ? newBest : win > 0) celebrating = true;
   setTimeout(() => { if (id !== runId || state !== 'dead') return; startTally(); }, 1450);
@@ -10101,7 +10175,7 @@ function step(dt) {
     if (dangerK > 0) dangerK -= dt;
     for (const D of ACTIVE) if (D.cpu) aiStep(D, dt);
     for (const D of ACTIVE) stepBlob(D, dt);
-    blobContact(); updateOrb(dt); updateShots(dt);
+    blobContact(); updateOrb(dt); updateShots(dt); if (tut) tutStep(dt);
     // a handful of tips, once each
     if (runT > 5) hint('jump', say('Tap to jump', 'Space to jump'), 2.4);
     if (runT > 10 && !P.dry) hint('hold', say('Pull down and let go to fling', 'Hold S, let go to fling'), 2.8);
@@ -10684,6 +10758,7 @@ function aiThink(D) {
   for (const r of rivals) if (r.on && !(Math.random() < AI.slip)) NAV.near(r.x, r.z, r.y, r.hit + 0.55, n => { nMult[n.id] += 4; });
   if (hardPhase) { const nodes = NAV.nodes; for (let k = 0; k < nodes.length; k++) { const n = nodes[k]; if (dryAt(n.x, n.z, n.h, 0.25, -1) && !(Math.random() < AI.slip)) nMult[n.id] += 7; } }
   for (const p of pots) if (potUp(p) && p.ink > 0.02 && !p.occ) NAV.near(p.x, p.z, p.y, 1.15, n => { nMult[n.id] += 3; });
+  if (tut && tut.keepAway) NAV.near(O.x, O.z, O.y, 12, n => { nMult[n.id] += 9; }); // (the lesson: it stays out of your way)
   if (O.giantT > 0.2 && oKnown && D.giantT <= 0 && !slamReady(D)) NAV.near(o.x, o.z, o.y, PR * GIANT_K + 3, n => { nMult[n.id] += 6; });
   if (oThreat && AI.evade > 0 && ai.mode !== 'hunt' && !(slamReady(D) && D.paint > 0.45)) NAV.near(o.x, o.z, o.y, KO_R, n => { nMult[n.id] += 2.5 * AI.evade * (1 + AI.model * hunterP * 1.5); });
   dijkstra(src.id, sunny || wxPhase === 'warn' || AI.sunLead > 0 && timeToSun() < 12 ? 0 : 64);
@@ -11030,6 +11105,7 @@ function aiStep(D, dt) {
   if (mode === 'trio' && (ai.focusT = (ai.focusT || 0) - dt) <= 0) { ai.focusT = 1.2 + Math.random() * 0.8; const f = pickFocus(D); if (f && f !== D.focus) { D.focus = f; ai.o = null; ai.seenT = 0; } }
   ai.seenT -= dt; if (ai.seenT <= 0 || !ai.o) { ai.seenT = AI.react; aiSee(D); }
   if (D.st === 'ko') { ai.path = null; ai.plan = null; ai.flight = null; ai.evadeT = 0; ai.attackT = 0; ai.wasRdy = false; return; }
+  if (tut && tut.keepAway) ai.attackT = 0; if (tut && tut.drive === D && D.st === 'play' && !D.rocket && !D.turret) return tutDrive(D); // (the lesson: kept away, or driven at you for the dodge)
   if (D.held && D.st === 'play') { D.heldT = (D.heldT || 0) + dt; const O = other(D), near = O && O.st === 'play' && Math.hypot(O.x - D.x, O.z - D.z) < TURRET_FAR * 0.75;
     if (!D.air && !D.charging && (D.held === 'turret' ? (near && D.heldT > 0.6) || D.heldT > 6 : D.heldT > 1 + Math.random() * 1.5)) useHeld(D); }
   // the pound just came back and it knows roughly where you are: sometimes it saves it for you and comes over
@@ -11677,6 +11753,7 @@ function visuals(dt, rdt) {
   wearDt = dt; idleStep(rdt);
   if (tal) talFrame();
   if (kof) kofFrame(rdt);
+  tutFrame(rdt);
   if (vic) vicFrame(rdt);
   if (state === 'reveal') revealStep(rdt);
   if (state === 'intro') introStep(rdt);
@@ -12679,7 +12756,7 @@ const OWNED = new Set(Array.isArray(store.owned) ? store.owned.filter(id => ITEM
 // drops: paint earned at the end of a match. A found item goes on sale in the locker; it is worn once it is bought
 const PRICES = { flower: 170, pearls: 190, bowtie: 220, lashes: 260, glasses: 320, patch: 390, fangs: 470, tiara: 560, tophat: 680, bunny: 760, pirate: 820, hockey: 900, skull: 980, halo: 1000, zombie: 1150, hat: 1300 };
 const OUTRIGHT = new Set(['flower', 'lashes', 'bowtie', 'pearls']), needFind = w => !OUTRIGHT.has(w.id) && (!!w.season || w.slot === 'head'); // (in stock from the start: nothing to find, only dabs to pay) // (what has to be found on a canvas before it is for sale)
-const PRICE = w => PRICES[w.id] || (w.season ? 1000 : w.slot === 'head' ? 600 : 300);
+const PRICE = w => { const t = store.tut && store.tut.price; if (t && t[w.id] >= 0) return t[w.id]; return PRICES[w.id] || (w.season ? 1000 : w.slot === 'head' ? 600 : 300); }; // (the lesson sets the flower's and the fangs' prices)
 const BOUGHT = new Set(Array.isArray(store.bought) ? store.bought.filter(id => OWNED.has(id)) : [...OWNED]);
 if (!Array.isArray(store.bought)) { store.bought = [...BOUGHT]; }
 if (!(store.drops >= 0)) store.drops = 0;
@@ -13598,7 +13675,7 @@ function goTime() {
   hint('steer', say('Drag to steer', 'A D or arrows to steer'), 3);
 }
 function showMenu() {
-  clearShot(); $('gframe').hidden = true; $('gwall').hidden = true; pickRivalNames(); state = 'menu'; menuPage = 'home'; menu.dataset.page = 'home'; $('mHome').hidden = false; $('mWorld').hidden = true; applyMode(); renderModes(); menu.hidden = false; end.hidden = true; pauseEl.hidden = true; howModal.hidden = true; setModal.hidden = true; hud.classList.add('off'); hintEl.classList.remove('on'); $('vig').className = 'vig';
+  tutLeave(); clearShot(); $('gframe').hidden = true; $('gwall').hidden = true; pickRivalNames(); state = 'menu'; menuPage = 'home'; menu.dataset.page = 'home'; $('mHome').hidden = false; $('mWorld').hidden = true; applyMode(); renderModes(); menu.hidden = false; end.hidden = true; pauseEl.hidden = true; howModal.hidden = true; setModal.hidden = true; hud.classList.add('off'); hintEl.classList.remove('on'); $('vig').className = 'vig';
   if (mapUsed) freshMap();
   resetRun(); decorate(); renderStages(); AU.music('menu'); menuPose(); heroT = 0; renderLobbyUI(); sayT = 1.4; camSnap = true;
   for (const D of [P, H, H2]) if (D) { D.ip = null; D.introAct = null; D.introCrawl = null; D.introShake = null; D.introOut = false; D.eyeSink = D.eyeShut = D.eyeWide = 0; D.rollOutT = 0; }
@@ -13608,6 +13685,7 @@ function start() {
   if (building || irisBusy) return;
   if (menuPage === 'worlds') { menuPage = 'home'; menu.dataset.page = 'home'; $('mWorld').hidden = true; $('mHome').hidden = false; }
   if (shopOpen) closeShop(true); if (lookOpen) closeLook();
+  tutPrep();
   if (!mapUsed && GEN.key !== mapKey()) mapUsed = true; // the canvas waiting in the menu was made for another stage, mode or difficulty
   rollRivalLooks(); AU.init(); AU.music('vs'); menu.classList.add('leaving'); setTimeout(() => menu.classList.remove('leaving'), 900);
   // through the wipe: a fresh canvas is laid out while it's dark (it says so), then the match opens on your drop forming
@@ -13661,7 +13739,7 @@ function showVS(cb) {
   const id = runId, wipe = win => { AU.music('end'); slashWipe({ dur: 1.0, onPeak: () => { el.hidden = true; el.classList.remove('voting'); $('vvote').hidden = true;
     if (win && TH.id !== win) { building = true; genWorld((Math.random() * 4294967296) >>> 0, { avoid: TH.id, themes: [win] }); mapUsed = false; clearTimeout(warmQ); warmRender(); building = false; }
     cb(); } }); };
-  if (mode === 'solo' || window.__noVote) { setTimeout(() => { if (!(id !== runId && state !== 'menu')) AU.say('ready'); }, 900); setTimeout(() => { if (id !== runId && state !== 'menu') { el.hidden = true; return cb(); } wipe(null); }, 2100); return; }
+  if (mode === 'solo' || window.__noVote || tutMatchDue()) { setTimeout(() => { if (!(id !== runId && state !== 'menu')) AU.say('ready'); }, 900); setTimeout(() => { if (id !== runId && state !== 'menu') { el.hidden = true; return cb(); } wipe(null); }, 2100); return; }
   setTimeout(() => { if (id !== runId && state !== 'menu') { el.hidden = true; return cb(); } openVote(id, win => { if (id !== runId && state !== 'menu') { el.hidden = true; return cb(); } wipe(win); }); }, 1000);
 }
 // ---------- the vote: the open canvases in a row; your splat sits on your pick (your canvas from the lobby until you tap another), the
@@ -13680,9 +13758,10 @@ function openVote(id, done) {
   const at = (ms, fn) => st.timers.push(setTimeout(() => { if (st !== voteState || id !== runId) return; fn(); }, ms));
   row.onclick = e => { const b = e.target.closest('.vt'); if (!b || !st.open || st !== voteState) return; if (votes.get(P) !== b.dataset.s) { votes.set(P, b.dataset.s); draw(); AU.ui(); buzz(8); } };
   requestAnimationFrame(() => { box.classList.add('on'); requestAnimationFrame(() => box.classList.add('ticking')); });
-  who.slice(1).forEach((D, i) => at(1700 + i * 900 + Math.random() * 600, () => { votes.set(D, VOTE_STAGES[(Math.random() * VOTE_STAGES.length) | 0]); draw(); AU.plop(); }));
+  const tutV = tutPh() === 'vote' ? TUT_HALLO[(Math.random() * TUT_HALLO.length) | 0] : null; // (the lesson: the rival's vote is a Halloween canvas, and it is the one drawn)
+  who.slice(1).forEach((D, i) => at(1700 + i * 900 + Math.random() * 600, () => { votes.set(D, tutV && D === H ? tutV : VOTE_STAGES[(Math.random() * VOTE_STAGES.length) | 0]); draw(); AU.plop(); }));
   at(5000, () => {
-    st.open = false; const tickets = [...votes.values()], win = tickets[(Math.random() * tickets.length) | 0], cands = VOTE_STAGES.filter(sid => tickets.includes(sid)), btn = sid => row.querySelector('[data-s="' + sid + '"]');
+    st.open = false; const tickets = [...votes.values()], win = tutV || tickets[(Math.random() * tickets.length) | 0], cands = VOTE_STAGES.filter(sid => tickets.includes(sid)), btn = sid => row.querySelector('[data-s="' + sid + '"]');
     $('vvLbl').textContent = 'The canvas is';
     // the spin: round the voted canvases, slowing, stopping on the winner
     const steps = []; let cur = cands.indexOf(win), total = cands.length * 2 + 2; for (let k = total; k >= 0; k--) steps.push(cands[((cur - k) % cands.length + cands.length) % cands.length]);
@@ -13693,7 +13772,7 @@ function openVote(id, done) {
 }
 function beginMatch() {
   clearShot(); $('gframe').hidden = true; $('gwall').hidden = true;
-  vicLayer(P, false); lobbyShadow.visible = false; heroSay.hidden = true; AI = AI_LV[diff]; mapUsed = true; resetRun(); gyCam = 0; state = 'intro'; introT = 0; introN = 0; introUp = 0; hud.classList.add('off'); giftPlan(); newItem = null;
+  vicLayer(P, false); lobbyShadow.visible = false; heroSay.hidden = true; AI = AI_LV[diff]; mapUsed = true; resetRun(); gyCam = 0; state = 'intro'; introT = 0; introN = 0; introUp = 0; hud.classList.add('off'); giftPlan(); newItem = null; tutBegin();
   if (window.__skipIntro) { state = 'play'; hud.classList.remove('off'); for (const D of ACTIVE) { D.y = 6.5; D.air = true; D.vy = -1; D.freeLand = true; D.stroke++; } AU.music('play'); return; } // (tests)
   const basins = introBasins();
   for (const D of ACTIVE) { const p = basins.get(D); D.stroke++; D.wearOff = true; D.peeked = false; D.introBare = false; D.introLeap = null; D.introOut = false; D.introCrawl = null; D.introAct = null; D.ip = null; D.eyeSink = D.eyeShut = D.eyeWide = 0; D.introKind = pickIntro(D);
@@ -13711,7 +13790,7 @@ function revealCam() {
   const w = u < 0.7 ? 0 : (u - 0.7) / 0.3, ww = w * w * (3 - 2 * w); introCam(false);
   dPos.set(px + (dPos.x - px) * ww, py + (dPos.y - py) * ww, pz + (dPos.z - pz) * ww); dLook.set(lx + (dLook.x - lx) * ww, ly + (dLook.y - ly) * ww, lz + (dLook.z - lz) * ww);
 }
-function revealShow() { const el = $('reveal'); $('rvName').textContent = TH.label; $('rvSub').textContent = (MODES.find(m => m[0] === mode) || MODES[0])[1] + ' \u00b7 ' + (mode === 'solo' ? 'Solo' : 'CPU ' + (DIFFS.find(d => d[0] === diff) || DIFFS[0])[1]); el.hidden = false; el.className = 'reveal'; void el.offsetWidth; el.className = 'reveal on'; }
+function revealShow() { const el = $('reveal'); $('rvName').textContent = TH.label; $('rvSub').textContent = tutMatchDue() ? 'Tutorial \u00b7 learn the ropes' : (MODES.find(m => m[0] === mode) || MODES[0])[1] + ' \u00b7 ' + (mode === 'solo' ? 'Solo' : 'CPU ' + (DIFFS.find(d => d[0] === diff) || DIFFS[0])[1]); el.hidden = false; el.className = 'reveal'; void el.offsetWidth; el.className = 'reveal on'; }
 function revealStep(rdt) { revealT += rdt; const el = $('reveal'); if (revealT >= REVEAL_T - 0.4 && el.className !== 'reveal out') el.className = 'reveal out'; if (revealT >= REVEAL_T) { state = 'intro'; introT = 0; setTimeout(() => { if (state !== 'reveal') el.hidden = true; }, 400); } }
 const fmtClock = s => { const t = Math.max(0, Math.ceil(s)); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); };
 function pause() {
@@ -13732,6 +13811,7 @@ const ordinal = n => n + (n % 10 === 1 && n % 100 !== 11 ? 'st' : n % 10 === 2 &
 const talEl = $('tally'); let tal = null, tyLiq = null;
 const tySeg = (e, f) => e.side === 'l' ? { x0: 0, x1: f, col: e.col } : e.side === 'r' ? { x0: 1 - f, x1: 1, col: e.col } : { x0: (e.c || 0.5) - f / 2, x1: (e.c || 0.5) + f / 2, col: e.col };
 function startTally() {
+  if (tutWinDue && state === 'dead' && !vic && !tal) { tutWinDue = false; return showTutWin(); } // (the lesson's own finish first; Next brings the tally)
   if (state !== 'dead' || vic || tal) return; const info = endInfo;
   if (info.mode === 'solo' || !info.tot || window.__instant) return startVictory();
   const trio = info.mode === 'trio', order = trio ? [P, H2, H] : [P, H]; // you from the left, the rival from the right (a 3-way: the second rival in the middle)
@@ -14176,6 +14256,7 @@ function frame(t) {
   checkHold();
   if (SLIME.S.ready && !VP.slime && booted && state === 'menu' && !lookOpen && !irisBusy) { attachSlimes(); queueWarm(); }
   if (state === 'paused') dt = 0; else if (hold > 0) { hold -= rdt; dt = 0; } else if (slow > 0) { slow -= rdt; dt = rdt * 0.35; }
+  if (tut && tut.slowK < 1 && state === 'play') dt *= tut.slowK; // (the lesson: slowed right down while a tip waits on you)
   if (dt > 0) { const n = Math.ceil(dt / 0.012); for (let i = 0; i < n; i++) step(dt / n); }
   visuals(dt, rdt); flushTrail();
   if (shadowLite >= 2) sun.shadow.needsUpdate = (++frameNo & 1) === 0;
@@ -14210,6 +14291,162 @@ let warmQ = 0; const queueWarm = () => { clearTimeout(warmQ); warmQ = setTimeout
   [SLAM_R * GIANT_SLAM, MISSILE_R * 0.9, MISSILE_R * GIANT_SLAM * 0.9].forEach(R => { for (let i = 0; i < 3; i++) crownGeoFor(R); }); // impact crowns ready before the first one
 })();
 colorId = PALETTE.some(p => p.id === store.color) ? store.color : 'red'; renderSwatches(); if (store.seen && store.seen.look) $('lookBtn').classList.remove('hot'); setColor(colorId); applyMode(); if (ARENA !== 26.4) mapUsed = true; paintName();
+// ---------- onboarding ----------
+// Your first match is a lesson on the blank canvas: a coach's tips, the game slowed right down while one is up, the rival keeping its
+// distance until you have the pound, and each thing (the roller, the orb, the flower) turning up when it is taught. After it: the shop
+// (the flower at half what the match paid, the fangs for the rest), the locker to wear them, and the vote before a real match, which
+// always lands on a Halloween canvas. Settings can start it over.
+if (!store.tut || typeof store.tut !== 'object' || !store.tut.ph) store.tut = { ph: (store.runs || 0) > 0 ? 'done' : 'match' };
+const tutEl = $('tut'), tutTxt = $('tutText'), tutCall = $('tutCall'), tutSlowEl = $('tutSlow'), tutDim = $('tutDim'), tutAva = $('tutAva');
+let tut = null, tutPrev = null, tutTip = null, tutWinDue = false; // tutWinDue: the lesson's finish screen is owed, before the tally // tut: the scripted match; tutPrev: the mode, level and canvas to put back after it; tutTip: the tip up now
+const tutPh = () => store.tut.ph, tutSet = ph => { if (store.tut.ph === ph) return; store.tut.ph = ph; save(); };
+const tutMatchDue = () => tutPh() === 'match';
+const TUT_SLOW = 0.22, TUT_HALLO = ['crypt', 'cathedral', 'manor'];
+const TUT_AI = Object.assign({}, AI_LV.easy, { pound: 0, attack: 0, dodge: 0, evade: 0, orb: 0, grab: 0, hunt: 0, ram: 0, speed: 0.8, steal: 0.7, trap: 0, airSling: 0, coffinHunt: 0, covPound: 0 });
+const TUT_AI_FIGHT = { speed: 1.08, dodge: 0, evade: 0 }; // (the dodge lesson: driven straight at you, a touch quicker)
+// the dodge lesson's rival: steered at you, and a jump pound once it is close enough and you are on the floor
+function tutDrive(D) {
+  const dx = P.x - D.x, dz = P.z - D.z, d = Math.hypot(dx, dz); if (D.charging) cancelCharge(D);
+  D.steer = D.slam ? 0 : -clamp(wrapA(Math.atan2(dx, dz) - D.yaw) * 3, -1, 1);
+  if (!D.air && !D.slam && P.st === 'play' && !P.air && d < 3.4 && d > 0.6 && Math.abs(P.y - D.y) < 0.8 && slamReady(D)) useSlam(D);
+}
+const TUT_AI_CALM = { speed: 0.8, pound: 0.45, poundR: 1.5, attack: 0.08, hunt: 0.025, dodge: 0, evade: 0 };
+// a tip: the coach's plate (an explanation, its face and name) or, with call set, a short line for an action, *the words that matter* in red
+function tutShow(text, at, key, call) {
+  if (tutTip && tutTip.key === key) return;
+  tutTip = { text, at: at || null, key, call: !!call }; tutEl.dataset.style = call ? 'call' : 'coach'; if (call) tutCall.innerHTML = escAttr(text).replace(/\*([^*]+)\*/g, '<em>$1</em>'); else tutTxt.textContent = text; try { tutAva.innerHTML = '<span class="bico" style="--cd:#8C6A14">' + slimeIcon(0xF2C14E, lookOf(P)) + '</span>'; } catch (e) {} tutEl.hidden = false; tutEl.classList.remove('on'); void tutEl.offsetWidth; tutEl.classList.add('on');
+  const el = tutAt(); if (el && el.scrollIntoView && (el.closest('.shgrid') || el.closest('.lrail'))) try { el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' }); } catch (e) {}
+  tutPlace(); tutDim.classList.add('on'); AU.plop();
+}
+function tutHide() { if (!tutTip) return; tutTip = null; tutEl.classList.remove('on'); tutEl.hidden = true; tutDim.classList.remove('on'); }
+function tutWindow(x, y, w, h) { const x0 = x.toFixed(0), y0 = y.toFixed(0), x1 = (x + w).toFixed(0), y1 = (y + h).toFixed(0), c = x0 + ' ' + y0 + ' ' + x1 + ' ' + y1; if (tutDim.dataset.w === c) return; tutDim.dataset.w = c;
+  tutDim.style.clipPath = 'polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,' + x0 + 'px ' + y0 + 'px,' + x0 + 'px ' + y1 + 'px,' + x1 + 'px ' + y1 + 'px,' + x1 + 'px ' + y0 + 'px,' + x0 + 'px ' + y0 + 'px)'; }
+const tutAt = () => !tutTip || !tutTip.at ? null : typeof tutTip.at === 'string' ? $(tutTip.at) : typeof tutTip.at === 'function' ? tutTip.at() : tutTip.at;
+// the plate sits over what it is about, pointing down at it (or under it, pointing up, when there is no room above); with nothing to point at it sits up top
+function tutPlace() {
+  if (!tutTip) return; const el = tutAt(), r0 = stage.getBoundingClientRect(), block = state !== 'play'; if (tutDim.classList.contains('block') !== block) tutDim.classList.toggle('block', block); // (between matches only the instructed control takes a tap)
+  const vis = el && !el.closest('[hidden]') && el.getClientRects().length > 0;
+  if (!vis) { if (tutEl.dataset.pos !== 'top') { tutEl.dataset.pos = 'top'; tutEl.style.cssText = ''; } tutWindow(viewW / 2, viewH / 2, 0, 0); return; }
+  const r = el.getBoundingClientRect(), cx = r.left - r0.left + r.width / 2, cw = Math.min(tutEl.offsetWidth, viewW - 24);
+  tutWindow(r.left - r0.left - 10, r.top - r0.top - 10, r.width + 20, r.height + 20);
+  const ph = tutEl.offsetHeight, roomUp = r.top - r0.top, roomDn = viewH - (r.bottom - r0.top), above = roomUp >= ph + 90 || (roomDn < ph + 90 && roomUp > roomDn); // (whichever side has the room)
+  const left = clamp(cx - cw / 2, 12, Math.max(12, viewW - cw - 12)); let y = above ? roomUp - 84 : r.bottom - r0.top + 84; // (the hand's fingertip lands on the edge of the thing, not over it)
+  y = above ? Math.max(y, ph + 4) : Math.min(y, viewH - ph - 8);
+  const pos = above ? 'above' : 'below'; if (tutEl.dataset.pos !== pos) tutEl.dataset.pos = pos;
+  const l = left.toFixed(0) + 'px', t = y.toFixed(0) + 'px', ax = (cx - left).toFixed(0) + 'px';
+  if (tutEl.style.left !== l) tutEl.style.left = l; if (tutEl.style.top !== t) tutEl.style.top = t; if (tutEl.style.getPropertyValue('--ax') !== ax) tutEl.style.setProperty('--ax', ax);
+}
+// the lesson, one step at a time: each one says what to do, waits for it (slowed down while it waits), then the next. max: real seconds before it moves on anyway
+const TUT_STEPS = [
+  { id: 'move', max: 40, enter() { tut.moved = 0; tut.lx = P.x; tut.lz = P.z; tut.slowK = TUT_SLOW; tutShow(say('*DRAG* to steer, *TAP* to jump!', '*A* and *D* steer, *SPACE* jumps!'), null, 'move', true); },
+    tick() { if (P.st === 'play' && !P.air) tut.moved += Math.hypot(P.x - tut.lx, P.z - tut.lz); tut.lx = P.x; tut.lz = P.z; return tut.moved > 7; } },
+  { id: 'sling', max: 40, enter() { tut.slowK = TUT_SLOW; tutShow(say('*HOLD*, *PULL DOWN*, then let go to fling!', 'Hold *S*, then let go to fling!'), null, 'sling', true); },
+    tick() { return P.st === 'play' && P.air && P.flung && (P.flingC || 0) > 0.1; } },
+  { id: 'free1', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 7; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
+  { id: 'basin', max: 45, enter() { if (P.paint > 0.42) P.paint = 0.42; pingTank(4); tut.slowK = TUT_SLOW; tutShow('Low paint! Drop into a *' + potWord().toUpperCase() + '* to refill', 'bar', 'basin', true); },
+    tick() { return P.st === 'hide'; } },
+  { id: 'pound', max: 80, enter() { tut.hidePound = false; tut.keepAway = false; P.slamCD = 0; tut.kos0 = P.kos; tut.flat0 = P.flatted; tut.slowK = TUT_SLOW; tut.slowT = 3.5; tut.sub = ''; },
+    tick(dt) { if (P.st === 'play' && P.paint < 0.6) P.paint = Math.min(1, P.paint + dt * 1.6); if (P.slamCD > 1.5) P.slamCD = 1.5; // (paint and the pound keep coming back until one lands)
+      const sub = P.st === 'hide' ? 'burst' : 'pound';
+      if (sub !== tut.sub) { tut.sub = sub; if (sub === 'burst') tutShow(say('Full tank! Tap *POUND* to burst out', 'Full tank! Press *E* to burst out'), 'slamBtn', 'burst', true); else tutShow(say('Your Pound. Fling at the rival, then tap it mid-air to splat them', 'Your Pound (E). Fling at the rival, then press E mid-air to splat them'), 'slamBtn', 'pound'); }
+      return P.kos > tut.kos0 || P.flatted > tut.flat0; } },
+  { id: 'dodge', max: 60, enter() { Object.assign(TUT_AI, TUT_AI_FIGHT); tut.drive = H; H.slamCD = 0; if (H.paint < 0.8) H.paint = 1; if (H.ai) { H.ai.plan = null; H.ai.path = null; } tut.rolled = false; tut.hits = 0; tut.wasKo = false; tut.slowK = 1; tut.sub = ''; tutShow(say('Rivals pound too. Swipe up just before it lands to dodge', 'Rivals pound too. Shift just before it lands to dodge'), null, 'dodge'); },
+    tick() { if (H.st === 'play' && !H.slam && H.slamCD > 1.2) H.slamCD = 1.2; if (H.paint < 0.5) H.paint = 1;
+      const d = Math.hypot(H.x - P.x, H.z - P.z), eta = H.slam ? H.slamEta - H.slamT : 9, coming = H.slam && H.st === 'play' && P.st === 'play' && !P.air && d < slamRadius(H) + PR + 2.5;
+      if (coming && P.rollT > 0) tut.rolled = true; // (a roll while its pound is in the air: that is the timing)
+      if (P.st === 'ko' && !tut.wasKo) tut.hits++; tut.wasKo = P.st === 'ko';
+      const now = coming && eta < 0.62; tut.slowK = now ? 0.14 : coming ? 0.45 : 1;
+      const sub = now ? 'now' : 'dodge'; if (sub !== tut.sub) { tut.sub = sub; if (now) tutShow(say('*NOW!* Swipe up!', '*NOW!* Shift!'), null, 'dodgenow', true); else tutShow(say('Rivals pound too. Swipe up just before it lands to dodge', 'Rivals pound too. Shift just before it lands to dodge'), null, 'dodge'); }
+      return (tut.rolled || tut.hits >= 2) && P.st === 'play' && !H.slam; },
+    exit() { Object.assign(TUT_AI, TUT_AI_CALM); tut.drive = null; } },
+  { id: 'item', max: 50, enter() { tut.items = true; tutSpawnRoller(); tut.slowK = 0.35; tut.sub = ''; },
+    tick() { const sub = P.held === 'roller' ? 'use' : 'grab'; if (sub !== tut.sub) { tut.sub = sub; if (sub === 'grab') tutShow('Roll over the *ROLLER* to pick it up!', null, 'item', true); else tutShow(say('*TAP* the roller to use it!', 'Press *F* to use it!'), 'itemBtn', 'use', true); }
+      return !!(P.power && P.power.type === 'roller'); } },
+  { id: 'free2', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 6; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
+  { id: 'orb', max: 55, enter() { orb.spawnT = 0; tut.orbMine = true; tut.hadRocket = false; tut.slowK = 0.4; tutShow('A special orb! Roll up to it for a super move', null, 'orb'); },
+    tick() { if (P.rocket && !tut.hadRocket) { tut.hadRocket = true; tut.slowK = 0.6; tutShow(say('Steer over the rival, then tap Boost', 'Steer over the rival, then press E to boost'), 'slamBtn', 'rocket'); }
+      return tut.hadRocket && !P.rocket; },
+    exit() { tut.orbMine = false; TUT_AI.orb = 0.35; } },
+  { id: 'free3', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 8; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
+  { id: 'flower', max: 40, enter() { gift.id = 'flower'; gift.at = runT; tut.slowK = 1; tutShow('A flower! *GRAB IT* to unlock it!', null, 'flower', true); }, tick() { return gift.got; },
+    exit() { if (!gift.got) { gift.got = true; gift.on = false; giftM.visible = giftRing.visible = giftBeam.visible = false; unlockItem('flower'); newItem = 'flower'; } } },
+  { id: 'rest', max: 1e9, enter() { tutHide(); tut.slowK = 1; if (matchLeft < 28) matchLeft = 28; }, tick() { return false; } }
+];
+const TUT_REST = TUT_STEPS.length - 1;
+function tutSpawnRoller() {
+  const spots = POWER_SPOTS.filter(sp => !powers.some(o => Math.hypot(o.x - sp[0], o.z - sp[2]) < 3)); if (!spots.length) return;
+  let best = null, bs = 1e9; for (const sp of spots) { const d = Math.hypot(P.x - sp[0], P.z - sp[2]), sc = d < 4 ? d + 20 : d; if (sc < bs) { bs = sc; best = sp; } }
+  const pw = { phase: Math.random() * 6, pop: 0, grace: 0, owner: null }; placePower(pw, 'roller', best); powers.push(pw); itemSpawn.last = 'roller'; itemSpawn.t = 12; AU.spot();
+}
+function tutStep(dt) {
+  if (!tut || state !== 'play') return;
+  if (tut.step < 0) { if (P.st === 'play' && !P.air && runT > 0.6) tutNext(); return; }
+  const s = TUT_STEPS[tut.step]; if (tut.step < TUT_REST && matchLeft < 20) matchLeft = 20; // (the lesson does not run out the clock)
+  if (s.tick(dt)) { if (tut.step < TUT_REST && !s.id.startsWith('free')) { popText('Nice!'); AU.pop(); } tutNext(); }
+}
+function tutNext() { if (!tut) return; const cur = TUT_STEPS[tut.step]; if (cur && cur.exit) cur.exit(); if (tut.step >= TUT_REST) return; tut.step++; tut.st = 0; TUT_STEPS[tut.step].enter(); }
+function tutFrame(rdt) {
+  if (tut) { if (state === 'play' && tut.step >= 0) { tut.st += rdt; if (tut.st > TUT_STEPS[tut.step].max) tutNext(); } const on = state === 'play' && tut.slowK < 1; if (tutSlowEl.classList.contains('on') !== on) tutSlowEl.classList.toggle('on', on); }
+  else { if (tutSlowEl.classList.contains('on')) tutSlowEl.classList.remove('on'); tutMenuTick(); }
+  if (tutTip) tutPlace();
+}
+// the lesson match plays as a duel on the blank canvas against a gentle CPU, whatever the lobby was set to; it all goes back after
+function tutPrep() { if (!tutMatchDue()) return; if (!tutPrev) tutPrev = { mode, diff, stageSel }; mode = 'duel'; diff = 'easy'; stageSel = 'blank'; applyMode(); }
+function tutRestore() { if (!tutPrev) return; mode = tutPrev.mode; diff = tutPrev.diff; stageSel = tutPrev.stageSel; tutPrev = null; applyMode(); }
+function tutBegin() { // (as a match begins)
+  if (tutPh() === 'vote') tutSet('match2');
+  if (!tutMatchDue()) { tut = null; return; }
+  Object.assign(TUT_AI, TUT_AI_CALM, { pound: 0, attack: 0, orb: 0 }); AI = TUT_AI;
+  tut = { step: -1, st: 0, slowK: 1, hidePound: true, keepAway: true, items: false, orbMine: false, drive: null };
+  wxLeft = 1e9; orb.spawnT = 1e9; Object.assign(gift, { id: 'flower', on: false, got: false, pop: 0, at: 1e9 }); giftM.visible = giftRing.visible = giftBeam.visible = false;
+}
+function tutLeave() { tut = null; tutHide(); tutSlowEl.classList.remove('on'); tutRestore(); tutWinDue = false; const tw = $('tutWin'); tw.classList.remove('on'); tw.hidden = true; }
+function tutEndMatch() { // (as a match ends)
+  if (tut) {
+    tut = null; tutHide(); tutSlowEl.classList.remove('on');
+    if (!owns('flower')) unlockItem('flower'); if (!newItem) newItem = 'flower';
+    store.tut.price = { flower: Math.max(1, Math.round((endInfo.drops || 0) / 2)) }; // (half what this match paid)
+    for (const k of ['steer', 'jump', 'hold', 'burst', 'roll', 'pound', 'missile', 'item', 'orb', 'rocket', 'airdash']) store.seen[k] = 1; // (taught: the one-time tips stay down)
+    tutSet('shop'); save(); tutWinDue = true; return;
+  }
+  if (tutPh() === 'match2') { delete store.tut.price; tutSet('done'); save(); }
+}
+function tutFangsSale() { const t = store.tut.price || (store.tut.price = {}); if (t.fangs >= 0) return; if (!OWNED.has('fangs')) { OWNED.add('fangs'); store.owned = [...OWNED]; } t.fangs = store.drops || 0; save(); if (shopOpen) renderShop(); }
+// between matches the coach points the way: the shop for the flower and the fangs, the locker to wear them, then the canvases to vote
+function tutMenuTick() {
+  const ph = tutPh(); if (menu.classList.contains('tutoring') !== (ph !== 'done')) menu.classList.toggle('tutoring', ph !== 'done'); // (the lesson keeps the lobby simple: no commissions, no how-to)
+  if (ph === 'match') { if (state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden) tutShow('Your first match is a lesson. Tap Play', 'homePlay', 'first'); else tutHide(); return; }
+  if (ph !== 'shop' && ph !== 'locker' && ph !== 'vote') return tutHide();
+  if (state === 'dead') { if (ph === 'shop' && !$('newItem').hidden) return tutShow('Tap to see your new flower in the shop', 'niTry', 'ni'); if (!end.hidden) return tutShow('Head back to the lobby', 'menuBtn', 'tomenu'); return tutHide(); }
+  if (state !== 'menu' || building || irisBusy || !setModal.hidden || !nameModal.hidden || !howModal.hidden) return tutHide();
+  const card = id => $('shopGrid').querySelector('.shitem[data-w="' + id + '"]'), tile = id => $('lookRail').querySelector('.ltile[data-w="' + id + '"]');
+  if (ph === 'shop') {
+    if (shopOpen) { if (!bought('flower')) return tutShow('Buy the flower you found. It is half price today', () => card('flower'), 'buyflower');
+      if (!bought('fangs')) { tutFangsSale(); return tutShow('It is the Halloween season: fangs are on sale for the rest of your dabs', () => card('fangs'), 'buyfangs'); }
+      tutSet('locker'); return; }
+    if (lookOpen) return tutShow('Open the Paint Shop', 'lkBal', 'shop');
+    if (menuPage === 'worlds') return tutShow('Back to the lobby', 'worldBack', 'back');
+    return tutShow('You earned dabs. Open the Paint Shop', 'dabsBtn', 'shop');
+  }
+  if (ph === 'locker') {
+    if (shopOpen) return tutShow('Back to the lobby', 'shopBack', 'back');
+    if (lookOpen) { if (lookCat !== 'face') return tutShow('Open Facial', 'lc-face', 'face'); if (myLook.mouth !== 'fangs') return tutShow('Tap the fangs to wear them', () => tile('fangs'), 'wear'); tutSet('vote'); return tutShow('Looking sharp. Done', 'lookDone', 'done'); }
+    if (menuPage === 'worlds') return tutShow('Back to the lobby', 'worldBack', 'back');
+    return tutShow('Open your locker to put the fangs on', 'lookBtn', 'locker');
+  }
+  if (shopOpen) return tutShow('Back to the lobby', 'shopBack', 'back'); if (lookOpen) return tutShow('Done', 'lookDone', 'done');
+  if (menuPage === 'worlds') return tutShow('Pick a canvas: that is your vote. Rivals vote too, and one vote is drawn. Then Start', 'startBtn', 'start');
+  return tutShow('Time for a real match. Pick a canvas to vote for', 'stageBtn', 'pick');
+}
+$('tutReplay').addEventListener('click', () => { AU.init(); AU.ui(); store.tut = { ph: 'match' }; save(); closeSettings(); });
+// the lesson's finish, in place of the tally for a beat: the canvas through the window, the title, and what was learned ticked off; Next goes on to the tally
+const TW_LIST = ['Steering', 'Flinging', 'Refilling', 'The pound', 'Dodging', 'The roller', 'The orb', 'Finding items'];
+function showTutWin() {
+  const el = $('tutWin'); $('twList').innerHTML = TW_LIST.map((t, i) => '<li style="--i:' + i + '"><i><svg viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L20 7"/></svg></i>' + t + '</li>').join('');
+  hud.classList.add('off'); hintEl.classList.remove('on'); el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); AU.fanfare(); setTimeout(() => AU.power(), 500); buzz([20, 40, 20]);
+  setTimeout(() => $('twNext').focus({ preventScroll: true }), 80);
+}
+$('twNext').addEventListener('click', () => { AU.init(); AU.ui(); const el = $('tutWin'); el.classList.remove('on'); setTimeout(() => { el.hidden = true; }, 300); if (state === 'dead') startTally(); });
 applyOrient(); showMenu();
 await bootStep(0.82, 0.97, 'Hanging the show');
 await Promise.race([slimeLoad, new Promise(r => setTimeout(r, 12000))]); attachSlimes();

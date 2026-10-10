@@ -1,0 +1,68 @@
+/* ---- the coach: a striped dark plate, the coach's name over a dashed rule, its face, and the line; a hand points at what it is about ---- */
+.tut{position:absolute;left:0;top:0;z-index:60;pointer-events:none;width:max-content;max-width:min(94vw,520px);opacity:0;transition:opacity .2s}
+.tut.on{opacity:1}
+.tut[data-pos="top"]{left:50%;top:96px;transform:translateX(-50%)}
+.tut[data-pos="above"]{transform:translateY(-100%)}
+.tut .tplate{position:relative;display:grid;grid-template-columns:60px minmax(0,1fr);grid-template-rows:auto auto;column-gap:14px;align-items:center;box-sizing:border-box;min-width:min(320px,94vw);padding:9px 20px 13px 12px;border-radius:14px;color:#fff;background:repeating-linear-gradient(-56deg,rgba(14,12,20,.86) 0 16px,rgba(44,40,54,.86) 16px 32px);box-shadow:0 8px 20px rgba(0,0,0,.45),inset 0 0 0 1.5px rgba(255,255,255,.09)}
+.tut .tname{grid-column:1/-1;justify-self:start;min-width:190px;padding-bottom:5px;margin-bottom:9px;border-bottom:3px dashed rgba(255,255,255,.42);font:400 19px/1 var(--font-display);color:#3BEBD0;text-shadow:2px 2px 0 rgba(0,0,0,.7);letter-spacing:.01em}
+.tut .tava{display:block;width:60px;height:60px;border-radius:12px;background:#9FE9DB;overflow:hidden;box-shadow:0 2px 0 rgba(0,0,0,.4),inset 0 0 0 2px rgba(255,255,255,.35)}
+.tut .tava .bico{display:block;width:100%;height:100%} .tut .tava svg{display:block;width:100%;height:100%}
+.tut .ttext{font:400 18px/1.22 var(--font-display);color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.7),0 0 3px rgba(0,0,0,.55);letter-spacing:.01em;text-wrap:balance}
+.tut .thand{position:absolute;left:var(--ax,50%);width:58px;height:76px;margin-left:-25px;display:none;animation:tutbob .6s ease-in-out infinite alternate}
+.tut[data-pos="above"] .thand{display:block;top:100%;margin-top:4px}
+.tut[data-pos="below"] .thand{display:block;bottom:100%;margin-bottom:4px;transform:scaleY(-1)}
+.tut .thand svg{width:100%;height:100%;filter:drop-shadow(3px 4px 0 rgba(0,0,0,.35))}
+.tut.on .tplate{animation:tutin .36s cubic-bezier(.2,1.2,.4,1) both}
+@keyframes tutin{from{transform:scale(.88);opacity:0}to{transform:none;opacity:1}}
+@keyframes tutbob{from{translate:0 0}to{translate:0 9px}}
+/* the short ones, for an action: a big outlined line, the words that matter in red (*so*), no plate */
+.tut .tcall{display:none;margin:0;padding:0 8px;max-width:min(94vw,560px);text-align:center;font:400 clamp(21px,5.6vw,30px)/1.1 var(--font-display);color:#fff;-webkit-text-stroke:1.5px #2A1B4F;paint-order:stroke fill;text-shadow:0 4px 0 #2A1B4F,0 6px 0 rgba(0,0,0,.25);letter-spacing:.01em;text-wrap:balance}
+.tut .tcall em{font-style:normal;color:#E3122F}
+.tut[data-style="call"] .tplate{display:none}
+.tut[data-style="call"] .tcall{display:block}
+.tut[data-style="call"][data-pos="top"]{top:22%}
+.tut.on[data-style="call"] .tcall{animation:tutin .36s cubic-bezier(.2,1.2,.4,1) both}
+/* behind the plate the screen goes dark, with a window left round what the plate points at; between matches only that window takes a tap */
+.tutdim{position:absolute;inset:0;z-index:59;pointer-events:none;background:rgba(23,19,32,.55);opacity:0;transition:opacity .25s,clip-path .22s;clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,50% 50%,50% 50%,50% 50%,50% 50%,50% 50%)}
+.tutdim.on{opacity:1}
+.tutdim.on.block{pointer-events:auto}
+.menu.tutoring #commBtn,.menu.tutoring #howBtn{display:none}
+/* the slow-down: a gold frame and a soft vignette while a lesson is up */
+.tutslow{position:absolute;inset:0;z-index:7;pointer-events:none;opacity:0;transition:opacity .4s;background:radial-gradient(ellipse at center,transparent 58%,rgba(23,19,32,.42) 100%);box-shadow:inset 0 0 0 3px var(--gold)}
+.tutslow.on{opacity:1}
+@media (min-aspect-ratio:1/1){.tut[data-pos="top"]{top:64px}}
+@media (max-width:420px){.tut .ttext{font-size:16px}.tut .tplate{grid-template-columns:52px minmax(0,1fr);column-gap:11px;padding:8px 14px 12px 10px}.tut .tava{width:52px;height:52px}}
+@media (prefers-reduced-motion:reduce){.tut .thand,.tut.on .tplate{animation:none}}
+/* ---- the lesson's own finish: the canvas seen through a slanted window in the dark, the title over it, and a warm panel ticking off what was learned ---- */
+.tutwin{position:absolute;inset:0;z-index:35;pointer-events:none;opacity:0;transition:opacity .3s}
+.tutwin.on{opacity:1}
+.tutwin .twdark,.tutwin .twrim{position:absolute;inset:0}
+.tutwin .twdark{background:#17131F;clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,0 18%,100% 15%,100% 79%,0 82%,0 18%)}
+.tutwin .twrim{background:#F4EEE3;clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,0 19.6%,100% 16.6%,100% 77.4%,0 80.4%,0 19.6%)}
+.tutwin .twtitle{position:absolute;left:0;right:0;top:max(16px,env(safe-area-inset-top));text-align:center;font:400 clamp(26px,7vw,58px)/1 var(--font-display);text-transform:uppercase;letter-spacing:.02em;transform:skewX(-7deg)}
+.tutwin .twtitle b{display:inline-block;padding:4px 18px 6px;background:#17131F;color:#fff;box-shadow:5px 5px 0 rgba(0,0,0,.35)}
+.tutwin .twtitle b.g{display:inline-block;margin-top:-4px;color:#3BE889;font-size:1.12em}
+.tutwin .twpanel{position:absolute;right:3%;top:18%;width:min(36%,360px);bottom:18%;box-sizing:border-box;padding:26px 24px;background:linear-gradient(168deg,#F9D23A 0%,#F4921C 100%);box-shadow:6px 8px 0 rgba(0,0,0,.35);transform:skewX(-5deg);overflow:hidden}
+.tutwin .twpanel>div{transform:skewX(5deg)}
+.tutwin .twpanel p{margin:0 0 16px;font:800 clamp(16px,2.6vw,22px)/1.25 var(--font-ui);color:#171320;text-wrap:balance}
+.tutwin .twpanel ul{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.tutwin .twpanel li{display:flex;align-items:center;gap:12px;font:800 clamp(14px,2.2vw,19px)/1 var(--font-ui);color:#171320;opacity:0;animation:twtick .35s ease-out forwards;animation-delay:calc(.35s + var(--i) * .1s)}
+.tutwin .twpanel li i{flex:none;display:grid;place-items:center;width:30px;height:30px;background:#17131F;transform:rotate(-7deg);box-shadow:2px 2px 0 rgba(0,0,0,.3)}
+.tutwin .twpanel li i svg{width:22px;height:22px;fill:none;stroke:#3BE889;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+@keyframes twtick{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+.tutwin #twNext{position:absolute;left:50%;bottom:max(18px,env(safe-area-inset-bottom));width:min(240px,60vw);transform:translateX(-50%);pointer-events:auto;margin:0}
+@media (min-aspect-ratio:1/1){
+.tutwin .twtitle{right:42%;font-size:clamp(22px,5.2vw,44px)}
+.tutwin .twpanel{top:14%;bottom:14%;padding:14px 18px}
+.tutwin .twpanel p{margin-bottom:10px;font-size:clamp(14px,2.2vw,18px)}
+.tutwin .twpanel ul{grid-template-columns:1fr 1fr;gap:7px 10px}
+.tutwin .twpanel li{font-size:clamp(12px,1.8vw,16px)} .tutwin .twpanel li i{width:24px;height:24px} .tutwin .twpanel li i svg{width:17px;height:17px}
+.tutwin #twNext{left:31%}
+}
+@media (max-aspect-ratio:1/1){
+.tutwin .twdark{clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,0 15%,100% 13%,100% 46%,0 48%,0 15%)}
+.tutwin .twrim{clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,0 16.4%,100% 14.4%,100% 44.6%,0 46.6%,0 16.4%)}
+.tutwin .twpanel{left:5%;right:5%;top:52%;bottom:auto;width:auto;padding:18px 20px;transform:skewX(-3deg)}
+.tutwin .twpanel>div{transform:skewX(3deg)}
+.tutwin .twpanel ul{grid-template-columns:1fr 1fr;gap:8px 12px}
+}
