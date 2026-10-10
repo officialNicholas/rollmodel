@@ -13,6 +13,7 @@ def arr(ai):
 pr = j['meshes'][0]['primitives'][0]
 P = arr(pr['attributes']['POSITION']); N = arr(pr['attributes']['NORMAL']); UV = arr(pr['attributes']['TEXCOORD_0']); IX = arr(pr['indices']).reshape(-1)
 if center: P = P - (P.min(0) + P.max(0)) / 2
+if '--floor' in sys.argv: P = P - [(P.min(0)[0] + P.max(0)[0]) / 2, P.min(0)[1], (P.min(0)[2] + P.max(0)[2]) / 2]  # (centred, standing on y = 0, as the hats are)
 n = len(P); mn, mx = P.min(0), P.max(0)
 # smoothed normals: the average over every vertex that shares a position (so the outline shell has no cracks)
 key = np.round(P, 5); _, inv = np.unique(key, axis=0, return_inverse=True); inv = inv.reshape(-1)
