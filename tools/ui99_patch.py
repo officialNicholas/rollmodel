@@ -11,7 +11,8 @@ def rep(old, new, count=1):
     s = s.replace(old, new)
 rep("const tutBootEl = $('boot');\nfunction tutMenuTick() {\n  if (bootHold || !booted || !tutBootEl.classList.contains('gone')) return tutHide();",
     "const tutBootEl = $('boot'), tutOrientEl = $('orient');\nfunction tutMenuTick() {\n  if (bootHold || !booted || !tutBootEl.classList.contains('gone') || !tutOrientEl.hidden || document.querySelector('.modal:not([hidden])')) return tutHide(); // (nothing over the loading screen, the orientation chooser or any dialog)")
-rep('<p class="ver">Version 168</p>', '<p class="ver">Version 169</p>')
+rep('<p class="errline" id="errLine" hidden></p>', '<p class="errline" id="errLine" hidden></p><i class="tuthand" id="tutHand" hidden aria-hidden="true"></i>')
+rep('<p class="ver">Version 168</p>', '<p class="ver">Version 170</p>')
 open(DST, 'w').write(s)
 subprocess.run(['python3', '-I', S + '/ws/gen/sfx_index.py', S + '/ws/sfx/gains.json'], check=True)
 print('ui99 ok', n0, '->', len(s))
