@@ -5,7 +5,7 @@
 // always lands on a Halloween canvas. Settings can start it over.
 if (!store.tut || typeof store.tut !== 'object' || !store.tut.ph) store.tut = { ph: (store.runs || 0) > 0 ? 'done' : 'match' };
 const tutArrowEl = $('tutArrow'), tutGV = new THREE.Vector3(), tutHandEl = $('tutHand'), tutEl = $('tut'), tutTxt = $('tutText'), tutCall = $('tutCall'), tutSlowEl = $('tutSlow'), tutDim = $('tutDim'), tutAva = $('tutAva');
-let tut = null, tutPrev = null, tutTip = null, tutWinDue = false, tutNiAt = 0; // tutNiAt: when the new item card came up (the coach waits for the item to land) // tutWinDue: the lesson's finish screen is owed, before the tally // tut: the scripted match; tutPrev: the mode, level and canvas to put back after it; tutTip: the tip up now
+let tut2 = null, tut = null, tutPrev = null, tutTip = null, tutWinDue = false, tutNiAt = 0; // tutNiAt: when the new item card came up (the coach waits for the item to land) // tutWinDue: the lesson's finish screen is owed, before the tally // tut: the scripted match; tutPrev: the mode, level and canvas to put back after it; tutTip: the tip up now
 const tutPh = () => store.tut.ph, tutSet = ph => { if (store.tut.ph === ph) return; store.tut.ph = ph; save(); };
 const tutMatchDue = () => tutPh() === 'match';
 const TUT_SLOW = 0.35, TUT_HALLO = ['crypt', 'cathedral', 'manor'];
@@ -19,11 +19,11 @@ function tutDrive(D) {
 }
 const TUT_AI_CALM = { speed: 0.8, pound: 0.45, poundR: 1.5, attack: 0.08, hunt: 0.025, dodge: 0, evade: 0 };
 // a tip: the coach's plate (an explanation, its face and name) or, with call set, a short line for an action, *the words that matter* in red
-function tutShow(text, at, key, call, nodim, side) {
+function tutShow(text, at, key, call, nodim, side, loose) {
   if (tutTip && tutTip.key === key) return;
-  tutTip = { text, at: at || null, key, call: !!call, nodim: !!nodim, side: side || null }; tutEl.dataset.style = call ? 'call' : 'coach'; if (call) tutCall.innerHTML = escAttr(text).replace(/\*([^*]+)\*/g, '<em>$1</em>'); else tutTxt.textContent = text; try { tutAva.innerHTML = '<span class="bico" style="--cd:#8C6A14">' + slimeIcon(0xF2C14E, lookOf(P)) + '</span>'; } catch (e) {} tutEl.hidden = false; tutEl.classList.remove('on'); void tutEl.offsetWidth; tutEl.classList.add('on');
+  tutTip = { text, at: at || null, key, call: !!call, nodim: !!(nodim || loose), side: side || null, loose: !!loose }; /* (loose: up top, a hand on the control, nothing dimmed or blocked) */ tutEl.dataset.style = call ? 'call' : 'coach'; if (call) tutCall.innerHTML = escAttr(text).replace(/\*([^*]+)\*/g, '<em>$1</em>'); else tutTxt.textContent = text; try { tutAva.innerHTML = '<span class="bico" style="--cd:#8C6A14">' + slimeIcon(0xF2C14E, lookOf(P)) + '</span>'; } catch (e) {} tutEl.hidden = false; tutEl.classList.remove('on'); void tutEl.offsetWidth; tutEl.classList.add('on');
   const el = tutAt(); if (el) tutReveal(el);
-  tutPlace(); tutDim.classList.toggle('on', !nodim && state !== 'play'); AU.plop(); // (no dim in a match: the play must stay clear)
+  tutPlace(); tutDim.classList.toggle('on', !nodim && !loose && state !== 'play'); AU.plop(); // (no dim in a match: the play must stay clear)
 }
 // bring a card or tile into the middle of its own scroller (the shop grid down, the locker rail across), and nothing else: scrollIntoView would scroll the page too on a phone
 function tutReveal(el) {
@@ -44,13 +44,13 @@ const tutAt = () => !tutTip || !tutTip.at ? null : typeof tutTip.at === 'string'
 // the plate sits over what it is about, pointing down at it (or under it, pointing up, when there is no room above); with nothing to point at it sits up top
 function tutPlace() {
   if (!tutTip) return; if (window.scrollY || window.scrollX) try { window.scrollTo(0, 0); } catch (e) {} // (a phone's page scroll would put the hand off its mark)
-  const el = tutAt(), r0 = stage.getBoundingClientRect(), block = state !== 'play';
-  if (state === 'play') { // (in a match: up under the score, the hand loose over the control, no dim)
+  const el = tutAt(), r0 = stage.getBoundingClientRect(), block = state !== 'play' && !tutTip.loose;
+  if (state === 'play' || tutTip.loose) { // (in a match, or a loose tip: up top, the hand loose over the control, no dim)
     if (tutDim.classList.contains('on')) tutDim.classList.remove('on');
     if (tutEl.dataset.pos !== 'play') { tutEl.dataset.pos = 'play'; tutEl.style.cssText = ''; }
-    const sc = tutPipsEl.classList.contains('on') ? tutPipsEl : document.querySelector('#hud .score'), sb = sc && sc.getBoundingClientRect(), t = ((sb && sb.height ? sb.bottom - r0.top : 90) + 10).toFixed(0) + 'px'; if (tutEl.style.top !== t) tutEl.style.top = t;
+    const sc = state !== 'play' ? null : tutPipsEl.classList.contains('on') ? tutPipsEl : document.querySelector('#hud .score'), sb = sc && sc.getBoundingClientRect(), t = (state !== 'play' ? Math.max(8, parseFloat(getComputedStyle(stage).paddingTop) || 0) : (sb && sb.height ? sb.bottom - r0.top : 90) + 10).toFixed(0) + 'px'; if (tutEl.style.top !== t) tutEl.style.top = t;
     tutHandAt(el && !el.closest('[hidden]') && el.getClientRects().length ? el : null, r0);
-    { const pb = (parseFloat(tutEl.style.top) || 90) + tutEl.offsetHeight + 14, pt = pb.toFixed(0) + 'px', pe = $('pop'); if (pe.style.top !== pt) { pe.style.top = pt; popMoved = true; } } // (the pop text drops under the tip, not over it)
+    if (state === 'play') { const pb = (parseFloat(tutEl.style.top) || 90) + tutEl.offsetHeight + 14, pt = pb.toFixed(0) + 'px', pe = $('pop'); if (pe.style.top !== pt) { pe.style.top = pt; popMoved = true; } } // (the pop text drops under the tip, not over it)
     return;
   }
   tutHandAt(null); if (tutDim.classList.contains('block') !== block) tutDim.classList.toggle('block', block); // (between matches only the instructed control takes a tap)
@@ -137,7 +137,7 @@ function tutCardText(t) { $('tgTitle').innerHTML = t[0]; $('tgText').textContent
 // the welcome to the real game: commissions open, and what to chase next
 function tutWelcome() {
   const el = $('tutGo'); if (!el.hidden) return; el.dataset.mode = 'welcome';
-  tutCardText(['You\u2019re <em>ready!</em>', 'Commissions are open: goals that pay dabs. Win matches, find the Halloween items on the spooky canvases, and climb the ranks.', 'Show me', 'Later']);
+  tutCardText(['Commissions <em>are open!</em>', 'Commissions are goals that pay extra dabs, and they refresh every day. Check in whenever you\u2019re here.', 'Show me', 'Later']);
   try { $('tgAva').innerHTML = '<span class="bico" style="--cd:#8C6A14">' + slimeIcon(0xF2C14E, lookOf(P)) + '</span>'; } catch (e) {}
   el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); AU.fanfare && AU.fanfare(); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);
 }
@@ -149,6 +149,22 @@ function tutCard(on) {
 }
 $('tgGo').addEventListener('click', () => { AU.init(); AU.ui(); if ($('tutGo').dataset.mode === 'welcome') tutWelcomeDone(true); else tutCard(false); });
 $('tgLater').addEventListener('click', () => { AU.init(); AU.ui(); tutWelcomeDone(false); });
+// the first real match: no weather until halfway, then the sun and the rain each with the coach's word, then the zombie eyes turn up
+function tut2Begin() { tut2 = { ph: 'calm', tipT: 0, hold: 0 }; wxLeft = 1e9; wxPhase = 'clear'; gift.id = null; gift.on = false; gift.got = false; giftM.visible = giftRing.visible = giftBeam.visible = false; }
+function tut2Step(dt) {
+  const t = tut2; if (!t || state !== 'play') return;
+  if (t.tipT > 0) { t.tipT -= dt; if (t.tipT <= 0) tutHide(); }
+  if (t.ph === 'calm') { wxLeft = Math.max(wxLeft, 1); if (matchLeft <= MATCH_T * 0.5) { t.ph = 'sun'; setWx('warn', SUN_WARN); AU.heatWarn(); t.tipT = SUN_WARN + SUN_TIME;
+      tutShow('The sun is coming up! Out in the open it dries your paint fast. Hide in the shade or a ' + potWord() + ' until it passes', null, 'wxsun', false, true); } }
+  else if (t.ph === 'sun') { if (wxPhase === 'dusk' && t.tipT > 0.4) t.tipT = 0.4; if (wxPhase === 'rain') { t.ph = 'rain'; t.tipT = RAIN_TIME;
+      tutShow('Rain! Everyone speeds up and hard paint goes soft. Fresh puddles water your paint down, so roll around them', null, 'wxrain', false, true); } }
+  else if (t.ph === 'rain') { if (wxPhase !== 'rain') { if (owns('zombie')) { t.ph = 'done'; return; } t.ph = 'gift'; gift.id = 'zombie'; gift.got = false; gift.on = false; gift.at = runT + 0.8; wxLeft = Math.max(wxLeft, 30); } }
+  else if (t.ph === 'gift') {
+    if (gift.on && !gift.got) tutShow('Zombie eyes! *GRAB THEM*', null, 'zgift', true, true);
+    if (gift.got) { t.ph = 'done'; tutHide(); store.zombieDeal = 1; save(); return; }
+    if (matchLeft < 12 && t.hold < 25) { t.hold += dt; matchLeft = 12; } // (time enough to reach them)
+  }
+}
 function tutOrbOff() { orb.on = false; orb.pull = 0; orb.g.visible = false; orb.ring.visible = false; }
 function tutSpawnRoller() {
   const spots = POWER_SPOTS.filter(sp => !powers.some(o => Math.hypot(o.x - sp[0], o.z - sp[2]) < 3)); if (!spots.length) return;
@@ -182,6 +198,7 @@ function tutStep(dt) {
 function tutNext() { if (!tut) return; const cur = TUT_STEPS[tut.step]; if (cur && cur.exit) cur.exit(); if (tut.step >= TUT_REST) return; tut.step++; tut.st = 0; TUT_STEPS[tut.step].enter(); }
 // where the lesson wants you to go: the flower, the roller, the orb (null when there is nothing to reach, or you are on it)
 function tutGoal() {
+  if (tut2 && tut2.ph === 'gift' && state === 'play' && P.st === 'play' && gift.on && !gift.got) return [gift.x, gift.z];
   if (!tut || state !== 'play' || P.st !== 'play' || tut.step < 0) return null; const id = TUT_STEPS[tut.step].id;
   if (id === 'flower' && gift.on && !gift.got) return [gift.x, gift.z];
   if (id === 'item' && !P.held && !P.power) { const pw = powers.find(q => q.g && q.type === 'roller'); if (pw) return [pw.x, pw.z]; }
@@ -199,9 +216,9 @@ function tutGuide() {
 }
 function tutFrame(rdt) {
   if (tut) { if (state === 'play' && tut.step >= 0) { tut.st += rdt; if (tut.st > TUT_STEPS[tut.step].max) tutNext(); } const on = state === 'play' && tut.slowK < 1 && !tut.card; if (tutSlowEl.classList.contains('on') !== on) tutSlowEl.classList.toggle('on', on); }
-  else { if (tutSlowEl.classList.contains('on')) tutSlowEl.classList.remove('on'); tutMenuTick(); }
+  else { if (tutSlowEl.classList.contains('on')) tutSlowEl.classList.remove('on'); if (!(tut2 && state === 'play')) tutMenuTick(); } // (the first real match runs its own tips)
   if (tutTip) tutPlace(); else if (popMoved) { popMoved = false; $('pop').style.top = ''; }
-  if (tut) tutGuide(); else if (!tutArrowEl.hidden) tutArrowEl.hidden = true;
+  if (tut || tut2) tutGuide(); else if (!tutArrowEl.hidden) tutArrowEl.hidden = true;
   if (tut || tutPipsEl.classList.contains('on')) tutPipsTick();
 }
 let popMoved = false;
@@ -210,12 +227,13 @@ function tutPrep() { if (!tutMatchDue()) return; if (!tutPrev) tutPrev = { mode,
 function tutRestore() { if (!tutPrev) return; mode = tutPrev.mode; diff = tutPrev.diff; stageSel = tutPrev.stageSel; tutPrev = null; applyMode(); }
 function tutBegin() { // (as a match begins)
   if (tutPh() === 'vote') tutSet('match2');
+  tut2 = null; if (tutPh() === 'match2') tut2Begin();
   if (!tutMatchDue()) { tut = null; return; }
   Object.assign(TUT_AI, TUT_AI_CALM, { pound: 0, attack: 0, orb: 0 }); AI = TUT_AI;
   tut = { step: -1, st: 0, slowK: 1, hidePound: true, keepAway: true, items: false, orbMine: false, drive: null, noTurret: true, pips: new Set(), bonus: 0, praiseN: 0 }; tutPipsDraw();
   wxLeft = 1e9; orb.spawnT = 1e9; Object.assign(gift, { id: 'flower', on: false, got: false, pop: 0, at: 1e9 }); giftM.visible = giftRing.visible = giftBeam.visible = false;
 }
-function tutLeave() { tutArrowEl.hidden = true; if (tut) tutCard(false); tut = null; tutHide(); tutSlowEl.classList.remove('on'); tutRestore(); tutWinDue = false; const tw = $('tutWin'); tw.classList.remove('on'); tw.hidden = true; }
+function tutLeave() { tut2 = null; tutArrowEl.hidden = true; if (tut) tutCard(false); tut = null; tutHide(); tutSlowEl.classList.remove('on'); tutRestore(); tutWinDue = false; const tw = $('tutWin'); tw.classList.remove('on'); tw.hidden = true; }
 function tutEndMatch() { // (as a match ends)
   if (tut) {
     const bonus = tut.bonus || 0; if (bonus) { store.drops = (store.drops || 0) + bonus; endInfo.drops = (endInfo.drops || 0) + bonus; } endInfo.tutBonus = bonus; // (the lessons' dabs)
@@ -225,7 +243,7 @@ function tutEndMatch() { // (as a match ends)
     for (const k of ['steer', 'jump', 'hold', 'burst', 'roll', 'pound', 'missile', 'item', 'orb', 'rocket', 'airdash']) store.seen[k] = 1; // (taught: the one-time tips stay down)
     tutSet('shop'); save(); tutWinDue = true; return;
   }
-  if (tutPh() === 'match2') { delete store.tut.price; tutSet('welcome'); save(); }
+  if (tutPh() === 'match2') { tut2 = null; tutHide(); delete store.tut.price; tutSet('welcome'); save(); }
 }
 function tutFangsSale() { const t = store.tut.price || (store.tut.price = {}); if (t.fangs >= 0) return; if (!OWNED.has('fangs')) { OWNED.add('fangs'); store.owned = [...OWNED]; } t.fangs = store.drops || 0; save(); if (shopOpen) renderShop(); }
 // between matches the coach points the way: the shop for the flower and the fangs, the locker to wear them, then the canvases to vote
@@ -248,9 +266,12 @@ function tutMenuTick() {
   }
   if (ph === 'locker') {
     if (shopOpen) return tutShow('Back to the lobby', 'shopBack', 'back');
-    if (lookOpen) { if (lookCat !== 'face') return tutShow('Open Facial', 'lc-face', 'face'); if (myLook.mouth !== 'fangs') return tutShow('Tap the fangs to wear them', () => tile('fangs'), 'wear'); tutSet('vote'); return tutShow('Looking sharp. Done', 'lookDone', 'done'); }
+    if (lookOpen) {
+      if (myLook.mouth !== 'fangs') { if (lookCat !== 'face') return tutShow('Open Facial', 'lc-face', 'face'); return tutShow('Tap the fangs to wear them', () => tile('fangs'), 'wear'); }
+      if (bought('flower') && myLook.side !== 'flower') { if (lookCat !== 'head') return tutShow('Now your flower. Open Headgear', 'lc-head', 'headg'); return tutShow('Tap the flower to wear it', () => tile('flower'), 'wearf'); } // (and the flower, found in the lesson)
+      tutSet('vote'); return tutShow('Looking sharp. Done', 'lookDone', 'done'); }
     if (menuPage === 'worlds') return tutShow('Back to the lobby', 'worldBack', 'back');
-    return tutShow('Open your locker to put the fangs on', 'lookBtn', 'locker');
+    return tutShow('Open your locker to wear your fangs and flower', 'lookBtn', 'locker');
   }
   if (shopOpen) return tutShow('Back to the lobby', 'shopBack', 'back'); if (lookOpen) return tutShow('Done', 'lookDone', 'done');
   if (menuPage === 'worlds') return tutShow('Pick a canvas: that is your vote. Rivals vote too, and one vote is drawn. Then Start', 'startBtn', 'start');
