@@ -2285,7 +2285,7 @@ svg{shape-rendering:geometricPrecision}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 163</p>
+      <p class="ver">Version 164</p>
     </div>
   </div>
 
@@ -12795,7 +12795,7 @@ function renderSwatches() {
 // picking a color: the logo repaints, your blob hops and splats the floor in it
 function pickColor(id) {
   const same = id === colorId; if (!same) { lobbyU.uCol2.value.setHex(TEAMS[0].wet); setColor(id); store.color = colorId; save(); kick($('logo'), 'paint'); if (lookOpen) lobbyU.uSweep.value = 0; }
-  menuReact = 0.7; AU.pop(); AU.splat(same ? 0.4 : 0.8);
+  { const now = performance.now(); if (!(now - (pickColor.hopAt || -1e9) < 5000)) { menuReact = 0.7; pickColor.hopAt = now; } } AU.pop(); AU.splat(same ? 0.4 : 0.8); // (a hop for the first pick, then no more than one every few seconds: browsing the swatches is not a trampoline)
   if (state === 'menu') { addSplat(P.x, P.y, P.z, P.yaw, 0.9, -8, false, false, 0); for (let i = 0; i < 14; i++) { const a = i / 14 * 6.283; spawnPart(P.x, P.y + 0.3, P.z, Math.cos(a) * 2.2, 2 + Math.random() * 1.6, Math.sin(a) * 2.2, 0.5, teamMats[0], 0.7); } }
 }
 $('swatches').addEventListener('click', e => { const b = e.target.closest('.sw'); if (!b) return; AU.init(); pickColor(b.dataset.c); });
@@ -12853,7 +12853,7 @@ function renderStages() {
   if (!el.children.length) { let h = ''; for (const [k, name, tag] of DIFFS) h += '<button type="button" data-d="' + k + '" title="' + tag + '">' + name + '</button>'; el.innerHTML = h; }
   for (const b of el.children) b.setAttribute('aria-pressed', String(b.dataset.d === diff));
   $('cvName').textContent = (mode === 'solo' ? '' : 'Your vote \u00b7 ') + TH.label; $('shuffleBtn').setAttribute('aria-label', (mode === 'solo' ? 'Shuffle the canvas. Now: ' : 'Shuffle your vote. Now: ') + TH.label);
-  { const sn = $('soloNote'); sn.innerHTML = mode === 'solo' ? '<b>Your canvas:</b> ' + escAttr(TH.label) + '. Solo plays the canvas you choose.' : '<b>Your vote:</b> ' + escAttr(TH.label) + '. Your rivals vote too, and one vote is drawn before the match.'; sn.hidden = false; }
+  { const sn = $('soloNote'); sn.innerHTML = mode === 'solo' ? '<b>Your canvas:</b> ' + escAttr(TH.label) + '. Solo plays the canvas you choose.' : '<b>Your vote:</b> ' + escAttr(TH.label) + '. Your rivals vote too. Most votes wins, and a tie is drawn.'; sn.hidden = false; }
   for (const b of el.children) b.textContent = CRITICS[b.dataset.d] || b.textContent;
   renderWorlds(); if (typeof renderLobbyUI === 'function' && $('lobbyStage')) renderLobbyUI();
 }
@@ -13752,7 +13752,7 @@ function openVote(id, done) {
   const box = $('vvote'), row = $('vts'), who = [P, H]; if (mode === 'trio') who.push(H2);
   const votes = new Map(); votes.set(P, VOTE_STAGES.includes(stageSel) ? stageSel : VOTE_STAGES[(Math.random() * VOTE_STAGES.length) | 0]);
   row.innerHTML = VOTE_STAGES.map(sid => '<button class="vt" type="button" data-s="' + sid + '"><span class="vch"></span><img alt="" src="' + stageArtOf(sid) + '"><small>' + escAttr(themeLabel(sid)) + '</small></button>').join('');
-  $('vvLbl').textContent = 'Vote for a canvas \u00b7 one vote is drawn'; $('vvWin').textContent = ''; box.classList.remove('ticking', 'done'); box.hidden = false; $('vsx').classList.add('voting');
+  $('vvLbl').textContent = 'Vote for a canvas \u00b7 most votes wins, a tie is drawn'; $('vvWin').textContent = ''; box.classList.remove('ticking', 'done'); box.hidden = false; $('vsx').classList.add('voting');
   const draw = () => { for (const b of row.children) { const sid = b.dataset.s, chips = [...votes].filter(([, v]) => v === sid).map(([D]) => '<i style="--c:' + TEAMS[D.team].css + '"></i>').join(''); b.querySelector('.vch').innerHTML = chips; b.classList.toggle('mine', votes.get(P) === sid); } };
   draw(); const st = voteState = { id, votes, open: true, timers: [] };
   const at = (ms, fn) => st.timers.push(setTimeout(() => { if (st !== voteState || id !== runId) return; fn(); }, ms));
@@ -13761,7 +13761,8 @@ function openVote(id, done) {
   const tutV = tutPh() === 'vote' ? TUT_HALLO[(Math.random() * TUT_HALLO.length) | 0] : null; // (the lesson: the rival's vote is a Halloween canvas, and it is the one drawn)
   who.slice(1).forEach((D, i) => at(1700 + i * 900 + Math.random() * 600, () => { votes.set(D, tutV && D === H ? tutV : VOTE_STAGES[(Math.random() * VOTE_STAGES.length) | 0]); draw(); AU.plop(); }));
   at(5000, () => {
-    st.open = false; const tickets = [...votes.values()], win = tutV || tickets[(Math.random() * tickets.length) | 0], cands = VOTE_STAGES.filter(sid => tickets.includes(sid)), btn = sid => row.querySelector('[data-s="' + sid + '"]');
+    st.open = false; const tickets = [...votes.values()], tally = {}; for (const t of tickets) tally[t] = (tally[t] || 0) + 1; const top = Math.max(...Object.values(tally)), lead = Object.keys(tally).filter(k => tally[k] === top); // (most votes wins; only a tie is drawn)
+    const win = tutV || (lead.length === 1 ? lead[0] : lead[(Math.random() * lead.length) | 0]), cands = VOTE_STAGES.filter(sid => tickets.includes(sid)), btn = sid => row.querySelector('[data-s="' + sid + '"]');
     $('vvLbl').textContent = 'The canvas is';
     // the spin: round the voted canvases, slowing, stopping on the winner
     const steps = []; let cur = cands.indexOf(win), total = cands.length * 2 + 2; for (let k = total; k >= 0; k--) steps.push(cands[((cur - k) % cands.length + cands.length) % cands.length]);
@@ -14435,7 +14436,7 @@ function tutMenuTick() {
     return tutShow('Open your locker to put the fangs on', 'lookBtn', 'locker');
   }
   if (shopOpen) return tutShow('Back to the lobby', 'shopBack', 'back'); if (lookOpen) return tutShow('Done', 'lookDone', 'done');
-  if (menuPage === 'worlds') return tutShow('Pick a canvas: that is your vote. Rivals vote too, and one vote is drawn. Then Start', 'startBtn', 'start');
+  if (menuPage === 'worlds') return tutShow('Pick a canvas: that is your vote. Rivals vote too, and most votes wins. Then Start', 'startBtn', 'start');
   return tutShow('Time for a real match. Pick a canvas to vote for', 'stageBtn', 'pick');
 }
 $('tutReplay').addEventListener('click', () => { AU.init(); AU.ui(); store.tut = { ph: 'match' }; save(); closeSettings(); });
