@@ -2021,6 +2021,8 @@ kbd{background:#fff;border-color:var(--black)}
 .shpic svg{padding:16%}
 .shitem.locked .shpic img{filter:grayscale(1) brightness(.5) contrast(1.2);opacity:.85}
 @media (max-height:520px) and (min-aspect-ratio:1/1){.shgrid{grid-template-columns:repeat(auto-fill,minmax(118px,1fr))}.shpic{height:auto}}
+
+.lnone{align-self:center;margin:0 auto;padding:6px 12px;font:700 12px/1.3 var(--font-ui);color:var(--muted);text-align:center;max-width:26ch}
 </style>
 
 <div id="stage">
@@ -2117,7 +2119,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 146</p>
+      <p class="ver">Version 147</p>
     </div>
   </div>
 
@@ -12941,7 +12943,7 @@ function renderLook() {
   const mine = WEAR.filter(w => w.cat === lookCat && bought(w.id)).sort((a, b) => PRICE(a) - PRICE(b)), forSale = WEAR.filter(w => w.cat === lookCat && !bought(w.id)).length;
   rail.innerHTML = mine.map(w => { const found = owns(w.id), own = found && bought(w.id), sale = found && !own, fr = own && fresh.has(w.id), broke = sale && (store.drops || 0) < PRICE(w);
     return '<button class="ltile' + (own ? '' : sale ? ' sale' : ' locked') + (broke ? ' broke' : '') + (fr ? ' fresh' : '') + '" type="button" data-w="' + w.id + '"' + (own ? ' aria-pressed="' + (myLook[w.slot] === w.id) + '"' : sale ? '' : ' aria-disabled="true"') + ' aria-label="' + w.name + (own ? (fr ? ', new' : '') : sale ? ', ' + PRICE(w) + ' dabs' : ', locked') + '">' + (own ? '' : '<span class="ltag">' + DROP_SVG + PRICE(w) + '</span>') + '<svg viewBox="0 0 40 40" aria-hidden="true">' + WEAR_ICON[w.id] + '</svg><span class="ltn">' + w.name + '</span>' + (found ? '' : LOCK_ICON) + '</button>'; }).join('')
-    + (forSale ? '<button class="ltile shopgo" type="button" data-shop="1" aria-label="' + (mine.length ? '' : 'Nothing here yet. ') + 'Paint Shop, ' + forSale + ' for sale">' + SHOP_ICON + '<span class="ltn">' + (mine.length ? 'Shop' : 'Paint Shop') + '</span><span class="ltag n">' + forSale + '</span></button>' : '');
+    + (mine.length ? '' : '<p class="lnone">Nothing here yet. The Paint Shop has ' + forSale + ' to buy.</p>');
   showDrops();
   const ES_ICON = ES_ICON_T;
   $('eyeStyles').innerHTML = Object.keys(EYE_STYLES).map(k => { const it = EXTRA.find(x => x.id === k), lk = it && !bought(k); return '<button class="eyes' + (lk ? ' locked' : '') + '" type="button" data-es="' + k + '" aria-label="' + EYE_STYLES[k] + ' eyes' + (lk ? ', ' + PRICE(it) + ' dabs in the Paint Shop' : '') + '" title="' + EYE_STYLES[k] + (lk ? ' (Paint Shop)' : '') + '" aria-pressed="' + (myLook.eyes === k) + '">' + ES_ICON[k] + (lk ? LOCK_ICON : '') + '</button>'; }).join('');
