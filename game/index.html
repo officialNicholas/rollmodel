@@ -2216,7 +2216,7 @@ svg{shape-rendering:geometricPrecision}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 161</p>
+      <p class="ver">Version 162</p>
     </div>
   </div>
 
@@ -9841,7 +9841,7 @@ function endMatch() {
   // dead even at the buzzer: ten more seconds, once
   if (mode !== 'solo' && !win && !overtimeUsed) { overtimeUsed = true; matchLeft = OT_T; lastCount = 99; banner('Overtime!', OT_T + ' more seconds', true); AU.horn(); buzz([30, 40, 30]); return; }
   state = 'dead'; for (const D of ACTIVE) if (D.charging) clearCharge(D);
-  aimRing.visible = false; arrow.visible = false; hintEl.classList.remove('on');
+  aimRing.visible = false; arrow.visible = false; hintEl.classList.remove('on'); if (kof) kofOpen(); // (out at the buzzer: the flood parts for the ending)
   AU.chargeStop(); AU.roll(0, 0); AU.sizzle(0); AU.music('end'); AU.horn();
   if (!hardPhase) { hardPhase = true; hardStart = dryClock; } // the painting dries as the camera pulls back
   endInfo = { you, cpu, cpu2, win, winner, time: runT, mode, kos, tot };
