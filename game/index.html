@@ -2043,6 +2043,10 @@ kbd{background:#fff;border-color:var(--black)}
 @keyframes sayinf{0%{opacity:0;transform:translate(0,-100%) scale(.4)}60%{opacity:1;transform:translate(0,-100%) scale(1.08)}100%{opacity:1;transform:translate(0,-100%) scale(1)}}
 .lsay{animation:sayin .42s cubic-bezier(.2,1.2,.4,1) both}
 .lsay.flip{animation-name:sayinf}
+
+/* the results bar: dark glass behind the paint */
+#end .jbar{background:#221B2E;box-shadow:3px 3px 0 var(--black),inset 0 3px 7px rgba(0,0,0,.55),inset 0 -1px 0 rgba(255,255,255,.06)}
+#end .jbar::after{opacity:.55;top:2px;height:4px}
 </style>
 
 <div id="stage">
@@ -2140,7 +2144,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 149</p>
+      <p class="ver">Version 150</p>
     </div>
   </div>
 
@@ -13766,6 +13770,7 @@ function showRep(info) {
 }
 // ---------- a bar of wet paint: each share a body of color, its free edges rippling, sloshing harder the faster the share moves, drops
 // flung off an edge on the move; a sheen along the top and a shadow along the bottom of the paint ----------
+const liqShade = (hex, k) => { if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return hex; const n = parseInt(hex.slice(1), 16), m = k > 0 ? 255 : 0, a = Math.abs(k), f = v => Math.round(v + (m - v) * a); return 'rgb(' + f(n >> 16 & 255) + ',' + f(n >> 8 & 255) + ',' + f(n & 255) + ')'; };
 function makeLiquid(host) {
   const c = document.createElement('canvas'); c.className = 'liq'; host.appendChild(c); host.classList.add('liq-on'); const g = c.getContext('2d');
   const L = { segs: [], drops: [], last: 0, host: host, surf: !!(host && host.classList.contains('jbar')) }; // (the results bar is a tank of paint: its surface shows)
@@ -13782,12 +13787,18 @@ function makeLiquid(host) {
       const wild = L.surf ? 2.2 : 1, a0 = sg.x0 <= 0.0005 ? 0 : h * (0.1 * wild + Math.min(0.9, sg.a0 * 40)), a1 = sg.x1 >= 0.9995 ? 0 : h * (0.1 * wild + Math.min(0.9, sg.a1 * 40));
       if (sg.x1 - sg.x0 <= 0.0005) continue;
       // the surface of the paint, when it shows: a little below the top, rolling slowly, with a slosh that builds whenever the paint moves
-      const sl = L.surf ? Math.min(1, (sg.a0 + sg.a1) * 30) : 0, surf = x => !L.surf ? 0 : h * (0.16 + 0.07 * Math.sin(x / w * 6.3 + t * 1.9 + sg.ph) + 0.04 * Math.sin(x / w * 13.1 - t * 2.7 + sg.ph * 2.0) + sl * 0.16 * Math.sin(x / w * 9.0 + t * 7.0));
+      const sl = L.surf ? Math.min(1, (sg.a0 + sg.a1) * 30) : 0, surf = x => !L.surf ? 0 : h * (0.13 + 0.045 * Math.sin(x / w * 6.3 + t * 1.9 + sg.ph) + 0.025 * Math.sin(x / w * 13.1 - t * 2.7 + sg.ph * 2.0) + sl * 0.12 * Math.sin(x / w * 9.0 + t * 7.0));
       g.beginPath(); const y0 = surf(sg.x0 * w);
       for (let i = 0; i <= N; i++) { const y = y0 + i / N * (h - y0), x = a0 ? edge(sg.x0, a0, sg.ph, y) : -6; i ? g.lineTo(x, y) : g.moveTo(x, y); }
       for (let i = N; i >= 0; i--) { const y = y0 + i / N * (h - y0), x = a1 ? edge(sg.x1, a1, sg.ph + 1.3, y) : w + 6; g.lineTo(x, y); }
       if (L.surf) { const xa = a1 ? edge(sg.x1, a1, sg.ph + 1.3, y0) : w + 6, xb = a0 ? edge(sg.x0, a0, sg.ph, y0) : -6, M = 16; for (let j = 1; j < M; j++) { const x = xa + (xb - xa) * j / M; g.lineTo(x, surf(x)); } }
-      g.closePath(); g.fillStyle = sg.col; g.fill();
+      g.closePath();
+      if (L.surf) { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, liqShade(sg.col, 0.2)); gr.addColorStop(0.42, sg.col); gr.addColorStop(1, liqShade(sg.col, -0.32)); g.fillStyle = gr; } else g.fillStyle = sg.col; g.fill();
+      if (L.surf) { // a darker rim where this paint meets the next, and a wet crest along its surface
+        g.save(); g.clip(); g.lineWidth = 5; g.strokeStyle = 'rgba(0,0,0,.2)';
+        for (const [x, a, ph] of [[sg.x0, a0, sg.ph], [sg.x1, a1, sg.ph + 1.3]]) if (a) { g.beginPath(); for (let i = 0; i <= N; i++) { const y = y0 + i / N * (h - y0), ex = edge(x, a, ph, y); i ? g.lineTo(ex, y) : g.moveTo(ex, y); } g.stroke(); }
+        const xa = a1 ? edge(sg.x1, a1, sg.ph + 1.3, y0) : w + 6, xb = a0 ? edge(sg.x0, a0, sg.ph, y0) : -6; g.lineWidth = 2; g.strokeStyle = 'rgba(255,255,255,.5)'; g.beginPath(); for (let j = 0; j <= 24; j++) { const x = xb + (xa - xb) * j / 24, y = surf(x) + 1.4; j ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke();
+        g.restore(); }
       // now and then a drop breaks off the surface and runs down the glass
       if (L.surf && h >= 12 && L.drops.length < 28 && Math.random() < 0.012) { const x = (sg.x0 + Math.random() * (sg.x1 - sg.x0)) * w; L.drops.push({ x, y: surf(x) + 2, vx: 0, vy: 20 + Math.random() * 30, r: 1.5 + Math.random() * (h * 0.11), col: sg.col, life: 0.9 }); }
       // drops off a moving edge
@@ -13795,8 +13806,7 @@ function makeLiquid(host) {
     }
     // the sheen and the shadow, on the paint only
     g.globalCompositeOperation = 'source-atop';
-    g.fillStyle = 'rgba(255,255,255,.26)'; g.fillRect(0, h * 0.08, w, h * 0.22); g.fillStyle = 'rgba(255,255,255,.08)'; g.fillRect(0, h * 0.3, w, h * 0.2);
-    g.fillStyle = 'rgba(0,0,0,.16)'; g.fillRect(0, h * 0.8, w, h * 0.2);
+    { const sh = g.createLinearGradient(0, 0, 0, h); sh.addColorStop(0, 'rgba(255,255,255,0)'); sh.addColorStop(L.surf ? 0.2 : 0.1, L.surf ? 'rgba(255,255,255,.24)' : 'rgba(255,255,255,.26)'); sh.addColorStop(L.surf ? 0.48 : 0.42, 'rgba(255,255,255,0)'); sh.addColorStop(0.78, 'rgba(0,0,0,0)'); sh.addColorStop(1, 'rgba(0,0,0,.2)'); g.fillStyle = sh; g.fillRect(0, 0, w, h); }
     g.globalCompositeOperation = 'source-over';
     for (let i = L.drops.length - 1; i >= 0; i--) { const d = L.drops[i]; d.life -= dt; if (d.life <= 0) { L.drops.splice(i, 1); continue; } d.x += d.vx * dt; d.y += d.vy * dt; d.vy += 420 * dt; g.globalAlpha = Math.min(1, d.life * 3); g.fillStyle = d.col; g.beginPath(); g.arc(d.x, d.y, d.r, 0, 6.2832); g.fill(); }
     g.globalAlpha = 1;
