@@ -2172,7 +2172,7 @@ svg{shape-rendering:geometricPrecision}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 152</p>
+      <p class="ver">Version 153</p>
     </div>
   </div>
 
@@ -12905,7 +12905,7 @@ const SIGN_TEX = (() => {
   const candle = (x, z, h) => { const g = new THREE.CylinderGeometry(0.065, 0.075, h, 10).translate(0, h / 2, 0); solid(g, waxM, x, 0, z); const fl = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.11, 8).translate(0, h + 0.06, 0), flameM); fl.position.set(x, 0, z); fl.renderOrder = 33; lobbyProps.add(fl); const cg = glowSp(0xFFB050, 0.42, 0.6); cg.position.set(x, h + 0.08, z); lobbyProps.add(cg); const cp = pool(0xFFA040, 1.1, 0.3); cp.position.set(x, 0.012, z); lobbyProps.add(cp); lobbyProps.userData.glows.push(cg, cp); lobbyProps.userData.flames = (lobbyProps.userData.flames || []).concat(fl); };
   candle(-0.7, -2.05, 0.46); candle(-0.5, -2.1, 0.3); candle(1.0, -2.1, 0.38);
   // the sign on the wall, and a bat up by it
-  const sign = new THREE.Mesh(new THREE.PlaneGeometry(2.3, 1.0), new THREE.MeshBasicMaterial({ map: SIGN_TEX, transparent: true })); sign.position.set(0, 1.28, -2.33); sign.scale.setScalar(0.4); sign.renderOrder = 32; lobbyProps.add(sign);
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(2.3, 1.0), new THREE.MeshBasicMaterial({ map: SIGN_TEX, transparent: true })); sign.position.set(0, 1.28, -2.33); sign.scale.setScalar(0.4); sign.renderOrder = 32; sign.visible = false; // (the sign is off the wall)
   const bat = (() => { const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.lineTo(0.14, 0.1); sh.lineTo(0.3, 0.06); sh.lineTo(0.42, 0.14); sh.lineTo(0.36, -0.02); sh.lineTo(0.3, -0.08); sh.lineTo(0.14, -0.04); sh.lineTo(0.04, -0.09); sh.lineTo(-0.04, -0.09); sh.lineTo(-0.14, -0.04); sh.lineTo(-0.3, -0.08); sh.lineTo(-0.36, -0.02); sh.lineTo(-0.42, 0.14); sh.lineTo(-0.3, 0.06); sh.lineTo(-0.14, 0.1); sh.closePath(); const m = new THREE.Mesh(new THREE.ShapeGeometry(sh), batM); m.position.set(-1.25, 2.15, -2.3); m.renderOrder = 32; lobbyProps.add(m); return m; })();
   lobbyProps.userData.bat = bat; lobbyProps.traverse(o => o.layers.enable(4)); // (the lobby draws layer 4 only)
 }
