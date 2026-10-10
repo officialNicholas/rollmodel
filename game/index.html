@@ -2075,6 +2075,15 @@ svg{shape-rendering:geometricPrecision}
 ::selection{background:rgba(227,18,47,.25)}
 :focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 @media (prefers-reduced-motion:reduce){.modal .card{animation:none}.btn,.ibtn,.ltile,.seg button,.swatch,.lnbtn,.lkbal,.shitem,.sw,.lcat,.eyes,.stg,.mtile{transition:none}}
+
+/* the shop scrolls one way only: nothing can push the columns past the screen */
+.shop{overflow:hidden}
+.shgrid{overflow-x:hidden;overflow-y:auto;grid-template-columns:repeat(auto-fill,minmax(min(148px,100%),minmax(0,1fr)));margin:0;padding-left:0;padding-right:0}
+.shitem,.shin,.shpic,.shplate{min-width:0;max-width:100%;box-sizing:border-box}
+.shplate{grid-template-columns:minmax(0,1fr)}
+.shn,.shw{max-width:100%;overflow-wrap:anywhere;text-wrap:balance}
+.shp{max-width:100%;white-space:nowrap}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.shgrid{grid-template-columns:repeat(auto-fill,minmax(min(118px,100%),minmax(0,1fr)))}}
 </style>
 
 <div id="stage">
@@ -2172,7 +2181,7 @@ svg{shape-rendering:geometricPrecision}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 153</p>
+      <p class="ver">Version 154</p>
     </div>
   </div>
 
