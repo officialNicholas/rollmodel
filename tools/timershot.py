@@ -13,5 +13,6 @@ async def main():
         await pg.evaluate("__T.matchLeft = 400; for (const D of __T.ACTIVE) if (D !== __T.P) { D.ai && (D.ai.thinkT = 99); D.spd = 0; } __T.P.held = 'turret'; __T.useHeld(__T.P); if (__T.P.turret) __T.P.turret.t = 4.2;")
         await pg.wait_for_timeout(1500); await pg.screenshot(path=f'{WS}/ui/timer_turret.png'); print('turret', await pg.evaluate("[document.getElementById('ptimer').hidden, document.getElementById('ptimer').dataset.k, document.getElementById('ptN').textContent, document.getElementById('ptimer').style.transform]"))
         await pg.evaluate("__T.P.turret = null; __T.P.slamCD = 3.6; __T.P.slamMax = 6;"); await pg.wait_for_timeout(1200); await pg.screenshot(path=f'{WS}/ui/timer_slam.png'); print('slam', await pg.evaluate("[document.getElementById('ptimer').hidden, document.getElementById('ptimer').dataset.k, document.getElementById('ptN').textContent]"))
+        await pg.evaluate("__T.P.slamCD = 0; __T.P.paint = 0.12;"); await pg.wait_for_timeout(1200); await pg.screenshot(path=f'{WS}/ui/timer_paint.png'); print('paint', await pg.evaluate("[document.getElementById('ptimer').hidden, document.getElementById('ptimer').dataset.k, document.getElementById('ptN').innerHTML.slice(0, 30)]"))
         print('errors', errs[:3]); await b.close()
 asyncio.run(main())

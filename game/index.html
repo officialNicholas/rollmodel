@@ -2084,6 +2084,17 @@ svg{shape-rendering:geometricPrecision}
 .shn,.shw{max-width:100%;overflow-wrap:anywhere;text-wrap:balance}
 .shp{max-width:100%;white-space:nowrap}
 @media (max-height:520px) and (min-aspect-ratio:1/1){.shgrid{grid-template-columns:repeat(auto-fill,minmax(min(118px,100%),minmax(0,1fr)))}}
+
+/* the dial short of paint */
+.ptimer[data-k="paint"]{--pc:#CFC6E0}
+.ptimer[data-k="paint"] b svg{width:16px;height:16px;fill:#fff;filter:drop-shadow(0 1.5px 0 var(--black))}
+/* the shop slides up over the locker, and back down */
+.shop{animation:shopin .34s cubic-bezier(.2,1.1,.35,1) both}
+@keyframes shopin{from{opacity:0;transform:translateY(28px) scale(.985)}}
+.shop.out{animation:shopout .22s cubic-bezier(.4,0,.7,1) both;pointer-events:none}
+@keyframes shopout{to{opacity:0;transform:translateY(24px) scale(.985)}}
+.menu.shopping .mhome{visibility:visible;transition:opacity .25s;opacity:0;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.shop,.shop.out{animation:none}}
 </style>
 
 <div id="stage">
@@ -2181,7 +2192,7 @@ svg{shape-rendering:geometricPrecision}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 154</p>
+      <p class="ver">Version 155</p>
     </div>
   </div>
 
@@ -11765,12 +11776,13 @@ function visuals(dt, rdt) {
       else if (P.turret) { frac = P.turret.t / TURRET_T; n = Math.ceil(P.turret.t); kind = 'pw'; }
       else if (P.giantT > 0) { frac = P.giantT / GIANT_T; n = Math.ceil(P.giantT); kind = 'pw'; }
       else if (P.power) { frac = P.power.t / PU[P.power.type].dur; n = Math.ceil(P.power.t); kind = 'pw'; }
+      else if (P.paint < POUND_MIN && !P.slam) { frac = Math.min(1, P.paint / POUND_MIN); n = ''; kind = 'paint'; } // (short of paint: the dial fills with your paint, a drop in it, no count)
       else if (P.slamCD > 0 && P.slamMax > 0) { frac = 1 - P.slamCD / P.slamMax; n = Math.ceil(P.slamCD); kind = 'cd'; }
     }
     if (frac < 0) { if (!pt.hidden) pt.hidden = true; }
     else { tv1.copy(drop.position).project(camera); const sx = (tv1.x + 1) / 2 * viewW, sy = (1 - tv1.y) / 2 * viewH; const on = tv1.z < 1 && sx > -40 && sx < viewW + 40;
       if (!on) { if (!pt.hidden) pt.hidden = true; } else { if (pt.hidden) pt.hidden = false; if (pt.dataset.k !== kind) pt.dataset.k = kind; pt.style.transform = 'translate(' + (sx - 58).toFixed(0) + 'px,' + (sy - 46).toFixed(0) + 'px)';
-        const deg = (clamp(frac, 0, 1) * 360).toFixed(0); if (pt.dataset.d !== deg) { pt.dataset.d = deg; $('ptRing').style.background = 'conic-gradient(var(--pc) ' + deg + 'deg, rgba(23,19,32,.35) 0)'; } const ns = String(n); if ($('ptN').textContent !== ns) $('ptN').textContent = ns; } } }
+        const deg = (clamp(frac, 0, 1) * 360).toFixed(0); if (pt.dataset.d !== deg) { pt.dataset.d = deg; $('ptRing').style.background = 'conic-gradient(var(--pc) ' + deg + 'deg, rgba(23,19,32,.35) 0)'; } const ns = kind === 'paint' ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5C9.2 7.2 6.4 10.6 6.4 14.1a5.6 5.6 0 0 0 11.2 0c0-3.5-2.8-6.9-5.6-11.6z"/></svg>' : String(n); if ($('ptN').dataset.v !== ns) { $('ptN').dataset.v = ns; $('ptN').innerHTML = ns; } } } }
   const pwc = $('pw');
   if (P.rocket && pIn) { pwc.hidden = false; const R = P.rocket, left = R.ph === 'hover' ? Math.max(0, ROCKET_HOVER - R.t) : 0, tx = R.ph === 'hover' ? 'Rocket ' + Math.ceil(left) + 's' : 'Rocket'; if ($('pwText').textContent !== tx) $('pwText').textContent = tx; $('pwRing').style.background = 'conic-gradient(#fff ' + (R.ph === 'up' ? 360 : left / ROCKET_HOVER * 360).toFixed(0) + 'deg, rgba(255,255,255,.3) 0)'; }
   else if (P.turret && pIn) { pwc.hidden = false; const tx = 'Turret ' + Math.ceil(P.turret.t) + 's'; if ($('pwText').textContent !== tx) $('pwText').textContent = tx; $('pwRing').style.background = 'conic-gradient(#fff ' + (P.turret.t / TURRET_T * 360).toFixed(0) + 'deg, rgba(255,255,255,.3) 0)'; }
@@ -13074,11 +13086,11 @@ function renderShop() {
 }
 function openShop(from) {
   if (state !== 'menu' || building || shopOpen) return; shopOpen = true; shopFrom = from || (lookOpen ? 'look' : 'lobby');
-  renderShop(); $('shop').hidden = false; menu.classList.add('shopping'); AU.music('shop'); setTimeout(() => $('shopBack').focus({ preventScroll: true }), 30);
+  renderShop(); const sh = $('shop'); if (sh._outT) { clearTimeout(sh._outT); sh._outT = 0; } sh.classList.remove('out'); sh.hidden = false; menu.classList.add('shopping'); AU.music('shop'); setTimeout(() => $('shopBack').focus({ preventScroll: true }), 30);
 }
 // back to where you came from: the locker (its song carries on) or the lobby (the lobby song comes back at the same bar)
 function closeShop(quiet) {
-  if (!shopOpen) return; shopOpen = false; $('shop').hidden = true; menu.classList.remove('shopping'); $('shopNote').classList.remove('on');
+  if (!shopOpen) return; shopOpen = false; { const sh = $('shop'); if (quiet || reduceMotion) sh.hidden = true; else { sh.classList.add('out'); sh._outT = setTimeout(() => { sh._outT = 0; if (!shopOpen) { sh.hidden = true; sh.classList.remove('out'); } }, 240); } } menu.classList.remove('shopping'); $('shopNote').classList.remove('on');
   if (quiet) return;
   if (lookOpen) { renderLook(); railEdge(); setTimeout(() => $('lkBal').focus({ preventScroll: true }), 30); }
   else { AU.music('menu'); renderLobbyUI(); setTimeout(() => $('dabsBtn').focus({ preventScroll: true }), 30); }
