@@ -2115,8 +2115,6 @@ svg{shape-rendering:geometricPrecision}
 .sbdial i{position:absolute;inset:0;border-radius:50%;background:conic-gradient(var(--pc) 360deg,rgba(23,19,32,.35) 0);border:2.5px solid var(--black);box-shadow:0 2px 0 var(--black),0 0 0 2px rgba(255,255,255,.35)}
 .sbdial i::after{content:"";position:absolute;inset:5px;border-radius:50%;background:rgba(23,19,32,.82)}
 .sbdial b{position:absolute;inset:0;display:grid;place-items:center;font:400 15px/1 var(--font-display);color:var(--gold);text-shadow:0 1.5px 0 var(--black)}
-.sbdial[data-k="paint"]{--pc:#CFC6E0}
-.sbdial[data-k="paint"] b svg{width:14px;height:14px;fill:#fff;filter:drop-shadow(0 1.5px 0 var(--black))}
 .slamBtn.off .sbdial{opacity:1}
 </style>
 
@@ -2215,7 +2213,7 @@ svg{shape-rendering:geometricPrecision}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 158</p>
+      <p class="ver">Version 159</p>
     </div>
   </div>
 
@@ -9596,10 +9594,10 @@ function updateSlamBtn() {
   const rk = P.rocket, ready = rk ? rk.ph === 'hover' || (rk.ph === 'dive' && rk.slow) : slamReady(P), cd = !rk && P.slamCD > 0 ? (P.slamCD / P.slamMax * 360).toFixed(0) + 'deg' : '0deg';
   if (b._boost !== !!rk) { b._boost = !!rk; b.classList.toggle('boost', !!rk); wasReady = null; }
   if (b._cd !== cd) { b._cd = cd; b.style.setProperty('--cd', cd); }
-  { const dl = $('sbDial'); let frac = -1, n = '', kind = ''; // the dial on the button's corner: short of paint it shows a drop and your paint, else the cooldown's count
-    if (!rk && P.st === 'play' && !P.slam) { if (P.paint < POUND_MIN) { frac = Math.min(1, P.paint / POUND_MIN); kind = 'paint'; } else if (P.slamCD > 0 && P.slamMax > 0) { frac = 1 - P.slamCD / P.slamMax; n = String(Math.ceil(P.slamCD)); kind = 'cd'; } }
+  { const dl = $('sbDial'); let frac = -1, n = '', kind = ''; // the dial on the button's corner: the cooldown's count (short of paint, nothing: the button is simply off)
+    if (!rk && P.st === 'play' && !P.slam && P.paint >= POUND_MIN && P.slamCD > 0 && P.slamMax > 0) { frac = 1 - P.slamCD / P.slamMax; n = String(Math.ceil(P.slamCD)); kind = 'cd'; }
     if (frac < 0) { if (!dl.hidden) dl.hidden = true; } else { if (dl.hidden) dl.hidden = false; if (dl.dataset.k !== kind) dl.dataset.k = kind; const deg = (clamp(frac, 0, 1) * 360).toFixed(0); if (dl.dataset.d !== deg) { dl.dataset.d = deg; $('sbRing').style.background = 'conic-gradient(var(--pc) ' + deg + 'deg, rgba(23,19,32,.35) 0)'; }
-      const v = kind === 'paint' ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5C9.2 7.2 6.4 10.6 6.4 14.1a5.6 5.6 0 0 0 11.2 0c0-3.5-2.8-6.9-5.6-11.6z"/></svg>' : n; if ($('sbN').dataset.v !== v) { $('sbN').dataset.v = v; $('sbN').innerHTML = v; } } }
+      const v = n; if ($('sbN').dataset.v !== v) { $('sbN').dataset.v = v; $('sbN').innerHTML = v; } } }
   const up = P.st === 'hide', fwd = !up && ((P.air && (P.flingC || 0) > 0.15 && !P.slam) || (P.slam && P.missile));
   if (b._up !== up) { b._up = up; b.classList.toggle('up', up); wasReady = null; }
   if (b._fwd !== fwd) { b._fwd = fwd; b.classList.toggle('fwd', fwd); wasReady = null; }
