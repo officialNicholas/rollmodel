@@ -358,6 +358,12 @@ button{font-family:var(--font-ui)}
 @keyframes nibadge{to{transform:scale(1)}}
 @keyframes nibob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-8px) rotate(2deg)}}
 .nibadge svg{width:68%;height:68%;filter:drop-shadow(0 4px 0 rgba(12,6,32,.35))}
+.nibadges{display:flex;justify-content:center;align-items:center;gap:clamp(14px,5vw,26px);max-width:100%}
+.nibadge img{width:84%;height:84%;object-fit:contain;filter:drop-shadow(0 5px 0 rgba(12,6,32,.3))}
+.nibadges.two .nibadge{width:min(150px,38vw)}
+.nibadges.two .nibadge:nth-child(2){animation-delay:.45s,1.3s}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.nibody{gap:6px}.nibadge{width:min(150px,34vh);margin:2px 0}.nibadges.two .nibadge{width:min(100px,25vh)}.nibl{font-size:13px;bottom:-12px}.niname{font-size:clamp(22px,6.5vh,30px);white-space:nowrap}.niwhere{display:none}.nibtns{gap:6px}}
+.nibl{position:absolute;left:50%;bottom:-16px;transform:translateX(-50%);padding:4px 12px;border-radius:999px;background:var(--line);color:var(--bone);font:400 15px/1 var(--font-display);white-space:nowrap;box-shadow:0 0 0 3px var(--gold)}
 .niname{margin:4px 0 0;font:400 clamp(28px,8.5vw,40px)/1.05 var(--font-display);color:var(--bone);text-align:center;text-shadow:var(--o3),0 5px 0 var(--outline);opacity:0;transform:translateY(12px)}
 .niwhere{margin:0;font:700 15px/1.3 var(--font-ui);color:var(--muted);opacity:0;transform:translateY(12px)}
 .newitem.on .niname{animation:nirise .4s .62s ease-out forwards}
@@ -2345,7 +2351,7 @@ svg{shape-rendering:geometricPrecision}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 180</p>
+      <p class="ver">Version 181</p>
     </div>
   </div>
 
@@ -2414,8 +2420,8 @@ svg{shape-rendering:geometricPrecision}
     <div class="nirays" aria-hidden="true"></div>
     <div class="niconf" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
     <div class="nibody">
-      <p class="nikick">New item!</p>
-      <div class="nibadge"><svg id="niIcon" viewBox="0 0 40 40" aria-hidden="true"></svg></div>
+      <p class="nikick" id="niKick">New item!</p>
+      <div class="nibadges" id="niBadges"><div class="nibadge"></div></div>
       <h2 class="niname" id="niName">Pirate hat</h2>
       <p class="niwhere" id="niWhere">Found on Palette Island</p>
       <div class="nibtns"><button class="btn play sm" id="niTry" type="button">Try it on</button><button class="btn" id="niGo" type="button">Continue</button></div>
@@ -9314,7 +9320,7 @@ function stepGift(dt) {
 function giftTake() {
   gift.got = true; gift.on = false; giftM.visible = giftRing.visible = giftBeam.visible = false;
   unlockItem(gift.id); store.itemIn = 2 + Math.floor(Math.random() * 4); save(); newItem = gift.id; emote(P, 'glee', 1.3);
-  const w = WEAR.find(x => x.id === gift.id); banner('New item!', w ? w.name : '', true); AU.power(); setTimeout(() => AU.pop(), 160); buzz([20, 40, 30]); shake = Math.max(shake, 0.15);
+  const w = WEAR.find(x => x.id === gift.id); banner(tut && gift.id === 'flower' ? 'New items!' : 'New item!', tut && gift.id === 'flower' ? 'Flower + Fangs' : w ? w.name : '', true); AU.power(); setTimeout(() => AU.pop(), 160); buzz([20, 40, 30]); shake = Math.max(shake, 0.15);
   confetti(gift.x, gift.y + 0.6, gift.z, 70, 3.2); shockwave(gift.x, 0, gift.z, 2, 0xFFD54F);
 }
 function giftPoof() { giftM.visible = giftRing.visible = giftBeam.visible = false; for (let i = 0; i < 14; i++) { const a = i / 14 * 6.283; spawnPart(gift.x, 0.6, gift.z, Math.cos(a) * 2, 1 + Math.random(), Math.sin(a) * 2, 0.45, puHaloMat, 0.4); } }
@@ -12518,14 +12524,16 @@ function slashWipe(o) {
   try { AU.whoosh(); } catch (e) {} draw();
 }
 function showNewItem(id) {
-  const w = ITEMS.find(x => x.id === id), el = $('newItem'); if (!w) return showEnd(endImg);
-  $('niIcon').innerHTML = WEAR_ICON[w.id]; $('niName').textContent = w.name; $('niWhere').innerHTML = 'Found on ' + escAttr(WEAR_WHERE[w.stage].replace(/^the /, 'the ')) + '<span class="niprice">' + DROP_SVG + PRICE(w) + '</span>'; $('niTry').textContent = bought(w.id) ? 'Try it on' : 'See it in the shop';
+  const ws = [].concat(id).map(x => ITEMS.find(w => w.id === x)).filter(Boolean), w = ws[0], el = $('newItem'), two = ws.length > 1; if (!w) return showEnd(endImg);
+  const pic = it => { let u = ''; try { u = shopPic(it); } catch (e) { u = ''; } return u ? '<img src="' + u + '" alt="">' : '<svg viewBox="0 0 40 40" aria-hidden="true">' + WEAR_ICON[it.id] + '</svg>'; }; /* (the shop's own render of the item, the flat icon only if that fails) */
+  $('niBadges').className = 'nibadges' + (two ? ' two' : ''); $('niBadges').innerHTML = ws.map(it => '<div class="nibadge">' + pic(it) + (two ? '<b class="nibl">' + escAttr(it.name) + '</b>' : '') + '</div>').join(''); $('niKick').textContent = two ? 'New items!' : 'New item!';
+  $('niName').textContent = ws.map(it => it.name).join(' + '); $('niWhere').innerHTML = two ? 'Two new items for your locker' : 'Found on ' + escAttr(WEAR_WHERE[w.stage].replace(/^the /, 'the ')) + '<span class="niprice">' + DROP_SVG + PRICE(w) + '</span>'; $('niTry').textContent = ws.every(it => bought(it.id)) ? 'Try it on' : two ? 'See them in the shop' : 'See it in the shop';
   slashWipe({ onPeak: () => { el.hidden = false; void el.offsetWidth; el.classList.add('on'); AU.fanfare(); setTimeout(() => AU.power(), 700); buzz([20, 40, 20, 40, 30]); } });
   setTimeout(() => $('niTry').focus({ preventScroll: true }), 60);
 }
 function hideNewItem() { const el = $('newItem'); el.classList.remove('on'); el.hidden = true; newItem = null; }
 $('niGo').addEventListener('click', () => { AU.init(); AU.ui(); hideNewItem(); if (state === 'dead') showEnd(endImg); });
-$('niTry').addEventListener('click', () => { AU.init(); AU.ui(); const id = newItem, w = ITEMS.find(x => x.id === id); hideNewItem(); if (w) { lookCat = w.cat; if (bought(w.id)) { if (w.cat !== 'face') for (const o of WEAR) if (o.cat === w.cat && o.slot !== w.slot) myLook[o.slot] = null; myLook[w.slot] = w.id; store.fresh = (store.fresh || []).filter(x => x !== id); saveLook(); } }
+$('niTry').addEventListener('click', () => { AU.init(); AU.ui(); const id = [].concat(newItem)[0], w = ITEMS.find(x => x.id === id); hideNewItem(); if (w) { lookCat = w.cat; if (bought(w.id)) { if (w.cat !== 'face') for (const o of WEAR) if (o.cat === w.cat && o.slot !== w.slot) myLook[o.slot] = null; myLook[w.slot] = w.id; store.fresh = (store.fresh || []).filter(x => x !== id); saveLook(); } }
   irisClose(() => { end.hidden = true; showMenu(); camSnap = true; irisOpen(); if (w && !bought(w.id)) { openShop('lobby'); return; } openLook(); const t = w && $('lookRail').querySelector('[data-w="' + w.id + '"]'); if (t) { const r = $('lookRail'); r.scrollLeft = Math.max(0, t.offsetLeft - (r.clientWidth - t.offsetWidth) / 2); railEdge(); } }); });
 // ---------- knocked out: the paint of whoever got you floods the screen, a badge says who with the count to your comeback, and when
 // you come back the paint parts round a ragged hole to show where ----------
@@ -14496,7 +14504,7 @@ const TUT_STEPS = [
     exit() { tut.rocketLock = null; tut.slowK = 1; } },
   { id: 'flower', max: 42, enter() { if (orb.on) tutOrbOff(); orb.spawnT = 1e9; gift.id = 'flower'; gift.at = 1e9; tut.slowK = 1; tutHide(); tut.wait = 2.2; tut.flowerPaint = Math.max(P.paint, 0.5); },
     tick(dt) { if (P.st === 'play' && P.paint < tut.flowerPaint) P.paint = tut.flowerPaint; /* (no paint drain while you go for the flower) */ if (tut.wait > 0) { tut.wait -= dt; if (tut.wait <= 0) { gift.at = runT; tutShow('Something rare! *GRAB IT!*', null, 'flower', true, true); } return false; } return gift.got; }, /* (a breath after the dodge, then the flower and its tip) */
-    exit() { if (!gift.got) { gift.got = true; gift.on = false; giftM.visible = giftRing.visible = giftBeam.visible = false; unlockItem('flower'); newItem = 'flower'; } orb.spawnT = 8; } },
+    exit() { if (!gift.got) { gift.got = true; gift.on = false; giftM.visible = giftRing.visible = giftBeam.visible = false; unlockItem('flower'); newItem = 'flower'; } if (!owns('fangs')) unlockItem('fangs'); newItem = ['flower', 'fangs']; orb.spawnT = 8; } },
   { id: 'rest', max: 1e9, enter() { tutHide(); tut.slowK = 1; tut.noTurret = false; if (matchLeft < 28) matchLeft = 28; tut.cardIn = 1.1; tut.card = false; },
     tick(dt) { if (tut.cardIn > 0) { tut.cardIn -= dt; if (tut.cardIn <= 0) tutCard(true); }
       const lead = teamCov(0) - teamCov(1), close = lead < 7; TUT_AI.speed = close ? 0.58 : 0.8; TUT_AI.steal = close ? 0.25 : 0.7; TUT_AI.pound = close ? 0 : 0.45; return false; } } // (a beat for the new item banner, then the card; then the rival eases off whenever it is close, so the first win is yours)
@@ -14629,7 +14637,7 @@ function tutEndMatch() { // (as a match ends)
   if (tut) {
     const bonus = tut.bonus || 0; if (bonus) { store.drops = (store.drops || 0) + bonus; endInfo.drops = (endInfo.drops || 0) + bonus; } endInfo.tutBonus = bonus; // (the lessons' dabs)
     tutCard(false); tut = null; tutHide(); tutSlowEl.classList.remove('on'); tutPipsEl.classList.remove('on');
-    if (!owns('flower')) unlockItem('flower'); if (!newItem) newItem = 'flower';
+    if (!owns('flower')) unlockItem('flower'); if (!owns('fangs')) unlockItem('fangs'); if (!newItem || newItem === 'flower') newItem = ['flower', 'fangs'];
     store.tut.price = { flower: Math.max(1, Math.round((endInfo.drops || 0) / 2)) }; // (half what this match paid)
     for (const k of ['steer', 'jump', 'hold', 'burst', 'roll', 'pound', 'missile', 'item', 'orb', 'rocket', 'airdash']) store.seen[k] = 1; // (taught: the one-time tips stay down)
     tutSet('shop'); save(); tutWinDue = true; return;
@@ -14646,7 +14654,7 @@ function tutMenuTick() {
   if (ph === 'welcome') { if (state === 'dead') { if (!end.hidden) return tutShow('Back to the lobby. Something new is waiting', 'menuBtn', 'welback'); return tutHide(); }
     tutHide(); if (state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy) tutWelcome(); return; }
   if (ph !== 'shop' && ph !== 'locker' && ph !== 'vote') return tutHide();
-  if (state === 'dead') { if (ph === 'shop' && !$('newItem').hidden) { if (!tutNiAt) tutNiAt = performance.now(); if (performance.now() - tutNiAt < 1600) return tutHide(); return tutShow('Tap to see your new flower in the shop', 'niTry', 'ni', false, false, 'below'); } tutNiAt = 0; if (!end.hidden) return tutShow('Head back to the lobby', 'menuBtn', 'tomenu'); return tutHide(); }
+  if (state === 'dead') { if (ph === 'shop' && !$('newItem').hidden) { if (!tutNiAt) tutNiAt = performance.now(); if (performance.now() - tutNiAt < 1600) return tutHide(); return innerHeight < 520 && innerWidth > innerHeight ? tutShow('Tap to see them in the *shop*', 'niTry', 'ni', true, false, 'below') : tutShow('Tap to see your flower and fangs in the shop', 'niTry', 'ni', false, false, 'below'); } /* (a short screen gets the short callout, so the button stays clear) */ tutNiAt = 0; if (!end.hidden) return tutShow('Head back to the lobby', 'menuBtn', 'tomenu'); return tutHide(); }
   if (state !== 'menu' || building || irisBusy || !setModal.hidden || !nameModal.hidden || !howModal.hidden) return tutHide();
   const card = id => $('shopGrid').querySelector('.shitem[data-w="' + id + '"]'), tile = id => $('lookRail').querySelector('.ltile[data-w="' + id + '"]');
   if (ph === 'shop') {
@@ -14676,7 +14684,7 @@ const TW_LIST = ['Steering', 'Flinging', 'Refilling', 'The pound', 'Dodging', 'T
 // (the finish page pulls the camera wide over the canvas, as the results do)
 function showTutWin() {
   const el = $('tutWin'); $('twList').innerHTML = TW_LIST.map((t, i) => '<li style="--i:' + i + '"><i><svg viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L20 7"/></svg></i>' + t + '</li>').join('');
-  { const info = endInfo || {}, rw = []; rw.push('<span style="--i:0">' + DROP_SVG + '<b>+' + (info.drops || 0) + '</b> dabs</span>'); if (info.tutBonus) rw.push('<span style="--i:1"><b>+' + info.tutBonus + '</b> lesson bonus</span>'); rw.push('<span style="--i:2">Flower found</span>'); $('twRew').innerHTML = rw.join(''); }
+  { const info = endInfo || {}, rw = []; rw.push('<span style="--i:0">' + DROP_SVG + '<b>+' + (info.drops || 0) + '</b> dabs</span>'); if (info.tutBonus) rw.push('<span style="--i:1"><b>+' + info.tutBonus + '</b> lesson bonus</span>'); rw.push('<span style="--i:2">Flower + Fangs found</span>'); $('twRew').innerHTML = rw.join(''); }
   outro = true; outroT = 0; outroBase = Math.round(camYaw / (Math.PI / 2)) * (Math.PI / 2); // (the view pulls back over the whole canvas)
   hud.classList.add('off'); hintEl.classList.remove('on'); el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); AU.fanfare(); setTimeout(() => AU.power(), 500); buzz([20, 40, 20]);
   setTimeout(() => $('twNext').focus({ preventScroll: true }), 80);
