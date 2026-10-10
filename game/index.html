@@ -2100,6 +2100,14 @@ svg{shape-rendering:geometricPrecision}
 .vt{padding-bottom:16px}
 .vt.mine::after{content:"Your vote";position:absolute;left:50%;bottom:0;transform:translateX(-50%);font:900 8.5px/1 var(--font-head);letter-spacing:.08em;text-transform:uppercase;color:var(--black);background:var(--gold);padding:3px 6px;border-radius:4px;border:1.5px solid var(--black);white-space:nowrap;box-shadow:1px 1px 0 var(--black)}
 .snote b{color:var(--cream)}
+
+/* the settings panel's wash drifts upward without end */
+#setModal .card::after{display:none}
+#setModal .swash{position:absolute;inset:0;clip-path:polygon(66% 0,100% 0,100% 100%,50% 100%);overflow:hidden;pointer-events:none;z-index:0}
+#setModal .swash i{position:absolute;left:0;right:0;top:0;height:calc(100% + 1440px);background:rgba(23,19,32,.28);-webkit-mask:url(art/m_splat2.webp) 10px 20px/96px 96px repeat,url(art/m_splat.webp) 70px 90px/120px 120px repeat,url(art/m_drip.webp) 40px -10px/70px 90px repeat;mask:url(art/m_splat2.webp) 10px 20px/96px 96px repeat,url(art/m_splat.webp) 70px 90px/120px 120px repeat,url(art/m_drip.webp) 40px -10px/70px 90px repeat;will-change:transform;animation:swashdrift 72s linear infinite}
+@keyframes swashdrift{from{transform:translateY(0)}to{transform:translateY(-1440px)}}
+#setModal .card>*:not(.swash){position:relative;z-index:1}
+@media (prefers-reduced-motion:reduce){#setModal .swash i{animation:none}}
 </style>
 
 <div id="stage">
@@ -2197,7 +2205,7 @@ svg{shape-rendering:geometricPrecision}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 156</p>
+      <p class="ver">Version 157</p>
     </div>
   </div>
 
@@ -2211,7 +2219,7 @@ svg{shape-rendering:geometricPrecision}
   </div>
 
   <div class="modal" id="setModal" hidden>
-    <div class="card" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+    <div class="card" role="dialog" aria-modal="true" aria-labelledby="setTitle"><i class="swash" aria-hidden="true"><i></i></i>
       <h2 class="ctitle" id="setTitle">Settings</h2>
       <div class="srows" id="srows">
       <div class="sgrp on">
