@@ -115,8 +115,8 @@ const TUT_STEPS = [
     exit() { tut.rocketLock = null; tut.slowK = 1; } },
   { id: 'flower', max: 40, enter() { if (orb.on) tutOrbOff(); orb.spawnT = 1e9; gift.id = 'flower'; gift.at = runT; tut.slowK = 1; tutShow('A flower! *GRAB IT* to unlock it!', null, 'flower', true, true); }, tick() { return gift.got; },
     exit() { if (!gift.got) { gift.got = true; gift.on = false; giftM.visible = giftRing.visible = giftBeam.visible = false; unlockItem('flower'); newItem = 'flower'; } orb.spawnT = 8; } },
-  { id: 'rest', max: 1e9, enter() { tut.slowK = 1; tut.noTurret = false; if (matchLeft < 28) matchLeft = 28; tut.restT = 6; tutShow('Now beat him and cover as much of the canvas as you can. Bonus points every time you take him out', null, 'rest', false, true); },
-    tick(dt) { if (tut.restT > 0) { tut.restT -= dt; if (tut.restT <= 0) tutHide(); } return false; } }
+  { id: 'rest', max: 1e9, enter() { tutHide(); tut.slowK = 1; tut.noTurret = false; if (matchLeft < 28) matchLeft = 28; tut.cardIn = 1.1; tut.card = false; },
+    tick(dt) { if (tut.cardIn > 0) { tut.cardIn -= dt; if (tut.cardIn <= 0) tutCard(true); } return false; } } // (a beat for the new item banner, then the card)
 ];
 const TUT_REST = TUT_STEPS.length - 1;
 // the pound handed over ready the moment its tip is up, even mid-cooldown or short of paint
@@ -130,6 +130,13 @@ function tutRocket(D, dt) {
   if (R.ph === 'hover' && R.t > 0.8 && Math.hypot(P.x - D.x, P.z - D.z) < 0.6) rocketDive(D, false);
   if (R.ph === 'dive' && R.slow) { R.slow = false; D.vy = Math.min(D.vy, -14); } // (never the slow drift down: always the boost)
 }
+// the card that ends the lesson: the match holds still under it, and Let's do it lets it go
+function tutCard(on) {
+  const el = $('tutGo'); if (!tut) on = false;
+  if (on) { tut.card = true; tut.slowK = 0; bannerEl.classList.remove('on'); try { $('tgAva').innerHTML = tutAva.innerHTML || '<span class="bico" style="--cd:#8C6A14">' + slimeIcon(0xF2C14E, lookOf(P)) + '</span>'; } catch (e) {} el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); AU.fanfare && AU.fanfare(); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60); return; }
+  el.classList.remove('on'); el.hidden = true; if (tut) { tut.card = false; tut.slowK = 1; }
+}
+$('tgGo').addEventListener('click', () => { AU.init(); AU.ui(); tutCard(false); });
 function tutOrbOff() { orb.on = false; orb.pull = 0; orb.g.visible = false; orb.ring.visible = false; }
 function tutSpawnRoller() {
   const spots = POWER_SPOTS.filter(sp => !powers.some(o => Math.hypot(o.x - sp[0], o.z - sp[2]) < 3)); if (!spots.length) return;
@@ -161,7 +168,7 @@ function tutGuide() {
   if (tutArrowEl.hidden) tutArrowEl.hidden = false; tutArrowEl.style.transform = 'translate(' + x.toFixed(0) + 'px,' + y.toFixed(0) + 'px) rotate(' + a.toFixed(3) + 'rad)';
 }
 function tutFrame(rdt) {
-  if (tut) { if (state === 'play' && tut.step >= 0) { tut.st += rdt; if (tut.st > TUT_STEPS[tut.step].max) tutNext(); } const on = state === 'play' && tut.slowK < 1; if (tutSlowEl.classList.contains('on') !== on) tutSlowEl.classList.toggle('on', on); }
+  if (tut) { if (state === 'play' && tut.step >= 0) { tut.st += rdt; if (tut.st > TUT_STEPS[tut.step].max) tutNext(); } const on = state === 'play' && tut.slowK < 1 && !tut.card; if (tutSlowEl.classList.contains('on') !== on) tutSlowEl.classList.toggle('on', on); }
   else { if (tutSlowEl.classList.contains('on')) tutSlowEl.classList.remove('on'); tutMenuTick(); }
   if (tutTip) tutPlace(); else if (popMoved) { popMoved = false; $('pop').style.top = ''; }
   if (tut) tutGuide(); else if (!tutArrowEl.hidden) tutArrowEl.hidden = true;
@@ -177,10 +184,10 @@ function tutBegin() { // (as a match begins)
   tut = { step: -1, st: 0, slowK: 1, hidePound: true, keepAway: true, items: false, orbMine: false, drive: null, noTurret: true };
   wxLeft = 1e9; orb.spawnT = 1e9; Object.assign(gift, { id: 'flower', on: false, got: false, pop: 0, at: 1e9 }); giftM.visible = giftRing.visible = giftBeam.visible = false;
 }
-function tutLeave() { tutArrowEl.hidden = true; tut = null; tutHide(); tutSlowEl.classList.remove('on'); tutRestore(); tutWinDue = false; const tw = $('tutWin'); tw.classList.remove('on'); tw.hidden = true; }
+function tutLeave() { tutArrowEl.hidden = true; if (tut) tutCard(false); tut = null; tutHide(); tutSlowEl.classList.remove('on'); tutRestore(); tutWinDue = false; const tw = $('tutWin'); tw.classList.remove('on'); tw.hidden = true; }
 function tutEndMatch() { // (as a match ends)
   if (tut) {
-    tut = null; tutHide(); tutSlowEl.classList.remove('on');
+    tutCard(false); tut = null; tutHide(); tutSlowEl.classList.remove('on');
     if (!owns('flower')) unlockItem('flower'); if (!newItem) newItem = 'flower';
     store.tut.price = { flower: Math.max(1, Math.round((endInfo.drops || 0) / 2)) }; // (half what this match paid)
     for (const k of ['steer', 'jump', 'hold', 'burst', 'roll', 'pound', 'missile', 'item', 'orb', 'rocket', 'airdash']) store.seen[k] = 1; // (taught: the one-time tips stay down)

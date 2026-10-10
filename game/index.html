@@ -2202,6 +2202,21 @@ svg{shape-rendering:geometricPrecision}
 .tutarrow svg{display:block;width:100%;height:100%;fill:var(--gold);stroke:#171320;stroke-width:2.4;stroke-linejoin:round;filter:drop-shadow(2px 3px 0 rgba(0,0,0,.4));animation:tutnudge .55s ease-in-out infinite alternate}
 @keyframes tutnudge{from{translate:0 0}to{translate:9px 0}}
 @media (prefers-reduced-motion:reduce){.tutarrow svg{animation:none}}
+/* the lesson's last word: the match holds still, a full card says what is left to do, and a button starts it again */
+.tutgo{position:absolute;inset:0;z-index:62;display:grid;place-items:center;padding:24px;box-sizing:border-box;background:rgba(23,19,32,.74);opacity:0;transition:opacity .25s}
+.tutgo.on{opacity:1}
+.tutgo .tgcard{position:relative;display:grid;justify-items:center;gap:14px;width:min(100%,420px);box-sizing:border-box;padding:26px 22px 22px;border-radius:18px;color:#fff;text-align:center;background:repeating-linear-gradient(-56deg,rgba(14,12,20,.96) 0 18px,rgba(44,40,54,.96) 18px 36px);box-shadow:0 0 0 2px rgba(255,255,255,.12),0 18px 40px rgba(0,0,0,.5)}
+.tutgo.on .tgcard{animation:tutin .4s cubic-bezier(.2,1.2,.4,1) both}
+.tutgo .tava{width:84px;height:84px;border-radius:18px;margin-top:-62px;box-shadow:0 4px 0 rgba(0,0,0,.4),inset 0 0 0 3px rgba(255,255,255,.4)}
+.tutgo .tname{min-width:0;margin:0;padding:0;border:0;justify-self:center}
+.tutgo h2{margin:0;font:400 clamp(30px,8vw,44px)/1 var(--font-display);text-transform:uppercase;letter-spacing:.01em;color:#fff;-webkit-text-stroke:1.5px #2A1B4F;paint-order:stroke fill;text-shadow:0 4px 0 #2A1B4F}
+.tutgo h2 em{font-style:normal;color:#3BE889}
+.tutgo p{margin:0;font:400 18px/1.25 var(--font-display);text-shadow:2px 2px 0 rgba(0,0,0,.7);text-wrap:balance}
+.tutgo #tgGo{width:min(100%,260px);margin-top:6px}
+.tutgo .tava{display:block;overflow:hidden;background:#9FE9DB}
+.tutgo .tava .bico{display:block;width:100%;height:100%;border:0;border-radius:0}
+.tutgo .tava svg{display:block;width:100%;height:100%}
+.tutgo .tname{font:400 20px/1 var(--font-display);color:#3BE889;text-shadow:2px 2px 0 rgba(0,0,0,.7);letter-spacing:.01em}
 .errline{position:absolute;left:8px;right:8px;bottom:max(8px,env(safe-area-inset-bottom));z-index:99;margin:0;padding:6px 10px;background:rgba(23,19,32,.88);color:#FFD86B;font:600 11px/1.3 ui-monospace,Menlo,monospace;border-radius:6px;pointer-events:none;word-break:break-all}
 #lastErr{font:600 10px/1.3 ui-monospace,Menlo,monospace;word-break:break-all;opacity:.8}
 </style>
@@ -2236,7 +2251,7 @@ svg{shape-rendering:geometricPrecision}
   <svg class="sling" id="sling" aria-hidden="true"><line id="slBandO" x1="0" y1="0" x2="0" y2="0"/><line id="slBand" x1="0" y1="0" x2="0" y2="0"/><circle id="slA" r="15"/><circle id="slB" r="11"/></svg>
   <div class="pop" id="pop"></div>
   <div class="hint" id="hint" aria-live="polite"><span id="hintText"></span></div>
-  <div class="tutslow" id="tutSlow" aria-hidden="true"></div><p class="errline" id="errLine" hidden></p><i class="tuthand" id="tutHand" hidden aria-hidden="true"></i><i class="tutarrow" id="tutArrow" hidden aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M8 17h18V7l17 17-17 17V31H8z"/></svg></i><div class="tutdim" id="tutDim" aria-hidden="true"></div><div class="tut" id="tut" hidden data-pos="top" role="status" aria-live="polite"><div class="tplate"><b class="tname">Coach</b><span class="tava" id="tutAva" aria-hidden="true"></span><span class="ttext" id="tutText"></span></div><p class="tcall" id="tutCall"></p><i class="thand" aria-hidden="true"><svg viewBox="0 0 64 84"><g fill="#F2C08A" stroke="#171320" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"><path d="M18 16c0-8 6-13 14-13h13c9 0 16 7 16 16v15c0 10-7 18-16 20H30c-6 0-10-3-12-9z"/><path d="M45 19c7-2 12 3 10 9M45 31c7-2 12 3 10 9M43 43c6-2 10 3 8 8" fill="none"/><path d="M18 16v53c0 6 4 11 9.5 11S37 75 37 69V34"/></g><ellipse cx="27.5" cy="71" rx="5" ry="4" fill="#E39A66"/></svg></i></div>
+  <div class="tutslow" id="tutSlow" aria-hidden="true"></div><p class="errline" id="errLine" hidden></p><i class="tuthand" id="tutHand" hidden aria-hidden="true"></i><section class="tutgo" id="tutGo" hidden role="dialog" aria-modal="true" aria-labelledby="tgTitle"><div class="tgcard"><span class="tava" id="tgAva" aria-hidden="true"></span><b class="tname">Coach</b><h2 id="tgTitle">Now <em>win it!</em></h2><p>Beat him and cover as much of the canvas as you can. Bonus points every time you take him out.</p><button class="btn play sm" id="tgGo" type="button">Let&rsquo;s do it!</button></div></section><i class="tutarrow" id="tutArrow" hidden aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M8 17h18V7l17 17-17 17V31H8z"/></svg></i><div class="tutdim" id="tutDim" aria-hidden="true"></div><div class="tut" id="tut" hidden data-pos="top" role="status" aria-live="polite"><div class="tplate"><b class="tname">Coach</b><span class="tava" id="tutAva" aria-hidden="true"></span><span class="ttext" id="tutText"></span></div><p class="tcall" id="tutCall"></p><i class="thand" aria-hidden="true"><svg viewBox="0 0 64 84"><g fill="#F2C08A" stroke="#171320" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"><path d="M18 16c0-8 6-13 14-13h13c9 0 16 7 16 16v15c0 10-7 18-16 20H30c-6 0-10-3-12-9z"/><path d="M45 19c7-2 12 3 10 9M45 31c7-2 12 3 10 9M43 43c6-2 10 3 8 8" fill="none"/><path d="M18 16v53c0 6 4 11 9.5 11S37 75 37 69V34"/></g><ellipse cx="27.5" cy="71" rx="5" ry="4" fill="#E39A66"/></svg></i></div>
   <div class="threat" id="threat" aria-live="assertive"><b>!</b><span id="threatText">Missile!</span></div>
   <div class="threatArrow" id="threatArrow" aria-hidden="true"><i>!</i><u><b></b></u></div>
   <div class="banner" id="banner" aria-live="polite"><div class="plate"><span class="pem" id="bannerEm" aria-hidden="true"><i></i></span><div class="ptxt"><p id="bannerBig"></p><p id="bannerSmall"></p></div></div></div>
@@ -2302,7 +2317,7 @@ svg{shape-rendering:geometricPrecision}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 172</p>
+      <p class="ver">Version 173</p>
     </div>
   </div>
 
@@ -14437,8 +14452,8 @@ const TUT_STEPS = [
     exit() { tut.rocketLock = null; tut.slowK = 1; } },
   { id: 'flower', max: 40, enter() { if (orb.on) tutOrbOff(); orb.spawnT = 1e9; gift.id = 'flower'; gift.at = runT; tut.slowK = 1; tutShow('A flower! *GRAB IT* to unlock it!', null, 'flower', true, true); }, tick() { return gift.got; },
     exit() { if (!gift.got) { gift.got = true; gift.on = false; giftM.visible = giftRing.visible = giftBeam.visible = false; unlockItem('flower'); newItem = 'flower'; } orb.spawnT = 8; } },
-  { id: 'rest', max: 1e9, enter() { tut.slowK = 1; tut.noTurret = false; if (matchLeft < 28) matchLeft = 28; tut.restT = 6; tutShow('Now beat him and cover as much of the canvas as you can. Bonus points every time you take him out', null, 'rest', false, true); },
-    tick(dt) { if (tut.restT > 0) { tut.restT -= dt; if (tut.restT <= 0) tutHide(); } return false; } }
+  { id: 'rest', max: 1e9, enter() { tutHide(); tut.slowK = 1; tut.noTurret = false; if (matchLeft < 28) matchLeft = 28; tut.cardIn = 1.1; tut.card = false; },
+    tick(dt) { if (tut.cardIn > 0) { tut.cardIn -= dt; if (tut.cardIn <= 0) tutCard(true); } return false; } } // (a beat for the new item banner, then the card)
 ];
 const TUT_REST = TUT_STEPS.length - 1;
 // the pound handed over ready the moment its tip is up, even mid-cooldown or short of paint
@@ -14452,6 +14467,13 @@ function tutRocket(D, dt) {
   if (R.ph === 'hover' && R.t > 0.8 && Math.hypot(P.x - D.x, P.z - D.z) < 0.6) rocketDive(D, false);
   if (R.ph === 'dive' && R.slow) { R.slow = false; D.vy = Math.min(D.vy, -14); } // (never the slow drift down: always the boost)
 }
+// the card that ends the lesson: the match holds still under it, and Let's do it lets it go
+function tutCard(on) {
+  const el = $('tutGo'); if (!tut) on = false;
+  if (on) { tut.card = true; tut.slowK = 0; bannerEl.classList.remove('on'); try { $('tgAva').innerHTML = tutAva.innerHTML || '<span class="bico" style="--cd:#8C6A14">' + slimeIcon(0xF2C14E, lookOf(P)) + '</span>'; } catch (e) {} el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); AU.fanfare && AU.fanfare(); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60); return; }
+  el.classList.remove('on'); el.hidden = true; if (tut) { tut.card = false; tut.slowK = 1; }
+}
+$('tgGo').addEventListener('click', () => { AU.init(); AU.ui(); tutCard(false); });
 function tutOrbOff() { orb.on = false; orb.pull = 0; orb.g.visible = false; orb.ring.visible = false; }
 function tutSpawnRoller() {
   const spots = POWER_SPOTS.filter(sp => !powers.some(o => Math.hypot(o.x - sp[0], o.z - sp[2]) < 3)); if (!spots.length) return;
@@ -14483,7 +14505,7 @@ function tutGuide() {
   if (tutArrowEl.hidden) tutArrowEl.hidden = false; tutArrowEl.style.transform = 'translate(' + x.toFixed(0) + 'px,' + y.toFixed(0) + 'px) rotate(' + a.toFixed(3) + 'rad)';
 }
 function tutFrame(rdt) {
-  if (tut) { if (state === 'play' && tut.step >= 0) { tut.st += rdt; if (tut.st > TUT_STEPS[tut.step].max) tutNext(); } const on = state === 'play' && tut.slowK < 1; if (tutSlowEl.classList.contains('on') !== on) tutSlowEl.classList.toggle('on', on); }
+  if (tut) { if (state === 'play' && tut.step >= 0) { tut.st += rdt; if (tut.st > TUT_STEPS[tut.step].max) tutNext(); } const on = state === 'play' && tut.slowK < 1 && !tut.card; if (tutSlowEl.classList.contains('on') !== on) tutSlowEl.classList.toggle('on', on); }
   else { if (tutSlowEl.classList.contains('on')) tutSlowEl.classList.remove('on'); tutMenuTick(); }
   if (tutTip) tutPlace(); else if (popMoved) { popMoved = false; $('pop').style.top = ''; }
   if (tut) tutGuide(); else if (!tutArrowEl.hidden) tutArrowEl.hidden = true;
@@ -14499,10 +14521,10 @@ function tutBegin() { // (as a match begins)
   tut = { step: -1, st: 0, slowK: 1, hidePound: true, keepAway: true, items: false, orbMine: false, drive: null, noTurret: true };
   wxLeft = 1e9; orb.spawnT = 1e9; Object.assign(gift, { id: 'flower', on: false, got: false, pop: 0, at: 1e9 }); giftM.visible = giftRing.visible = giftBeam.visible = false;
 }
-function tutLeave() { tutArrowEl.hidden = true; tut = null; tutHide(); tutSlowEl.classList.remove('on'); tutRestore(); tutWinDue = false; const tw = $('tutWin'); tw.classList.remove('on'); tw.hidden = true; }
+function tutLeave() { tutArrowEl.hidden = true; if (tut) tutCard(false); tut = null; tutHide(); tutSlowEl.classList.remove('on'); tutRestore(); tutWinDue = false; const tw = $('tutWin'); tw.classList.remove('on'); tw.hidden = true; }
 function tutEndMatch() { // (as a match ends)
   if (tut) {
-    tut = null; tutHide(); tutSlowEl.classList.remove('on');
+    tutCard(false); tut = null; tutHide(); tutSlowEl.classList.remove('on');
     if (!owns('flower')) unlockItem('flower'); if (!newItem) newItem = 'flower';
     store.tut.price = { flower: Math.max(1, Math.round((endInfo.drops || 0) / 2)) }; // (half what this match paid)
     for (const k of ['steer', 'jump', 'hold', 'burst', 'roll', 'pound', 'missile', 'item', 'orb', 'rocket', 'airdash']) store.seen[k] = 1; // (taught: the one-time tips stay down)
