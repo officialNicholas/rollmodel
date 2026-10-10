@@ -2216,7 +2216,7 @@ svg{shape-rendering:geometricPrecision}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 160</p>
+      <p class="ver">Version 161</p>
     </div>
   </div>
 
@@ -12392,16 +12392,18 @@ $('niTry').addEventListener('click', () => { AU.init(); AU.ui(); const id = newI
 const kofEl = $('kof'), kofC = $('kofC'), kofG = kofC.getContext('2d'); let kof = null;
 function kofStart(D, reason, by) {
   const col = by ? TEAMS[by.team].css : reason === 'sun' ? '#F0DDA8' : reason === 'dry' ? '#5E4F5C' : hexCss(new THREE.Color(TEAMS[D.team].wet).multiplyScalar(0.5).getHex());
-  kof = { ph: 'in', t: 0, col, cx: viewW * 0.5, cy: viewH * 0.5, seed: Math.random() * 100 };
+  kof = { ph: 'wait', t: 0, col, cx: viewW * 0.5, cy: viewH * 0.5, seed: Math.random() * 100 }; // (a beat first: you see yourself splatted, then the paint floods in)
   $('kofSmall').textContent = by ? 'Splatted by' : reason === 'fall' ? 'Fell off' : reason === 'sun' ? 'Baked' : reason === 'dry' ? 'Dried up' : 'Knocked out';
   $('kofBy').textContent = by ? nameOf(by) : (koLine(reason, true) || 'Out!'); $('kofN').textContent = Math.max(1, Math.ceil(D.koT));
-  kofEl.style.setProperty('--kc', col); kofEl.hidden = false; kofEl.classList.remove('badge', 'out'); AU.kflood();
+  kofEl.style.setProperty('--kc', col); kofEl.hidden = false; kofEl.classList.remove('badge', 'out');
 }
+const KOF_WAIT = 0.85; // seconds of real time before the flood, long enough to read the splat under the slow-down
 function kofBlob(g, r, ph) { for (let i = 0; i <= 56; i++) { const a = i / 56 * 6.2832, rr = r * (1 + 0.08 * Math.sin(a * 5 + ph) + 0.05 * Math.sin(a * 9 - ph * 1.7) + 0.03 * Math.sin(a * 17 + ph * 0.6)), x = kof.cx + Math.cos(a) * rr, y = kof.cy + Math.sin(a) * rr; i ? g.lineTo(x, y) : g.moveTo(x, y); } g.closePath(); }
 function kofFrame(rdt) {
   if (!kof) return; kof.t += rdt; const W = viewW, Hh = viewH, dpr = Math.min(2, window.devicePixelRatio || 1), g = kofG, t = kof.t, R = Math.hypot(W, Hh) * 0.6;
   if (kofC.width !== (W * dpr | 0) || kofC.height !== (Hh * dpr | 0)) { kofC.width = W * dpr | 0; kofC.height = Hh * dpr | 0; }
   g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, Hh);
+  if (kof.ph === 'wait') { if (t >= KOF_WAIT) { kof.ph = 'in'; kof.t = 0; AU.kflood(); } return; }
   if (kof.ph === 'in') { const u = Math.min(1, t / 0.5), e = 1 - Math.pow(1 - u, 3); g.fillStyle = kof.col; g.beginPath(); kofBlob(g, R * e * 1.15, kof.seed + t * 2); g.fill(); if (u >= 1) { kof.ph = 'hold'; kofEl.classList.add('badge'); } }
   else if (kof.ph === 'hold') { g.fillStyle = kof.col; g.fillRect(0, 0, W, Hh); g.globalAlpha = 0.1; g.fillStyle = '#000'; for (let k = 0; k < 3; k++) { g.beginPath(); g.ellipse(W * (0.25 + 0.25 * k) + Math.sin(t * 0.6 + k) * 50, Hh * (0.42 + 0.14 * Math.sin(t * 0.45 + k * 2)), W * 0.34, Hh * 0.11, 0.25 * k - 0.3, 0, 6.2832); g.fill(); } g.globalAlpha = 1; } // (a slow swirl of darker paint)
   else { const u = Math.min(1, t / 0.65), e = u * u * (3 - 2 * u); g.fillStyle = kof.col; g.fillRect(0, 0, W, Hh);
@@ -12413,7 +12415,7 @@ function kofFrame(rdt) {
     else return kofEnd(); }
   if (kof.ph !== 'out') { const n = String(Math.max(1, Math.ceil(P.koT))); const el = $('kofN'); if (el.textContent !== n) { el.textContent = n; restartCls(el, 'tick'); } }
 }
-function kofOpen() { if (!kof) return; kof.ph = 'out'; kof.t = 0; kofEl.classList.remove('badge'); kofEl.classList.add('out'); AU.kpart(); }
+function kofOpen() { if (!kof) return; if (kof.ph === 'wait') return kofEnd(); kof.ph = 'out'; kof.t = 0; kofEl.classList.remove('badge'); kofEl.classList.add('out'); AU.kpart(); }
 function kofEnd() { kof = null; kofEl.hidden = true; kofEl.classList.remove('badge', 'out'); }
 function abortReveal() { if (state === 'reveal') { state = 'intro'; introT = 0; } const el = $('reveal'); if (el) el.hidden = true; }
 function abortVictory() { if (vic) restoreVictory(); vicEl.hidden = true; vicEl.classList.remove('out'); if (tal) hideTally(); }
