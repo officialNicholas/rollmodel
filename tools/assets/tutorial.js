@@ -120,7 +120,8 @@ const TUT_STEPS = [
       const sub = now ? 'now' : 'wait'; if (sub !== tut.sub) { tut.sub = sub; if (now) tutShow(say('*NOW!* Swipe up!', '*NOW!* Shift!'), null, 'rdodgenow', true, true); else tutShow(say('The rival has a rocket too. When it drops on you, swipe up to roll clear', 'The rival has a rocket too. When it drops on you, press Shift to roll clear'), null, 'rdodge', false, true); }
       return tut.rkStarted && !H.rocket && (tut.rolled || tut.hit || tut.st > 20) && P.st === 'play'; },
     exit() { tut.rocketLock = null; tut.slowK = 1; } },
-  { id: 'flower', max: 40, enter() { if (orb.on) tutOrbOff(); orb.spawnT = 1e9; gift.id = 'flower'; gift.at = runT; tut.slowK = 1; tutShow('Something rare! *GRAB IT!*', null, 'flower', true, true); }, tick() { return gift.got; },
+  { id: 'flower', max: 42, enter() { if (orb.on) tutOrbOff(); orb.spawnT = 1e9; gift.id = 'flower'; gift.at = 1e9; tut.slowK = 1; tutHide(); tut.wait = 2.2; },
+    tick(dt) { if (tut.wait > 0) { tut.wait -= dt; if (tut.wait <= 0) { gift.at = runT; tutShow('Something rare! *GRAB IT!*', null, 'flower', true, true); } return false; } return gift.got; }, /* (a breath after the dodge, then the flower and its tip) */
     exit() { if (!gift.got) { gift.got = true; gift.on = false; giftM.visible = giftRing.visible = giftBeam.visible = false; unlockItem('flower'); newItem = 'flower'; } orb.spawnT = 8; } },
   { id: 'rest', max: 1e9, enter() { tutHide(); tut.slowK = 1; tut.noTurret = false; if (matchLeft < 28) matchLeft = 28; tut.cardIn = 1.1; tut.card = false; },
     tick(dt) { if (tut.cardIn > 0) { tut.cardIn -= dt; if (tut.cardIn <= 0) tutCard(true); }
