@@ -60,7 +60,7 @@ function tutPlace() {
   if (state === 'play' || tutTip.loose) { // (in a match, or a loose tip: up top, the hand loose over the control, no dim)
     if (tutDim.classList.contains('on')) tutDim.classList.remove('on');
     if (tutEl.dataset.pos !== 'play') { tutEl.dataset.pos = 'play'; tutEl.style.cssText = ''; }
-    const sc = state !== 'play' ? null : tutPipsEl.classList.contains('on') ? tutPipsEl : document.querySelector('#hud .score'), sb = sc && sc.getBoundingClientRect(), t = (state !== 'play' ? Math.max(8, parseFloat(getComputedStyle(stage).paddingTop) || 0) : (sb && sb.height ? sb.bottom - r0.top : 90) + 10).toFixed(0) + 'px'; if (tutEl.style.top !== t) tutEl.style.top = t;
+    const sc = state !== 'play' ? null : tutPipsEl.classList.contains('on') ? tutPipsEl : document.querySelector('#hud .score'), sb = sc && sc.getBoundingClientRect(), t = (state !== 'play' ? Math.max(8, parseFloat(getComputedStyle(stage).paddingTop) || 0) : tutTip.call ? Math.max((sb && sb.height ? sb.bottom - r0.top : 90) + 10, r0.height * 0.4 - tutEl.offsetHeight / 2) : (sb && sb.height ? sb.bottom - r0.top : 90) + 10).toFixed(0) + 'px'; /* (a short callout goes mid-screen, where it can't be missed) */ if (tutEl.style.top !== t) tutEl.style.top = t;
     tutHandAt(el && !el.closest('[hidden]') && el.getClientRects().length ? el : null, r0);
     if (state === 'play') { const pb = (parseFloat(tutEl.style.top) || 90) + tutEl.offsetHeight + 14, pt = pb.toFixed(0) + 'px', pe = $('pop'); if (pe.style.top !== pt) { pe.style.top = pt; popMoved = true; } } // (the pop text drops under the tip, not over it)
     return;
@@ -240,8 +240,8 @@ function tutGuide() {
 }
 function tutFrame(rdt) {
   { const bUp = state === 'play' && performance.now() < bannerUntil; if (bUp && tut) tut.bannerSeen = true; if (tutEl.classList.contains('wait') !== bUp) tutEl.classList.toggle('wait', bUp); } /* (a game banner up: the coach waits out of sight) */
-  if (tut) { if (state === 'play' && tut.step >= 0) { tut.st += rdt; if (tut.st > TUT_STEPS[tut.step].max) tutNext(); } const on = state === 'play' && tut.slowK < 1 && !tut.card; if (tutSlowEl.classList.contains('on') !== on) tutSlowEl.classList.toggle('on', on); }
-  else { const on2 = !!tut2 && state === 'play' && tut2.slowK < 1; if (tutSlowEl.classList.contains('on') !== on2) { tutSlowEl.classList.toggle('on', on2); tutSlowEl.classList.toggle('dark', on2); } if (!(tut2 && state === 'play')) tutMenuTick(); } // (the first real match runs its own tips)
+  if (tut) { if (state === 'play' && tut.step >= 0) { tut.st += rdt; if (tut.st > TUT_STEPS[tut.step].max) tutNext(); } const on = state === 'play' && tut.slowK < 1 && !tut.card; if (tutSlowEl.classList.contains('on') !== on) { tutSlowEl.classList.toggle('on', on); AU.slow(on); } }
+  else { const on2 = !!tut2 && state === 'play' && tut2.slowK < 1; if (tutSlowEl.classList.contains('on') !== on2) { tutSlowEl.classList.toggle('on', on2); tutSlowEl.classList.toggle('dark', on2); AU.slow(on2); } if (!(tut2 && state === 'play')) tutMenuTick(); } // (the first real match runs its own tips)
   if (tutTip) tutPlace(); else if (popMoved) { popMoved = false; $('pop').style.top = ''; }
   if (tut || tut2) tutGuide(); else if (!tutArrowEl.hidden) tutArrowEl.hidden = true;
   if (tut || tutPipsEl.classList.contains('on')) tutPipsTick();
@@ -259,11 +259,11 @@ function tutBegin() { // (as a match begins)
   tut = { step: -1, st: 0, slowK: 1, hidePound: true, keepAway: true, items: false, orbMine: false, drive: null, noTurret: true, pips: new Set(), bonus: 0, praiseN: 0 }; tutPipsDraw();
   wxLeft = 1e9; orb.spawnT = 1e9; Object.assign(gift, { id: 'flower', on: false, got: false, pop: 0, at: 1e9 }); giftM.visible = giftRing.visible = giftBeam.visible = false;
 }
-function tutLeave() { tut2 = null; tutArrowEl.hidden = true; if (tut) tutCard(false); tut = null; tutHide(); tutSlowEl.classList.remove('on'); tutRestore(); tutWinDue = false; const tw = $('tutWin'); tw.classList.remove('on'); tw.hidden = true; }
+function tutLeave() { tut2 = null; tutArrowEl.hidden = true; if (tut) tutCard(false); tut = null; tutHide(); if (tutSlowEl.classList.contains('on')) AU.slow(false, true); tutSlowEl.classList.remove('on'); tutRestore(); tutWinDue = false; const tw = $('tutWin'); tw.classList.remove('on'); tw.hidden = true; }
 function tutEndMatch() { // (as a match ends)
   if (tut) {
     const bonus = tut.bonus || 0; if (bonus) { store.drops = (store.drops || 0) + bonus; endInfo.drops = (endInfo.drops || 0) + bonus; } endInfo.tutBonus = bonus; // (the lessons' dabs)
-    tutCard(false); tut = null; tutHide(); tutSlowEl.classList.remove('on'); tutPipsEl.classList.remove('on');
+    tutCard(false); tut = null; tutHide(); if (tutSlowEl.classList.contains('on')) AU.slow(false, true); tutSlowEl.classList.remove('on'); tutPipsEl.classList.remove('on');
     if (!owns('flower')) unlockItem('flower'); if (!owns('fangs')) unlockItem('fangs'); if (!newItem || newItem === 'flower') newItem = ['flower', 'fangs'];
     store.tut.price = { flower: Math.max(1, Math.round((endInfo.drops || 0) / 2)) }; // (half what this match paid)
     for (const k of ['steer', 'jump', 'hold', 'burst', 'roll', 'pound', 'missile', 'item', 'orb', 'rocket', 'airdash']) store.seen[k] = 1; // (taught: the one-time tips stay down)
