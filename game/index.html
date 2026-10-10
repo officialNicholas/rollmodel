@@ -2013,6 +2013,14 @@ kbd{background:#fff;border-color:var(--black)}
 @keyframes orbf5{75%{opacity:0}100%{opacity:0}}
 .orbflash.on i:nth-child(5){animation:orbf5 1.8s ease-out}
 @media (prefers-reduced-motion:reduce){.orbflash.on i{animation:none}}
+
+/* the shop's cards: square, the item alone on them */
+.shgrid{grid-template-columns:repeat(auto-fill,minmax(148px,1fr))}
+.shpic{aspect-ratio:1/1;height:auto}
+.shpic img{object-fit:contain;padding:9%;box-sizing:border-box}
+.shpic svg{padding:16%}
+.shitem.locked .shpic img{filter:grayscale(1) brightness(.5) contrast(1.2);opacity:.85}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.shgrid{grid-template-columns:repeat(auto-fill,minmax(118px,1fr))}.shpic{height:auto}}
 </style>
 
 <div id="stage">
@@ -2109,7 +2117,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 141</p>
+      <p class="ver">Version 142</p>
     </div>
   </div>
 
@@ -12963,25 +12971,36 @@ let shopOpen = false, shopFrom = 'lobby', shopNoteT = 0;
 const SHOP_CATS = [['season', 'Season One · Halloween'], ['head', 'Headgear'], ['face', 'Facial'], ['cloth', 'Clothing'], ['eyes', 'Eyes']];
 function shopNote(t, bad) { const el = $('shopNote'); el.textContent = t; el.classList.toggle('bad', !!bad); restartCls(el, 'on'); clearTimeout(shopNoteT); shopNoteT = setTimeout(() => el.classList.remove('on'), 3200); }
 // each item as it looks on you: your blob wearing it, rendered once and kept (again if your paint changes)
-const shopPics = new Map(); let shopPicKey = '';
+const shopPics = new Map(); let shopPicKey = '', picRT = null, picScene = null, picCam = null;
+const PIC_SRC = { pirate: () => pWear.pirate, tophat: () => pWear.top, bowtie: () => pWear.bow, pearls: () => pWear.pearls, patch: () => pWear.patch, flower: () => pWear.flower, tiara: () => pWear.tiara, glasses: () => pWear.glasses, hockey: () => pWear.hockey, bunny: () => pWear.bunny, skull: () => pWear.skull, hat: () => pWear.hat, halo: () => pWear.halo }; // (fangs, lashes and the zombie eyes keep their drawn icons: white teeth on a pale card say nothing)
+function itemPic(w) {
+  const src = PIC_SRC[w.id]; if (!src || typeof pWear === 'undefined') return '';
+  const S = 320; if (!picRT) { picRT = new THREE.WebGLRenderTarget(S, S, { colorSpace: THREE.SRGBColorSpace }); picScene = new THREE.Scene(); picCam = new THREE.PerspectiveCamera(28, 1, 0.01, 100);
+    const hm = new THREE.HemisphereLight(0xFFFFFF, 0x9088A8, 1.1), dl = new THREE.DirectionalLight(0xFFFFFF, 1.7), fl = new THREE.DirectionalLight(0xFFE6C8, 0.5); dl.position.set(1.6, 2.6, 2.4); fl.position.set(-2, 0.6, 1.4); picScene.add(hm, dl, fl); }
+  picScene.environment = scene.environment || null;
+  const o = src().clone(); o.traverse(q => { q.visible = true; }); o.position.set(0, 0, 0); o.rotation.set(0, 0, 0); o.scale.setScalar(1); picScene.add(o); o.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(o), c = box.getCenter(new THREE.Vector3()), sz = box.getSize(new THREE.Vector3()), r = Math.max(sz.x, sz.y, sz.z) * 0.5 || 0.5, dir = new THREE.Vector3(0.38, 0.5, 1).normalize(), d = r / Math.tan(14 * Math.PI / 180) * 1.28;
+  picCam.position.copy(c).addScaledVector(dir, d); picCam.lookAt(c); picCam.updateProjectionMatrix(); picCam.updateMatrixWorld(true);
+  const cc = renderer.getClearColor(new THREE.Color()), ca = renderer.getClearAlpha(); renderer.setClearColor(0x000000, 0); renderer.setRenderTarget(picRT); renderer.clear(); renderer.render(picScene, picCam);
+  const buf = new Uint8Array(S * S * 4); renderer.readRenderTargetPixels(picRT, 0, 0, S, S, buf); renderer.setRenderTarget(null); renderer.setClearColor(cc, ca); picScene.remove(o);
+  const cv = document.createElement('canvas'); cv.width = cv.height = S; const g = cv.getContext('2d'), id = g.createImageData(S, S);
+  for (let y = 0; y < S; y++) id.data.set(buf.subarray((S - 1 - y) * S * 4, (S - y) * S * 4), y * S * 4);
+  g.putImageData(id, 0, 0); return cv.toDataURL('image/png');
+}
 function shopPic(w) {
-  const key = colorId + ':' + (myLook.eyes || '') + ':' + (myLook.iris || ''); if (shopPicKey !== key) { shopPics.clear(); shopPicKey = key; }
+  if (shopPicKey !== 'items') { shopPics.clear(); shopPicKey = 'items'; }
   if (shopPics.has(w.id)) return shopPics.get(w.id);
-  const saved = Object.assign({}, myLook), base = { head: null, side: null, eye: null, lash: null, mouth: null, neck: null, back: null };
-  Object.assign(myLook, base, w.slot === 'eyes' ? { eyes: w.id } : { [w.slot]: w.id }); if (w.slot === 'eyes') myLook.iris = saved.iris;
-  const propsOn = lobbyProps.visible; lobbyProps.visible = false; // (the locker's set dressing stays out of the shot)
-  let c = null; try { visuals(0, 0); c = portraitOf(P, 220, 260, { zoom: w.cat === 'cloth' ? 0.78 : w.cat === 'head' ? 0.86 : 0.9, low: w.cat === 'cloth' ? 0.55 : w.cat === 'head' ? -0.05 : 0.06 }); } catch (e) { c = null; }
-  lobbyProps.visible = propsOn; Object.assign(myLook, saved); try { visuals(0, 0); } catch (e) {}
-  const url = c ? c.toDataURL('image/png') : ''; shopPics.set(w.id, url); return url;
+  let url = ''; try { url = itemPic(w); } catch (e) { url = ''; }
+  shopPics.set(w.id, url); return url;
 }
 function renderShop() {
   const n = store.drops || 0; $('shBal').innerHTML = DROP_SVG + '<b>' + n + '</b>';
   let h = '', any = false; const done = new Set();
   for (const [c, label] of SHOP_CATS) { const items = ITEMS.filter(w => !bought(w.id) && !done.has(w.id) && (c === 'season' ? !!w.season : w.cat === c)).sort((a, b) => PRICE(a) - PRICE(b)); if (!items.length) continue; any = true; for (const w of items) done.add(w.id);
     h += '<div class="shcat' + (c === 'season' ? ' season' : '') + '"><b>' + label + '</b>' + (c === 'season' ? '<small>Found on the Halloween canvases</small>' : '') + '</div>' + items.map(w => { const found = owns(w.id) || !needFind(w), broke = found && n < PRICE(w), where = WEAR_WHERE[w.stage], pic = shopPic(w);
-      return '<button class="shitem' + (found ? (broke ? ' broke' : '') : ' locked') + (found && owns(w.id) && needFind(w) && !bought(w.id) ? ' fresh' : '') + '" type="button" role="listitem" data-w="' + w.id + '" aria-label="' + escAttr(w.name + ', ' + PRICE(w) + ' dabs' + (found ? (broke ? ', ' + (PRICE(w) - n) + ' more needed' : '') : ', locked. Find it on ' + where)) + '">'
+      return '<div class="shitem' + (found ? (broke ? ' broke' : '') : ' locked') + (found && owns(w.id) && needFind(w) && !bought(w.id) ? ' fresh' : '') + '" role="button" tabindex="0" data-w="' + w.id + '" aria-label="' + escAttr(w.name + ', ' + PRICE(w) + ' dabs' + (found ? (broke ? ', ' + (PRICE(w) - n) + ' more needed' : '') : ', locked. Find it on ' + where)) + '">'
         + '<span class="shin"><span class="shpic">' + (pic ? '<img src="' + pic + '" alt="">' : '<svg viewBox="0 0 40 40" aria-hidden="true">' + WEAR_ICON[w.id] + '</svg>') + (found ? '' : LOCK_ICON) + '</span>'
-        + '<span class="shplate"><b class="shn">' + w.name + '</b><span class="shw">' + (found ? (broke ? 'Need ' + (PRICE(w) - n) + ' more' : owns(w.id) && needFind(w) ? 'Found on ' + where : 'In stock') : 'Find it on ' + where) + '</span><span class="shp">' + DROP_SVG + PRICE(w) + '</span></span></span></button>'; }).join(''); }
+        + '<span class="shplate"><b class="shn">' + w.name + '</b><span class="shw">' + (found ? (broke ? 'Need ' + (PRICE(w) - n) + ' more' : owns(w.id) && needFind(w) ? 'Found on ' + where : 'In stock') : 'Find it on ' + where) + '</span><span class="shp">' + DROP_SVG + PRICE(w) + '</span></span></span></div>'; }).join(''); }
   $('shopGrid').innerHTML = any ? h : '<p class="shempty">' + SHOP_ICON + 'Nothing left to buy.<br>Everything is in your locker.</p>';
 }
 function openShop(from) {
@@ -12996,6 +13015,7 @@ function closeShop(quiet) {
   else { AU.music('menu'); renderLobbyUI(); setTimeout(() => $('dabsBtn').focus({ preventScroll: true }), 30); }
 }
 $('shopBack').addEventListener('click', () => { AU.init(); AU.ui(); closeShop(); });
+$('shopGrid').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('.shitem')) { e.preventDefault(); e.target.closest('.shitem').click(); } });
 $('shopGrid').addEventListener('click', e => { const b = e.target.closest('.shitem'); if (!b) return; AU.init(); const w = ITEMS.find(x => x.id === b.dataset.w); if (!w) return;
   if (!owns(w.id) && needFind(w)) { AU.nope(); kick(b, 'nope'); shopNote('Find the ' + w.name.toLowerCase() + ' on ' + WEAR_WHERE[w.stage] + ' first.'); return; }
   if (!buyItem(w.id)) { AU.nope(); kick(b, 'nope'); shopNote('Needs ' + (PRICE(w) - (store.drops || 0)) + ' more dabs. Matches pay in dabs.', true); return; }
