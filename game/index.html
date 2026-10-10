@@ -2353,7 +2353,7 @@ svg{shape-rendering:geometricPrecision}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 183</p>
+      <p class="ver">Version 184</p>
     </div>
   </div>
 
@@ -13931,8 +13931,7 @@ function talFrame() {
 function talWinner() {
   const info = endInfo, w = info.winner, wk = w ? info.kos[w.team] : 0, e = w && tal.ppl.find(e => e.D === w);
   talEl.classList.add('win'); for (const q of tal.ppl) q.nu.classList.toggle('win', q.D === w);
-  const sp = $('tySplash'); sp.style.setProperty('--c', e ? e.col : '#F4EEE3'); sp.className = 'tysplash'; void sp.offsetWidth; sp.className = 'tysplash go';
-  AU.tsplash(); buzz(w === P ? [30, 40, 30] : 20); flashScreen(); tyBurst(talEl, viewW / 2, viewH / 2, Math.min(viewW, viewH) * 1.6, w ? w.team : 0); // (the winner screen says who; here the paint says it)
+  AU.tsplash(); buzz(w === P ? [30, 40, 30] : 20); /* (no full-screen splat here: the winner screen right after says who) */
 }
 function hideTally() { if (!tal) return; tal = null; talEl.classList.add('out'); setTimeout(() => { if (!tal) talEl.hidden = true; }, 320); }
 // a tap skips to the end of the step it is on
