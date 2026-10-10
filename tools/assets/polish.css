@@ -1,0 +1,26 @@
+
+/* ---------- polish pass: touch, type, motion, depth ---------- */
+html{-webkit-text-size-adjust:100%}
+body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;overscroll-behavior:none}
+button,[role="button"],.ltile,.shitem,.sw{touch-action:manipulation;-webkit-user-select:none;user-select:none}
+svg{shape-rendering:geometricPrecision}
+/* every press answers at once, and settles back */
+.btn,.ibtn,.ltile,.seg button,.swatch,.lnbtn,.lkbal,.shitem,.sw,.lcat,.eyes,.stg,.mtile,.ulink{transition:transform .14s cubic-bezier(.2,.8,.3,1),box-shadow .14s cubic-bezier(.2,.8,.3,1),filter .14s,opacity .14s}
+.ibtn:active,.ltile:active,.lkbal:active,.shitem:active,.stg:active,.mtile:active{transform:translate(2px,2px) scale(.98)}
+.ibtn:active,.ltile:active,.lkbal:active,.shitem:active{box-shadow:1px 1px 0 var(--black)}
+/* numbers hold their width while they count */
+.jnums b,.tynum b,.stat b,.stats b,.bpct,.chip b,.ptimer b,.lkbal b,.shp,.ltag,.tyko b,.xpgain,.dropgain,.tn,.mclock,.timer,.pct{font-variant-numeric:tabular-nums}
+/* modal cards lift in and settle */
+.modal .card{animation:cardlift .34s cubic-bezier(.2,1.25,.35,1) both}
+@keyframes cardlift{from{opacity:0;transform:translateY(16px) scale(.95)}}
+/* paper panels catch a hair of light along the top edge */
+.sheet,.modal .card,.ltile,.lnbtn,.lkbal,.shitem,.seg.lcats button,.gplac,.reprow,.commdone{background-clip:padding-box}
+.ltile,.lnbtn,.lkbal,.shitem,.seg.lcats button:not([aria-selected="true"]),.gplac,.reprow{box-shadow:3px 3px 0 rgba(23,19,32,.2),inset 0 1px 0 rgba(255,255,255,.7)}
+.shitem{box-shadow:4px 4px 0 rgba(255,255,255,.18),inset 0 1px 0 rgba(255,255,255,.7)}
+/* micro labels: one voice */
+.lhead,.shcat,.shw,.stat small,.stats small,.jnums b small,.ptitle span,.bhead span,.gplac span,.lsub,.sub,.cap{letter-spacing:.12em;text-transform:uppercase;font-weight:800}
+.shw{text-transform:none;letter-spacing:0}
+/* selection and focus */
+::selection{background:rgba(227,18,47,.25)}
+:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){.modal .card{animation:none}.btn,.ibtn,.ltile,.seg button,.swatch,.lnbtn,.lkbal,.shitem,.sw,.lcat,.eyes,.stg,.mtile{transition:none}}
