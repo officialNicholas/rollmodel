@@ -37,7 +37,7 @@ export const LIMITS = {
   neck: [[-35, 35], [-30, 30], [-20, 20]], head: [[-40, 35], [-60, 60], [-30, 30]], headfront: [[0, 0], [0, 0], [0, 0]],
   shoulder: [[-15, 15], [-10, 10], [-15, 15]], upperarm: [[-70, 150], [-60, 60], [-30, 120]], forearm: [[-5, 135], [-70, 70], [-10, 10]], hand: [[-45, 60], [-30, 30], [-25, 25]],
   thigh: [[-45, 110], [-40, 40], [-25, 60]], shin: [[-5, 130], [-15, 15], [-8, 8]], foot: [[-35, 45], [-15, 15], [-20, 20]], toes: [[-25, 35], [0, 0], [-10, 10]],
-  finger1: [[-15, 85], [0, 0], [-14, 14]], finger2: [[-5, 95], [0, 0], [0, 0]], toe1: [[-15, 70], [0, 0], [-12, 12]], toe2: [[-5, 80], [0, 0], [0, 0]],
+  finger1: [[-15, 70], [0, 0], [-14, 14]], finger2: [[-5, 90], [0, 0], [0, 0]], toe1: [[-15, 70], [0, 0], [-12, 12]], toe2: [[-5, 80], [0, 0], [0, 0]],
   tail: [[-35, 35], [-15, 15], [-45, 45]], gill: [[-35, 35], [-10, 10], [-35, 35]],
 };
 export function limitsFor(name) {
@@ -181,7 +181,7 @@ export class Animator {
   // digits: curl about the hinge only, spread about the palm normal, inside the joint limits (clamped later per bone)
   digits(out, curl, spread, toeCurl, toeSpread = spread) {
     for (let s = 0; s < 2; s++) { const m = s === 0 ? 1 : -1;
-      this.chain.fingers[s].forEach((f, k) => { rot(out, f[0], curl * 50, 0, (k - 1.5) * spread * 9 * m); rot(out, f[1], curl * 60, 0, 0); });
+      this.chain.fingers[s].forEach((f, k) => { rot(out, f[0], curl * 42, 0, (k - 1.5) * spread * 9 * m); rot(out, f[1], curl * 55, 0, 0); });
       this.chain.toes[s].forEach((f, k) => { rot(out, f[0], toeCurl * 40, 0, (k - 1.5) * toeSpread * 8 * m); rot(out, f[1], toeCurl * 45, 0, 0); }); }
   }
   // ---------------- STAND IDLE ----------------
@@ -202,9 +202,9 @@ export class Animator {
     const I = this.I, P = this.P; out.copy(this.LS);
     this.gait += dt * speed * 2 * Math.PI * 1.1; const ph = this.gait;
     // trunk: standing-wave lateral undulation (about the ventral axis), girdles in antiphase, travelling toward the tail
-    const sp = this.chain.spine, amps = [-5, 4, 7, 5, 3]; let yawSum = 0;
+    const sp = this.chain.spine, amps = [-5, 4, 7, 3, 1.5]; let yawSum = 0;
     for (let k = 0; k < sp.length; k++) { const a = amps[k] * Math.sin(ph - k * 0.55 - 0.3) * speed; rot(out, sp[k], 0, 0, a); yawSum += a; }
-    rot(out, I.head, 2 + Math.sin(ph * 2) * 1.2 * speed + this.look.pitch, -yawSum * 0.6 + this.look.yaw, 0);
+    rot(out, I.head, 2 + Math.sin(ph * 2) * 1.2 * speed + this.look.pitch, this.look.yaw, 0);   // the head rides the body wave (no counter-yaw: the sculpt's lower gills are fused to the shoulders)
     out.root.x += Math.sin(ph - 0.3) * 0.03 * speed; out.root.y += Math.sin(ph * 2 + 0.9) * 0.008 * speed;
     // limbs in diagonal pairs: LF with RH (phase 0), RF with LH (phase pi). x = swing fore/aft, z = lift (mirrored on the right)
     const limbs = [['upperarm.L', 'forearm.L', 'hand.L', 0, 1, 'fingers', 0], ['upperarm.R', 'forearm.R', 'hand.R', Math.PI, -1, 'fingers', 1], ['thigh.R', 'shin.R', 'foot.R', 0, -1, 'toes', 1], ['thigh.L', 'shin.L', 'foot.L', Math.PI, 1, 'toes', 0]];
@@ -256,7 +256,7 @@ export class Animator {
       this.P.aim(out, I['upperarm.' + s], _av.set(0.48 * m, 0.3 + sh * 0.01, 0.85), _av2.set(0, 1, -0.3)); this.P.aim(out, I['forearm.' + s], _av.set(0.35 * m, 0.55, 0.78), _av2.set(0, 1, -0.3)); setRot(out, I['hand.' + s], 30, 0, 0);
       setRot(out, I['thigh.' + s], 70, 0, 14 * m); setRot(out, I['shin.' + s], 100, 0, 0); setRot(out, I['foot.' + s], 25, 0, 0); }
     for (let k = 0; k < 6; k++) rot(out, this.chain.tail[k], -5 - k * 2, 0, 0);
-    this.tailWave(t * 3, 4, 1, 0); this.digits(out, 1.0, 0.0, 0.5);
+    this.tailWave(t * 3, 4, 1, 0); this.digits(out, 0.65, 0.0, 0.5);
     return out;
   }
   // ---------------- VICTORY: hops, both arms thrown up and forward, clear of the head and gills ----------------
@@ -272,15 +272,15 @@ export class Animator {
     this.tailWave(t * 6, 7, 0.9, 0); this.digits(out, 0.1, 0.6, 0.1);
     return out;
   }
-  // ---------------- CROUCH (stand mesh): on the way down to / up from all fours ----------------
+  // ---------------- CROUCH (stand mesh): on all fours-ish, the body low and horizontal, head looking ahead, tail trailing low ----------------
   crouch(out, k = 1) {
-    const I = this.I; out.identity(); out.root.copy(this.standRoot); out.root.y -= 0.22 * k; out.root.z += 0.08 * k;
-    // hips fold forward, spine rounds, head looks ahead; thighs come forward, knees bend deep, feet flat; arms reach down-forward to the ground
-    rot(out, I.hips, 42 * k, 0, 0); rot(out, I.spine, 8 * k, 0, 0); rot(out, I.spine1, 6 * k, 0, 0); rot(out, I.chest, 4 * k, 0, 0); rot(out, I.neck, -22 * k, 0, 0); rot(out, I.head, -26 * k, 0, 0);
+    const I = this.I, P = this.P; out.identity(); out.root.copy(this.standRoot); out.root.y -= 0.3 * k; out.root.z += 0.1 * k;
+    rot(out, I.hips, 58 * k, 0, 0); rot(out, I.spine, 8 * k, 0, 0); rot(out, I.spine1, 6 * k, 0, 0); rot(out, I.chest, 4 * k, 0, 0); rot(out, I.neck, -30 * k, 0, 0); rot(out, I.head, -34 * k, 0, 0);
     for (const s of ['L', 'R']) { const m = s === 'L' ? 1 : -1;
-      setRot(out, I['thigh.' + s], 60 * k, 0, 14 * m * k); setRot(out, I['shin.' + s], 95 * k, 0, 0); setRot(out, I['foot.' + s], -5 * k, 0, 0);
-      setRot(out, I['upperarm.' + s], 50 * k, 0, 18 * m * k); setRot(out, I['forearm.' + s], 12 * k, 0, 0); setRot(out, I['hand.' + s], -25 * k, 0, 0); }
-    for (let kk = 0; kk < 6; kk++) rot(out, this.chain.tail[kk], -10 * k, 0, 0);   // tail lifts a little as the body drops
+      setRot(out, I['thigh.' + s], 75 * k, 0, 16 * m * k); setRot(out, I['shin.' + s], 112 * k, 0, 0); setRot(out, I['foot.' + s], -8 * k, 0, 0);
+      setRot(out, I['upperarm.' + s], 68 * k, 0, 20 * m * k); setRot(out, I['forearm.' + s], 10 * k, 0, 0); setRot(out, I['hand.' + s], -30 * k, 0, 0); }
+    // the pelvis pitched forward would lift the tail: counter it at the root, then let the tail curve down behind
+    rot(out, this.chain.tail[0], 52 * k, 0, 0); for (let kk = 1; kk < 6; kk++) rot(out, this.chain.tail[kk], 5 * k, 0, 0);
     this.tailWave(0, 0, 1, 0); this.digits(out, 0.1, 0.5, 0.1);
     return out;
   }
@@ -289,26 +289,26 @@ export class Animator {
   // crawl -> stand: (A) gait eases out, (B) squash + crossfade to the stand mesh in the crouch, (C) stand rises into the target state
   updateTransition(dt, out) {
     const P = this.P, T = this.trans, I = this.I; T.t += dt;
-    const A = 0.32, S = 0.12, C = 0.35;
+    const A = 0.32, S = 0.07, C = 0.35;
     if (T.kind === 'standToCrawl') {
-      if (T.t < A) { const k = ease.inOut(T.t / A); this.crouch(this.B, 1); out.copy(this.from).lerp(this.B, k); this.mesh = 'stand'; this.fade = 1; this.squash = 1; }
+      if (T.t < A) { const k = ease.inOut(T.t / A); this.crouch(this.B, 1); out.copy(this.from).lerp(this.B, k); this.mesh = 'stand'; this.fade = 1; this.squash = 1 - 0.2 * ease.in(clamp01((T.t - A + 0.12) / 0.12)); }
       else if (T.t < A + S) {
         if (!T.off) { T.off = this.headOffset(); this.gait = 0; }
-        const k = (T.t - A) / S; this.mesh = 'crawl'; this.fade = k; this.squash = 1 - 0.18 * Math.sin(k * Math.PI);
+        const k = (T.t - A) / S; this.mesh = 'crawl'; this.fade = smooth(k); this.squash = 0.8;
         this.proneCrawl(out); out.root.add(T.off); this.crouch(this.other, 1);
       } else if (T.t < A + S + C) {
-        const k = ease.inOut((T.t - A - S) / C); this.fade = 1; this.squash = 1; this.crawl(this.t, this.B, dt, k); _av.copy(this.B.root);
+        const k = ease.inOut((T.t - A - S) / C); this.fade = 1; this.squash = 1 - 0.2 * (1 - ease.out(clamp01((T.t - A - S) / 0.14))); this.crawl(this.t, this.B, dt, k); _av.copy(this.B.root);
         this.proneCrawl(out); out.root.add(T.off); out.lerp(this.B, k); out.root.lerp(_av, k);
       } else { this.trans = null; this.state = 'crawl'; this.blend = 1; this.crawl(this.t, out, dt); }
     } else {
       const C2 = 0.3, A2 = 0.45;
-      if (T.t < C2) { const k = ease.inOut(T.t / C2); this.crawl(this.t, this.B, dt, 1 - k); this.proneCrawl(out); out.copy(this.B).lerp(out, k); this.mesh = 'crawl'; this.fade = 1; this.squash = 1; this.tailWave(0, 0, 1, 0); }
+      if (T.t < C2) { const k = ease.inOut(T.t / C2); this.crawl(this.t, this.B, dt, 1 - k); this.proneCrawl(out); out.copy(this.B).lerp(out, k); this.mesh = 'crawl'; this.fade = 1; this.squash = 1 - 0.2 * ease.in(clamp01((T.t - C2 + 0.12) / 0.12)); this.tailWave(0, 0, 1, 0); }
       else if (T.t < C2 + S) {
         if (!T.off) T.off = this.headOffset();
-        const k = (T.t - C2) / S; this.mesh = 'stand'; this.fade = k; this.squash = 1 - 0.18 * Math.sin(k * Math.PI);
+        const k = (T.t - C2) / S; this.mesh = 'stand'; this.fade = smooth(k); this.squash = 0.8;
         this.crouch(out, 1); this.proneCrawl(this.other); this.other.root.add(T.off);
       } else if (T.t < C2 + S + A2) {
-        const k = ease.out((T.t - C2 - S) / A2); this.fade = 1; this.squash = 1; this.evalState(T.target, this.t, this.B, dt); this.crouch(out, 1); out.lerp(this.B, k); out.root.y += Math.sin(k * Math.PI) * 0.03;
+        const k = ease.out((T.t - C2 - S) / A2); this.fade = 1; this.squash = 1 - 0.2 * (1 - ease.out(clamp01((T.t - C2 - S) / 0.14))); this.evalState(T.target, this.t, this.B, dt); this.crouch(out, 1); out.lerp(this.B, k); out.root.y += Math.sin(k * Math.PI) * 0.03;
       } else { this.trans = null; this.state = T.target; this.blend = 1; this.evalState(T.target, this.t, out, dt); }
     }
     return out;
@@ -331,7 +331,8 @@ export class Animator {
     }
     const gs = this.gillSpring.step(this.gillTarget, dt);
     const cm = this.mesh === 'crawl' ? 0.6 : 1;   // the crawl sculpt's stalks are fused to the shoulders: gentler flutter there
-    const stalkAmp = [cm, 0.9 * cm, 0.4 * cm, cm, 0.9 * cm, 0.4 * cm];   // the lowest stalks rest on the shoulders: they move less
+    const lo = this.mesh === 'crawl' ? 0 : 0.4;   // the crawl sculpt's lowest stalks are fused to the shoulders: no flutter there
+    const stalkAmp = [cm, 0.9 * cm, lo * cm, cm, 0.9 * cm, lo * cm];
     for (let j = 0; j < 6; j++) { const a = gs[j * 2] * stalkAmp[j], b = gs[j * 2 + 1] * stalkAmp[j]; rot(pose, g[j * 2], a * 0.55, 0, b * 0.55); rot(pose, g[j * 2 + 1], a * 0.7, 0, b * 0.7); }
     // joint limits: stand poses relative to the stand rest, crawl relative to the symmetric crawl rest
     const base = this.mesh === 'crawl' ? this.LS : null; const P = this.P;

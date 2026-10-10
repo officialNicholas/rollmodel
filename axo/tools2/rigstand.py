@@ -110,6 +110,7 @@ def build():
     for key, (g, parent) in digs.items():
         if not len(g['verts']): continue
         digit_weights(m, g, [bi[key + '.1'], bi[key + '.2']], bi[parent], W); labels[g['verts']] = key
+    knuckle_smooth(m, W, np.concatenate([g['verts'] for g, _ in digs.values() if len(g['verts'])]))
     idx, w = finalize(W, P=m.P, joints=np.array([R.J[k] for k in R.ORDER]))
     # ---- frames (Y along the bone, Z = flexion / ventral side)
     F = {}; fwdz = np.array([0, 0, 1.0]); downy = np.array([0, -1.0, 0])
@@ -127,7 +128,7 @@ def build():
             side = k[-1]; fb = np.array([R.J[f'finger{i}.{side}.1'] for i in range(NF)]); pts = np.r_[fb, [R.J[k]]]; c = pts.mean(0); u, s_, vt = np.linalg.svd(pts - c); nrm = vt[2]
             # ventral side of the palm: faces the body's midline and forward (hands hang at the sides)
             ref = np.array([-1.0 if side == 'L' else 1.0, 0, 0.4]); nrm = nrm if nrm @ ref > 0 else -nrm; F[k] = mkframe(y, nrm); R.UP[k] = nrm
-        elif k.startswith('finger') or k.startswith('toe'): F[k] = mkframe(y, F[R.PAR[k]][:, 2])
+        elif k.startswith('finger') or k.startswith('toe'): F[k] = F[R.PAR[k]].copy()   # every digit of a hand curls about the hand's hinge, so neighbours stay parallel and webs do not stretch
         elif k.startswith('thigh'): F[k] = mkframe(y, fwdz)
         elif k.startswith('shin'): F[k] = mkframe(y, -fwdz)
         elif k.startswith('foot') or k.startswith('toes'): F[k] = mkframe(y, downy)

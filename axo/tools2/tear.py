@@ -8,7 +8,7 @@ which = sys.argv[1] if len(sys.argv) > 1 else 'crawl'; state = sys.argv[2] if le
 async def main():
     async with async_playwright() as p:
         b, pg, errs = await open_page(p, 'http://localhost:8765/axo2/preview.html?manual', 300, 300)
-        await pg.evaluate(f'axo.setState("{state}"); axo.step(1/60, 120); axo.setLook(50,-10); axo.step(1/60, 40)')
+        await pg.evaluate(f'axo.setState("{state}"); axo.step(1/60, 120); axo.setLook(0,0); axo.step(1/60, 40)')
         sk = np.array(await pg.evaluate('axo.skinned()'), np.float32).reshape(-1, 3); await b.close()
     meta = json.load(open(W + f'axo_{which}.json')); names = [b_['name'] for b_ in meta['bones']]
     m = M(which); I = m.I0; r = np.load(D + f'{which}_rig.npz', allow_pickle=True); idx, w, labels = r['idx'], r['w'], r['labels']

@@ -3,9 +3,8 @@
 set -e
 S=/tmp/claude-0/-home-user-rollmodel/5c52352e-692f-5301-ac55-ec4d2c708f3e/scratchpad
 SRC=$S/ws/axo2; DST=$S/ws/axo
-mkdir -p $DST/old_v1
-# keep the previous attempt's runtime aside
-for f in axo.js axo_stand.bin axo_stand.json axo_stand.webp axo_crawl.bin axo_crawl.json axo_crawl.webp axo_stand_h.bin axo_stand_h.json preview.html rig.js debug.html ortho.html view.html; do [ -f $DST/$f ] && mv -f $DST/$f $DST/old_v1/ || true; done
+# keep the previous attempt's runtime aside (only the first time)
+if [ ! -d $DST/old_v1 ]; then mkdir -p $DST/old_v1; for f in axo.js axo_stand.bin axo_stand.json axo_stand.webp axo_crawl.bin axo_crawl.json axo_crawl.webp axo_stand_h.bin axo_stand_h.json preview.html rig.js debug.html ortho.html view.html; do [ -f $DST/$f ] && mv -f $DST/$f $DST/old_v1/ || true; done; fi
 rm -f $DST/stand.glb $DST/crawl.glb
 # single-module runtime: core + animator (strip the animator's import of the core)
 python3 - <<'EOF'

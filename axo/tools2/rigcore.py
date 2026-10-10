@@ -80,7 +80,7 @@ def segment_digits(m, wrist, region, axis=None, nmax=5, verbose='', step=0.005, 
 def digit_chain(g):
     base = g['base']; tip = base + g['axis'] * g['L']; return base, base + g['axis'] * g['L'] * 0.48, tip
 
-def digit_weights(m, g, bones, hand_bone, W, blend=0.25):
+def digit_weights(m, g, bones, hand_bone, W, blend=0.38):
     """weights for one digit: proximal / distal phalanx by the parameter u along the digit's axis, a smooth falloff into the hand at the knuckle"""
     vs = g['verts']; u = np.clip(((m.P[vs] - g['base']) @ g['axis']) / max(g['L'], 1e-6), 0, 1); p1, p2 = bones
     w2 = smooth((u - 0.5) / 0.24 + 0.5); wh = 1 - smooth(u / blend)
@@ -169,6 +169,15 @@ def ring_centerline(m, src_mask, limit, nsteps, mask=None, rmax=0.3):
         if len(pts): q = q[np.linalg.norm(q - prev, axis=1) < rmax]
         c = q.mean(0) if len(q) else prev; pts.append(c); prev = c
     return np.array(pts), d
+
+def knuckle_smooth(m, W, digit_verts, iters=7, lam=0.55):
+    """smooth the weights over the digits plus a two-ring band of palm vertices around them (the knuckle), so a curl cannot tear"""
+    keep = np.zeros(m.n, bool); keep[digit_verts] = True; nb = m.G.tolil().rows
+    for ring in range(2):
+        add = set()
+        for v in np.where(keep)[0]: add.update(nb[v])
+        keep[list(add)] = True
+    return laplacian_smooth_weights(m, W, np.where(keep)[0], iters=iters, lam=lam)
 
 def laplacian_smooth_weights(m, W, vs, iters=3, lam=0.5):
     """smooth the weight rows of vertices vs using the welded graph (only among vs)"""
