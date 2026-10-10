@@ -2089,7 +2089,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 138</p>
+      <p class="ver">Version 139</p>
     </div>
   </div>
 
@@ -12142,7 +12142,7 @@ function startVictory() {
   else { pl.className = 'vplace'; pl.innerHTML = '1<small>st</small>'; vicTag(lead === P ? 'Sold' : me.place === 2 ? 'You came 2nd' : 'You came ' + me.place + (me.place === 3 ? 'rd' : 'th'), lead === P); vicName(nameOf(lead)); $('vSub').innerHTML = '<b>' + board[0].pct + '%</b>' + (info.kos[lead.team] ? ' with ' + info.kos[lead.team] + (info.kos[lead.team] === 1 ? ' elimination' : ' eliminations') : ' of the canvas'); }
   $('vCards').innerHTML = solo ? '' : board.filter(e => !feat.includes(e.D)).map((e, i) => '<div class="vcard' + (e.D === P ? ' me' : '') + '" style="--cc:' + (e.D === P ? 'var(--ink-hi)' : e.D === H ? 'var(--holy-hi)' : 'var(--wolf-hi)') + ';animation-delay:' + (1.15 + i * 0.12).toFixed(2) + 's"><b class="vrank">' + e.place + '</b>' + faceIcon(e.D, false) + '<span><span class="vcn">' + nameOf(e.D) + '</span><b class="vcp">' + e.pct + '%</b></span></div>').join('');
   $('vTap').textContent = 'Tap to see the canvas'; $('vStage').textContent = TH.label + ' \u00b7 ' + (solo ? 'Solo' : (MODES.find(m => m[0] === mode) || MODES[0])[1]);
-  stampBurst($('vPlace')); vicEl.classList.remove('out'); vicEl.hidden = false; reAdd.delete(bannerEl); bannerEl.classList.remove('on'); vicFit(); flashScreen();
+  vicEl.classList.remove('out'); vicEl.hidden = false; reAdd.delete(bannerEl); bannerEl.classList.remove('on'); vicFit(); flashScreen();
   hud.classList.add('off'); hintEl.classList.remove('on'); bannerEl.classList.remove('on'); $('vig').className = 'vig';
   const id = runId;
   AU.whoosh(); setTimeout(() => { if (!vic || id !== runId) return; AU.splat(1.2); const won = solo ? info.newBest : info.winner === P; AU.sting(won ? 'win' : info.winner ? 'lose' : 'draw'); setTimeout(() => AU.say(solo ? (info.newBest ? 'best' : 'time') : won ? 'victory' : info.winner ? 'defeat' : 'draw'), 650); if (won) setTimeout(() => AU.vox('yay'), 380); AU.music(won ? 'win' : 'lost'); buzz(won ? [30, 40, 30] : 20); }, 500);
