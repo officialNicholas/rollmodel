@@ -2033,6 +2033,16 @@ kbd{background:#fff;border-color:var(--black)}
 .ptimer[data-k="cd"]{--pc:var(--gold)}
 .ptimer[data-k="cd"] b{color:var(--gold)}
 .chip.pw{display:none}
+
+/* the speech bubble: a comic bubble with its tail grown out of it */
+.lsay{max-width:min(64vw,240px);padding:11px 16px 12px;background:#fff;border:2.5px solid var(--black);border-radius:20px;box-shadow:4px 4px 0 var(--black);font:800 15px/1.25 var(--font-ui);color:var(--black);letter-spacing:.005em;transform-origin:var(--tx,18px) 100%}
+.lsay::after{content:"";position:absolute;left:calc(var(--tx,18px) + 2px);bottom:-30px;width:38px;height:36px;border:0;background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 30%22%3E%3Cpath d=%22M6 4 L28 4 C 24 12, 15 20, 9 27 C 8 19, 7 11, 6 4 Z%22 fill=%22%23171320%22/%3E%3Cpath d=%22M2 0 L25 0 C 21 9, 12 17, 6 23 C 5 15, 4 8, 2 0 Z%22 fill=%22%23fff%22/%3E%3Cpath d=%22M25 0 C 21 9, 12 17, 6 23 C 5 15, 4 8, 2 0%22 fill=%22none%22 stroke=%22%23171320%22 stroke-width=%222.5%22 stroke-linejoin=%22round%22 stroke-linecap=%22round%22/%3E%3C/svg%3E") 0 0/38px 36px no-repeat;box-shadow:none;transform:none}
+.lsay.flip{transform-origin:calc(var(--tx,18px) + 18px) 100%}
+.lsay.flip::after{left:calc(var(--tx,18px) - 16px);transform:scaleX(-1)}
+@keyframes sayin{0%{opacity:0;transform:translate(0,-100%) scale(.4)}60%{opacity:1;transform:translate(0,-100%) scale(1.08)}100%{opacity:1;transform:translate(0,-100%) scale(1)}}
+@keyframes sayinf{0%{opacity:0;transform:translate(0,-100%) scale(.4)}60%{opacity:1;transform:translate(0,-100%) scale(1.08)}100%{opacity:1;transform:translate(0,-100%) scale(1)}}
+.lsay{animation:sayin .42s cubic-bezier(.2,1.2,.4,1) both}
+.lsay.flip{animation-name:sayinf}
 </style>
 
 <div id="stage">
@@ -2130,7 +2140,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 148</p>
+      <p class="ver">Version 149</p>
     </div>
   </div>
 
