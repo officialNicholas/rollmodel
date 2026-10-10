@@ -2218,6 +2218,32 @@ svg{shape-rendering:geometricPrecision}
 .tutgo .tava .bico{display:block;width:100%;height:100%;border:0;border-radius:0}
 .tutgo .tava svg{display:block;width:100%;height:100%}
 .tutgo .tname{font:400 20px/1 var(--font-display);color:#3BE889;text-shadow:2px 2px 0 rgba(0,0,0,.7);letter-spacing:.01em}
+/* ---- the lesson's progress: a badge per lesson under the score, filling in as each is done ---- */
+.tutpips{position:absolute;left:50%;top:0;z-index:58;display:flex;gap:6px;transform:translateX(-50%);pointer-events:none;opacity:0;transition:opacity .3s}
+.tutpips.on{opacity:1}
+.tutpips i{position:relative;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:rgba(23,19,32,.8);box-shadow:0 0 0 2px rgba(255,255,255,.22),0 3px 0 rgba(0,0,0,.35);transition:background .25s}
+.tutpips i svg{width:17px;height:17px;fill:none;stroke:#CFC6E0;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.tutpips i.now{box-shadow:0 0 0 2.5px var(--gold),0 3px 0 rgba(0,0,0,.35);animation:pipnow 1s ease-in-out infinite alternate}
+.tutpips i.done{background:var(--gold)}
+.tutpips i.done svg{stroke:#171320}
+.tutpips i.got{animation:pipgot .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pipnow{from{transform:scale(1)}to{transform:scale(1.12)}}
+@keyframes pipgot{0%{transform:scale(.4)}60%{transform:scale(1.35)}100%{transform:scale(1)}}
+/* the praise stamp and the dab that flies off it */
+.tutpraise{position:absolute;left:50%;top:40%;z-index:59;margin:0;transform:translate(-50%,-50%);pointer-events:none;font:400 clamp(34px,10vw,56px)/1 var(--font-display);text-transform:uppercase;color:var(--gold);-webkit-text-stroke:2px #2A1B4F;paint-order:stroke fill;text-shadow:0 5px 0 #2A1B4F;opacity:0}
+.tutpraise.on{animation:praise 1.1s cubic-bezier(.2,1.3,.4,1) both}
+@keyframes praise{0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(-8deg)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.12) rotate(-4deg)}30%{transform:translate(-50%,-50%) scale(1) rotate(-4deg)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-62%) scale(1) rotate(-4deg)}}
+.tutplus{position:absolute;z-index:59;margin:0;pointer-events:none;font:400 20px/1 var(--font-display);color:var(--gold);-webkit-text-stroke:1.5px #2A1B4F;paint-order:stroke fill;text-shadow:0 3px 0 #2A1B4F;animation:plusup .95s ease-out forwards}
+@keyframes plusup{0%{opacity:0;transform:translate(-50%,6px) scale(.6)}20%{opacity:1;transform:translate(-50%,0) scale(1.15)}100%{opacity:0;transform:translate(-50%,-34px) scale(1)}}
+/* the finish page's payout */
+.tutwin .twrew{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.tutwin .twrew span{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:99px;background:#171320;color:#fff;font:800 13px/1 var(--font-ui);box-shadow:2px 2px 0 rgba(0,0,0,.3);opacity:0;animation:twtick .35s ease-out forwards;animation-delay:calc(1.3s + var(--i) * .15s)}
+.tutwin .twrew span b{font:400 17px/1 var(--font-display);color:var(--gold)}
+.tutwin .twrew svg{width:16px;height:16px}
+/* the welcome card's second button */
+.tutgo #tgLater{appearance:none;border:0;background:none;color:rgba(255,255,255,.75);font:700 14px/1 var(--font-ui);text-decoration:underline;padding:6px;cursor:pointer}
+@media (prefers-reduced-motion:reduce){.tutpips i.now,.tutpips i.got,.tutpraise.on,.tutplus{animation:none}.tutpraise.on{opacity:1}}
+.tut.wait{opacity:0!important}
 .errline{position:absolute;left:8px;right:8px;bottom:max(8px,env(safe-area-inset-bottom));z-index:99;margin:0;padding:6px 10px;background:rgba(23,19,32,.88);color:#FFD86B;font:600 11px/1.3 ui-monospace,Menlo,monospace;border-radius:6px;pointer-events:none;word-break:break-all}
 #lastErr{font:600 10px/1.3 ui-monospace,Menlo,monospace;word-break:break-all;opacity:.8}
 </style>
@@ -2252,7 +2278,7 @@ svg{shape-rendering:geometricPrecision}
   <svg class="sling" id="sling" aria-hidden="true"><line id="slBandO" x1="0" y1="0" x2="0" y2="0"/><line id="slBand" x1="0" y1="0" x2="0" y2="0"/><circle id="slA" r="15"/><circle id="slB" r="11"/></svg>
   <div class="pop" id="pop"></div>
   <div class="hint" id="hint" aria-live="polite"><span id="hintText"></span></div>
-  <div class="tutslow" id="tutSlow" aria-hidden="true"></div><p class="errline" id="errLine" hidden></p><i class="tuthand" id="tutHand" hidden aria-hidden="true"></i><section class="tutgo" id="tutGo" hidden role="dialog" aria-modal="true" aria-labelledby="tgTitle"><div class="tgcard"><span class="tava" id="tgAva" aria-hidden="true"></span><b class="tname">Coach</b><h2 id="tgTitle">Now <em>win it!</em></h2><p>Beat him and cover as much of the canvas as you can. Bonus points every time you take him out.</p><button class="btn play sm" id="tgGo" type="button">Let&rsquo;s do it!</button></div></section><i class="tutarrow" id="tutArrow" hidden aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M8 17h18V7l17 17-17 17V31H8z"/></svg></i><div class="tutdim" id="tutDim" aria-hidden="true"></div><div class="tut" id="tut" hidden data-pos="top" role="status" aria-live="polite"><div class="tplate"><b class="tname">Coach</b><span class="tava" id="tutAva" aria-hidden="true"></span><span class="ttext" id="tutText"></span></div><p class="tcall" id="tutCall"></p><i class="thand" aria-hidden="true"><svg viewBox="0 0 64 84"><g fill="#F2C08A" stroke="#171320" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"><path d="M18 16c0-8 6-13 14-13h13c9 0 16 7 16 16v15c0 10-7 18-16 20H30c-6 0-10-3-12-9z"/><path d="M45 19c7-2 12 3 10 9M45 31c7-2 12 3 10 9M43 43c6-2 10 3 8 8" fill="none"/><path d="M18 16v53c0 6 4 11 9.5 11S37 75 37 69V34"/></g><ellipse cx="27.5" cy="71" rx="5" ry="4" fill="#E39A66"/></svg></i></div>
+  <div class="tutslow" id="tutSlow" aria-hidden="true"></div><p class="errline" id="errLine" hidden></p><i class="tuthand" id="tutHand" hidden aria-hidden="true"></i><section class="tutgo" id="tutGo" hidden role="dialog" aria-modal="true" aria-labelledby="tgTitle"><div class="tgcard"><span class="tava" id="tgAva" aria-hidden="true"></span><b class="tname">Coach</b><h2 id="tgTitle">Now <em>win it!</em></h2><p id="tgText">Beat him and cover as much of the canvas as you can. Bonus points every time you take him out.</p><button class="btn play sm" id="tgGo" type="button">Let&rsquo;s do it!</button><button id="tgLater" type="button" hidden>Later</button></div></section><div class="tutpips" id="tutPips" aria-hidden="true"></div><p class="tutpraise" id="tutPraise" aria-live="polite"></p><i class="tutarrow" id="tutArrow" hidden aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M8 17h18V7l17 17-17 17V31H8z"/></svg></i><div class="tutdim" id="tutDim" aria-hidden="true"></div><div class="tut" id="tut" hidden data-pos="top" role="status" aria-live="polite"><div class="tplate"><b class="tname">Coach</b><span class="tava" id="tutAva" aria-hidden="true"></span><span class="ttext" id="tutText"></span></div><p class="tcall" id="tutCall"></p><i class="thand" aria-hidden="true"><svg viewBox="0 0 64 84"><g fill="#F2C08A" stroke="#171320" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"><path d="M18 16c0-8 6-13 14-13h13c9 0 16 7 16 16v15c0 10-7 18-16 20H30c-6 0-10-3-12-9z"/><path d="M45 19c7-2 12 3 10 9M45 31c7-2 12 3 10 9M43 43c6-2 10 3 8 8" fill="none"/><path d="M18 16v53c0 6 4 11 9.5 11S37 75 37 69V34"/></g><ellipse cx="27.5" cy="71" rx="5" ry="4" fill="#E39A66"/></svg></i></div>
   <div class="threat" id="threat" aria-live="assertive"><b>!</b><span id="threatText">Missile!</span></div>
   <div class="threatArrow" id="threatArrow" aria-hidden="true"><i>!</i><u><b></b></u></div>
   <div class="banner" id="banner" aria-live="polite"><div class="plate"><span class="pem" id="bannerEm" aria-hidden="true"><i></i></span><div class="ptxt"><p id="bannerBig"></p><p id="bannerSmall"></p></div></div></div>
@@ -2318,7 +2344,7 @@ svg{shape-rendering:geometricPrecision}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 174</p>
+      <p class="ver">Version 175</p>
     </div>
   </div>
 
@@ -2382,7 +2408,7 @@ svg{shape-rendering:geometricPrecision}
     <div class="ucode"><button class="ulink" id="unlockLink" type="button">Unlock all items</button><form class="uform" id="unlockForm" hidden><input id="unlockCode" type="text" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="Code" aria-label="Unlock code"><button class="ugo" type="submit">Unlock</button></form></div>
   </section>
   <p class="lnote" id="lookNote" aria-live="polite"></p>
-  <section class="tutwin" id="tutWin" hidden aria-labelledby="twTitle"><i class="twdark" aria-hidden="true"></i><i class="twrim" aria-hidden="true"></i><h2 class="twtitle" id="twTitle"><b>Basics</b><br><b class="g">Complete</b></h2><div class="twpanel"><div><p>Congratulations, you have learned the basics</p><ul id="twList"></ul></div></div><button class="btn play sm" id="twNext" type="button">Next</button></section>
+  <section class="tutwin" id="tutWin" hidden aria-labelledby="twTitle"><i class="twdark" aria-hidden="true"></i><i class="twrim" aria-hidden="true"></i><h2 class="twtitle" id="twTitle"><b>Basics</b><br><b class="g">Complete</b></h2><div class="twpanel"><div><p>Congratulations, you have learned the basics</p><ul id="twList"></ul><div class="twrew" id="twRew"></div></div></div><button class="btn play sm" id="twNext" type="button">Next</button></section>
   <section class="newitem" id="newItem" hidden role="dialog" aria-modal="true" aria-labelledby="niName">
     <div class="nirays" aria-hidden="true"></div>
     <div class="niconf" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -9007,7 +9033,7 @@ const hintEl = $('hint'), hintText = $('hintText'); let hintTimer = 0;
 let shownLives = -1;
 function renderLives(pop, force) { const el = $('lives'); if (lives === shownLives && !force) return; let h = ''; for (let i = 0; i < lives; i++) h += '<i style="background:' + TEAMS[(P.team + i) % TEAMS.length].css + '"' + (pop && i === lives - 1 && lives > shownLives ? ' class="gain"' : '') + '></i>'; el.innerHTML = h; el.setAttribute('aria-label', lives + (lives === 1 ? ' life' : ' lives')); shownLives = lives; }
 // each tip shows once, ever
-function hint(id, text, dur) { if (tut || store.seen[id] || hintTimer > 0.4) return; store.seen[id] = 1; save(); hintText.textContent = text; hintEl.classList.add('on'); hintTimer = dur || 3; }
+function hint(id, text, dur) { if (tut || (tut2 && tutTip) || store.seen[id] || hintTimer > 0.4) return; store.seen[id] = 1; save(); hintText.textContent = text; hintEl.classList.add('on'); hintTimer = dur || 3; }
 // on a phone the tips talk about touch; with a keyboard they name the keys
 let keysUI = !!(window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches);
 const say = (touch, keys) => keysUI ? keys : touch;
@@ -9279,7 +9305,7 @@ function stepGift(dt) {
   if (!gift.id || gift.got) return;
   if (state !== 'play') { if (gift.on) { gift.on = false; giftPoof(); } return; }
   if (!gift.on) { if (runT < gift.at || matchLeft < 6) return; const s = giftSpot(); if (!s) { gift.at = runT + 2; return; }
-    gift.on = true; gift.x = s[0]; gift.z = s[1]; gift.y = 0; gift.t = 0; gift.pop = 0; if (!tut) banner('Something rare!', 'An item has turned up. Go grab it', true); /* (the lesson says it itself) */ AU.spot(); buzz([10, 30, 10]); shockwave(gift.x, 0, gift.z, 1.6, 0xFFD54F); }
+    gift.on = true; gift.x = s[0]; gift.z = s[1]; gift.y = 0; gift.t = 0; gift.pop = 0; if (!tut && !tut2) banner('Something rare!', 'An item has turned up. Go grab it', true); /* (the lesson says it itself) */ AU.spot(); buzz([10, 30, 10]); shockwave(gift.x, 0, gift.z, 1.6, 0xFFD54F); }
   gift.t += dt; gift.pop = Math.min(1, gift.pop + dt * 2.2);
   if (P.st === 'play' && Math.hypot(P.x - gift.x, P.z - gift.z) < 1.0 && Math.abs(P.y - gift.y) < 1.2) giftTake();
   else if (Math.random() < dt * 9) { const a = Math.random() * 6.283; spawnPart(gift.x + Math.cos(a) * 0.5, 0.4 + Math.random() * 0.8, gift.z + Math.sin(a) * 0.5, Math.cos(a) * 0.3, 0.8 + Math.random() * 0.8, Math.sin(a) * 0.3, 0.7, puHaloMat, 0.3 + Math.random() * 0.2); }
@@ -9824,7 +9850,7 @@ function knockOut(D, reason, by) {
   const loud = hearable(D);
   if (reason === 'fall') { if (loud) AU.fall(); if (D === P) AU.vox('waah', 0.8); }
   else { burst(D, deathColor(D, reason)); shockwave(D.x, D.y, D.z, 1.6, deathRing(reason)); if (loud) AU.die(reason === 'coffin' || reason === 'crush' ? 'pound' : reason); if (D === P) AU.vox('waah'); if (reason === 'coffin' && pot) pot.bounce = 1; }
-  if (D === P) { drop.visible = false; shadowBlob.visible = false; AU.roll(0, 0); hold = 0.08; slow = 0.35; shake = 0.4; buzz([40, 30, 40]); kofStart(D, reason, by); }
+  if (D === P) { drop.visible = false; shadowBlob.visible = false; AU.roll(0, 0); hold = 0.08; slow = 0.35; shake = 0.4; buzz([40, 30, 40]); if (reason !== 'dry') kofStart(D, reason, by); }
   else { if (by === P) { hold = Math.max(hold, 0.09); shake = Math.max(shake, 0.3); } D.look.drop.visible = false; D.look.shadow.visible = false; if (mode !== 'trio' || by === P) banner((reason === 'fall' && by ? 'Knocked ' + nameOf(D) + ' off!' : koLine(reason, false, nameOf(D))) || 'Got ' + nameOf(D) + '!'); else if (loud) popText(nameOf(D) + ' is out'); if (by === P) buzz([20, 30, 20]); }
 }
 function openRun(x, z, y, a, r0, L) {
@@ -10069,25 +10095,26 @@ function slopeK(D) {
   return clamp(1 - (a - b) / 0.9 * 0.9, 0.7, 1.4);
 }
 function setWx(ph, dur) { wxPhase = ph; wxLeft = dur; }
+const wxBanner = (...a) => { if (!tut2) banner(...a); };
 function updateWeather(dt) {
   wxLeft -= dt; if (wxLeft > 0) return;
   // a quiet stretch ends: now and then the sun comes up (at most once a match, and only with time left to matter), sometimes it rains, often it just stays dark
   if (wxPhase === 'clear') {
     const roll = Math.random();
-    if (!sunsSeen && matchLeft > SUN_WARN + SUN_TIME + 6 && roll < SUN_CHANCE) { setWx('warn', SUN_WARN); AU.heatWarn(); banner('Heat wave in ' + SUN_WARN, sunsSeen ? '' : 'Hide in a ' + potWord() + ' or the shade', true); }
-    else if (roll < SUN_CHANCE + 0.32) { setWx('rain', RAIN_TIME); AU.thunder(); banner('Rain!', rainsSeen++ ? '' : 'Everyone speeds up'); rainPuddles(); }
+    if (!sunsSeen && matchLeft > SUN_WARN + SUN_TIME + 6 && roll < SUN_CHANCE) { setWx('warn', SUN_WARN); AU.heatWarn(); wxBanner('Heat wave in ' + SUN_WARN, sunsSeen ? '' : 'Hide in a ' + potWord() + ' or the shade', true); }
+    else if (roll < SUN_CHANCE + 0.32) { setWx('rain', RAIN_TIME); AU.thunder(); wxBanner('Rain!', rainsSeen++ ? '' : 'Everyone speeds up'); rainPuddles(); }
     else setWx('clear', 14 + Math.random() * 8);
   }
   else if (wxPhase === 'warn') { setWx('sun', SUN_TIME); dryPuddles(); sunsSeen++; hardPhase = true; hardStart = dryClock; AU.heatOn(); flashScreen(); }
-  else if (wxPhase === 'sun') { setWx('dusk', DUSK_TIME); AU.dusk(); banner('The heat breaks', sunsSeen > 1 ? '' : 'Hard paint slows you until the rain.'); }
-  else if (wxPhase === 'dusk') { setWx('rain', RAIN_TIME); rewetAll(); AU.thunder(); banner('Rain!', rainsSeen++ ? '' : 'Hard paint softens'); rainPuddles(); }
+  else if (wxPhase === 'sun') { setWx('dusk', DUSK_TIME); AU.dusk(); wxBanner('The heat breaks', sunsSeen > 1 ? '' : 'Hard paint slows you until the rain.'); }
+  else if (wxPhase === 'dusk') { setWx('rain', RAIN_TIME); rewetAll(); AU.thunder(); wxBanner('Rain!', rainsSeen++ ? '' : 'Hard paint softens'); rainPuddles(); }
   else { if (hardPhase) rewetAll(); setWx('clear', 16 + Math.random() * 8); }
 }
 function stepBlob(D, dt) {
   if (D.st === 'out') return;
   if (D.dry && (D.paint >= DRY_OUT || D.giantT > 0 || D.st === 'ko')) { D.dry = false;  }
   // the clock runs while you're out on the canvas dry (a coffin pauses it while it fills you)
-  if (D.dry && D.st === 'play' && state === 'play') D.dryT = (D.dryT || 0) + dt; else if (!D.dry) D.dryT = 0; // (drying up slows you; it no longer knocks you out)
+  if (D.dry && D.st === 'play' && state === 'play') { D.dryT = (D.dryT || 0) + dt; if (D.dryT >= DRY_KO && D.giantT <= 0) { D.dryT = 0; return knockOut(D, 'dry'); } } else if (!D.dry) D.dryT = 0; // (dried out at zero: out, with a short respawn and no flood screen)
   if (D.bonkCD > 0) D.bonkCD -= dt; if (D.grace > 0) D.grace -= dt; if (D.immuneT > 0) D.immuneT -= dt; if (D.sunGrace > 0) D.sunGrace -= dt;
   if (D.inkRush) { D.paint = Math.min(1, D.paint + dt * 3.2); if (D.paint >= 1) D.inkRush = false; } // quick refill so the bars pop in one by one
   if (D.wob > 0) D.wob = Math.max(0, D.wob - dt * 2.5); if (D.coyote > 0) D.coyote -= dt; if (D.stepOff) { D.stepOff *= Math.exp(-dt * 16); if (Math.abs(D.stepOff) < 0.002) D.stepOff = 0; }
@@ -10210,7 +10237,7 @@ function step(dt) {
     if (dangerK > 0) dangerK -= dt;
     for (const D of ACTIVE) if (D.cpu) aiStep(D, dt);
     for (const D of ACTIVE) stepBlob(D, dt);
-    blobContact(); updateOrb(dt); updateShots(dt); if (tut) tutStep(dt);
+    blobContact(); updateOrb(dt); updateShots(dt); if (tut) tutStep(dt); else if (tut2) tut2Step(dt);
     // a handful of tips, once each
     if (runT > 5) hint('jump', say('Tap to jump', 'Space to jump'), 2.4);
     if (runT > 10 && !P.dry) hint('hold', say('Pull down and let go to fling', 'Hold S, let go to fling'), 2.8);
@@ -12791,7 +12818,7 @@ const OWNED = new Set(Array.isArray(store.owned) ? store.owned.filter(id => ITEM
 // drops: paint earned at the end of a match. A found item goes on sale in the locker; it is worn once it is bought
 const PRICES = { flower: 170, pearls: 190, bowtie: 220, lashes: 260, glasses: 320, patch: 390, fangs: 470, tiara: 560, tophat: 680, bunny: 760, pirate: 820, hockey: 900, skull: 980, halo: 1000, zombie: 1150, hat: 1300 };
 const OUTRIGHT = new Set(['flower', 'lashes', 'bowtie', 'pearls']), needFind = w => !OUTRIGHT.has(w.id) && (!!w.season || w.slot === 'head'); // (in stock from the start: nothing to find, only dabs to pay) // (what has to be found on a canvas before it is for sale)
-const PRICE = w => { const t = store.tut && store.tut.price; if (t && t[w.id] >= 0) return t[w.id]; return PRICES[w.id] || (w.season ? 1000 : w.slot === 'head' ? 600 : 300); }; // (the lesson sets the flower's and the fangs' prices)
+const PRICE = w => { const t = store.tut && store.tut.price; if (t && t[w.id] >= 0) return t[w.id]; if (w.id === 'zombie' && store.zombieDeal && !BOUGHT.has('zombie')) return Math.max(1, Math.floor((store.drops || 0) * 0.7)); /* (the first find of the season: always within reach) */ return PRICES[w.id] || (w.season ? 1000 : w.slot === 'head' ? 600 : 300); }; // (the lesson sets the flower's and the fangs' prices)
 const BOUGHT = new Set(Array.isArray(store.bought) ? store.bought.filter(id => OWNED.has(id)) : [...OWNED]);
 if (!Array.isArray(store.bought)) { store.bought = [...BOUGHT]; }
 if (!(store.drops >= 0)) store.drops = 0;
@@ -12853,7 +12880,7 @@ function repOf(xp) { let lv = 1, x = Math.max(0, xp | 0); while (x >= xpNeed(lv)
 // commissions: three jobs at a time
 const COMMS = [{ id: 'play3', t: 'Three exhibitions', d: 'Play 3 matches, any mode', n: 3, k: 'play' }, { id: 'win1', t: 'Beat a rival', d: 'Win a 1v1', n: 1, k: 'win1' }, { id: 'cov35', t: 'Cover 35%', d: 'Paint 35% of a canvas in one match', n: 1, k: 'cov', v: 35 }, { id: 'trio', t: 'Three-way', d: 'Enter a 3-way exhibition', n: 1, k: 'trio' }, { id: 'solo40', t: 'Solo show', d: 'Cover 40% in a solo match', n: 1, k: 'solo', v: 40 }, { id: 'win3', t: 'On a roll', d: 'Win 3 matches', n: 3, k: 'win' }, { id: 'play5', t: 'Regular', d: 'Play 5 matches', n: 5, k: 'play' }, { id: 'cov50', t: 'Half the canvas', d: 'Paint 50% of a canvas in one match', n: 1, k: 'cov', v: 50 }, { id: 'hard1', t: 'Harsh critics', d: 'Win with the critics on harsh', n: 1, k: 'hard' }];
 const COMM_XP = 60;
-function commState() { if (!store.comm || !store.comm.active) store.comm = { active: [], prog: {}, done: [] }; const c = store.comm; while (c.active.length < 3) { const pool = COMMS.filter(x => !c.active.includes(x.id) && !c.done.includes(x.id)); if (!pool.length) break; c.active.push(pool[(Math.random() * pool.length) | 0].id); } return c; }
+function commState() { if (!store.comm || !store.comm.active) store.comm = { active: [], prog: {}, done: [] }; const c = store.comm; { const day = new Date().toDateString(); if (c.day !== day) { if (c.day) { c.active = []; c.prog = {}; c.done = []; store.commSeen = 0; } c.day = day; save(); } } /* (a fresh set every day) */ while (c.active.length < 3) { const pool = COMMS.filter(x => !c.active.includes(x.id) && !c.done.includes(x.id)); if (!pool.length) break; c.active.push(pool[(Math.random() * pool.length) | 0].id); } return c; }
 function commProgress(info) {
   const c = commState(), fin = [];
   for (const id of c.active) { const k = COMMS.find(x => x.id === id); if (!k) continue; let p = c.prog[id] || 0;
@@ -14343,25 +14370,32 @@ colorId = PALETTE.some(p => p.id === store.color) ? store.color : 'red'; renderS
 // always lands on a Halloween canvas. Settings can start it over.
 if (!store.tut || typeof store.tut !== 'object' || !store.tut.ph) store.tut = { ph: (store.runs || 0) > 0 ? 'done' : 'match' };
 const tutArrowEl = $('tutArrow'), tutGV = new THREE.Vector3(), tutHandEl = $('tutHand'), tutEl = $('tut'), tutTxt = $('tutText'), tutCall = $('tutCall'), tutSlowEl = $('tutSlow'), tutDim = $('tutDim'), tutAva = $('tutAva');
-let tut = null, tutPrev = null, tutTip = null, tutWinDue = false, tutNiAt = 0; // tutNiAt: when the new item card came up (the coach waits for the item to land) // tutWinDue: the lesson's finish screen is owed, before the tally // tut: the scripted match; tutPrev: the mode, level and canvas to put back after it; tutTip: the tip up now
+let tut2 = null, tut = null, tutPrev = null, tutTip = null, tutWinDue = false, tutNiAt = 0; // tutNiAt: when the new item card came up (the coach waits for the item to land) // tutWinDue: the lesson's finish screen is owed, before the tally // tut: the scripted match; tutPrev: the mode, level and canvas to put back after it; tutTip: the tip up now
 const tutPh = () => store.tut.ph, tutSet = ph => { if (store.tut.ph === ph) return; store.tut.ph = ph; save(); };
 const tutMatchDue = () => tutPh() === 'match';
 const TUT_SLOW = 0.35, TUT_HALLO = ['crypt', 'cathedral', 'manor'];
 const TUT_AI = Object.assign({}, AI_LV.easy, { pound: 0, attack: 0, dodge: 0, evade: 0, orb: 0, grab: 0, hunt: 0, ram: 0, speed: 0.8, steal: 0.7, trap: 0, airSling: 0, coffinHunt: 0, covPound: 0 });
 const TUT_AI_FIGHT = { speed: 1.08, dodge: 0, evade: 0 }; // (the dodge lesson: driven straight at you, a touch quicker)
 // the dodge lesson's rival: steered at you, and a jump pound once it is close enough and you are on the floor
+// the pound lesson's rival: it comes to you and circles just inside the pound's reach, never pounding back
+function tutApproach(D) {
+  const dx = P.x - D.x, dz = P.z - D.z, d = Math.hypot(dx, dz); if (D.charging) cancelCharge(D);
+  let a = Math.atan2(dx, dz); if (d < 3) a += Math.PI * 0.5 * (d < 2 ? 1.25 : 1); // (close: round you, not into you)
+  D.steer = -clamp(wrapA(a - D.yaw) * 3, -1, 1);
+}
 function tutDrive(D) {
+  if (tut.driveMode === 'near') return tutApproach(D);
   const dx = P.x - D.x, dz = P.z - D.z, d = Math.hypot(dx, dz); if (D.charging) cancelCharge(D);
   D.steer = D.slam ? 0 : -clamp(wrapA(Math.atan2(dx, dz) - D.yaw) * 3, -1, 1);
   if (!D.air && !D.slam && P.st === 'play' && !P.air && d < 3.4 && d > 0.6 && Math.abs(P.y - D.y) < 0.8 && slamReady(D)) useSlam(D);
 }
 const TUT_AI_CALM = { speed: 0.8, pound: 0.45, poundR: 1.5, attack: 0.08, hunt: 0.025, dodge: 0, evade: 0 };
 // a tip: the coach's plate (an explanation, its face and name) or, with call set, a short line for an action, *the words that matter* in red
-function tutShow(text, at, key, call, nodim, side) {
+function tutShow(text, at, key, call, nodim, side, loose) {
   if (tutTip && tutTip.key === key) return;
-  tutTip = { text, at: at || null, key, call: !!call, nodim: !!nodim, side: side || null }; tutEl.dataset.style = call ? 'call' : 'coach'; if (call) tutCall.innerHTML = escAttr(text).replace(/\*([^*]+)\*/g, '<em>$1</em>'); else tutTxt.textContent = text; try { tutAva.innerHTML = '<span class="bico" style="--cd:#8C6A14">' + slimeIcon(0xF2C14E, lookOf(P)) + '</span>'; } catch (e) {} tutEl.hidden = false; tutEl.classList.remove('on'); void tutEl.offsetWidth; tutEl.classList.add('on');
+  tutTip = { text, at: at || null, key, call: !!call, nodim: !!(nodim || loose), side: side || null, loose: !!loose }; /* (loose: up top, a hand on the control, nothing dimmed or blocked) */ tutEl.dataset.style = call ? 'call' : 'coach'; if (call) tutCall.innerHTML = escAttr(text).replace(/\*([^*]+)\*/g, '<em>$1</em>'); else tutTxt.textContent = text; try { tutAva.innerHTML = '<span class="bico" style="--cd:#8C6A14">' + slimeIcon(0xF2C14E, lookOf(P)) + '</span>'; } catch (e) {} tutEl.hidden = false; tutEl.classList.remove('on'); void tutEl.offsetWidth; tutEl.classList.add('on');
   const el = tutAt(); if (el) tutReveal(el);
-  tutPlace(); tutDim.classList.toggle('on', !nodim && state !== 'play'); AU.plop(); // (no dim in a match: the play must stay clear)
+  tutPlace(); tutDim.classList.toggle('on', !nodim && !loose && state !== 'play'); AU.plop(); // (no dim in a match: the play must stay clear)
 }
 // bring a card or tile into the middle of its own scroller (the shop grid down, the locker rail across), and nothing else: scrollIntoView would scroll the page too on a phone
 function tutReveal(el) {
@@ -14382,13 +14416,13 @@ const tutAt = () => !tutTip || !tutTip.at ? null : typeof tutTip.at === 'string'
 // the plate sits over what it is about, pointing down at it (or under it, pointing up, when there is no room above); with nothing to point at it sits up top
 function tutPlace() {
   if (!tutTip) return; if (window.scrollY || window.scrollX) try { window.scrollTo(0, 0); } catch (e) {} // (a phone's page scroll would put the hand off its mark)
-  const el = tutAt(), r0 = stage.getBoundingClientRect(), block = state !== 'play';
-  if (state === 'play') { // (in a match: up under the score, the hand loose over the control, no dim)
+  const el = tutAt(), r0 = stage.getBoundingClientRect(), block = state !== 'play' && !tutTip.loose;
+  if (state === 'play' || tutTip.loose) { // (in a match, or a loose tip: up top, the hand loose over the control, no dim)
     if (tutDim.classList.contains('on')) tutDim.classList.remove('on');
     if (tutEl.dataset.pos !== 'play') { tutEl.dataset.pos = 'play'; tutEl.style.cssText = ''; }
-    const sc = document.querySelector('#hud .score'), sb = sc && sc.getBoundingClientRect(), t = ((sb && sb.height ? sb.bottom - r0.top : 90) + 10).toFixed(0) + 'px'; if (tutEl.style.top !== t) tutEl.style.top = t;
+    const sc = state !== 'play' ? null : tutPipsEl.classList.contains('on') ? tutPipsEl : document.querySelector('#hud .score'), sb = sc && sc.getBoundingClientRect(), t = (state !== 'play' ? Math.max(8, parseFloat(getComputedStyle(stage).paddingTop) || 0) : (sb && sb.height ? sb.bottom - r0.top : 90) + 10).toFixed(0) + 'px'; if (tutEl.style.top !== t) tutEl.style.top = t;
     tutHandAt(el && !el.closest('[hidden]') && el.getClientRects().length ? el : null, r0);
-    { const pb = (parseFloat(tutEl.style.top) || 90) + tutEl.offsetHeight + 14, pt = pb.toFixed(0) + 'px', pe = $('pop'); if (pe.style.top !== pt) { pe.style.top = pt; popMoved = true; } } // (the pop text drops under the tip, not over it)
+    if (state === 'play') { const pb = (parseFloat(tutEl.style.top) || 90) + tutEl.offsetHeight + 14, pt = pb.toFixed(0) + 'px', pe = $('pop'); if (pe.style.top !== pt) { pe.style.top = pt; popMoved = true; } } // (the pop text drops under the tip, not over it)
     return;
   }
   tutHandAt(null); if (tutDim.classList.contains('block') !== block) tutDim.classList.toggle('block', block); // (between matches only the instructed control takes a tap)
@@ -14415,7 +14449,7 @@ const TUT_STEPS = [
   { id: 'free1', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 7; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
   { id: 'basin', max: 45, enter() { if (P.paint > 0.42) P.paint = 0.42; pingTank(4); tut.slowK = 1; /* (a trip, not a move: full speed) */ tutShow('Low paint! Drop into a *' + potWord().toUpperCase() + '* to refill', 'bar', 'basin', true, true); },
     tick() { return P.st === 'hide'; } },
-  { id: 'pound', max: 80, enter() { tut.hidePound = false; tut.keepAway = false; tutGivePound(); tut.kos0 = P.kos; tut.flat0 = P.flatted; tut.slowK = TUT_SLOW; tut.slowT = 3.5; tut.sub = ''; },
+  { id: 'pound', max: 80, exit() { tut.drive = null; tut.driveMode = null; TUT_AI.speed = 0.8; }, enter() { tut.hidePound = false; tut.keepAway = false; tut.drive = H; tut.driveMode = 'near'; TUT_AI.speed = 0.62; tutGivePound(); tut.kos0 = P.kos; tut.flat0 = P.flatted; tut.slowK = TUT_SLOW; tut.slowT = 3.5; tut.sub = ''; },
     tick(dt) { if (tut.slowT > 0) { tut.slowT -= dt / Math.max(tut.slowK, 0.05); if (tut.slowT <= 0) tut.slowK = 1; }
       if (P.st === 'play' && P.paint < 0.6) P.paint = Math.min(1, P.paint + dt * 1.6); if (P.slamCD > 1.5) P.slamCD = 1.5; // (paint and the pound keep coming back until one lands)
       const near = H.st === 'play' && Math.hypot(H.x - P.x, H.z - P.z) < 11, sub = P.st === 'hide' ? 'burst' : P.air && P.flung && (P.flingC || 0) > 0.15 && near && !P.slam ? 'missile' : 'pound';
@@ -14424,7 +14458,7 @@ const TUT_STEPS = [
         else if (sub === 'missile') { tut.slowK = 0.3; tutShow(say('*POUND* now to fire a missile!', 'Press *E* now to fire a missile!'), 'slamBtn', 'missile', true); }
         else { if (tut.slowT <= 0) tut.slowK = 1; tutShow(say('Your Pound splats everything round you. Get close to the rival and tap it!', 'Your Pound (E) splats everything round you. Get close to the rival and press E!'), 'slamBtn', 'pound'); } }
       return P.kos > tut.kos0 || P.flatted > tut.flat0; } },
-  { id: 'dodge', max: 60, enter() { Object.assign(TUT_AI, TUT_AI_FIGHT); tut.drive = H; H.slamCD = 0; if (H.paint < 0.8) H.paint = 1; if (H.ai) { H.ai.plan = null; H.ai.path = null; } tut.rolled = false; tut.hits = 0; tut.wasKo = false; tut.slowK = 1; tut.sub = ''; tutShow(say('Rivals pound too. Swipe up just before it lands to dodge', 'Rivals pound too. Shift just before it lands to dodge'), null, 'dodge', false, true); },
+  { id: 'dodge', max: 60, enter() { Object.assign(TUT_AI, TUT_AI_FIGHT); tut.drive = H; tut.driveMode = 'fight'; H.slamCD = 0; if (H.paint < 0.8) H.paint = 1; if (H.ai) { H.ai.plan = null; H.ai.path = null; } tut.rolled = false; tut.hits = 0; tut.wasKo = false; tut.slowK = 1; tut.sub = ''; tutShow(say('Rivals pound too. Swipe up just before it lands to dodge', 'Rivals pound too. Shift just before it lands to dodge'), null, 'dodge', false, true); },
     tick() { if (H.st === 'play' && !H.slam && H.slamCD > 1.2) H.slamCD = 1.2; if (H.paint < 0.5) H.paint = 1;
       const d = Math.hypot(H.x - P.x, H.z - P.z), eta = H.slam ? H.slamEta - H.slamT : 9, coming = H.slam && H.st === 'play' && P.st === 'play' && !P.air && d < slamRadius(H) + PR + 2.5;
       if (coming && P.rollT > 0) tut.rolled = true; // (a roll while its pound is in the air: that is the timing)
@@ -14451,10 +14485,11 @@ const TUT_STEPS = [
       const sub = now ? 'now' : 'wait'; if (sub !== tut.sub) { tut.sub = sub; if (now) tutShow(say('*NOW!* Swipe up!', '*NOW!* Shift!'), null, 'rdodgenow', true, true); else tutShow(say('The rival has a rocket too. When it drops on you, swipe up to roll clear', 'The rival has a rocket too. When it drops on you, press Shift to roll clear'), null, 'rdodge', false, true); }
       return tut.rkStarted && !H.rocket && (tut.rolled || tut.hit || tut.st > 20) && P.st === 'play'; },
     exit() { tut.rocketLock = null; tut.slowK = 1; } },
-  { id: 'flower', max: 40, enter() { if (orb.on) tutOrbOff(); orb.spawnT = 1e9; gift.id = 'flower'; gift.at = runT; tut.slowK = 1; tutShow('A flower! *GRAB IT* to unlock it!', null, 'flower', true, true); }, tick() { return gift.got; },
+  { id: 'flower', max: 40, enter() { if (orb.on) tutOrbOff(); orb.spawnT = 1e9; gift.id = 'flower'; gift.at = runT; tut.slowK = 1; tutShow('Something rare! *GRAB IT!*', null, 'flower', true, true); }, tick() { return gift.got; },
     exit() { if (!gift.got) { gift.got = true; gift.on = false; giftM.visible = giftRing.visible = giftBeam.visible = false; unlockItem('flower'); newItem = 'flower'; } orb.spawnT = 8; } },
   { id: 'rest', max: 1e9, enter() { tutHide(); tut.slowK = 1; tut.noTurret = false; if (matchLeft < 28) matchLeft = 28; tut.cardIn = 1.1; tut.card = false; },
-    tick(dt) { if (tut.cardIn > 0) { tut.cardIn -= dt; if (tut.cardIn <= 0) tutCard(true); } return false; } } // (a beat for the new item banner, then the card)
+    tick(dt) { if (tut.cardIn > 0) { tut.cardIn -= dt; if (tut.cardIn <= 0) tutCard(true); }
+      const lead = teamCov(0) - teamCov(1), close = lead < 7; TUT_AI.speed = close ? 0.58 : 0.8; TUT_AI.steal = close ? 0.25 : 0.7; TUT_AI.pound = close ? 0 : 0.45; return false; } } // (a beat for the new item banner, then the card; then the rival eases off whenever it is close, so the first win is yours)
 ];
 const TUT_REST = TUT_STEPS.length - 1;
 // the pound handed over ready the moment its tip is up, even mid-cooldown or short of paint
@@ -14469,27 +14504,80 @@ function tutRocket(D, dt) {
   if (R.ph === 'dive' && R.slow) { R.slow = false; D.vy = Math.min(D.vy, -14); } // (never the slow drift down: always the boost)
 }
 // the card that ends the lesson: the match holds still under it, and Let's do it lets it go
+const TG_REST = ['Now <em>win it!</em>', 'Beat him and cover as much of the canvas as you can. Bonus points every time you take him out.', 'Let\u2019s do it!'];
+function tutCardText(t) { $('tgTitle').innerHTML = t[0]; $('tgText').textContent = t[1]; $('tgGo').textContent = t[2]; $('tgLater').hidden = !t[3]; if (t[3]) $('tgLater').textContent = t[3]; }
+// the welcome to the real game: commissions open, and what to chase next
+function tutWelcome() {
+  const el = $('tutGo'); if (!el.hidden) return; el.dataset.mode = 'welcome';
+  tutCardText(['Commissions <em>are open!</em>', 'Commissions are goals that pay extra dabs, and they refresh every day. Check in whenever you\u2019re here.', 'Show me', 'Later']);
+  try { $('tgAva').innerHTML = '<span class="bico" style="--cd:#8C6A14">' + slimeIcon(0xF2C14E, lookOf(P)) + '</span>'; } catch (e) {}
+  el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); AU.fanfare && AU.fanfare(); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);
+}
+function tutWelcomeDone(open) { const el = $('tutGo'); el.classList.remove('on'); el.hidden = true; el.dataset.mode = ''; tutSet('done'); menu.classList.remove('tutoring'); kick($('commBtn'), 'bump'); if (open) setTimeout(() => openComms(), 250); }
 function tutCard(on) {
   const el = $('tutGo'); if (!tut) on = false;
-  if (on) { tut.card = true; tut.slowK = 0; bannerEl.classList.remove('on'); try { $('tgAva').innerHTML = tutAva.innerHTML || '<span class="bico" style="--cd:#8C6A14">' + slimeIcon(0xF2C14E, lookOf(P)) + '</span>'; } catch (e) {} el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); AU.fanfare && AU.fanfare(); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60); return; }
+  if (on) { el.dataset.mode = 'rest'; tutCardText(TG_REST); tut.card = true; tut.slowK = 0; bannerEl.classList.remove('on'); try { $('tgAva').innerHTML = tutAva.innerHTML || '<span class="bico" style="--cd:#8C6A14">' + slimeIcon(0xF2C14E, lookOf(P)) + '</span>'; } catch (e) {} el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); AU.fanfare && AU.fanfare(); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60); return; }
   el.classList.remove('on'); el.hidden = true; if (tut) { tut.card = false; tut.slowK = 1; }
 }
-$('tgGo').addEventListener('click', () => { AU.init(); AU.ui(); tutCard(false); });
+$('tgGo').addEventListener('click', () => { AU.init(); AU.ui(); if ($('tutGo').dataset.mode === 'welcome') tutWelcomeDone(true); else tutCard(false); });
+$('tgLater').addEventListener('click', () => { AU.init(); AU.ui(); tutWelcomeDone(false); });
+// the first real match: no weather until halfway, then the sun and the rain each with the coach's word, then the zombie eyes turn up
+function tut2Begin() { tut2 = { ph: 'calm', tipT: 0, hold: 0 }; wxLeft = 1e9; wxPhase = 'clear'; gift.id = null; gift.on = false; gift.got = false; giftM.visible = giftRing.visible = giftBeam.visible = false; }
+function tut2Step(dt) {
+  const t = tut2; if (!t || state !== 'play') return;
+  if (t.tipT > 0) { t.tipT -= dt; if (t.tipT <= 0) tutHide(); }
+  if (t.ph === 'calm') { wxLeft = Math.max(wxLeft, 1); if (matchLeft <= MATCH_T * 0.5) { t.ph = 'sun'; setWx('warn', SUN_WARN); AU.heatWarn(); t.tipT = SUN_WARN + SUN_TIME;
+      tutShow('The sun is coming up! Out in the open it dries your paint fast. Hide in the shade or a ' + potWord() + ' until it passes', null, 'wxsun', false, true); } }
+  else if (t.ph === 'sun') { if (wxPhase === 'dusk' && t.tipT > 0.4) t.tipT = 0.4; if (wxPhase === 'rain') { t.ph = 'rain'; t.tipT = RAIN_TIME;
+      tutShow('Rain! Everyone speeds up and hard paint goes soft. Fresh puddles water your paint down, so roll around them', null, 'wxrain', false, true); } }
+  else if (t.ph === 'rain') { if (wxPhase !== 'rain') { if (owns('zombie')) { t.ph = 'done'; return; } t.ph = 'gift'; gift.id = 'zombie'; gift.got = false; gift.on = false; gift.at = runT + 0.8; wxLeft = Math.max(wxLeft, 30); } }
+  else if (t.ph === 'gift') {
+    if (gift.on && !gift.got) tutShow('Something rare! *GRAB IT!*', null, 'zgift', true, true);
+    if (gift.got) { t.ph = 'done'; tutHide(); store.zombieDeal = 1; save(); return; }
+    if (matchLeft < 12 && t.hold < 25) { t.hold += dt; matchLeft = 12; } // (time enough to reach them)
+  }
+}
 function tutOrbOff() { orb.on = false; orb.pull = 0; orb.g.visible = false; orb.ring.visible = false; }
+// the lesson's roller: on the ground floor, a few steps ahead of you (in front first, then wider), never up on a platform
+function tutRollerSpot() {
+  const open = (x, z) => Math.abs(x) < ARENA - 1.5 && Math.abs(z) < ARENA - 1.5 && surfaceUnder(x, z, 0.3) === 0 && !blockedAt(x, z, 0) && [[0.8, 0], [-0.8, 0], [0, 0.8], [0, -0.8]].every(([dx, dz]) => surfaceUnder(x + dx, z + dz, 0.3) === 0 && !blockedAt(x + dx, z + dz, 0))
+    && !pots.some(p => Math.hypot(p.x - x, p.z - z) < 2) && !rivals.some(r => Math.hypot(r.x - x, r.z - z) < r.rad + 1.2) && !powers.some(o => Math.hypot(o.x - x, o.z - z) < 2);
+  for (const d of [4, 5, 3.4, 6.5]) for (const da of [0, 0.35, -0.35, 0.7, -0.7, 1.1, -1.1, 1.6, -1.6, 2.3, -2.3, 3.1]) { const a = P.yaw + da, x = P.x + Math.sin(a) * d, z = P.z + Math.cos(a) * d; if (open(x, z)) return [x, 0, z]; }
+  let best = null, bd = 1e9; for (const sp of POWER_SPOTS) { if (sp[1] > 0.2) continue; const dd = Math.hypot(P.x - sp[0], P.z - sp[2]); if (dd > 2.5 && dd < bd) { bd = dd; best = sp; } }
+  return best;
+}
 function tutSpawnRoller() {
-  const spots = POWER_SPOTS.filter(sp => !powers.some(o => Math.hypot(o.x - sp[0], o.z - sp[2]) < 3)); if (!spots.length) return;
-  let best = null, bs = 1e9; for (const sp of spots) { const d = Math.hypot(P.x - sp[0], P.z - sp[2]), sc = d < 4 ? d + 20 : d; if (sc < bs) { bs = sc; best = sp; } }
-  const pw = { phase: Math.random() * 6, pop: 0, grace: 0, owner: null }; placePower(pw, 'roller', best); powers.push(pw); itemSpawn.last = 'roller'; itemSpawn.t = 12; AU.spot();
+  const spot = tutRollerSpot(); if (!spot) return;
+  const pw = { phase: Math.random() * 6, pop: 0, grace: 0, owner: null }; placePower(pw, 'roller', spot); powers.push(pw); itemSpawn.last = 'roller'; itemSpawn.t = 12; AU.spot();
+}
+// the lesson's badges: one per lesson, filled as each is done; a lesson done pays 5 dabs, with praise and a rising note
+const TUT_PIP = { move: 0, sling: 1, basin: 2, pound: 3, dodge: 4, rocketdodge: 4, item: 5, orb: 6, flower: 7 };
+const TUT_PIP_SVG = ['<path d="M5 12h14M8 8l-4 4 4 4M16 8l4 4-4 4"/>', '<path d="M5 18c2-8 8-12 14-12M14 4l5 2-2 5"/>', '<path d="M12 3c3 4.2 5.5 7.2 5.5 10.2a5.5 5.5 0 0 1-11 0C6.5 10.2 9 7.2 12 3z"/>', '<path d="M12 3v11M7 10l5 5 5-5M5 20h14"/>', '<path d="M4 16c4 3 12 3 16-3M16 9l4 4-5 1M4 8c4-3 9-3 12 0"/>', '<path d="M4 6h13v5H4zM17 8.5h3v6h-8v3M12 17.5v3"/>', '<path d="M12 3l2.6 5.6 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6L3.4 9.4l6-.8z"/>', '<path d="M4 10h16v10H4zM3 7h18v3H3zM12 7v13M12 7c-2-4-6-4-6-1.5S12 7 12 7zM12 7c2-4 6-4 6-1.5S12 7 12 7z"/>'];
+const TUT_PRAISE = ['Nice!', 'Great!', 'Smooth!', 'Perfect!', 'Slick!', 'Nailed it!', 'Sweet!', 'Brilliant!'];
+const tutPipsEl = $('tutPips'), tutPraiseEl = $('tutPraise');
+function tutPipsDraw() { tutPipsEl.innerHTML = TUT_PIP_SVG.map((sv, i) => '<i data-i="' + i + '"><svg viewBox="0 0 24 24">' + sv + '</svg></i>').join(''); }
+function tutPipsTick() {
+  const show = !!tut && state === 'play' && tut.step >= 0 && tut.step < TUT_REST && !tut.card; if (tutPipsEl.classList.contains('on') !== show) tutPipsEl.classList.toggle('on', show); if (!show) return;
+  const r0 = stage.getBoundingClientRect(), sc = document.querySelector('#hud .score'), sb = sc && sc.getBoundingClientRect(), t = ((sb && sb.height ? sb.bottom - r0.top : 84) + 6).toFixed(0) + 'px'; if (tutPipsEl.style.top !== t) tutPipsEl.style.top = t;
+  const cur = TUT_PIP[TUT_STEPS[tut.step].id]; for (const el of tutPipsEl.children) { const i = +el.dataset.i, d = tut.pips.has(i), now = !d && i === cur; if (el.classList.contains('done') !== d) el.classList.toggle('done', d); if (el.classList.contains('now') !== now) el.classList.toggle('now', now); }
+}
+function tutReward(id, hit) {
+  const k = TUT_PIP[id]; if (k === undefined) return; tut.bonus = (tut.bonus || 0) + 5;
+  const fresh = !tut.pips.has(k); tut.pips.add(k); tutPipsTick(); const pe = tutPipsEl.children[k]; if (pe && fresh) restartCls(pe, 'got');
+  tutPraiseEl.textContent = hit ? 'Shake it off!' : TUT_PRAISE[tut.praiseN++ % TUT_PRAISE.length]; restartCls(tutPraiseEl, 'on'); clearTimeout(tutPraiseEl._t); tutPraiseEl._t = setTimeout(() => tutPraiseEl.classList.remove('on'), 1150);
+  if (pe) { const r0 = stage.getBoundingClientRect(), r = pe.getBoundingClientRect(), pl = document.createElement('p'); pl.className = 'tutplus'; pl.textContent = '+5'; pl.style.left = (r.left - r0.left + r.width / 2).toFixed(0) + 'px'; pl.style.top = (r.bottom - r0.top + 4).toFixed(0) + 'px'; stage.appendChild(pl); setTimeout(() => pl.remove(), 1000); }
+  if (AU.tick) AU.tick(5 + tut.pips.size * 2); AU.pop(); buzz(12); if (!reduceMotion && P.st === 'play') confetti(P.x, P.y + 1, P.z, 26, 2.4);
 }
 function tutStep(dt) {
   if (!tut || state !== 'play') return;
-  if (tut.step < 0) { if (P.st === 'play' && !P.air && runT > 0.6) tutNext(); return; }
+  if (tut.step < 0) { if (P.st === 'play' && !P.air && runT > 0.6 && ((tut.bannerSeen && performance.now() > bannerUntil) || runT > 6)) tutNext(); return; } /* (the first lesson waits for the start banner to come and go) */
   const s = TUT_STEPS[tut.step]; if (tut.step < TUT_REST && matchLeft < 20) matchLeft = 20; // (the lesson does not run out the clock)
-  if (s.tick(dt)) { if (tut.step < TUT_REST && !s.id.startsWith('free')) { popText('Nice!'); AU.pop(); } tutNext(); }
+  if (s.tick(dt)) { if (tut.step < TUT_REST && !s.id.startsWith('free')) tutReward(s.id, (s.id === 'dodge' || s.id === 'rocketdodge') && tut.hit && !tut.rolled); tutNext(); }
 }
 function tutNext() { if (!tut) return; const cur = TUT_STEPS[tut.step]; if (cur && cur.exit) cur.exit(); if (tut.step >= TUT_REST) return; tut.step++; tut.st = 0; TUT_STEPS[tut.step].enter(); }
 // where the lesson wants you to go: the flower, the roller, the orb (null when there is nothing to reach, or you are on it)
 function tutGoal() {
+  if (tut2 && tut2.ph === 'gift' && state === 'play' && P.st === 'play' && gift.on && !gift.got) return [gift.x, gift.z];
   if (!tut || state !== 'play' || P.st !== 'play' || tut.step < 0) return null; const id = TUT_STEPS[tut.step].id;
   if (id === 'flower' && gift.on && !gift.got) return [gift.x, gift.z];
   if (id === 'item' && !P.held && !P.power) { const pw = powers.find(q => q.g && q.type === 'roller'); if (pw) return [pw.x, pw.z]; }
@@ -14506,32 +14594,37 @@ function tutGuide() {
   if (tutArrowEl.hidden) tutArrowEl.hidden = false; tutArrowEl.style.transform = 'translate(' + x.toFixed(0) + 'px,' + y.toFixed(0) + 'px) rotate(' + a.toFixed(3) + 'rad)';
 }
 function tutFrame(rdt) {
+  { const bUp = state === 'play' && performance.now() < bannerUntil; if (bUp && tut) tut.bannerSeen = true; if (tutEl.classList.contains('wait') !== bUp) tutEl.classList.toggle('wait', bUp); } /* (a game banner up: the coach waits out of sight) */
   if (tut) { if (state === 'play' && tut.step >= 0) { tut.st += rdt; if (tut.st > TUT_STEPS[tut.step].max) tutNext(); } const on = state === 'play' && tut.slowK < 1 && !tut.card; if (tutSlowEl.classList.contains('on') !== on) tutSlowEl.classList.toggle('on', on); }
-  else { if (tutSlowEl.classList.contains('on')) tutSlowEl.classList.remove('on'); tutMenuTick(); }
+  else { if (tutSlowEl.classList.contains('on')) tutSlowEl.classList.remove('on'); if (!(tut2 && state === 'play')) tutMenuTick(); } // (the first real match runs its own tips)
   if (tutTip) tutPlace(); else if (popMoved) { popMoved = false; $('pop').style.top = ''; }
-  if (tut) tutGuide(); else if (!tutArrowEl.hidden) tutArrowEl.hidden = true;
+  if (tut || tut2) tutGuide(); else if (!tutArrowEl.hidden) tutArrowEl.hidden = true;
+  if (tut || tutPipsEl.classList.contains('on')) tutPipsTick();
 }
 let popMoved = false;
 // the lesson match plays as a duel on the blank canvas against a gentle CPU, whatever the lobby was set to; it all goes back after
 function tutPrep() { if (!tutMatchDue()) return; if (!tutPrev) tutPrev = { mode, diff, stageSel }; mode = 'duel'; diff = 'easy'; stageSel = 'blank'; applyMode(); }
 function tutRestore() { if (!tutPrev) return; mode = tutPrev.mode; diff = tutPrev.diff; stageSel = tutPrev.stageSel; tutPrev = null; applyMode(); }
 function tutBegin() { // (as a match begins)
+  tutHide(); /* (nothing from the lobby carries into the match) */
   if (tutPh() === 'vote') tutSet('match2');
+  tut2 = null; if (tutPh() === 'match2') tut2Begin();
   if (!tutMatchDue()) { tut = null; return; }
   Object.assign(TUT_AI, TUT_AI_CALM, { pound: 0, attack: 0, orb: 0 }); AI = TUT_AI;
-  tut = { step: -1, st: 0, slowK: 1, hidePound: true, keepAway: true, items: false, orbMine: false, drive: null, noTurret: true };
+  tut = { step: -1, st: 0, slowK: 1, hidePound: true, keepAway: true, items: false, orbMine: false, drive: null, noTurret: true, pips: new Set(), bonus: 0, praiseN: 0 }; tutPipsDraw();
   wxLeft = 1e9; orb.spawnT = 1e9; Object.assign(gift, { id: 'flower', on: false, got: false, pop: 0, at: 1e9 }); giftM.visible = giftRing.visible = giftBeam.visible = false;
 }
-function tutLeave() { tutArrowEl.hidden = true; if (tut) tutCard(false); tut = null; tutHide(); tutSlowEl.classList.remove('on'); tutRestore(); tutWinDue = false; const tw = $('tutWin'); tw.classList.remove('on'); tw.hidden = true; }
+function tutLeave() { tut2 = null; tutArrowEl.hidden = true; if (tut) tutCard(false); tut = null; tutHide(); tutSlowEl.classList.remove('on'); tutRestore(); tutWinDue = false; const tw = $('tutWin'); tw.classList.remove('on'); tw.hidden = true; }
 function tutEndMatch() { // (as a match ends)
   if (tut) {
-    tutCard(false); tut = null; tutHide(); tutSlowEl.classList.remove('on');
+    const bonus = tut.bonus || 0; if (bonus) { store.drops = (store.drops || 0) + bonus; endInfo.drops = (endInfo.drops || 0) + bonus; } endInfo.tutBonus = bonus; // (the lessons' dabs)
+    tutCard(false); tut = null; tutHide(); tutSlowEl.classList.remove('on'); tutPipsEl.classList.remove('on');
     if (!owns('flower')) unlockItem('flower'); if (!newItem) newItem = 'flower';
     store.tut.price = { flower: Math.max(1, Math.round((endInfo.drops || 0) / 2)) }; // (half what this match paid)
     for (const k of ['steer', 'jump', 'hold', 'burst', 'roll', 'pound', 'missile', 'item', 'orb', 'rocket', 'airdash']) store.seen[k] = 1; // (taught: the one-time tips stay down)
     tutSet('shop'); save(); tutWinDue = true; return;
   }
-  if (tutPh() === 'match2') { delete store.tut.price; tutSet('done'); save(); }
+  if (tutPh() === 'match2') { tut2 = null; tutHide(); delete store.tut.price; tutSet('welcome'); save(); }
 }
 function tutFangsSale() { const t = store.tut.price || (store.tut.price = {}); if (t.fangs >= 0) return; if (!OWNED.has('fangs')) { OWNED.add('fangs'); store.owned = [...OWNED]; } t.fangs = store.drops || 0; save(); if (shopOpen) renderShop(); }
 // between matches the coach points the way: the shop for the flower and the fangs, the locker to wear them, then the canvases to vote
@@ -14539,14 +14632,16 @@ const tutBootEl = $('boot'), tutOrientEl = $('orient');
 function tutMenuTick() {
   if (bootHold || !booted || !tutBootEl.classList.contains('gone') || !tutOrientEl.hidden || document.querySelector('.modal:not([hidden])')) return tutHide(); // (nothing over the loading screen, the orientation chooser or any dialog) // (nothing over the loading screen: its tap to start must get through)
   const ph = tutPh(); if (menu.classList.contains('tutoring') !== (ph !== 'done')) menu.classList.toggle('tutoring', ph !== 'done'); // (the lesson keeps the lobby simple: no commissions, no how-to)
-  if (ph === 'match') { if (state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden) tutShow('Your first match is a lesson. Tap Play', 'homePlay', 'first'); else tutHide(); return; }
+  if (ph === 'match') { if (state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden) tutShow('Hey, I\u2019m your coach! Your first match is a quick lesson. Tap Play', 'homePlay', 'first'); else tutHide(); return; }
+  if (ph === 'welcome') { if (state === 'dead') { if (!end.hidden) return tutShow('Back to the lobby. Something new is waiting', 'menuBtn', 'welback'); return tutHide(); }
+    tutHide(); if (state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy) tutWelcome(); return; }
   if (ph !== 'shop' && ph !== 'locker' && ph !== 'vote') return tutHide();
   if (state === 'dead') { if (ph === 'shop' && !$('newItem').hidden) { if (!tutNiAt) tutNiAt = performance.now(); if (performance.now() - tutNiAt < 1600) return tutHide(); return tutShow('Tap to see your new flower in the shop', 'niTry', 'ni', false, false, 'below'); } tutNiAt = 0; if (!end.hidden) return tutShow('Head back to the lobby', 'menuBtn', 'tomenu'); return tutHide(); }
   if (state !== 'menu' || building || irisBusy || !setModal.hidden || !nameModal.hidden || !howModal.hidden) return tutHide();
   const card = id => $('shopGrid').querySelector('.shitem[data-w="' + id + '"]'), tile = id => $('lookRail').querySelector('.ltile[data-w="' + id + '"]');
   if (ph === 'shop') {
-    if (shopOpen) { if (!bought('flower')) return tutShow('Buy the flower you found. It is half price today', () => card('flower'), 'buyflower');
-      if (!bought('fangs')) { tutFangsSale(); return tutShow('It is the Halloween season: fangs are on sale for the rest of your dabs', () => card('fangs'), 'buyfangs'); }
+    if (shopOpen) { if (!bought('flower')) return tutShow('You found a flower! It\u2019s half price today. Buy it', () => card('flower'), 'buyflower');
+      if (!bought('fangs')) { tutFangsSale(); return tutShow('It\u2019s Halloween season! Fangs are on sale for the rest of your dabs', () => card('fangs'), 'buyfangs'); }
       tutSet('locker'); return; }
     if (lookOpen) return tutShow('Open the Paint Shop', 'lkBal', 'shop');
     if (menuPage === 'worlds') return tutShow('Back to the lobby', 'worldBack', 'back');
@@ -14554,12 +14649,15 @@ function tutMenuTick() {
   }
   if (ph === 'locker') {
     if (shopOpen) return tutShow('Back to the lobby', 'shopBack', 'back');
-    if (lookOpen) { if (lookCat !== 'face') return tutShow('Open Facial', 'lc-face', 'face'); if (myLook.mouth !== 'fangs') return tutShow('Tap the fangs to wear them', () => tile('fangs'), 'wear'); tutSet('vote'); return tutShow('Looking sharp. Done', 'lookDone', 'done'); }
+    if (lookOpen) {
+      if (myLook.mouth !== 'fangs') { if (lookCat !== 'face') return tutShow('Open Facial', 'lc-face', 'face'); return tutShow('Tap the fangs to wear them', () => tile('fangs'), 'wear'); }
+      if (bought('flower') && myLook.side !== 'flower') { if (lookCat !== 'head') return tutShow('Now your flower. Open Headgear', 'lc-head', 'headg'); return tutShow('Tap the flower to wear it', () => tile('flower'), 'wearf'); } // (and the flower, found in the lesson)
+      tutSet('vote'); return tutShow('Looking sharp. Done', 'lookDone', 'done'); }
     if (menuPage === 'worlds') return tutShow('Back to the lobby', 'worldBack', 'back');
-    return tutShow('Open your locker to put the fangs on', 'lookBtn', 'locker');
+    return tutShow('Open your locker to wear your fangs and flower', 'lookBtn', 'locker');
   }
   if (shopOpen) return tutShow('Back to the lobby', 'shopBack', 'back'); if (lookOpen) return tutShow('Done', 'lookDone', 'done');
-  if (menuPage === 'worlds') return tutShow('Pick a canvas: that is your vote. Rivals vote too, and most votes wins. Then Start', 'startBtn', 'start');
+  if (menuPage === 'worlds') return tutShow('Swipe the paintings and pick one: that\u2019s your vote. Rivals vote too, and most votes wins. Then Play', 'startBtn', 'start', false, true, null, true);
   return tutShow('Time for a real match. Pick a canvas to vote for', 'stageBtn', 'pick');
 }
 $('tutReplay').addEventListener('click', () => { AU.init(); AU.ui(); store.tut = { ph: 'match' }; save(); closeSettings(); });
@@ -14568,6 +14666,7 @@ const TW_LIST = ['Steering', 'Flinging', 'Refilling', 'The pound', 'Dodging', 'T
 // (the finish page pulls the camera wide over the canvas, as the results do)
 function showTutWin() {
   const el = $('tutWin'); $('twList').innerHTML = TW_LIST.map((t, i) => '<li style="--i:' + i + '"><i><svg viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L20 7"/></svg></i>' + t + '</li>').join('');
+  { const info = endInfo || {}, rw = []; rw.push('<span style="--i:0">' + DROP_SVG + '<b>+' + (info.drops || 0) + '</b> dabs</span>'); if (info.tutBonus) rw.push('<span style="--i:1"><b>+' + info.tutBonus + '</b> lesson bonus</span>'); rw.push('<span style="--i:2">Flower found</span>'); $('twRew').innerHTML = rw.join(''); }
   outro = true; outroT = 0; outroBase = Math.round(camYaw / (Math.PI / 2)) * (Math.PI / 2); // (the view pulls back over the whole canvas)
   hud.classList.add('off'); hintEl.classList.remove('on'); el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); AU.fanfare(); setTimeout(() => AU.power(), 500); buzz([20, 40, 20]);
   setTimeout(() => $('twNext').focus({ preventScroll: true }), 80);

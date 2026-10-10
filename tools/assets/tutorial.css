@@ -121,3 +121,4 @@
 /* the welcome card's second button */
 .tutgo #tgLater{appearance:none;border:0;background:none;color:rgba(255,255,255,.75);font:700 14px/1 var(--font-ui);text-decoration:underline;padding:6px;cursor:pointer}
 @media (prefers-reduced-motion:reduce){.tutpips i.now,.tutpips i.got,.tutpraise.on,.tutplus{animation:none}.tutpraise.on{opacity:1}}
+.tut.wait{opacity:0!important}

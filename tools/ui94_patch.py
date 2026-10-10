@@ -15,7 +15,7 @@ rep("const tickets = [...votes.values()], win = tutV || tickets[(Math.random() *
     "const tickets = [...votes.values()], tally = {}; for (const t of tickets) tally[t] = (tally[t] || 0) + 1; const top = Math.max(...Object.values(tally)), lead = Object.keys(tally).filter(k => tally[k] === top); // (most votes wins; only a tie is drawn)\n    const win = tutV || (lead.length === 1 ? lead[0] : lead[(Math.random() * lead.length) | 0]),")
 rep("$('vvLbl').textContent = 'Vote for a canvas \\u00b7 one vote is drawn';", "$('vvLbl').textContent = 'Vote for a canvas \\u00b7 most votes wins, a tie is drawn';")
 rep("Your rivals vote too, and one vote is drawn before the match.'", "Your rivals vote too. Most votes wins, and a tie is drawn.'")
-rep("tutShow('Pick a canvas: that is your vote. Rivals vote too, and one vote is drawn. Then Start', 'startBtn', 'start')", "tutShow('Pick a canvas: that is your vote. Rivals vote too, and most votes wins. Then Start', 'startBtn', 'start')")
+if "tutShow('Pick a canvas: that is your vote. Rivals vote too, and one vote is drawn. Then Start', 'startBtn', 'start')" in s: rep("tutShow('Pick a canvas: that is your vote. Rivals vote too, and one vote is drawn. Then Start', 'startBtn', 'start')", "tutShow('Pick a canvas: that is your vote. Rivals vote too, and most votes wins. Then Start', 'startBtn', 'start')")
 rep('<p class="ver">Version 163</p>', '<p class="ver">Version 164</p>')
 open(DST, 'w').write(s)
 subprocess.run(['python3', '-I', S + '/ws/gen/sfx_index.py', S + '/ws/sfx/gains.json'], check=True)

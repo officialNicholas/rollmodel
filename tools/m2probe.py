@@ -22,7 +22,7 @@ async def main():
         await pg.evaluate("__T.P.x = __T.gift.x; __T.P.z = __T.gift.z;"); await wait("__T.gift.got", 30000); await pg.wait_for_timeout(500)
         print('got', await pg.evaluate("[__T.tut2.ph, __T.store.zombieDeal, __T.OWNED.has('zombie'), __T.store.drops]"))
         await pg.evaluate("__T.P.kos = 2; __T.matchLeft = 0.05;"); await wait("__T.state === 'dead'", 60000)
-        await wait("!document.getElementById('victory').hidden", 90000); await pg.wait_for_timeout(2500); await pg.evaluate("document.getElementById('victory').click()")
+        await wait("!document.getElementById('victory').hidden", 90000); await wait("__T.vic && __T.vic.t >= 1", 90000); await pg.evaluate("document.getElementById('victory').click()")
         await wait("!document.getElementById('newItem').hidden || !document.getElementById('end').hidden", 90000); await pg.wait_for_timeout(1200)
         if await pg.evaluate("!document.getElementById('newItem').hidden"): print('newitem shown'); await pg.evaluate("document.getElementById('niGo').click()"); await wait("!document.getElementById('end').hidden", 60000); await pg.wait_for_timeout(800)
         await pg.evaluate("document.getElementById('menuBtn').click()"); await wait("!document.getElementById('tutGo').hidden", 120000); await pg.wait_for_timeout(900)

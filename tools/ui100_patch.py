@@ -15,6 +15,9 @@ s_wx0 = s.index('function updateWeather(dt) {'); s_wx1 = s.index('\nfunction ste
 wx = s[s_wx0:s_wx1]; assert wx.count('banner(') == 4, wx.count('banner(')
 s = s[:s_wx0] + wx.replace('banner(', 'wxBanner(') + s[s_wx1:]
 rep("function hint(id, text, dur) { if (tut ||", "function hint(id, text, dur) { if (tut || (tut2 && tutTip) ||")
+rep("  if (D.dry && D.st === 'play' && state === 'play') D.dryT = (D.dryT || 0) + dt; else if (!D.dry) D.dryT = 0; // (drying up slows you; it no longer knocks you out)",
+    "  if (D.dry && D.st === 'play' && state === 'play') { D.dryT = (D.dryT || 0) + dt; if (D.dryT >= DRY_KO && D.giantT <= 0) { D.dryT = 0; return knockOut(D, 'dry'); } } else if (!D.dry) D.dryT = 0; // (dried out at zero: out, with a short respawn and no flood screen)")
+rep("hold = 0.08; slow = 0.35; shake = 0.4; buzz([40, 30, 40]); kofStart(D, reason, by); }", "hold = 0.08; slow = 0.35; shake = 0.4; buzz([40, 30, 40]); if (reason !== 'dry') kofStart(D, reason, by); }")
 rep("function setWx(ph, dur) { wxPhase = ph; wxLeft = dur; }", "function setWx(ph, dur) { wxPhase = ph; wxLeft = dur; }\nconst wxBanner = (...a) => { if (!tut2) banner(...a); };")
 # the zombie eyes, found in the first real match: always priced under what you have
 rep("if (t && t[w.id] >= 0) return t[w.id];", "if (t && t[w.id] >= 0) return t[w.id]; if (w.id === 'zombie' && store.zombieDeal && !BOUGHT.has('zombie')) return Math.max(1, Math.floor((store.drops || 0) * 0.7)); /* (the first find of the season: always within reach) */")

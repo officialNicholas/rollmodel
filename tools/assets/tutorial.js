@@ -12,7 +12,14 @@ const TUT_SLOW = 0.35, TUT_HALLO = ['crypt', 'cathedral', 'manor'];
 const TUT_AI = Object.assign({}, AI_LV.easy, { pound: 0, attack: 0, dodge: 0, evade: 0, orb: 0, grab: 0, hunt: 0, ram: 0, speed: 0.8, steal: 0.7, trap: 0, airSling: 0, coffinHunt: 0, covPound: 0 });
 const TUT_AI_FIGHT = { speed: 1.08, dodge: 0, evade: 0 }; // (the dodge lesson: driven straight at you, a touch quicker)
 // the dodge lesson's rival: steered at you, and a jump pound once it is close enough and you are on the floor
+// the pound lesson's rival: it comes to you and circles just inside the pound's reach, never pounding back
+function tutApproach(D) {
+  const dx = P.x - D.x, dz = P.z - D.z, d = Math.hypot(dx, dz); if (D.charging) cancelCharge(D);
+  let a = Math.atan2(dx, dz); if (d < 3) a += Math.PI * 0.5 * (d < 2 ? 1.25 : 1); // (close: round you, not into you)
+  D.steer = -clamp(wrapA(a - D.yaw) * 3, -1, 1);
+}
 function tutDrive(D) {
+  if (tut.driveMode === 'near') return tutApproach(D);
   const dx = P.x - D.x, dz = P.z - D.z, d = Math.hypot(dx, dz); if (D.charging) cancelCharge(D);
   D.steer = D.slam ? 0 : -clamp(wrapA(Math.atan2(dx, dz) - D.yaw) * 3, -1, 1);
   if (!D.air && !D.slam && P.st === 'play' && !P.air && d < 3.4 && d > 0.6 && Math.abs(P.y - D.y) < 0.8 && slamReady(D)) useSlam(D);
@@ -77,7 +84,7 @@ const TUT_STEPS = [
   { id: 'free1', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 7; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
   { id: 'basin', max: 45, enter() { if (P.paint > 0.42) P.paint = 0.42; pingTank(4); tut.slowK = 1; /* (a trip, not a move: full speed) */ tutShow('Low paint! Drop into a *' + potWord().toUpperCase() + '* to refill', 'bar', 'basin', true, true); },
     tick() { return P.st === 'hide'; } },
-  { id: 'pound', max: 80, enter() { tut.hidePound = false; tut.keepAway = false; tutGivePound(); tut.kos0 = P.kos; tut.flat0 = P.flatted; tut.slowK = TUT_SLOW; tut.slowT = 3.5; tut.sub = ''; },
+  { id: 'pound', max: 80, exit() { tut.drive = null; tut.driveMode = null; TUT_AI.speed = 0.8; }, enter() { tut.hidePound = false; tut.keepAway = false; tut.drive = H; tut.driveMode = 'near'; TUT_AI.speed = 0.62; tutGivePound(); tut.kos0 = P.kos; tut.flat0 = P.flatted; tut.slowK = TUT_SLOW; tut.slowT = 3.5; tut.sub = ''; },
     tick(dt) { if (tut.slowT > 0) { tut.slowT -= dt / Math.max(tut.slowK, 0.05); if (tut.slowT <= 0) tut.slowK = 1; }
       if (P.st === 'play' && P.paint < 0.6) P.paint = Math.min(1, P.paint + dt * 1.6); if (P.slamCD > 1.5) P.slamCD = 1.5; // (paint and the pound keep coming back until one lands)
       const near = H.st === 'play' && Math.hypot(H.x - P.x, H.z - P.z) < 11, sub = P.st === 'hide' ? 'burst' : P.air && P.flung && (P.flingC || 0) > 0.15 && near && !P.slam ? 'missile' : 'pound';
@@ -86,7 +93,7 @@ const TUT_STEPS = [
         else if (sub === 'missile') { tut.slowK = 0.3; tutShow(say('*POUND* now to fire a missile!', 'Press *E* now to fire a missile!'), 'slamBtn', 'missile', true); }
         else { if (tut.slowT <= 0) tut.slowK = 1; tutShow(say('Your Pound splats everything round you. Get close to the rival and tap it!', 'Your Pound (E) splats everything round you. Get close to the rival and press E!'), 'slamBtn', 'pound'); } }
       return P.kos > tut.kos0 || P.flatted > tut.flat0; } },
-  { id: 'dodge', max: 60, enter() { Object.assign(TUT_AI, TUT_AI_FIGHT); tut.drive = H; H.slamCD = 0; if (H.paint < 0.8) H.paint = 1; if (H.ai) { H.ai.plan = null; H.ai.path = null; } tut.rolled = false; tut.hits = 0; tut.wasKo = false; tut.slowK = 1; tut.sub = ''; tutShow(say('Rivals pound too. Swipe up just before it lands to dodge', 'Rivals pound too. Shift just before it lands to dodge'), null, 'dodge', false, true); },
+  { id: 'dodge', max: 60, enter() { Object.assign(TUT_AI, TUT_AI_FIGHT); tut.drive = H; tut.driveMode = 'fight'; H.slamCD = 0; if (H.paint < 0.8) H.paint = 1; if (H.ai) { H.ai.plan = null; H.ai.path = null; } tut.rolled = false; tut.hits = 0; tut.wasKo = false; tut.slowK = 1; tut.sub = ''; tutShow(say('Rivals pound too. Swipe up just before it lands to dodge', 'Rivals pound too. Shift just before it lands to dodge'), null, 'dodge', false, true); },
     tick() { if (H.st === 'play' && !H.slam && H.slamCD > 1.2) H.slamCD = 1.2; if (H.paint < 0.5) H.paint = 1;
       const d = Math.hypot(H.x - P.x, H.z - P.z), eta = H.slam ? H.slamEta - H.slamT : 9, coming = H.slam && H.st === 'play' && P.st === 'play' && !P.air && d < slamRadius(H) + PR + 2.5;
       if (coming && P.rollT > 0) tut.rolled = true; // (a roll while its pound is in the air: that is the timing)
@@ -113,7 +120,7 @@ const TUT_STEPS = [
       const sub = now ? 'now' : 'wait'; if (sub !== tut.sub) { tut.sub = sub; if (now) tutShow(say('*NOW!* Swipe up!', '*NOW!* Shift!'), null, 'rdodgenow', true, true); else tutShow(say('The rival has a rocket too. When it drops on you, swipe up to roll clear', 'The rival has a rocket too. When it drops on you, press Shift to roll clear'), null, 'rdodge', false, true); }
       return tut.rkStarted && !H.rocket && (tut.rolled || tut.hit || tut.st > 20) && P.st === 'play'; },
     exit() { tut.rocketLock = null; tut.slowK = 1; } },
-  { id: 'flower', max: 40, enter() { if (orb.on) tutOrbOff(); orb.spawnT = 1e9; gift.id = 'flower'; gift.at = runT; tut.slowK = 1; tutShow('A flower! *GRAB IT* to unlock it!', null, 'flower', true, true); }, tick() { return gift.got; },
+  { id: 'flower', max: 40, enter() { if (orb.on) tutOrbOff(); orb.spawnT = 1e9; gift.id = 'flower'; gift.at = runT; tut.slowK = 1; tutShow('Something rare! *GRAB IT!*', null, 'flower', true, true); }, tick() { return gift.got; },
     exit() { if (!gift.got) { gift.got = true; gift.on = false; giftM.visible = giftRing.visible = giftBeam.visible = false; unlockItem('flower'); newItem = 'flower'; } orb.spawnT = 8; } },
   { id: 'rest', max: 1e9, enter() { tutHide(); tut.slowK = 1; tut.noTurret = false; if (matchLeft < 28) matchLeft = 28; tut.cardIn = 1.1; tut.card = false; },
     tick(dt) { if (tut.cardIn > 0) { tut.cardIn -= dt; if (tut.cardIn <= 0) tutCard(true); }
@@ -160,16 +167,23 @@ function tut2Step(dt) {
       tutShow('Rain! Everyone speeds up and hard paint goes soft. Fresh puddles water your paint down, so roll around them', null, 'wxrain', false, true); } }
   else if (t.ph === 'rain') { if (wxPhase !== 'rain') { if (owns('zombie')) { t.ph = 'done'; return; } t.ph = 'gift'; gift.id = 'zombie'; gift.got = false; gift.on = false; gift.at = runT + 0.8; wxLeft = Math.max(wxLeft, 30); } }
   else if (t.ph === 'gift') {
-    if (gift.on && !gift.got) tutShow('Zombie eyes! *GRAB THEM*', null, 'zgift', true, true);
+    if (gift.on && !gift.got) tutShow('Something rare! *GRAB IT!*', null, 'zgift', true, true);
     if (gift.got) { t.ph = 'done'; tutHide(); store.zombieDeal = 1; save(); return; }
     if (matchLeft < 12 && t.hold < 25) { t.hold += dt; matchLeft = 12; } // (time enough to reach them)
   }
 }
 function tutOrbOff() { orb.on = false; orb.pull = 0; orb.g.visible = false; orb.ring.visible = false; }
+// the lesson's roller: on the ground floor, a few steps ahead of you (in front first, then wider), never up on a platform
+function tutRollerSpot() {
+  const open = (x, z) => Math.abs(x) < ARENA - 1.5 && Math.abs(z) < ARENA - 1.5 && surfaceUnder(x, z, 0.3) === 0 && !blockedAt(x, z, 0) && [[0.8, 0], [-0.8, 0], [0, 0.8], [0, -0.8]].every(([dx, dz]) => surfaceUnder(x + dx, z + dz, 0.3) === 0 && !blockedAt(x + dx, z + dz, 0))
+    && !pots.some(p => Math.hypot(p.x - x, p.z - z) < 2) && !rivals.some(r => Math.hypot(r.x - x, r.z - z) < r.rad + 1.2) && !powers.some(o => Math.hypot(o.x - x, o.z - z) < 2);
+  for (const d of [4, 5, 3.4, 6.5]) for (const da of [0, 0.35, -0.35, 0.7, -0.7, 1.1, -1.1, 1.6, -1.6, 2.3, -2.3, 3.1]) { const a = P.yaw + da, x = P.x + Math.sin(a) * d, z = P.z + Math.cos(a) * d; if (open(x, z)) return [x, 0, z]; }
+  let best = null, bd = 1e9; for (const sp of POWER_SPOTS) { if (sp[1] > 0.2) continue; const dd = Math.hypot(P.x - sp[0], P.z - sp[2]); if (dd > 2.5 && dd < bd) { bd = dd; best = sp; } }
+  return best;
+}
 function tutSpawnRoller() {
-  const spots = POWER_SPOTS.filter(sp => !powers.some(o => Math.hypot(o.x - sp[0], o.z - sp[2]) < 3)); if (!spots.length) return;
-  let best = null, bs = 1e9; for (const sp of spots) { const d = Math.hypot(P.x - sp[0], P.z - sp[2]), sc = d < 4 ? d + 20 : d; if (sc < bs) { bs = sc; best = sp; } }
-  const pw = { phase: Math.random() * 6, pop: 0, grace: 0, owner: null }; placePower(pw, 'roller', best); powers.push(pw); itemSpawn.last = 'roller'; itemSpawn.t = 12; AU.spot();
+  const spot = tutRollerSpot(); if (!spot) return;
+  const pw = { phase: Math.random() * 6, pop: 0, grace: 0, owner: null }; placePower(pw, 'roller', spot); powers.push(pw); itemSpawn.last = 'roller'; itemSpawn.t = 12; AU.spot();
 }
 // the lesson's badges: one per lesson, filled as each is done; a lesson done pays 5 dabs, with praise and a rising note
 const TUT_PIP = { move: 0, sling: 1, basin: 2, pound: 3, dodge: 4, rocketdodge: 4, item: 5, orb: 6, flower: 7 };
@@ -191,7 +205,7 @@ function tutReward(id, hit) {
 }
 function tutStep(dt) {
   if (!tut || state !== 'play') return;
-  if (tut.step < 0) { if (P.st === 'play' && !P.air && runT > 0.6) tutNext(); return; }
+  if (tut.step < 0) { if (P.st === 'play' && !P.air && runT > 0.6 && ((tut.bannerSeen && performance.now() > bannerUntil) || runT > 6)) tutNext(); return; } /* (the first lesson waits for the start banner to come and go) */
   const s = TUT_STEPS[tut.step]; if (tut.step < TUT_REST && matchLeft < 20) matchLeft = 20; // (the lesson does not run out the clock)
   if (s.tick(dt)) { if (tut.step < TUT_REST && !s.id.startsWith('free')) tutReward(s.id, (s.id === 'dodge' || s.id === 'rocketdodge') && tut.hit && !tut.rolled); tutNext(); }
 }
@@ -215,6 +229,7 @@ function tutGuide() {
   if (tutArrowEl.hidden) tutArrowEl.hidden = false; tutArrowEl.style.transform = 'translate(' + x.toFixed(0) + 'px,' + y.toFixed(0) + 'px) rotate(' + a.toFixed(3) + 'rad)';
 }
 function tutFrame(rdt) {
+  { const bUp = state === 'play' && performance.now() < bannerUntil; if (bUp && tut) tut.bannerSeen = true; if (tutEl.classList.contains('wait') !== bUp) tutEl.classList.toggle('wait', bUp); } /* (a game banner up: the coach waits out of sight) */
   if (tut) { if (state === 'play' && tut.step >= 0) { tut.st += rdt; if (tut.st > TUT_STEPS[tut.step].max) tutNext(); } const on = state === 'play' && tut.slowK < 1 && !tut.card; if (tutSlowEl.classList.contains('on') !== on) tutSlowEl.classList.toggle('on', on); }
   else { if (tutSlowEl.classList.contains('on')) tutSlowEl.classList.remove('on'); if (!(tut2 && state === 'play')) tutMenuTick(); } // (the first real match runs its own tips)
   if (tutTip) tutPlace(); else if (popMoved) { popMoved = false; $('pop').style.top = ''; }
@@ -226,6 +241,7 @@ let popMoved = false;
 function tutPrep() { if (!tutMatchDue()) return; if (!tutPrev) tutPrev = { mode, diff, stageSel }; mode = 'duel'; diff = 'easy'; stageSel = 'blank'; applyMode(); }
 function tutRestore() { if (!tutPrev) return; mode = tutPrev.mode; diff = tutPrev.diff; stageSel = tutPrev.stageSel; tutPrev = null; applyMode(); }
 function tutBegin() { // (as a match begins)
+  tutHide(); /* (nothing from the lobby carries into the match) */
   if (tutPh() === 'vote') tutSet('match2');
   tut2 = null; if (tutPh() === 'match2') tut2Begin();
   if (!tutMatchDue()) { tut = null; return; }
@@ -274,7 +290,7 @@ function tutMenuTick() {
     return tutShow('Open your locker to wear your fangs and flower', 'lookBtn', 'locker');
   }
   if (shopOpen) return tutShow('Back to the lobby', 'shopBack', 'back'); if (lookOpen) return tutShow('Done', 'lookDone', 'done');
-  if (menuPage === 'worlds') return tutShow('Pick a canvas: that is your vote. Rivals vote too, and one vote is drawn. Then Start', 'startBtn', 'start');
+  if (menuPage === 'worlds') return tutShow('Swipe the paintings and pick one: that\u2019s your vote. Rivals vote too, and most votes wins. Then Play', 'startBtn', 'start', false, true, null, true);
   return tutShow('Time for a real match. Pick a canvas to vote for', 'stageBtn', 'pick');
 }
 $('tutReplay').addEventListener('click', () => { AU.init(); AU.ui(); store.tut = { ph: 'match' }; save(); closeSettings(); });
