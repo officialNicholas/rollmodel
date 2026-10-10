@@ -1,0 +1,42 @@
+import asyncio, json, sys
+from playwright.async_api import async_playwright
+WS = '/tmp/claude-0/-home-user-rollmodel/5c52352e-692f-5301-ac55-ec4d2c708f3e/scratchpad/ws'
+# the locker, the shop from the locker and from the lobby, a purchase, and the song swapping at the same bar each way
+A = "[__T.AU._trk && __T.AU._trk.key, +__T.AU._pos().toFixed(2), __T.AU._pend, __T.AU._buf('menu'), __T.AU._buf('spook'), __T.AU._ctx && __T.AU._ctx.state]"
+async def run(w, h, tag):
+    async with async_playwright() as p:
+        b = await p.chromium.launch(args=['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required'])
+        ctx = await b.new_context(viewport={'width': w, 'height': h}, device_scale_factor=2, has_touch=True, is_mobile=True)
+        await ctx.add_init_script("try { localStorage.setItem('paint-world-red.v1', JSON.stringify({ orient:'" + ('land' if w > h else 'port') + "', name:'Dusk', seen:{steer:1,look:1}, owned:['flower','pirate','fangs','tophat'], bought:['pirate'], drops:260, look:{head:'pirate', eyes:'edgy', iris:'violet'} })); } catch (e) {}")
+        pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)[:200])); pg.on('console', lambda m: m.type == 'error' and 'Failed to load' not in m.text and errs.append(m.text[:200]))
+        await pg.goto('http://localhost:8765/pc_h.html', timeout=240000); await pg.wait_for_function('typeof __T === "object"', timeout=240000); await pg.wait_for_timeout(1500)
+        await pg.evaluate("__T.AU.init()"); await pg.wait_for_function("__T.AU._buf('menu') && __T.AU._buf('spook') && __T.AU._trk && __T.AU._trk.key === 'menu'", timeout=60000, polling=250); await pg.wait_for_timeout(2500)
+        print(tag, 'lobby', await pg.evaluate(A))
+        await pg.screenshot(path=f'{WS}/ui/shop_{tag}_lobby.png')
+        pm = await pg.evaluate("__T.AU._pos()"); await pg.evaluate("document.getElementById('lookBtn').click()"); await pg.wait_for_timeout(120)
+        s1 = await pg.evaluate(A); exp = 7.32 + (pm - 6.928) / (43.72223 - 6.928) * (46.21 - 7.32)
+        print(tag, 'locker open: menu was at %.2f, spook at %.2f, expected %.2f' % (pm, s1[1], exp), s1)
+        await pg.wait_for_timeout(7000); await pg.screenshot(path=f'{WS}/ui/shop_{tag}_locker.png')
+        await pg.evaluate("document.getElementById('lc-head').click()"); await pg.wait_for_timeout(800); await pg.screenshot(path=f'{WS}/ui/shop_{tag}_locker_head.png')
+        print(tag, 'locker head tiles', await pg.evaluate("[...document.querySelectorAll('#lookRail .ltile')].map(t => t.getAttribute('aria-label'))"))
+        await pg.evaluate("document.getElementById('lkBal').click()"); await pg.wait_for_timeout(900)
+        print(tag, 'shop from locker', await pg.evaluate(A), await pg.evaluate("[!document.getElementById('shop').hidden, [...document.querySelectorAll('#shopGrid .shitem')].map(t => t.getAttribute('aria-label'))]"))
+        await pg.screenshot(path=f'{WS}/ui/shop_{tag}_shop.png')
+        await pg.evaluate("document.querySelector('#shopGrid .shitem[data-w=\"flower\"]').click()"); await pg.wait_for_timeout(500)
+        print(tag, 'bought flower', await pg.evaluate("[__T.store.drops, document.querySelector('#shopGrid .shitem[data-w=\"flower\"]').className, document.getElementById('shopNote').textContent]"))
+        await pg.screenshot(path=f'{WS}/ui/shop_{tag}_bought.png'); await pg.wait_for_timeout(1500)
+        await pg.evaluate("document.querySelector('#shopGrid .shitem[data-w=\"tophat\"]').click()"); await pg.wait_for_timeout(300)
+        print(tag, 'tophat (broke)', await pg.evaluate("[__T.store.drops, document.getElementById('shopNote').textContent]"))
+        await pg.evaluate("document.getElementById('shopBack').click()"); await pg.wait_for_timeout(600)
+        print(tag, 'back to locker', await pg.evaluate(A), await pg.evaluate("[document.getElementById('shop').hidden, !document.getElementById('look').hidden, [...document.querySelectorAll('#lookRail .ltile')].map(t => t.dataset.w || 'shop')]"))
+        ps = await pg.evaluate("__T.AU._pos()"); await pg.evaluate("document.getElementById('lookDone').click()"); await pg.wait_for_timeout(120)
+        s2 = await pg.evaluate(A); expm = 6.928 + (ps - 7.32) / (46.21 - 7.32) * (43.72223 - 6.928)
+        print(tag, 'locker closed: spook was at %.2f, menu at %.2f, expected %.2f' % (ps, s2[1], expm), s2)
+        await pg.wait_for_timeout(2500)
+        await pg.evaluate("document.getElementById('dabsBtn').click()"); await pg.wait_for_timeout(900)
+        print(tag, 'shop from lobby', await pg.evaluate(A), await pg.evaluate("!document.getElementById('shop').hidden"))
+        await pg.screenshot(path=f'{WS}/ui/shop_{tag}_shop2.png')
+        await pg.evaluate("document.getElementById('shopBack').click()"); await pg.wait_for_timeout(600)
+        print(tag, 'back to lobby', await pg.evaluate(A), await pg.evaluate("[document.getElementById('shop').hidden, document.getElementById('look').hidden, getComputedStyle(document.querySelector('.mhome')).visibility]"))
+        print(tag, 'errors', errs[:4]); await ctx.close(); await b.close()
+for k in (sys.argv[1:] or ['port', 'land']): asyncio.run(run(*{'port': (390, 780, 'port'), 'land': (844, 390, 'land')}[k]))
