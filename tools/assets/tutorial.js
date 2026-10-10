@@ -8,7 +8,7 @@ const tutEl = $('tut'), tutTxt = $('tutText'), tutCall = $('tutCall'), tutSlowEl
 let tut = null, tutPrev = null, tutTip = null, tutWinDue = false, tutNiAt = 0; // tutNiAt: when the new item card came up (the coach waits for the item to land) // tutWinDue: the lesson's finish screen is owed, before the tally // tut: the scripted match; tutPrev: the mode, level and canvas to put back after it; tutTip: the tip up now
 const tutPh = () => store.tut.ph, tutSet = ph => { if (store.tut.ph === ph) return; store.tut.ph = ph; save(); };
 const tutMatchDue = () => tutPh() === 'match';
-const TUT_SLOW = 0.22, TUT_HALLO = ['crypt', 'cathedral', 'manor'];
+const TUT_SLOW = 0.35, TUT_HALLO = ['crypt', 'cathedral', 'manor'];
 const TUT_AI = Object.assign({}, AI_LV.easy, { pound: 0, attack: 0, dodge: 0, evade: 0, orb: 0, grab: 0, hunt: 0, ram: 0, speed: 0.8, steal: 0.7, trap: 0, airSling: 0, coffinHunt: 0, covPound: 0 });
 const TUT_AI_FIGHT = { speed: 1.08, dodge: 0, evade: 0 }; // (the dodge lesson: driven straight at you, a touch quicker)
 // the dodge lesson's rival: steered at you, and a jump pound once it is close enough and you are on the floor
@@ -51,8 +51,11 @@ function tutPlace() {
 }
 // the lesson, one step at a time: each one says what to do, waits for it (slowed down while it waits), then the next. max: real seconds before it moves on anyway
 const TUT_STEPS = [
-  { id: 'move', max: 40, enter() { tut.moved = 0; tut.lx = P.x; tut.lz = P.z; tut.slowK = TUT_SLOW; tutShow(say('*DRAG* to steer, *TAP* to jump!', '*A* and *D* steer, *SPACE* jumps!'), null, 'move', true); },
-    tick() { if (P.st === 'play' && !P.air) tut.moved += Math.hypot(P.x - tut.lx, P.z - tut.lz); tut.lx = P.x; tut.lz = P.z; return tut.moved > 7; } },
+  { id: 'move', max: 40, enter() { tut.moved = 0; tut.steered = false; tut.jumped = false; tut.lx = P.x; tut.lz = P.z; tut.slowK = TUT_SLOW; tutShow(say('*DRAG* to steer, *TAP* to jump!', '*A* and *D* steer, *SPACE* jumps!'), null, 'move', true); },
+    tick() { if (P.st === 'play' && !P.air) tut.moved += Math.hypot(P.x - tut.lx, P.z - tut.lz); tut.lx = P.x; tut.lz = P.z;
+      if (Math.abs(steerIn) > 0.3 || keyL || keyR) tut.steered = true; if (P.st === 'play' && P.air && P.vy > 3 && !P.flung && !P.slam) tut.jumped = true; // (a steer and a jump: that is the lesson, done the moment both have happened)
+      return (tut.steered && tut.jumped) || tut.moved > 14; } },
+  { id: 'free0', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 3.5; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
   { id: 'sling', max: 40, enter() { tut.slowK = TUT_SLOW; tutShow(say('*HOLD*, *PULL DOWN*, then let go to fling!', 'Hold *S*, then let go to fling!'), null, 'sling', true); },
     tick() { return P.st === 'play' && P.air && P.flung && (P.flingC || 0) > 0.1; } },
   { id: 'free1', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 7; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },

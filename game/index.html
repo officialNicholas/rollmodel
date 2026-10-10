@@ -2187,6 +2187,8 @@ svg{shape-rendering:geometricPrecision}
 .tutwin .twpanel>div{transform:skewX(3deg)}
 .tutwin .twpanel ul{grid-template-columns:1fr 1fr;gap:8px 12px}
 }
+.errline{position:absolute;left:8px;right:8px;bottom:max(8px,env(safe-area-inset-bottom));z-index:99;margin:0;padding:6px 10px;background:rgba(23,19,32,.88);color:#FFD86B;font:600 11px/1.3 ui-monospace,Menlo,monospace;border-radius:6px;pointer-events:none;word-break:break-all}
+#lastErr{font:600 10px/1.3 ui-monospace,Menlo,monospace;word-break:break-all;opacity:.8}
 </style>
 
 <div id="stage">
@@ -2219,7 +2221,7 @@ svg{shape-rendering:geometricPrecision}
   <svg class="sling" id="sling" aria-hidden="true"><line id="slBandO" x1="0" y1="0" x2="0" y2="0"/><line id="slBand" x1="0" y1="0" x2="0" y2="0"/><circle id="slA" r="15"/><circle id="slB" r="11"/></svg>
   <div class="pop" id="pop"></div>
   <div class="hint" id="hint" aria-live="polite"><span id="hintText"></span></div>
-  <div class="tutslow" id="tutSlow" aria-hidden="true"></div><div class="tutdim" id="tutDim" aria-hidden="true"></div><div class="tut" id="tut" hidden data-pos="top" role="status" aria-live="polite"><div class="tplate"><b class="tname">Coach</b><span class="tava" id="tutAva" aria-hidden="true"></span><span class="ttext" id="tutText"></span></div><p class="tcall" id="tutCall"></p><i class="thand" aria-hidden="true"><svg viewBox="0 0 64 84"><g fill="#F2C08A" stroke="#171320" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"><path d="M18 16c0-8 6-13 14-13h13c9 0 16 7 16 16v15c0 10-7 18-16 20H30c-6 0-10-3-12-9z"/><path d="M45 19c7-2 12 3 10 9M45 31c7-2 12 3 10 9M43 43c6-2 10 3 8 8" fill="none"/><path d="M18 16v53c0 6 4 11 9.5 11S37 75 37 69V34"/></g><ellipse cx="27.5" cy="71" rx="5" ry="4" fill="#E39A66"/></svg></i></div>
+  <div class="tutslow" id="tutSlow" aria-hidden="true"></div><p class="errline" id="errLine" hidden></p><div class="tutdim" id="tutDim" aria-hidden="true"></div><div class="tut" id="tut" hidden data-pos="top" role="status" aria-live="polite"><div class="tplate"><b class="tname">Coach</b><span class="tava" id="tutAva" aria-hidden="true"></span><span class="ttext" id="tutText"></span></div><p class="tcall" id="tutCall"></p><i class="thand" aria-hidden="true"><svg viewBox="0 0 64 84"><g fill="#F2C08A" stroke="#171320" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"><path d="M18 16c0-8 6-13 14-13h13c9 0 16 7 16 16v15c0 10-7 18-16 20H30c-6 0-10-3-12-9z"/><path d="M45 19c7-2 12 3 10 9M45 31c7-2 12 3 10 9M43 43c6-2 10 3 8 8" fill="none"/><path d="M18 16v53c0 6 4 11 9.5 11S37 75 37 69V34"/></g><ellipse cx="27.5" cy="71" rx="5" ry="4" fill="#E39A66"/></svg></i></div>
   <div class="threat" id="threat" aria-live="assertive"><b>!</b><span id="threatText">Missile!</span></div>
   <div class="threatArrow" id="threatArrow" aria-hidden="true"><i>!</i><u><b></b></u></div>
   <div class="banner" id="banner" aria-live="polite"><div class="plate"><span class="pem" id="bannerEm" aria-hidden="true"><i></i></span><div class="ptxt"><p id="bannerBig"></p><p id="bannerSmall"></p></div></div></div>
@@ -2285,7 +2287,7 @@ svg{shape-rendering:geometricPrecision}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 167</p>
+      <p class="ver">Version 168</p>
     </div>
   </div>
 
@@ -2318,6 +2320,7 @@ svg{shape-rendering:geometricPrecision}
       <div class="sgrp">
         <p class="lhead">Tutorial</p>
         <button class="btn sm" id="tutReplay" type="button">Replay the tutorial</button>
+        <p class="gnote" id="lastErr"></p>
       </div>
       </div>
       <button class="btn play sm" id="setDone" type="button">Done</button>
@@ -14076,7 +14079,7 @@ howModal.addEventListener('click', e => { if (e.target === howModal) closeHow();
 // ---------- settings: Graphics or Performance visuals. The choice is saved and the game restarts to apply it ----------
 const setModal = $('setModal'), GFX_NOTE = { hi: 'Full lighting, reflections, glow and extra detail. Best on newer phones and computers.', perf: 'Simpler lighting and fewer effects, for the smoothest play on any device.' };
 let gfxPick = GFX;
-function paintSettings() { for (const b of $('soundPick').children) b.setAttribute('aria-pressed', String((b.dataset.s === 'off') === !!store.muted)); for (const b of $('orientPick').children) b.setAttribute('aria-pressed', String(b.dataset.o === (store.orient || ''))); for (const b of $('gfxPick').children) b.setAttribute('aria-pressed', String(b.dataset.g === gfxPick)); $('gfxNote').textContent = GFX_NOTE[gfxPick]; $('setDone').textContent = gfxPick === GFX ? 'Done' : 'Restart to apply'; }
+function paintSettings() { try { $('lastErr').textContent = store.lastErr ? 'Last error: ' + store.lastErr : ''; } catch (e) {} for (const b of $('soundPick').children) b.setAttribute('aria-pressed', String((b.dataset.s === 'off') === !!store.muted)); for (const b of $('orientPick').children) b.setAttribute('aria-pressed', String(b.dataset.o === (store.orient || ''))); for (const b of $('gfxPick').children) b.setAttribute('aria-pressed', String(b.dataset.g === gfxPick)); $('gfxNote').textContent = GFX_NOTE[gfxPick]; $('setDone').textContent = gfxPick === GFX ? 'Done' : 'Restart to apply'; }
 function openSettings() { if (state !== 'menu' || lookOpen || shopOpen) return; gfxPick = GFX; paintSettings(); setModal.hidden = false; setTimeout(() => $('gfxPick').querySelector('[aria-pressed="true"]').focus({ preventScroll: true }), 30); }
 function closeSettings() { if (setModal.hidden) return; setModal.hidden = true; $('setBtn').focus({ preventScroll: true }); }
 function doneSettings() { if (gfxPick === GFX) return closeSettings(); store.gfx = gfxPick; save(); $('setDone').disabled = true; $('setDone').textContent = 'Restarting'; setTimeout(() => location.reload(), 120); }
@@ -14248,7 +14251,7 @@ function paced(raw) {
   return best;
 }
 let booted = false, bootHold = false;
-function frame(t) {
+function frameBody(t) {
   if (!booted) { booted = true; if (!bootHold) setTimeout(() => $('boot').classList.add('gone'), 160); }
   if ((state === 'play') !== awakeSent) { awakeSent = state === 'play'; nativeSay('device', { keepAwake: awakeSent }); }
   tunePerf((t - last) / 1000);
@@ -14262,8 +14265,17 @@ function frame(t) {
   visuals(dt, rdt); flushTrail();
   if (shadowLite >= 2) sun.shadow.needsUpdate = (++frameNo & 1) === 0;
   if (!(state === 'menu' && menuPage === 'worlds')) renderFrame();
-  requestAnimationFrame(frame);
 }
+// a frame that throws must not take the game with it: the loop goes on, and the error is put on screen and kept for Settings
+let frameErrN = 0;
+function frameErr(e) {
+  frameErrN++; try { console.error(e); } catch (x) {}
+  if (frameErrN > 3) return; const m = String(e && e.message || e).slice(0, 160), at = ((e && e.stack) || '').split('\n').slice(0, 3).join(' ').replace(/https?:\S*?\//g, '').slice(0, 220);
+  try { const el = $('errLine'); el.textContent = 'Error ' + frameErrN + ': ' + m + ' ' + at; el.hidden = false; clearTimeout(frameErr.t); frameErr.t = setTimeout(() => { el.hidden = true; }, 20000); } catch (x) {}
+  try { store.lastErr = m + ' | ' + at; save(); } catch (x) {}
+}
+function frame(t) { try { frameBody(t); } catch (e) { frameErr(e); } requestAnimationFrame(frame); }
+window.addEventListener('error', ev => { if (ev && (ev.error || ev.message)) frameErr(ev.error || ev.message); });
 // draw one hidden frame with everything visible (and the floaters see-through), so every shader the match can need is compiled
 // now, through the same passes (shadow, mirror, the HDR target) as in play; then a normal frame, in the same task, so nothing shows
 function warmRender() {
@@ -14302,7 +14314,7 @@ const tutEl = $('tut'), tutTxt = $('tutText'), tutCall = $('tutCall'), tutSlowEl
 let tut = null, tutPrev = null, tutTip = null, tutWinDue = false, tutNiAt = 0; // tutNiAt: when the new item card came up (the coach waits for the item to land) // tutWinDue: the lesson's finish screen is owed, before the tally // tut: the scripted match; tutPrev: the mode, level and canvas to put back after it; tutTip: the tip up now
 const tutPh = () => store.tut.ph, tutSet = ph => { if (store.tut.ph === ph) return; store.tut.ph = ph; save(); };
 const tutMatchDue = () => tutPh() === 'match';
-const TUT_SLOW = 0.22, TUT_HALLO = ['crypt', 'cathedral', 'manor'];
+const TUT_SLOW = 0.35, TUT_HALLO = ['crypt', 'cathedral', 'manor'];
 const TUT_AI = Object.assign({}, AI_LV.easy, { pound: 0, attack: 0, dodge: 0, evade: 0, orb: 0, grab: 0, hunt: 0, ram: 0, speed: 0.8, steal: 0.7, trap: 0, airSling: 0, coffinHunt: 0, covPound: 0 });
 const TUT_AI_FIGHT = { speed: 1.08, dodge: 0, evade: 0 }; // (the dodge lesson: driven straight at you, a touch quicker)
 // the dodge lesson's rival: steered at you, and a jump pound once it is close enough and you are on the floor
@@ -14345,8 +14357,11 @@ function tutPlace() {
 }
 // the lesson, one step at a time: each one says what to do, waits for it (slowed down while it waits), then the next. max: real seconds before it moves on anyway
 const TUT_STEPS = [
-  { id: 'move', max: 40, enter() { tut.moved = 0; tut.lx = P.x; tut.lz = P.z; tut.slowK = TUT_SLOW; tutShow(say('*DRAG* to steer, *TAP* to jump!', '*A* and *D* steer, *SPACE* jumps!'), null, 'move', true); },
-    tick() { if (P.st === 'play' && !P.air) tut.moved += Math.hypot(P.x - tut.lx, P.z - tut.lz); tut.lx = P.x; tut.lz = P.z; return tut.moved > 7; } },
+  { id: 'move', max: 40, enter() { tut.moved = 0; tut.steered = false; tut.jumped = false; tut.lx = P.x; tut.lz = P.z; tut.slowK = TUT_SLOW; tutShow(say('*DRAG* to steer, *TAP* to jump!', '*A* and *D* steer, *SPACE* jumps!'), null, 'move', true); },
+    tick() { if (P.st === 'play' && !P.air) tut.moved += Math.hypot(P.x - tut.lx, P.z - tut.lz); tut.lx = P.x; tut.lz = P.z;
+      if (Math.abs(steerIn) > 0.3 || keyL || keyR) tut.steered = true; if (P.st === 'play' && P.air && P.vy > 3 && !P.flung && !P.slam) tut.jumped = true; // (a steer and a jump: that is the lesson, done the moment both have happened)
+      return (tut.steered && tut.jumped) || tut.moved > 14; } },
+  { id: 'free0', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 3.5; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
   { id: 'sling', max: 40, enter() { tut.slowK = TUT_SLOW; tutShow(say('*HOLD*, *PULL DOWN*, then let go to fling!', 'Hold *S*, then let go to fling!'), null, 'sling', true); },
     tick() { return P.st === 'play' && P.air && P.flung && (P.flingC || 0) > 0.1; } },
   { id: 'free1', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 7; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
