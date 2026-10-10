@@ -1969,6 +1969,15 @@ kbd{background:#fff;border-color:var(--black)}
 .lookp .lktop .lnbtn{flex:0 1 auto;min-width:0;max-width:none}
 @media (max-aspect-ratio:1/1){.lookp .ctitle{font-size:20px}.lookp .lktop{gap:8px}}
 @media (max-height:520px) and (min-aspect-ratio:1/1){.sheet.lookp{align-content:space-between}.lookp{gap:8px}.lookp[data-tab="paint"] .swatches{padding:0 0 9px}.lookp .sw{height:40px}.seg.lcats{gap:8px}.seg.lcats button,.seg.lcats button[aria-selected="true"]{min-height:58px;padding:4px 3px 5px}.lookp .btn.play.sm{min-height:44px;margin-top:4px;padding-top:0;padding-bottom:0}.lookp .ulink{margin-top:11px}.lookp .ctitle{font-size:20px}}
+
+/* the print in the frame, and the flash as it is taken */
+.gframe .gpic{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:0;transform:scale(1.03);transition:opacity .45s ease .12s,transform .6s cubic-bezier(.2,.9,.3,1) .12s}
+.gframe .gpic[hidden]{display:none}
+.gframe.shot .gpic{opacity:1;transform:none}
+.gframe .gflash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+.gframe.shot .gflash{animation:gflash .55s ease-out both}
+@keyframes gflash{0%{opacity:1}30%{opacity:.85}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.gframe .gpic{transition:none}.gframe.shot .gflash{animation:none}}
 </style>
 
 <div id="stage">
@@ -2065,7 +2074,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 136</p>
+      <p class="ver">Version 137</p>
     </div>
   </div>
 
@@ -2135,7 +2144,7 @@ kbd{background:#fff;border-color:var(--black)}
       <div class="nibtns"><button class="btn play sm" id="niTry" type="button">Try it on</button><button class="btn" id="niGo" type="button">Continue</button></div>
     </div>
   </section>
-  <div class="gwall" id="gwall" hidden aria-hidden="true"></div><div class="gframe" id="gframe" hidden aria-hidden="true"><div class="gplac" id="gPlac"><b id="gpT"></b><span id="gpM"></span></div></div>
+  <div class="gwall" id="gwall" hidden aria-hidden="true"></div><div class="gframe" id="gframe" hidden aria-hidden="true"><img class="gpic" id="gpic" alt="" hidden><span class="gflash" aria-hidden="true"></span><div class="gplac" id="gPlac"><b id="gpT"></b><span id="gpM"></span></div></div>
   <section class="sheet" id="end" hidden>
     <div class="rhead">
       <h2 class="rtitle" id="endTitle"><span id="endWord">Victory!</span></h2>
@@ -8277,7 +8286,7 @@ function makeAudio() {
   // and one stereo, fetched with the page and decoded while the menu is up. A sound has a few takes: one is picked at random (never the
   // same one twice running) and nudged in pitch, so repeats don't sound copied. Until the sheets are in (or if they can't be had), the
   // synth versions below play instead ----
-  const SFXI = /*SFXI*/{"sheets":{"m":{"mk":0.03106,"dur":85.928},"s":{"mk":0.03106,"dur":38.788}},"snd":{"splat_s":["m",[[0.064,0.49406],[0.61806,0.5]],0.4263],"splat_m":["m",[[1.17806,0.50981],[1.74788,0.65]],0.3707],"splat_l":["m",[[2.45788,0.66971],[3.18758,0.80512]],0.3068],"plop":["m",[[4.05271,0.20683],[4.31954,0.35]],0.2554],"land_s":["m",[[4.72954,0.35],[5.13954,0.35]],0.5144],"land_h":["m",[[5.54954,0.5],[6.10954,0.5]],0.3796],"jump":["m",[[6.66954,0.35],[7.07954,0.35]],0.3547],"glug":["m",[[7.48954,0.22],[7.76954,0.22]],0.2868],"enter":["m",[[8.04954,0.85365]],0.2573],"ball":["m",[[8.96319,0.21346],[9.23665,0.19981],[9.49646,0.23856]],0.2769],"squish":["m",[[9.79502,0.7],[10.55502,0.7]],0.3529],"sink":["m",[[11.31502,1.28831]],0.3102],"rise":["m",[[12.66333,0.79398]],0.3384],"rumble":["m",[[13.51731,2.0]],0.2479],"splash":["m",[[15.57731,0.69558],[16.3329,0.54221]],0.3978],"sprinkle":["m",[[16.9351,0.9281],[17.92321,0.87758]],0.6921],"whoosh":["m",[[18.86079,0.7],[19.62079,0.7]],0.3057],"swish":["m",[[20.38079,0.45],[20.89079,0.35958]],0.2768],"dash":["m",[[21.31038,0.5],[21.87037,0.5]],0.2341],"brake":["m",[[22.43038,0.4],[22.89037,0.4]],0.2266],"fling_s":["m",[[23.35037,0.49019],[23.90056,0.6]],0.3889],"fling_m":["m",[[24.56056,0.72335],[25.34392,0.54029]],0.3231],"fling_l":["m",[[25.94421,0.6736],[26.67781,0.67402]],0.275],"release":["m",[[27.41183,0.15265],[27.62448,0.14692]],0.2207],"charge":["m",[[27.8314,2.1]],0.295],"notch1":["m",[[29.9914,0.1904]],0.3716],"notch2":["m",[[30.24179,0.19062]],0.3294],"notch3":["m",[[30.49242,0.28283]],0.2778],"roll":["m",[[30.83525,2.5]],0.1498],"roller":["m",[[33.39525,2.0]],0.0645],"bonk_s":["m",[[35.45525,0.23619],[35.75144,0.26058]],0.3471],"bonk_h":["m",[[36.07202,0.4],[36.53202,0.4]],0.2856],"die":["m",[[36.99202,0.60629],[37.65831,0.62113]],0.2509],"die_sun":["m",[[38.33944,1.0316]],0.6347],"die_pound":["m",[[39.43104,0.55]],0.4717],"die_dry":["m",[[40.04104,0.6]],0.5843],"ui":["m",[[40.70104,0.15973],[40.92077,0.15737],[41.13815,0.13569]],0.3741],"pop":["m",[[41.33383,0.16],[41.55383,0.16]],0.3089],"nope":["m",[[41.77383,0.5],[42.33383,0.5]],0.2734],"tick_a":["m",[[42.89383,0.38142]],0.2574],"tick_b":["m",[[43.33525,0.39148]],0.2546],"tick_c":["m",[[43.78673,0.38327]],0.2533],"count_lo":["m",[[44.23,0.2609]],0.3553],"count_hi":["m",[[44.5509,0.38569]],0.3554],"ready":["m",[[44.99658,0.9]],0.4642],"alert":["m",[[45.95658,0.34285]],0.2952],"danger":["m",[[46.35944,0.24821]],0.541],"low":["m",[[46.66765,0.4],[47.12765,0.4]],0.258],"shrink":["m",[[47.58765,0.8]],0.2931],"flip":["m",[[48.44765,0.9]],0.4389],"flipback":["m",[[49.40765,0.8]],0.3782],"turret":["m",[[50.26765,0.48998]],0.3378],"shoot":["m",[[50.81762,0.4],[51.27763,0.4]],0.2346],"boost":["m",[[51.73763,0.9]],0.427],"fall":["m",[[52.69763,1.6]],0.463],"sizzle":["m",[[54.35762,2.0]],0.5281],"vox_whee":["m",[[56.41763,1.04898],[57.5266,1.04881]],0.3643],"vox_hup":["m",[[58.63542,0.29056],[58.98598,0.46802]],0.3198],"vox_hyah":["m",[[59.514,0.64335],[60.21735,0.65]],0.3012],"vox_oof":["m",[[60.92735,0.54771],[61.53506,0.54929]],0.3211],"vox_waah":["m",[[62.14435,0.21669],[62.42104,0.52498]],0.3253],"vox_yay":["m",[[63.00602,0.8496],[63.91562,0.85]],0.3402],"vox_ooh":["m",[[64.82563,0.76808],[65.65371,0.84931]],0.3396],"vox_giggle":["m",[[66.56302,0.06969],[66.69271,0.84877]],0.3227],"vox_eep":["m",[[67.60148,0.44965],[68.11113,0.29529]],0.3232],"vox_brr":["m",[[68.46642,0.42935],[68.95577,0.70931]],0.3234],"vox_hoh":["m",[[69.72508,0.74987],[70.53496,0.13175]],0.3213],"vox_ahh":["m",[[70.72671,0.50977],[71.29648,0.84979]],0.3171],"kflood":["m",[[72.20627,0.99294],[73.25921,0.6825]],1.0],"kpart":["m",[[74.00171,1.89694],[75.95865,1.90098]],1.0],"tpour":["m",[[77.91962,1.9561],[79.93573,1.84554]],1.0],"tsettle":["m",[[81.84127,0.80398]],1.0],"tslice":["m",[[82.70525,0.2521],[83.01735,0.30652]],1.0],"tsplash":["m",[[83.38388,0.57815],[84.02202,0.84908]],1.0],"ttick":["m",[[84.9311,0.17863],[85.16973,0.69804]],1.0],"slam":["s",[[0.064,0.70637],[0.83037,0.70988]],1.4242],"quake":["s",[[1.60025,1.30062]],1.8218],"burst":["s",[[2.96088,0.48633],[3.50721,0.33637]],0.279],"cd3":["s",[[3.90358,1.1]],0.2178],"cd2":["s",[[5.06358,1.1]],0.2221],"cd1":["s",[[6.22358,1.1]],0.2142],"go":["s",[[7.38358,0.57577]],0.3642],"horn":["s",[[8.01935,0.90021]],0.3246],"spot":["s",[[8.97956,1.3]],0.3638],"lead_up":["s",[[10.33956,1.1]],0.2718],"lead_down":["s",[[11.49956,0.9409]],0.2467],"fanfare":["s",[[12.50046,1.31275]],0.5203],"sting_win":["s",[[13.87321,2.4]],0.6575],"sting_lose":["s",[[16.33321,2.2]],0.5214],"sting_draw":["s",[[18.59321,2.0]],0.6736],"orb":["s",[[20.65321,0.92425]],0.3533],"power":["s",[[21.63746,0.64738],[22.34483,0.33196]],0.3745],"grow":["s",[[22.73679,0.86313]],0.3991],"rocket":["s",[[23.65992,0.7774]],0.6499],"thunder":["s",[[24.49731,4.2]],0.2214],"heatwarn":["s",[[28.75731,3.4]],0.2963],"heaton":["s",[[32.21731,0.69046]],0.2338],"dusk":["s",[[32.96777,1.8]],0.2957],"rain":["s",[[34.82777,3.9]],0.2174]}}/*SFXI_END*/;
+  const SFXI = /*SFXI*/{"sheets":{"m":{"mk":0.03106,"dur":86.855},"s":{"mk":0.03106,"dur":38.788}},"snd":{"splat_s":["m",[[0.064,0.49406],[0.61806,0.5]],0.4263],"splat_m":["m",[[1.17806,0.50981],[1.74788,0.65]],0.3707],"splat_l":["m",[[2.45788,0.66971],[3.18758,0.80512]],0.3068],"plop":["m",[[4.05271,0.20683],[4.31954,0.35]],0.2554],"land_s":["m",[[4.72954,0.35],[5.13954,0.35]],0.5144],"land_h":["m",[[5.54954,0.5],[6.10954,0.5]],0.3796],"jump":["m",[[6.66954,0.35],[7.07954,0.35]],0.3547],"glug":["m",[[7.48954,0.22],[7.76954,0.22]],0.2868],"enter":["m",[[8.04954,0.85365]],0.2573],"ball":["m",[[8.96319,0.21346],[9.23665,0.19981],[9.49646,0.23856]],0.2769],"squish":["m",[[9.79502,0.7],[10.55502,0.7]],0.3529],"sink":["m",[[11.31502,1.28831]],0.3102],"rise":["m",[[12.66333,0.79398]],0.3384],"rumble":["m",[[13.51731,2.0]],0.2479],"splash":["m",[[15.57731,0.69558],[16.3329,0.54221]],0.3978],"sprinkle":["m",[[16.9351,0.9281],[17.92321,0.87758]],0.6921],"whoosh":["m",[[18.86079,0.7],[19.62079,0.7]],0.3057],"swish":["m",[[20.38079,0.45],[20.89079,0.35958]],0.2768],"dash":["m",[[21.31038,0.5],[21.87037,0.5]],0.2341],"brake":["m",[[22.43038,0.4],[22.89037,0.4]],0.2266],"fling_s":["m",[[23.35037,0.49019],[23.90056,0.6]],0.3889],"fling_m":["m",[[24.56056,0.72335],[25.34392,0.54029]],0.3231],"fling_l":["m",[[25.94421,0.6736],[26.67781,0.67402]],0.275],"release":["m",[[27.41183,0.15265],[27.62448,0.14692]],0.2207],"charge":["m",[[27.8314,2.1]],0.295],"notch1":["m",[[29.9914,0.1904]],0.3716],"notch2":["m",[[30.24179,0.19062]],0.3294],"notch3":["m",[[30.49242,0.28283]],0.2778],"roll":["m",[[30.83525,2.5]],0.1498],"roller":["m",[[33.39525,2.0]],0.0645],"bonk_s":["m",[[35.45525,0.23619],[35.75144,0.26058]],0.3471],"bonk_h":["m",[[36.07202,0.4],[36.53202,0.4]],0.2856],"die":["m",[[36.99202,0.60629],[37.65831,0.62113]],0.2509],"die_sun":["m",[[38.33944,1.0316]],0.6347],"die_pound":["m",[[39.43104,0.55]],0.4717],"die_dry":["m",[[40.04104,0.6]],0.5843],"ui":["m",[[40.70104,0.15973],[40.92077,0.15737],[41.13815,0.13569]],0.3741],"pop":["m",[[41.33383,0.16],[41.55383,0.16]],0.3089],"nope":["m",[[41.77383,0.5],[42.33383,0.5]],0.2734],"tick_a":["m",[[42.89383,0.38142]],0.2574],"tick_b":["m",[[43.33525,0.39148]],0.2546],"tick_c":["m",[[43.78673,0.38327]],0.2533],"count_lo":["m",[[44.23,0.2609]],0.3553],"count_hi":["m",[[44.5509,0.38569]],0.3554],"ready":["m",[[44.99658,0.9]],0.4642],"alert":["m",[[45.95658,0.34285]],0.2952],"danger":["m",[[46.35944,0.24821]],0.541],"low":["m",[[46.66765,0.4],[47.12765,0.4]],0.258],"shrink":["m",[[47.58765,0.8]],0.2931],"flip":["m",[[48.44765,0.9]],0.4389],"flipback":["m",[[49.40765,0.8]],0.3782],"turret":["m",[[50.26765,0.48998]],0.3378],"shoot":["m",[[50.81762,0.4],[51.27763,0.4]],0.2346],"boost":["m",[[51.73763,0.9]],0.427],"fall":["m",[[52.69763,1.6]],0.463],"sizzle":["m",[[54.35762,2.0]],0.5281],"vox_whee":["m",[[56.41763,1.04898],[57.5266,1.04881]],0.3643],"vox_hup":["m",[[58.63542,0.29056],[58.98598,0.46802]],0.3198],"vox_hyah":["m",[[59.514,0.64335],[60.21735,0.65]],0.3012],"vox_oof":["m",[[60.92735,0.54771],[61.53506,0.54929]],0.3211],"vox_waah":["m",[[62.14435,0.21669],[62.42104,0.52498]],0.3253],"vox_yay":["m",[[63.00602,0.8496],[63.91562,0.85]],0.3402],"vox_ooh":["m",[[64.82563,0.76808],[65.65371,0.84931]],0.3396],"vox_giggle":["m",[[66.56302,0.06969],[66.69271,0.84877]],0.3227],"vox_eep":["m",[[67.60148,0.44965],[68.11113,0.29529]],0.3232],"vox_brr":["m",[[68.46642,0.42935],[68.95577,0.70931]],0.3234],"vox_hoh":["m",[[69.72508,0.74987],[70.53496,0.13175]],0.3213],"vox_ahh":["m",[[70.72671,0.50977],[71.29648,0.84979]],0.3171],"kflood":["m",[[72.20627,0.99294],[73.25921,0.6825]],1.0],"kpart":["m",[[74.00171,1.89694],[75.95865,1.90098]],1.0],"shutter":["m",[[77.91962,0.30456],[78.28419,0.50252]],1.0],"tpour":["m",[[78.84671,1.9561],[80.86281,1.84554]],1.0],"tsettle":["m",[[82.76835,0.80398]],1.0],"tslice":["m",[[83.63233,0.2521],[83.94444,0.30652]],1.0],"tsplash":["m",[[84.31096,0.57815],[84.9491,0.84908]],1.0],"ttick":["m",[[85.85819,0.17863],[86.09681,0.69804]],1.0],"slam":["s",[[0.064,0.70637],[0.83037,0.70988]],1.4242],"quake":["s",[[1.60025,1.30062]],1.8218],"burst":["s",[[2.96088,0.48633],[3.50721,0.33637]],0.279],"cd3":["s",[[3.90358,1.1]],0.2178],"cd2":["s",[[5.06358,1.1]],0.2221],"cd1":["s",[[6.22358,1.1]],0.2142],"go":["s",[[7.38358,0.57577]],0.3642],"horn":["s",[[8.01935,0.90021]],0.3246],"spot":["s",[[8.97956,1.3]],0.3638],"lead_up":["s",[[10.33956,1.1]],0.2718],"lead_down":["s",[[11.49956,0.9409]],0.2467],"fanfare":["s",[[12.50046,1.31275]],0.5203],"sting_win":["s",[[13.87321,2.4]],0.6575],"sting_lose":["s",[[16.33321,2.2]],0.5214],"sting_draw":["s",[[18.59321,2.0]],0.6736],"orb":["s",[[20.65321,0.92425]],0.3533],"power":["s",[[21.63746,0.64738],[22.34483,0.33196]],0.3745],"grow":["s",[[22.73679,0.86313]],0.3991],"rocket":["s",[[23.65992,0.7774]],0.6499],"thunder":["s",[[24.49731,4.2]],0.2214],"heatwarn":["s",[[28.75731,3.4]],0.2963],"heaton":["s",[[32.21731,0.69046]],0.2338],"dusk":["s",[[32.96777,1.8]],0.2957],"rain":["s",[[34.82777,3.9]],0.2174]}}/*SFXI_END*/;
   const SFX_BASE = (typeof window !== 'undefined' && window.SFX_BASE) || 'sfx/';
   const SB = { m: null, s: null, off: { m: 0, s: 0 }, bytes: {}, busy: {}, fail: {}, last: {} };
   let LP = null, voxT = -9;
@@ -8621,6 +8630,7 @@ function makeAudio() {
     tsettle() { if (!P_('tsettle', { v: 0.8 })) api.pop(); },
     kflood() { if (!P_('kflood', { vary: 0.03 })) api.splat(1.1); },
     kpart() { if (!P_('kpart', { vary: 0.03 })) api.whoosh(); },
+    shutter() { if (!P_('shutter', { vary: 0.02 })) api.tick(); },
     at,
     mood(late, giant, sun, ot) { mood.late = late; mood.giant = giant; mood.sun = sun; mood.ot = ot; },
     music(mode) {
@@ -12388,6 +12398,39 @@ function sayRandom() { let i; do { i = (Math.random() * SAY_LINES.length) | 0; }
 function sayTick(rdt) { if (!(state === 'menu' && menuPage === 'home' && !lookOpen && $('orient').hidden)) { if (!heroSay.hidden) heroSay.hidden = true; sayT = Math.min(sayT, 1.2); return; } sayT -= rdt; if (sayT <= 0) sayRandom(); }
 
 // ---------- your painting: a top-down snapshot of the canvas ----------
+// ---------- the print of the canvas: the stage's floor laid flat with the paint splattered over it where it landed ----------
+function paintingArt(S, aspect) {
+  S = S || 1024; aspect = aspect || 1; const W = aspect >= 1 ? S : Math.round(S * aspect), Hh = aspect >= 1 ? Math.round(S / aspect) : S, c = document.createElement('canvas'); c.width = W; c.height = Hh; const g = c.getContext('2d'), A = ARENA + 0.8, k = Math.min(W, Hh) / (2 * A), X = x => W / 2 + x * k, Z = z => Hh / 2 - z * k; // (fitted to the frame; north, where the rivals start, at the top)
+  const css = h => '#' + (h | 0).toString(16).padStart(6, '0'), T = TH, M = themeMats(T), tex = M.floor.map && M.floor.map.image, us = T.uv || 0.25;
+  g.fillStyle = css(T.sea ? T.low : (T.low !== undefined ? T.low : 0x1C1238)); g.fillRect(0, 0, W, Hh);
+  const shapeOf = (r, m) => { if (r[6] === 'c') { const cx = (r[0] + r[1]) / 2, cz = (r[2] + r[3]) / 2, rr = (r[1] - r[0]) / 2 + (m || 0); g.moveTo(X(cx) + rr * k, Z(cz)); g.arc(X(cx), Z(cz), rr * k, 0, 6.2832); } else { const m0 = m || 0; g.rect(X(r[0] - m0), Z(r[3] + m0), (r[1] - r[0] + 2 * m0) * k, (r[3] - r[2] + 2 * m0) * k); } };
+  const pat = tex ? g.createPattern(tex, 'repeat') : null; if (pat && pat.setTransform) { const sc = k / us / tex.width; pat.setTransform(new DOMMatrix([sc, 0, 0, sc, X(0), Z(0)])); }
+  const floorFill = (tint, dark) => { if (pat) { g.fillStyle = pat; g.fill(); } g.globalCompositeOperation = 'multiply'; g.fillStyle = css(tint); g.fill(); g.globalCompositeOperation = 'source-over'; if (dark) { g.fillStyle = 'rgba(0,0,0,' + dark + ')'; g.fill(); } };
+  // the floor, with the holes cut out
+  g.save(); g.beginPath(); g.rect(X(-ARENA), Z(ARENA), 2 * ARENA * k, 2 * ARENA * k); for (const h of HOLES) shapeOf(h); g.clip('evenodd'); g.beginPath(); g.rect(0, 0, W, Hh); floorFill(T.ft, 0); g.restore();
+  // the edge of the floor, and of each hole: a dark lip
+  g.save(); g.lineWidth = Math.max(2, 0.14 * k); g.strokeStyle = 'rgba(0,0,0,.4)'; g.beginPath(); g.rect(X(-ARENA), Z(ARENA), 2 * ARENA * k, 2 * ARENA * k); for (const h of HOLES) shapeOf(h); g.stroke(); g.restore();
+  // the blocks and ramps raised on it: lighter on top, a shadow down their south side
+  for (const b of BOXES.slice().sort((p, q) => p[5] - q[5])) { g.save(); g.beginPath(); shapeOf(b, 0.1); g.fillStyle = 'rgba(0,0,0,.35)'; g.translate(0.18 * k, 0.26 * k); g.fill(); g.restore(); g.save(); g.beginPath(); shapeOf(b); g.clip(); g.beginPath(); g.rect(0, 0, W, Hh); floorFill(M.top ? Math.min(0xFFFFFF, T.ft) : T.ft, 0); g.restore(); g.save(); g.beginPath(); shapeOf(b); g.lineWidth = Math.max(1.5, 0.1 * k); g.strokeStyle = 'rgba(0,0,0,.45)'; g.stroke(); g.restore(); }
+  for (const r of RAMPS) { g.save(); g.beginPath(); shapeOf(r); g.clip(); g.beginPath(); g.rect(0, 0, W, Hh); floorFill(T.st, 0.12); g.restore(); }
+  // the paint: every painted sample a soft splat in its side's colour, a darker rim under them all so each colour reads as one shape
+  const rr = 0.38 * k, cols = TEAMS.map(t => css(t.wet)), rims = TEAMS.map(t => css(t.dry));
+  for (const pass of [0, 1]) for (let t = 0; t < 3; t++) { g.fillStyle = pass ? cols[t] : rims[t]; for (let i = 0; i < NS; i++) { const v = painted[i]; if (!v || (v - 1) % 3 !== t) continue; const dil = v > 3, r = (pass ? rr : rr + 0.14 * k) * (dil ? 0.8 : 1) * (0.92 + 0.16 * ((i * 7919) % 13) / 13); g.globalAlpha = dil ? (pass ? 0.6 : 0.5) : 1; g.beginPath(); g.arc(X(sX[i]), Z(sZ[i]), r, 0, 6.2832); g.fill(); } }
+  // stray drops flung out round the paint
+  for (let i = 0; i < NS; i += 7) { const v = painted[i]; if (!v) continue; const t = (v - 1) % 3, h1 = ((i * 2654435761) >>> 0) / 4294967296, h2 = ((i * 40503 + 7) * 2246822519 >>> 0) / 4294967296, a = h1 * 6.2832, d = (0.55 + h2 * 0.9) * k; g.fillStyle = cols[t]; g.globalAlpha = v > 3 ? 0.6 : 1; g.beginPath(); g.arc(X(sX[i]) + Math.cos(a) * d, Z(sZ[i]) + Math.sin(a) * d, (0.07 + 0.09 * h2) * k, 0, 6.2832); g.fill(); }
+  g.globalAlpha = 1;
+  // a wet shine across the paint, and the paper's grain over it all
+  g.globalCompositeOperation = 'overlay'; const sh = g.createLinearGradient(0, 0, W, Hh); sh.addColorStop(0, 'rgba(255,255,255,.18)'); sh.addColorStop(0.5, 'rgba(255,255,255,0)'); sh.addColorStop(1, 'rgba(0,0,0,.12)'); g.fillStyle = sh; g.fillRect(0, 0, W, Hh); g.globalCompositeOperation = 'source-over';
+  return c;
+}
+let shotT = null;
+function takeShot() {
+  shotT = null; if (state !== 'dead' || end.hidden) return; const gf = $('gframe'), img = $('gpic');
+  const bw = img.clientWidth || gf.clientWidth, bh = img.clientHeight || gf.clientHeight, aspect = bw > 0 && bh > 0 ? clamp(bw / bh, 0.5, 2) : 1;
+  try { img.src = paintingArt(1024, aspect).toDataURL('image/jpeg', 0.9); } catch (e) { return; }
+  img.hidden = false; gf.classList.remove('shot'); void gf.offsetWidth; gf.classList.add('shot'); AU.shutter(); buzz(12);
+}
+function clearShot() { if (shotT) clearTimeout(shotT); shotT = null; const gf = $('gframe'), img = $('gpic'); gf.classList.remove('shot'); img.hidden = true; img.removeAttribute('src'); }
 let snapRT = null;
 const snapCam = new THREE.OrthographicCamera(-ARENA - 1.5, ARENA + 1.5, ARENA + 1.5, -ARENA - 1.5, 1, 160);
 snapCam.position.set(0, 90, 0); snapCam.up.set(0, 0, 1); snapCam.lookAt(0, 0, 0);
@@ -13366,7 +13409,7 @@ function goTime() {
   hint('steer', say('Drag to steer', 'A D or arrows to steer'), 3);
 }
 function showMenu() {
-  $('gframe').hidden = true; $('gwall').hidden = true; pickRivalNames(); state = 'menu'; menuPage = 'home'; menu.dataset.page = 'home'; $('mHome').hidden = false; $('mWorld').hidden = true; applyMode(); renderModes(); menu.hidden = false; end.hidden = true; pauseEl.hidden = true; howModal.hidden = true; setModal.hidden = true; hud.classList.add('off'); hintEl.classList.remove('on'); $('vig').className = 'vig';
+  clearShot(); $('gframe').hidden = true; $('gwall').hidden = true; pickRivalNames(); state = 'menu'; menuPage = 'home'; menu.dataset.page = 'home'; $('mHome').hidden = false; $('mWorld').hidden = true; applyMode(); renderModes(); menu.hidden = false; end.hidden = true; pauseEl.hidden = true; howModal.hidden = true; setModal.hidden = true; hud.classList.add('off'); hintEl.classList.remove('on'); $('vig').className = 'vig';
   if (mapUsed) freshMap();
   resetRun(); decorate(); renderStages(); AU.music('menu'); menuPose(); heroT = 0; renderLobbyUI(); sayT = 1.4; camSnap = true;
   for (const D of [P, H, H2]) if (D) { D.ip = null; D.introAct = null; D.introCrawl = null; D.introShake = null; D.introOut = false; D.eyeSink = D.eyeShut = D.eyeWide = 0; D.rollOutT = 0; }
@@ -13460,7 +13503,7 @@ function openVote(id, done) {
   });
 }
 function beginMatch() {
-  $('gframe').hidden = true; $('gwall').hidden = true;
+  clearShot(); $('gframe').hidden = true; $('gwall').hidden = true;
   vicLayer(P, false); lobbyShadow.visible = false; heroSay.hidden = true; AI = AI_LV[diff]; mapUsed = true; resetRun(); gyCam = 0; state = 'intro'; introT = 0; introN = 0; introUp = 0; hud.classList.add('off'); giftPlan(); newItem = null;
   if (window.__skipIntro) { state = 'play'; hud.classList.remove('off'); for (const D of ACTIVE) { D.y = 6.5; D.air = true; D.vy = -1; D.freeLand = true; D.stroke++; } AU.music('play'); return; } // (tests)
   const basins = introBasins();
@@ -13563,6 +13606,7 @@ function showEnd(img) {
   const PT_B = ['in ' + w[0] + ' and Blue', 'in ' + w[1], 'in Two Colors', 'for One Blob', 'in Light and ' + w[2], 'in ' + w[2]];
   $('pTitle').textContent = PT_A[(n * 7) % PT_A.length] + ' ' + PT_B[(n * 3) % PT_B.length] + ', No. ' + n;
   $('pMeta').textContent = TH.label + ', ' + fmtTime(info.time); $('gpT').textContent = $('pTitle').textContent; $('gpM').textContent = 'Paint on canvas. ' + TH.label + ', ' + fmtTime(info.time);
+  clearShot(); shotT = setTimeout(takeShot, 1100); // (a beat after the frame hangs, the camera clicks)
   // the canvas between the colors: you from the left, the rivals in from the right (a solo canvas: how much of it, and where your best got to)
   let jb = '', jn = '';
   if (solo) {
