@@ -76,3 +76,8 @@
 .tuthand{position:absolute;left:0;top:0;z-index:60;width:50px;height:66px;pointer-events:none;animation:tutbob .6s ease-in-out infinite alternate}
 .tuthand svg{width:100%;height:100%;filter:drop-shadow(3px 4px 0 rgba(0,0,0,.35))}
 @media (prefers-reduced-motion:reduce){.tuthand{animation:none}}
+/* the way to go: a gold arrow a little out from you, turning to point at what the lesson wants you to reach */
+.tutarrow{position:absolute;left:0;top:0;z-index:58;width:58px;height:58px;margin:-29px 0 0 -29px;pointer-events:none;will-change:transform}
+.tutarrow svg{display:block;width:100%;height:100%;fill:var(--gold);stroke:#171320;stroke-width:2.4;stroke-linejoin:round;filter:drop-shadow(2px 3px 0 rgba(0,0,0,.4));animation:tutnudge .55s ease-in-out infinite alternate}
+@keyframes tutnudge{from{translate:0 0}to{translate:9px 0}}
+@media (prefers-reduced-motion:reduce){.tutarrow svg{animation:none}}

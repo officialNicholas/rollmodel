@@ -4,7 +4,7 @@
 // (the flower at half what the match paid, the fangs for the rest), the locker to wear them, and the vote before a real match, which
 // always lands on a Halloween canvas. Settings can start it over.
 if (!store.tut || typeof store.tut !== 'object' || !store.tut.ph) store.tut = { ph: (store.runs || 0) > 0 ? 'done' : 'match' };
-const tutHandEl = $('tutHand'), tutEl = $('tut'), tutTxt = $('tutText'), tutCall = $('tutCall'), tutSlowEl = $('tutSlow'), tutDim = $('tutDim'), tutAva = $('tutAva');
+const tutArrowEl = $('tutArrow'), tutGV = new THREE.Vector3(), tutHandEl = $('tutHand'), tutEl = $('tut'), tutTxt = $('tutText'), tutCall = $('tutCall'), tutSlowEl = $('tutSlow'), tutDim = $('tutDim'), tutAva = $('tutAva');
 let tut = null, tutPrev = null, tutTip = null, tutWinDue = false, tutNiAt = 0; // tutNiAt: when the new item card came up (the coach waits for the item to land) // tutWinDue: the lesson's finish screen is owed, before the tally // tut: the scripted match; tutPrev: the mode, level and canvas to put back after it; tutTip: the tip up now
 const tutPh = () => store.tut.ph, tutSet = ph => { if (store.tut.ph === ph) return; store.tut.ph = ph; save(); };
 const tutMatchDue = () => tutPh() === 'match';
@@ -49,7 +49,9 @@ function tutPlace() {
     if (tutDim.classList.contains('on')) tutDim.classList.remove('on');
     if (tutEl.dataset.pos !== 'play') { tutEl.dataset.pos = 'play'; tutEl.style.cssText = ''; }
     const sc = document.querySelector('#hud .score'), sb = sc && sc.getBoundingClientRect(), t = ((sb && sb.height ? sb.bottom - r0.top : 90) + 10).toFixed(0) + 'px'; if (tutEl.style.top !== t) tutEl.style.top = t;
-    tutHandAt(el && !el.closest('[hidden]') && el.getClientRects().length ? el : null, r0); return;
+    tutHandAt(el && !el.closest('[hidden]') && el.getClientRects().length ? el : null, r0);
+    { const pb = (parseFloat(tutEl.style.top) || 90) + tutEl.offsetHeight + 14, pt = pb.toFixed(0) + 'px', pe = $('pop'); if (pe.style.top !== pt) { pe.style.top = pt; popMoved = true; } } // (the pop text drops under the tip, not over it)
+    return;
   }
   tutHandAt(null); if (tutDim.classList.contains('block') !== block) tutDim.classList.toggle('block', block); // (between matches only the instructed control takes a tap)
   const vis = el && !el.closest('[hidden]') && el.getClientRects().length > 0;
@@ -141,11 +143,30 @@ function tutStep(dt) {
   if (s.tick(dt)) { if (tut.step < TUT_REST && !s.id.startsWith('free')) { popText('Nice!'); AU.pop(); } tutNext(); }
 }
 function tutNext() { if (!tut) return; const cur = TUT_STEPS[tut.step]; if (cur && cur.exit) cur.exit(); if (tut.step >= TUT_REST) return; tut.step++; tut.st = 0; TUT_STEPS[tut.step].enter(); }
+// where the lesson wants you to go: the flower, the roller, the orb (null when there is nothing to reach, or you are on it)
+function tutGoal() {
+  if (!tut || state !== 'play' || P.st !== 'play' || tut.step < 0) return null; const id = TUT_STEPS[tut.step].id;
+  if (id === 'flower' && gift.on && !gift.got) return [gift.x, gift.z];
+  if (id === 'item' && !P.held && !P.power) { const pw = powers.find(q => q.g && q.type === 'roller'); if (pw) return [pw.x, pw.z]; }
+  if (id === 'orb' && orb.on && !P.rocket) return [orb.x, orb.z];
+  return null;
+}
+// the arrow: from your spot on screen toward the goal (the screen direction of a step taken toward it, so it is right even when the goal is behind the camera)
+function tutGuide() {
+  const g = tutGoal(); if (!g || Math.hypot(g[0] - P.x, g[1] - P.z) < 2.4) { if (!tutArrowEl.hidden) tutArrowEl.hidden = true; return; }
+  const d = Math.hypot(g[0] - P.x, g[1] - P.z), ux = (g[0] - P.x) / d, uz = (g[1] - P.z) / d;
+  tutGV.set(P.x, P.y + 0.35, P.z).project(camera); const px = (tutGV.x + 1) / 2 * viewW, py = (1 - tutGV.y) / 2 * viewH;
+  tutGV.set(P.x + ux * 1.5, P.y + 0.35, P.z + uz * 1.5).project(camera); const qx = (tutGV.x + 1) / 2 * viewW, qy = (1 - tutGV.y) / 2 * viewH;
+  const a = Math.atan2(qy - py, qx - px), x = px + Math.cos(a) * 92, y = py + Math.sin(a) * 92;
+  if (tutArrowEl.hidden) tutArrowEl.hidden = false; tutArrowEl.style.transform = 'translate(' + x.toFixed(0) + 'px,' + y.toFixed(0) + 'px) rotate(' + a.toFixed(3) + 'rad)';
+}
 function tutFrame(rdt) {
   if (tut) { if (state === 'play' && tut.step >= 0) { tut.st += rdt; if (tut.st > TUT_STEPS[tut.step].max) tutNext(); } const on = state === 'play' && tut.slowK < 1; if (tutSlowEl.classList.contains('on') !== on) tutSlowEl.classList.toggle('on', on); }
   else { if (tutSlowEl.classList.contains('on')) tutSlowEl.classList.remove('on'); tutMenuTick(); }
-  if (tutTip) tutPlace();
+  if (tutTip) tutPlace(); else if (popMoved) { popMoved = false; $('pop').style.top = ''; }
+  if (tut) tutGuide(); else if (!tutArrowEl.hidden) tutArrowEl.hidden = true;
 }
+let popMoved = false;
 // the lesson match plays as a duel on the blank canvas against a gentle CPU, whatever the lobby was set to; it all goes back after
 function tutPrep() { if (!tutMatchDue()) return; if (!tutPrev) tutPrev = { mode, diff, stageSel }; mode = 'duel'; diff = 'easy'; stageSel = 'blank'; applyMode(); }
 function tutRestore() { if (!tutPrev) return; mode = tutPrev.mode; diff = tutPrev.diff; stageSel = tutPrev.stageSel; tutPrev = null; applyMode(); }
@@ -156,7 +177,7 @@ function tutBegin() { // (as a match begins)
   tut = { step: -1, st: 0, slowK: 1, hidePound: true, keepAway: true, items: false, orbMine: false, drive: null, noTurret: true };
   wxLeft = 1e9; orb.spawnT = 1e9; Object.assign(gift, { id: 'flower', on: false, got: false, pop: 0, at: 1e9 }); giftM.visible = giftRing.visible = giftBeam.visible = false;
 }
-function tutLeave() { tut = null; tutHide(); tutSlowEl.classList.remove('on'); tutRestore(); tutWinDue = false; const tw = $('tutWin'); tw.classList.remove('on'); tw.hidden = true; }
+function tutLeave() { tutArrowEl.hidden = true; tut = null; tutHide(); tutSlowEl.classList.remove('on'); tutRestore(); tutWinDue = false; const tw = $('tutWin'); tw.classList.remove('on'); tw.hidden = true; }
 function tutEndMatch() { // (as a match ends)
   if (tut) {
     tut = null; tutHide(); tutSlowEl.classList.remove('on');
