@@ -1869,6 +1869,9 @@ kbd{background:#fff;border-color:var(--black)}
 .shcat.season{margin-top:0;padding:10px 14px;border-radius:6px;background:var(--ink);color:#fff;box-shadow:4px 4px 0 rgba(0,0,0,.35);transform:rotate(-1deg)}
 .shcat.season b{font:400 18px/1 var(--font-display);letter-spacing:0;text-transform:none;text-shadow:2px 2px 0 rgba(0,0,0,.35)}
 .shcat.season small{color:rgba(255,255,255,.8)}
+.shcat.season{background:#F08A24}
+.shcat.season b{color:#fff}
+.shcat.season b .hw{font-style:normal;color:#E3122F;text-shadow:2px 2px 0 rgba(23,19,32,.45)}
 .shitem{appearance:none;position:relative;display:block;width:100%;padding:0;margin:0;background:#fff url(art/m_paperbg.webp) center/300px;border:2.5px solid var(--black);border-radius:10px;box-shadow:4px 4px 0 rgba(255,255,255,.18);color:var(--black);cursor:pointer;text-align:center;overflow:hidden;transition:transform .15s}
 .shitem:active{transform:translateY(1px)}
 .shitem:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
@@ -2213,7 +2216,7 @@ svg{shape-rendering:geometricPrecision}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 159</p>
+      <p class="ver">Version 160</p>
     </div>
   </div>
 
@@ -13085,7 +13088,7 @@ function saveLook() { store.look = Object.assign({}, myLook); save(); }
 // ---------- the Paint Shop: everything not yet bought, found or still out on a canvas; no blob here, just the goods ----------
 const SHOP_ICON = '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M9 15h22l-1.6 16.5a2 2 0 0 1-2 1.8H12.6a2 2 0 0 1-2-1.8z" fill="#F2C14E" stroke="#171320" stroke-width="2.4" stroke-linejoin="round"/><path d="M14.5 15v-2.5a5.5 5.5 0 0 1 11 0V15" fill="none" stroke="#171320" stroke-width="2.4" stroke-linecap="round"/><path d="M15 21.5c1.4 0 1.4 1.6 2.8 1.6s1.4-1.6 2.8-1.6 1.4 1.6 2.8 1.6 1.4-1.6 2.8-1.6" fill="none" stroke="#171320" stroke-width="2" stroke-linecap="round"/></svg>';
 let shopOpen = false, shopFrom = 'lobby', shopNoteT = 0;
-const SHOP_CATS = [['season', 'Season One · Halloween'], ['head', 'Headgear'], ['face', 'Facial'], ['cloth', 'Clothing'], ['eyes', 'Eyes']];
+const SHOP_CATS = [['season', 'Season One · <em class="hw">Halloween</em>'], ['head', 'Headgear'], ['face', 'Facial'], ['cloth', 'Clothing'], ['eyes', 'Eyes']];
 function shopNote(t, bad) { const el = $('shopNote'); el.textContent = t; el.classList.toggle('bad', !!bad); restartCls(el, 'on'); clearTimeout(shopNoteT); shopNoteT = setTimeout(() => el.classList.remove('on'), 3200); }
 // each item as it looks on you: your blob wearing it, rendered once and kept (again if your paint changes)
 const shopPics = new Map(); let shopPicKey = '', picRT = null, picScene = null, picCam = null;
