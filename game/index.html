@@ -2287,7 +2287,7 @@ svg{shape-rendering:geometricPrecision}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 168</p>
+      <p class="ver">Version 169</p>
     </div>
   </div>
 
@@ -14450,9 +14450,9 @@ function tutEndMatch() { // (as a match ends)
 }
 function tutFangsSale() { const t = store.tut.price || (store.tut.price = {}); if (t.fangs >= 0) return; if (!OWNED.has('fangs')) { OWNED.add('fangs'); store.owned = [...OWNED]; } t.fangs = store.drops || 0; save(); if (shopOpen) renderShop(); }
 // between matches the coach points the way: the shop for the flower and the fangs, the locker to wear them, then the canvases to vote
-const tutBootEl = $('boot');
+const tutBootEl = $('boot'), tutOrientEl = $('orient');
 function tutMenuTick() {
-  if (bootHold || !booted || !tutBootEl.classList.contains('gone')) return tutHide(); // (nothing over the loading screen: its tap to start must get through)
+  if (bootHold || !booted || !tutBootEl.classList.contains('gone') || !tutOrientEl.hidden || document.querySelector('.modal:not([hidden])')) return tutHide(); // (nothing over the loading screen, the orientation chooser or any dialog) // (nothing over the loading screen: its tap to start must get through)
   const ph = tutPh(); if (menu.classList.contains('tutoring') !== (ph !== 'done')) menu.classList.toggle('tutoring', ph !== 'done'); // (the lesson keeps the lobby simple: no commissions, no how-to)
   if (ph === 'match') { if (state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden) tutShow('Your first match is a lesson. Tap Play', 'homePlay', 'first'); else tutHide(); return; }
   if (ph !== 'shop' && ph !== 'locker' && ph !== 'vote') return tutHide();
