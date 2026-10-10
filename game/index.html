@@ -2221,6 +2221,7 @@ svg{shape-rendering:geometricPrecision}
 /* ---- the lesson's progress: a badge per lesson under the score, filling in as each is done ---- */
 .tutpips{position:absolute;left:50%;top:0;z-index:58;display:flex;gap:6px;transform:translateX(-50%);pointer-events:none;opacity:0;transition:opacity .3s}
 .tutpips.on{opacity:1}
+.tutpips{display:none!important}
 .tutpips i{position:relative;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:rgba(23,19,32,.8);box-shadow:0 0 0 2px rgba(255,255,255,.22),0 3px 0 rgba(0,0,0,.35);transition:background .25s}
 .tutpips i svg{width:17px;height:17px;fill:none;stroke:#CFC6E0;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 .tutpips i.now{box-shadow:0 0 0 2.5px var(--gold),0 3px 0 rgba(0,0,0,.35);animation:pipnow 1s ease-in-out infinite alternate}
@@ -2344,7 +2345,7 @@ svg{shape-rendering:geometricPrecision}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 177</p>
+      <p class="ver">Version 178</p>
     </div>
   </div>
 
@@ -14566,7 +14567,7 @@ const TUT_PRAISE = ['Nice!', 'Great!', 'Smooth!', 'Perfect!', 'Slick!', 'Nailed 
 const tutPipsEl = $('tutPips'), tutPraiseEl = $('tutPraise');
 function tutPipsDraw() { tutPipsEl.innerHTML = TUT_PIP_SVG.map((sv, i) => '<i data-i="' + i + '"><svg viewBox="0 0 24 24">' + sv + '</svg></i>').join(''); }
 function tutPipsTick() {
-  const show = !!tut && state === 'play' && tut.step >= 0 && tut.step < TUT_REST && !tut.card; if (tutPipsEl.classList.contains('on') !== show) tutPipsEl.classList.toggle('on', show); if (!show) return;
+  const show = false; /* (the lesson badges row is retired: nothing sits on top of the tips) */ if (tutPipsEl.classList.contains('on') !== show) tutPipsEl.classList.toggle('on', show); if (!show) return;
   const r0 = stage.getBoundingClientRect(), sc = document.querySelector('#hud .score'), sb = sc && sc.getBoundingClientRect(), t = ((sb && sb.height ? sb.bottom - r0.top : 84) + 6).toFixed(0) + 'px'; if (tutPipsEl.style.top !== t) tutPipsEl.style.top = t;
   const cur = TUT_PIP[TUT_STEPS[tut.step].id]; for (const el of tutPipsEl.children) { const i = +el.dataset.i, d = tut.pips.has(i), now = !d && i === cur; if (el.classList.contains('done') !== d) el.classList.toggle('done', d); if (el.classList.contains('now') !== now) el.classList.toggle('now', now); }
 }
@@ -14574,7 +14575,7 @@ function tutReward(id, hit) {
   const k = TUT_PIP[id]; if (k === undefined) return; tut.bonus = (tut.bonus || 0) + 5;
   const fresh = !tut.pips.has(k); tut.pips.add(k); tutPipsTick(); const pe = tutPipsEl.children[k]; if (pe && fresh) restartCls(pe, 'got');
   tutPraiseEl.textContent = hit ? 'Shake it off!' : TUT_PRAISE[tut.praiseN++ % TUT_PRAISE.length]; restartCls(tutPraiseEl, 'on'); clearTimeout(tutPraiseEl._t); tutPraiseEl._t = setTimeout(() => tutPraiseEl.classList.remove('on'), 1150);
-  if (pe) { const r0 = stage.getBoundingClientRect(), r = pe.getBoundingClientRect(), pl = document.createElement('p'); pl.className = 'tutplus'; pl.textContent = '+5'; pl.style.left = (r.left - r0.left + r.width / 2).toFixed(0) + 'px'; pl.style.top = (r.bottom - r0.top + 4).toFixed(0) + 'px'; stage.appendChild(pl); setTimeout(() => pl.remove(), 1000); }
+  const sce = document.querySelector('#hud .score'); if (sce && state === 'play') { const r0 = stage.getBoundingClientRect(), r = sce.getBoundingClientRect(), pl = document.createElement('p'); pl.className = 'tutplus'; pl.textContent = '+5'; pl.style.left = (r.left - r0.left + r.width / 2).toFixed(0) + 'px'; pl.style.top = (r.bottom - r0.top + 4).toFixed(0) + 'px'; stage.appendChild(pl); setTimeout(() => pl.remove(), 1000); }
   if (AU.tick) AU.tick(5 + tut.pips.size * 2); AU.pop(); buzz(12); if (!reduceMotion && P.st === 'play') confetti(P.x, P.y + 1, P.z, 26, 2.4);
 }
 function tutStep(dt) {

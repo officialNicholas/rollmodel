@@ -99,6 +99,7 @@
 /* ---- the lesson's progress: a badge per lesson under the score, filling in as each is done ---- */
 .tutpips{position:absolute;left:50%;top:0;z-index:58;display:flex;gap:6px;transform:translateX(-50%);pointer-events:none;opacity:0;transition:opacity .3s}
 .tutpips.on{opacity:1}
+.tutpips{display:none!important}
 .tutpips i{position:relative;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:rgba(23,19,32,.8);box-shadow:0 0 0 2px rgba(255,255,255,.22),0 3px 0 rgba(0,0,0,.35);transition:background .25s}
 .tutpips i svg{width:17px;height:17px;fill:none;stroke:#CFC6E0;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 .tutpips i.now{box-shadow:0 0 0 2.5px var(--gold),0 3px 0 rgba(0,0,0,.35);animation:pipnow 1s ease-in-out infinite alternate}

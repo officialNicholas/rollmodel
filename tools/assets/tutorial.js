@@ -201,7 +201,7 @@ const TUT_PRAISE = ['Nice!', 'Great!', 'Smooth!', 'Perfect!', 'Slick!', 'Nailed 
 const tutPipsEl = $('tutPips'), tutPraiseEl = $('tutPraise');
 function tutPipsDraw() { tutPipsEl.innerHTML = TUT_PIP_SVG.map((sv, i) => '<i data-i="' + i + '"><svg viewBox="0 0 24 24">' + sv + '</svg></i>').join(''); }
 function tutPipsTick() {
-  const show = !!tut && state === 'play' && tut.step >= 0 && tut.step < TUT_REST && !tut.card; if (tutPipsEl.classList.contains('on') !== show) tutPipsEl.classList.toggle('on', show); if (!show) return;
+  const show = false; /* (the lesson badges row is retired: nothing sits on top of the tips) */ if (tutPipsEl.classList.contains('on') !== show) tutPipsEl.classList.toggle('on', show); if (!show) return;
   const r0 = stage.getBoundingClientRect(), sc = document.querySelector('#hud .score'), sb = sc && sc.getBoundingClientRect(), t = ((sb && sb.height ? sb.bottom - r0.top : 84) + 6).toFixed(0) + 'px'; if (tutPipsEl.style.top !== t) tutPipsEl.style.top = t;
   const cur = TUT_PIP[TUT_STEPS[tut.step].id]; for (const el of tutPipsEl.children) { const i = +el.dataset.i, d = tut.pips.has(i), now = !d && i === cur; if (el.classList.contains('done') !== d) el.classList.toggle('done', d); if (el.classList.contains('now') !== now) el.classList.toggle('now', now); }
 }
@@ -209,7 +209,7 @@ function tutReward(id, hit) {
   const k = TUT_PIP[id]; if (k === undefined) return; tut.bonus = (tut.bonus || 0) + 5;
   const fresh = !tut.pips.has(k); tut.pips.add(k); tutPipsTick(); const pe = tutPipsEl.children[k]; if (pe && fresh) restartCls(pe, 'got');
   tutPraiseEl.textContent = hit ? 'Shake it off!' : TUT_PRAISE[tut.praiseN++ % TUT_PRAISE.length]; restartCls(tutPraiseEl, 'on'); clearTimeout(tutPraiseEl._t); tutPraiseEl._t = setTimeout(() => tutPraiseEl.classList.remove('on'), 1150);
-  if (pe) { const r0 = stage.getBoundingClientRect(), r = pe.getBoundingClientRect(), pl = document.createElement('p'); pl.className = 'tutplus'; pl.textContent = '+5'; pl.style.left = (r.left - r0.left + r.width / 2).toFixed(0) + 'px'; pl.style.top = (r.bottom - r0.top + 4).toFixed(0) + 'px'; stage.appendChild(pl); setTimeout(() => pl.remove(), 1000); }
+  const sce = document.querySelector('#hud .score'); if (sce && state === 'play') { const r0 = stage.getBoundingClientRect(), r = sce.getBoundingClientRect(), pl = document.createElement('p'); pl.className = 'tutplus'; pl.textContent = '+5'; pl.style.left = (r.left - r0.left + r.width / 2).toFixed(0) + 'px'; pl.style.top = (r.bottom - r0.top + 4).toFixed(0) + 'px'; stage.appendChild(pl); setTimeout(() => pl.remove(), 1000); }
   if (AU.tick) AU.tick(5 + tut.pips.size * 2); AU.pop(); buzz(12); if (!reduceMotion && P.st === 'play') confetti(P.x, P.y + 1, P.z, 26, 2.4);
 }
 function tutStep(dt) {
