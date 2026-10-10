@@ -1,0 +1,81 @@
+<title>Axolotl Rig Preview</title>
+<style>
+html,body{margin:0;height:100%;background:#dfe6ee;overflow:hidden;font-family:system-ui,sans-serif}canvas{display:block}
+#ui{position:fixed;left:0;right:0;bottom:0;display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;justify-content:center;pointer-events:none}
+#ui button{pointer-events:auto;border:0;border-radius:999px;padding:10px 14px;font:600 14px system-ui;background:#fff;color:#243;box-shadow:0 2px 8px #0002;cursor:pointer}
+#ui button.on{background:#ff6b8a;color:#fff}
+#hud{position:fixed;left:12px;top:10px;font:12px/1.5 ui-monospace,monospace;color:#345;white-space:pre;pointer-events:none}
+#opts{position:fixed;right:12px;top:10px;display:flex;gap:6px}#opts button{border:0;border-radius:8px;padding:6px 10px;font:12px system-ui;background:#fff8;cursor:pointer}
+@media (max-width:600px){#hud{top:auto;bottom:118px;font-size:10px}#opts{left:12px;right:12px;justify-content:center;flex-wrap:wrap}}
+</style>
+<script type="importmap">{"imports":{"three":"./lib/three.module.js","three/addons/":"./lib/addons/"}}</script>
+<div id="hud"></div>
+<div id="opts"><button id="skel">skeleton</button><button id="wire">wire</button><button id="cam">camera</button><button id="slow">slow-mo</button></div>
+<div id="ui"></div>
+<script type="module">
+import * as THREE from 'three'; import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { loadMesh, Puppet, Animator } from './axo.js';
+const R = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' }); R.setPixelRatio(Math.min(devicePixelRatio, 2)); R.setSize(innerWidth, innerHeight); R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.05;
+R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFSoftShadowMap; document.body.appendChild(R.domElement);
+const sc = new THREE.Scene(); sc.background = new THREE.Color(0xdfe6ee); sc.fog = new THREE.Fog(0xdfe6ee, 9, 18);
+// lighting: soft warm key with a shadow, cool hemisphere fill, a faint rim from behind
+const hemi = new THREE.HemisphereLight(0xeaf2ff, 0x8d7f6a, 1.6); sc.add(hemi);
+const key = new THREE.DirectionalLight(0xfff1dc, 2.6); key.position.set(2.5, 4.5, 3); key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.radius = 6; key.shadow.bias = -0.0008; key.shadow.normalBias = 0.02;
+const sc_ = key.shadow.camera; sc_.left = -2.6; sc_.right = 2.6; sc_.top = 2.6; sc_.bottom = -2.6; sc_.near = 1; sc_.far = 14; sc.add(key); sc.add(key.target);
+const rim = new THREE.DirectionalLight(0xbfd6ff, 0.9); rim.position.set(-2, 2.5, -3); sc.add(rim);
+// ground disc with a scrolling dot pattern (shows crawl speed) + soft contact-shadow blob
+const gc = document.createElement('canvas'); gc.width = gc.height = 256; const g2 = gc.getContext('2d'); g2.fillStyle = '#eef2f5'; g2.fillRect(0, 0, 256, 256); g2.fillStyle = '#c9d3dc';
+for (let y = 16; y < 256; y += 32) for (let x = 16; x < 256; x += 32) { g2.beginPath(); g2.arc(x + ((y / 32) % 2) * 16, y, 2.2, 0, 7); g2.fill(); }
+const gtex = new THREE.CanvasTexture(gc); gtex.wrapS = gtex.wrapT = THREE.RepeatWrapping; gtex.repeat.set(12, 12); gtex.colorSpace = THREE.SRGBColorSpace; gtex.anisotropy = 4;
+const ground = new THREE.Mesh(new THREE.CircleGeometry(4.5, 64), new THREE.MeshStandardMaterial({ map: gtex, roughness: 0.95, metalness: 0 })); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; sc.add(ground);
+const bc = document.createElement('canvas'); bc.width = bc.height = 128; const b2 = bc.getContext('2d'); const grd = b2.createRadialGradient(64, 64, 4, 64, 64, 62); grd.addColorStop(0, 'rgba(40,50,70,0.55)'); grd.addColorStop(0.5, 'rgba(40,50,70,0.22)'); grd.addColorStop(1, 'rgba(40,50,70,0)'); b2.fillStyle = grd; b2.fillRect(0, 0, 128, 128);
+const blob = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(bc), transparent: true, depthWrite: false })); blob.rotation.x = -Math.PI / 2; blob.position.y = 0.004; blob.renderOrder = 1; sc.add(blob);
+
+const tl = new THREE.TextureLoader(); const tex = async (u) => { const t = await tl.loadAsync(u); t.colorSpace = THREE.SRGBColorSpace; t.flipY = false; t.anisotropy = 4; return t; };
+const standFile = new URLSearchParams(location.search).get('stand') || 'axo_stand';
+const [S, C] = await Promise.all([loadMesh('./' + standFile, await tex('./axo_stand.webp')), loadMesh('./axo_crawl', await tex('./axo_crawl.webp'))]);
+for (const M of [S, C]) { M.mesh.material.transparent = false; sc.add(M.mesh); }
+const P = new Puppet(S, C), A = new Animator(P);
+// skeleton overlay
+const skelGroup = new THREE.Group(); skelGroup.visible = false; sc.add(skelGroup); const sk = {};
+for (const w of ['stand', 'crawl']) sk[w] = new THREE.SkeletonHelper(P.m[w].mesh), skelGroup.add(sk[w]);
+const cam = new THREE.PerspectiveCamera(32, innerWidth / innerHeight, 0.05, 50); cam.position.set(2.6, 1.6, 3.4); const fitCam = () => { cam.aspect = innerWidth / innerHeight; cam.fov = cam.aspect < 0.8 ? 32 / Math.max(0.45, cam.aspect / 0.8) : 32; cam.updateProjectionMatrix(); }; fitCam();
+const ctl = new OrbitControls(cam, R.domElement); ctl.target.set(0, 0.7, 0); ctl.enableDamping = true; ctl.maxPolarAngle = Math.PI / 2 - 0.03;
+const states = [['stand', 'Stand idle'], ['crawl', 'Crawl'], ['power', 'Power pose'], ['jetpack', 'Jetpack'], ['pound', 'Ground-pound wind-up'], ['victory', 'Victory']];
+const ui = document.getElementById('ui'); const btns = {};
+for (const [k, label] of states) { const b = document.createElement('button'); b.textContent = label; b.onclick = () => setState(k); ui.appendChild(b); btns[k] = b; }
+function setState(k) { A.set(k); for (const s in btns) btns[s].classList.toggle('on', s === k); }
+let slow = false, camAuto = true, wire = false;
+document.getElementById('skel').onclick = () => skelGroup.visible = !skelGroup.visible;
+document.getElementById('wire').onclick = () => { wire = !wire; for (const M of [S, C]) M.mesh.material.wireframe = wire; };
+document.getElementById('cam').onclick = () => camAuto = !camAuto;
+document.getElementById('slow').onclick = () => slow = !slow;
+addEventListener('resize', () => { fitCam(); R.setSize(innerWidth, innerHeight); });
+
+// per-frame: animate, show the right mesh(es), ground scroll, blob shadow, camera framing
+const hud = document.getElementById('hud'); let frames = 0, acc = 0, ms = 0, msAcc = 0, lastT = performance.now();
+function frame(dt) {
+  const t0 = performance.now();
+  A.update(dt);
+  const cur = P.m[A.mesh].mesh, oth = P.m[A.other(A.mesh)].mesh;
+  cur.visible = true; oth.visible = A.fade < 1;
+  if (A.fade < 1) { cur.material.transparent = true; cur.material.opacity = A.fade; oth.material.transparent = true; oth.material.opacity = 1 - A.fade; cur.renderOrder = 2; oth.renderOrder = 3; }
+  else { cur.material.transparent = false; cur.material.opacity = 1; oth.material.transparent = false; oth.material.opacity = 1; }
+  gtex.offset.y = -A.groundScroll * 12 / 9;  // dots scroll under the crawling character (disc radius 4.5, 12 repeats)
+  const root = A.pose.root; blob.position.x = root.x; blob.position.z = root.z + (A.mesh === 'crawl' ? 0.2 : -0.1); const h = Math.max(0, root.y - (A.mesh === 'crawl' ? 0.25 : 0.59));
+  const bs = (A.mesh === 'crawl' ? 1.7 : 1.1) * (1 + h * 0.6); blob.scale.set(bs, bs * (A.mesh === 'crawl' ? 1.6 : 1), 1); blob.material.opacity = Math.max(0.15, 1 - h * 1.2);
+  for (const w in sk) sk[w].visible = P.m[w].mesh.visible;
+  if (camAuto) { const ty = A.mesh === 'crawl' ? 0.45 : 0.8 + h * 0.5; ctl.target.y += (ty - ctl.target.y) * Math.min(1, dt * 3); }
+  ctl.update(); R.render(sc, cam);
+  const t1 = performance.now(); msAcc += t1 - t0; frames++; acc += dt;
+  if (acc > 0.5) { ms = msAcc / frames; hud.textContent = `state ${A.state}  mesh ${A.mesh}  ${(frames / acc).toFixed(0)} fps  ${ms.toFixed(2)} ms/frame (anim+render)\nverts ${S.meta.n} / ${C.meta.n}  bones ${P.nb}`; frames = 0; acc = 0; msAcc = 0; }
+}
+let manual = new URLSearchParams(location.search).has('manual');
+function loop() { const now = performance.now(); let dt = (now - lastT) / 1000; lastT = now; if (slow) dt *= 0.25; if (!manual) frame(dt); requestAnimationFrame(loop); }
+setState('stand'); loop();
+// headless capture API: deterministic stepping, camera presets, snapshots
+window.axo = { A, P, S, C, setState, step: (dt, n = 1) => { for (let i = 0; i < n; i++) frame(dt); }, manual: (m) => manual = m,
+  view: (yaw, pitch, dist, ty) => { camAuto = false; ctl.target.set(0, ty, 0); cam.position.set(Math.sin(yaw) * Math.cos(pitch) * dist, ty + Math.sin(pitch) * dist, Math.cos(yaw) * Math.cos(pitch) * dist); ctl.update(); },
+  shot: () => { R.render(sc, cam); return R.domElement.toDataURL('image/jpeg', 0.9); }, skel: (v) => skelGroup.visible = v, size: (w, h) => { cam.aspect = w / h; cam.updateProjectionMatrix(); R.setSize(w, h); } };
+window.ready = true;
+</script>
