@@ -1358,7 +1358,7 @@ kbd{background:#fff;border-color:var(--black)}
 @keyframes bob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-2px) rotate(-.8deg)}}
 /* the logo drips while you wait */
 .mhome.lobby .logo .tcard{position:relative}
-.mhome.lobby .logo .tcard::after{content:"";position:absolute;left:30%;top:74%;width:22%;height:70%;background:var(--ink);-webkit-mask:url(art/m_drip.webp) center top/100% 100% no-repeat;mask:url(art/m_drip.webp) center top/100% 100% no-repeat;transform-origin:50% 0;animation:logodrip 11s cubic-bezier(.4,0,.6,1) infinite;opacity:.92;pointer-events:none}
+
 @keyframes logodrip{0%{transform:scaleY(.08)}70%{transform:scaleY(1)}92%{transform:scaleY(1);opacity:.92}96%{opacity:0}100%{transform:scaleY(.08);opacity:0}}
 .mhome.lobby .season{animation:seasontape 5s ease-in-out infinite}
 @keyframes seasontape{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(-1.2deg)}}
@@ -1401,7 +1401,7 @@ kbd{background:#fff;border-color:var(--black)}
 .threat{background:url(art/m_tape3.webp) center/100% 100% no-repeat;border:0;border-radius:0;box-shadow:none;color:var(--ink);font:900 15px/1 var(--font-head);text-transform:uppercase}
 .threat b{background:var(--ink);color:#fff}
 @media (max-height:520px) and (min-aspect-ratio:1/1){.score{width:100%;max-width:250px;padding:6px 10px 8px}.vsn{font-size:24px}.clock{font-size:13px;padding:5px 9px}.slamBtn{width:84px;height:84px}}
-@media (prefers-reduced-motion:reduce){.lineup .lu,.mhome.lobby .logo .tcard::after,.mhome.lobby .season,.slamBtn.ready,.slamBtn.boost.ready{animation:none}}
+@media (prefers-reduced-motion:reduce){.lineup .lu,.mhome.lobby .season,.slamBtn.ready,.slamBtn.boost.ready{animation:none}}
 
 @media (max-width:420px) and (max-aspect-ratio:1/1){.playbtn{min-width:150px;padding:12px 22px 18px}.playbtn .pbl{font-size:36px}.show{padding:5px 8px 5px 5px;gap:8px}.sthumb{width:56px;height:44px}.stxt b{font-size:13px}.stxt em{font-size:10px}.sarrow{display:none}}
 
@@ -2050,7 +2050,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 132</p>
+      <p class="ver">Version 133</p>
     </div>
   </div>
 
