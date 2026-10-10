@@ -2297,7 +2297,7 @@ svg{shape-rendering:geometricPrecision}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 170</p>
+      <p class="ver">Version 171</p>
     </div>
   </div>
 
@@ -7832,6 +7832,7 @@ function aiTurret(D, dt) {
 }
 // a CPU with the rocket: line up over whoever's nearest (leading them a little), and drop when it's over them or time's running out
 function aiRocket(D, dt) {
+  if (tut && tut.rocketLock === D) return tutRocket(D, dt); // (the lesson flies this one)
   const R = D.rocket; if (R.ph === 'up') { D.steer = 0; return; }
   let T = null, bd = 1e9; for (const F of foes(D)) { if (F.st !== 'play' && F.st !== 'hide') continue; const d = Math.hypot(F.x - D.x, F.z - D.z); if (d < bd) { bd = d; T = F; } }
   if (!T) { D.steer = 0; if (R.ph === 'hover' && R.t > 1.2) rocketDive(D, false); return; }
@@ -14418,13 +14419,15 @@ const TUT_STEPS = [
       return tut.hadRocket && !P.rocket; },
     exit() { tut.orbMine = false; TUT_AI.orb = 0.35; } },
   { id: 'free3', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 8; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
-  { id: 'rocketdodge', max: 50, enter() { tut.drive = null; if (orb.on) tutOrbOff(); orb.spawnT = 1e9; if (H.st === 'play' && !H.rocket) { H.paint = 1; startRocket(H); } tut.rolled = false; tut.hit = false; tut.wasKo = false; tut.sub = ''; tut.slowK = 1;
+  { id: 'rocketdodge', max: 60, enter() { tut.drive = null; if (orb.on) tutOrbOff(); orb.spawnT = 1e9; tut.rocketLock = H; tut.rkFrozen = false; tut.rkStarted = false; tut.rolled = false; tut.hit = false; tut.wasKo = false; tut.sub = ''; tut.slowK = 1;
       tutShow(say('The rival has a rocket too. When it drops on you, swipe up to roll clear', 'The rival has a rocket too. When it drops on you, press Shift to roll clear'), null, 'rdodge', false, true); },
-    tick() { const R = H.rocket, d = Math.hypot(H.x - P.x, H.z - P.z), diving = !!R && R.ph === 'dive' && H.st === 'play' && P.st === 'play' && !P.air && d < 6;
-      if (diving && P.rollT > 0) tut.rolled = true; if (P.st === 'ko' && !tut.wasKo) tut.hit = true; tut.wasKo = P.st === 'ko';
-      const now = diving && H.y - P.y < 7; tut.slowK = now ? 0.14 : 1;
+    tick() { if (!tut.rkStarted && H.st === 'play' && !H.rocket) { H.paint = 1; startRocket(H); tut.rkStarted = true; } // (it takes off as soon as it is free to)
+      const R = H.rocket, down = !!R && R.ph === 'dive' && !R.slow && H.st === 'play' && P.st === 'play', now = down && tut.rkFrozen;
+      if (now && P.rollT > 0) tut.rolled = true; if (P.st === 'ko' && !tut.wasKo) tut.hit = true; tut.wasKo = P.st === 'ko';
+      tut.slowK = now ? 0.12 : 1;
       const sub = now ? 'now' : 'wait'; if (sub !== tut.sub) { tut.sub = sub; if (now) tutShow(say('*NOW!* Swipe up!', '*NOW!* Shift!'), null, 'rdodgenow', true, true); else tutShow(say('The rival has a rocket too. When it drops on you, swipe up to roll clear', 'The rival has a rocket too. When it drops on you, press Shift to roll clear'), null, 'rdodge', false, true); }
-      return (tut.rolled || tut.hit) && !H.rocket && P.st === 'play'; } },
+      return tut.rkStarted && !H.rocket && (tut.rolled || tut.hit || tut.st > 20) && P.st === 'play'; },
+    exit() { tut.rocketLock = null; tut.slowK = 1; } },
   { id: 'flower', max: 40, enter() { if (orb.on) tutOrbOff(); orb.spawnT = 1e9; gift.id = 'flower'; gift.at = runT; tut.slowK = 1; tutShow('A flower! *GRAB IT* to unlock it!', null, 'flower', true, true); }, tick() { return gift.got; },
     exit() { if (!gift.got) { gift.got = true; gift.on = false; giftM.visible = giftRing.visible = giftBeam.visible = false; unlockItem('flower'); newItem = 'flower'; } orb.spawnT = 8; } },
   { id: 'rest', max: 1e9, enter() { tut.slowK = 1; tut.noTurret = false; if (matchLeft < 28) matchLeft = 28; tut.restT = 6; tutShow('Now beat him and cover as much of the canvas as you can. Bonus points every time you take him out', null, 'rest', false, true); },
@@ -14433,6 +14436,15 @@ const TUT_STEPS = [
 const TUT_REST = TUT_STEPS.length - 1;
 // the pound handed over ready the moment its tip is up, even mid-cooldown or short of paint
 function tutGivePound() { if (P.st !== 'play' && P.st !== 'hide') return; P.slamCD = 0; if (P.paint < POUND_MIN + 0.05) P.paint = 1; }
+// the lesson's rocket: it rides right over you while it hangs, boosts straight down, and holds its line once it is close, so a roll on time takes you clear
+function tutRocket(D, dt) {
+  const R = D.rocket; D.steer = 0; D.spd = 0;
+  if (tut.rkFrozen) return;
+  if (R.ph === 'dive' && !R.slow && D.y - P.y < 9) { tut.rkFrozen = true; return; } // (locked: this is the moment to roll)
+  const k = Math.min(1, dt * (R.ph === 'up' ? 3 : 7)); D.x += (P.x - D.x) * k; D.z += (P.z - D.z) * k; D.yaw = P.yaw;
+  if (R.ph === 'hover' && R.t > 0.8 && Math.hypot(P.x - D.x, P.z - D.z) < 0.6) rocketDive(D, false);
+  if (R.ph === 'dive' && R.slow) { R.slow = false; D.vy = Math.min(D.vy, -14); } // (never the slow drift down: always the boost)
+}
 function tutOrbOff() { orb.on = false; orb.pull = 0; orb.g.visible = false; orb.ring.visible = false; }
 function tutSpawnRoller() {
   const spots = POWER_SPOTS.filter(sp => !powers.some(o => Math.hypot(o.x - sp[0], o.z - sp[2]) < 3)); if (!spots.length) return;
