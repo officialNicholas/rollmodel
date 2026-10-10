@@ -1826,6 +1826,7 @@ kbd{background:#fff;border-color:var(--black)}
 .tyname{font:900 15px/1.1 var(--font-head);text-transform:uppercase;color:var(--c);text-shadow:.04em .04em 0 var(--black),2px 3px 0 rgba(0,0,0,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tyname.m,.tynum.m{text-align:center;justify-self:center}
 .tyname.r,.tynum.r{text-align:right;justify-self:end}
+.tyname.l,.tynum.l{grid-column:1}.tyname.m,.tynum.m{grid-column:2}.tyname.r,.tynum.r{grid-column:3} /* (fixed columns: a hidden middle does not pull the right one in) */
 .tynum{display:flex;align-items:baseline;gap:6px;min-width:0;font:400 clamp(30px,9vw,54px)/1 var(--font-display);color:#fff;text-shadow:.045em .055em 0 var(--c),calc(.045em + 3px) calc(.055em + 3px) 0 var(--black);font-variant-numeric:tabular-nums}
 .tynum.r{flex-direction:row-reverse}
 .tynum b{font-weight:400}
@@ -2317,7 +2318,7 @@ svg{shape-rendering:geometricPrecision}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 173</p>
+      <p class="ver">Version 174</p>
     </div>
   </div>
 
