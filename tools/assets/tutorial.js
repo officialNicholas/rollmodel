@@ -5,7 +5,7 @@
 // always lands on a Halloween canvas. Settings can start it over.
 if (!store.tut || typeof store.tut !== 'object' || !store.tut.ph) store.tut = { ph: (store.runs || 0) > 0 ? 'done' : 'match' };
 const tutEl = $('tut'), tutTxt = $('tutText'), tutCall = $('tutCall'), tutSlowEl = $('tutSlow'), tutDim = $('tutDim'), tutAva = $('tutAva');
-let tut = null, tutPrev = null, tutTip = null, tutWinDue = false; // tutWinDue: the lesson's finish screen is owed, before the tally // tut: the scripted match; tutPrev: the mode, level and canvas to put back after it; tutTip: the tip up now
+let tut = null, tutPrev = null, tutTip = null, tutWinDue = false, tutNiAt = 0; // tutNiAt: when the new item card came up (the coach waits for the item to land) // tutWinDue: the lesson's finish screen is owed, before the tally // tut: the scripted match; tutPrev: the mode, level and canvas to put back after it; tutTip: the tip up now
 const tutPh = () => store.tut.ph, tutSet = ph => { if (store.tut.ph === ph) return; store.tut.ph = ph; save(); };
 const tutMatchDue = () => tutPh() === 'match';
 const TUT_SLOW = 0.22, TUT_HALLO = ['crypt', 'cathedral', 'manor'];
@@ -19,11 +19,16 @@ function tutDrive(D) {
 }
 const TUT_AI_CALM = { speed: 0.8, pound: 0.45, poundR: 1.5, attack: 0.08, hunt: 0.025, dodge: 0, evade: 0 };
 // a tip: the coach's plate (an explanation, its face and name) or, with call set, a short line for an action, *the words that matter* in red
-function tutShow(text, at, key, call) {
+function tutShow(text, at, key, call, nodim, side) {
   if (tutTip && tutTip.key === key) return;
-  tutTip = { text, at: at || null, key, call: !!call }; tutEl.dataset.style = call ? 'call' : 'coach'; if (call) tutCall.innerHTML = escAttr(text).replace(/\*([^*]+)\*/g, '<em>$1</em>'); else tutTxt.textContent = text; try { tutAva.innerHTML = '<span class="bico" style="--cd:#8C6A14">' + slimeIcon(0xF2C14E, lookOf(P)) + '</span>'; } catch (e) {} tutEl.hidden = false; tutEl.classList.remove('on'); void tutEl.offsetWidth; tutEl.classList.add('on');
-  const el = tutAt(); if (el && el.scrollIntoView && (el.closest('.shgrid') || el.closest('.lrail'))) try { el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' }); } catch (e) {}
-  tutPlace(); tutDim.classList.add('on'); AU.plop();
+  tutTip = { text, at: at || null, key, call: !!call, nodim: !!nodim, side: side || null }; tutEl.dataset.style = call ? 'call' : 'coach'; if (call) tutCall.innerHTML = escAttr(text).replace(/\*([^*]+)\*/g, '<em>$1</em>'); else tutTxt.textContent = text; try { tutAva.innerHTML = '<span class="bico" style="--cd:#8C6A14">' + slimeIcon(0xF2C14E, lookOf(P)) + '</span>'; } catch (e) {} tutEl.hidden = false; tutEl.classList.remove('on'); void tutEl.offsetWidth; tutEl.classList.add('on');
+  const el = tutAt(); if (el) tutReveal(el);
+  tutPlace(); tutDim.classList.toggle('on', !nodim); AU.plop();
+}
+// bring a card or tile into the middle of its own scroller (the shop grid down, the locker rail across), and nothing else: scrollIntoView would scroll the page too on a phone
+function tutReveal(el) {
+  const sc = el.closest('.shgrid, .lrail'); if (!sc) return; const r = el.getBoundingClientRect(), g = sc.getBoundingClientRect();
+  if (sc.classList.contains('lrail')) sc.scrollLeft += (r.left + r.width / 2) - (g.left + g.width / 2); else sc.scrollTop += (r.top + r.height / 2) - (g.top + g.height / 2);
 }
 function tutHide() { if (!tutTip) return; tutTip = null; tutEl.classList.remove('on'); tutEl.hidden = true; tutDim.classList.remove('on'); }
 function tutWindow(x, y, w, h) { const x0 = x.toFixed(0), y0 = y.toFixed(0), x1 = (x + w).toFixed(0), y1 = (y + h).toFixed(0), c = x0 + ' ' + y0 + ' ' + x1 + ' ' + y1; if (tutDim.dataset.w === c) return; tutDim.dataset.w = c;
@@ -31,12 +36,13 @@ function tutWindow(x, y, w, h) { const x0 = x.toFixed(0), y0 = y.toFixed(0), x1 
 const tutAt = () => !tutTip || !tutTip.at ? null : typeof tutTip.at === 'string' ? $(tutTip.at) : typeof tutTip.at === 'function' ? tutTip.at() : tutTip.at;
 // the plate sits over what it is about, pointing down at it (or under it, pointing up, when there is no room above); with nothing to point at it sits up top
 function tutPlace() {
-  if (!tutTip) return; const el = tutAt(), r0 = stage.getBoundingClientRect(), block = state !== 'play'; if (tutDim.classList.contains('block') !== block) tutDim.classList.toggle('block', block); // (between matches only the instructed control takes a tap)
+  if (!tutTip) return; if (window.scrollY || window.scrollX) try { window.scrollTo(0, 0); } catch (e) {} // (a phone's page scroll would put the hand off its mark)
+  const el = tutAt(), r0 = stage.getBoundingClientRect(), block = state !== 'play'; if (tutDim.classList.contains('block') !== block) tutDim.classList.toggle('block', block); // (between matches only the instructed control takes a tap)
   const vis = el && !el.closest('[hidden]') && el.getClientRects().length > 0;
   if (!vis) { if (tutEl.dataset.pos !== 'top') { tutEl.dataset.pos = 'top'; tutEl.style.cssText = ''; } tutWindow(viewW / 2, viewH / 2, 0, 0); return; }
   const r = el.getBoundingClientRect(), cx = r.left - r0.left + r.width / 2, cw = Math.min(tutEl.offsetWidth, viewW - 24);
   tutWindow(r.left - r0.left - 10, r.top - r0.top - 10, r.width + 20, r.height + 20);
-  const ph = tutEl.offsetHeight, roomUp = r.top - r0.top, roomDn = viewH - (r.bottom - r0.top), above = roomUp >= ph + 90 || (roomDn < ph + 90 && roomUp > roomDn); // (whichever side has the room)
+  const ph = tutEl.offsetHeight, roomUp = r.top - r0.top, roomDn = viewH - (r.bottom - r0.top), above = tutTip.side ? tutTip.side === 'above' : roomUp >= ph + 90 || (roomDn < ph + 90 && roomUp > roomDn); // (the side asked for, else whichever has the room)
   const left = clamp(cx - cw / 2, 12, Math.max(12, viewW - cw - 12)); let y = above ? roomUp - 84 : r.bottom - r0.top + 84; // (the hand's fingertip lands on the edge of the thing, not over it)
   y = above ? Math.max(y, ph + 4) : Math.min(y, viewH - ph - 8);
   const pos = above ? 'above' : 'below'; if (tutEl.dataset.pos !== pos) tutEl.dataset.pos = pos;
@@ -50,36 +56,51 @@ const TUT_STEPS = [
   { id: 'sling', max: 40, enter() { tut.slowK = TUT_SLOW; tutShow(say('*HOLD*, *PULL DOWN*, then let go to fling!', 'Hold *S*, then let go to fling!'), null, 'sling', true); },
     tick() { return P.st === 'play' && P.air && P.flung && (P.flingC || 0) > 0.1; } },
   { id: 'free1', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 7; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
-  { id: 'basin', max: 45, enter() { if (P.paint > 0.42) P.paint = 0.42; pingTank(4); tut.slowK = TUT_SLOW; tutShow('Low paint! Drop into a *' + potWord().toUpperCase() + '* to refill', 'bar', 'basin', true); },
+  { id: 'basin', max: 45, enter() { if (P.paint > 0.42) P.paint = 0.42; pingTank(4); tut.slowK = 1; /* (a trip, not a move: full speed) */ tutShow('Low paint! Drop into a *' + potWord().toUpperCase() + '* to refill', 'bar', 'basin', true, true); },
     tick() { return P.st === 'hide'; } },
-  { id: 'pound', max: 80, enter() { tut.hidePound = false; tut.keepAway = false; P.slamCD = 0; tut.kos0 = P.kos; tut.flat0 = P.flatted; tut.slowK = TUT_SLOW; tut.slowT = 3.5; tut.sub = ''; },
-    tick(dt) { if (P.st === 'play' && P.paint < 0.6) P.paint = Math.min(1, P.paint + dt * 1.6); if (P.slamCD > 1.5) P.slamCD = 1.5; // (paint and the pound keep coming back until one lands)
-      const sub = P.st === 'hide' ? 'burst' : 'pound';
-      if (sub !== tut.sub) { tut.sub = sub; if (sub === 'burst') tutShow(say('Full tank! Tap *POUND* to burst out', 'Full tank! Press *E* to burst out'), 'slamBtn', 'burst', true); else tutShow(say('Your Pound. Fling at the rival, then tap it mid-air to splat them', 'Your Pound (E). Fling at the rival, then press E mid-air to splat them'), 'slamBtn', 'pound'); }
+  { id: 'pound', max: 80, enter() { tut.hidePound = false; tut.keepAway = false; tutGivePound(); tut.kos0 = P.kos; tut.flat0 = P.flatted; tut.slowK = TUT_SLOW; tut.slowT = 3.5; tut.sub = ''; },
+    tick(dt) { if (tut.slowT > 0) { tut.slowT -= dt / Math.max(tut.slowK, 0.05); if (tut.slowT <= 0) tut.slowK = 1; }
+      if (P.st === 'play' && P.paint < 0.6) P.paint = Math.min(1, P.paint + dt * 1.6); if (P.slamCD > 1.5) P.slamCD = 1.5; // (paint and the pound keep coming back until one lands)
+      const near = H.st === 'play' && Math.hypot(H.x - P.x, H.z - P.z) < 11, sub = P.st === 'hide' ? 'burst' : P.air && P.flung && (P.flingC || 0) > 0.15 && near && !P.slam ? 'missile' : 'pound';
+      if (sub !== tut.sub) { tut.sub = sub; tutGivePound();
+        if (sub === 'burst') tutShow(say('Full tank! Tap *POUND* to burst out', 'Full tank! Press *E* to burst out'), 'slamBtn', 'burst', true);
+        else if (sub === 'missile') { tut.slowK = 0.3; tutShow(say('*POUND* now to fire a missile!', 'Press *E* now to fire a missile!'), 'slamBtn', 'missile', true); }
+        else { if (tut.slowT <= 0) tut.slowK = 1; tutShow(say('Your Pound. Tap it to splat everything round you. Get close to the rival and splat them', 'Your Pound (E). It splats everything round you. Get close to the rival and splat them'), 'slamBtn', 'pound'); } }
       return P.kos > tut.kos0 || P.flatted > tut.flat0; } },
-  { id: 'dodge', max: 60, enter() { Object.assign(TUT_AI, TUT_AI_FIGHT); tut.drive = H; H.slamCD = 0; if (H.paint < 0.8) H.paint = 1; if (H.ai) { H.ai.plan = null; H.ai.path = null; } tut.rolled = false; tut.hits = 0; tut.wasKo = false; tut.slowK = 1; tut.sub = ''; tutShow(say('Rivals pound too. Swipe up just before it lands to dodge', 'Rivals pound too. Shift just before it lands to dodge'), null, 'dodge'); },
+  { id: 'dodge', max: 60, enter() { Object.assign(TUT_AI, TUT_AI_FIGHT); tut.drive = H; H.slamCD = 0; if (H.paint < 0.8) H.paint = 1; if (H.ai) { H.ai.plan = null; H.ai.path = null; } tut.rolled = false; tut.hits = 0; tut.wasKo = false; tut.slowK = 1; tut.sub = ''; tutShow(say('Rivals pound too. Swipe up just before it lands to dodge', 'Rivals pound too. Shift just before it lands to dodge'), null, 'dodge', false, true); },
     tick() { if (H.st === 'play' && !H.slam && H.slamCD > 1.2) H.slamCD = 1.2; if (H.paint < 0.5) H.paint = 1;
       const d = Math.hypot(H.x - P.x, H.z - P.z), eta = H.slam ? H.slamEta - H.slamT : 9, coming = H.slam && H.st === 'play' && P.st === 'play' && !P.air && d < slamRadius(H) + PR + 2.5;
       if (coming && P.rollT > 0) tut.rolled = true; // (a roll while its pound is in the air: that is the timing)
       if (P.st === 'ko' && !tut.wasKo) tut.hits++; tut.wasKo = P.st === 'ko';
       const now = coming && eta < 0.62; tut.slowK = now ? 0.14 : coming ? 0.45 : 1;
-      const sub = now ? 'now' : 'dodge'; if (sub !== tut.sub) { tut.sub = sub; if (now) tutShow(say('*NOW!* Swipe up!', '*NOW!* Shift!'), null, 'dodgenow', true); else tutShow(say('Rivals pound too. Swipe up just before it lands to dodge', 'Rivals pound too. Shift just before it lands to dodge'), null, 'dodge'); }
+      const sub = now ? 'now' : 'dodge'; if (sub !== tut.sub) { tut.sub = sub; if (now) tutShow(say('*NOW!* Swipe up!', '*NOW!* Shift!'), null, 'dodgenow', true, true); else tutShow(say('Rivals pound too. Swipe up just before it lands to dodge', 'Rivals pound too. Shift just before it lands to dodge'), null, 'dodge', false, true); }
       return (tut.rolled || tut.hits >= 2) && P.st === 'play' && !H.slam; },
     exit() { Object.assign(TUT_AI, TUT_AI_CALM); tut.drive = null; } },
-  { id: 'item', max: 50, enter() { tut.items = true; tutSpawnRoller(); tut.slowK = 0.35; tut.sub = ''; },
-    tick() { const sub = P.held === 'roller' ? 'use' : 'grab'; if (sub !== tut.sub) { tut.sub = sub; if (sub === 'grab') tutShow('Roll over the *ROLLER* to pick it up!', null, 'item', true); else tutShow(say('*TAP* the roller to use it!', 'Press *F* to use it!'), 'itemBtn', 'use', true); }
+  { id: 'item', max: 50, enter() { tut.items = true; tutSpawnRoller(); tut.slowK = 1; tut.sub = ''; },
+    tick() { const sub = P.held === 'roller' ? 'use' : 'grab'; if (sub !== tut.sub) { tut.sub = sub; if (sub === 'grab') { tut.slowK = 1; tutShow('Roll over the *ROLLER* to pick it up!', null, 'item', true, true); } else { tut.slowK = 0.35; tutShow(say('*TAP* the roller to use it!', 'Press *F* to use it!'), 'itemBtn', 'use', true); } }
       return !!(P.power && P.power.type === 'roller'); } },
   { id: 'free2', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 6; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
-  { id: 'orb', max: 55, enter() { orb.spawnT = 0; tut.orbMine = true; tut.hadRocket = false; tut.slowK = 0.4; tutShow('A special orb! Roll up to it for a super move', null, 'orb'); },
+  { id: 'orb', max: 55, enter() { orb.spawnT = 0; tut.orbMine = true; tut.hadRocket = false; tut.slowK = 1; tutShow('A special orb! Roll up to it for a super move', null, 'orb', false, true); },
     tick() { if (P.rocket && !tut.hadRocket) { tut.hadRocket = true; tut.slowK = 0.6; tutShow(say('Steer over the rival, then tap Boost', 'Steer over the rival, then press E to boost'), 'slamBtn', 'rocket'); }
       return tut.hadRocket && !P.rocket; },
     exit() { tut.orbMine = false; TUT_AI.orb = 0.35; } },
   { id: 'free3', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 8; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
-  { id: 'flower', max: 40, enter() { gift.id = 'flower'; gift.at = runT; tut.slowK = 1; tutShow('A flower! *GRAB IT* to unlock it!', null, 'flower', true); }, tick() { return gift.got; },
-    exit() { if (!gift.got) { gift.got = true; gift.on = false; giftM.visible = giftRing.visible = giftBeam.visible = false; unlockItem('flower'); newItem = 'flower'; } } },
-  { id: 'rest', max: 1e9, enter() { tutHide(); tut.slowK = 1; if (matchLeft < 28) matchLeft = 28; }, tick() { return false; } }
+  { id: 'rocketdodge', max: 50, enter() { tut.drive = null; if (orb.on) tutOrbOff(); orb.spawnT = 1e9; if (H.st === 'play' && !H.rocket) { H.paint = 1; startRocket(H); } tut.rolled = false; tut.hit = false; tut.wasKo = false; tut.sub = ''; tut.slowK = 1;
+      tutShow(say('The rival has a rocket too. When it drops on you, swipe up to roll clear', 'The rival has a rocket too. When it drops on you, press Shift to roll clear'), null, 'rdodge', false, true); },
+    tick() { const R = H.rocket, d = Math.hypot(H.x - P.x, H.z - P.z), diving = !!R && R.ph === 'dive' && H.st === 'play' && P.st === 'play' && !P.air && d < 6;
+      if (diving && P.rollT > 0) tut.rolled = true; if (P.st === 'ko' && !tut.wasKo) tut.hit = true; tut.wasKo = P.st === 'ko';
+      const now = diving && H.y - P.y < 7; tut.slowK = now ? 0.14 : 1;
+      const sub = now ? 'now' : 'wait'; if (sub !== tut.sub) { tut.sub = sub; if (now) tutShow(say('*NOW!* Swipe up!', '*NOW!* Shift!'), null, 'rdodgenow', true, true); else tutShow(say('The rival has a rocket too. When it drops on you, swipe up to roll clear', 'The rival has a rocket too. When it drops on you, press Shift to roll clear'), null, 'rdodge', false, true); }
+      return (tut.rolled || tut.hit) && !H.rocket && P.st === 'play'; } },
+  { id: 'flower', max: 40, enter() { if (orb.on) tutOrbOff(); orb.spawnT = 1e9; gift.id = 'flower'; gift.at = runT; tut.slowK = 1; tutShow('A flower! *GRAB IT* to unlock it!', null, 'flower', true, true); }, tick() { return gift.got; },
+    exit() { if (!gift.got) { gift.got = true; gift.on = false; giftM.visible = giftRing.visible = giftBeam.visible = false; unlockItem('flower'); newItem = 'flower'; } orb.spawnT = 8; } },
+  { id: 'rest', max: 1e9, enter() { tut.slowK = 1; tut.noTurret = false; if (matchLeft < 28) matchLeft = 28; tut.restT = 6; tutShow('Now beat him and cover as much of the canvas as you can. Bonus points every time you take him out', null, 'rest', false, true); },
+    tick(dt) { if (tut.restT > 0) { tut.restT -= dt; if (tut.restT <= 0) tutHide(); } return false; } }
 ];
 const TUT_REST = TUT_STEPS.length - 1;
+// the pound handed over ready the moment its tip is up, even mid-cooldown or short of paint
+function tutGivePound() { if (P.st !== 'play' && P.st !== 'hide') return; P.slamCD = 0; if (P.paint < POUND_MIN + 0.05) P.paint = 1; }
+function tutOrbOff() { orb.on = false; orb.pull = 0; orb.g.visible = false; orb.ring.visible = false; }
 function tutSpawnRoller() {
   const spots = POWER_SPOTS.filter(sp => !powers.some(o => Math.hypot(o.x - sp[0], o.z - sp[2]) < 3)); if (!spots.length) return;
   let best = null, bs = 1e9; for (const sp of spots) { const d = Math.hypot(P.x - sp[0], P.z - sp[2]), sc = d < 4 ? d + 20 : d; if (sc < bs) { bs = sc; best = sp; } }
@@ -104,7 +125,7 @@ function tutBegin() { // (as a match begins)
   if (tutPh() === 'vote') tutSet('match2');
   if (!tutMatchDue()) { tut = null; return; }
   Object.assign(TUT_AI, TUT_AI_CALM, { pound: 0, attack: 0, orb: 0 }); AI = TUT_AI;
-  tut = { step: -1, st: 0, slowK: 1, hidePound: true, keepAway: true, items: false, orbMine: false, drive: null };
+  tut = { step: -1, st: 0, slowK: 1, hidePound: true, keepAway: true, items: false, orbMine: false, drive: null, noTurret: true };
   wxLeft = 1e9; orb.spawnT = 1e9; Object.assign(gift, { id: 'flower', on: false, got: false, pop: 0, at: 1e9 }); giftM.visible = giftRing.visible = giftBeam.visible = false;
 }
 function tutLeave() { tut = null; tutHide(); tutSlowEl.classList.remove('on'); tutRestore(); tutWinDue = false; const tw = $('tutWin'); tw.classList.remove('on'); tw.hidden = true; }
@@ -124,7 +145,7 @@ function tutMenuTick() {
   const ph = tutPh(); if (menu.classList.contains('tutoring') !== (ph !== 'done')) menu.classList.toggle('tutoring', ph !== 'done'); // (the lesson keeps the lobby simple: no commissions, no how-to)
   if (ph === 'match') { if (state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden) tutShow('Your first match is a lesson. Tap Play', 'homePlay', 'first'); else tutHide(); return; }
   if (ph !== 'shop' && ph !== 'locker' && ph !== 'vote') return tutHide();
-  if (state === 'dead') { if (ph === 'shop' && !$('newItem').hidden) return tutShow('Tap to see your new flower in the shop', 'niTry', 'ni'); if (!end.hidden) return tutShow('Head back to the lobby', 'menuBtn', 'tomenu'); return tutHide(); }
+  if (state === 'dead') { if (ph === 'shop' && !$('newItem').hidden) { if (!tutNiAt) tutNiAt = performance.now(); if (performance.now() - tutNiAt < 1600) return tutHide(); return tutShow('Tap to see your new flower in the shop', 'niTry', 'ni', false, false, 'below'); } tutNiAt = 0; if (!end.hidden) return tutShow('Head back to the lobby', 'menuBtn', 'tomenu'); return tutHide(); }
   if (state !== 'menu' || building || irisBusy || !setModal.hidden || !nameModal.hidden || !howModal.hidden) return tutHide();
   const card = id => $('shopGrid').querySelector('.shitem[data-w="' + id + '"]'), tile = id => $('lookRail').querySelector('.ltile[data-w="' + id + '"]');
   if (ph === 'shop') {
@@ -148,8 +169,10 @@ function tutMenuTick() {
 $('tutReplay').addEventListener('click', () => { AU.init(); AU.ui(); store.tut = { ph: 'match' }; save(); closeSettings(); });
 // the lesson's finish, in place of the tally for a beat: the canvas through the window, the title, and what was learned ticked off; Next goes on to the tally
 const TW_LIST = ['Steering', 'Flinging', 'Refilling', 'The pound', 'Dodging', 'The roller', 'The orb', 'Finding items'];
+// (the finish page pulls the camera wide over the canvas, as the results do)
 function showTutWin() {
   const el = $('tutWin'); $('twList').innerHTML = TW_LIST.map((t, i) => '<li style="--i:' + i + '"><i><svg viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L20 7"/></svg></i>' + t + '</li>').join('');
+  outro = true; outroT = 0; outroBase = Math.round(camYaw / (Math.PI / 2)) * (Math.PI / 2); // (the view pulls back over the whole canvas)
   hud.classList.add('off'); hintEl.classList.remove('on'); el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); AU.fanfare(); setTimeout(() => AU.power(), 500); buzz([20, 40, 20]);
   setTimeout(() => $('twNext').focus({ preventScroll: true }), 80);
 }
