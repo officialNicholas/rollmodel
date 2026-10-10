@@ -31,11 +31,21 @@ function tutDrive(D) {
 }
 const TUT_AI_CALM = { speed: 0.8, pound: 0.45, poundR: 1.5, attack: 0.08, hunt: 0.025, dodge: 0, evade: 0 };
 // a tip: the coach's plate (an explanation, its face and name) or, with call set, a short line for an action, *the words that matter* in red
+// a finger acting out the gesture a tip asks for, on a touch screen: drag across and tap to move and jump, hold and pull down to fling,
+// a flick up to roll out of a pound
+const TUT_GEST = { move: 'steertap', sling: 'pull', dodgenow: 'swipe', rdodgenow: 'swipe' };
+const tutGestEl = document.createElement('i'); tutGestEl.className = 'tutgest'; tutGestEl.hidden = true; tutGestEl.setAttribute('aria-hidden', 'true');
+function tutGest(kind) {
+  const k = kind && !keysUI ? kind : ''; if (!tutGestEl.parentNode) stage.appendChild(tutGestEl);
+  if (!tutGestEl.firstChild) { const h = tutEl.querySelector('.thand'); tutGestEl.innerHTML = '<i class="gtrail"></i><i class="gring"></i><b class="ghand">' + (h ? h.innerHTML : '') + '</b>'; }
+  if (tutGestEl.dataset.g !== k) { tutGestEl.dataset.g = k; tutGestEl.hidden = !k; }
+}
 function tutShow(text, at, key, call, nodim, side, loose) {
   if (tutTip && tutTip.key === key) return;
   tutTip = { text, at: at || null, key, call: !!call, nodim: !!(nodim || loose), side: side || null, loose: !!loose }; /* (loose: up top, a hand on the control, nothing dimmed or blocked) */ tutEl.dataset.style = call ? 'call' : 'coach'; if (call) tutCall.innerHTML = escAttr(text).replace(/\*([^*]+)\*/g, '<em>$1</em>'); else tutTxt.textContent = text; try { tutAva.innerHTML = '<span class="bico" style="--cd:#8C6A14">' + slimeIcon(0xF2C14E, lookOf(P)) + '</span>'; } catch (e) {} tutEl.hidden = false; tutEl.classList.remove('on'); void tutEl.offsetWidth; tutEl.classList.add('on');
   const el = tutAt(); if (el) tutReveal(el);
   tutPlace(); tutDim.classList.toggle('on', !nodim && !loose && state !== 'play'); AU.plop(); // (no dim in a match: the play must stay clear)
+  tutGest(state === 'play' ? TUT_GEST[key] : null);
 }
 // bring a card or tile into the middle of its own scroller (the shop grid down, the locker rail across), and nothing else: scrollIntoView would scroll the page too on a phone
 function tutReveal(el) {
@@ -49,7 +59,7 @@ function tutHandAt(el, r0) {
   const r = el.getBoundingClientRect(), x = (r.left - r0.left + r.width / 2 - 22).toFixed(0) + 'px', y = (r.top - r0.top - 62).toFixed(0) + 'px';
   if (tutHandEl.hidden) tutHandEl.hidden = false; if (tutHandEl.style.left !== x) tutHandEl.style.left = x; if (tutHandEl.style.top !== y) tutHandEl.style.top = y;
 }
-function tutHide() { tutHandAt(null); if (!tutTip) return; tutTip = null; tutEl.classList.remove('on'); tutEl.hidden = true; tutDim.classList.remove('on'); }
+function tutHide() { tutHandAt(null); tutGest(null); if (!tutTip) return; tutTip = null; tutEl.classList.remove('on'); tutEl.hidden = true; tutDim.classList.remove('on'); }
 function tutWindow(x, y, w, h) { const x0 = x.toFixed(0), y0 = y.toFixed(0), x1 = (x + w).toFixed(0), y1 = (y + h).toFixed(0), c = x0 + ' ' + y0 + ' ' + x1 + ' ' + y1; if (tutDim.dataset.w === c) return; tutDim.dataset.w = c;
   tutDim.style.clipPath = 'polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,' + x0 + 'px ' + y0 + 'px,' + x0 + 'px ' + y1 + 'px,' + x1 + 'px ' + y1 + 'px,' + x1 + 'px ' + y0 + 'px,' + x0 + 'px ' + y0 + 'px)'; }
 const tutAt = () => !tutTip || !tutTip.at ? null : typeof tutTip.at === 'string' ? $(tutTip.at) : typeof tutTip.at === 'function' ? tutTip.at() : tutTip.at;

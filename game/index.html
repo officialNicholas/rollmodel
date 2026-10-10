@@ -216,6 +216,7 @@ button{font-family:var(--font-ui)}
 .banner{position:absolute;left:16px;right:16px;top:30%;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;opacity:0;text-align:center}
 .banner.on{animation:banner 2.1s ease forwards}
 .banner.on.long{animation-duration:3.4s}
+.banner.on.long.quick{animation-duration:1.7s}
 .banner p{margin:0}
 #bannerBig{font:400 clamp(36px,11vw,54px)/1.02 var(--font-display);color:var(--gold);text-wrap:balance;text-shadow:var(--o3),0 7px 0 var(--outline)}
 #bannerSmall{font-size:16px;font-weight:800;color:var(--white);background:var(--glass);border:2.5px solid var(--line);padding:6px 14px;border-radius:99px;max-width:30ch}
@@ -1704,6 +1705,7 @@ kbd{background:#fff;border-color:var(--black)}
 #bannerSmall{background:none;color:#F4EEE3;border:0;border-radius:0;padding:2px 0 0;font:800 12px/1.25 var(--font-ui);letter-spacing:.1em;text-transform:uppercase;opacity:.85;max-width:34ch}
 .banner.on .plate{animation:platein 2.1s cubic-bezier(.2,1,.3,1) forwards}
 .banner.on.long .plate{animation-duration:3.4s}
+.banner.on.long.quick .plate{animation-duration:1.7s}
 @keyframes platein{0%{opacity:0;transform:translateX(70%) rotate(-2deg) skewX(-5deg)}11%{opacity:1;transform:translateX(-3%) rotate(-2deg) skewX(-5deg)}17%{transform:translateX(0) rotate(-2deg) skewX(-5deg)}85%{opacity:1;transform:translateX(0) rotate(-2deg) skewX(-5deg)}100%{opacity:0;transform:translateX(-55%) rotate(-2deg) skewX(-5deg)}}
 .hint{top:104px;z-index:8;justify-content:center}
 .hint span{position:relative;max-width:min(92vw,440px);box-sizing:border-box;background:#1E1828;color:#F4EEE3;border:0;border-radius:6px;padding:10px 16px 11px 64px;box-shadow:0 0 0 2.5px #F4EEE3,5px 6px 0 rgba(0,0,0,.45);font:700 14px/1.35 var(--font-ui);text-align:left;transform:rotate(-1.5deg) translateY(-8px);overflow:hidden}
@@ -2267,6 +2269,32 @@ svg{shape-rendering:geometricPrecision}
 .tutgo #tgLater{appearance:none;border:0;background:none;color:rgba(255,255,255,.75);font:700 14px/1 var(--font-ui);text-decoration:underline;padding:6px;cursor:pointer}
 @media (prefers-reduced-motion:reduce){.tutpips i.now,.tutpips i.got,.tutpraise.on,.tutplus{animation:none}.tutpraise.on{opacity:1}}
 .tut.wait{opacity:0!important}
+
+/* the gesture finger: fingertip at the bottom centre of the hand, acting the move out in the lower middle of the screen */
+.tutgest{position:absolute;left:50%;top:76%;z-index:59;width:0;height:0;pointer-events:none}
+.tutgest[data-g="steertap"],.tutgest[data-g="swipe"]{top:85%}
+.tutgest[data-g="pull"]{top:74%;left:62%}
+.tutgest .ghand{position:absolute;left:-25px;top:-62px;width:50px;height:66px;transform-origin:50% 100%}
+.tutgest .ghand svg{width:100%;height:100%;filter:drop-shadow(3px 4px 0 rgba(0,0,0,.35))}
+.tutgest .gring{position:absolute;left:-22px;top:-22px;width:44px;height:44px;border-radius:50%;border:4px solid #fff;box-shadow:0 0 0 2px rgba(23,19,32,.45);opacity:0}
+.tutgest .gtrail{position:absolute;height:8px;border-radius:8px;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.85),rgba(255,255,255,0));opacity:0}
+.tutgest[data-g="steertap"] .ghand{animation:gsteer 2.6s ease-in-out infinite}
+.tutgest[data-g="steertap"] .gtrail{left:-80px;top:-4px;width:160px;animation:gtrail 2.6s ease-in-out infinite}
+.tutgest[data-g="steertap"] .gring{animation:gtapring 2.6s ease-out infinite}
+@keyframes gsteer{0%{transform:translateX(0)}15%{transform:translateX(-70px)}35%{transform:translateX(70px)}50%{transform:translateX(0)}62%{transform:translateX(0) translateY(-18px)}70%{transform:translateX(0) scale(.88)}78%,100%{transform:translateX(0)}}
+@keyframes gtrail{0%,5%{opacity:0}15%,40%{opacity:.8}50%,100%{opacity:0}}
+@keyframes gtapring{0%,68%{opacity:0;transform:scale(.4)}72%{opacity:1;transform:scale(.6)}90%,100%{opacity:0;transform:scale(1.7)}}
+.tutgest[data-g="pull"] .ghand{animation:gpull 1.9s ease-in-out infinite}
+.tutgest[data-g="pull"] .gring{animation:gpullring 1.9s ease-out infinite}
+.tutgest[data-g="pull"] .gtrail{left:-4px;top:0;width:8px;height:84px;background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,0));animation:gpulltrail 1.9s ease-in-out infinite}
+@keyframes gpull{0%{transform:translateY(-12px)}12%{transform:translateY(0) scale(.9)}55%{transform:translateY(80px) scale(.9)}68%{transform:translateY(80px) scale(1) translateY(-14px)}100%{transform:translateY(-12px)}}
+@keyframes gpullring{0%,8%{opacity:0;transform:scale(.4)}14%{opacity:1;transform:scale(.7)}30%,100%{opacity:0;transform:scale(1.4)}}
+@keyframes gpulltrail{0%,14%{opacity:0}40%,58%{opacity:.8}75%,100%{opacity:0}}
+.tutgest[data-g="swipe"] .ghand{animation:gswipe .9s cubic-bezier(.3,0,.2,1) infinite}
+.tutgest[data-g="swipe"] .gtrail{left:-4px;top:-110px;width:8px;height:110px;background:linear-gradient(0deg,rgba(255,255,255,.9),rgba(255,255,255,0));animation:gswipetrail .9s ease-out infinite}
+@keyframes gswipe{0%{transform:translateY(20px) scale(.92);opacity:0}12%{opacity:1}55%{transform:translateY(-100px) scale(.92);opacity:1}80%,100%{transform:translateY(-120px);opacity:0}}
+@keyframes gswipetrail{0%,20%{opacity:0}45%{opacity:.85}80%,100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.tutgest .ghand,.tutgest .gring,.tutgest .gtrail{animation:none!important}.tutgest .gtrail{opacity:.6}}
 .errline{position:absolute;left:8px;right:8px;bottom:max(8px,env(safe-area-inset-bottom));z-index:99;margin:0;padding:6px 10px;background:rgba(23,19,32,.88);color:#FFD86B;font:600 11px/1.3 ui-monospace,Menlo,monospace;border-radius:6px;pointer-events:none;word-break:break-all}
 #lastErr{font:600 10px/1.3 ui-monospace,Menlo,monospace;word-break:break-all;opacity:.8}
 .lcat.fresh,.ltile.fresh,.eyes.fresh{box-shadow:0 0 0 3px var(--gold),0 0 16px 2px rgba(242,193,78,.6)!important;animation:lkfresh 1.5s ease-in-out infinite}
@@ -2379,7 +2407,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 189</p>
+      <p class="ver">Version 190</p>
     </div>
   </div>
 
@@ -9092,7 +9120,7 @@ paintHow();
 const bannerEl = $('banner'); let bannerUntil = 0, bannerWx = false;
 const reAdd = new Map(); let reAddQ = false;
 function restartCls(el, cls) { el.classList.remove(cls); let l = reAdd.get(el); if (!l) reAdd.set(el, l = []); if (!l.includes(cls)) l.push(cls); if (!reAddQ) { reAddQ = true; requestAnimationFrame(() => { reAddQ = false; for (const [e, cs] of reAdd) for (const c of cs) e.classList.add(c); reAdd.clear(); }); } }
-function banner(big, small, long) { bannerUntil = performance.now() + (long ? 3400 : 2100); bannerWx = /heat|rain/i.test(big); $('bannerBig').textContent = big; $('bannerSmall').textContent = small || ''; bannerEl.classList.toggle('long', !!long); const em = $('bannerEm'); em.dataset.k = /rain/i.test(big) ? 'rain' : /heat/i.test(big) ? 'heat' : /paint it/i.test(big) ? 'stroke' : /giant|overtime|new item/i.test(big) ? 'splat' : 'drip'; restartCls(bannerEl, 'on'); }
+function banner(big, small, long, quick) { bannerUntil = performance.now() + (quick ? 1700 : long ? 3400 : 2100); bannerWx = /heat|rain/i.test(big); $('bannerBig').textContent = big; $('bannerSmall').textContent = small || ''; bannerEl.classList.toggle('long', !!long); bannerEl.classList.toggle('quick', !!quick); const em = $('bannerEm'); em.dataset.k = /rain/i.test(big) ? 'rain' : /heat/i.test(big) ? 'heat' : /paint it/i.test(big) ? 'stroke' : /giant|overtime|new item/i.test(big) ? 'splat' : 'drip'; restartCls(bannerEl, 'on'); }
 function hitEdge(A) { if (reduceMotion || !A || A === P) return; const v = $('vig'); v.style.setProperty('--hc', TEAMS[A.team].css); restartCls(v, 'hit'); }
 function flashScreen() { if (reduceMotion) return; restartCls($('flash'), 'on'); }
 function popText(t) { const p = $('pop'); p.textContent = t; restartCls(p, 'on'); }
@@ -13775,7 +13803,7 @@ function goTime() {
       continue; }
     D.fT = 1; D.formK = Math.max(D.formK, 0.92); D.vy = -9; D.air = true; D.freeLand = true; D.wob = 0.6; }
   AU.music('play'); AU.go(); AU.say('go'); buzz([12, 30, 18]);
-  setTimeout(() => { if (state === 'play') banner('Paint it ' + colorOf().name.toLowerCase() + '!', mode === 'solo' ? '60 seconds' : mode === 'trio' ? 'Everyone for themselves' : TH.label, true); }, 900);
+  setTimeout(() => { if (state === 'play') banner('Paint it ' + colorOf().name.toLowerCase() + '!', mode === 'solo' ? '60 seconds' : mode === 'trio' ? 'Everyone for themselves' : TH.label, true, !!tut); }, 900); /* (the lesson: half as long, the first tip right after) */
   hint('steer', say('Drag to steer', 'A D or arrows to steer'), 3);
 }
 function showMenu() {
@@ -14461,11 +14489,21 @@ function tutDrive(D) {
 }
 const TUT_AI_CALM = { speed: 0.8, pound: 0.45, poundR: 1.5, attack: 0.08, hunt: 0.025, dodge: 0, evade: 0 };
 // a tip: the coach's plate (an explanation, its face and name) or, with call set, a short line for an action, *the words that matter* in red
+// a finger acting out the gesture a tip asks for, on a touch screen: drag across and tap to move and jump, hold and pull down to fling,
+// a flick up to roll out of a pound
+const TUT_GEST = { move: 'steertap', sling: 'pull', dodgenow: 'swipe', rdodgenow: 'swipe' };
+const tutGestEl = document.createElement('i'); tutGestEl.className = 'tutgest'; tutGestEl.hidden = true; tutGestEl.setAttribute('aria-hidden', 'true');
+function tutGest(kind) {
+  const k = kind && !keysUI ? kind : ''; if (!tutGestEl.parentNode) stage.appendChild(tutGestEl);
+  if (!tutGestEl.firstChild) { const h = tutEl.querySelector('.thand'); tutGestEl.innerHTML = '<i class="gtrail"></i><i class="gring"></i><b class="ghand">' + (h ? h.innerHTML : '') + '</b>'; }
+  if (tutGestEl.dataset.g !== k) { tutGestEl.dataset.g = k; tutGestEl.hidden = !k; }
+}
 function tutShow(text, at, key, call, nodim, side, loose) {
   if (tutTip && tutTip.key === key) return;
   tutTip = { text, at: at || null, key, call: !!call, nodim: !!(nodim || loose), side: side || null, loose: !!loose }; /* (loose: up top, a hand on the control, nothing dimmed or blocked) */ tutEl.dataset.style = call ? 'call' : 'coach'; if (call) tutCall.innerHTML = escAttr(text).replace(/\*([^*]+)\*/g, '<em>$1</em>'); else tutTxt.textContent = text; try { tutAva.innerHTML = '<span class="bico" style="--cd:#8C6A14">' + slimeIcon(0xF2C14E, lookOf(P)) + '</span>'; } catch (e) {} tutEl.hidden = false; tutEl.classList.remove('on'); void tutEl.offsetWidth; tutEl.classList.add('on');
   const el = tutAt(); if (el) tutReveal(el);
   tutPlace(); tutDim.classList.toggle('on', !nodim && !loose && state !== 'play'); AU.plop(); // (no dim in a match: the play must stay clear)
+  tutGest(state === 'play' ? TUT_GEST[key] : null);
 }
 // bring a card or tile into the middle of its own scroller (the shop grid down, the locker rail across), and nothing else: scrollIntoView would scroll the page too on a phone
 function tutReveal(el) {
@@ -14479,7 +14517,7 @@ function tutHandAt(el, r0) {
   const r = el.getBoundingClientRect(), x = (r.left - r0.left + r.width / 2 - 22).toFixed(0) + 'px', y = (r.top - r0.top - 62).toFixed(0) + 'px';
   if (tutHandEl.hidden) tutHandEl.hidden = false; if (tutHandEl.style.left !== x) tutHandEl.style.left = x; if (tutHandEl.style.top !== y) tutHandEl.style.top = y;
 }
-function tutHide() { tutHandAt(null); if (!tutTip) return; tutTip = null; tutEl.classList.remove('on'); tutEl.hidden = true; tutDim.classList.remove('on'); }
+function tutHide() { tutHandAt(null); tutGest(null); if (!tutTip) return; tutTip = null; tutEl.classList.remove('on'); tutEl.hidden = true; tutDim.classList.remove('on'); }
 function tutWindow(x, y, w, h) { const x0 = x.toFixed(0), y0 = y.toFixed(0), x1 = (x + w).toFixed(0), y1 = (y + h).toFixed(0), c = x0 + ' ' + y0 + ' ' + x1 + ' ' + y1; if (tutDim.dataset.w === c) return; tutDim.dataset.w = c;
   tutDim.style.clipPath = 'polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,' + x0 + 'px ' + y0 + 'px,' + x0 + 'px ' + y1 + 'px,' + x1 + 'px ' + y1 + 'px,' + x1 + 'px ' + y0 + 'px,' + x0 + 'px ' + y0 + 'px)'; }
 const tutAt = () => !tutTip || !tutTip.at ? null : typeof tutTip.at === 'string' ? $(tutTip.at) : typeof tutTip.at === 'function' ? tutTip.at() : tutTip.at;

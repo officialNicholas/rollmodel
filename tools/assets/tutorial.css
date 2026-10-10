@@ -124,3 +124,29 @@
 .tutgo #tgLater{appearance:none;border:0;background:none;color:rgba(255,255,255,.75);font:700 14px/1 var(--font-ui);text-decoration:underline;padding:6px;cursor:pointer}
 @media (prefers-reduced-motion:reduce){.tutpips i.now,.tutpips i.got,.tutpraise.on,.tutplus{animation:none}.tutpraise.on{opacity:1}}
 .tut.wait{opacity:0!important}
+
+/* the gesture finger: fingertip at the bottom centre of the hand, acting the move out in the lower middle of the screen */
+.tutgest{position:absolute;left:50%;top:76%;z-index:59;width:0;height:0;pointer-events:none}
+.tutgest[data-g="steertap"],.tutgest[data-g="swipe"]{top:85%}
+.tutgest[data-g="pull"]{top:74%;left:62%}
+.tutgest .ghand{position:absolute;left:-25px;top:-62px;width:50px;height:66px;transform-origin:50% 100%}
+.tutgest .ghand svg{width:100%;height:100%;filter:drop-shadow(3px 4px 0 rgba(0,0,0,.35))}
+.tutgest .gring{position:absolute;left:-22px;top:-22px;width:44px;height:44px;border-radius:50%;border:4px solid #fff;box-shadow:0 0 0 2px rgba(23,19,32,.45);opacity:0}
+.tutgest .gtrail{position:absolute;height:8px;border-radius:8px;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.85),rgba(255,255,255,0));opacity:0}
+.tutgest[data-g="steertap"] .ghand{animation:gsteer 2.6s ease-in-out infinite}
+.tutgest[data-g="steertap"] .gtrail{left:-80px;top:-4px;width:160px;animation:gtrail 2.6s ease-in-out infinite}
+.tutgest[data-g="steertap"] .gring{animation:gtapring 2.6s ease-out infinite}
+@keyframes gsteer{0%{transform:translateX(0)}15%{transform:translateX(-70px)}35%{transform:translateX(70px)}50%{transform:translateX(0)}62%{transform:translateX(0) translateY(-18px)}70%{transform:translateX(0) scale(.88)}78%,100%{transform:translateX(0)}}
+@keyframes gtrail{0%,5%{opacity:0}15%,40%{opacity:.8}50%,100%{opacity:0}}
+@keyframes gtapring{0%,68%{opacity:0;transform:scale(.4)}72%{opacity:1;transform:scale(.6)}90%,100%{opacity:0;transform:scale(1.7)}}
+.tutgest[data-g="pull"] .ghand{animation:gpull 1.9s ease-in-out infinite}
+.tutgest[data-g="pull"] .gring{animation:gpullring 1.9s ease-out infinite}
+.tutgest[data-g="pull"] .gtrail{left:-4px;top:0;width:8px;height:84px;background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,0));animation:gpulltrail 1.9s ease-in-out infinite}
+@keyframes gpull{0%{transform:translateY(-12px)}12%{transform:translateY(0) scale(.9)}55%{transform:translateY(80px) scale(.9)}68%{transform:translateY(80px) scale(1) translateY(-14px)}100%{transform:translateY(-12px)}}
+@keyframes gpullring{0%,8%{opacity:0;transform:scale(.4)}14%{opacity:1;transform:scale(.7)}30%,100%{opacity:0;transform:scale(1.4)}}
+@keyframes gpulltrail{0%,14%{opacity:0}40%,58%{opacity:.8}75%,100%{opacity:0}}
+.tutgest[data-g="swipe"] .ghand{animation:gswipe .9s cubic-bezier(.3,0,.2,1) infinite}
+.tutgest[data-g="swipe"] .gtrail{left:-4px;top:-110px;width:8px;height:110px;background:linear-gradient(0deg,rgba(255,255,255,.9),rgba(255,255,255,0));animation:gswipetrail .9s ease-out infinite}
+@keyframes gswipe{0%{transform:translateY(20px) scale(.92);opacity:0}12%{opacity:1}55%{transform:translateY(-100px) scale(.92);opacity:1}80%,100%{transform:translateY(-120px);opacity:0}}
+@keyframes gswipetrail{0%,20%{opacity:0}45%{opacity:.85}80%,100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.tutgest .ghand,.tutgest .gring,.tutgest .gtrail{animation:none!important}.tutgest .gtrail{opacity:.6}}
