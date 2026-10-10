@@ -1,0 +1,14 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#E9E3D6}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script></head><body>
+<script type="module">
+import * as THREE from 'three'; import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+const R = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); R.setSize(1200, 800); R.outputColorSpace = THREE.SRGBColorSpace; document.body.appendChild(R.domElement);
+const sc = new THREE.Scene(); sc.add(new THREE.HemisphereLight(0xffffff, 0x8a7f70, 2.2)); const dl = new THREE.DirectionalLight(0xffffff, 2); dl.position.set(2, 4, 3); sc.add(dl);
+const cam = new THREE.PerspectiveCamera(28, 1.5, 0.01, 100);
+const L = new GLTFLoader(); const files = (new URLSearchParams(location.search).get('f') || 'stand').split(',');
+const objs = []; for (const f of files) objs.push((await L.loadAsync('/axo/' + f + '.glb')).scene);
+window.shot = (fi, yaw, pitch, dist) => { sc.children.filter(o => o.userData.m).forEach(o => sc.remove(o)); const o = objs[fi]; o.userData.m = 1; sc.add(o);
+  const b = new THREE.Box3().setFromObject(o), c = b.getCenter(new THREE.Vector3()), s = b.getSize(new THREE.Vector3()).length();
+  const d = dist || s * 1.35; cam.position.set(c.x + Math.sin(yaw) * Math.cos(pitch) * d, c.y + Math.sin(pitch) * d, c.z + Math.cos(yaw) * Math.cos(pitch) * d); cam.lookAt(c); R.render(sc, cam); return R.domElement.toDataURL('image/png'); };
+window.ready = true;
+</script></body></html>

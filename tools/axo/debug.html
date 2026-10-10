@@ -1,0 +1,20 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#fff}</style>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script></head><body>
+<script type="module">
+import * as THREE from 'three'; import { loadAxo } from './rig.js';
+const W = 900, H = 900, R = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); R.setSize(W, H); R.outputColorSpace = THREE.SRGBColorSpace; R.setClearColor(0xffffff); document.body.appendChild(R.domElement);
+const sc = new THREE.Scene(); sc.add(new THREE.HemisphereLight(0xffffff, 0x9a8f80, 2.4)); const dl = new THREE.DirectionalLight(0xffffff, 1.2); dl.position.set(1, 3, 4); sc.add(dl);
+const f = new URLSearchParams(location.search).get('f'); const A = await loadAxo(f, null);
+// color each vertex by its heaviest bone
+const g = A.mesh.geometry, si = g.attributes.skinIndex, n = si.count, cols = new Float32Array(n * 3), c = new THREE.Color();
+for (let i = 0; i < n; i++) { const b = si.getX(i); c.setHSL(((b * 0.618034) % 1), 0.75, 0.55); cols.set([c.r, c.g, c.b], i * 3); }
+g.setAttribute('color', new THREE.BufferAttribute(cols, 3)); A.mesh.material = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, opacity: 0.85 });
+sc.add(A.mesh); A.mesh.updateMatrixWorld(true);
+// the skeleton: a line per bone to its end, joints as dots
+const lp = []; for (const b of A.bones) { const p = b.getWorldPosition(new THREE.Vector3()), e = b.userData.end; lp.push(p.x, p.y, p.z, e.x, e.y, e.z); }
+const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(lp, 3)); const lines = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: 0x000000, depthTest: false })); lines.renderOrder = 9; sc.add(lines);
+const dg = new THREE.SphereGeometry(0.012, 8, 6), dm = new THREE.MeshBasicMaterial({ color: 0x111111, depthTest: false }); for (const b of A.bones) { const s = new THREE.Mesh(dg, dm); s.position.copy(b.getWorldPosition(new THREE.Vector3())); s.renderOrder = 10; sc.add(s); }
+const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, -10, 10);
+window.shot = (view) => { const d = { front: [0, 0, 5], side: [5, 0, 0], top: [0, 5, 0] }[view]; cam.position.set(...d); cam.up.set(0, view === 'top' ? 0 : 1, view === 'top' ? -1 : 0); cam.lookAt(0, 0, 0); cam.updateProjectionMatrix(); R.render(sc, cam); return R.domElement.toDataURL('image/png'); };
+window.ready = true;
+</script></body></html>
