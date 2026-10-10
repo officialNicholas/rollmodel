@@ -2050,7 +2050,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 131</p>
+      <p class="ver">Version 132</p>
     </div>
   </div>
 
@@ -9381,7 +9381,7 @@ function exitPot(D, roll) {
 let wasReady = false;
 const POUND_MIN = 0.249; // one full bar
 const LOW_FLASH = 0.125; // the low-blood flashing starts halfway down the last bar
-const DRY_SPD = 0.38, DRY_OWN = 0.88, DRY_OUT = 0.25, DRY_KO = 4; // (DRY_OWN: dried up but on your own color, almost your full speed) // drained: crawl at this fraction of your speed until a refill brings you back to one bar, and dry up if that takes longer than DRY_KO seconds
+const DRY_SPD = 0.46, DRY_OWN = 0.88, DRY_OUT = 0.25, DRY_KO = 4; // (DRY_OWN: dried up but on your own color, almost your full speed) // drained: crawl at this fraction of your speed until a refill brings you back to one bar, and dry up if that takes longer than DRY_KO seconds
 const slamReady = D => D.slamCD <= 0 && D.paint >= POUND_MIN && !D.slam && (canAct(D) || D.st === 'hide');
 function useSlam(D) {
   if (D === P) kick($('slamBtn'), 'press');
