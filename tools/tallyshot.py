@@ -27,6 +27,7 @@ async def run(w, h, tag, kos_p, kos_h, splats):
         print(tag, 'victory', await pg.evaluate("[document.getElementById('vName').getAttribute('aria-label'), document.getElementById('vSub').textContent, document.getElementById('vTagTxt').textContent, JSON.stringify(__T.endInfo.tot), JSON.stringify(__T.endInfo.kos), __T.endInfo.win]"))
         await pg.tap('#victory'); await pg.wait_for_function("!document.getElementById('end').hidden", timeout=20000); await pg.wait_for_timeout(3500)
         await pg.screenshot(path=f'{WS}/ui/tally_{tag}_results.png')
+        print(tag, 'bar', await pg.evaluate("(() => { const r = e => { const q = e.getBoundingClientRect(); return [Math.round(q.left), Math.round(q.top), Math.round(q.width), Math.round(q.height)]; }; return { bar: r(document.getElementById('jBar')), lab: r(document.getElementById('jLab')), ls: [...document.querySelectorAll('#jLab .jl')].map(r), nums: [...document.querySelectorAll('#jNums b')].map(b => [b.textContent, ...r(b)]) }; })()"))
         print(tag, 'results', await pg.evaluate("[document.getElementById('endWord').textContent, [...document.querySelectorAll('#board .brow')].map(r => r.getAttribute('aria-label'))]"))
         print(tag, 'log', await pg.evaluate("JSON.stringify(window.__log)")); print(tag, 'errors', errs[:4]); await ctx.close(); await b.close()
 RUNS = {'port': (390, 780, 'port', 1, 4, 14), 'land': (844, 390, 'land', 3, 0, 10), 'flip': (390, 780, 'flip', 0, 5, 14)}

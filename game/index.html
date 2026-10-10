@@ -1978,6 +1978,21 @@ kbd{background:#fff;border-color:var(--black)}
 .gframe.shot .gflash{animation:gflash .55s ease-out both}
 @keyframes gflash{0%{opacity:1}30%{opacity:.85}100%{opacity:0}}
 @media (prefers-reduced-motion:reduce){.gframe .gpic{transition:none}.gframe.shot .gflash{animation:none}}
+
+/* the results bar tells it all: names in the paint, eliminations by the numbers */
+#end .judge{--jh:42px;position:relative;gap:6px;grid-template-columns:minmax(0,1fr)}
+#end .jnums{grid-row:1;grid-column:1}
+#end .jbar{height:var(--jh);grid-row:2;grid-column:1}
+#end .jlab{position:relative;z-index:1;grid-row:2;grid-column:1;pointer-events:none} /* (the same cell as the bar, so it sits over it whatever the row's size) */
+#end .jl{position:absolute;top:50%;transform:translateY(-50%);--in:calc(var(--jh) * .25 + 10px);display:inline-flex;align-items:center;gap:5px;max-width:46%;font:900 14px/1 var(--font-head);text-transform:uppercase;letter-spacing:.02em;color:#fff;text-shadow:-1.5px -1.5px 0 var(--black),1.5px -1.5px 0 var(--black),-1.5px 1.5px 0 var(--black),1.5px 1.5px 0 var(--black),0 2.5px 0 var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .4s .9s}
+#end .judge.go .jl{opacity:1}
+#end .jl .crown{width:18px;height:15px;flex:none;fill:var(--gold);stroke:var(--black);stroke-width:2;stroke-linejoin:round;filter:none;position:static;margin:0}
+#end .jnums b .jko{display:inline-flex;align-items:center;gap:3px;margin:0 0 0 7px;font:800 13px/1 var(--font-ui);color:#D9D2E6;text-shadow:none;vertical-align:5px}
+#end .jnums b .jko svg{width:13px;height:13px;fill:var(--gold);stroke:var(--black);stroke-width:1.4;stroke-linejoin:round}
+#end .board[hidden]{display:none}
+@media (max-height:720px) and (max-aspect-ratio:1/1){#end .judge{--jh:34px}#end .jl{font-size:12.5px}}
+@media (max-height:520px) and (min-aspect-ratio:1/1){#end .judge{--jh:30px}#end .jl{font-size:12px}#end .jnums b .jko{font-size:12px}}
+@media (prefers-reduced-motion:reduce){#end .jl{transition:none}}
 </style>
 
 <div id="stage">
@@ -2074,7 +2089,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 137</p>
+      <p class="ver">Version 138</p>
     </div>
   </div>
 
@@ -2150,7 +2165,7 @@ kbd{background:#fff;border-color:var(--black)}
       <h2 class="rtitle" id="endTitle"><span id="endWord">Victory!</span></h2>
       <p class="ptitle"><b id="pTitle">Study in Crimson No. 1</b><span id="pMeta">Paint on canvas</span></p>
     </div>
-    <div class="judge" id="judge" aria-hidden="true"><div class="jnums" id="jNums"></div><div class="jbar" id="jBar"></div></div>
+    <div class="judge" id="judge" role="img" aria-label="Scores"><div class="jnums" id="jNums"></div><div class="jbar" id="jBar"></div><div class="jlab" id="jLab" aria-hidden="true"></div></div>
     <div class="board" id="board" role="list" aria-label="Scores"></div>
     <div class="reprow" id="repRow" hidden><div class="repl"><small>Reputation</small><b id="repRowName">Unknown</b></div><div class="xpmeter" id="xpMeter" role="meter" aria-label="Reputation"></div><b class="xpgain" id="xpGain">+0<small>XP</small></b><b class="dropgain" id="dropGain" hidden>+0<small>dabs</small></b></div>
     <div class="commdone" id="commDone"></div>
@@ -13608,33 +13623,36 @@ function showEnd(img) {
   $('pMeta').textContent = TH.label + ', ' + fmtTime(info.time); $('gpT').textContent = $('pTitle').textContent; $('gpM').textContent = 'Paint on canvas. ' + TH.label + ', ' + fmtTime(info.time);
   clearShot(); shotT = setTimeout(takeShot, 1100); // (a beat after the frame hangs, the camera clicks)
   // the canvas between the colors: you from the left, the rivals in from the right (a solo canvas: how much of it, and where your best got to)
-  let jb = '', jn = '';
+  let jb = '', jn = '', jl = ''; const kosOf = D => info.kos ? info.kos[D.team] : D.kos || 0;
   if (solo) {
     const you = covOf(P), best = info.newBest ? info.prevBest : info.best;
     jb = '<i style="--c:var(--ink);left:0;width:' + Math.min(100, you).toFixed(2) + '%"></i>' + (best && !info.newBest ? '<u style="left:' + Math.min(100, best) + '%"></u>' : '');
     jLiqFinal = [{ x0: 0, x1: Math.min(1, you / 100), col: TEAMS[0].css, anchor: 'left' }];
-    jn = '<b data-to="' + Math.round(you) + '" data-a="left" style="--chi:var(--ink-hi)">0%</b>' + (best ? '<b data-a="right" style="--chi:var(--gold)"><small>' + (info.newBest ? 'Old best' : 'Best') + '</small>' + best + '%</b>' : '');
+    jn = '<b data-to="' + Math.round(you) + '" data-a="left" style="--chi:var(--ink-hi)"><span class="jv">0%</span></b>' + (best ? '<b data-a="right" style="--chi:var(--gold)"><small>' + (info.newBest ? 'Old best' : 'Best') + '</small><span class="jv">' + best + '%</span></b>' : '');
+    jl = '<span class="jl" data-a="left">' + escAttr(playerName()) + '</span>';
   } else {
     const order = trio ? [P, H2, H] : [P, H], tot = order.reduce((s, D) => s + covOf(D), 0); let x = 0; jLiqFinal = [];
     order.forEach((D, i) => {
       { const sh = tot > 0 ? covOf(D) / tot : 1 / order.length; jLiqFinal.push({ x0: x / 100, x1: x / 100 + sh, col: TEAMS[D.team].css, anchor: i === 0 ? 'left' : i === order.length - 1 ? 'right' : 'center' }); }
       const sh = tot > 0 ? covOf(D) / tot * 100 : 100 / order.length, [c, hi] = colVars(D), o = i === 0 ? 'left' : i === order.length - 1 ? 'right' : 'center';
       jb += '<i style="--c:' + c + ';--o:' + o + ';left:' + x.toFixed(3) + '%;width:' + sh.toFixed(3) + '%"></i>';
-      jn += '<b data-to="' + Math.round(covOf(D)) + '" data-a="' + o + '" data-x="' + (x + sh / 2).toFixed(3) + '" style="--chi:' + hi + '">0%</b>';
+      jn += '<b data-to="' + Math.round(covOf(D)) + '" data-a="' + o + '" data-x="' + (x + sh / 2).toFixed(3) + '" style="--chi:' + hi + '"><span class="jv">0%</span><small class="jko">' + KO_SVG + kosOf(D) + '</small></b>';
+      jl += '<span class="jl' + (D === P ? ' me' : '') + '" data-a="' + o + '" data-x="' + (x + sh / 2).toFixed(3) + '">' + (info.winner === D ? CROWN_SVG : '') + escAttr(D === P ? playerName() : nameOf(D)) + '</span>';
       x += sh;
     });
   }
-  $('jBar').innerHTML = jb; $('jNums').innerHTML = jn; $('judge').classList.remove('go'); jLiq = makeLiquid($('jBar')); jLiq.set(jLiqFinal.map(f => ({ x0: f.anchor === 'right' ? 1 : f.anchor === 'left' ? 0 : (f.x0 + f.x1) / 2, x1: f.anchor === 'right' ? 1 : f.anchor === 'left' ? 0 : (f.x0 + f.x1) / 2, col: f.col }))); jLiq.tick(performance.now());
+  $('jBar').innerHTML = jb; $('jNums').innerHTML = jn; $('jLab').innerHTML = jl; $('judge').classList.remove('go'); jLiq = makeLiquid($('jBar')); jLiq.set(jLiqFinal.map(f => ({ x0: f.anchor === 'right' ? 1 : f.anchor === 'left' ? 0 : (f.x0 + f.x1) / 2, x1: f.anchor === 'right' ? 1 : f.anchor === 'left' ? 0 : (f.x0 + f.x1) / 2, col: f.col }))); jLiq.tick(performance.now());
   // the board: who painted the most first; the crown on the winner; most eliminations (only if it's one player's alone)
   const ppl = (solo ? [P] : trio ? [P, H, H2] : [P, H]).map(D => ({ D, pct: solo ? Math.round(covOf(D)) : info.tot[D.team], kos: info.kos ? info.kos[D.team] : D.kos || 0 }));
   for (const e of ppl) e.place = 1 + ppl.filter(o => o.pct > e.pct).length;
   ppl.sort((a, b) => a.place - b.place || (b.D === info.winner) - (a.D === info.winner) || (b.D === P) - (a.D === P));
   const maxK = Math.max(0, ...ppl.map(e => e.kos)), tops = ppl.filter(e => e.kos === maxK), topK = !solo && maxK > 0 && tops.length === 1 ? tops[0].D : null;
   let h = solo ? '' : '<div class="bhead" aria-hidden="true"><span></span><span></span><span></span><span>Eliminations</span><span>Score</span></div>';
+  const says = [];
   ppl.forEach((e, i) => {
     const D = e.D, me = D === P, [c, hi] = colVars(D), top = topK === D, nm = me ? playerName() : nameOf(D);
     const say = ordinal(e.place) + ', ' + nm + (me ? ' (you)' : '') + ', ' + e.pct + (solo ? '% painted' : '% score') + (solo ? '' : ', ' + e.kos + (e.kos === 1 ? ' elimination' : ' eliminations') + (top ? ', most eliminations' : ''));
-    h += '<div class="brow' + (me ? ' you' : '') + '" role="listitem" aria-label="' + escAttr(say) + '" style="--c:' + c + ';--chi:' + hi + ';--d:' + (0.22 + i * 0.09).toFixed(2) + 's">'
+    says.push(say); h += '<div class="brow' + (me ? ' you' : '') + '" role="listitem" aria-label="' + escAttr(say) + '" style="--c:' + c + ';--chi:' + hi + ';--d:' + (0.22 + i * 0.09).toFixed(2) + 's">'
       + '<b class="brank" aria-hidden="true">' + e.place + '</b>' + faceIcon(D, !solo && info.winner === D)
       + '<span class="bname" aria-hidden="true"><span class="bn"><b>' + escAttr(nm) + '</b>' + (me && !solo ? '<i>You</i>' : '') + '</span>' + (me && top ? '<em class="medal">' + MEDAL_SVG + 'Most eliminations</em>' : '') + '</span>'
       + (solo ? '' : '<span class="bko' + (top ? ' most' : '') + '" aria-hidden="true">' + KO_SVG + '<b>' + e.kos + '</b></span>')
@@ -13642,7 +13660,7 @@ function showEnd(img) {
   });
   if (solo) { const best = info.newBest ? info.prevBest : info.best;
     if (best) h += '<div class="brow best" role="listitem" aria-label="' + (info.newBest ? 'Old best ' : 'Your best ') + best + '%" style="--c:var(--gold);--chi:var(--gold);--d:.31s"><b class="brank" aria-hidden="true"></b><span class="bico" style="--cd:#4A3A12">' + TROPHY_SVG + '</span><span class="bname" aria-hidden="true"><span class="bn"><b>' + (info.newBest ? 'Old best' : 'Your best') + '</b></span></span><b class="bpct" aria-hidden="true">' + best + '%</b></div>'; }
-  const bd = $('board'); bd.className = 'board' + (solo ? ' solo' : ''); bd.innerHTML = h;
+  const bd = $('board'); bd.className = 'board' + (solo ? ' solo' : ''); bd.innerHTML = ''; bd.hidden = true; $('judge').setAttribute('aria-label', says.join('. ') + (solo && (info.newBest ? info.prevBest : info.best) ? '. ' + (info.newBest ? 'Old best ' : 'Your best ') + (info.newBest ? info.prevBest : info.best) + '%' : ''));
   end.dataset.next = ''; $('replayBtn').hidden = false; $('endBtn').querySelector('small').textContent = 'New canvas';
   end.hidden = false; measureOutro(); judgeGo();
   setTimeout(() => $('endBtn').focus({ preventScroll: true }), 30);
@@ -13717,18 +13735,19 @@ function liqReveal(t0) {
 function countUp(el, to, dur) { const t0 = performance.now(), suf = /%$/.test(el.textContent) ? '%' : ''; const step = () => { const u = clamp((performance.now() - t0) / dur, 0, 1), e = 1 - Math.pow(1 - u, 3); el.textContent = Math.round(to * e) + suf; if (u < 1) requestAnimationFrame(step); }; requestAnimationFrame(step); }
 function judgeGo() {
   const box = $('jNums'), nums = Array.from(box.children), W = box.offsetWidth, last = nums.length - 1;
-  for (const b of nums) if (b.dataset.to) b.textContent = b.dataset.to + '%';
+  const jv = b => b.querySelector('.jv') || b; for (const b of nums) if (b.dataset.to) jv(b).textContent = b.dataset.to + '%';
   const ws = nums.map(b => b.offsetWidth);
+  { const lab = $('jLab'), ls = Array.from(lab.children), LW = lab.offsetWidth, lw = ls.map(l => l.offsetWidth), ln = ls.length - 1; ls.forEach((l, i) => { const a = l.dataset.a; l.style.left = l.style.right = ''; if (a === 'right') l.style.right = 'var(--in)'; else if (a === 'center') { const lo = lw[0] + 24, hi = LW - lw[ln] - 24 - lw[i]; l.style.left = clamp(parseFloat(l.dataset.x) / 100 * LW - lw[i] / 2, lo, Math.max(lo, hi)).toFixed(1) + 'px'; } else l.style.left = 'var(--in)'; }); }
   nums.forEach((b, i) => {
     const a = b.dataset.a; b.style.left = b.style.right = '';
     if (a === 'right') b.style.right = '0'; else if (a === 'center') { const lo = ws[0] + 12, hi = W - ws[last] - 12 - ws[i]; b.style.left = clamp(parseFloat(b.dataset.x) / 100 * W - ws[i] / 2, lo, Math.max(lo, hi)).toFixed(1) + 'px'; } else b.style.left = '0';
   });
   const counted = nums.filter(b => b.dataset.to);
   if (reduceMotion || window.__instant) { $('judge').classList.add('go'); if (jLiq && jLiqFinal) { jLiq.set(jLiqFinal.map(f => ({ x0: f.x0, x1: f.x1, col: f.col }))); requestAnimationFrame(now => jLiq.tick(now)); } return; }
-  for (const b of counted) b.textContent = '0%';
+  for (const b of counted) jv(b).textContent = '0%';
   void box.offsetWidth; $('judge').classList.add('go');
   const t0 = performance.now() + 300, id = runId; liqReveal(t0);
-  const tick = now => { if (id !== runId || end.hidden) return; const u = clamp((now - t0) / 950, 0, 1), k = 1 - Math.pow(1 - u, 3); for (const b of counted) b.textContent = Math.round(+b.dataset.to * k) + '%'; if (u < 1) requestAnimationFrame(tick); };
+  const tick = now => { if (id !== runId || end.hidden) return; const u = clamp((now - t0) / 950, 0, 1), k = 1 - Math.pow(1 - u, 3); for (const b of counted) jv(b).textContent = Math.round(+b.dataset.to * k) + '%'; if (u < 1) requestAnimationFrame(tick); };
   requestAnimationFrame(tick);
 }
 function measureOutro() {
