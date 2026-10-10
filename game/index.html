@@ -2047,6 +2047,8 @@ kbd{background:#fff;border-color:var(--black)}
 /* the results bar: dark glass behind the paint */
 #end .jbar{background:#221B2E;box-shadow:3px 3px 0 var(--black),inset 0 3px 7px rgba(0,0,0,.55),inset 0 -1px 0 rgba(255,255,255,.06)}
 #end .jbar::after{opacity:.55;top:2px;height:4px}
+
+.tybar{background:#221B2E}
 </style>
 
 <div id="stage">
@@ -2144,7 +2146,7 @@ kbd{background:#fff;border-color:var(--black)}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 150</p>
+      <p class="ver">Version 151</p>
     </div>
   </div>
 
@@ -13640,13 +13642,13 @@ const ordinal = n => n + (n % 10 === 1 && n % 100 !== 11 ? 'st' : n % 10 === 2 &
 // ---------- the tally: one bar at the foot of the screen tells it. Paint pours in from each end as the numbers climb, each
 // elimination splashes another slice on, then the paint splashes over everything and the winner is up ----------
 const talEl = $('tally'); let tal = null, tyLiq = null;
-const tySeg = (e, f) => e.side === 'l' ? { x0: 0, x1: f, col: e.col } : e.side === 'r' ? { x0: 1 - f, x1: 1, col: e.col } : { x0: 0.5 - f / 2, x1: 0.5 + f / 2, col: e.col };
+const tySeg = (e, f) => e.side === 'l' ? { x0: 0, x1: f, col: e.col } : e.side === 'r' ? { x0: 1 - f, x1: 1, col: e.col } : { x0: (e.c || 0.5) - f / 2, x1: (e.c || 0.5) + f / 2, col: e.col };
 function startTally() {
   if (state !== 'dead' || vic || tal) return; const info = endInfo;
   if (info.mode === 'solo' || !info.tot || window.__instant) return startVictory();
   const trio = info.mode === 'trio', order = trio ? [P, H2, H] : [P, H]; // you from the left, the rival from the right (a 3-way: the second rival in the middle)
   const ppl = order.map((D, i) => ({ D, cov: Math.round([info.you, info.cpu, info.cpu2][D.team] || 0), kos: info.kos[D.team] || 0, tot: info.tot[D.team], side: trio ? 'lmr'[i] : i ? 'r' : 'l', col: TEAMS[D.team].css, hi: colVars(D)[1], shown: 0, num: -1 }));
-  const sum = ppl.reduce((q, e) => q + e.tot, 0), scale = Math.min(100, Math.max(30, sum * 1.18)), koq = [], maxK = Math.max(0, ...ppl.map(e => e.kos));
+  const sum = ppl.reduce((q, e) => q + e.tot, 0), scale = Math.max(1, sum), koq = [], maxK = Math.max(0, ...ppl.map(e => e.kos)); { let x = 0; for (const e of ppl) { e.c = (x + e.tot / 2) / scale; x += e.tot; } } // (each one's place in the finished row: the middle one grows from its own)
   for (let k = 0; k < maxK; k++) for (const e of ppl) if (e.kos > k) koq.push(e); // (the eliminations land one at a time, taking turns)
   const KO0 = 2.7, KOD = 0.46, KOEND = KO0 + (koq.length ? koq.length * KOD + 0.7 : 0.8);
   tal = { t0: performance.now(), t: 0, ppl, scale, koq, nk: 0, T0: 0.55, T1: 2.3, KO0, KOD, KOEND, END: KOEND + 2.1, ticks: 0, phase: 0, id: runId, lastTick: 0 };
@@ -13673,7 +13675,7 @@ function talFrame() {
   if (k0 >= 1 && tal.phase === 0) { tal.phase = 1; AU.tsettle(); }
   if (t >= tal.KO0 && tal.phase === 1) tal.phase = 2;
   const nk = t >= tal.KO0 ? clamp(Math.floor((t - tal.KO0) / tal.KOD) + 1, 0, tal.koq.length) : 0;
-  for (let i = tal.nk; i < nk; i++) { const e = tal.koq[i]; e.shown++; AU.tslice(); buzz(12); restartCls(e.nu, 'tick'); tySplat(e, (e.cov + e.shown * KO_PCT) / tal.scale);
+  for (let i = tal.nk; i < nk; i++) { const e = tal.koq[i]; e.shown++; AU.tslice(); buzz(12); restartCls(e.nu, 'tick');
     if (!e.chip) { e.chip = document.createElement('i'); e.chip.className = 'tyko'; e.nu.appendChild(e.chip); } e.chip.textContent = '+' + (e.shown * KO_PCT) + '%'; restartCls(e.chip, 'pop'); }
   tal.nk = nk;
   const segs = [];
