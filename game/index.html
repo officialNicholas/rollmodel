@@ -2269,6 +2269,11 @@ svg{shape-rendering:geometricPrecision}
 .tut.wait{opacity:0!important}
 .errline{position:absolute;left:8px;right:8px;bottom:max(8px,env(safe-area-inset-bottom));z-index:99;margin:0;padding:6px 10px;background:rgba(23,19,32,.88);color:#FFD86B;font:600 11px/1.3 ui-monospace,Menlo,monospace;border-radius:6px;pointer-events:none;word-break:break-all}
 #lastErr{font:600 10px/1.3 ui-monospace,Menlo,monospace;word-break:break-all;opacity:.8}
+.lcat.fresh,.ltile.fresh,.eyes.fresh{box-shadow:0 0 0 3px var(--gold),0 0 16px 2px rgba(242,193,78,.6)!important;animation:lkfresh 1.5s ease-in-out infinite}
+.lcat.fresh::after,.ltile.fresh::after,.eyes.fresh::after{content:"NEW"!important;position:absolute!important;top:-9px!important;right:-7px!important;left:auto!important;width:auto!important;height:auto!important;padding:3px 7px!important;border-radius:6px!important;border:0!important;background:var(--gold)!important;color:#171320!important;font:900 10px/1 var(--font-head)!important;letter-spacing:.08em;box-shadow:0 0 0 2px #171320!important;z-index:2;animation:none!important}
+.eyes.fresh{position:relative}
+@keyframes lkfresh{50%{box-shadow:0 0 0 3px var(--gold),0 0 26px 6px rgba(242,193,78,.85)}}
+@media (prefers-reduced-motion:reduce){.lcat.fresh,.ltile.fresh,.eyes.fresh{animation:none}}
 </style>
 
 <div id="stage">
@@ -2367,7 +2372,7 @@ svg{shape-rendering:geometricPrecision}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 186</p>
+      <p class="ver">Version 187</p>
     </div>
   </div>
 
@@ -12850,7 +12855,7 @@ const BOUGHT = new Set(Array.isArray(store.bought) ? store.bought.filter(id => O
 if (!Array.isArray(store.bought)) { store.bought = [...BOUGHT]; }
 if (!(store.drops >= 0)) store.drops = 0;
 const bought = id => BOUGHT.has(id);
-function buyItem(id) { const w = ITEMS.find(x => x.id === id); if (!w || (!OWNED.has(id) && needFind(w)) || BOUGHT.has(id) || store.drops < PRICE(w)) return false; store.drops -= PRICE(w); OWNED.add(id); store.owned = [...OWNED]; BOUGHT.add(id); store.bought = [...BOUGHT]; save(); return true; }
+function buyItem(id) { const w = ITEMS.find(x => x.id === id); if (!w || (!OWNED.has(id) && needFind(w)) || BOUGHT.has(id) || store.drops < PRICE(w)) return false; store.drops -= PRICE(w); OWNED.add(id); store.owned = [...OWNED]; BOUGHT.add(id); store.bought = [...BOUGHT]; store.fresh = [...new Set([...(store.fresh || []), id])]; save(); return true; }
 function showDrops() { const n = store.drops || 0; if ($('statDrops')) $('statDrops').lastChild.nodeValue = String(n); if ($('lkBalN')) $('lkBalN').textContent = String(n); }
 const owns = id => OWNED.has(id);
 function unlockItem(id) { if (OWNED.has(id)) return false; OWNED.add(id); store.owned = [...OWNED]; store.fresh = [...new Set([...(store.fresh || []), id])]; store.seen = store.seen || {}; store.seen.look = 0; save(); $('lookBtn').classList.add('hot'); return true; }
@@ -13226,7 +13231,7 @@ function renderLook() {
   if (EXTRA.some(x => x.id === myLook.eyes) && !bought(myLook.eyes)) { myLook.eyes = 'round'; saveLook(); }
   if (!['paint', 'eyes', 'head', 'face', 'cloth'].includes(lookCat)) lookCat = 'paint';
   for (const b of document.querySelectorAll('#lookCats .lcat')) { const c = b.dataset.cat, sel = c === lookCat; b.setAttribute('aria-selected', String(sel)); b.tabIndex = sel ? 0 : -1;
-    b.classList.toggle('fresh', WEAR.some(w => w.cat === c && bought(w.id) && fresh.has(w.id)));
+    b.classList.toggle('fresh', ITEMS.some(w => w.cat === c && bought(w.id) && fresh.has(w.id)));
     if (c === 'paint') { b.innerHTML = '<small>Paint</small><span class="lci"><i class="dab" style="--c:' + TEAMS[0].css + '"></i></span><b>' + colorOf().name + '</b>'; continue; }
     if (c === 'eyes') { b.innerHTML = '<small>Eyes</small><span class="lci">' + ES_ICON_T[myLook.eyes || 'round'] + '</span><b>' + (EYE_STYLES[myLook.eyes || 'round'] || 'Round') + '</b>'; continue; }
     const worn = WEAR.filter(w => w.cat === c && myLook[w.slot] === w.id), w0 = worn[0];
@@ -13239,7 +13244,7 @@ function renderLook() {
     + (mine.length ? '' : '<p class="lnone">Nothing here yet. The Paint Shop has ' + forSale + ' to buy.</p>');
   showDrops();
   const ES_ICON = ES_ICON_T;
-  $('eyeStyles').innerHTML = Object.keys(EYE_STYLES).map(k => { const it = EXTRA.find(x => x.id === k), lk = it && !bought(k); return '<button class="eyes' + (lk ? ' locked' : '') + '" type="button" data-es="' + k + '" aria-label="' + EYE_STYLES[k] + ' eyes' + (lk ? ', ' + PRICE(it) + ' dabs in the Paint Shop' : '') + '" title="' + EYE_STYLES[k] + (lk ? ' (Paint Shop)' : '') + '" aria-pressed="' + (myLook.eyes === k) + '">' + ES_ICON[k] + (lk ? LOCK_ICON : '') + '</button>'; }).join('');
+  $('eyeStyles').innerHTML = Object.keys(EYE_STYLES).map(k => { const it = EXTRA.find(x => x.id === k), lk = it && !bought(k); return '<button class="eyes' + (lk ? ' locked' : '') + (it && !lk && (store.fresh || []).includes(k) ? ' fresh' : '') + '" type="button" data-es="' + k + '" aria-label="' + EYE_STYLES[k] + ' eyes' + (lk ? ', ' + PRICE(it) + ' dabs in the Paint Shop' : '') + '" title="' + EYE_STYLES[k] + (lk ? ' (Paint Shop)' : '') + '" aria-pressed="' + (myLook.eyes === k) + '">' + ES_ICON[k] + (lk ? LOCK_ICON : '') + '</button>'; }).join('');
   $('irises').innerHTML = EYE_KEYS.map(k => '<button class="eyec" type="button" data-i="' + k + '" style="--ic:' + EYE_COLS[k].css + '" aria-label="' + EYE_COLS[k].name + ' eyes" title="' + EYE_COLS[k].name + '" aria-pressed="' + (myLook.iris === k) + '"><i></i></button>').join(''); $('irises').classList.toggle('off', NO_IRIS(myLook.eyes)); $('irises').setAttribute('aria-disabled', NO_IRIS(myLook.eyes) ? 'true' : 'false');
   railEdge(); $('lookNameTxt').textContent = playerName();
   $('unlockLink').parentNode.hidden = ITEMS.every(w => owns(w.id)); // (nothing left to unlock: no link)
@@ -13342,7 +13347,7 @@ const wearPick = e => { const b = e.target.closest('.ltile'); if (!b) return; AU
   if (w.slot === 'eye' && myLook.eye === 'glasses') shim.tgt = Math.round(shim.tgt / 6.2832) * 6.2832;
   if (w.slot === 'lash' && myLook.lash) { shim.tgt = Math.round(shim.tgt / 6.2832) * 6.2832; setTimeout(() => { if (lookOpen && VP.slime && VP.slime.flutter) VP.slime.flutter(3); }, 380); } };
 $('lookRail').addEventListener('click', wearPick);
-$('eyeStyles').addEventListener('click', e => { const b = e.target.closest('.eyes'); if (!b || b.dataset.es === myLook.eyes) return; AU.init(); if (b.classList.contains('locked')) { const it = EXTRA.find(x => x.id === b.dataset.es); AU.nope(); kick(b, 'nope'); note(owns(b.dataset.es) ? EYE_STYLES[b.dataset.es] + ' eyes are ' + PRICE(it) + ' dabs in the Paint Shop.' : 'Find the ' + EYE_STYLES[b.dataset.es].toLowerCase() + ' eyes on ' + WEAR_WHERE[it.stage] + '.'); return; } myLook.eyes = b.dataset.es; saveLook(); const sl = $('lookRail').scrollLeft; renderLook(); $('lookRail').scrollLeft = sl; railEdge(); AU.pop(); { const t = $('eyeStyles').querySelector('[data-es="' + myLook.eyes + '"]'); if (t) kick(t, 'tpop'); } eyeShow = { t: 0, kind: 0 }; idle.t = Math.max(idle.t, 4); });
+$('eyeStyles').addEventListener('click', e => { const b = e.target.closest('.eyes'); if (!b || b.dataset.es === myLook.eyes) return; AU.init(); if (b.classList.contains('locked')) { const it = EXTRA.find(x => x.id === b.dataset.es); AU.nope(); kick(b, 'nope'); note(owns(b.dataset.es) ? EYE_STYLES[b.dataset.es] + ' eyes are ' + PRICE(it) + ' dabs in the Paint Shop.' : 'Find the ' + EYE_STYLES[b.dataset.es].toLowerCase() + ' eyes on ' + WEAR_WHERE[it.stage] + '.'); return; } myLook.eyes = b.dataset.es; if (store.fresh && store.fresh.includes(myLook.eyes)) store.fresh = store.fresh.filter(x => x !== myLook.eyes); saveLook(); const sl = $('lookRail').scrollLeft; renderLook(); $('lookRail').scrollLeft = sl; railEdge(); AU.pop(); { const t = $('eyeStyles').querySelector('[data-es="' + myLook.eyes + '"]'); if (t) kick(t, 'tpop'); } eyeShow = { t: 0, kind: 0 }; idle.t = Math.max(idle.t, 4); });
 $('irises').addEventListener('click', e => { const b = e.target.closest('.eyec'); if (!b || b.dataset.i === myLook.iris || NO_IRIS(myLook.eyes)) return; AU.init(); myLook.iris = b.dataset.i; saveLook(); const sl = $('lookRail').scrollLeft; renderLook(); $('lookRail').scrollLeft = sl; railEdge(); AU.pop(); { const t = $('irises').querySelector('[data-i="' + myLook.iris + '"]'); if (t) kick(t, 'tpop'); } eyeShow = { t: 0, kind: (eyeShow ? eyeShow.kind + 1 + (Math.random() * 2 | 0) : Math.random() * 3 | 0) % 3 }; idle.t = Math.max(idle.t, 4); shim.tgt = Math.round(shim.tgt / 6.2832) * 6.2832; });
 // the code that unlocks everything
 $('unlockLink').addEventListener('click', () => { AU.init(); AU.ui(); $('unlockLink').hidden = true; $('unlockForm').hidden = false; setTimeout(() => $('unlockCode').focus(), 30); });
