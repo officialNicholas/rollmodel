@@ -2767,7 +2767,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 210</p>
+      <p class="ver">Version 211</p>
     </div>
   </div>
 
@@ -7597,7 +7597,7 @@ const __look = (() => {
 // ---------------- the face projection (shared by both meshes: angles about each mesh's face-sphere centre, in rest space) ----------------
 // pitch: the face centre's height above the head centre's horizon (rad); half: the angle a face cell's half width spans (rad); the game's
 // slime uses pitch 0, half 0.86 on its round head. The axolotl head is a wider dome, so its face sits a little higher and a little tighter.
-const FACE = { pitch: 0.12, half: 0.9, squeeze: 1.0 };
+const FACE = { pitch: 0.1, half: 1.1, squeeze: 1.0 };
 const EYE_COLS = { brown: { name: 'Brown', lin: [0.16, 0.06, 0.035], css: '#8A5636' }, blue: { name: 'Blue', lin: [0.03, 0.1, 0.32], css: '#3B7BE0' }, green: { name: 'Green', lin: [0.04, 0.18, 0.05], css: '#46A853' },
   violet: { name: 'Violet', lin: [0.14, 0.045, 0.28], css: '#8E52DA' }, gold: { name: 'Gold', lin: [0.34, 0.17, 0.016], css: '#D8A41F' } };
 const EYE_STYLES = { round: 'Round', edgy: 'Squid', dot: 'Dot', zombie: 'Zombie' };
@@ -8247,7 +8247,7 @@ const AXOC = (() => {
     out.setFromMatrixPosition(_m); out.z -= d === undefined ? 0.5 : d; return out;
   }
   function bodyPoint(I, x, y, z, out) { const H = headFrame(I); return out.copy(H.neck); }
-  return { S, load, make, update, headTop, headSize, bodyPoint, backPoint, headR0: HEAD_R0 };
+  return { S, load, make, update, headTop, headSize, bodyPoint, backPoint, headR0: HEAD_R0, faceK: 1.18 };
 })();
 const axoLoad = AXOC.load(window.AXO_PACK || 'axo-pack.txt').catch(e => { AXOC.S.failed = true; console.warn('axolotl pack:', e && e.message); });
 // (the slime only comes in if the axolotl never arrives)
@@ -8512,8 +8512,8 @@ function placeWear(W, U, look, D, withFangs) {
     // painted on (every form): the lashes (none under the patch), the patch and its strap, the eyes' color
     if (SI.setLashes) { const k = !off ? Math.min(1, pu * 1.4) : 0, lk = look.lash === 'lashes' ? k : 0, pt = look.eye === 'patch' ? k : 0; SI.setLashes(lk, pt > 0 ? 0 : lk); SI.setPatch(pt); SI.setIris((EYE_COLS[look.iris] || EYE_COLS.brown).lin); if (SI.setEyeStyle) SI.setEyeStyle(EYE_STYLE_K[look.eyes] || 0); }
     if (W.glasses.visible || W.hockey.visible || W.flower.visible) { CH.headTop(SI, wv1, wq1, 0);
-      if (W.hockey.visible) { W.hockey.position.copy(wv1).add(wv2.set(0, HOCKEY_FIT.y, HOCKEY_FIT.z).multiplyScalar(mk).applyQuaternion(wq1)); W.hockey.quaternion.copy(wq1).multiply(wearQ2.setFromEuler(wearE.set(HOCKEY_FIT.rx + S.tx * 0.2, 0, S.tz * 0.15))); W.hockey.scale.multiplyScalar(mk * HOCKEY_FIT.s); W.hockey.scale.x *= HOCKEY_FIT.sx || 1; }
-      if (W.glasses.visible) { W.glasses.position.copy(wv1).add(wv2.set(0, 0.062, 0.448).multiplyScalar(mk).applyQuaternion(wq1)); W.glasses.quaternion.copy(wq1).multiply(wearQ2.setFromEuler(wearE.set(-0.06 + S.tx * 0.2, 0, S.tz * 0.15))); W.glasses.scale.multiplyScalar(mk * 0.56); }
+      if (W.hockey.visible) { W.hockey.position.copy(wv1).add(wv2.set(0, HOCKEY_FIT.y, HOCKEY_FIT.z).multiplyScalar(mk).applyQuaternion(wq1)); W.hockey.quaternion.copy(wq1).multiply(wearQ2.setFromEuler(wearE.set(HOCKEY_FIT.rx + S.tx * 0.2, 0, S.tz * 0.15))); W.hockey.scale.multiplyScalar(mk * HOCKEY_FIT.s * (CH.faceK || 1)); W.hockey.scale.x *= HOCKEY_FIT.sx || 1; }
+      if (W.glasses.visible) { W.glasses.position.copy(wv1).add(wv2.set(0, 0.062, 0.448).multiplyScalar(mk).applyQuaternion(wq1)); W.glasses.quaternion.copy(wq1).multiply(wearQ2.setFromEuler(wearE.set(-0.06 + S.tx * 0.2, 0, S.tz * 0.15))); W.glasses.scale.multiplyScalar(mk * 0.56 * (CH.faceK || 1)); }
       if (W.patch.visible) { W.patch.position.copy(wv1); W.patch.quaternion.copy(wq1); W.patch.scale.multiplyScalar(mk); }
       if (W.flower.visible) { const F = WEAR_PACK && WEAR_PACK.patch ? (look.head ? WEAR_PACK.patch.flowerLow : WEAR_PACK.patch.flower) : { p: [-0.34, 0.24, 0.1], n: [-0.75, 0.59, 0.29] };
         wv2.set(F.p[0], F.p[1], F.p[2]).multiplyScalar(mk).applyQuaternion(wq1); W.flower.position.copy(wv1).add(wv2);

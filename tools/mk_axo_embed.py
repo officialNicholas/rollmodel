@@ -53,6 +53,9 @@ rep("""if (uCoat.x > 0.001) {
   diffuseColor.rgb = mix(diffuseColor.rgb, pc, wm * (1.0 - sCoatM)) * (1.0 - 0.24 * we); sCoatM = max(sCoatM, wm);""")
 # a roll for the game's look (the menu's head tilts to the beat), with the yaw and the pitch
 rep("(N.glance[2] + drift[2]) * amt];", "(N.glance[2] + drift[2]) * amt + (this.look.roll || 0) * 0.6];")
+# the face, bigger on the rounder head (v211): the face's cells span a narrower angle, so the eyes and the mouth come out larger, as on
+# the old character's ball of a head
+rep("const FACE = { pitch: 0.12, half: 0.9, squeeze: 1.0 };", "const FACE = { pitch: 0.1, half: 1.1, squeeze: 1.0 };")
 # the sly eyes (fStyle 4, v210): heavy lids in eyeshadow pink with a thick lash line that flicks out into a wing, a soft shadow above,
 # arched brows, and a pale ringed iris with a small pupil showing under the lid
 rep("float sqd = (fStyle > 0.5 && fStyle < 1.5) ? 1.0 : 0.0, zmb = fStyle > 2.5 ? 1.0 : 0.0;",

@@ -16,7 +16,7 @@ async def main():
         b = await p.chromium.launch(args=['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist'])
         if WHAT in ('vic', 'both'):
             ctx, pg, errs = await boot(b, {'head': 'hat', 'lash': 'lashes', 'iris': 'violet'})
-            await pg.evaluate("document.getElementById('homePlay').click()"); await pg.wait_for_function("__T.state === 'play'", timeout=60000, polling=500); await pg.wait_for_timeout(1500)
+            await pg.evaluate("__T.start()"); await pg.wait_for_function("__T.state === 'play'", timeout=60000, polling=500); await pg.wait_for_timeout(1500)
             await pg.evaluate("(() => { const P = __T.P; for (let i = 0; i < 16; i++) { const x = P.x + (i % 4 - 1.5) * 3.2, z = P.z + (i / 4 | 0) * 3.2 - 4.8; __T.addSplat(x, Math.max(0, __T.surfaceUnder(x, z, P.y + 3, true)), z, 0, 3, __T.clock, false, true, 0); } __T.flushTrail(); __T.matchLeft = 0.4; })()")
             await pg.wait_for_function("!!__T.vic", timeout=60000, polling=200)
             for k, w in enumerate([1600, 2000, 2500]):
@@ -24,7 +24,7 @@ async def main():
             print('vic errors', errs[:4]); await ctx.close()
         if WHAT in ('rocket', 'both'):
             ctx, pg, errs = await boot(b, {'head': None, 'eyes': 'round', 'iris': 'brown'})
-            await pg.evaluate("document.getElementById('homePlay').click()"); await pg.wait_for_function("__T.state === 'play'", timeout=60000, polling=500)
+            await pg.evaluate("__T.start()"); await pg.wait_for_function("__T.state === 'play'", timeout=60000, polling=500)
             await pg.wait_for_function("!__T.P.air", timeout=90000, polling=300); await pg.wait_for_timeout(800)
             await pg.evaluate("__T.matchLeft = 400; for (const D of __T.ACTIVE) if (D !== __T.P) { D.ai && (D.ai.thinkT = 99); D.spd = 0; } __T.startRocket(__T.P);")
             await pg.wait_for_timeout(1500); await pg.evaluate("window.__camRel = [[3.0, 0.6, 3.0], [0, 0.6, 0]]"); await pg.wait_for_timeout(900)
