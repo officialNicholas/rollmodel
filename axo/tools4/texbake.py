@@ -138,9 +138,25 @@ def rasterize(uv, T, res, keep):
         bc = np.stack([l1[ins], l2[ins], l3[ins]], 1); bc = np.clip(bc, 0, 1); bc /= bc.sum(1, keepdims=True)
         ys.append((py[ins] - 0.5).astype(int)); xs.append((px[ins] - 0.5).astype(int)); ts.append(np.full(ins.sum(), ti)); bs.append(bc)
     return np.concatenate(ys), np.concatenate(xs), np.concatenate(ts), np.concatenate(bs)
+def despeckle(img, cov, res, max_area=None):
+    """small patches of frond red on the skin (a texel whose closest source point was a frill fused onto the neck) refilled from the skin
+    round them; the dorsal band is as saturated but runs in one large piece, so only small connected patches go"""
+    from scipy.ndimage import label
+    max_area = max_area or int(1500 * (res / 2048) ** 2)
+    mx = img.max(2); mn = img.min(2); sat = (mx - mn) / np.maximum(mx, 1e-3)
+    frond = (sat > 0.75) & (mx > 0.6) & (img[:, :, 0] > img[:, :, 1]) & (img[:, :, 0] > img[:, :, 2]) & (cov > 0)
+    lab, nl = label(frond)
+    if nl == 0: return img, 0
+    area = np.bincount(lab.ravel()); small = (area < max_area); small[0] = False; spk = small[lab]
+    if not spk.any(): return img, 0
+    # grow each speck by 2 texels (its soft edge), then fill from outside
+    from scipy.ndimage import binary_dilation
+    spk = binary_dilation(spk, iterations=2) & (cov > 0)
+    out = dilate(img, (cov > 0) & ~spk, rounds=40); img = img.copy(); img[spk] = out[spk]
+    return img, int(small.sum())
 def dilate(img, cov, rounds=12):
     """fill uncovered texels from covered neighbours, outward, so mipmaps and bilinear taps near chart borders stay in the chart's colour"""
-    img = img.copy(); cov = cov.copy()
+    img = img.copy(); cov = cov.astype(np.float32).copy()
     for _ in range(rounds):
         acc = np.zeros_like(img); cnt = np.zeros(cov.shape, np.float32)
         for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1)):
@@ -172,6 +188,8 @@ def bake(nm, src, res, lookup, verbose=True):
         if verbose: print(f'  lookup {int(sel.sum())} texels: distance p50 {np.percentile(d, 50) * 1000:.1f} p95 {np.percentile(d, 95) * 1000:.1f} max {d.max() * 1000:.0f} mm ({time.time() - t0:.1f}s)')
     img = np.zeros((res, res, 3), np.float32); cov = np.zeros((res, res), np.float32)
     img[ty, tx] = col; cov[ty, tx] = 1
+    img, nsp = despeckle(img, cov, res)
+    if verbose: print(f'  despeckle: {nsp} frond-red specks refilled from the skin round them')
     img = dilate(img, cov)
     if verbose: print(f'  atlas done ({time.time() - t0:.1f}s)')
     return dict(r=r, vm=vm, T2=T2, uv=uv, img=img, cov=cov, keep=keep, dist=dist, ty=ty, tx=tx)
