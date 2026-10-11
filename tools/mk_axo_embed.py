@@ -53,6 +53,25 @@ rep("""if (uCoat.x > 0.001) {
   diffuseColor.rgb = mix(diffuseColor.rgb, pc, wm * (1.0 - sCoatM)) * (1.0 - 0.24 * we); sCoatM = max(sCoatM, wm);""")
 # a roll for the game's look (the menu's head tilts to the beat), with the yaw and the pitch
 rep("(N.glance[2] + drift[2]) * amt];", "(N.glance[2] + drift[2]) * amt + (this.look.roll || 0) * 0.6];")
+# the sly eyes (fStyle 4, v210): heavy lids in eyeshadow pink with a thick lash line that flicks out into a wing, a soft shadow above,
+# arched brows, and a pale ringed iris with a small pupil showing under the lid
+rep("float sqd = (fStyle > 0.5 && fStyle < 1.5) ? 1.0 : 0.0, zmb = fStyle > 2.5 ? 1.0 : 0.0;",
+    "float sqd = (fStyle > 0.5 && fStyle < 1.5) ? 1.0 : 0.0, zmb = (fStyle > 2.5 && fStyle < 3.5) ? 1.0 : 0.0, sly = fStyle > 3.5 ? 1.0 : 0.0;")
+rep("vec3 irC = mix(fIris, vec3(0.42, 0.6, 0.3), zmb);", "vec3 irC = mix(fIris, vec3(0.42, 0.6, 0.3), zmb); irC = mix(irC, mix(fIris, vec3(0.86, 0.85, 0.9), 0.74), sly);")
+rep("rp = mix(0.092, 0.11, sqd) * fPupil.z * mix(1.0, i == 0 ? 0.5 : 0.78, zmb);", "rp = mix(0.092, 0.11, sqd) * fPupil.z * mix(1.0, i == 0 ? 0.5 : 0.78, zmb) * mix(1.0, 0.66, sly);")
+rep("    ic = mix(ic, vec3(0.02, 0.008, 0.014), sqd * smoothstep(ri - 0.032, ri - 0.012, r));",
+    "    ic = mix(ic, vec3(0.02, 0.008, 0.014), sqd * smoothstep(ri - 0.032, ri - 0.012, r));\n"
+    "    ic = mix(ic, vec3(0.3, 0.17, 0.2), sly * (1.0 - smoothstep(0.006, 0.02, abs(r - ri * 0.93))) * smoothstep(0.3, -0.4, dd.y / ri)); ic = mix(ic, vec3(0.42, 0.19, 0.2), sly * (1.0 - smoothstep(rp - 0.012, rp, r)));")
+rep("  c = mix(c, vec3(0.016, 0.0025, 0.007), lsh);\n  vec4 mA", """  if (sly > 0.5) { for (int i = 0; i < 2; i++) { float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16 + fPupil.w), dd = fq - pc; float ox = dd.x * sd, aw = fwidth(fq.y) + 0.003, side = step(0.0, fq.x * sd);
+      float lidY = pc.y + 0.0 - 0.11 * ox - 0.12 * fMix.y, wht = eye.a * side;
+      float sh = side * (1.0 - wht) * (1.0 - smoothstep(0.04, 0.27, length((dd - vec2(sd * 0.03, 0.11)) * vec2(0.85, 1.55)))); c = mix(c, c * vec3(0.95, 0.6, 0.72), 0.85 * sh);
+      float lid = wht * smoothstep(lidY - aw, lidY + aw, fq.y); c = mix(c, mix(vec3(0.5, 0.22, 0.33), vec3(0.66, 0.34, 0.45), smoothstep(lidY, lidY + 0.07, fq.y)), lid);
+      float ll = wht * (1.0 - smoothstep(0.019, 0.019 + aw * 2.0, abs(fq.y - lidY + 0.006)));
+      float wy = pc.y + 0.0 - 0.11 * 0.18 - 0.12 * fMix.y, wing = side * fCone(fq, vec2(pc.x + sd * 0.16, wy - 0.004), vec2(pc.x + sd * 0.32, wy + 0.085), 0.026, 0.003);
+      float brow = side * max(fCone(fq, vec2(sd * 0.14, pc.y + 0.22), vec2(sd * 0.46, pc.y + 0.35), 0.048, 0.04), fCone(fq, vec2(sd * 0.46, pc.y + 0.35), vec2(sd * 0.67, pc.y + 0.29), 0.04, 0.014));
+      c = mix(c, vec3(0.05, 0.015, 0.03), max(ll, wing)); c = mix(c, vec3(0.45, 0.17, 0.24), brow); dotK = max(dotK, max(max(ll, wing), max(brow, lid))); } }
+  c = mix(c, vec3(0.016, 0.0025, 0.007), lsh);
+  vec4 mA""")
 # the eye patch (fLash.z): the slime's black leather over the right eye (a raised rim, stitches, a shine, an inked edge), on a strap drawn
 # in the face's own space, from high on the far side of the forehead down across the patch and away over the side of the head
 rep("""  c = mix(c, vec3(0.016, 0.0025, 0.007), lsh);

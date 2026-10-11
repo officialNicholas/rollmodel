@@ -1138,7 +1138,7 @@ const SKIN_FS = `
 const FACE_FS = `
 if (vFace.z > 0.01 && abs(vFace.x * fComp.x) < 0.985 && abs(vFace.y * fComp.y) < 0.985) {
   vec2 fq = vFace.xy * fComp.xy; vec2 cuv = fq * 0.5 + 0.5;
-  float sqd = (fStyle > 0.5 && fStyle < 1.5) ? 1.0 : 0.0, zmb = fStyle > 2.5 ? 1.0 : 0.0; vec2 fqe = fq; if (sqd > 0.5) { float sd0 = fq.x < 0.0 ? -1.0 : 1.0; vec2 pc0 = vec2(sd0 * 0.4, 0.16); vec2 l = fq - pc0; l.y = l.y * 1.1 + 0.01; l.x = (l.x + l.y * sd0 * 0.2) * 0.97; fqe = pc0 + l; }
+  float sqd = (fStyle > 0.5 && fStyle < 1.5) ? 1.0 : 0.0, zmb = (fStyle > 2.5 && fStyle < 3.5) ? 1.0 : 0.0, sly = fStyle > 3.5 ? 1.0 : 0.0; vec2 fqe = fq; if (sqd > 0.5) { float sd0 = fq.x < 0.0 ? -1.0 : 1.0; vec2 pc0 = vec2(sd0 * 0.4, 0.16); vec2 l = fq - pc0; l.y = l.y * 1.1 + 0.01; l.x = (l.x + l.y * sd0 * 0.2) * 0.97; fqe = pc0 + l; }
   vec2 cuvE = fqe * 0.5 + 0.5;
   vec4 eA = texture2D(fCol, fCell(fCells.x, cuvE)), eB = texture2D(fCol, fCell(fCells.z, cuvE)), eye = mix(eA, eB, fMix.x);
   vec3 emL = mix(texture2D(fMsk, fCell(fCells.x, cuvE)).rgb, texture2D(fMsk, fCell(fCells.z, cuvE)).rgb, fMix.x); vec2 em = emL.rg;
@@ -1155,13 +1155,14 @@ if (vFace.z > 0.01 && abs(vFace.x * fComp.x) < 0.985 && abs(vFace.y * fComp.y) <
   if (fStyle > 1.5 && fStyle < 2.5) { float bk = 1.0 - fMix.y * 0.92; for (int i = 0; i < 2; i++) { float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16 + fPupil.w) + fPupil.xy * 0.6; vec2 dd = (fq - pc) * vec2(1.0, 1.0 / max(0.08, bk)); float r = length(dd);
     float dk = 1.0 - smoothstep(0.125, 0.145, r); c = mix(c, vec3(0.03, 0.012, 0.02), dk); float hl = 1.0 - smoothstep(0.03, 0.046, length((fq - pc - vec2(-0.045, 0.05)) * vec2(1.0, 1.0 / max(0.08, bk)))); c = mix(c, vec3(1.0), hl * dk); dotK = max(dotK, dk); } }
   for (int i = 0; i < 2; i++) {
-    float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16 + fPupil.w) + fPupil.xy, dd = (fqe - pc) * vec2(1.0, 0.92); float r = length(dd), ri = mix(0.165, 0.235, sqd) * fPupil.z * mix(1.0, i == 0 ? 0.92 : 1.14, zmb), rp = mix(0.092, 0.11, sqd) * fPupil.z * mix(1.0, i == 0 ? 0.5 : 0.78, zmb);
-    vec3 irC = mix(fIris, vec3(0.42, 0.6, 0.3), zmb);
+    float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16 + fPupil.w) + fPupil.xy, dd = (fqe - pc) * vec2(1.0, 0.92); float r = length(dd), ri = mix(0.165, 0.235, sqd) * fPupil.z * mix(1.0, i == 0 ? 0.92 : 1.14, zmb), rp = mix(0.092, 0.11, sqd) * fPupil.z * mix(1.0, i == 0 ? 0.5 : 0.78, zmb) * mix(1.0, 0.66, sly);
+    vec3 irC = mix(fIris, vec3(0.42, 0.6, 0.3), zmb); irC = mix(irC, mix(fIris, vec3(0.86, 0.85, 0.9), 0.74), sly);
     float ia = (1.0 - smoothstep(ri - 0.014, ri, r)) * em.r;
     vec3 ic = mix(irC, irC * 0.2, smoothstep(0.0, ri, r)); ic = mix(ic, vec3(0.004, 0.002, 0.003), 1.0 - smoothstep(rp - 0.012, rp, r));
     ic += irC * 1.12 * smoothstep(ri * 0.35, ri * 0.95, r) * smoothstep(0.2, -0.6, dd.y / ri) * (1.0 - smoothstep(ri * 0.95, ri, r));
     ic = mix(ic, vec3(0.72, 0.78, 0.62), zmb * 0.42 * smoothstep(rp, ri * 0.9, r) * (0.6 + 0.4 * sin(atan(dd.y, dd.x) * 11.0 + r * 60.0)));
     ic = mix(ic, vec3(0.02, 0.008, 0.014), sqd * smoothstep(ri - 0.032, ri - 0.012, r));
+    ic = mix(ic, vec3(0.3, 0.17, 0.2), sly * (1.0 - smoothstep(0.006, 0.02, abs(r - ri * 0.93))) * smoothstep(0.3, -0.4, dd.y / ri)); ic = mix(ic, vec3(0.42, 0.19, 0.2), sly * (1.0 - smoothstep(rp - 0.012, rp, r)));
     c = mix(c, ic * (1.0 - 0.55 * em.g), ia);
     float cl = (1.0 - smoothstep(mix(0.03, 0.05, sqd), mix(0.042, 0.06, sqd), length(fqe - pc - vec2(-0.055, 0.06) * (1.0 + 0.3 * sqd) * fPupil.z))) + 0.8 * (1.0 - sqd) * (1.0 - smoothstep(0.012, mix(0.02, 0.026, sqd), length(fqe - pc - vec2(0.05, -0.05) * (1.0 + 0.3 * sqd) * fPupil.z)));
     c = mix(c, vec3(1.0), clamp(cl, 0.0, 1.0) * (1.0 - 0.75 * zmb) * em.r * (1.0 - 0.85 * em.g));
@@ -1171,6 +1172,14 @@ if (vFace.z > 0.01 && abs(vFace.x * fComp.x) < 0.985 && abs(vFace.y * fComp.y) <
       float lidY = pc.y + (i == 0 ? 0.05 : 0.13) - sd * dd.x * 0.22, lid = eye.a * smoothstep(lidY - 0.012, lidY + 0.012, fq.y), crease = eye.a * (1.0 - smoothstep(0.0, 0.03, abs(fq.y - lidY)));
       c = mix(c, vec3(0.1, 0.045, 0.08), lid); c = mix(c, vec3(0.36, 0.2, 0.28), crease * 0.9);
       float ring = (1.0 - eye.a) * smoothstep(0.52, 0.3, length(dd * vec2(0.9, 1.35))) * smoothstep(0.02, -0.2, dd.y); c = mix(c, c * vec3(0.42, 0.34, 0.5), ring * 0.8); } }
+  if (sly > 0.5) { for (int i = 0; i < 2; i++) { float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16 + fPupil.w), dd = fq - pc; float ox = dd.x * sd, aw = fwidth(fq.y) + 0.003, side = step(0.0, fq.x * sd);
+      float lidY = pc.y + 0.0 - 0.11 * ox - 0.12 * fMix.y, wht = eye.a * side;
+      float sh = side * (1.0 - wht) * (1.0 - smoothstep(0.04, 0.27, length((dd - vec2(sd * 0.03, 0.11)) * vec2(0.85, 1.55)))); c = mix(c, c * vec3(0.95, 0.6, 0.72), 0.85 * sh);
+      float lid = wht * smoothstep(lidY - aw, lidY + aw, fq.y); c = mix(c, mix(vec3(0.5, 0.22, 0.33), vec3(0.66, 0.34, 0.45), smoothstep(lidY, lidY + 0.07, fq.y)), lid);
+      float ll = wht * (1.0 - smoothstep(0.019, 0.019 + aw * 2.0, abs(fq.y - lidY + 0.006)));
+      float wy = pc.y + 0.0 - 0.11 * 0.18 - 0.12 * fMix.y, wing = side * fCone(fq, vec2(pc.x + sd * 0.16, wy - 0.004), vec2(pc.x + sd * 0.32, wy + 0.085), 0.026, 0.003);
+      float brow = side * max(fCone(fq, vec2(sd * 0.14, pc.y + 0.22), vec2(sd * 0.46, pc.y + 0.35), 0.048, 0.04), fCone(fq, vec2(sd * 0.46, pc.y + 0.35), vec2(sd * 0.67, pc.y + 0.29), 0.04, 0.014));
+      c = mix(c, vec3(0.05, 0.015, 0.03), max(ll, wing)); c = mix(c, vec3(0.45, 0.17, 0.24), brow); dotK = max(dotK, max(max(ll, wing), max(brow, lid))); } }
   c = mix(c, vec3(0.016, 0.0025, 0.007), lsh);
   if (fLash.z > 0.0) {
     vec2 sdv = normalize(vec2(1.9, -0.8)); float sb = abs(dot(fq - vec2(-0.92, 0.74), vec2(-sdv.y, sdv.x))), saa = fwidth(sb) * 1.25 + 1e-4, sfd = (1.0 - smoothstep(0.88, 0.97, max(abs(fq.x), abs(fq.y)))) * fLash.z;

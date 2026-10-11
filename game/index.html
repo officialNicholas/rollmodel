@@ -2767,7 +2767,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 209</p>
+      <p class="ver">Version 210</p>
     </div>
   </div>
 
@@ -5945,7 +5945,7 @@ if (fLash.z > 0.0) { float sb = abs(dot((vSlimeP - mHead.xyz) / mHead.w, fStrap.
 if (vFace.z > 0.01 && abs(vFace.x * fComp.x) < 0.985 && abs(vFace.y * fComp.y) < 0.985) {
   vec2 fq = vFace.xy * fComp.xy; vec2 cuv = fq * 0.5 + 0.5;
   // the eye style: 1 narrows and slants the eyes into almonds and rims them in ink; 2 draws them as solid dots
-  float sqd = (fStyle > 0.5 && fStyle < 1.5) ? 1.0 : 0.0, zmb = fStyle > 2.5 ? 1.0 : 0.0; vec2 fqe = fq; if (sqd > 0.5) { float sd0 = fq.x < 0.0 ? -1.0 : 1.0; vec2 pc0 = vec2(sd0 * 0.4, 0.16); vec2 l = fq - pc0; l.y = l.y * 1.1 + 0.01; l.x = (l.x + l.y * sd0 * 0.2) * 0.97; fqe = pc0 + l; }
+  float sqd = (fStyle > 0.5 && fStyle < 1.5) ? 1.0 : 0.0, zmb = (fStyle > 2.5 && fStyle < 3.5) ? 1.0 : 0.0; vec2 fqe = fq; if (sqd > 0.5) { float sd0 = fq.x < 0.0 ? -1.0 : 1.0; vec2 pc0 = vec2(sd0 * 0.4, 0.16); vec2 l = fq - pc0; l.y = l.y * 1.1 + 0.01; l.x = (l.x + l.y * sd0 * 0.2) * 0.97; fqe = pc0 + l; }
   vec2 cuvE = fqe * 0.5 + 0.5;
   vec4 eA = texture2D(fCol, fCell(fCells.x, cuvE)), eB = texture2D(fCol, fCell(fCells.z, cuvE)), eye = mix(eA, eB, fMix.x);
   vec3 emL = mix(texture2D(fMsk, fCell(fCells.x, cuvE)).rgb, texture2D(fMsk, fCell(fCells.z, cuvE)).rgb, fMix.x); vec2 em = emL.rg;
@@ -7830,7 +7830,7 @@ const SKIN_FS = `
 const FACE_FS = `
 if (vFace.z > 0.01 && abs(vFace.x * fComp.x) < 0.985 && abs(vFace.y * fComp.y) < 0.985) {
   vec2 fq = vFace.xy * fComp.xy; vec2 cuv = fq * 0.5 + 0.5;
-  float sqd = (fStyle > 0.5 && fStyle < 1.5) ? 1.0 : 0.0, zmb = fStyle > 2.5 ? 1.0 : 0.0; vec2 fqe = fq; if (sqd > 0.5) { float sd0 = fq.x < 0.0 ? -1.0 : 1.0; vec2 pc0 = vec2(sd0 * 0.4, 0.16); vec2 l = fq - pc0; l.y = l.y * 1.1 + 0.01; l.x = (l.x + l.y * sd0 * 0.2) * 0.97; fqe = pc0 + l; }
+  float sqd = (fStyle > 0.5 && fStyle < 1.5) ? 1.0 : 0.0, zmb = (fStyle > 2.5 && fStyle < 3.5) ? 1.0 : 0.0, sly = fStyle > 3.5 ? 1.0 : 0.0; vec2 fqe = fq; if (sqd > 0.5) { float sd0 = fq.x < 0.0 ? -1.0 : 1.0; vec2 pc0 = vec2(sd0 * 0.4, 0.16); vec2 l = fq - pc0; l.y = l.y * 1.1 + 0.01; l.x = (l.x + l.y * sd0 * 0.2) * 0.97; fqe = pc0 + l; }
   vec2 cuvE = fqe * 0.5 + 0.5;
   vec4 eA = texture2D(fCol, fCell(fCells.x, cuvE)), eB = texture2D(fCol, fCell(fCells.z, cuvE)), eye = mix(eA, eB, fMix.x);
   vec3 emL = mix(texture2D(fMsk, fCell(fCells.x, cuvE)).rgb, texture2D(fMsk, fCell(fCells.z, cuvE)).rgb, fMix.x); vec2 em = emL.rg;
@@ -7847,13 +7847,14 @@ if (vFace.z > 0.01 && abs(vFace.x * fComp.x) < 0.985 && abs(vFace.y * fComp.y) <
   if (fStyle > 1.5 && fStyle < 2.5) { float bk = 1.0 - fMix.y * 0.92; for (int i = 0; i < 2; i++) { float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16 + fPupil.w) + fPupil.xy * 0.6; vec2 dd = (fq - pc) * vec2(1.0, 1.0 / max(0.08, bk)); float r = length(dd);
     float dk = 1.0 - smoothstep(0.125, 0.145, r); c = mix(c, vec3(0.03, 0.012, 0.02), dk); float hl = 1.0 - smoothstep(0.03, 0.046, length((fq - pc - vec2(-0.045, 0.05)) * vec2(1.0, 1.0 / max(0.08, bk)))); c = mix(c, vec3(1.0), hl * dk); dotK = max(dotK, dk); } }
   for (int i = 0; i < 2; i++) {
-    float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16 + fPupil.w) + fPupil.xy, dd = (fqe - pc) * vec2(1.0, 0.92); float r = length(dd), ri = mix(0.165, 0.235, sqd) * fPupil.z * mix(1.0, i == 0 ? 0.92 : 1.14, zmb), rp = mix(0.092, 0.11, sqd) * fPupil.z * mix(1.0, i == 0 ? 0.5 : 0.78, zmb);
-    vec3 irC = mix(fIris, vec3(0.42, 0.6, 0.3), zmb);
+    float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16 + fPupil.w) + fPupil.xy, dd = (fqe - pc) * vec2(1.0, 0.92); float r = length(dd), ri = mix(0.165, 0.235, sqd) * fPupil.z * mix(1.0, i == 0 ? 0.92 : 1.14, zmb), rp = mix(0.092, 0.11, sqd) * fPupil.z * mix(1.0, i == 0 ? 0.5 : 0.78, zmb) * mix(1.0, 0.66, sly);
+    vec3 irC = mix(fIris, vec3(0.42, 0.6, 0.3), zmb); irC = mix(irC, mix(fIris, vec3(0.86, 0.85, 0.9), 0.74), sly);
     float ia = (1.0 - smoothstep(ri - 0.014, ri, r)) * em.r;
     vec3 ic = mix(irC, irC * 0.2, smoothstep(0.0, ri, r)); ic = mix(ic, vec3(0.004, 0.002, 0.003), 1.0 - smoothstep(rp - 0.012, rp, r));
     ic += irC * 1.12 * smoothstep(ri * 0.35, ri * 0.95, r) * smoothstep(0.2, -0.6, dd.y / ri) * (1.0 - smoothstep(ri * 0.95, ri, r));
     ic = mix(ic, vec3(0.72, 0.78, 0.62), zmb * 0.42 * smoothstep(rp, ri * 0.9, r) * (0.6 + 0.4 * sin(atan(dd.y, dd.x) * 11.0 + r * 60.0)));
     ic = mix(ic, vec3(0.02, 0.008, 0.014), sqd * smoothstep(ri - 0.032, ri - 0.012, r));
+    ic = mix(ic, vec3(0.3, 0.17, 0.2), sly * (1.0 - smoothstep(0.006, 0.02, abs(r - ri * 0.93))) * smoothstep(0.3, -0.4, dd.y / ri)); ic = mix(ic, vec3(0.42, 0.19, 0.2), sly * (1.0 - smoothstep(rp - 0.012, rp, r)));
     c = mix(c, ic * (1.0 - 0.55 * em.g), ia);
     float cl = (1.0 - smoothstep(mix(0.03, 0.05, sqd), mix(0.042, 0.06, sqd), length(fqe - pc - vec2(-0.055, 0.06) * (1.0 + 0.3 * sqd) * fPupil.z))) + 0.8 * (1.0 - sqd) * (1.0 - smoothstep(0.012, mix(0.02, 0.026, sqd), length(fqe - pc - vec2(0.05, -0.05) * (1.0 + 0.3 * sqd) * fPupil.z)));
     c = mix(c, vec3(1.0), clamp(cl, 0.0, 1.0) * (1.0 - 0.75 * zmb) * em.r * (1.0 - 0.85 * em.g));
@@ -7863,6 +7864,14 @@ if (vFace.z > 0.01 && abs(vFace.x * fComp.x) < 0.985 && abs(vFace.y * fComp.y) <
       float lidY = pc.y + (i == 0 ? 0.05 : 0.13) - sd * dd.x * 0.22, lid = eye.a * smoothstep(lidY - 0.012, lidY + 0.012, fq.y), crease = eye.a * (1.0 - smoothstep(0.0, 0.03, abs(fq.y - lidY)));
       c = mix(c, vec3(0.1, 0.045, 0.08), lid); c = mix(c, vec3(0.36, 0.2, 0.28), crease * 0.9);
       float ring = (1.0 - eye.a) * smoothstep(0.52, 0.3, length(dd * vec2(0.9, 1.35))) * smoothstep(0.02, -0.2, dd.y); c = mix(c, c * vec3(0.42, 0.34, 0.5), ring * 0.8); } }
+  if (sly > 0.5) { for (int i = 0; i < 2; i++) { float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16 + fPupil.w), dd = fq - pc; float ox = dd.x * sd, aw = fwidth(fq.y) + 0.003, side = step(0.0, fq.x * sd);
+      float lidY = pc.y + 0.0 - 0.11 * ox - 0.12 * fMix.y, wht = eye.a * side;
+      float sh = side * (1.0 - wht) * (1.0 - smoothstep(0.04, 0.27, length((dd - vec2(sd * 0.03, 0.11)) * vec2(0.85, 1.55)))); c = mix(c, c * vec3(0.95, 0.6, 0.72), 0.85 * sh);
+      float lid = wht * smoothstep(lidY - aw, lidY + aw, fq.y); c = mix(c, mix(vec3(0.5, 0.22, 0.33), vec3(0.66, 0.34, 0.45), smoothstep(lidY, lidY + 0.07, fq.y)), lid);
+      float ll = wht * (1.0 - smoothstep(0.019, 0.019 + aw * 2.0, abs(fq.y - lidY + 0.006)));
+      float wy = pc.y + 0.0 - 0.11 * 0.18 - 0.12 * fMix.y, wing = side * fCone(fq, vec2(pc.x + sd * 0.16, wy - 0.004), vec2(pc.x + sd * 0.32, wy + 0.085), 0.026, 0.003);
+      float brow = side * max(fCone(fq, vec2(sd * 0.14, pc.y + 0.22), vec2(sd * 0.46, pc.y + 0.35), 0.048, 0.04), fCone(fq, vec2(sd * 0.46, pc.y + 0.35), vec2(sd * 0.67, pc.y + 0.29), 0.04, 0.014));
+      c = mix(c, vec3(0.05, 0.015, 0.03), max(ll, wing)); c = mix(c, vec3(0.45, 0.17, 0.24), brow); dotK = max(dotK, max(max(ll, wing), max(brow, lid))); } }
   c = mix(c, vec3(0.016, 0.0025, 0.007), lsh);
   if (fLash.z > 0.0) {
     vec2 sdv = normalize(vec2(1.9, -0.8)); float sb = abs(dot(fq - vec2(-0.92, 0.74), vec2(-sdv.y, sdv.x))), saa = fwidth(sb) * 1.25 + 1e-4, sfd = (1.0 - smoothstep(0.88, 0.97, max(abs(fq.x), abs(fq.y)))) * fLash.z;
@@ -13615,7 +13624,7 @@ function makeCpuLook(D, color) {
 const L2 = makeCpuLook(H2, TEAMS[2].wet);
 H.look = LH; H2.look = L2;
 LH.wear = makeWear(LH.body); L2.wear = makeWear(L2.body); LH.wearing = { head: null, back: null, mouth: null, eye: null, side: null, neck: null, lash: null, iris: 'brown' }; L2.wearing = { head: null, back: null, mouth: null, eye: null, side: null, neck: null, lash: null, iris: 'brown' };
-function rollRivalLooks() { const heads = [null, null, 'halo', 'hat', 'pirate', 'tophat', 'tiara', 'bunny', 'skull']; for (const L of [LH, L2]) { const head = heads[Math.random() * heads.length | 0]; L.wearing = { head, back: null, mouth: Math.random() < 0.3 ? 'fangs' : null, eye: Math.random() < (head === 'pirate' ? 0.6 : 0.12) ? 'patch' : Math.random() < 0.14 ? 'glasses' : Math.random() < 0.1 ? 'hockey' : null, side: !head && Math.random() < 0.3 ? 'flower' : null, neck: Math.random() < (head === 'tophat' ? 0.6 : 0.15) ? 'bowtie' : Math.random() < 0.14 ? 'pearls' : null, lash: Math.random() < (head === 'tiara' ? 0.65 : 0.18) ? 'lashes' : null, iris: Math.random() < 0.45 ? 'brown' : EYE_KEYS[1 + (Math.random() * 4 | 0)], eyes: ['round', 'round', 'edgy', 'dot'][(Math.random() * 4) | 0] }; } }
+function rollRivalLooks() { const heads = [null, null, 'halo', 'hat', 'pirate', 'tophat', 'tiara', 'bunny', 'skull']; for (const L of [LH, L2]) { const head = heads[Math.random() * heads.length | 0]; L.wearing = { head, back: null, mouth: Math.random() < 0.3 ? 'fangs' : null, eye: Math.random() < (head === 'pirate' ? 0.6 : 0.12) ? 'patch' : Math.random() < 0.14 ? 'glasses' : Math.random() < 0.1 ? 'hockey' : null, side: !head && Math.random() < 0.3 ? 'flower' : null, neck: Math.random() < (head === 'tophat' ? 0.6 : 0.15) ? 'bowtie' : Math.random() < 0.14 ? 'pearls' : null, lash: Math.random() < (head === 'tiara' ? 0.65 : 0.18) ? 'lashes' : null, iris: Math.random() < 0.45 ? 'brown' : EYE_KEYS[1 + (Math.random() * 4 | 0)], eyes: ['round', 'round', 'edgy', 'dot', 'sly'][(Math.random() * 5) | 0] }; } }
 // ---------- the slime in the game: one per blob, riding its body group. The old jelly ball stays underneath as the bead of paint you drip
 // in as on the customize screen, and is the whole look if the slime's models never arrive ----------
 const vOf = D => D === P ? VP : D.look && D.look.V;
@@ -14846,12 +14855,12 @@ const WEAR_WHERE = { island: 'Palette Island', blank: 'Blank Canvas', halloween:
 const EYE_COLS = { brown: { name: 'Brown', lin: [0.16, 0.06, 0.035], css: '#8A5636' }, blue: { name: 'Blue', lin: [0.03, 0.1, 0.32], css: '#3B7BE0' }, green: { name: 'Green', lin: [0.04, 0.18, 0.05], css: '#46A853' },
   violet: { name: 'Violet', lin: [0.14, 0.045, 0.28], css: '#8E52DA' }, gold: { name: 'Gold', lin: [0.34, 0.17, 0.016], css: '#D8A41F' } };
 const EYE_KEYS = Object.keys(EYE_COLS);
-const EYE_STYLES = { round: 'Round', edgy: 'Squid', dot: 'Dot', zombie: 'Zombie' }, EYE_STYLE_K = { round: 0, edgy: 1, dot: 2, zombie: 3 };
+const EYE_STYLES = { round: 'Round', edgy: 'Squid', dot: 'Dot', sly: 'Sly', zombie: 'Zombie' }, EYE_STYLE_K = { round: 0, edgy: 1, dot: 2, zombie: 3, sly: 4 };
 const NO_IRIS = k => k === 'dot' || k === 'zombie'; // (styles whose iris color is fixed)
 const WEAR_CAT = { head: 'head', side: 'head', eye: 'face', lash: 'face', mouth: 'face', neck: 'cloth', back: 'cloth' };
 for (const w of WEAR) w.cat = WEAR_CAT[w.slot] || 'face';
 // things to find and buy that are not worn on the body: an eye style
-const EXTRA = [{ id: 'zombie', name: 'Zombie eyes', slot: 'eyes', cat: 'eyes', season: 1, stage: 'halloween' }], ITEMS = WEAR.concat(EXTRA);
+const EXTRA = [{ id: 'zombie', name: 'Zombie eyes', slot: 'eyes', cat: 'eyes', season: 1, stage: 'halloween' }, { id: 'sly', name: 'Sly eyes', slot: 'eyes', cat: 'eyes' }], ITEMS = WEAR.concat(EXTRA);
 let lookCat = 'paint'; // the category open in the locker
 // showing off new eyes: the camera moves in on its face and it pulls a funny face (kind 0 an eye roll, 1 wide-eyed darting glances, 2 a
 // surprised look up then a flutter of blinks)
@@ -14867,7 +14876,7 @@ function eyeShowFace(E) {
 // what you've found so far (everything starts locked)
 const OWNED = new Set(Array.isArray(store.owned) ? store.owned.filter(id => ITEMS.some(w => w.id === id)) : []);
 // drops: paint earned at the end of a match. A found item goes on sale in the locker; it is worn once it is bought
-const PRICES = { flower: 170, pearls: 190, bowtie: 220, lashes: 260, glasses: 320, patch: 390, fangs: 470, tiara: 560, tophat: 680, bunny: 760, pirate: 820, hockey: 900, skull: 980, halo: 1000, zombie: 1150, hat: 1300 };
+const PRICES = { sly: 640, flower: 170, pearls: 190, bowtie: 220, lashes: 260, glasses: 320, patch: 390, fangs: 470, tiara: 560, tophat: 680, bunny: 760, pirate: 820, hockey: 900, skull: 980, halo: 1000, zombie: 1150, hat: 1300 };
 const OUTRIGHT = new Set(['flower', 'lashes', 'bowtie', 'pearls']), needFind = w => !OUTRIGHT.has(w.id) && (!!w.season || w.slot === 'head'); // (in stock from the start: nothing to find, only dabs to pay) // (what has to be found on a canvas before it is for sale)
 const PRICE = w => { const t = store.tut && store.tut.price; if (t && t[w.id] >= 0) return t[w.id]; if (w.id === 'zombie' && store.zombieDeal && !BOUGHT.has('zombie')) return Math.max(1, Math.floor((store.drops || 0) * 0.7)); /* (the first find of the season: always within reach) */ return PRICES[w.id] || (w.season ? 1000 : w.slot === 'head' ? 600 : 300); }; // (the lesson sets the flower's and the fangs' prices)
 const BOUGHT = new Set(Array.isArray(store.bought) ? store.bought.filter(id => OWNED.has(id)) : [...OWNED]);
@@ -15247,6 +15256,7 @@ const EYE_ICON = {
   cyclops: '<circle cx="20" cy="20" r="11" fill="#fff" stroke="#1A1030" stroke-width="2"/><circle cx="21" cy="21.5" r="5.2" fill="#1A1030"/><circle cx="23" cy="19" r="1.6" fill="#fff"/>',
 };
 const WEAR_ICON = {
+  sly: '<ellipse cx="21" cy="15.5" rx="15.5" ry="7.5" fill="#F2A6B8" opacity=".6"/><path d="M4.5 22.5c5-6 12-8.4 18.4-7.4 5.2.8 10 3 13.6 6.4-4 6-9.4 9.2-16.4 9.2S9 28 4.5 22.5z" fill="#fff" stroke="#171320" stroke-width="2.2" stroke-linejoin="round"/><circle cx="20.5" cy="23.5" r="6.3" fill="#D9D6E2" stroke="#4A2A33" stroke-width="1.4"/><circle cx="20.5" cy="23.5" r="2.2" fill="#7A3B3B"/><circle cx="18.6" cy="21.8" r="1.1" fill="#fff"/><path d="M4.5 22.5c5-6 12-8.4 18.4-7.4 5.2.8 10 3 13.6 6.4l-.6 1.4c-6.6-2.2-15-2.8-23.6-.6-3 .8-5.6 1-7.8.2z" fill="#C9808E"/><path d="M6.5 22.4c8-2.4 18-2.6 29.4.2" fill="none" stroke="#171320" stroke-width="2.8" stroke-linecap="round"/><path d="M33.5 22l5.4-4.6" stroke="#171320" stroke-width="2.6" stroke-linecap="round"/><path d="M8 11.5c6-4 14-5.6 20-4.4l6.5 2.6" fill="none" stroke="#8E4552" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>',
   skull: '<path d="M6 18c5-6 11-4 14 1 3-5 9-7 14-1 2 5-3 10-9 10-1 0-3-.3-5-1-2 .7-4 1-5 1-6 0-11-5-9-10z" fill="#FF7A1A" stroke="#171320" stroke-width="2.5" stroke-linejoin="round"/><path d="M12 20c3 2 5 2 8-1M28 20c-3 2-5 2-8-1" fill="none" stroke="#C84F0E" stroke-width="1.5" stroke-linecap="round"/><circle cx="20" cy="19.5" r="5" fill="#F2E8D8" stroke="#171320" stroke-width="2"/><circle cx="18.2" cy="18.8" r="1.1" fill="#171320"/><circle cx="21.8" cy="18.8" r="1.1" fill="#171320"/><path d="M18.5 22.5h3" stroke="#171320" stroke-width="1.2"/>',
   bunny: '<path d="M13 36c-4-9-5-20-1-31 3 1 6 9 7 19M27 36c4-9 5-20 1-31-3 1-6 9-7 19" fill="#F4E8DC" stroke="#171320" stroke-width="2.5" stroke-linejoin="round"/><path d="M14 29c-1.5-6-1.8-13 0-19 1.4 2 2.6 8 3 15M26 29c1.5-6 1.8-13 0-19-1.4 2-2.6 8-3 15" fill="#F58BB0"/><path d="M8 36h24" stroke="#171320" stroke-width="2.5" stroke-linecap="round"/>',
   hockey: '<path d="M20 4c8 0 13 6 13 15 0 9-5 17-13 17S7 28 7 19C7 10 12 4 20 4z" fill="#F1E6CF" stroke="#171320" stroke-width="2.5" stroke-linejoin="round"/><path d="M11 17c2-2 4.5-2 6.5 0M22.5 17c2-2 4.5-2 6.5 0" fill="none" stroke="#171320" stroke-width="2.6" stroke-linecap="round"/><g fill="#171320"><circle cx="20" cy="23" r="1.4"/><circle cx="16" cy="26.5" r="1.3"/><circle cx="24" cy="26.5" r="1.3"/><circle cx="18" cy="30.5" r="1.2"/><circle cx="22" cy="30.5" r="1.2"/><circle cx="13" cy="22" r="1.1"/><circle cx="27" cy="22" r="1.1"/></g><path d="M12 10l3 3M28 10l-3 3" stroke="#C8303A" stroke-width="2" stroke-linecap="round"/>',
@@ -15268,7 +15278,7 @@ const WEAR_ICON = {
   hat: '<path d="M14 26c3-6 5-13 9-19 1 4 2 9 4 13l-1 6z" fill="#4A3378" stroke="#D9C8FF" stroke-width="1.6" stroke-linejoin="round"/><ellipse cx="20" cy="27.5" rx="15" ry="3.6" fill="#4A3378" stroke="#D9C8FF" stroke-width="1.6"/><path d="M14.2 23.2c3.6 1.2 8.4 1.2 12.6 0l.5 2.6c-4.4 1.4-9.4 1.4-13.8 0z" fill="#FF8A1F"/>',
   horns: '<path d="M9 30c-1-8 1-15 6-19-1 5 0 10 3 14zM31 30c1-8-1-15-6-19 1 5 0 10-3 14z" fill="#E1283E" stroke="#FFC2CC" stroke-width="1.6" stroke-linejoin="round"/>',
 };
-const ES_ICON_T = { round: '<svg viewBox="0 0 40 40"><ellipse cx="20" cy="20" rx="13" ry="12" fill="#fff" stroke="#171320" stroke-width="2.5"/><circle cx="21" cy="21" r="6" fill="#8A5636"/><circle cx="21.5" cy="21.5" r="3" fill="#171320"/><circle cx="19" cy="18.5" r="1.6" fill="#fff"/></svg>', edgy: '<svg viewBox="0 0 40 40"><path d="M3 20C8 11 16 9 23 12L37 8L30 16C33 20 30 26 24 29L15 36L13 29C7 28 3 24 3 20Z" fill="#171320"/><path d="M10 20C13 14 20 13 26 16C25 23 18 27 11 25C9.5 24 9.5 22 10 20Z" fill="#fff"/><path d="M10 9L22 5L21 9Z" fill="#171320"/><circle cx="18.5" cy="19.5" r="5.6" fill="#8A5636"/><circle cx="19" cy="20" r="3" fill="#171320"/><circle cx="16.4" cy="17.2" r="1.9" fill="#fff"/></svg>', dot: '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="9.5" fill="#171320"/><circle cx="16.5" cy="16.5" r="3" fill="#fff"/></svg>' };; ES_ICON_T.zombie = '<svg viewBox="0 0 40 40">' + WEAR_ICON.zombie + '</svg>';
+const ES_ICON_T = { round: '<svg viewBox="0 0 40 40"><ellipse cx="20" cy="20" rx="13" ry="12" fill="#fff" stroke="#171320" stroke-width="2.5"/><circle cx="21" cy="21" r="6" fill="#8A5636"/><circle cx="21.5" cy="21.5" r="3" fill="#171320"/><circle cx="19" cy="18.5" r="1.6" fill="#fff"/></svg>', edgy: '<svg viewBox="0 0 40 40"><path d="M3 20C8 11 16 9 23 12L37 8L30 16C33 20 30 26 24 29L15 36L13 29C7 28 3 24 3 20Z" fill="#171320"/><path d="M10 20C13 14 20 13 26 16C25 23 18 27 11 25C9.5 24 9.5 22 10 20Z" fill="#fff"/><path d="M10 9L22 5L21 9Z" fill="#171320"/><circle cx="18.5" cy="19.5" r="5.6" fill="#8A5636"/><circle cx="19" cy="20" r="3" fill="#171320"/><circle cx="16.4" cy="17.2" r="1.9" fill="#fff"/></svg>', dot: '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="9.5" fill="#171320"/><circle cx="16.5" cy="16.5" r="3" fill="#fff"/></svg>' };; ES_ICON_T.zombie = '<svg viewBox="0 0 40 40">' + WEAR_ICON.zombie + '</svg>'; ES_ICON_T.sly = '<svg viewBox="0 0 40 40">' + WEAR_ICON.sly + '</svg>';
 function renderLook() {
   const fresh = new Set(store.fresh || []);
   if (EXTRA.some(x => x.id === myLook.eyes) && !bought(myLook.eyes)) { myLook.eyes = 'round'; saveLook(); }
