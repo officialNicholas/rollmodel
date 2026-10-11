@@ -6,7 +6,7 @@ own AI driving both blobs. Reports:
   - garbage collection pauses (from a trace) and the JS heap's sawtooth (allocation rate)
   - renderer.info: draw calls, triangles, shader programs, textures
 usage: perfprobe.py <tag> [seconds]"""
-import asyncio, json, sys, statistics
+import asyncio, json, os, sys, statistics
 from playwright.async_api import async_playwright
 TAG = sys.argv[1] if len(sys.argv) > 1 else 'base'; SECS = int(sys.argv[2]) if len(sys.argv) > 2 else 20; MODE = sys.argv[3] if len(sys.argv) > 3 else 'full'  # full | logic (rendering stubbed) | small (a tiny canvas, for render-side counts)
 UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1'
@@ -15,6 +15,7 @@ async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch(args=['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required'])
         ctx = await b.new_context(viewport={'width': 430, 'height': 754} if MODE != 'small' else {'width': 215, 'height': 377}, device_scale_factor=3 if MODE != 'small' else 1, has_touch=True, is_mobile=True, user_agent=UA)
+        if os.environ.get('SLIME'): await ctx.add_init_script("window.AXO_PACK = 'no-axo.txt'; Object.defineProperty(window, 'AXO_PACK_BUF', { set() {}, get() { return undefined; } });")
         await ctx.add_init_script("window.__tut = true; try { localStorage.setItem('paint-world-red.v1', JSON.stringify({ orient:'port', name:'Dusk', seen:{look:1}, drops: 50, runs: 5, flings: 50, tut: { ph: 'done' } })); } catch (e) {}")
         pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)[:300]))
         await pg.goto('http://localhost:8765/pc_perf.html', timeout=300000); await pg.wait_for_function('typeof __T === "object"', timeout=300000)

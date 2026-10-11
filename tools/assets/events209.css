@@ -1,0 +1,75 @@
+/* ---- v209: Play opens Choose Event (Solo, Versus CPU: 1v1 or 3-way, Showdown soon, the tutorial); the canvas vote follows it; the
+   canvases come off the home screen; the vote itself is a reel that spins and lands on the canvas with the most votes ---- */
+.mhome.lobby #stageBtn{display:none}
+.mhome.lobby .lgo{justify-content:center}
+#modes{display:none!important}
+body.evon .corner{display:none}
+.mevents{position:absolute;inset:0;z-index:4;overflow:hidden;background:#17131F;pointer-events:auto}
+.mevents[hidden]{display:none}
+.mevents::before{content:"";position:absolute;inset:0;background:var(--ink);clip-path:polygon(78% 0,100% 0,100% 100%,58% 100%)}
+.mevents .evwash{position:absolute;inset:0;clip-path:polygon(78% 0,100% 0,100% 100%,58% 100%);overflow:hidden;pointer-events:none}
+.mevents .evwash i{position:absolute;left:0;right:0;top:0;height:calc(100% + 1440px);background:rgba(23,19,32,.28);-webkit-mask:url(art/m_splat2.webp) 10px 20px/96px 96px repeat,url(art/m_splat.webp) 70px 90px/120px 120px repeat,url(art/m_drip.webp) 40px -10px/70px 90px repeat;mask:url(art/m_splat2.webp) 10px 20px/96px 96px repeat,url(art/m_splat.webp) 70px 90px/120px 120px repeat,url(art/m_drip.webp) 40px -10px/70px 90px repeat;animation:swashdrift 72s linear infinite}
+.evhead{position:absolute;left:0;right:0;top:0;z-index:2;display:flex;align-items:center;gap:14px;height:calc(max(14px,env(safe-area-inset-top)) + 56px);box-sizing:border-box;padding:max(14px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 0 max(14px,env(safe-area-inset-left))}
+.evhead .sback{position:relative;left:auto;top:auto}
+.evhead h2{margin:0;font:900 34px/1 var(--font-head);font-style:italic;text-transform:uppercase;color:#fff;text-shadow:.06em .06em 0 rgba(0,0,0,.6)}
+.evgrid{position:absolute;left:0;right:0;top:calc(max(14px,env(safe-area-inset-top)) + 70px);bottom:0;z-index:1;display:grid;grid-template-columns:minmax(0,1fr);align-content:start;gap:22px;padding:6px max(18px,env(safe-area-inset-right)) calc(max(16px,env(safe-area-inset-bottom)) + 16px) max(18px,env(safe-area-inset-left));overflow-y:auto;overscroll-behavior:contain}
+.evcard{position:relative;min-width:0;animation:evin .45s cubic-bezier(.2,1.2,.35,1) both}
+.evcard:nth-child(2){animation-delay:.05s}.evcard:nth-child(3){animation-delay:.1s}.evcard:nth-child(4){animation-delay:.15s}
+@keyframes evin{from{opacity:0;transform:translateX(40px)}}
+.evmain{appearance:none;position:relative;display:grid;grid-template-rows:auto auto auto;width:100%;margin:0;padding:0;border:0;background:none;color:#fff;text-align:left;cursor:pointer;transform:skewX(-5deg);-webkit-tap-highlight-color:transparent;transition:transform .14s cubic-bezier(.3,1.6,.5,1)}
+.evmain>*{box-shadow:0 0 0 2.5px #171320}
+.evbar{display:flex;align-items:center;justify-content:flex-end;height:22px;padding:0 12px;background:#0B0910;border-radius:6px 6px 0 0;font:800 11px/1 var(--font-ui);color:#B8B0C8;letter-spacing:.02em}
+.evbar i{font-style:normal;transform:skewX(5deg)}
+.evtop{position:relative;display:flex;align-items:center;gap:12px;min-height:64px;padding:8px 14px 8px 10px;background:linear-gradient(180deg,rgba(255,255,255,.24) 0%,rgba(255,255,255,0) 52%,rgba(0,0,0,.16) 100%),var(--ec);box-shadow:0 0 0 2.5px #171320,inset 0 -4px 0 rgba(0,0,0,.18)!important}
+.evic{flex:none;width:58px;height:58px;margin:-14px 0 -10px;transform:skewX(5deg) rotate(-4deg);filter:drop-shadow(0 4px 0 rgba(23,19,32,.5))}
+.evic svg{display:block;width:100%;height:100%}
+.evtx{display:grid;gap:4px;min-width:0;transform:skewX(5deg)}
+.evtx b{font:400 25px/1 var(--font-display);letter-spacing:.01em;text-transform:uppercase;text-shadow:0 3px 0 #171320,2px 0 0 #171320,-2px 0 0 #171320,0 -2px 0 #171320,1.5px 1.5px 0 #171320,-1.5px 1.5px 0 #171320}
+.evtx small{font:400 13px/1.1 var(--font-display);color:#fff;text-shadow:0 2px 0 #171320,1.3px 0 0 #171320,-1.3px 0 0 #171320,0 -1.3px 0 #171320}
+.evart{position:relative;display:block;height:78px;overflow:hidden;border-radius:0 0 6px 6px;background:#2A2437}
+.evart img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:skewX(5deg) scale(1.12);display:block}
+.evart::after{content:"";position:absolute;inset:0;box-shadow:inset 0 6px 10px rgba(0,0,0,.35)}
+.evmain:hover{transform:skewX(-5deg) translateY(-2px)}
+.evmain:active{transform:skewX(-5deg) translateY(3px)}
+.evmain:focus-visible{outline:3px solid var(--gold);outline-offset:4px}
+/* Versus: the choice drops down over the picture */
+.evdrop{position:absolute;left:0;right:0;bottom:0;height:78px;z-index:3;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:9px 10px;box-sizing:border-box;background:rgba(11,9,16,.92);border-radius:0 0 6px 6px;transform:skewX(-5deg);transform-origin:bottom}
+.evdrop[hidden]{display:none}
+.evcard.open .evdrop{animation:evdrop .3s cubic-bezier(.2,1.3,.35,1)}
+@keyframes evdrop{from{opacity:0;transform:skewX(-5deg) scaleY(.4)}}
+.evdrop button{appearance:none;display:grid;place-items:center;align-content:center;gap:3px;margin:0;padding:0;border:0;border-radius:7px;background:linear-gradient(180deg,#5B5580 0%,#47426A 55%,#3C3859 100%);box-shadow:0 0 0 2.5px #171320,inset 0 2px 0 rgba(255,255,255,.2),0 4px 0 #171320;color:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.evdrop button>*{transform:skewX(5deg)}
+.evdrop b{font:400 20px/1 var(--font-display);text-shadow:0 2px 0 #171320,1.4px 0 0 #171320,-1.4px 0 0 #171320,0 -1.4px 0 #171320}
+.evdrop small{font:800 10.5px/1 var(--font-ui);color:#D9D2F0}
+.evdrop button:active{transform:translateY(3px);box-shadow:0 0 0 2.5px #171320,inset 0 2px 0 rgba(255,255,255,.2),0 1px 0 #171320}
+.evdrop button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+/* Showdown: soon */
+.evcard.soon .evtop,.evcard.soon .evart{filter:grayscale(1) brightness(.62)}
+.evcard.soon .evbar{color:#7E7690}
+.evsoon{position:absolute;right:16px;bottom:14px;z-index:2;padding:5px 10px 4px;border-radius:5px;background:var(--gold);color:#171320;font:900 11px/1 var(--font-head);letter-spacing:.1em;text-transform:uppercase;transform:rotate(4deg);box-shadow:0 0 0 2.5px #171320,0 3px 0 #171320}
+.evtoast{position:absolute;left:50%;top:58%;z-index:4;padding:8px 14px 7px;border-radius:8px;background:#171320;color:#fff;font:800 13px/1 var(--font-ui);white-space:nowrap;box-shadow:0 0 0 2px #F2C14E;transform:translate(-50%,-50%);animation:evtoast 1.6s ease both;pointer-events:none}
+@keyframes evtoast{0%{opacity:0;transform:translate(-50%,-30%)}12%,80%{opacity:1;transform:translate(-50%,-50%)}100%{opacity:0;transform:translate(-50%,-60%)}}
+@media (min-aspect-ratio:1/1){.evgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 24px;padding-left:max(28px,env(safe-area-inset-left));padding-right:max(28px,env(safe-area-inset-right))}}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.evhead h2{font-size:28px}.evart{height:54px}.evdrop{height:54px;padding:6px 8px}.evdrop b{font-size:16px}.evdrop small{display:none}.evtop{min-height:52px}.evtx b{font-size:21px}.evic{width:48px;height:48px}.evgrid{gap:14px 20px}}
+@media (prefers-reduced-motion:reduce){.mevents .evwash i,.evcard,.evcard.open .evdrop{animation:none}}
+/* the vote: a reel of the canvases spinning to the right, landing with the winner big in the middle, its votes under it */
+.vreel{position:relative;height:118px;margin:2px -10px 0;overflow:hidden;background:#0B0910;box-shadow:inset 0 3px 0 rgba(255,255,255,.06),inset 0 -3px 0 rgba(255,255,255,.06)}
+.vtrack{position:absolute;left:0;top:50%;display:flex;gap:10px;margin-top:-34px;will-change:transform}
+.vcard{position:relative;flex:none;width:122px;height:68px;transform:skewX(-12deg);border-radius:6px;overflow:hidden;background:#2A2437;box-shadow:0 0 0 2px #171320;transition:transform .35s cubic-bezier(.2,1.5,.35,1),box-shadow .2s,filter .3s}
+.vcard img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:skewX(12deg) scale(1.2)}
+.vreel.landed .vcard:not(.win){filter:brightness(.45) saturate(.6)}
+.vcard.win{z-index:2;transform:skewX(-12deg) scale(1.38);box-shadow:0 0 0 3px #FFD84A,0 0 0 5px #171320,0 10px 24px rgba(0,0,0,.6)}
+.vcard .vcn{position:absolute;left:0;right:0;bottom:3px;transform:skewX(12deg);font:400 12px/1 var(--font-display);color:#FFD84A;text-align:center;text-shadow:0 2px 0 #171320,1.2px 0 0 #171320,-1.2px 0 0 #171320,0 -1.2px 0 #171320;opacity:0;transition:opacity .2s}
+.vcard.win .vcn{opacity:1}
+.vreel::before,.vreel::after{content:"";position:absolute;top:0;bottom:0;width:60px;z-index:3;pointer-events:none}
+.vreel::before{left:0;background:linear-gradient(90deg,#0B0910,rgba(11,9,16,0))}
+.vreel::after{right:0;background:linear-gradient(270deg,#0B0910,rgba(11,9,16,0))}
+.vtally{display:flex;align-items:center;justify-content:center;gap:10px;min-height:30px;margin-top:8px;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .35s cubic-bezier(.2,1.4,.35,1)}
+.vtally.on{opacity:1;transform:none}
+.vtally b{font:400 20px/1 var(--font-display);color:#fff;letter-spacing:.02em;text-transform:uppercase;text-shadow:0 2px 0 #171320}
+.vtally .vchips{display:flex;gap:4px}
+.vtally .vchips i{width:16px;height:16px;border-radius:50%;background:var(--c);box-shadow:0 0 0 2px #171320,inset 0 -3px 0 rgba(0,0,0,.25)}
+@media (prefers-reduced-motion:reduce){.vcard,.vtally{transition:none}}
+
+.vvote.reel .vtimer{display:none}
+.vvote.reel .vts{display:block}
