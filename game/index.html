@@ -2168,8 +2168,8 @@ svg{shape-rendering:geometricPrecision}
 .tut[data-style="call"][data-pos="top"]{top:22%}
 .tut.on[data-style="call"] .tcall{animation:tutin .36s cubic-bezier(.2,1.2,.4,1) both}
 /* behind the plate the screen goes dark, with a window left round what the plate points at; between matches only that window takes a tap */
-.tutdim{position:absolute;inset:0;z-index:59;pointer-events:none;background:rgba(23,19,32,.55);opacity:0;transition:opacity .25s,clip-path .22s;clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,50% 50%,50% 50%,50% 50%,50% 50%,50% 50%)}
-.tutdim.on{opacity:1}
+.tutdim{position:absolute;inset:0;z-index:59;pointer-events:none;background:rgba(23,19,32,.66);opacity:0;transition:opacity .25s,clip-path .22s;clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,50% 50%,50% 50%,50% 50%,50% 50%,50% 50%)}
+.tutdim.on{opacity:1;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)} /* (darker, and softly blurred, outside the window round what the tip is about) */
 .tutdim.on.block{pointer-events:auto}
 .menu.tutoring #commBtn,.menu.tutoring #howBtn{display:none}
 .menu.tutoring #modes,.menu.tutoring .wfoot .critics,.menu.tutoring #stages{display:none}
@@ -2230,7 +2230,7 @@ svg{shape-rendering:geometricPrecision}
 @media (prefers-reduced-motion:reduce){.tutarrow svg{animation:none}}
 /* the lesson's last word: the match holds still, a full card says what is left to do, and a button starts it again */
 .tutgo{position:absolute;inset:0;z-index:62;display:grid;place-items:center;padding:24px;box-sizing:border-box;background:rgba(23,19,32,.74);opacity:0;transition:opacity .25s}
-.tutgo.on{opacity:1}
+.tutgo.on{opacity:1;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
 .tutgo .tgcard{position:relative;display:grid;justify-items:center;gap:14px;width:min(100%,420px);box-sizing:border-box;padding:26px 22px 22px;border-radius:18px;color:#fff;text-align:center;background:repeating-linear-gradient(-56deg,rgba(14,12,20,.96) 0 18px,rgba(44,40,54,.96) 18px 36px);box-shadow:0 0 0 2px rgba(255,255,255,.12),0 18px 40px rgba(0,0,0,.5)}
 .tutgo.on .tgcard{animation:tutin .4s cubic-bezier(.2,1.2,.4,1) both}
 .tutgo .tava{width:84px;height:84px;border-radius:18px;margin-top:-62px;box-shadow:0 4px 0 rgba(0,0,0,.4),inset 0 0 0 3px rgba(255,255,255,.4)}
@@ -2492,7 +2492,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 201</p>
+      <p class="ver">Version 202</p>
     </div>
   </div>
 
