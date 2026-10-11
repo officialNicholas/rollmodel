@@ -81,8 +81,16 @@ class Src:
         """bilinear sample of the texture at glTF uv (v down from the top row): (n, 3) sRGB 0..1"""
         H, W = s.tex.shape[:2]; x = uv[:, 0] * W - 0.5; y = uv[:, 1] * H - 0.5
         return np.stack([map_coordinates(s.tex[:, :, c], [y, x], order=1, mode='nearest') for c in range(3)], 1)
-def load_tex(path):
-    im = Image.open(path).convert('RGB'); return np.asarray(im, dtype=np.float32) / 255.0
+def load_tex(path, fill_gutters=True):
+    """a baked atlas as float32 sRGB; the black between its islands filled with the nearest island's colour (a lookup landing a texel past
+    an island's edge then reads skin, not the gutter: that was a dark hairline wherever a runtime triangle straddled a source seam)"""
+    im = Image.open(path).convert('RGB'); tex = np.asarray(im, dtype=np.float32) / 255.0
+    if fill_gutters:
+        from scipy.ndimage import distance_transform_edt
+        empty = tex.max(2) < 0.03
+        if empty.any() and not empty.all():
+            _, (iy, ix) = distance_transform_edt(empty, return_indices=True); tex = tex[iy, ix]
+    return tex
 def source_crawl():
     from geo import M
     mc = M('crawl'); z = np.load(S + '/axo3/crawl_straight2.npz'); Pw = z['P'] * SC + np.array([0, Y0, Z0])
