@@ -40,6 +40,8 @@ function tutGest(kind) {
   if (!tutGestEl.firstChild) { const h = tutEl.querySelector('.thand'); tutGestEl.innerHTML = '<i class="gtrail"></i><i class="gring"></i><b class="ghand">' + (h ? h.innerHTML : '') + '</b>'; }
   if (tutGestEl.dataset.g !== k) { tutGestEl.dataset.g = k; tutGestEl.hidden = !k; }
 }
+// on the canvases page, upright, a loose tip sits under the page's header (in the room the hidden mode tabs leave) instead of over it
+function tutUnderHead(r0) { const w = $('mWorld'); if (w.hidden || innerWidth > innerHeight || menuPage !== 'worlds') return 0; const h = w.querySelector('.whead').getBoundingClientRect(); return h.height ? h.bottom - r0.top + 4 : 0; }
 function tutShow(text, at, key, call, nodim, side, loose) {
   if (tutTip && tutTip.key === key) return;
   tutTip = { text, at: at || null, key, call: !!call, nodim: !!(nodim || loose), side: side || null, loose: !!loose }; /* (loose: up top, a hand on the control, nothing dimmed or blocked) */ tutEl.dataset.style = call ? 'call' : 'coach'; if (call) tutCall.innerHTML = escAttr(text).replace(/\*([^*]+)\*/g, '<em>$1</em>'); else tutTxt.textContent = text; try { tutAva.innerHTML = '<span class="bico" style="--cd:#8C6A14">' + slimeIcon(0xF2C14E, lookOf(P)) + '</span>'; } catch (e) {} tutEl.hidden = false; tutEl.classList.remove('on'); void tutEl.offsetWidth; tutEl.classList.add('on');
@@ -70,7 +72,7 @@ function tutPlace() {
   if (state === 'play' || tutTip.loose) { // (in a match, or a loose tip: up top, the hand loose over the control, no dim)
     if (tutDim.classList.contains('on')) tutDim.classList.remove('on');
     if (tutEl.dataset.pos !== 'play') { tutEl.dataset.pos = 'play'; tutEl.style.cssText = ''; }
-    const sc = state !== 'play' ? null : tutPipsEl.classList.contains('on') ? tutPipsEl : document.querySelector('#hud .score'), sb = sc && sc.getBoundingClientRect(), t = (state !== 'play' ? Math.max(8, parseFloat(getComputedStyle(stage).paddingTop) || 0) : tutTip.call ? Math.max((sb && sb.height ? sb.bottom - r0.top : 90) + 10, r0.height * 0.4 - tutEl.offsetHeight / 2) : (sb && sb.height ? sb.bottom - r0.top : 90) + 10).toFixed(0) + 'px'; /* (a short callout goes mid-screen, where it can't be missed) */ if (tutEl.style.top !== t) tutEl.style.top = t;
+    const sc = state !== 'play' ? null : tutPipsEl.classList.contains('on') ? tutPipsEl : document.querySelector('#hud .score'), sb = sc && sc.getBoundingClientRect(), t = (state !== 'play' ? Math.max(8, parseFloat(getComputedStyle(stage).paddingTop) || 0, tutUnderHead(r0)) : tutTip.call ? Math.max((sb && sb.height ? sb.bottom - r0.top : 90) + 10, r0.height * 0.4 - tutEl.offsetHeight / 2) : (sb && sb.height ? sb.bottom - r0.top : 90) + 10).toFixed(0) + 'px'; /* (a short callout goes mid-screen, where it can't be missed) */ if (tutEl.style.top !== t) tutEl.style.top = t;
     tutHandAt(el && !el.closest('[hidden]') && el.getClientRects().length ? el : null, r0);
     if (state === 'play') { const pb = (parseFloat(tutEl.style.top) || 90) + tutEl.offsetHeight + 14, pt = pb.toFixed(0) + 'px', pe = $('pop'); if (pe.style.top !== pt) { pe.style.top = pt; popMoved = true; } } // (the pop text drops under the tip, not over it)
     return;
@@ -310,7 +312,7 @@ function tutMenuTick() {
     return tutShow('Open your locker to wear your fangs and flower', 'lookBtn', 'locker');
   }
   if (shopOpen) return tutShow('Back to the lobby', 'shopBack', 'back'); if (lookOpen) return tutShow('Done', 'lookDone', 'done');
-  if (menuPage === 'worlds') return tutShow('Swipe the paintings and pick one: that\u2019s your vote. Rivals vote too, and most votes wins. Then Play', 'startBtn', 'start', false, true, null, true);
+  if (menuPage === 'worlds') return innerWidth > innerHeight && innerHeight < 520 ? tutShow('*SWIPE* to pick your painting, then tap *PLAY*', 'startBtn', 'startS', true, true, null, true) : tutShow('Swipe the paintings and pick one: that\u2019s your vote. Rivals vote too, and most votes wins. Then Play', 'startBtn', 'start', false, true, null, true); /* (a short screen gets a one-line callout, so the paintings stay clear) */
   return tutShow('Time for a real match. Pick a canvas to vote for', 'stageBtn', 'pick');
 }
 $('tutReplay').addEventListener('click', () => { AU.init(); AU.ui(); store.tut = { ph: 'match' }; save(); closeSettings(); });

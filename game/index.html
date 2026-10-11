@@ -2309,6 +2309,18 @@ html.touchnav :focus-visible{outline:none!important}
 .orient .ocard .oart{align-self:center}
 .orient #orientOk{margin-top:4px}
 @media (min-aspect-ratio:1/1) and (max-height:520px){.orient .obody{gap:12px}.orient .ocards{margin-top:14px;width:min(100%,520px)}.orient #orientOk{margin-top:0}}
+@media (max-aspect-ratio:1/1){
+  .menu.tutoring .mworld #modes{display:block!important;visibility:hidden;height:126px;margin:0;pointer-events:none}
+  .menu.tutoring .mworld .gallery{grid-row:3}
+  .menu.tutoring .mworld #gDots{grid-row:4}
+  .menu.tutoring .mworld .wfoot{grid-row:5}
+  .menu.tutoring #soloNote{display:none}
+  .mworld .gnav{top:var(--gmid,54%)}
+  .menu.tutoring .mworld .wfoot{margin-top:18px}
+}
+@media (min-aspect-ratio:1/1) and (max-height:520px){.menu.tutoring .mworld .whead h2{visibility:hidden}}
+#stagePick .world{scroll-snap-align:none}
+#stagePick .world .frame{scroll-snap-align:center}
 </style>
 
 <div id="stage">
@@ -2407,7 +2419,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 190</p>
+      <p class="ver">Version 191</p>
     </div>
   </div>
 
@@ -12992,6 +13004,14 @@ function renderStages() {
 // ---------- the world select: a gallery of framed paintings. On a phone it's a carousel, and the painting in the middle is the one you'll play ----------
 let menuPage = 'home', galT = 0;
 const gallery = $('stagePick'), worldBtns = [...gallery.querySelectorAll('.world')];
+/* the side padding matches the painting's real width (it changes with the screen), so the first and last can sit dead centre too */
+{ let gpW = 0, gpQ = 0; const gpFit = () => { gpQ = 0; const on = worldBtns.find(b => b.getAttribute('aria-pressed') === 'true') || worldBtns[0]; if (!on || !gallery.clientWidth || !on.offsetWidth) return;
+    const mw = $('mWorld'), gr = gallery.getBoundingClientRect(), mr = mw.getBoundingClientRect(); mw.style.setProperty('--gmid', Math.round(gr.top - mr.top + gr.height / 2) + 'px'); /* (the arrows' height: the middle of the gallery) */
+    const fr = on.querySelector('.frame') || on, fl = fr === on ? 0 : fr.offsetLeft, fw = fr.offsetWidth, ww = on.offsetWidth, cw = gallery.clientWidth; /* (the frame can be wider than its button: centre the frame) */
+    const pl = Math.max(12, Math.round(cw / 2 - fl - fw / 2)), pr = Math.max(12, Math.round(cw / 2 + fl + fw / 2 - ww)); if (pl + ',' + pr !== gpW) { gpW = pl + ',' + pr; gallery.style.paddingLeft = pl + 'px'; gallery.style.paddingRight = pr + 'px'; }
+    if (gallery.scrollWidth > cw + 4) gallery.scrollLeft = on.offsetLeft + fl + fw / 2 - cw / 2; };
+  const gpSoon = () => { if (!gpQ) gpQ = requestAnimationFrame(gpFit); }; /* (next frame, never inside the resize callback: no observer loop) */
+  if (window.ResizeObserver) new ResizeObserver(gpSoon).observe(gallery); addEventListener('resize', gpSoon); window.__gpFit = gpSoon; }
 const W_DROP = '<svg class="wdrop" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8c3.6 4.5 6.3 8 6.3 11.4a6.3 6.3 0 0 1-12.6 0c0-3.4 2.7-6.9 6.3-11.4z"/></svg>', W_CROWN = '<svg class="wcrown" viewBox="0 0 30 24" aria-hidden="true"><path d="M3.5 20.5 2 7l7.2 5.2L15 3l5.8 9.2L28 7l-1.5 13.5z"/></svg>';
 const worldKey = () => (GEN.themes && GEN.themes.length === 1 && !SEASON.themes.includes(GEN.themes[0]) && STAGE_KEY[GEN.themes[0]]) || 's' + SEASON.n;
 const galScrolls = () => gallery.scrollWidth > gallery.clientWidth + 4;
@@ -13021,7 +13041,7 @@ function selectWorld(s) {
   // the new canvas builds just after, so the tap answers first
   if (state === 'menu') setTimeout(() => { if (state !== 'menu' || building || stageSel !== s) return; freshMap(); resetRun(); decorate(); menuPose(); renderStages(); kick($('cvName'), 'bump'); }, 40);
 }
-function centerWorld(b, smooth) { if (!galScrolls() || !b) return; gallery.scrollTo({ left: b.offsetLeft + b.offsetWidth / 2 - gallery.clientWidth / 2, behavior: smooth ? 'smooth' : 'auto' }); }
+function centerWorld(b, smooth) { if (!galScrolls() || !b) return; const fr = b.querySelector('.frame'); gallery.scrollTo({ left: b.offsetLeft + (fr ? fr.offsetLeft + fr.offsetWidth / 2 : b.offsetWidth / 2) - gallery.clientWidth / 2, behavior: smooth ? 'smooth' : 'auto' }); }
 gallery.addEventListener('click', e => {
   const t = e.target.closest('.world'); if (!t) return;
   if (t.dataset.s === 'season') { centerWorld(t, true); selectWorld('season'); openSeason(); return; }
@@ -14498,6 +14518,8 @@ function tutGest(kind) {
   if (!tutGestEl.firstChild) { const h = tutEl.querySelector('.thand'); tutGestEl.innerHTML = '<i class="gtrail"></i><i class="gring"></i><b class="ghand">' + (h ? h.innerHTML : '') + '</b>'; }
   if (tutGestEl.dataset.g !== k) { tutGestEl.dataset.g = k; tutGestEl.hidden = !k; }
 }
+// on the canvases page, upright, a loose tip sits under the page's header (in the room the hidden mode tabs leave) instead of over it
+function tutUnderHead(r0) { const w = $('mWorld'); if (w.hidden || innerWidth > innerHeight || menuPage !== 'worlds') return 0; const h = w.querySelector('.whead').getBoundingClientRect(); return h.height ? h.bottom - r0.top + 4 : 0; }
 function tutShow(text, at, key, call, nodim, side, loose) {
   if (tutTip && tutTip.key === key) return;
   tutTip = { text, at: at || null, key, call: !!call, nodim: !!(nodim || loose), side: side || null, loose: !!loose }; /* (loose: up top, a hand on the control, nothing dimmed or blocked) */ tutEl.dataset.style = call ? 'call' : 'coach'; if (call) tutCall.innerHTML = escAttr(text).replace(/\*([^*]+)\*/g, '<em>$1</em>'); else tutTxt.textContent = text; try { tutAva.innerHTML = '<span class="bico" style="--cd:#8C6A14">' + slimeIcon(0xF2C14E, lookOf(P)) + '</span>'; } catch (e) {} tutEl.hidden = false; tutEl.classList.remove('on'); void tutEl.offsetWidth; tutEl.classList.add('on');
@@ -14528,7 +14550,7 @@ function tutPlace() {
   if (state === 'play' || tutTip.loose) { // (in a match, or a loose tip: up top, the hand loose over the control, no dim)
     if (tutDim.classList.contains('on')) tutDim.classList.remove('on');
     if (tutEl.dataset.pos !== 'play') { tutEl.dataset.pos = 'play'; tutEl.style.cssText = ''; }
-    const sc = state !== 'play' ? null : tutPipsEl.classList.contains('on') ? tutPipsEl : document.querySelector('#hud .score'), sb = sc && sc.getBoundingClientRect(), t = (state !== 'play' ? Math.max(8, parseFloat(getComputedStyle(stage).paddingTop) || 0) : tutTip.call ? Math.max((sb && sb.height ? sb.bottom - r0.top : 90) + 10, r0.height * 0.4 - tutEl.offsetHeight / 2) : (sb && sb.height ? sb.bottom - r0.top : 90) + 10).toFixed(0) + 'px'; /* (a short callout goes mid-screen, where it can't be missed) */ if (tutEl.style.top !== t) tutEl.style.top = t;
+    const sc = state !== 'play' ? null : tutPipsEl.classList.contains('on') ? tutPipsEl : document.querySelector('#hud .score'), sb = sc && sc.getBoundingClientRect(), t = (state !== 'play' ? Math.max(8, parseFloat(getComputedStyle(stage).paddingTop) || 0, tutUnderHead(r0)) : tutTip.call ? Math.max((sb && sb.height ? sb.bottom - r0.top : 90) + 10, r0.height * 0.4 - tutEl.offsetHeight / 2) : (sb && sb.height ? sb.bottom - r0.top : 90) + 10).toFixed(0) + 'px'; /* (a short callout goes mid-screen, where it can't be missed) */ if (tutEl.style.top !== t) tutEl.style.top = t;
     tutHandAt(el && !el.closest('[hidden]') && el.getClientRects().length ? el : null, r0);
     if (state === 'play') { const pb = (parseFloat(tutEl.style.top) || 90) + tutEl.offsetHeight + 14, pt = pb.toFixed(0) + 'px', pe = $('pop'); if (pe.style.top !== pt) { pe.style.top = pt; popMoved = true; } } // (the pop text drops under the tip, not over it)
     return;
@@ -14770,7 +14792,7 @@ function tutMenuTick() {
     return tutShow('Open your locker to wear your fangs and flower', 'lookBtn', 'locker');
   }
   if (shopOpen) return tutShow('Back to the lobby', 'shopBack', 'back'); if (lookOpen) return tutShow('Done', 'lookDone', 'done');
-  if (menuPage === 'worlds') return tutShow('Swipe the paintings and pick one: that\u2019s your vote. Rivals vote too, and most votes wins. Then Play', 'startBtn', 'start', false, true, null, true);
+  if (menuPage === 'worlds') return innerWidth > innerHeight && innerHeight < 520 ? tutShow('*SWIPE* to pick your painting, then tap *PLAY*', 'startBtn', 'startS', true, true, null, true) : tutShow('Swipe the paintings and pick one: that\u2019s your vote. Rivals vote too, and most votes wins. Then Play', 'startBtn', 'start', false, true, null, true); /* (a short screen gets a one-line callout, so the paintings stay clear) */
   return tutShow('Time for a real match. Pick a canvas to vote for', 'stageBtn', 'pick');
 }
 $('tutReplay').addEventListener('click', () => { AU.init(); AU.ui(); store.tut = { ph: 'match' }; save(); closeSettings(); });
