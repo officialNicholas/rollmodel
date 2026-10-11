@@ -2297,6 +2297,49 @@ svg{shape-rendering:geometricPrecision}
 @keyframes gswipe{0%{transform:translateY(20px) scale(.92);opacity:0}12%{opacity:1}55%{transform:translateY(-100px) scale(.92);opacity:1}80%,100%{transform:translateY(-120px);opacity:0}}
 @keyframes gswipetrail{0%,20%{opacity:0}45%{opacity:.85}80%,100%{opacity:0}}
 @media (prefers-reduced-motion:reduce){.tutgest .ghand,.tutgest .gring,.tutgest .gtrail{animation:none!important}.tutgest .gtrail{opacity:.6}}
+
+/* ---- the coach in person (art/coach.webp, half his body) ---- */
+/* in a match: up out of a bottom corner while he talks, a slow bob while he waits, a bounce on each new line */
+.coachpop{position:absolute;bottom:0;z-index:59;width:clamp(130px,40vw,196px);aspect-ratio:640/596;pointer-events:none;transform:translateY(106%);transition:transform .24s cubic-bezier(.5,0,.75,0)}
+.coachpop[data-side="r"]{right:env(safe-area-inset-right,0px)}
+.coachpop[data-side="l"]{left:env(safe-area-inset-left,0px)}
+.coachpop.on{transform:none;transition:transform .46s cubic-bezier(.25,1.4,.45,1)}
+.coachpop.oncard{z-index:63}
+.coachpop b{display:block;width:100%;height:100%;background:url(art/coach.webp) center bottom/contain no-repeat;transform-origin:50% 100%;filter:drop-shadow(0 0 10px rgba(23,19,32,.35));animation:coachbob 2.8s ease-in-out infinite}
+.coachpop[data-side="l"] b{scale:-1 1}
+.coachpop.talk b{animation:coachtalk .5s cubic-bezier(.3,1.5,.5,1),coachbob 2.8s .5s ease-in-out infinite}
+@keyframes coachbob{0%,100%{transform:none}50%{transform:translateY(-3px) rotate(-1.2deg)}}
+@keyframes coachtalk{0%{transform:none}35%{transform:scale(1.05,.95) translateY(2px)}70%{transform:scale(.98,1.03) translateY(-3px)}100%{transform:none}}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.coachpop{width:clamp(104px,32vh,168px)}}
+/* his line in a match: a bubble just over him, its tail on his head */
+.tut[data-pos="dock"]{top:auto;transform:none;max-width:min(46vw,250px)}
+.tut[data-pos="dock"][data-side="r"]{left:auto;right:calc(env(safe-area-inset-right,0px) + 8px)}
+.tut[data-pos="dock"][data-side="l"]{left:calc(env(safe-area-inset-left,0px) + 8px);max-width:min(40vw,340px)}
+.tut[data-pos="dock"] .tplate{min-width:0;grid-template-columns:minmax(0,1fr);padding:8px 13px 11px;border-radius:13px;transform-origin:var(--tx,70%) 100%}
+.tut[data-pos="dock"] .tava,.tut[data-pos="dock"] .tbust{display:none}
+.tut[data-pos="dock"] .tname{min-width:0;margin-bottom:6px;padding-bottom:4px;border-bottom-width:2px;font-size:15px}
+.tut[data-pos="dock"] .ttext{font-size:15px;line-height:1.2}
+.tut[data-pos="dock"][data-side="r"] .ttext{font-size:14px}
+.tuthand.wait,.tutgest.wait{opacity:0!important}
+.tut[data-pos="dock"] .tplate::after{content:"";position:absolute;top:calc(100% - 1px);left:var(--tx,70%);width:26px;height:15px;margin-left:-13px;background:rgba(29,26,37,.9);clip-path:polygon(0 0,100% 0,46% 100%)}
+.tut.on[data-pos="dock"] .tplate{animation:tutdock .36s cubic-bezier(.2,1.3,.4,1) both}
+@keyframes tutdock{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+/* between matches: he leans up out of his plate, his gills over its edge */
+.tut{--bw:138px}
+.tut[data-pos="play"]{--bw:112px}
+.tut .tbust{display:none}
+.tut[data-coach="bust"] .tava{display:none}
+.tut[data-coach="bust"] .tbust{display:block;position:absolute;left:-16px;bottom:0;width:var(--bw);aspect-ratio:640/596;background:url(art/coach.webp) center bottom/contain no-repeat;pointer-events:none;filter:drop-shadow(2px 3px 0 rgba(0,0,0,.28))}
+.tut[data-coach="bust"] .tplate{grid-template-columns:minmax(0,1fr);padding-left:calc(var(--bw) - 12px)}
+.tut[data-coach="bust"] .tname{min-width:0}
+.tut[data-coach="bust"][data-cside="r"] .tbust{left:auto;right:-16px;scale:-1 1}
+.tut[data-coach="bust"][data-cside="r"] .tplate{padding-left:18px;padding-right:calc(var(--bw) - 12px)}
+@media (max-width:420px){.tut{--bw:124px}.tut[data-pos="play"]{--bw:108px}}
+/* over a card: he looks over its top edge (with no room above it he comes up in the corner beside it) */
+.tutgo .tgcard .tava{position:absolute;left:50%;bottom:calc(100% - 3px);width:min(188px,46vw);height:auto;aspect-ratio:640/596;margin:0;transform:translateX(-50%);border-radius:0;background:url(art/coach.webp) center bottom/contain no-repeat;box-shadow:none;overflow:visible;pointer-events:none;visibility:hidden}
+.tutgo.peek .tgcard .tava{visibility:visible}
+.tutgo .tgcard .tava>*{display:none}
+@media (prefers-reduced-motion:reduce){.coachpop b,.coachpop.talk b{animation:none}.tut.on[data-pos="dock"] .tplate{animation:none}}
 .errline{position:absolute;left:8px;right:8px;bottom:max(8px,env(safe-area-inset-bottom));z-index:99;margin:0;padding:6px 10px;background:rgba(23,19,32,.88);color:#FFD86B;font:600 11px/1.3 ui-monospace,Menlo,monospace;border-radius:6px;pointer-events:none;word-break:break-all}
 #lastErr{font:600 10px/1.3 ui-monospace,Menlo,monospace;word-break:break-all;opacity:.8}
 .lcat.fresh,.ltile.fresh,.eyes.fresh{box-shadow:0 0 0 3px var(--gold),0 0 16px 2px rgba(242,193,78,.6)!important;animation:lkfresh 1.5s ease-in-out infinite}
@@ -2370,7 +2413,7 @@ html.touchnav :focus-visible{outline:none!important}
   <svg class="sling" id="sling" aria-hidden="true"><line id="slBandO" x1="0" y1="0" x2="0" y2="0"/><line id="slBand" x1="0" y1="0" x2="0" y2="0"/><circle id="slA" r="15"/><circle id="slB" r="11"/></svg>
   <div class="pop" id="pop"></div>
   <div class="hint" id="hint" aria-live="polite"><span id="hintText"></span></div>
-  <div class="tutslow" id="tutSlow" aria-hidden="true"></div><p class="errline" id="errLine" hidden></p><i class="tuthand" id="tutHand" hidden aria-hidden="true"></i><section class="tutgo" id="tutGo" hidden role="dialog" aria-modal="true" aria-labelledby="tgTitle"><div class="tgcard"><span class="tava" id="tgAva" aria-hidden="true"></span><b class="tname">Coach</b><h2 id="tgTitle">Now <em>win it!</em></h2><p id="tgText">Beat him and cover as much of the canvas as you can. Bonus points every time you take him out.</p><button class="btn play sm" id="tgGo" type="button">Let&rsquo;s do it!</button><button id="tgLater" type="button" hidden>Later</button></div></section><div class="tutpips" id="tutPips" aria-hidden="true"></div><p class="tutpraise" id="tutPraise" aria-live="polite"></p><i class="tutarrow" id="tutArrow" hidden aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M8 17h18V7l17 17-17 17V31H8z"/></svg></i><div class="tutdim" id="tutDim" aria-hidden="true"></div><div class="tut" id="tut" hidden data-pos="top" role="status" aria-live="polite"><div class="tplate"><b class="tname">Coach</b><span class="tava" id="tutAva" aria-hidden="true"></span><span class="ttext" id="tutText"></span></div><p class="tcall" id="tutCall"></p><i class="thand" aria-hidden="true"><svg viewBox="0 0 64 84"><g fill="#F2C08A" stroke="#171320" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"><path d="M18 16c0-8 6-13 14-13h13c9 0 16 7 16 16v15c0 10-7 18-16 20H30c-6 0-10-3-12-9z"/><path d="M45 19c7-2 12 3 10 9M45 31c7-2 12 3 10 9M43 43c6-2 10 3 8 8" fill="none"/><path d="M18 16v53c0 6 4 11 9.5 11S37 75 37 69V34"/></g><ellipse cx="27.5" cy="71" rx="5" ry="4" fill="#E39A66"/></svg></i></div>
+  <div class="tutslow" id="tutSlow" aria-hidden="true"></div><p class="errline" id="errLine" hidden></p><i class="tuthand" id="tutHand" hidden aria-hidden="true"></i><section class="tutgo" id="tutGo" hidden role="dialog" aria-modal="true" aria-labelledby="tgTitle"><div class="tgcard"><span class="tava" id="tgAva" aria-hidden="true"></span><b class="tname">Ol&rsquo; Bloop</b><h2 id="tgTitle">Now <em>win it!</em></h2><p id="tgText">Beat him and cover as much of the canvas as you can. Bonus points every time you take him out.</p><button class="btn play sm" id="tgGo" type="button">Let&rsquo;s do it!</button><button id="tgLater" type="button" hidden>Later</button></div></section><div class="tutpips" id="tutPips" aria-hidden="true"></div><p class="tutpraise" id="tutPraise" aria-live="polite"></p><i class="tutarrow" id="tutArrow" hidden aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M8 17h18V7l17 17-17 17V31H8z"/></svg></i><div class="tutdim" id="tutDim" aria-hidden="true"></div><div class="tut" id="tut" hidden data-pos="top" role="status" aria-live="polite"><div class="tplate"><b class="tname">Ol&rsquo; Bloop</b><span class="tava" id="tutAva" aria-hidden="true"></span><span class="ttext" id="tutText"></span></div><p class="tcall" id="tutCall"></p><i class="thand" aria-hidden="true"><svg viewBox="0 0 64 84"><g fill="#F2C08A" stroke="#171320" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"><path d="M18 16c0-8 6-13 14-13h13c9 0 16 7 16 16v15c0 10-7 18-16 20H30c-6 0-10-3-12-9z"/><path d="M45 19c7-2 12 3 10 9M45 31c7-2 12 3 10 9M43 43c6-2 10 3 8 8" fill="none"/><path d="M18 16v53c0 6 4 11 9.5 11S37 75 37 69V34"/></g><ellipse cx="27.5" cy="71" rx="5" ry="4" fill="#E39A66"/></svg></i></div>
   <div class="threat" id="threat" aria-live="assertive"><b>!</b><span id="threatText">Missile!</span></div>
   <div class="threatArrow" id="threatArrow" aria-hidden="true"><i>!</i><u><b></b></u></div>
   <div class="banner" id="banner" aria-live="polite"><div class="plate"><span class="pem" id="bannerEm" aria-hidden="true"><i></i></span><div class="ptxt"><p id="bannerBig"></p><p id="bannerSmall"></p></div></div></div>
@@ -2436,7 +2479,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 198</p>
+      <p class="ver">Version 199</p>
     </div>
   </div>
 
@@ -14539,11 +14582,25 @@ function tutGest(kind) {
   if (!tutGestEl.firstChild) { const h = tutEl.querySelector('.thand'); tutGestEl.innerHTML = '<i class="gtrail"></i><i class="gring"></i><b class="ghand">' + (h ? h.innerHTML : '') + '</b>'; }
   if (tutGestEl.dataset.g !== k) { tutGestEl.dataset.g = k; tutGestEl.hidden = !k; }
 }
+// the coach himself (art/coach.webp, half his body). In a match he comes up out of a bottom corner while he talks, his line in a bubble just
+// over him: the right corner upright (the item button has the left), the left one on a short sideways screen (the buttons are on the right).
+// Between matches he leans up out of his plate; over a card he looks over its top edge, or with no room above it stands in the corner beside it.
+const coachEl = document.createElement('i'); coachEl.className = 'coachpop'; coachEl.hidden = true; coachEl.setAttribute('aria-hidden', 'true'); coachEl.innerHTML = '<b></b>';
+const tutBust = document.createElement('i'); tutBust.className = 'tbust'; tutBust.setAttribute('aria-hidden', 'true'); tutEl.querySelector('.tplate').prepend(tutBust);
+let coachOffT = 0;
+function coachCorner(side, top) {
+  if (!coachEl.parentNode) stage.appendChild(coachEl);
+  if (!side) { if (coachEl.classList.contains('on')) { coachEl.classList.remove('on'); clearTimeout(coachOffT); coachOffT = setTimeout(() => { if (!coachEl.classList.contains('on')) coachEl.hidden = true; }, 360); } return; }
+  clearTimeout(coachOffT); if (coachEl.dataset.side !== side) coachEl.dataset.side = side; if (coachEl.classList.contains('oncard') !== !!top) coachEl.classList.toggle('oncard', !!top);
+  if (coachEl.hidden) { coachEl.hidden = false; void coachEl.offsetWidth; } if (!coachEl.classList.contains('on')) coachEl.classList.add('on');
+}
+const coachSide = () => viewW > viewH && viewH <= 520 ? 'l' : 'r'; // (the buttons' own sides: see .itemBtn and .slamBtn)
+function coachTalk() { coachEl.classList.remove('talk'); void coachEl.offsetWidth; coachEl.classList.add('talk'); }
 // on the canvases page, upright, a loose tip sits under the page's header (in the room the hidden mode tabs leave) instead of over it
 function tutUnderHead(r0) { const w = $('mWorld'); if (w.hidden || innerWidth > innerHeight || menuPage !== 'worlds') return 0; const h = w.querySelector('.whead').getBoundingClientRect(); return h.height ? h.bottom - r0.top + 4 : 0; }
 function tutShow(text, at, key, call, nodim, side, loose) {
   if (tutTip && tutTip.key === key) return;
-  tutTip = { text, at: at || null, key, call: !!call, nodim: !!(nodim || loose), side: side || null, loose: !!loose }; /* (loose: up top, a hand on the control, nothing dimmed or blocked) */ tutEl.dataset.style = call ? 'call' : 'coach'; if (call) tutCall.innerHTML = escAttr(text).replace(/\*([^*]+)\*/g, '<em>$1</em>'); else tutTxt.textContent = text; try { tutAva.innerHTML = '<span class="bico" style="--cd:#8C6A14">' + slimeIcon(0xF2C14E, lookOf(P)) + '</span>'; } catch (e) {} tutEl.hidden = false; tutEl.classList.remove('on'); void tutEl.offsetWidth; tutEl.classList.add('on');
+  tutTip = { text, at: at || null, key, call: !!call, nodim: !!(nodim || loose), side: side || null, loose: !!loose }; /* (loose: up top, a hand on the control, nothing dimmed or blocked) */ tutEl.dataset.style = call ? 'call' : 'coach'; if (call) tutCall.innerHTML = escAttr(text).replace(/\*([^*]+)\*/g, '<em>$1</em>'); else tutTxt.textContent = text; if (!call && coachEl.classList.contains('on')) coachTalk(); tutEl.hidden = false; tutEl.classList.remove('on'); void tutEl.offsetWidth; tutEl.classList.add('on');
   const el = tutAt(); if (el) tutReveal(el);
   tutPlace(); tutDim.classList.toggle('on', !nodim && !loose && state !== 'play'); AU.plop(); // (no dim in a match: the play must stay clear)
   tutGest(state === 'play' ? TUT_GEST[key] : null);
@@ -14554,13 +14611,13 @@ function tutReveal(el) {
   if (sc.classList.contains('lrail')) sc.scrollLeft += (r.left + r.width / 2) - (g.left + g.width / 2); else sc.scrollTop += (r.top + r.height / 2) - (g.top + g.height / 2);
 }
 // the loose hand: over a control, fingertip on its top edge
-function tutHandAt(el, r0) {
+function tutHandAt(el, r0, nudge) {
   if (!el) { if (!tutHandEl.hidden) tutHandEl.hidden = true; return; }
   if (!tutHandEl.firstChild) tutHandEl.innerHTML = tutEl.querySelector('.thand').innerHTML;
-  const r = el.getBoundingClientRect(), x = (r.left - r0.left + r.width / 2 - 22).toFixed(0) + 'px', y = (r.top - r0.top - 62).toFixed(0) + 'px';
+  const r = el.getBoundingClientRect(), x = (r.left - r0.left + r.width * (0.5 + (nudge || 0)) - 22).toFixed(0) + 'px', y = (r.top - r0.top - 62).toFixed(0) + 'px';
   if (tutHandEl.hidden) tutHandEl.hidden = false; if (tutHandEl.style.left !== x) tutHandEl.style.left = x; if (tutHandEl.style.top !== y) tutHandEl.style.top = y;
 }
-function tutHide() { tutHandAt(null); tutGest(null); if (!tutTip) return; tutTip = null; tutEl.classList.remove('on'); tutEl.hidden = true; tutDim.classList.remove('on'); }
+function tutHide() { tutHandAt(null); tutGest(null); if ($('tutGo').hidden) coachCorner(null); if (!tutTip) return; tutTip = null; tutEl.classList.remove('on'); tutEl.hidden = true; tutDim.classList.remove('on'); }
 function tutWindow(x, y, w, h) { const x0 = x.toFixed(0), y0 = y.toFixed(0), x1 = (x + w).toFixed(0), y1 = (y + h).toFixed(0), c = x0 + ' ' + y0 + ' ' + x1 + ' ' + y1; if (tutDim.dataset.w === c) return; tutDim.dataset.w = c;
   tutDim.style.clipPath = 'polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,' + x0 + 'px ' + y0 + 'px,' + x0 + 'px ' + y1 + 'px,' + x1 + 'px ' + y1 + 'px,' + x1 + 'px ' + y0 + 'px,' + x0 + 'px ' + y0 + 'px)'; }
 const tutAt = () => !tutTip || !tutTip.at ? null : typeof tutTip.at === 'string' ? $(tutTip.at) : typeof tutTip.at === 'function' ? tutTip.at() : tutTip.at;
@@ -14568,10 +14625,21 @@ const tutAt = () => !tutTip || !tutTip.at ? null : typeof tutTip.at === 'string'
 function tutPlace() {
   if (!tutTip) return; if (window.scrollY || window.scrollX) try { window.scrollTo(0, 0); } catch (e) {} // (a phone's page scroll would put the hand off its mark)
   const el = tutAt(), r0 = stage.getBoundingClientRect(), block = state !== 'play' && !tutTip.loose;
+  if (state === 'play' && !tutTip.call) { // (a match: the coach up in his corner, the line in a bubble over him, its tail on his head)
+    if (tutDim.classList.contains('on')) tutDim.classList.remove('on');
+    const side = coachSide(); if (tutEl.dataset.pos !== 'dock') { tutEl.dataset.pos = 'dock'; tutEl.style.cssText = ''; } if (tutEl.dataset.side !== side) tutEl.dataset.side = side; if (tutEl.dataset.coach !== 'dock') tutEl.dataset.coach = 'dock';
+    const cw = coachEl.offsetWidth || 150, b = (cw * 596 / 640 * 0.9).toFixed(0) + 'px'; if (tutEl.style.bottom !== b) tutEl.style.bottom = b;
+    const tw = tutEl.offsetWidth, tl = tutEl.offsetLeft, hx = side === 'r' ? viewW - cw * 0.48 : cw * 0.48, tx = clamp(hx - tl, 22, Math.max(22, tw - 22)).toFixed(0) + 'px'; if (tutEl.style.getPropertyValue('--tx') !== tx) tutEl.style.setProperty('--tx', tx);
+    tutHandAt(el && !el.closest('[hidden]') && el.getClientRects().length ? el : null, r0, side === 'r' ? -0.3 : 0);
+    const pe = $('pop'); if (pe.style.top) { pe.style.top = ''; popMoved = true; } // (the pop text back in its own place)
+    return;
+  }
+  { const k = tutTip.call ? '' : 'bust'; if (tutEl.dataset.coach !== k) tutEl.dataset.coach = k; }
+  const over = tutTip.call ? 0 : Math.max(0, tutBust.offsetHeight - tutBust.parentNode.offsetHeight); // (how far his head stands up out of the plate)
   if (state === 'play' || tutTip.loose) { // (in a match, or a loose tip: up top, the hand loose over the control, no dim)
     if (tutDim.classList.contains('on')) tutDim.classList.remove('on');
     if (tutEl.dataset.pos !== 'play') { tutEl.dataset.pos = 'play'; tutEl.style.cssText = ''; }
-    const sc = state !== 'play' ? null : tutPipsEl.classList.contains('on') ? tutPipsEl : document.querySelector('#hud .score'), sb = sc && sc.getBoundingClientRect(), t = (state !== 'play' ? Math.max(8, parseFloat(getComputedStyle(stage).paddingTop) || 0, tutUnderHead(r0)) : tutTip.call ? Math.max((sb && sb.height ? sb.bottom - r0.top : 90) + 10, r0.height * 0.4 - tutEl.offsetHeight / 2) : (sb && sb.height ? sb.bottom - r0.top : 90) + 10).toFixed(0) + 'px'; /* (a short callout goes mid-screen, where it can't be missed) */ if (tutEl.style.top !== t) tutEl.style.top = t;
+    const sc = state !== 'play' ? null : tutPipsEl.classList.contains('on') ? tutPipsEl : document.querySelector('#hud .score'), sb = sc && sc.getBoundingClientRect(), t = (state !== 'play' ? Math.max(8, parseFloat(getComputedStyle(stage).paddingTop) || 0, tutUnderHead(r0)) + over : tutTip.call ? Math.max((sb && sb.height ? sb.bottom - r0.top : 90) + 10, r0.height * 0.4 - tutEl.offsetHeight / 2) : (sb && sb.height ? sb.bottom - r0.top : 90) + 10).toFixed(0) + 'px'; /* (a short callout goes mid-screen, where it can't be missed) */ if (tutEl.style.top !== t) tutEl.style.top = t;
     tutHandAt(el && !el.closest('[hidden]') && el.getClientRects().length ? el : null, r0);
     if (state === 'play') { const pb = (parseFloat(tutEl.style.top) || 90) + tutEl.offsetHeight + 14, pt = pb.toFixed(0) + 'px', pe = $('pop'); if (pe.style.top !== pt) { pe.style.top = pt; popMoved = true; } } // (the pop text drops under the tip, not over it)
     return;
@@ -14581,12 +14649,13 @@ function tutPlace() {
   if (!vis) { if (tutEl.dataset.pos !== 'top') { tutEl.dataset.pos = 'top'; tutEl.style.cssText = ''; } tutWindow(viewW / 2, viewH / 2, 0, 0); return; }
   const r = el.getBoundingClientRect(), cx = r.left - r0.left + r.width / 2, cw = Math.min(tutEl.offsetWidth, viewW - 24);
   tutWindow(r.left - r0.left - 10, r.top - r0.top - 10, r.width + 20, r.height + 20);
-  const ph = tutEl.offsetHeight, roomUp = r.top - r0.top, roomDn = viewH - (r.bottom - r0.top), above = tutTip.side ? tutTip.side === 'above' : roomUp >= ph + 90 || (roomDn < ph + 90 && roomUp > roomDn); // (the side asked for, else whichever has the room)
+  const ph = tutEl.offsetHeight + over, roomUp = r.top - r0.top, roomDn = viewH - (r.bottom - r0.top), above = tutTip.side ? tutTip.side === 'above' : roomUp >= ph + 90 || (roomDn < ph + 90 && roomUp > roomDn); // (the side asked for, else whichever has the room)
   const left = clamp(cx - cw / 2, 12, Math.max(12, viewW - cw - 12)); let y = above ? roomUp - 84 : r.bottom - r0.top + 84; // (the hand's fingertip lands on the edge of the thing, not over it)
   y = above ? Math.max(y, ph + 4) : Math.min(y, viewH - ph - 8);
   const pos = above ? 'above' : 'below'; if (tutEl.dataset.pos !== pos) tutEl.dataset.pos = pos;
   const l = left.toFixed(0) + 'px', t = y.toFixed(0) + 'px', ax = (cx - left).toFixed(0) + 'px';
   if (tutEl.style.left !== l) tutEl.style.left = l; if (tutEl.style.top !== t) tutEl.style.top = t; if (tutEl.style.getPropertyValue('--ax') !== ax) tutEl.style.setProperty('--ax', ax);
+  { const cs = pos === 'below' && parseFloat(ax) < 170 ? 'r' : 'l'; if (tutEl.dataset.cside !== cs) tutEl.dataset.cside = cs; } // (his head stands up out of the plate: on the far side from a hand pointing up off it)
 }
 // the lesson, one step at a time: each one says what to do, waits for it (slowed down while it waits), then the next. max: real seconds before it moves on anyway
 const TUT_STEPS = [
@@ -14671,14 +14740,18 @@ function tutCardText(t) { $('tgTitle').innerHTML = t[0]; $('tgText').textContent
 function tutWelcome() {
   const el = $('tutGo'); if (!el.hidden) return; el.dataset.mode = 'welcome';
   tutCardText(['Commissions <em>are open!</em>', 'Commissions are goals that pay extra dabs, and they refresh every day. Check in whenever you\u2019re here.', 'Show me', 'Later']);
-  try { $('tgAva').innerHTML = '<span class="bico" style="--cd:#8C6A14">' + slimeIcon(0xF2C14E, lookOf(P)) + '</span>'; } catch (e) {}
-  el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); AU.fanfare && AU.fanfare(); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);
+  el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); tutCardCoach(); AU.fanfare && AU.fanfare(); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);
 }
-function tutWelcomeDone(open) { const el = $('tutGo'); el.classList.remove('on'); el.hidden = true; el.dataset.mode = ''; tutSet('done'); menu.classList.remove('tutoring'); kick($('commBtn'), 'bump'); if (open) setTimeout(() => openComms(), 250); }
+// the card's coach: over its top edge when there is room above it for him, else up in the corner beside it
+function tutCardCoach() { // (with him over it the card sits half his height lower, so the two of them are centred together)
+  const g = $('tutGo'); if (g.hidden) return; const c = g.querySelector('.tgcard'), ah = $('tgAva').offsetHeight || 160, m = ah * 0.5, H = g.clientHeight - 48, peek = 24 + (H - c.offsetHeight + m) / 2 >= ah + 4, mt = peek ? m.toFixed(0) + 'px' : '';
+  if (g.classList.contains('peek') !== peek) g.classList.toggle('peek', peek); if (c.style.marginTop !== mt) c.style.marginTop = mt;
+}
+function tutWelcomeDone(open) { const el = $('tutGo'); el.classList.remove('on'); el.hidden = true; coachCorner(null); el.dataset.mode = ''; tutSet('done'); menu.classList.remove('tutoring'); kick($('commBtn'), 'bump'); if (open) setTimeout(() => openComms(), 250); }
 function tutCard(on) {
   const el = $('tutGo'); if (!tut) on = false;
-  if (on) { el.dataset.mode = 'rest'; tutCardText(TG_REST); tut.card = true; tut.slowK = 0; bannerEl.classList.remove('on'); try { $('tgAva').innerHTML = tutAva.innerHTML || '<span class="bico" style="--cd:#8C6A14">' + slimeIcon(0xF2C14E, lookOf(P)) + '</span>'; } catch (e) {} el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); AU.fanfare && AU.fanfare(); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60); return; }
-  el.classList.remove('on'); el.hidden = true; if (tut) { if (tut.card) { P.paint = 1; P.slamCD = 0; banner('Paint it ' + colorOf().name.toLowerCase() + '!', TH.label, true); } /* (Let's do it: a full tank and the pound ready for the final push) */ tut.card = false; tut.slowK = 1; }
+  if (on) { el.dataset.mode = 'rest'; tutCardText(TG_REST); tut.card = true; tut.slowK = 0; bannerEl.classList.remove('on'); el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); tutCardCoach(); AU.fanfare && AU.fanfare(); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60); return; }
+  el.classList.remove('on'); el.hidden = true; coachCorner(null); if (tut) { if (tut.card) { P.paint = 1; P.slamCD = 0; banner('Paint it ' + colorOf().name.toLowerCase() + '!', TH.label, true); } /* (Let's do it: a full tank and the pound ready for the final push) */ tut.card = false; tut.slowK = 1; }
 }
 $('tgGo').addEventListener('click', () => { AU.init(); AU.ui(); if ($('tutGo').dataset.mode === 'welcome') tutWelcomeDone(true); else tutCard(false); });
 $('tgLater').addEventListener('click', () => { AU.init(); AU.ui(); tutWelcomeDone(false); });
@@ -14783,10 +14856,11 @@ function tutGuide() {
   if (tutArrowEl.hidden) tutArrowEl.hidden = false; tutArrowEl.style.transform = 'translate(' + x.toFixed(0) + 'px,' + y.toFixed(0) + 'px) rotate(' + a.toFixed(3) + 'rad)';
 }
 function tutFrame(rdt) {
-  { const bUp = state === 'play' && performance.now() < bannerUntil; if (bUp && tut) tut.bannerSeen = true; if (tutEl.classList.contains('wait') !== bUp) tutEl.classList.toggle('wait', bUp); } /* (a game banner up: the coach waits out of sight) */
+  { const bUp = state === 'play' && performance.now() < bannerUntil; if (bUp && tut) tut.bannerSeen = true; const w = bUp || (state === 'play' && P.st === 'ko'); if (tutEl.classList.contains('wait') !== w) { tutEl.classList.toggle('wait', w); tutHandEl.classList.toggle('wait', w); tutGestEl.classList.toggle('wait', w); } } /* (a game banner up, or you knocked out and waiting to come back: the coach waits out of sight) */
   if (tut) { if (state === 'play' && tut.step >= 0) { tut.st += rdt; if (tut.st > TUT_STEPS[tut.step].max) tutNext(); } const on = state === 'play' && tut.slowK < 1 && !tut.card; if (tutSlowEl.classList.contains('on') !== on) { tutSlowEl.classList.toggle('on', on); AU.slow(on); } }
   else { const on2 = !!tut2 && state === 'play' && tut2.slowK < 1; if (tutSlowEl.classList.contains('on') !== on2) { tutSlowEl.classList.toggle('on', on2); tutSlowEl.classList.toggle('dark', on2); AU.slow(on2); } if (!(tut2 && state === 'play')) tutMenuTick(); } // (the first real match runs its own tips)
   if (tutTip) tutPlace(); else if (popMoved) { popMoved = false; $('pop').style.top = ''; }
+  { const g = $('tutGo'), card = !g.hidden; if (card) tutCardCoach(); coachCorner(card ? (g.classList.contains('peek') ? null : 'l') : tutTip && tutEl.dataset.pos === 'dock' && !tutEl.classList.contains('wait') ? tutEl.dataset.side : null, card); }
   if (tut || tut2) tutGuide(); else { if (!tutArrowEl.hidden) tutArrowEl.hidden = true; if (!tutPinEl.hidden) tutPinEl.hidden = true; }
   if (tut || tutPipsEl.classList.contains('on')) tutPipsTick();
 }
@@ -14821,7 +14895,7 @@ const tutBootEl = $('boot'), tutOrientEl = $('orient');
 function tutMenuTick() {
   if (bootHold || !booted || !tutBootEl.classList.contains('gone') || !tutOrientEl.hidden || document.querySelector('.modal:not([hidden])')) return tutHide(); // (nothing over the loading screen, the orientation chooser or any dialog) // (nothing over the loading screen: its tap to start must get through)
   const ph = tutPh(); if (menu.classList.contains('tutoring') !== (ph !== 'done')) menu.classList.toggle('tutoring', ph !== 'done'); // (the lesson keeps the lobby simple: no commissions, no how-to)
-  if (ph === 'match') { if (state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden) tutShow('Hey, I\u2019m your coach! Your first match is a quick lesson. Tap Play', 'homePlay', 'first'); else tutHide(); return; }
+  if (ph === 'match') { if (state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden) tutShow('Hey, rookie! Ready to roll? Your first match is a little training session. Tap Play and show me what you\u2019ve got!', 'homePlay', 'first'); else tutHide(); return; }
   if (ph === 'welcome') { if (state === 'dead') { if (!end.hidden) return tutShow('Back to the lobby. Something new is waiting', 'menuBtn', 'welback'); return tutHide(); }
     tutHide(); if (state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy) tutWelcome(); return; }
   if (ph !== 'shop' && ph !== 'locker' && ph !== 'vote') return tutHide();
@@ -14841,7 +14915,7 @@ function tutMenuTick() {
     if (lookOpen) {
       if (myLook.mouth !== 'fangs') { if (lookCat !== 'face') return tutShow('Open Facial', 'lc-face', 'face'); return tutShow('Tap the fangs to wear them', () => tile('fangs'), 'wear'); }
       if (bought('flower') && myLook.side !== 'flower') { if (lookCat !== 'head') return tutShow('Now your flower. Open Headgear', 'lc-head', 'headg'); return tutShow('Tap the flower to wear it', () => tile('flower'), 'wearf'); } // (and the flower, found in the lesson)
-      tutSet('vote'); return tutShow('Looking sharp. Done', 'lookDone', 'done'); }
+      tutSet('vote'); return tutShow('Looking sharp, squirt. Done.', 'lookDone', 'done'); }
     if (menuPage === 'worlds') return tutShow('Back to the lobby', 'worldBack', 'back');
     return tutShow('Open your locker to wear your fangs and flower', 'lookBtn', 'locker');
   }
