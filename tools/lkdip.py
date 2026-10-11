@@ -15,7 +15,11 @@ async def main():
         await pg.goto('http://localhost:8765/pc_h.html', timeout=240000); await pg.wait_for_function('typeof __T === "object"', timeout=240000, polling=100)
         await pg.wait_for_timeout(2500); await ev("__T.openLook()"); await pg.wait_for_timeout(9000)
         await ev("window.__tscale = " + str(float(__import__("os").environ.get("TS", "0.18"))))
-        await ev(f"document.querySelectorAll('#swatches .sw')[{CI}].click()")
+        for k in range(12):  # (the locker's opening drop must be over before a pick dips)
+            await ev(f"document.querySelectorAll('#swatches .sw')[{(CI + k) % 6}].click()")
+            await pg.wait_for_timeout(300)
+            if await ev("!!__T.lkDip"): break
+            await pg.wait_for_timeout(2000)
         shots = []
         for i in range(140):
             d = await ev("(() => { const D = __T.lkDip; return D ? { t: +D.t.toFixed(3), y: +D.pose.y.toFixed(2), p: +D.pose.pitch.toFixed(2), s: +D.pose.spin.toFixed(2), sw: D.swapped, col: __T.AXOC.S.list[0].ax.look.U.uPaint.value.getHexString() } : null; })()")
@@ -24,6 +28,7 @@ async def main():
         print('errors', errs[:3]); await b.close()
         # contact sheet
         from PIL import Image, ImageDraw
+        if not any(d for _, d in shots): print('no dip'); return
         ims = [(Image.open(pth), d) for pth, d in shots if d]
         sel = ims[::max(1, len(ims) // 16)][:16]; cw, ch = W // 2, H // 2; cols = 8; rows = (len(sel) + cols - 1) // cols
         sheet = Image.new('RGB', (cw * cols, ch * rows), 'white'); dr = ImageDraw.Draw(sheet)
