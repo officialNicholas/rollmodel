@@ -15,7 +15,7 @@ async def main(w, h, tag):
         st = "(() => { const t = __T.tut2, P = __T.P, el = document.getElementById('tut'), ar = document.getElementById('tutArrow'), pin = document.querySelector('.tuthand:not(#tutHand)'), g = document.querySelector('.tutgest'); return { tip: __T.tutTip && __T.tutTip.key, text: __T.tutTip && __T.tutTip.text, ph: t && t.ph, sub: t && t.sub, wx: __T.wxPhase, slow: document.getElementById('tutSlow').className, arrow: !ar.hidden, pin: pin ? !pin.hidden : null, gest: g && !g.hidden ? g.dataset.g : null, shade: t && t.shade ? +Math.hypot(t.shade[0] - P.x, t.shade[1] - P.z).toFixed(1) : null, inShade: __T.inShadow(P.x, P.z, P.y), pst: P.st, paint: +P.paint.toFixed(2) }; })()"
         await pg.goto('http://localhost:8765/' + os.environ.get('PAGE', 'pc_h.html'), timeout=240000); await wait('typeof __T === "object"'); await pg.wait_for_timeout(1500)
         await pg.evaluate("(() => { const r = __T.renderer; window.__o = r.render.bind(r); r.render = () => {}; })(); 0")
-        await pg.evaluate("__T.stageSel = 'crypt'; document.getElementById('homePlay').click()"); await wait("__T.state === 'play'"); await wait("!!__T.tut2")
+        await pg.evaluate("__T.stageSel = 'crypt'; __T.start()"); await wait("__T.state === 'play'"); await wait("!!__T.tut2")
         print('match2', await pg.evaluate("[__T.tutPh(), __T.TH && __T.TH.id, __T.tut2.ph]"))
         p0 = await pg.evaluate("[__T.P.paint, __T.runT]"); await pg.wait_for_timeout(2500); p1 = await pg.evaluate("[__T.P.paint, __T.runT]"); print('paint use per s (this match)', round((p0[0] - p1[0]) / max(0.01, p1[1] - p0[1]), 4))
         await pg.evaluate("__T.matchLeft = 44; 0"); await wait("__T.tutTip && __T.tutTip.key === 'wxsun'"); await pg.wait_for_timeout(200)

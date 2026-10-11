@@ -1358,8 +1358,16 @@ body.homeon .corner{display:none}
 .comm .cr{font:900 12px/1 var(--font-head);color:var(--gold-lo);white-space:nowrap;display:grid;justify-items:end;gap:6px}
 .comm .cr span{display:inline-flex;align-items:center;gap:3px}
 .comm .cr .dropi{width:15px;height:15px}
-.comm.done{background:var(--gold)}
-.comm.done .cr{color:var(--black)}
+.comm{position:relative}
+.comm.fin{background:#F4F1EA}
+.comm.fin>.ct,.comm.fin>.cr{opacity:.55;filter:grayscale(.6)}
+.comm.fin .ring{background:#2DBE60}
+.comm.fin .ring::after{color:#1C7A3D}
+.comm .cstripe{position:absolute;left:-8px;right:-8px;top:66%;display:flex;align-items:center;justify-content:center;gap:7px;padding:5px 0 4px;background:#2DBE60;color:#fff;font:900 13px/1 var(--font-head);font-style:normal;letter-spacing:.26em;text-transform:uppercase;text-shadow:0 1.5px 0 rgba(23,19,32,.35);border-block:2.5px solid var(--black);box-shadow:0 3px 0 rgba(23,19,32,.22);transform:translateY(-50%) rotate(-3deg);pointer-events:none}
+.comm .cstripe svg{width:14px;height:14px;flex:none;filter:drop-shadow(0 1.5px 0 rgba(23,19,32,.35))}
+.comm.fresh .cstripe{animation:cstripe .5s .25s cubic-bezier(.3,1.3,.5,1) both}
+@keyframes cstripe{from{clip-path:inset(0 100% 0 0);transform:translateY(-50%) rotate(-3deg) scale(1.12)}to{clip-path:inset(0 0 0 0)}}
+@media (prefers-reduced-motion:reduce){.comm.fresh .cstripe{animation:none}}
 .cnote.small{font-size:12.5px}
 @media (max-width:374px){.xpmeter{width:110px;height:62px;background-size:660px 372px}}
 
@@ -1468,6 +1476,28 @@ body.homeon .corner{display:none}
 .plate{animation:plateidle 4s ease-in-out infinite}
 .plate:nth-child(2){animation-delay:-1.3s}.plate:nth-child(3){animation-delay:-2.6s}
 @keyframes plateidle{0%,100%{transform:rotate(0)}50%{transform:rotate(.6deg) translateY(-1px)}}
+/* abilities: violet construction paper, cut by hand, set crooked and taped down at two corners; locked until rank 3, then coming soon */
+.plate.abil{width:70px;min-height:76px;padding:14px 4px 13px;align-content:center;border-radius:0;background:none;box-shadow:none;color:#FFF6E4;text-shadow:0 1px 0 rgba(23,19,32,.5);transform:rotate(-4deg);animation:abilidle 4.6s -.8s ease-in-out infinite}
+.plate.abil .abpaper{position:absolute;inset:0;z-index:-1;background:url(art/m_cpaper.webp) center/100% 100% no-repeat;filter:drop-shadow(2px 3px 0 rgba(23,19,32,.22))} /* (the shadow on a layer of its own: a filter on the button would clip the note that pops out of it) */
+.plate.abil::before{left:-11px;top:-1px;width:38px;height:14px;margin:0;background:url(art/m_tape1.webp) center/100% 100% no-repeat;transform:rotate(-41deg)}
+.plate.abil::after{content:"";position:absolute;right:-12px;bottom:5px;width:38px;height:14px;background:url(art/m_tape2.webp) center/100% 100% no-repeat;transform:rotate(-40deg);pointer-events:none}
+.plate.abil .abart{display:grid;place-items:center;transform:rotate(9deg)}
+.plate.abil .abart svg{width:31px;height:31px;filter:drop-shadow(0 1.5px 0 rgba(23,19,32,.4))}
+.plate.abil.locked .abart{opacity:.6;filter:saturate(.35)}
+.plate.abil .abtag{position:absolute;z-index:2;left:50%;bottom:-9px;display:flex;align-items:center;gap:3px;padding:3px 6px 2px;border-radius:999px;background:#171320;color:#F4EEE3;font:900 10px/1 var(--font-head);font-style:normal;letter-spacing:.02em;white-space:nowrap;text-shadow:none;transform:translateX(-50%) rotate(4deg);box-shadow:0 2px 0 rgba(23,19,32,.25)}
+.plate.abil .abtag svg{width:9px;height:9px;color:var(--gold)}
+.plate.abil:not(.locked) .abtag{background:var(--gold);color:#171320;letter-spacing:.08em}
+.plate.abil:active{animation:none;transform:rotate(-4deg) translate(1px,2px)}
+.plate.abil:active .abpaper{filter:drop-shadow(1px 1px 0 rgba(23,19,32,.22))}
+@media (hover:hover){.plate.abil:hover{animation:none;transform:rotate(-4deg) translateY(-2px)}}
+.plate.abil.abnudge .abtag{animation:abnudge .45s ease}
+.lcol.abup{z-index:4}
+.abtoast{position:absolute;left:calc(100% + 14px);top:50%;z-index:6;padding:8px 12px 7px;border-radius:8px;background:#171320;color:#fff;font:800 12.5px/1.2 var(--font-ui);text-transform:none;text-shadow:none;letter-spacing:0;white-space:nowrap;box-shadow:0 0 0 2px var(--gold);transform:translateY(-50%) rotate(4deg);animation:abtoast 1.9s ease both;pointer-events:none}
+.abtoast::before{content:"";position:absolute;left:-7px;top:50%;margin-top:-6px;border:6px solid transparent;border-left:0;border-right:7px solid var(--gold)}
+@keyframes abilidle{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(-3.3deg) translateY(-1px)}}
+@keyframes abnudge{0%,100%{transform:translateX(-50%) rotate(4deg)}25%{transform:translateX(-58%) rotate(-4deg)}60%{transform:translateX(-44%) rotate(9deg)}}
+@keyframes abtoast{0%{opacity:0;transform:translate(-8px,-50%) rotate(4deg)}10%,82%{opacity:1;transform:translate(0,-50%) rotate(4deg)}100%{opacity:0;transform:translate(4px,-50%) rotate(4deg)}}
+@media (prefers-reduced-motion:reduce){.plate.abil{animation:none}.abtoast{animation-duration:2.4s}}
 .menu.leaving .ltop{animation:rollout-t .35s var(--ei) both}
 .menu.leaving .lcol.left{animation:rollout-l .35s var(--ei) both}
 .menu.leaving .lcol.right{animation:rollout-r .35s var(--ei) both}
@@ -2421,7 +2451,7 @@ svg{shape-rendering:geometricPrecision}
 .tutdim.on>b{opacity:1;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)} /* (darker, and softly blurred, outside the window round what the tip is about) */
 .tutdim.on.block>b{pointer-events:auto}
 .tutdim.on.noblur>b{-webkit-backdrop-filter:none;backdrop-filter:none}
-.menu.tutoring #commBtn{display:none}
+.menu.tutoring #commBtn,.menu.tutoring #abilBtn{display:none}
 .menu.tutoring #modes,.menu.tutoring .wfoot .critics,.menu.tutoring #stages{display:none}
 /* the slow-down: a gold frame and a soft vignette while a lesson is up */
 .tutslow{position:absolute;inset:0;z-index:7;pointer-events:none;opacity:0;transition:opacity .4s;background:radial-gradient(ellipse at center,transparent 58%,rgba(23,19,32,.42) 100%);box-shadow:inset 0 0 0 3px var(--gold)}
@@ -2709,6 +2739,7 @@ html.touchnav :focus-visible{outline:none!important}
       <div class="lcol left" id="lobbyRail">
         <button class="plate hot" id="lookBtn" type="button" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5a2.2 2.2 0 0 0-2.2 2.2c0 1 .7 1.6 1.4 2.1.5.4.8.7.8 1.2v1.2L3.5 15.6a1.6 1.6 0 0 0 .9 2.9h15.2a1.6 1.6 0 0 0 .9-2.9L12 10.2" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Locker</span></button>
         <button class="plate" id="commBtn" type="button" aria-haspopup="dialog"><span class="cring" aria-hidden="true"><svg class="cring-r" viewBox="0 0 44 44"><circle class="t" cx="22" cy="22" r="19"/><circle class="a" id="commArc" cx="22" cy="22" r="19" pathLength="100" stroke-dasharray="100 100" transform="rotate(-90 22 22)"/></svg><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="4" width="15" height="17" rx="2.5" fill="none" stroke="currentColor" stroke-width="2.1"/><path d="M9 2.8h6v3H9z" fill="currentColor"/><path d="M8.3 12.6l2.3 2.3 4.9-4.9M8.3 17.2h7.4" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Commissions</span><i class="pbadge" id="commBadge" hidden></i><b class="ctimer" id="commTimer" aria-hidden="true"></b></button>
+        <button class="plate abil locked" id="abilBtn" type="button" aria-label="Abilities, locked until rank 3"><span class="abpaper" aria-hidden="true"></span><span class="abart" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.2 1.6 4.4 13.7h6.5l-1.2 8.7 9.9-12.6h-6.6l1.2-8.2z" fill="#F2C14E"/><path d="M14.2 1.6 4.4 13.7h2.1l7.1-8.9z" fill="#FFE39A"/><path d="M20.6 3.2l.5 1.4 1.4.5-1.4.5-.5 1.4-.5-1.4-1.4-.5 1.4-.5z" fill="#FFF6E4"/></svg></span><span>Abilities</span><b class="abtag" id="abilTag" aria-hidden="true"></b></button>
       </div>
       <div class="lcol right" id="lobbyRight">
         <button class="friends" id="friendsBtn" type="button" aria-haspopup="dialog"><span class="ffaces" aria-hidden="true"><svg viewBox="0 0 40 40"><g fill="none"><path d="M9.5 17 4.5 12.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M8.5 21.5 2.5 20.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M9.5 26 4.5 28.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M30.5 17l5-4.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M31.5 21.5l6-1" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M30.5 26l5 2.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M9.5 17 4.5 12.5" stroke="#E3122F" stroke-width="3" stroke-linecap="round"/><path d="M8.5 21.5 2.5 20.5" stroke="#E3122F" stroke-width="3" stroke-linecap="round"/><path d="M9.5 26 4.5 28.5" stroke="#E3122F" stroke-width="3" stroke-linecap="round"/><path d="M30.5 17l5-4.5" stroke="#E3122F" stroke-width="3" stroke-linecap="round"/><path d="M31.5 21.5l6-1" stroke="#E3122F" stroke-width="3" stroke-linecap="round"/><path d="M30.5 26l5 2.5" stroke="#E3122F" stroke-width="3" stroke-linecap="round"/></g><ellipse cx="20" cy="23.5" rx="13" ry="11.2" fill="#FF6B7D" stroke="#171320" stroke-width="2.3"/><ellipse cx="15" cy="17.6" rx="4.6" ry="2.2" fill="#fff" opacity=".42"/><ellipse cx="11.4" cy="26.4" rx="2.2" ry="1.2" fill="#FF8FB1" opacity=".75"/><ellipse cx="28.6" cy="26.4" rx="2.2" ry="1.2" fill="#FF8FB1" opacity=".75"/><ellipse cx="15.2" cy="22.6" rx="1.9" ry="2.4" fill="#171320"/><ellipse cx="24.8" cy="22.6" rx="1.9" ry="2.4" fill="#171320"/><circle cx="14.6" cy="21.8" r=".7" fill="#fff"/><circle cx="24.2" cy="21.8" r=".7" fill="#fff"/><path d="M16.6 27.2q3.4 4.4 6.8 0z" fill="#5A0C1E" stroke="#171320" stroke-width="1.3" stroke-linejoin="round"/></svg><svg viewBox="0 0 40 40"><g fill="none"><path d="M9.5 17 4.5 12.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M8.5 21.5 2.5 20.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M9.5 26 4.5 28.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M30.5 17l5-4.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M31.5 21.5l6-1" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M30.5 26l5 2.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M9.5 17 4.5 12.5" stroke="#2479D6" stroke-width="3" stroke-linecap="round"/><path d="M8.5 21.5 2.5 20.5" stroke="#2479D6" stroke-width="3" stroke-linecap="round"/><path d="M9.5 26 4.5 28.5" stroke="#2479D6" stroke-width="3" stroke-linecap="round"/><path d="M30.5 17l5-4.5" stroke="#2479D6" stroke-width="3" stroke-linecap="round"/><path d="M31.5 21.5l6-1" stroke="#2479D6" stroke-width="3" stroke-linecap="round"/><path d="M30.5 26l5 2.5" stroke="#2479D6" stroke-width="3" stroke-linecap="round"/></g><ellipse cx="20" cy="23.5" rx="13" ry="11.2" fill="#5BB6FF" stroke="#171320" stroke-width="2.3"/><ellipse cx="15" cy="17.6" rx="4.6" ry="2.2" fill="#fff" opacity=".42"/><ellipse cx="11.4" cy="26.4" rx="2.2" ry="1.2" fill="#FF8FB1" opacity=".75"/><ellipse cx="28.6" cy="26.4" rx="2.2" ry="1.2" fill="#FF8FB1" opacity=".75"/><path d="M12.8 23.4q2.4-2.8 4.8 0M22.4 23.4q2.4-2.8 4.8 0" fill="none" stroke="#171320" stroke-width="2" stroke-linecap="round"/><path d="M16.8 27.2q3.2 2.6 6.4 0" fill="none" stroke="#171320" stroke-width="1.8" stroke-linecap="round"/></svg><svg viewBox="0 0 40 40"><g fill="none"><path d="M9.5 17 4.5 12.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M8.5 21.5 2.5 20.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M9.5 26 4.5 28.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M30.5 17l5-4.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M31.5 21.5l6-1" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M30.5 26l5 2.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M9.5 17 4.5 12.5" stroke="#7A4FE0" stroke-width="3" stroke-linecap="round"/><path d="M8.5 21.5 2.5 20.5" stroke="#7A4FE0" stroke-width="3" stroke-linecap="round"/><path d="M9.5 26 4.5 28.5" stroke="#7A4FE0" stroke-width="3" stroke-linecap="round"/><path d="M30.5 17l5-4.5" stroke="#7A4FE0" stroke-width="3" stroke-linecap="round"/><path d="M31.5 21.5l6-1" stroke="#7A4FE0" stroke-width="3" stroke-linecap="round"/><path d="M30.5 26l5 2.5" stroke="#7A4FE0" stroke-width="3" stroke-linecap="round"/></g><ellipse cx="20" cy="23.5" rx="13" ry="11.2" fill="#B08BFF" stroke="#171320" stroke-width="2.3"/><ellipse cx="15" cy="17.6" rx="4.6" ry="2.2" fill="#fff" opacity=".42"/><ellipse cx="11.4" cy="26.4" rx="2.2" ry="1.2" fill="#FF8FB1" opacity=".75"/><ellipse cx="28.6" cy="26.4" rx="2.2" ry="1.2" fill="#FF8FB1" opacity=".75"/><ellipse cx="15.2" cy="22.8" rx="1.8" ry="2.3" fill="#171320"/><ellipse cx="24.8" cy="22.8" rx="1.8" ry="2.3" fill="#171320"/><circle cx="14.6" cy="22" r=".7" fill="#fff"/><circle cx="24.2" cy="22" r=".7" fill="#fff"/><path d="M17 27.4q3 2.2 6 0" fill="none" stroke="#171320" stroke-width="1.8" stroke-linecap="round"/></svg></span><b>Friends</b></button>
@@ -2767,7 +2798,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 212</p>
+      <p class="ver">Version 213</p>
     </div>
   </div>
 
@@ -2864,7 +2895,7 @@ html.touchnav :focus-visible{outline:none!important}
   <div class="modal" id="commModal" hidden>
     <div class="card" role="dialog" aria-modal="true" aria-labelledby="commTitle">
       <h2 class="ctitle" id="commTitle">Commissions</h2>
-      <p class="cnote small">Three jobs at a time, fresh every day. Each one pays XP and dabs, and a new one comes in.</p>
+      <p class="cnote small">Three jobs a day. Each one pays XP and dabs once.</p>
       <p class="cnext">Fresh set in <b id="commNext"></b></p>
       <div class="comms" id="commList"></div>
       <button class="btn play sm" id="commClose" type="button">Back to the studio</button>
@@ -3100,7 +3131,7 @@ const store = (() => {
   try { const s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && typeof s === 'object') Object.assign(d, s); } catch (e) {}
   if (!(d.level >= 0)) d.level = 0; if (!(d.sel >= 0)) d.sel = 0;
   ['best', 'stars', 'seen'].forEach(k => { if (!d[k] || typeof d[k] !== 'object') d[k] = {}; });
-  for (const k of ['xp', 'daily', 'lastDay', 'dayStreak', 'streak', 'bestStreak']) delete d[k];
+  for (const k of ['daily', 'lastDay', 'dayStreak', 'streak', 'bestStreak']) delete d[k]; // (xp is the rank's now, and is kept)
   return d;
 })();
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
@@ -14943,18 +14974,28 @@ const COMM_XP = 60, COMM_DABS = 20;
 function commState() { if (!store.comm || !store.comm.active) store.comm = { active: [], prog: {}, done: [] }; const c = store.comm; { const day = new Date().toDateString(); if (c.day !== day) { if (c.day) { c.active = []; c.prog = {}; c.done = []; store.commSeen = 0; } c.day = day; save(); } } /* (a fresh set every day) */ c.active = c.active.filter(id => COMMS.some(x => x.id === id)); while (c.active.length < 3) { const pool = COMMS.filter(x => !c.active.includes(x.id) && !c.done.includes(x.id)); if (!pool.length) break; c.active.push(pool[(Math.random() * pool.length) | 0].id); } return c; }
 function commProgress(info) {
   const c = commState(), fin = [];
-  for (const id of c.active) { const k = COMMS.find(x => x.id === id); if (!k) continue; let p = c.prog[id] || 0;
+  for (const id of c.active) { const k = COMMS.find(x => x.id === id); if (!k || c.done.includes(id)) continue; let p = c.prog[id] || 0;
     if (k.k === 'play') p++; else if (k.k === 'win' && info.win > 0) p++; else if (k.k === 'win1' && info.mode === 'duel' && info.win > 0) p = 1; else if (k.k === 'cov' && Math.round(info.you) >= k.v) p = 1; else if (k.k === 'trio' && info.mode === 'trio') p = 1; else if (k.k === 'solo' && info.mode === 'solo' && Math.round(info.you) >= k.v) p = 1; else if (k.k === 'hard' && info.diff === 'hard' && info.win > 0) p = 1;
     c.prog[id] = p; if (p >= k.n) fin.push(k); }
-  for (const k of fin) { c.active = c.active.filter(x => x !== k.id); c.done.push(k.id); delete c.prog[k.id]; }
+  for (const k of fin) { c.done.push(k.id); delete c.prog[k.id]; } // (it keeps its place in the day's set, striped)
   commState(); return fin;
 }
-function renderComms() { const c = commState(); $('commList').innerHTML = c.active.map(id => { const k = COMMS.find(x => x.id === id), p = c.prog[id] || 0; return '<div class="comm" style="--p:' + Math.round(100 * p / k.n) + '"><div class="ring" data-n="' + p + '/' + k.n + '"></div><div class="ct"><b>' + k.t + '</b><small>' + k.d + '</small></div><b class="cr"><span>+' + COMM_XP + ' XP</span><span>+' + COMM_DABS + DROP_SVG + '</span></b></div>'; }).join('') || '<p class="cnote">Every commission done. The critics are speechless.</p>'; }
+function renderComms() { const c = commState(), seen = store.commSeen || 0, note = '<p class="cnote">Every commission done. The critics are speechless.</p>';
+  const cards = c.active.map(id => { const k = COMMS.find(x => x.id === id), di = c.done.indexOf(id), fin = di >= 0, p = fin ? k.n : c.prog[id] || 0;
+    return '<div class="comm' + (fin ? ' fin' + (di >= seen ? ' fresh' : '') : '') + '" style="--p:' + Math.round(100 * p / k.n) + '"><div class="ring" data-n="' + p + '/' + k.n + '"></div><div class="ct"><b>' + k.t + '</b><small>' + k.d + '</small></div><b class="cr"><span>+' + COMM_XP + ' XP</span><span>+' + COMM_DABS + DROP_SVG + '</span></b>' + (fin ? '<i class="cstripe"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12.5l4.6 4.6L19.5 6.7" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Completed</i>' : '') + '</div>'; }).join('');
+  $('commList').innerHTML = cards + (!cards || c.active.every(id => c.done.includes(id)) ? note : ''); }
 function openComms() { if (state !== 'menu' || lookOpen) return; renderComms(); store.commSeen = (store.comm && store.comm.done.length) || 0; save(); $('commBadge').hidden = true; $('commModal').hidden = false; setTimeout(() => $('commClose').focus({ preventScroll: true }), 30); }
 function closeComms() { $('commModal').hidden = true; $('commBtn').focus({ preventScroll: true }); }
 $('commBtn').addEventListener('click', () => { AU.init(); AU.ui(); openComms(); });
 $('commClose').addEventListener('click', () => { AU.init(); AU.ui(); closeComms(); });
 $('commModal').addEventListener('click', e => { if (e.target === $('commModal')) closeComms(); });
+// abilities: on the rail, locked until rank 3; past that, coming soon (a tap says which)
+const ABIL_RANK = 3, ABIL_LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 10.5V7.8a4.5 4.5 0 0 1 9 0v2.7" fill="none" stroke="currentColor" stroke-width="3"/><rect x="4.5" y="10" width="15" height="12" rx="2.6" fill="currentColor"/></svg>';
+function paintAbil() { const b = $('abilBtn'), on = repOf(store.xp || 0).lv >= ABIL_RANK; b.classList.toggle('locked', !on); $('abilTag').innerHTML = on ? 'Soon' : ABIL_LOCK + 'Rank ' + ABIL_RANK; b.setAttribute('aria-label', on ? 'Abilities, coming soon' : 'Abilities, locked until rank ' + ABIL_RANK); }
+let abilT = 0;
+$('abilBtn').addEventListener('click', () => { AU.init(); AU.nope(); const b = $('abilBtn'), rail = b.parentElement, on = !b.classList.contains('locked'), old = b.querySelector('.abtoast'); if (old) old.remove();
+  const t = document.createElement('span'); t.className = 'abtoast'; t.setAttribute('role', 'status'); t.textContent = on ? 'Abilities are coming soon' : 'Reach rank ' + ABIL_RANK + ' to unlock Abilities'; b.appendChild(t); kick(b, 'abnudge');
+  rail.classList.add('abup'); clearTimeout(abilT); abilT = setTimeout(() => { t.remove(); rail.classList.remove('abup'); }, 2000); }); // (the rail lifts over the spots beside you while its note shows)
 // when the commissions turn over (midnight, when the day's set is replaced): the ring on the plate drains through the day and the tag counts
 // down to it, hours and minutes, then minutes and seconds in the last hour
 const commLeft = () => { const n = new Date(); return Math.max(0, new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1) - n); };
@@ -14970,7 +15011,7 @@ commTick(); setInterval(() => { if (state === 'menu' && !document.hidden) commTi
 // the studio: your swatch card, who's in the show, the exhibition card
 const swatchOf = (D, name, me) => '<span class="lu' + (me ? ' me' : '') + '" style="--cd:' + mixHex(TEAMS[D.team].wet, 0x0C0620, 0.62) + '">' + faceIcon(D, false) + escAttr(name) + '</span>';
 function renderLobbyUI() {
-  const r = repOf(store.xp || 0); $('repName').textContent = r.name; $('repLvl').textContent = r.lv; $('repFill').style.width = Math.round(100 * r.x / r.need) + '%';
+  paintAbil(); const r = repOf(store.xp || 0); $('repName').textContent = r.name; $('repLvl').textContent = r.lv; $('repFill').style.width = Math.round(100 * r.x / r.need) + '%';
   $('lobbyStage').textContent = TH.label; $('lobbyPickLbl').textContent = mode === 'solo' ? 'Canvases \u00b7 your canvas' : 'Canvases \u00b7 your vote'; const art = stageArt(); if (art && $('stageThumb').src !== art) $('stageThumb').src = art;
   const md = MODES.find(m => m[0] === mode) || MODES[0];
   $('lobbyMode').textContent = mode === 'solo' ? 'Solo \u00b7 60 seconds' : md[1] + ' \u00b7 CPU ' + (CRITICS[diff] || 'fair').toLowerCase();
