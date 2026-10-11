@@ -14519,7 +14519,7 @@ function setShadowLite(k) {
   sun.shadow.autoUpdate = k < 2; sun.shadow.needsUpdate = true;
 }
 const qKey = GFX + (MOBILE ? 'm' : 'd');
-let qLvl = 0, qN = 0, qLate = 0, qCpu = 0, qClean = 0, qWin = 0, qUpAt = -99, qSkip = 0, qState = '', qCap = null, qCapped = false; const qIv = [], qBan = [], qBanLen = [];
+let qLvl = 0, qN = 0, qLate = 0, qCpu = 0, qClean = 0, qWin = 0, qUpAt = -99, qDownAt = -99, qDownFrom = 0, qSkip = 0, qState = '', qCap = null, qCapped = false; const qIv = [], qBan = [], qBanLen = [];
 function setQ(n) {
   n = Math.max(0, Math.min(Q_LAD.length - 1, n)); qLvl = n; const q = Q_LAD[n];
   if (post) { post.mirror = q.mirror; post.dof = q.dof; post.bloom = q.bloom; post.grab = q.grab; }
@@ -14552,13 +14552,13 @@ function tunePerf(ft) {
   // a steady 30 a second: either the work, or the phone holding the page to 30 (Low Power Mode). Two notches down settle it: if nothing
   // changes, it's the phone, and the look goes back to where it was
   if (med > 0.0305 && med < 0.0365 && p10 > 0.029) {
-    if (!qCapped) { if (!qCap) qCap = { lvl: qLvl, n: 0 }; if (qCap.n >= 2 || qLvl >= Q_LAD.length - 1) { qCapped = true; setQ(qCap.lvl); qCap = null; } else { qCap.n++; setQ(qLvl + 1); } }
+    if (!qCapped) { if (!qCap) qCap = { lvl: qWin - qDownAt <= 2 ? qDownFrom : qLvl, n: 0 }; /* (a notch lost to the switch-over second comes back too) */ if (qCap.n >= 2 || qLvl >= Q_LAD.length - 1) { qCapped = true; setQ(qCap.lvl); qCap = null; } else { qCap.n++; setQ(qLvl + 1); } }
     return win();
   }
-  qCapped = false; qCap = null;
+  qCap = null; if (qCapped) { qCapped = false; return win(); } // (just out of the phone's 30 a second: this second was the switch-over, not a verdict)
   if (qLate >= 4 && qLvl < Q_LAD.length - 1) {
     if (qWin - qUpAt <= 3) { const b = qLvl; qBanLen[b] = Math.min(600, (qBanLen[b] || 15) * 2); qBan[b] = qWin + qBanLen[b]; } // (that notch up didn't hold: not again for a while)
-    setQ(qLvl + 1); qClean = 0; qSave();
+    qDownFrom = qLvl; qDownAt = qWin; setQ(qLvl + 1); qClean = 0; qSave();
   } else if (qLate === 0) {
     if (++qClean >= 8 && qLvl > 0 && cpuK < 0.5 && qWin >= (qBan[qLvl - 1] || 0)) { setQ(qLvl - 1); qUpAt = qWin; qClean = 0; qSave(); }
   } else qClean = 0;
