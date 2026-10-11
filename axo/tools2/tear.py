@@ -4,17 +4,18 @@ import numpy as np
 from shot import *
 from geo import M, D
 W = '/tmp/claude-0/-home-user-rollmodel/5c52352e-692f-5301-ac55-ec4d2c708f3e/scratchpad/ws/axo2/'
-which = sys.argv[1] if len(sys.argv) > 1 else 'crawl'; state = sys.argv[2] if len(sys.argv) > 2 else 'crawl'
+which = sys.argv[1] if len(sys.argv) > 1 else 'crawl'; state = sys.argv[2] if len(sys.argv) > 2 else 'crawl'; settle = float(sys.argv[3]) if len(sys.argv) > 3 else 2.0; pre = sys.argv[4] if len(sys.argv) > 4 else None
 async def main():
     async with async_playwright() as p:
         b, pg, errs = await open_page(p, 'http://localhost:8765/axo2/preview.html?manual', 300, 300)
-        await pg.evaluate(f'axo.setState("{state}"); axo.step(1/60, 120); axo.setLook(0,0); axo.step(1/60, 40)')
+        if pre: await pg.evaluate(f'axo.setState("{pre}"); axo.step(1/60, 90)')
+        await pg.evaluate(f'axo.setState("{state}"); axo.step(1/60, {int(settle * 60)}); axo.showMesh("{which}")')
         sk = np.array(await pg.evaluate('axo.skinned()'), np.float32).reshape(-1, 3); await b.close()
     meta = json.load(open(W + f'axo_{which}.json')); names = [b_['name'] for b_ in meta['bones']]
     m = M(which); I = m.I0; r = np.load(D + f'{which}_rig.npz', allow_pickle=True); idx, w, labels = r['idx'], r['w'], r['labels']
     P0 = np.frombuffer(open(W + f'axo_{which}.bin', 'rb').read(), np.float32, meta['n'] * 3, meta['off'][0]).reshape(-1, 3)
     E = np.concatenate([I[:, [0, 1]], I[:, [1, 2]], I[:, [2, 0]]]); L0 = np.linalg.norm(P0[E[:, 0]] - P0[E[:, 1]], axis=1); L1 = np.linalg.norm(sk[E[:, 0]] - sk[E[:, 1]], axis=1)
-    bad = np.where((L1 > 2.5 * L0 + 0.02))[0]; print('stretched edges', len(bad), 'of', len(E))
+    bad = np.where((L1 > 1.8 * L0) & (L0 > 0.004) & (L1 - L0 > 0.02))[0]; print('stretched edges', len(bad), 'of', len(E))
     verts = np.unique(E[bad]); print('vertices involved', len(verts))
     from collections import Counter; c = Counter(); cp = Counter()
     for e in bad:

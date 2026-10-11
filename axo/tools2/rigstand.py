@@ -59,7 +59,7 @@ def build():
     # ---- gills: red skin on the head (both sides), 3 stalks a side
     head_c = jp['head'] + np.array([0, 0.33, 0.0]); head_r = 0.33
     # gill skin = red frills OR thin stems, beside / behind the head (the stems are pale pink, so colour alone misses them)
-    dh_ = np.linalg.norm(m.P - head_c, axis=1); near = (m.P[:, 1] > 1.05) & (dh_ > 0.33) & (dh_ < 0.75)
+    dh_ = np.linalg.norm(m.P - head_c, axis=1); near = (m.P[:, 1] > 1.05) & (dh_ > 0.33) & ((np.abs(m.P[:, 0]) > 0.2) | (m.P[:, 2] < 0.1))   # beside / behind the head: the stalks sweep back to z = -0.35
     redv = (hsv[:, 1] > 0.42) & ((hsv[:, 0] > 0.9) | (hsv[:, 0] < 0.05)); thin = thin_mask(m, near, red=redv)
     gill = near & (redv | thin); nc_, lab_ = m.comps(gill); sz_ = np.bincount(lab_[lab_ >= 0]); gill = np.isin(lab_, np.where(sz_ >= 40)[0])
     print('  gills: near', int(near.sum()), 'red', int((near & redv).sum()), 'thin', int(thin.sum()), 'gill', int(gill.sum()), 'components', sorted(sz_[sz_ >= 40].tolist(), reverse=True))
@@ -97,9 +97,6 @@ def build():
     # ---- weights: start from the user's Mixamo weights remapped onto the shared bone list
     names_out = R.ORDER; bi = {k: i for i, k in enumerate(names_out)}; W = np.zeros((m.n, len(names_out)))
     for i, n in enumerate(names): W[:, bi[SHORT[n]]] += Wmx[:, i]
-    headzone = (m.P[:, 1] > 1.05) & (np.linalg.norm(m.P - head_c, axis=1) < 0.8)
-    for sh in ('shoulder.L', 'shoulder.R'):
-        mv = headzone & (W[:, bi[sh]] > 0); print(f'  defect fix: {int(mv.sum())} head-zone vertices carried {sh} weight -> head'); W[mv, bi['head']] += W[mv, bi[sh]]; W[mv, bi[sh]] = 0
     labels = np.full(m.n, 'body', dtype=object)
     # tail: chain weights along the 6 bones, blending into the hips at the base
     chain_weights(m.P, np.where(tailmask)[0], tp, [bi[f'tail{k + 1}'] for k in range(6)], W, band=0.08, base_bone=bi['hips'], base_blend=0.12); labels[tailmask] = 'tail'
@@ -110,6 +107,20 @@ def build():
     for key, (g, parent) in digs.items():
         if not len(g['verts']): continue
         digit_weights(m, g, [bi[key + '.1'], bi[key + '.2']], bi[parent], W); labels[g['verts']] = key
+    # the user's skin binds the back of the neck / upper back (and the gills) to the Shoulder clavicles. Head skin must follow Head, the
+    # neck must blend. Harmonic blend: inside the head ellipsoid -> Head; far from the head -> the user's weights; in between -> Laplace solve
+    from scipy.sparse import csr_matrix, diags, coo_matrix
+    from scipy.sparse.linalg import spsolve
+    hc_e = np.array([0.004, 1.371, 0.638]); rad = np.array([0.40, 0.34, 0.37]); el = (((m.P - hc_e) / rad) ** 2).sum(1)
+    susp = (W[:, bi['shoulder.L']] + W[:, bi['shoulder.R']] > 0.001) & (m.P[:, 1] > 0.9) & ~gill
+    core = susp & (el < 1.0); far = np.zeros(m.n, bool); band = susp & ~core   # every clavicle-bound vertex outside the head core is solved harmonically
+    W[core, :] = 0; W[core, bi['head']] = 1
+    n = m.n; e = m.E; A = csr_matrix(coo_matrix((np.ones(2 * len(e)), (np.r_[e[:, 0], e[:, 1]], np.r_[e[:, 1], e[:, 0]])), shape=(n, n))); Lp = diags(np.asarray(A.sum(1)).ravel()) - A
+    u = np.where(band)[0]; f = np.where(~band)[0]; Wsave = W[u].copy()
+    Wu = spsolve((Lp[u][:, u] + 1e-6 * diags(np.ones(len(u)))).tocsc(), -Lp[u][:, f] @ W[f]); Wu = np.clip(np.nan_to_num(np.asarray(Wu).reshape(len(u), -1)), 0, None)
+    rs = Wu.sum(1); ok = rs > 0.5; Wu[ok] /= rs[ok][:, None]; Wu[~ok] = 0; Wu[~ok, bi['head']] = 1; W[u] = Wu   # (frill islands with no boundary -> head)
+    print(f'  neck blend: {int((~ok).sum())} band vertices without a boundary kept')
+    print(f'  neck blend: core {int(core.sum())} -> head, band {len(u)} harmonic, far {int(far.sum())} kept')
     knuckle_smooth(m, W, np.concatenate([g['verts'] for g, _ in digs.values() if len(g['verts'])]))
     idx, w = finalize(W, P=m.P, joints=np.array([R.J[k] for k in R.ORDER]))
     # ---- frames (Y along the bone, Z = flexion / ventral side)

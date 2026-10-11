@@ -146,7 +146,7 @@ def build():
         stalk_weights(m, vs, root, axis, L, [bi[key + '.1'], bi[key + '.2']], bi['head'], W, blend=0.3 if key.startswith('gill2') else 0.2); labels[vs] = key
     # gill skin that lies on the body (shoulders): pin it to the body's own weights so nothing bridges between a stalk and the trunk
     from scipy.spatial import cKDTree
-    bodyv = np.where(np.isin(labels, ['trunk', 'arm.L', 'arm.R', 'leg.L', 'leg.R']))[0]; bt = cKDTree(P[bodyv]); gv = np.where(gill)[0]
+    bodyv = np.where(np.isin(labels, ['trunk', 'head']))[0]; bt = cKDTree(P[bodyv]); gv = np.where(gill)[0]
     dd, ii = bt.query(P[gv]); pin = gv[dd < 0.05]; W[pin] = W[bodyv[ii[dd < 0.05]]]; labels[pin] = 'trunk'
     print('  pinned', len(pin), 'gill vertices lying on the body to the body weights')
     for key, (vs, root, axis, L, mid, tip) in stalks.items(): laplacian_smooth_weights(m, W, vs, iters=3, lam=0.5)
