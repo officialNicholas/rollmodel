@@ -2915,7 +2915,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 226</p>
+      <p class="ver">Version 227</p>
     </div>
   </div>
 
@@ -6868,6 +6868,9 @@ async function loadMesh(base, tex, matOpts = {}) {
     g.setIndex(new THREE.BufferAttribute(new Uint16Array(buf, o.index, meta.ni), 1));
     g.setAttribute('cpos', new THREE.BufferAttribute(new Int16Array(buf, o.cpos, n * 4), 4, true));
     for (const k of ['jelly', 'fill', 'mat']) g.setAttribute(k, new THREE.BufferAttribute(new Uint8Array(buf, o[k], n * 4), 4, true));
+    // v8: a UV atlas (u16) and the body's baked base-colour texture (WebP bytes) riding in the same buffer (texbake.py); one texture per body, shared
+    if (o.uv !== undefined) g.setAttribute('uv', new THREE.BufferAttribute(new Uint16Array(buf, o.uv, n * 2), 2, true));
+    if (o.tex !== undefined && meta.texLen) g.userData.tex = texFromBytes(new Uint8Array(buf, o.tex, meta.texLen), meta.texMime);
   } else {
     const o = meta.off;
     g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(buf, o[0], n * 3), 3));
@@ -6894,6 +6897,7 @@ async function loadMesh(base, tex, matOpts = {}) {
   // dual quaternion skinning: per bone the rigid bind -> pose transform as a unit dual quaternion (2 texels), written by Puppet.apply
   const nb = bones.length, dq = new Float32Array(nb * 8); for (let i = 0; i < nb; i++) dq[i * 8 + 3] = 1;
   const dqTex = new THREE.DataTexture(dq, nb * 2, 1, THREE.RGBAFormat, THREE.FloatType); dqTex.minFilter = dqTex.magFilter = THREE.NearestFilter; dqTex.generateMipmaps = false; dqTex.needsUpdate = true; meta.dqTex = dqTex;
+  tex = tex || g.userData.tex || null;
   const mat = matOpts && matOpts.look ? axoMaterial(tex, matOpts.look, meta) : dqsMaterial(new THREE.MeshStandardMaterial(Object.assign({ map: tex, roughness: 0.6, metalness: 0 }, matOpts || {})), meta);
   const mesh = new THREE.SkinnedMesh(g, mat); mesh.add(bones[0]); mesh.bind(new THREE.Skeleton(bones)); mesh.frustumCulled = false; mesh.castShadow = true;
   mesh.customDepthMaterial = dqsMaterial(new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking }), meta);
@@ -6913,6 +6917,9 @@ function meshFrom(pre, tex, matOpts = {}) {
     g.setIndex(new THREE.BufferAttribute(new Uint16Array(buf, o.index, meta.ni), 1));
     g.setAttribute('cpos', new THREE.BufferAttribute(new Int16Array(buf, o.cpos, n * 4), 4, true));
     for (const k of ['jelly', 'fill', 'mat']) g.setAttribute(k, new THREE.BufferAttribute(new Uint8Array(buf, o[k], n * 4), 4, true));
+    // v8: a UV atlas (u16) and the body's baked base-colour texture (WebP bytes) riding in the same buffer (texbake.py); one texture per body, shared
+    if (o.uv !== undefined) g.setAttribute('uv', new THREE.BufferAttribute(new Uint16Array(buf, o.uv, n * 2), 2, true));
+    if (o.tex !== undefined && meta.texLen) g.userData.tex = texFromBytes(new Uint8Array(buf, o.tex, meta.texLen), meta.texMime);
   } else {
     const o = meta.off;
     g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(buf, o[0], n * 3), 3));
@@ -6940,10 +6947,24 @@ function meshFrom(pre, tex, matOpts = {}) {
   // dual quaternion skinning: per bone the rigid bind -> pose transform as a unit dual quaternion (2 texels), written by Puppet.apply
   const nb = bones.length, dq = new Float32Array(nb * 8); for (let i = 0; i < nb; i++) dq[i * 8 + 3] = 1;
   const dqTex = new THREE.DataTexture(dq, nb * 2, 1, THREE.RGBAFormat, THREE.FloatType); dqTex.minFilter = dqTex.magFilter = THREE.NearestFilter; dqTex.generateMipmaps = false; dqTex.needsUpdate = true; meta.dqTex = dqTex;
+  tex = tex || g.userData.tex || null;
   const mat = matOpts && matOpts.look ? axoMaterial(tex, matOpts.look, meta) : dqsMaterial(new THREE.MeshStandardMaterial(Object.assign({ map: tex, roughness: 0.6, metalness: 0 }, matOpts || {})), meta);
   const mesh = new THREE.SkinnedMesh(g, mat); mesh.add(bones[0]); mesh.bind(new THREE.Skeleton(bones)); mesh.frustumCulled = false; mesh.castShadow = true;
   mesh.customDepthMaterial = dqsMaterial(new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking }), meta);
   return { mesh, bones, byName, meta, F, rest, end, dq, dqTex, names: meta.bones.map(b => b.name), parent: meta.bones.map(b => b.parent ? pidx[b.parent] : -1) };
+}
+
+// the body's texture from the encoded bytes in the pack: a tiny skin-coloured stand-in at once, the decoded image when it lands (no fetch,
+// so the game's single file loads it like the rest of the pack); glTF-style UVs (v down from the top row), so no flip
+function texFromBytes(bytes, mime) {
+  const t = new THREE.Texture(); t.colorSpace = THREE.SRGBColorSpace; t.flipY = false; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter; t.anisotropy = 4;
+  t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.premultiplyAlpha = false;
+  if (typeof document !== 'undefined') { const c = document.createElement('canvas'); c.width = c.height = 2; const x = c.getContext('2d'); x.fillStyle = '#f0a4ac'; x.fillRect(0, 0, 2, 2); t.image = c; t.needsUpdate = true; }
+  // (the stand-in's GL storage is immutable at its size: the texture is dropped and made again at the image's)
+  const blob = new Blob([bytes], { type: mime || 'image/webp' }), done = img => { t.dispose(); t.image = img; t.needsUpdate = true; t.userData.ready = true; };
+  const viaImage = () => { const u = URL.createObjectURL(blob), im = new Image(); im.onload = () => { done(im); URL.revokeObjectURL(u); }; im.onerror = () => URL.revokeObjectURL(u); im.src = u; };
+  if (typeof createImageBitmap === 'function') createImageBitmap(blob, { imageOrientation: 'none', premultiplyAlpha: 'none', colorSpaceConversion: 'none' }).then(done, viaImage); else viaImage();
+  return t;
 }
 
 // ---- dual quaternion skinning (no candy-wrapper collapse at twisting / bending joints) ----
@@ -8163,7 +8184,7 @@ const VERT_MAIN = `
   transformed += uLag.xyz * soft * h;
 }`;
 const FRAG_PARS = `
-uniform vec3 uSkin, uBelly, uSpot, uGill, uGillTip, uFinCore, uFinGlow, uPaint; uniform vec4 uCoat, uDetail, uDetail2; uniform float uCoatMix;
+uniform vec3 uSkin, uBelly, uSpot, uGill, uGillTip, uFinCore, uFinGlow, uPaint; uniform vec4 uCoat, uDetail, uDetail2, uTint, uTintTo; uniform float uCoatMix;
 uniform sampler2D fCol, fMsk; uniform vec4 fCells, fMix, fPupil, fComp, fLash; uniform vec3 fIris; uniform float fStyle; uniform vec3 uKeyDir; uniform float uDebug, uFadeK, uIsCrawl; uniform vec4 uSwap;
 varying vec3 vCp, vFace; varying vec4 vJelly, vFill, vMat; varying float vAlong, vFillO;
 float sCoatM = 0.0, faceInk = 0.0, sEyeM = 0.0, sDrawM = 0.0, sGill = 0.0, sFin = 0.0, sBelly = 0.0, sSpot = 0.0, sAO = 0.0;
@@ -8199,7 +8220,23 @@ const SKIN_FS = `
   vec3 cp = vCp; float belly = vJelly.x, tail = vJelly.y, thin = vJelly.z;
   float ao = vFill.z, finh = vMat.x, gill = vMat.y, sd = vMat.w;
   float n1 = aNoise(cp * 4.2), n2 = aNoise(cp * 11.0 + 7.1), n3 = aNoise(cp * 31.0 + 3.7);
-  vec3 col = uSkin * (0.9 + 0.14 * n1 + 0.06 * n2);
+  vec3 col; float gk;
+#ifdef USE_MAP
+  // the baked texture is the skin (v8): its light and dark are kept; its pink follows the look's colour by a turn of the texel's chroma
+  // about its share of the native pink (uTint: the native chroma direction, the chroma gain, on; uTintTo: the look's direction, its
+  // lightness ratio), so the white belly, the blue fin and the dark of the spots keep their own colour under every look
+  col = diffuseColor.rgb;
+  float Y = dot(col, vec3(0.2126, 0.7152, 0.0722)); vec2 ch = vec2(col.r - Y, col.b - Y);
+  float a = dot(ch, uTint.xy), w = smoothstep(0.02, 0.1, a) * uTint.w; vec2 res = ch - a * uTint.xy;
+  ch = mix(ch, res + a * uTint.z * uTintTo.xy, w); Y *= mix(1.0, uTintTo.z, w * 0.35);
+  float cr = Y + ch.x, cb = Y + ch.y; col = max(vec3(cr, (Y - 0.2126 * cr - 0.0722 * cb) / 0.7152, cb), vec3(0.0));
+  float bk = smoothstep(0.1, 0.85, belly); sBelly = bk;
+  float core = tail * exp(-pow((finh - 0.4) / 0.19, 2.0)), glowE = tail * (1.0 - smoothstep(0.0, 0.24, finh)); sFin = max(core, glowE);
+  col = mix(col, uFinGlow, 0.1 * glowE); sSpot = 0.0;
+  col *= 1.0 + 0.06 * bk;   // (the cream belly a touch brighter under the game's warm ground light)
+  gk = smoothstep(0.35, 0.8, gill);   // (the stalks keep the skin's pink; the thin fronds take the frill colour)
+#else
+  col = uSkin * (0.9 + 0.14 * n1 + 0.06 * n2);
   float mot = smoothstep(0.5, 0.78, aNoise(cp * 7.5 + 11.0)) * (1.0 - belly) * (1.0 - gill);   // soft darker patches on the back
   col *= 1.0 - 0.1 * mot;
   float bk = smoothstep(0.1, 0.85, belly + 0.1 * (n2 - 0.5)); col = mix(col, uBelly * (0.96 + 0.06 * n1), bk); sBelly = bk;
@@ -8210,11 +8247,22 @@ const SKIN_FS = `
   float dens = sd * uDetail.z;
   float sp = max(aSpots(cp, uDetail.y, 0.7 * dens, 0.17, 0.36), 0.92 * aSpots(cp + 9.7, uDetail.y * 2.3, 0.78 * dens, 0.15, 0.3));
   sp *= 1.0 - 0.75 * bk; col = mix(col, uSpot * (0.82 + 0.36 * n3), sp); sSpot = sp;
+  gk = gill;
+#endif
   // the gill frills: saturated, lighter toward the thin tips, fine filament streaks
   float fil = 0.5 + 0.5 * sin(vAlong * 480.0 + n2 * 8.0 + n3 * 4.0); fil = mix(0.5, fil, 1.0 - smoothstep(0.12, 0.3, fwidth(vAlong) * 480.0 / 6.2832));
-  vec3 gc = mix(uGill * (0.85 + 0.3 * n2), uGillTip, clamp(0.45 * vFill.w + 0.22 * fil * gill, 0.0, 1.0));
-  col = mix(col, gc, gill); sGill = gill;
-  col *= 1.0 - 0.22 * ao; sAO = ao;
+#ifdef USE_MAP
+  vec3 gc = mix(uGill * (0.9 + 0.2 * n2), uGillTip, clamp(0.55 * vFill.w, 0.0, 1.0));   // (no filament bands: across the frond they read as stripes)
+#else
+  vec3 gc = mix(uGill * (0.9 + 0.2 * n2), uGillTip, clamp(0.55 * vFill.w + 0.08 * fil * gill, 0.0, 1.0));
+#endif
+  col = mix(col, gc, gk); sGill = gill;
+#ifdef USE_MAP
+  col *= 1.0 - 0.1 * ao;
+#else
+  col *= 1.0 - 0.18 * ao;
+#endif
+  sAO = ao;
   diffuseColor.rgb = col;
 }`;
 // the face: the game's slime face shader (eye layer or blink, the eye styles, pupils where the whites show, then the mouth)
@@ -8303,12 +8351,15 @@ const BUMP_FS = `
 {
   vec3 cp = vCp; float fw = length(fwidth(cp)), k1 = 1.0 - smoothstep(0.25, 0.8, fw * 140.0), k2 = 1.0 - smoothstep(0.25, 0.8, fw * 330.0), k3 = 1.0 - smoothstep(0.25, 0.8, fw * 2.0 / 0.011);
   float amp = uDetail.x * (1.0 - 0.6 * sBelly) * (1.0 - 0.8 * faceInk) * (1.0 - sCoatM);
+#ifdef USE_MAP
+  amp *= 0.5;
+#endif
   float h = (aNoise(cp * 140.0) * 0.65 * k1 + aNoise(cp * 330.0 + 5.0) * 0.35 * k2) * amp;
   // (the bands and filaments also fade where the arc coordinate itself runs fast across a pixel, at the tips of fingers and toes say, where
   // they would otherwise alias into a moire)
   float fa = fwidth(vAlong), kw = 1.0 - smoothstep(0.12, 0.3, fa * 571.2 / 6.2832), kg = 1.0 - smoothstep(0.12, 0.3, fa * 480.0 / 6.2832);
   h += uDetail.w * vMat.z * k3 * kw * (0.5 + 0.5 * sin(vAlong * 571.2 + aNoise(cp * 60.0) * 2.5)) * (1.0 - sCoatM) * (1.0 - faceInk);
-  h += 0.35 * uDetail.x * sGill * (0.5 + 0.5 * sin(vAlong * 480.0 + aNoise(cp * 11.0 + 7.1) * 8.0)) * k3 * kg;
+  h += 0.05 * uDetail.x * sGill * (0.5 + 0.5 * sin(vAlong * 480.0 + aNoise(cp * 11.0 + 7.1) * 8.0)) * k3 * kg;
   h -= 0.5 * uDetail.x * sSpot;
   normal = aBump(-vViewPosition, normal, h);
 }`;
@@ -8326,7 +8377,7 @@ const LIT_FS = `
 }`;
 const LOOK_FS = `
 { float occ = sAO * (1.0 - 0.3 * sCoatM), ink = sDrawM * (1.0 - sCoatM);
-  reflectedLight.indirectDiffuse *= 1.0 - 0.8 * occ; reflectedLight.directDiffuse *= 1.0 - 0.4 * occ; reflectedLight.indirectSpecular *= 1.0 - 0.85 * occ; reflectedLight.directSpecular *= 1.0 - 0.6 * occ;
+  reflectedLight.indirectDiffuse *= 1.0 - 0.5 * occ; reflectedLight.directDiffuse *= 1.0 - 0.2 * occ; reflectedLight.indirectSpecular *= 1.0 - 0.7 * occ; reflectedLight.directSpecular *= 1.0 - 0.4 * occ;
 #ifdef USE_CLEARCOAT
   clearcoatSpecularIndirect *= 1.0 - 0.85 * occ; clearcoatSpecularDirect *= 1.0 - 0.6 * occ;
 #endif
@@ -8341,9 +8392,13 @@ const LOOK_FS = `
   // and on the side away from the light, the light that came through (view-independent: the shadow side of a fin glows instead of going
   // dark, which is what reads as translucent from any angle)
   float through = saturate(-dot(nonPerturbedNormal, kd));
-  totalEmissiveRadiance += deep * thin * (0.8 * back + 0.16 * wrap + 0.42 * through) * (1.0 - 0.45 * sGill);
+  totalEmissiveRadiance += deep * thin * (1.0 * back + 0.2 * wrap + 0.55 * through) * (1.0 - 0.4 * sGill);
   float edge = 1.0 - saturate(dot(nonPerturbedNormal, vd));
+#ifdef USE_MAP
+  totalEmissiveRadiance += mix(diffuseColor.rgb, vec3(1.0), 0.35) * vFill.w * (0.2 + 0.8 * back) * 0.6 * (1.0 - sCoatM) * (1.0 - ink);
+#else
   totalEmissiveRadiance += mix(diffuseColor.rgb, uFinGlow, 0.5) * vFill.w * (0.18 + 0.7 * back) * 0.55 * (1.0 - sCoatM) * (1.0 - ink);
+#endif
   // a soft rim along the body's outline, a whisper of light on the moist skin
   float upk = saturate(dot(nonPerturbedNormal, normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz)) + 0.4);
   totalEmissiveRadiance += mix(diffuseColor.rgb, vec3(1.0, 0.95, 0.92), 0.35) * pow(edge, 3.0) * (0.5 + 0.5 * upk) * 0.22 * (1.0 - ink) * (1.0 - 0.5 * sCoatM);
@@ -8383,12 +8438,15 @@ function palette(team) {
     skin: hsl(h, 0.5 + 0.2 * s, 0.55 + 0.04 * (l - 0.5)),
     belly: hsl(mixHue(h, 0.09, 0.78), 0.6, 0.72),
     spot: hsl(mixHue(h, slate, 0.72), 0.26, 0.26),
-    gill: hsl(h, 0.72 + 0.28 * s, 0.38),
-    gillTip: hsl(mixHue(h, 0.97, 0.15), 0.7, 0.6),
+    gill: hsl(h, 0.72 + 0.28 * s, 0.44),
+    gillTip: hsl(mixHue(h, 0.97, 0.15), 0.65, 0.7),
     finCore: hsl(mixHue(h, slate, 0.75), 0.3, 0.25),
     finGlow: hsl(mixHue(h, 0.04, 0.45), 0.85, 0.58),
   };
 }
+// the texture's own pink (sRGB 0.98, 0.60, 0.66: the sculpt's flanks and limbs), in linear, and a colour's place in the opponent plane
+const NATIVE_SKIN = new THREE.Color().setRGB(0.98, 0.60, 0.66, THREE.SRGBColorSpace), NATIVE_HUE = 0.975;
+function chroma(c) { const Y = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b; return [c.r - Y, c.b - Y, Y]; }
 let SHEETS = null;
 function faceSheets(C) {
   if (SHEETS) return SHEETS; const sh = makeFaceSheets(C);
@@ -8410,6 +8468,7 @@ class Look {
       uKeyDir: { value: new THREE.Vector3(0.3, 0.6, 0.7) }, uDebug: { value: 0 }, uSwap: { value: new THREE.Vector4(0, 0, 0.18, 0.26) },
       // skin detail: x relief amplitude (m), y spot cells per metre, z spot amount, w wrinkle depth (m)
       uDetail: { value: new THREE.Vector4(0.0009, 26, 1.0, 0.0007) }, uDetail2: { value: new THREE.Vector4(0, 0, 0, 0) },
+      uTint: { value: new THREE.Vector4(1, 0, 1, 1) }, uTintTo: { value: new THREE.Vector4(1, 0, 1, 0) },
     };
     this.meshU = {};   // per-mesh uniforms (the fade), by mesh name
     this.fangs = false; this.expr = 'neutral'; this.exprB = 'neutral'; this.exprK = 1; this.blinkT = 1 + Math.random() * 2; this.blinkK = 0; this.flut = 0; this.flutT = 0;
@@ -8418,6 +8477,12 @@ class Look {
   }
   setColor(c) { const p = palette(c); const U = this.U; U.uTeam.value.set(c); U.uPaint.value.set(c);
     for (const [k, u] of [['skin', 'uSkin'], ['belly', 'uBelly'], ['spot', 'uSpot'], ['gill', 'uGill'], ['gillTip', 'uGillTip'], ['finCore', 'uFinCore'], ['finGlow', 'uFinGlow']]) U[u].value.copy(p[k]);
+    // the baked texture's pink turned to the team's hue (v8): a turn of the chroma in the opponent plane (r - Y, b - Y) by the angle between
+    // the team hue and the native pink's, at the same saturation and lightness, so every look keeps all of the texture's light, dark and
+    // detail; the red and pink teams sit on the native hue and get the texture as baked
+    _c.set(c); _c.getHSL(_hsl); const c0 = chroma(NATIVE_SKIN), m0 = Math.hypot(c0[0], c0[1]), d0 = [c0[0] / m0, c0[1] / m0];
+    const ang = h => { const q = chroma(hsl(h, 0.7, 0.6)); return Math.atan2(q[1], q[0]); }, th = ang(_hsl.h) - ang(NATIVE_HUE), cs = Math.cos(th), sn = Math.sin(th);
+    U.uTint.value.set(d0[0], d0[1], 1, 1); U.uTintTo.value.set(cs * d0[0] - sn * d0[1], sn * d0[0] + cs * d0[1], 1, 0);
     return this; }
   setIris(k) { const e = EYE_COLS[k]; if (e) this.U.fIris.value.set(...e.lin); else { const c = new THREE.Color(k); this.U.fIris.value.set(c.r, c.g, c.b); } this.iris = k; return this; }
   setEyeStyle(k) { this.U.fStyle.value = typeof k === 'string' ? (EYE_STYLE_K[k] || 0) : k; return this; }
@@ -8462,7 +8527,7 @@ class Look {
 // the body material for one mesh of one character (the look's uniforms are shared by the character's two meshes; the head frame, the
 // canonical scale, the skinning data and the fade are this mesh's own)
 function axoMaterial(tex, look, meta) {
-  const mat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.5, metalness: 0, clearcoat: 0.3, clearcoatRoughness: 0.35, sheen: 1, sheenRoughness: 0.42, sheenColor: 0x000000, envMapIntensity: 0.7 });
+  const mat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, map: tex || null, roughness: 0.5, metalness: 0, clearcoat: 0.3, clearcoatRoughness: 0.35, sheen: 1, sheenRoughness: 0.42, sheenColor: 0x000000, envMapIntensity: 0.7 });
   const own = { uFadeK: { value: 1 }, uIsCrawl: { value: meta.name === 'crawl' ? 1 : 0 } }; look.meshU[meta.name || ('m' + Object.keys(look.meshU).length)] = own; meta.fadeU = own;
   mat.onBeforeCompile = sh => {
     Object.assign(sh.uniforms, look.U, own);
@@ -8478,14 +8543,14 @@ function axoMaterial(tex, look, meta) {
     const fc = (meta.face && meta.face.c) || meta.headAbs, fr = (meta.face && meta.face.r) || meta.headr;
     sh.uniforms.uHead = { value: new THREE.Vector4(fc[0], fc[1], fc[2], fr) }; sh.uniforms.uCpScale = { value: meta.cpScale || 4.0 };
   };
-  mat.customProgramCacheKey = () => 'axo7-body';
+  mat.customProgramCacheKey = () => tex ? 'axo8-body' : 'axo7-body';
   return mat;
 }
 
 return { FACE, EYE_COLS, EYE_STYLES, EYE_STYLE_K, EXPR, pupilOf, FACE_EYE, FACE_KINDS, FACE_LIDS, makeFaceSheets, palette, Look, axoMaterial };
 })();
 const { FACE, EYE_COLS, EYE_STYLES, EYE_STYLE_K, EXPR, pupilOf, FACE_EYE, FACE_KINDS, FACE_LIDS, makeFaceSheets, palette, Look, axoMaterial } = __look;
-return { DEG, loadMesh, DQS_PARS, DQS_BASE, DQS_NORMAL, DQS_POS, dqsShader, dqsMaterial, Pose, LIMITS, limitsFor, Puppet, mirrorQ, rot, setRot, ease, Spring, Animator, FACE, EYE_COLS, EYE_STYLES, EYE_STYLE_K, EXPR, pupilOf, FACE_EYE, FACE_KINDS, FACE_LIDS, makeFaceSheets, palette, Look, axoMaterial, meshFrom };
+return { DEG, loadMesh, texFromBytes, DQS_PARS, DQS_BASE, DQS_NORMAL, DQS_POS, dqsShader, dqsMaterial, Pose, LIMITS, limitsFor, Puppet, mirrorQ, rot, setRot, ease, Spring, Animator, FACE, EYE_COLS, EYE_STYLES, EYE_STYLE_K, EXPR, pupilOf, FACE_EYE, FACE_KINDS, FACE_LIDS, makeFaceSheets, palette, Look, axoMaterial, meshFrom };
 })();
 // ---------- the axolotl in the game: the slime's stand-in, answering the same calls (make, update, headTop, headSize, bodyPoint and each
 // character's own) on the axolotl runtime (AXO). Its two bodies (on all fours to get about, upright in the menus and its big moments)
