@@ -26,6 +26,7 @@
 .tutdim{position:absolute;inset:0;z-index:59;pointer-events:none;background:rgba(23,19,32,.66);opacity:0;transition:opacity .25s,clip-path .22s;clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,50% 50%,50% 50%,50% 50%,50% 50%,50% 50%)}
 .tutdim.on{opacity:1;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)} /* (darker, and softly blurred, outside the window round what the tip is about) */
 .tutdim.on.block{pointer-events:auto}
+.tutdim.on.noblur{-webkit-backdrop-filter:none;backdrop-filter:none}
 .menu.tutoring #commBtn,.menu.tutoring #howBtn{display:none}
 /* the slow-down: a gold frame and a soft vignette while a lesson is up */
 .tutslow{position:absolute;inset:0;z-index:7;pointer-events:none;opacity:0;transition:opacity .4s;background:radial-gradient(ellipse at center,transparent 58%,rgba(23,19,32,.42) 100%);box-shadow:inset 0 0 0 3px var(--gold)}

@@ -2171,6 +2171,7 @@ svg{shape-rendering:geometricPrecision}
 .tutdim{position:absolute;inset:0;z-index:59;pointer-events:none;background:rgba(23,19,32,.66);opacity:0;transition:opacity .25s,clip-path .22s;clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,50% 50%,50% 50%,50% 50%,50% 50%,50% 50%)}
 .tutdim.on{opacity:1;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)} /* (darker, and softly blurred, outside the window round what the tip is about) */
 .tutdim.on.block{pointer-events:auto}
+.tutdim.on.noblur{-webkit-backdrop-filter:none;backdrop-filter:none}
 .menu.tutoring #commBtn,.menu.tutoring #howBtn{display:none}
 .menu.tutoring #modes,.menu.tutoring .wfoot .critics,.menu.tutoring #stages{display:none}
 /* the slow-down: a gold frame and a soft vignette while a lesson is up */
@@ -2492,7 +2493,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 202</p>
+      <p class="ver">Version 203</p>
     </div>
   </div>
 
@@ -7671,7 +7672,7 @@ function spawnItem() {
   let best = null, bs = 1e9; for (const sp of spots) { const sc = Math.hypot(trail.x - sp[0], trail.z - sp[2]) + Math.random() * 9; if (sc < bs) { bs = sc; best = sp; } }
   const type = tut && tut.noTurret ? 'roller' : itemSpawn.last === 'roller' ? (Math.random() < 0.65 ? 'turret' : 'roller') : (Math.random() < 0.65 ? 'roller' : 'turret'); // (the lesson: rollers only until the flower is found)
   const pw = { phase: Math.random() * 6, pop: 0, grace: 0, owner: null }; placePower(pw, type, best); powers.push(pw); itemSpawn.last = type; itemSpawn.t = 9 + Math.random() * 4;
-  if (Math.hypot(P.x - best[0], P.z - best[2]) < 16) AU.spot();
+  if (state === 'play' && Math.hypot(P.x - best[0], P.z - best[2]) < 16) AU.spot(); /* (the menu's backdrop spawns them too, silently) */
 }
 function itemTick(dt) {
   const alive = ACTIVE.filter(D => D.st !== 'out'), busy = alive.filter(D => D.held || D.power || D.turret).length, cap = mode === 'trio' ? 2 : 1;
@@ -8180,7 +8181,7 @@ function makeAudio() {
   // sounds can be synthesized before there's an audio context (at a standard rate; playback resamples if the phone differs)
   const PRE_SR = 48000, PRE_IR = {}; let kitGo = false;
   const SR = () => ctx ? ctx.sampleRate : PRE_SR, newBuf = (ch, n, sr) => ctx ? ctx.createBuffer(ch, n, sr) : new AudioBuffer({ numberOfChannels: ch, length: n, sampleRate: sr });
-  let rollG, rollF, rollLfo, rainG, sizG, chA = null;
+  let rainG, sizG, chA = null;
   const mood = { late: false, giant: false, sun: false, ot: false, rain: 0, sizzle: 0 };
   const CENTER = { p: 2, g: 1, g0: 1 }, MUS_PLAY = 0.1, MUS_MENU = 0.18;
   // trims from metering every effect against the music, so the important ones cut through and the frequent ones sit back
@@ -8193,7 +8194,7 @@ function makeAudio() {
   // in the background and is only decoded around when it's needed; until it's ready, the synth plays as it always has ----
   const TRK = {
     menu: { a: 6.928, b: 43.72223, k: 0.923 },
-    spook: { a: 7.32, b: 46.21, k: 0.795 }, // the same song, the Halloween cut (trimmed so its bars line up with the menu song's)
+    spook: { a: 1, b: 37.79423, k: 0.785, file: 'spook2' }, // the same song, the Halloween cut, rebuilt on the menu song's own clock: same tempo, same bars, a loop exactly as long (a new file name, so a cached copy of the old cut never meets these loop points)
     halloween: { a: 16.39542, b: 55.37644, k: 0.892 },
     island: { a: 9.97837, b: 50.85615, k: 0.933 },
     blank: { a: 8.64217, b: 47.76588, k: 1.047 },
@@ -8208,14 +8209,14 @@ function makeAudio() {
     // the menu song was asked for by the page itself before anything else loaded (see the top of the page): use that
     if (key === 'menu' && typeof window !== 'undefined' && window.__menuSong) { const pr = window.__menuSong; window.__menuSong = null; R.fetching = true; pr.then(b => { R.fetching = false; if (!b) return trkFetch(key); R.bytes = b; if (R.wantDecode) trkDecode(key); }, () => { R.fetching = false; trkFetch(key); }); return; }
     if (typeof fetch !== 'function' || location.protocol === 'file:') { R.fail = true; trkFallback(key); return; } R.fetching = true;
-    fetch(MUSIC_BASE + key + '.mp3').then(r => { if (!r.ok) throw new Error('missing'); return r.arrayBuffer(); }).then(b => { R.bytes = b; R.fetching = false; if (R.wantDecode) trkDecode(key); }).catch(() => { R.fetching = false; R.fail = true; trkFallback(key); }); }
+    fetch(MUSIC_BASE + (R.file || key) + '.mp3').then(r => { if (!r.ok) throw new Error('missing'); return r.arrayBuffer(); }).then(b => { R.bytes = b; R.fetching = false; if (R.wantDecode) trkDecode(key); }).catch(() => { R.fetching = false; R.fail = true; trkFallback(key); }); }
   // a recording that can't be had after all: the moment that was waiting for it gets the synth version instead
   function trkFallback(key) { if (key === 'spook' && trkPend === 'shop' && ctx) { trkPend = null; return; } if (trkPend && trkWant === key && ctx) { const m = trkPend; trkPend = null; lastMode = 'none'; api.music(m); } }
   function trkDecode(key) {
     const R = TRK[key]; if (!R || R.fail) return; R.wantDecode = true; if (R.buf || R.decoding) return; if (!R.bytes) { trkFetch(key); return; }
     let dc = ctx; if (!dc) { const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext; if (!OAC) return; try { dc = new OAC(2, 1, 48000); } catch (e) { return; } }
     R.decoding = true;
-    const ok = b => { R.decoding = false; if (!R.wantDecode) return; R.buf = b; if (trkWant === key && ctx && (!trk || trk.key !== key) && lastMode !== 'pause') { trkPend = null; const sw = !!(trk && SWAP[trk.key] === key); trkGo(key, sw ? 0.5 : 1.4, sw ? 0.5 : trk ? 1.2 : 0.6, false, carryOff(key)); } }, bad = () => { R.decoding = false; R.fail = true; trkFallback(key); };
+    const ok = b => { R.decoding = false; if (!R.wantDecode) return; R.buf = b; if (trkWant === key && ctx && (!trk || trk.key !== key) && lastMode !== 'pause') { trkPend = null; if (trk && SWAP[trk.key] === key) trkSwap(key); else trkGo(key, 1.4, trk ? 1.2 : 0.6, false, 0); } }, bad = () => { R.decoding = false; R.fail = true; trkFallback(key); };
     try { const pr = dc.decodeAudioData(R.bytes.slice(0), ok, bad); if (pr && pr.catch) pr.catch(bad); } catch (e) { bad(); }
   }
   // let go of a decoded track that won't be needed for a while (its file stays, so it decodes again quickly)
@@ -8232,8 +8233,22 @@ function makeAudio() {
   }
   // the lobby song and the locker song are one tune in two moods: moving between them carries on from the same bar
   const SWAP = { menu: 'spook', spook: 'menu' };
-  function trkPos() { if (!trk) return 0; const R = TRK[trk.key], p = T() - trk.t0, b = Math.min(R.b, trk.src.buffer.duration), len = b - R.a; return p <= b || len <= 0 ? p : R.a + ((p - R.a) % len); }
-  function carryOff(key) { if (!trk || SWAP[trk.key] !== key) return 0; const A = TRK[trk.key], B = TRK[key]; return Math.max(0, B.a + (trkPos() - A.a) / (A.b - A.a) * (B.b - B.a)); }
+  function trkPosAt(t) { if (!trk) return 0; const R = TRK[trk.key], p = t - trk.t0, b = Math.min(R.b, trk.src.buffer.duration), len = b - R.a; return p <= b || len <= 0 ? p : R.a + ((p - R.a) % len); }
+  function trkPos() { return trkPosAt(T()); }
+  // the two cuts keep one clock and their loops are the same length, so the same moment is the same distance into each loop
+  function carryOff(key) { if (!trk || SWAP[trk.key] !== key) return 0; const A = TRK[trk.key], B = TRK[key]; return B.a + Math.max(0, trkPos() - A.a) % (B.b - B.a); }
+  // lobby to locker or back: the other cut comes in at exactly the spot this one has reached, and the two cross over on an equal-power curve
+  const SWAP_X = 1.4;
+  function trkSwap(key) {
+    const R = TRK[key], A = trk; if (!ctx || !R || !R.buf || !A) return false;
+    const now = T(), t = now + 0.04, RA = TRK[A.key], off = R.a + Math.max(0, trkPosAt(t) - RA.a) % (R.b - R.a), lvl = R.k * TRK_LVL.menu, g0 = Math.max(0, A.g.gain.value);
+    const src = ctx.createBufferSource(), g = ctx.createGain(), n = 48, up = new Float32Array(n), dn = new Float32Array(n);
+    for (let i = 0; i < n; i++) { const x = i / (n - 1) * Math.PI / 2; up[i] = Math.sin(x) * lvl; dn[i] = Math.cos(x) * g0; }
+    src.buffer = R.buf; src.loop = true; src.loopStart = R.a; src.loopEnd = Math.min(R.b, R.buf.duration); g.gain.value = 0; src.connect(g); g.connect(trkBus);
+    g.gain.setValueCurveAtTime(up, t, SWAP_X); A.g.gain.cancelScheduledValues(now); A.g.gain.setValueAtTime(g0, now); A.g.gain.setValueCurveAtTime(dn, t, SWAP_X);
+    try { A.src.stop(t + SWAP_X + 0.05); } catch (e) {}
+    src.start(t, off); trk = { key, src, g, t0: t - off }; musOn = false; return true;
+  }
   function trkStop(fade) { if (!trk) return; const t = T(), { src, g } = trk; g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value, t); g.gain.linearRampToValueAtTime(0, t + fade); try { src.stop(t + fade + 0.05); } catch (e) {} trk = null; }
   const rnd = (a, b) => a + Math.random() * (b - a);
   const cl = (v, a, b) => v < a ? a : v > b ? b : v;
@@ -8760,7 +8775,7 @@ function makeAudio() {
   }
   function sbLoops() {
     if (!ctx || !pans.length) return; LP = LP || {};
-    for (const [k, to] of [['roll', 2], ['roller', 2], ['rain', -1], ['sizzle', 2]]) { if (LP[k]) continue; const L = loopSrc(k); if (!L) continue; LP[k] = L; L.g.connect(to < 0 ? sfx : pans[to]); }
+    for (const [k, to] of [['rain', -1], ['sizzle', 2]]) { if (LP[k]) continue; const L = loopSrc(k); if (!L) continue; LP[k] = L; L.g.connect(to < 0 ? sfx : pans[to]); }
     if (LP.rain) rainG.gain.value = 0; if (LP.sizzle) sizG.gain.value = 0;
   }
 
@@ -8941,10 +8956,7 @@ function makeAudio() {
     buildMusic(live, irs);
     pans = []; for (const p of [-0.7, -0.33, 0, 0.33, 0.7]) { let n; if (ctx.createStereoPanner) { n = ctx.createStereoPanner(); n.pan.value = p; } else n = ctx.createGain(); n.connect(sfx); pans.push(n); }
     NZ.w = noiseBuf('w'); NZ.p = noiseBuf('p'); NZ.b = noiseBuf('b');
-    // rolling: a squelchy rumble that pulses faster the quicker you go
-    { const s = ctx.createBufferSource(); s.buffer = NZ.b; s.loop = true; rollF = ctx.createBiquadFilter(); rollF.type = 'bandpass'; rollF.frequency.value = 300; rollF.Q.value = 1.1;
-      const am = ctx.createGain(); am.gain.value = 0.72; rollLfo = ctx.createOscillator(); rollLfo.frequency.value = 4; const lg = ctx.createGain(); lg.gain.value = 0.28; rollLfo.connect(lg); lg.connect(am.gain);
-      rollG = ctx.createGain(); rollG.gain.value = 0; s.connect(rollF); rollF.connect(am); am.connect(rollG); rollG.connect(pans[2]); s.start(); rollLfo.start(); }
+    // (no rolling bed: its filtered noise read as hiss, worst in slow motion, when the music is muffled)
     // rain: two decorrelated beds, left and right
     rainG = ctx.createGain(); rainG.gain.value = 0; rainG.connect(sfx);
     for (const p of [0, 4]) { const s = ctx.createBufferSource(); s.buffer = NZ.p; s.loop = true; const h = ctx.createBiquadFilter(); h.type = 'highpass'; h.frequency.value = 800; const l = ctx.createBiquadFilter(); l.type = 'lowpass'; l.frequency.value = 7000; const pn = ctx.createStereoPanner ? ctx.createStereoPanner() : ctx.createGain(); if (pn.pan) pn.pan.value = p ? 0.6 : -0.6; s.connect(h); h.connect(l); l.connect(pn); pn.connect(rainG); s.start(0, p ? 0.9 : 0); }
@@ -9073,8 +9085,9 @@ function makeAudio() {
         if (mode === 'play') { trkDecode('win'); trkDecode('lost'); }
         let on = false;
         // a new match starts its theme from the top; coming back from pause carries on
-        const sw = !!(key && trk && SWAP[trk.key] === key); // (lobby to locker or back: a short cross-fade at the same bar)
-        if (key && TRK[key].buf) on = trkGo(key, sw ? 0.45 : mode === 'menu' ? 0.9 : 0.4, sw ? 0.45 : mode === 'menu' && lastMode !== 'none' ? 0.5 : 0.03, mode === 'play' && lastMode !== 'pause', carryOff(key));
+        const sw = !!(key && trk && SWAP[trk.key] === key); // (lobby to locker or back: the other cut takes over at the same spot)
+        if (key && TRK[key].buf) on = sw ? trkSwap(key) : trkGo(key, mode === 'menu' ? 0.9 : 0.4, mode === 'menu' && lastMode !== 'none' ? 0.5 : 0.03, mode === 'play' && lastMode !== 'pause', 0);
+        else if (sw) on = true; /* (the other cut is still decoding: this one plays on and hands over the moment it is ready) */
         else trkStop(mode === 'end' ? 0.25 : 0.7);
         if (mode === 'menu') { trkDrop('win'); trkDrop('lost'); trkDecode('spook'); } // (the locker's cut gets ready while you are in the lobby)
         if (on || mode === 'win' || mode === 'lost') { lastMode = mode; return on; }
@@ -9088,10 +9101,7 @@ function makeAudio() {
       else if (mode === 'end') { musOn = false; vol(0, 0.12); }
       lastMode = mode; return false;
     },
-    roll(spd, wide) { if (!ctx) return; const t = T(), on = spd > 0.3;
-      if (LP && LP.roll) { const L = LP.roll, k = cl(spd / 6, 0, 1); L.g.gain.setTargetAtTime(on ? (0.45 + 0.75 * k + 0.25 * (wide || 0)) * L.k : 0, t, 0.06); L.src.playbackRate.setTargetAtTime(0.75 + 0.5 * k, t, 0.1);
-        if (LP.roller) LP.roller.g.gain.setTargetAtTime(on && wide ? (0.5 + 0.5 * k) * (wide || 0) * LP.roller.k : 0, t, 0.08); rollG.gain.setTargetAtTime(0, t, 0.05); return; }
-      rollG.gain.setTargetAtTime(on ? 0.12 + 0.22 * cl(spd / 6, 0, 1) + 0.1 * (wide || 0) : 0, t, 0.06); rollF.frequency.setTargetAtTime(230 + spd * 60 + (wide || 0) * 160, t, 0.08); rollLfo.frequency.setTargetAtTime(2.5 + spd * 1.1, t, 0.1); },
+    roll() {}, // (rolling is silent now: see the note where the beds are built)
     rain(k) { if (!ctx) return; mood.rain = k; if (LP && LP.rain) { LP.rain.g.gain.setTargetAtTime(k * LP.rain.k, T(), 0.25); return; } rainG.gain.setTargetAtTime(0.09 * k, T(), 0.25); },
     sizzle(k) { if (!ctx || mood.sizzle === k) return; mood.sizzle = k; if (LP && LP.sizzle) { LP.sizzle.g.gain.setTargetAtTime(k * LP.sizzle.k, T(), 0.05); return; } sizG.gain.setTargetAtTime(0.12 * k, T(), 0.05); },
     // test hooks: render into an offline context and pump the sequencer by hand
@@ -14673,6 +14683,7 @@ function tutPlace() {
     return;
   }
   tutHandAt(null); if (tutDim.classList.contains('block') !== block) tutDim.classList.toggle('block', block); // (between matches only the instructed control takes a tap)
+  { const nb = shopOpen || lookOpen; if (tutDim.classList.contains('noblur') !== nb) tutDim.classList.toggle('noblur', nb); } // (in the shop and the locker the dim alone, no blur)
   const vis = el && !el.closest('[hidden]') && el.getClientRects().length > 0;
   if (!vis) { if (tutEl.dataset.pos !== 'top') { tutEl.dataset.pos = 'top'; tutEl.style.cssText = ''; } tutWindow(viewW / 2, viewH / 2, 0, 0); return; }
   const r = el.getBoundingClientRect(), cx = r.left - r0.left + r.width / 2, cw = Math.min(tutEl.offsetWidth, viewW - 24);
