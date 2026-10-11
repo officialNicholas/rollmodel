@@ -80,7 +80,7 @@ const AXOC = (() => {
   // only for its big moments (the victory, riding the rocket)
   function stateFor(I, o) {
     const D = o.D;
-    if (D && vic && D.vicPose) return 'victory';
+    if (D && vic && D.vicPose) return D.vicPose.stand === false ? 'crawl' : 'victory'; // (the win screen: up from all fours for its jumps, back down between them)
     if (D && D.rocket && D.st === 'play') return 'jetpack';
     return 'crawl';
   }

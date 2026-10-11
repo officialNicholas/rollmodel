@@ -12,7 +12,7 @@ def rep(old, new, count=1):
     global s
     c = s.count(old); assert c == count, f'expected {count}, found {c}: {old[:90]!r}'
     s = s.replace(old, new)
-assert 'SL.reach' in s and 'SLITHER.pw' in s, 'the swimming runtime is not in the build'
+assert 'L.sl ||' in s and 'SLITHER' in s, 'the swimming runtime is not in the build'
 rep('<p class="ver">Version 227</p>', '<p class="ver">Version 228</p>')
 open(DST, 'w').write(s)
 print('ui161 ok', n0, '->', len(s))
