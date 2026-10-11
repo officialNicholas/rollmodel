@@ -2473,6 +2473,12 @@ svg{shape-rendering:geometricPrecision}
 .tutdim.on>b{opacity:1;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)} /* (darker, and softly blurred, outside the window round what the tip is about) */
 .tutdim.on.block>b{pointer-events:auto}
 .tutdim.on.noblur>b{-webkit-backdrop-filter:none;backdrop-filter:none}
+/* the locker and the shop: nothing darkened or blurred (you watch your character change, you see the shelves); the control asked for, ringed in gold */
+.tutdim.on.clear>b{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none}
+.tutdim::after{content:'';position:absolute;left:var(--wx,0);top:var(--wy,0);width:var(--ww,0);height:var(--wh,0);border-radius:14px;opacity:0;pointer-events:none;box-shadow:0 0 0 3px var(--gold),0 0 0 6px rgba(242,193,78,.35),0 0 22px rgba(242,193,78,.65);transition:opacity .2s}
+.tutdim.on.clear:not(.nowin)::after{opacity:1;animation:tutring 1.3s ease-in-out infinite}
+@keyframes tutring{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+@media (prefers-reduced-motion:reduce){.tutdim.on.clear::after{animation:none}}
 .menu.tutoring #commBtn{display:none}
 .menu.tutoring #modes,.menu.tutoring .wfoot .critics,.menu.tutoring #stages{display:none}
 /* the slow-down: a gold frame and a soft vignette while a lesson is up */
@@ -2823,7 +2829,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 224</p>
+      <p class="ver">Version 225</p>
     </div>
   </div>
 
@@ -17194,7 +17200,8 @@ function tutHide() { tutHandAt(null); tutGest(null); if ($('tutGo').hidden) coac
 // hole, but Safari doesn't always repaint a hole that moves, so on iPhones the window went missing.) Taps fall through the gap
 function tutWindow(x, y, w, h) { const x0 = Math.round(x), y0 = Math.round(y), x1 = Math.round(x + w), y1 = Math.round(y + h), c = x0 + ' ' + y0 + ' ' + x1 + ' ' + y1; if (tutDim.dataset.w === c) return; tutDim.dataset.w = c;
   const [a, b, l, r] = tutDim.children, none = w <= 0 || h <= 0; a.style.height = none ? '100%' : Math.max(0, y0) + 'px'; b.style.top = none ? '100%' : y1 + 'px';
-  l.style.top = r.style.top = y0 + 'px'; l.style.height = r.style.height = none ? '0px' : Math.max(0, y1 - y0) + 'px'; l.style.width = Math.max(0, x0) + 'px'; r.style.left = x1 + 'px'; }
+  l.style.top = r.style.top = y0 + 'px'; l.style.height = r.style.height = none ? '0px' : Math.max(0, y1 - y0) + 'px'; l.style.width = Math.max(0, x0) + 'px'; r.style.left = x1 + 'px';
+  tutDim.classList.toggle('nowin', none); if (!none) { tutDim.style.setProperty('--wx', x0 + 'px'); tutDim.style.setProperty('--wy', y0 + 'px'); tutDim.style.setProperty('--ww', (x1 - x0) + 'px'); tutDim.style.setProperty('--wh', (y1 - y0) + 'px'); } }
 const tutAt = () => !tutTip || !tutTip.at ? null : typeof tutTip.at === 'string' ? $(tutTip.at) : typeof tutTip.at === 'function' ? tutTip.at() : tutTip.at;
 // the plate sits over what it is about, pointing down at it (or under it, pointing up, when there is no room above); with nothing to point at it sits up top
 function tutPlace() {
@@ -17220,7 +17227,7 @@ function tutPlace() {
     return;
   }
   tutHandAt(null); if (tutDim.classList.contains('block') !== block) tutDim.classList.toggle('block', block); // (between matches only the instructed control takes a tap)
-  { const nb = shopOpen || lookOpen; if (tutDim.classList.contains('noblur') !== nb) tutDim.classList.toggle('noblur', nb); } // (in the shop and the locker the dim alone, no blur)
+  { const nb = shopOpen || lookOpen; if (tutDim.classList.contains('noblur') !== nb) tutDim.classList.toggle('noblur', nb); if (tutDim.classList.contains('clear') !== nb) tutDim.classList.toggle('clear', nb); } // (in the shop and the locker: no dim, no blur, the control ringed)
   const vis = el && !el.closest('[hidden]') && el.getClientRects().length > 0;
   if (!vis) { if (tutEl.dataset.pos !== 'top') { tutEl.dataset.pos = 'top'; tutEl.style.cssText = ''; } tutWindow(viewW / 2, viewH / 2, 0, 0); return; }
   const r = el.getBoundingClientRect(), cx = r.left - r0.left + r.width / 2, cw = Math.min(tutEl.offsetWidth, viewW - 24);
