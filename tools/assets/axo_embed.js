@@ -957,18 +957,20 @@ Animator.prototype.crawl = function (t, out, dt) {
   if (air) {
     if (!L.air) { L.air = true; L.airT = 0; L.lead = (L.steer > 0.2 ? 1 : L.steer < -0.2 ? -1 : -L.lead); for (const l of L.limbs) { l.held = l.st === 'stance'; l.st = 'air'; } L.arch.v += 60; }
     L.airT += dt;
-    const tl = M.tl === undefined ? 1 : M.tl, reach = 1 - smooth(clamp01((tl - 0.04) / 0.34)), hgt = Math.max(0, M.h || 0), rising = (M.vy || 0) > 0.5;
+    const tl = M.tl === undefined ? 1 : M.tl, reachA = 1 - smooth(clamp01((tl - 0.03) / 0.21)), reachL = 1 - smooth(clamp01((tl - 0.02) / 0.15)), hgt = Math.max(0, M.h || 0), rising = (M.vy || 0) > 0.5;
     const pos = P.fk('crawl', out);
     for (const l of L.limbs) {
       if (C && l.held) { l.p.applyMatrix4(C); l.p0.applyMatrix4(C); }
-      if (l.held) { const d = l.p.distanceTo(pos[l.root]); if (d > 0.94 * l.len || L.airT > 0.2 || !rising) { l.held = false; l.p0.copy(l.p); } }
+      if (l.held) { const d = l.p.distanceTo(pos[l.root]); if (d > 0.94 * l.len || L.airT > 0.12 || !rising) { l.held = false; l.p0.copy(l.p); } }
       if (!l.held) {
-        // tucked back as it rises, reaching down and forward as the ground comes up (the lead hand lowest: it touches first)
-        const lead = l.arm && l.m === L.lead, dn = Math.min(hgt, 0.32), push = 1 - smooth(clamp01((L.airT - 0.06) / 0.14));
-        LV1.copy(l.hb).add(l.arm ? LV2.set(-0.1 * l.m, 0.16, -0.2) : LV2.set(-0.04 * l.m, 0.07, -0.16));
+        // tucked in once it is off the ground (the hands folded back along the chest, the feet drawn up beside the belly), held there
+        // through the flight, then reaching down and forward as the ground comes up, the hands first (the lead hand lowest: it touches
+        // first), the feet just after
+        const lead = l.arm && l.m === L.lead, dn = Math.min(hgt, 0.32), push = 1 - smooth(clamp01((L.airT - 0.04) / 0.08));
+        LV1.copy(l.rr).add(l.arm ? LV2.set(0.06 * l.m, -0.12, -0.3) : LV2.set(0.05 * l.m, 0.07, -0.02)).add(LV4.set(l.hb.x - l.home.x, 0, l.hb.z - l.home.z));
         LV4.copy(l.hb).add(l.arm ? LV2.set(-0.03 * l.m, -0.1, -0.1) : LV2.set(-0.02 * l.m, -0.06, -0.1)); LV1.lerp(LV4, push);
         LV3.copy(l.hb).add(l.arm ? LV2.set(0.0, -dn + (lead ? -0.02 : 0.05), 0.15) : LV2.set(0.0, -Math.min(dn, 0.12) + 0.05, 0.06));
-        LV1.lerp(LV3, rising ? 0 : reach); l.p.lerp(LV1, 1 - Math.exp(-dt * 18));
+        LV1.lerp(LV3, rising ? 0 : l.arm ? reachA : reachL); l.p.lerp(LV1, 1 - Math.exp(-dt * 22));
       }
       l.lift = l.held ? 0 : 1;
     }
