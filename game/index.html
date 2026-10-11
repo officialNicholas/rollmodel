@@ -1,5 +1,6 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Roll Model</title>
+<style>/* (the game keeps clear of the notch and the home bar itself, bar by bar: the page's own padding for them would count them twice) */:root{padding-top:0!important;padding-bottom:0!important}</style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Figtree:wght@600;700;800;900&display=swap">
@@ -2798,7 +2799,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 214</p>
+      <p class="ver">Version 215</p>
     </div>
   </div>
 
@@ -14965,16 +14966,18 @@ function renderLobby() {
   const ac = renderer.autoClear; renderer.autoClear = false; renderer.clearDepth(); renderer.render(scene, lobbyCam); renderer.autoClear = ac;
   hemi.intensity = hi; sun.intensity = si; sun.color.copy(keySave); sun.position.copy(lobbySunPos); sun.target.position.copy(lobbyTgt); sun.target.updateMatrixWorld(); RIG.uRigRimC.value.copy(lkRimSave);
 }
+// the bottom of the logo as drawn (its title card and the season tag under it; the heading's own box has no height)
+function logoBottom() { let b = 0; for (const e of document.querySelectorAll('#logo .tcard, #logo .season')) { if (e.offsetParent === null) continue; const r = e.getBoundingClientRect(); if (r.height > 0) b = Math.max(b, r.bottom); } return b; }
 // where the blob stands: the space the top bar, the side plates and the dock leave, its feet low in it
 function lobbyFrame() {
   const r = stage.getBoundingClientRect(), W = r.width, Hh = r.height, land = W > Hh;
   const rc = id => { const e = $(id); return e && e.offsetParent !== null ? e.getBoundingClientRect() : { left: 0, right: 0, top: 0, bottom: 0, width: 0, height: 0 }; };
-  const top = rc('lobbyTop'), lg = rc('logo'), L = rc('lobbyRail'), R = rc('lobbyRight'), bot = rc('lobbyBot');
-  const x0 = (L.right || r.left) - r.left + 6, x1 = (R.left || r.right) - r.left - 6, y0 = Math.max(top.bottom, lg.bottom || 0) - r.top + 58, y1 = (bot.top || r.bottom) - r.top;
+  const top = rc('lobbyTop'), L = rc('lobbyRail'), R = rc('lobbyRight'), bot = rc('lobbyBot');
+  const x0 = (L.right || r.left) - r.left + 6, x1 = (R.left || r.right) - r.left - 6, y0 = Math.max(top.bottom, logoBottom()) - r.top + 58, y1 = (bot.top || r.bottom) - r.top;
   if (!(x1 - x0 > 60) || !(y1 - y0 > 60)) return heroDist;
   const fw = x1 - x0, fh = y1 - y0, tx = (x0 + x1) / 2, feetY = y0 + fh * (land ? 0.86 : 0.86);
   const tall = charTall(myLook);
-  const px = Math.min(fh * (land ? 0.9 : 0.92), fw * 0.74, Hh * 0.6);
+  const px = Math.min(fh * (land ? 0.84 : 0.84), fw * 0.74, Hh * 0.6);
   const tv = Math.tan(heroFov() * Math.PI / 360), dist = clamp(tall * Hh / (2 * tv * px), 1.65, 12), ly = 0.36;
   heroDist = dist; hero.mx = P.x; hero.mz = P.z;
   const lookY = feetY - ly * Hh / (2 * tv * dist); heroOff.x = W / 2 - tx; heroOff.y = Hh / 2 - lookY;
@@ -16603,7 +16606,7 @@ function pbarTick(rdt) {
   if (pbar.hidden === on) { pbar.hidden = !on; slotL.hidden = slotR.hidden = !on; }
   if (document.body.classList.contains('homeon') !== on) document.body.classList.toggle('homeon', on);
   if (!on) { if (!sideMenu.hidden && state !== 'menu') closeSide(true); return; }
-  PB.mT -= rdt; if (PB.mT <= 0) { PB.mT = 0.5; let b = 0; for (const id of ['lobbyTop', 'logo']) { const e = $(id); if (e && e.offsetParent !== null) { const r = e.getBoundingClientRect(); if (r.height > 0) b = Math.max(b, r.bottom); } } PB.top = b; }
+  PB.mT -= rdt; if (PB.mT <= 0) { PB.mT = 0.5; let b = logoBottom(); { const e = $('lobbyTop'); if (e && e.offsetParent !== null) { const r = e.getBoundingClientRect(); if (r.height > 0) b = Math.max(b, r.bottom); } } PB.top = b - stage.getBoundingClientRect().top; }
   pbDraw(rdt);
 }
 pbar.addEventListener('click', uiClick(() => openStats()));
