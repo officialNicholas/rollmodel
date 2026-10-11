@@ -1496,6 +1496,25 @@ body.homeon .corner{display:none}
 @keyframes evmore{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
 @media (prefers-reduced-motion:reduce){.evmore{animation:none}}
 #friendsBtn{translate:0 var(--fdy,0px)}
+/* the Paint Shop's season banner: a framed night scene, the season's name in big glowing letters, a jack-o'-lantern over its corner */
+.shcat.season.shban{position:relative;display:block;min-height:150px;margin:14px 0 14px;padding:0;border-radius:18px;background:#2A1846;box-shadow:0 0 0 3px #171320,0 6px 0 3px #171320,0 18px 30px rgba(0,0,0,.5);transform:rotate(-.6deg);color:#fff;letter-spacing:0;text-transform:none;isolation:isolate}
+.shcat.season.shban .sbart{position:absolute;inset:0;border-radius:18px;overflow:hidden;z-index:-1;background:#2A1846 var(--sbbg) 72% 36%/cover no-repeat}
+.shcat.season.shban .sbart::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(22,10,38,.94) 0%,rgba(22,10,38,.78) 38%,rgba(22,10,38,.18) 70%,rgba(22,10,38,0) 100%),linear-gradient(0deg,rgba(22,10,38,.55),rgba(22,10,38,0) 45%)}
+.shcat.season.shban .sbart::after{content:'';position:absolute;top:-20%;bottom:-20%;left:-40%;width:28%;background:linear-gradient(100deg,rgba(255,255,255,0),rgba(255,240,210,.32) 50%,rgba(255,255,255,0));transform:skewX(-18deg);animation:sbshine 5.2s ease-in-out 1.2s infinite}
+@keyframes sbshine{0%{left:-40%}28%,100%{left:130%}}
+.shcat.season.shban .sbrim{position:absolute;inset:0;border-radius:18px;box-shadow:inset 0 2px 0 rgba(255,255,255,.28),inset 0 0 0 2px rgba(255,190,90,.35),inset 0 -10px 24px rgba(255,120,30,.18);pointer-events:none}
+.shcat.season.shban .sbtx{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:7px;padding:18px 20px;max-width:calc(100% - min(128px,34%) - 6px);box-sizing:border-box}
+.shcat.season.shban .sbkick{display:inline-block;padding:5px 10px 4px;border-radius:5px;background:#FFF1D2;color:#171320;font:800 11px/1 var(--font-ui);letter-spacing:.22em;text-transform:uppercase;box-shadow:2px 3px 0 rgba(0,0,0,.45);transform:rotate(-3deg);font-style:normal}
+.shcat.season.shban .sbtitle{display:block;margin:2px 0 0;font:400 clamp(28px,8.4vw,46px)/.95 var(--font-display);letter-spacing:.01em;text-transform:uppercase;white-space:nowrap;background:linear-gradient(180deg,#FFFBE0 0%,#FFE266 30%,#FFB429 62%,#FF6A1A 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:1.5px #171320;filter:drop-shadow(0 3px 0 #171320) drop-shadow(0 0 12px rgba(255,150,40,.6))}
+.shcat.season.shban small{display:block;font:800 13px/1.25 var(--font-ui);letter-spacing:.01em;text-transform:none;color:#F6E9FF;text-shadow:0 2px 0 rgba(0,0,0,.5)}
+.shcat.season.shban .sbprog{display:flex;align-items:center;gap:8px;margin-top:2px;font:800 12px/1 var(--font-ui);color:#FFD27A;text-shadow:0 2px 0 rgba(0,0,0,.5)}
+.shcat.season.shban .sbprog i{position:relative;display:block;width:86px;height:10px;border-radius:6px;background:rgba(0,0,0,.45);box-shadow:inset 0 0 0 2px rgba(255,255,255,.12)}
+.shcat.season.shban .sbprog i::after{content:'';position:absolute;left:2px;top:2px;bottom:2px;width:calc((100% - 4px) * var(--p,0));min-width:6px;border-radius:4px;background:linear-gradient(180deg,#FFD04A,#FF7A1A);box-shadow:0 0 8px rgba(255,150,40,.8)}
+.shcat.season.shban .sbpump{position:absolute;right:-10px;bottom:-14px;width:min(128px,34%);height:auto;pointer-events:none;filter:drop-shadow(0 6px 0 rgba(23,19,32,.55)) drop-shadow(0 0 18px rgba(255,140,30,.55));animation:sbbob 2.6s ease-in-out infinite;transform-origin:50% 90%}
+@keyframes sbbob{0%,100%{transform:translateY(0) rotate(4deg)}50%{transform:translateY(-6px) rotate(1deg)}}
+@media (min-aspect-ratio:1/1){.shcat.season.shban .sbart{background-size:auto 210%;background-position:right 32%}}
+@media (prefers-reduced-motion:reduce){.shcat.season.shban .sbart::after,.shcat.season.shban .sbpump{animation:none}}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.shcat.season.shban{min-height:104px;margin:6px 0 8px}.shcat.season.shban .sbtx{padding:12px 16px;gap:5px}.shcat.season.shban .sbtitle{font-size:32px}.shcat.season.shban .sbpump{width:110px;bottom:-10px}}
 /* abilities: violet construction paper, cut by hand, set crooked and taped down at two corners; locked until rank 3, then coming soon */
 .plate.abil{width:70px;min-height:76px;padding:14px 4px 13px;align-content:center;border-radius:0;background:none;box-shadow:none;color:#FFF6E4;text-shadow:0 1px 0 rgba(23,19,32,.5);transform:rotate(-4deg);animation:abilidle 4.6s -.8s ease-in-out infinite}
 .plate.abil .abpaper{position:absolute;inset:0;z-index:-1;background:url(art/m_cpaper.webp) center/100% 100% no-repeat;filter:drop-shadow(2px 3px 0 rgba(23,19,32,.22))} /* (the shadow on a layer of its own: a filter on the button would clip the note that pops out of it) */
@@ -1696,6 +1715,11 @@ body.homeon .corner{display:none}
 .slamBtn:active{transform:translateY(4px) scale(.96);box-shadow:none;filter:drop-shadow(1px 2px 0 rgba(23,19,32,.3))}
 .slamBtn svg{width:44px;height:44px;stroke-width:1.6;filter:drop-shadow(0 2px 0 rgba(0,0,0,.3))}
 .slamBtn::after{display:none} /* (the cooldown is the corner dial's; no pie over the disc) */
+.slamBtn.assist{animation:sbassist .26s ease-in-out infinite alternate}
+@keyframes sbassist{from{transform:scale(1.04)}to{transform:scale(1.16)}}
+.slamBtn.assist::after{display:block;content:'';position:absolute;inset:-7px;border-radius:50%;background:none;border:4px solid #FFD84A;box-shadow:0 0 18px rgba(255,216,74,.85);animation:sbring .55s ease-out infinite;pointer-events:none}
+@keyframes sbring{from{transform:scale(.92);opacity:1}to{transform:scale(1.32);opacity:0}}
+@media (prefers-reduced-motion:reduce){.slamBtn.assist,.slamBtn.assist::after{animation:none}}
 .slamBtn.off{background:url(art/m_dot.webp) center/100% 100% no-repeat;filter:grayscale(1) brightness(.72) drop-shadow(4px 6px 0 rgba(23,19,32,.3))}
 .slamBtn.boost{background:url(art/m_dot.webp) center/100% 100% no-repeat;filter:hue-rotate(-28deg) saturate(1.3) drop-shadow(4px 6px 0 rgba(23,19,32,.3))}
 .slamBtn.ready{animation:slamin .4s cubic-bezier(.3,1.7,.5,1),stickerpulse 1.4s ease-in-out .4s infinite}
@@ -2719,6 +2743,68 @@ html.touchnav :focus-visible{outline:none!important}
 .itemBtn.in::before{animation:itemglow2 1.6s ease-in-out .4s infinite}
 @keyframes itemglow2{50%{opacity:1}}
 @media (prefers-reduced-motion:reduce){.itemBtn.in::before{animation:none}}
+/* ---- the canvas vote page, refined (v226) ---- */
+/* the paintings and their dots in the middle of the space between the title and the footer (portrait; the lesson keeps its own rows) */
+@media (max-aspect-ratio:1/1){
+  .menu:not(.tutoring) .mworld{grid-template-rows:auto auto minmax(6px,1fr) auto auto minmax(6px,1fr) auto}
+  .menu:not(.tutoring) .mworld .whead{grid-row:1}
+  .menu:not(.tutoring) .mworld #modes{grid-row:2}
+  .menu:not(.tutoring) .mworld .gallery{grid-row:4;height:auto;padding-top:30px;padding-bottom:30px}
+  .menu:not(.tutoring) .mworld #gDots{grid-row:5}
+  .menu:not(.tutoring) .mworld .sgrid{grid-row:3/7;max-height:100%;overflow:auto}
+  .menu:not(.tutoring) .mworld .wfoot{grid-row:7}
+}
+/* the count under the title on a line of its own */
+.mworld .whead h2::after{position:static;display:block;transform:skewX(6deg);margin-top:10px;font:800 11px/1 var(--font-ui);letter-spacing:.22em;color:#CBC2DA}
+/* a warm gallery light over the painting you're on */
+.mworld .world::after{content:'';position:absolute;z-index:-1;left:-22%;right:-22%;top:-26%;bottom:-6%;background:radial-gradient(ellipse 50% 46% at 50% 38%,rgba(255,228,172,.26),rgba(255,228,172,.08) 52%,rgba(255,228,172,0) 72%);opacity:0;transition:opacity .35s;pointer-events:none}
+.mworld .world[aria-pressed="true"]::after{opacity:1}
+/* a brass name plate, screwed to the wall */
+.mworld .plaque{position:relative;min-width:56%;padding:8px 30px 9px;border:0;border-radius:4px;background:linear-gradient(180deg,#F6E3AA 0%,#DDBB66 46%,#BF923A 54%,#DAB566 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.65),inset 0 -1px 0 rgba(96,64,12,.55),0 0 0 1.5px #4E360E,0 5px 12px rgba(0,0,0,.5)}
+.mworld .plaque::before,.mworld .plaque::after{content:'';position:absolute;top:50%;width:6px;height:6px;margin-top:-3px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#FFF4CF,#8E6822 72%);box-shadow:0 0 0 1px rgba(70,46,8,.65)}
+.mworld .plaque::before{left:10px}.mworld .plaque::after{right:10px}
+.mworld .plaque .wn{color:#35240A;letter-spacing:.06em;text-shadow:0 1px 0 rgba(255,244,210,.65)}
+.mworld .world.locked .plaque{background:linear-gradient(180deg,#D9D3E4,#B9B1CA 48%,#A39AB8 54%,#BEB6CF);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 0 0 1.5px #3E3652,0 5px 12px rgba(0,0,0,.5)}
+.mworld .world.locked .plaque .wn{color:#3E3652;text-shadow:0 1px 0 rgba(255,255,255,.5)}
+/* round glass arrows at the painting's height */
+.mworld .gnav{width:46px;height:46px;margin-top:-23px;border-radius:50%;background:rgba(23,19,32,.55);border:1.5px solid rgba(244,238,227,.32);color:#F4EEE3;box-shadow:0 8px 18px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.14);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);font:700 28px/1 var(--font-ui);display:grid;place-items:center;padding:0 0 3px}
+.mworld .gnav.prev{left:10px;padding-right:2px}.mworld .gnav.next{right:10px;padding-left:2px}
+.mworld .gnav:active{transform:scale(.92);box-shadow:0 4px 10px rgba(0,0,0,.45)}
+.mworld .gnav[disabled]{opacity:0;pointer-events:none}
+/* the dots: the one you're on a little bar */
+.mworld .gdots{gap:7px;padding:10px 0 2px}
+.mworld .gdots i{width:7px;height:7px;background:rgba(244,238,227,.26);transition:width .25s,background .25s}
+.mworld .gdots i.on{width:22px;border-radius:4px;background:#F4EEE3;transform:none}
+/* CPU difficulty: a heading between two fine rules, one dark switch, the pick on cream paper */
+.mworld .lhead.critics{display:flex;align-items:center;justify-content:center;gap:12px;margin:0;font:800 11px/1 var(--font-ui);letter-spacing:.24em;color:#CBC2DA}
+.mworld .lhead.critics::before,.mworld .lhead.critics::after{content:'';flex:0 1 64px;height:1px;background:linear-gradient(90deg,rgba(244,238,227,0),rgba(244,238,227,.4))}
+.mworld .lhead.critics::after{background:linear-gradient(90deg,rgba(244,238,227,.4),rgba(244,238,227,0))}
+.mworld #stages{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:5px;border-radius:14px;background:rgba(9,7,14,.62);box-shadow:inset 0 2px 7px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.09),0 1px 0 rgba(255,255,255,.06)}
+.mworld #stages button{min-height:44px;margin:0;border:0;border-radius:10px;background:none;transform:none;box-shadow:none;color:#BDB4CC;font:900 15px/1 var(--font-head);letter-spacing:.05em;text-transform:uppercase;text-shadow:none;transition:background .2s,color .2s}
+.mworld #stages button[aria-pressed="true"]{background:#F4EEE3 url(art/m_paperbg.webp) center/300px;color:#171320;box-shadow:0 3px 0 rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.9)}
+.mworld #stages button:not([aria-pressed="true"]):active{background:rgba(255,255,255,.06)}
+/* the note: quieter, one run of text */
+.mworld #soloNote{display:block;text-align:center;min-height:0;font:700 13px/1.4 var(--font-ui);color:#A79FB8}
+.mworld #soloNote b{color:#E9E2F2}
+.mworld .wfoot{gap:14px}
+/* the footer stands on a little shade, apart from the wall */
+.mworld::after{content:'';position:absolute;left:0;right:0;bottom:0;height:42%;background:linear-gradient(0deg,rgba(9,7,14,.7),rgba(9,7,14,0));pointer-events:none;z-index:0}
+.mworld .wfoot{position:relative;z-index:1}
+/* the versus card's canvas reel: its pictures share a class name with the player cards and took their padding and border, so they stood
+   taller than the reel and the winner's bottom was cut off; now the pictures are their own size and the reel has room for the winner */
+.vreel{height:140px}
+.vtrack{margin-top:-41px}
+.vreel .vcard{display:block;box-sizing:border-box;width:144px;height:82px;padding:0;border:0;border-radius:6px;animation:none;background:#2A2437}
+.vreel .vcard.win{box-shadow:0 0 0 3px #FFD84A,0 0 0 5px #171320,0 10px 24px rgba(0,0,0,.6)}
+.vreel .vcard .vcn{bottom:5px;font-size:13px}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.mworld .whead h2::after{margin-top:6px}.mworld #stages button{min-height:38px}.mworld::after{height:34%}}
+/* the onboarding's first word: the dark and the blur ease in over the lobby, then the plate slides up into place, the hand with it */
+.tutdim.slow>b{transition:opacity .9s ease,-webkit-backdrop-filter .9s ease,backdrop-filter .9s ease,top .22s,left .22s,width .22s,height .22s;-webkit-backdrop-filter:blur(0px);backdrop-filter:blur(0px)}
+.tutdim.slow.on>b{-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.tut.swipe.on .tplate{animation:tutup .6s cubic-bezier(.2,1,.3,1) .75s both}
+.tut.swipe.on .thand{animation:tutup .6s cubic-bezier(.2,1,.3,1) .75s both,tutbob .6s ease-in-out 1.35s infinite alternate}
+@keyframes tutup{from{translate:0 70px;opacity:0}to{translate:0 0;opacity:1}}
+@media (prefers-reduced-motion:reduce){.tutdim.slow>b{transition:opacity .3s}.tut.swipe.on .tplate,.tut.swipe.on .thand{animation:none}}
 </style>
 
 <div id="stage">
@@ -2829,7 +2915,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 225</p>
+      <p class="ver">Version 226</p>
     </div>
   </div>
 
@@ -3061,7 +3147,7 @@ const REGEN = 0.55;
 const OLD = 12;            // seconds after hardening until paint looks fully aged
 const SPLAT_R = 1.35, SPLAT_COST = 0.08, SLAM_R = 3, MISSILE_R = 4, SLAM_CD = 6, SLAM_FIRST = 10, SLAM_COST = 0.25, MAX_LIVES = 1; // one life: any death ends the run
 const HARDEN = 2.5;        // paint laid just before the sun gets this long before it hardens
-const SUN_WARN = 4, SUN_TIME = 7, SUN_CHANCE = 0.45, DUSK_TIME = 7, RAIN_TIME = 6.5, BURN_RATE = 0.24; // the sun burns you in the open; blood it hardened stays hard through the dusk until the rain
+const SUN_WARN = 4, SUN_TIME = 7, SUN_CHANCE = 0.45, DUSK_TIME = 5, RAIN_TIME = 6.5, BURN_RATE = 0.24; // the sun burns you in the open; blood it hardened stays hard through the dusk until the rain
 // slingshot: hold to stop, pull down to set the power, let go to fling
 const PULL_DEAD = 10, FLING_MIN = 0.08, STILL_DRAIN = 0.02;
 // two sides: your blood and the holy water
@@ -7664,6 +7750,7 @@ const LIMB = [{ en: 'hand.L', off: 0, m: 1, arm: true }, { en: 'foot.R', off: 0.
 // spend less of each step on the ground, so at speed they kick through quickly while the hands take long reaching strides)
 const GAIT = { handX: 0.4, handZ: 0.035, footX: 0.29, footZ: -0.8, reachH: 0.27, reachF: 0.15, sweepF: 0.28, sMax: 0.54, fMax: 5.6, fMin: 1.7 };
 const frac = x => x - Math.floor(x);
+const SLITHER = { on: 4.4, off: 3.2, after: 0.45, f0: 1.4, f1: 0.8, tail: 34 };
 const spr = (s, target, k, c, dt) => { const h = Math.min(dt, 1 / 30); s.v += (k * (target - s.x) - c * s.v) * h; s.x += s.v * h; return s.x; };
 // a pitch about the body's own sideways axis (positive: nose down), put in the bone's own frame
 const AXX = new THREE.Vector3(1, 0, 0), LQ2 = new THREE.Quaternion(), LQ3 = new THREE.Quaternion();
@@ -7696,13 +7783,23 @@ Animator.prototype.crawl = function (t, out, dt) {
   if (air) f = 0; L.f += (f - L.f) * Math.min(1, dt * 30); L.ph += L.f * dt;
   L.act = smooth(clamp01((v - 0.05) / 0.9)) * on * (air ? 0 : 1);
   const act = L.act, liftH = 0.028 + 0.03 * clamp01(v / 5);
+  // ---- at speed it slithers (as the old jelly did): once it has crawled up to speed and held it a moment, the arms fold back along its
+  // flanks and the legs trail beside the tail, the belly settles to the ground and a wave runs from its head down its tail; slowing
+  // down, the limbs come back to the ground and the crawl takes over again (never in the air, climbing, curled, or turned on the spot)
+  const SL = L.sl || (L.sl = { k: 0, on: false, hold: 0, ph: 0 });
+  { const vc = L.vc, ok = !air && !TR && M.spin === undefined && !((M.climbCurl || 0) > 0) && !((M.ball || 0) > 0.05) && L.ballK < 0.05;
+    if (ok && vc > SLITHER.on) SL.hold += dt; else if (!ok || vc < SLITHER.off) SL.hold = 0;
+    SL.on = ok && (SL.on ? vc > SLITHER.off : SL.hold > SLITHER.after);
+    SL.k += ((SL.on ? 1 : 0) - SL.k) * Math.min(1, dt * (SL.on ? 4.5 : 6)); }
+  const sl = L.slK = smooth(SL.k);
   // ---- the body's line (worked out before the limbs: they step from where it carries the shoulders and hips). A salamander's standing
   // wave: the shoulders and hips swing against each other with each pair of steps, the trunk bowing one way then the other, the tail
   // answering it in an S, the head kept steadier. Round a turn the whole body bends into a C: the trunk takes most of it, the neck and
   // head carry the curve on (never a kink at the neck), the tail follows it round; on a spring, so it eases in and swings back past straight
   const sp = this.chain.spine, c1 = Math.cos(2 * Math.PI * L.ph);
-  const kap = L.yr / Math.max(L.vc, 1.3), bend = L.bend = spr(L.bd, Math.max(-64, Math.min(64, kap * 90)) * on, 55, 11, dt);
-  const amp = (12 + 28 * clamp01(v / 6.5)) * act * (1 - 0.7 * Math.min(1, Math.abs(bend) / 64)), Ap = 0.4 * amp, As = 0.6 * amp, hs = As * c1 * (1 - Math.min(1, Math.abs(bend) / 64));
+  const kap = L.yr / Math.max(L.vc, 1.3), spun = M.spin !== undefined, bend = L.bend = spr(L.bd, (spun ? 66 * Math.tanh(M.spin / 1.9) : Math.max(-64, Math.min(64, kap * 90))) * on, spun ? 48 : 55, spun ? 10 : 11, dt);
+  L.tlg = spr(L.tg || (L.tg = { x: 0, v: 0 }), bend, 24, 4, dt);   // (the tail's own lag round a turn: it trails, then swings back past)
+  const amp = (12 + 28 * clamp01(v / 6.5)) * act * (1 - sl) * (1 - 0.7 * Math.min(1, Math.abs(bend) / 64)), Ap = 0.4 * amp, As = 0.6 * amp, hs = As * c1 * (1 - Math.min(1, Math.abs(bend) / 64));
   const HT = spr(L.ht, (L.steer * 10 + Math.max(-8, Math.min(8, L.yr * 3))) * on, 75, 10, dt);
   const T = 50 * Math.tanh((-amp * c1 + bend * 0.92 + HT * 0.45) / 50);
   this.worldTurn(out, I.hips, Ap * c1, 0);
@@ -7711,6 +7808,11 @@ Animator.prototype.crawl = function (t, out, dt) {
   this.worldTurn(out, sp[3], T * 0.29, 0);
   this.worldTurn(out, I.neck, hs * 0.25 + bend * 0.1 + HT * 0.3, -HT * 0.12);
   this.worldTurn(out, I.head, hs * 0.25 + bend * 0.07 + HT * 0.25, -HT * 0.3);
+  if (sl > 0.001) { // (the slither's wave: each joint a little behind the one before it, so the bend travels from the head to the hips; the head kept steadier)
+    SL.ph += dt * 2 * Math.PI * (SLITHER.f0 + SLITHER.f1 * clamp01((L.vc - 3) / 5));
+    const w = (j, A, s) => this.worldTurn(out, j, A * sl * Math.sin(SL.ph - s * 1.2), 0);
+    w(I.hips, 7, 1.0); w(sp[1], 15, 0.8); w(sp[2], 15, 0.6); w(sp[3], 11, 0.4); w(I.neck, 4, 0.2); w(I.head, -13, 0.1);
+    out.root.y -= 0.03 * sl; }
   // the body over uneven ground (climbing out of a basin): the hips up or down to the ground under them, the back tilted to the ground under
   // the chest and the head, bridging a narrow rim (the highest ground within a hand's width under each), eased so it rolls over
   if (TR || L.tbOn) {
@@ -7794,7 +7896,7 @@ Animator.prototype.crawl = function (t, out, dt) {
       if (z.s >= 1) { L.settle = null; L.still = 0.1; l.st = 'stance'; } }
   }
   // the bob of each pair's footfall, the push-off's arch, the landing's dip onto the lead hand (on springs: they overshoot and settle)
-  const bob = Math.cos(4 * Math.PI * (L.ph - D * 0.5)) * 0.009 * act;
+  const bob = Math.cos(4 * Math.PI * (L.ph - D * 0.5)) * 0.009 * act * (1 - sl);
   const arch = spr(L.arch, 0, 90, 12, dt), dip = spr(L.dip, 0, 110, 13, dt), dipR = spr(L.dipR, 0, 110, 12, dt);
   const brI = (this.breath - 0.5) * (1 - act);   // (stopped, the breath shows: the chest rises and falls, the belly swells, the gills flare)
   out.root.y += -bob + dip * 0.0012 + brI * 0.02;
@@ -7805,11 +7907,17 @@ Animator.prototype.crawl = function (t, out, dt) {
   // ---- the limbs on their marks (in the air the same marks steer them, with no ground under them)
   for (const l of L.limbs) {
     const LB = this.limbBind[l.arm ? 'arm' : 'leg'];
-    out.contact(l.en, l.p, LV2.set(LB.fwd.x * l.m, -0.35 * l.lift, LB.fwd.z), LV3.set(LB.pole.x * l.m, LB.pole.y, LB.pole.z), 1);
-    const dig = this.chain[l.arm ? 'fingers' : 'toes'][l.m > 0 ? 0 : 1]; dig.forEach((g, k) => { rot(out, g[0], 4 + l.lift * 16 - (air ? 8 : 0), 0, (k - 1.5) * (5 + (air ? 5 : 0)) * l.m); rot(out, g[1], 3 + l.lift * 12, 0, 0); });
+    let tp = l.p, lift = l.lift;
+    if (sl > 0.001) { // (slithering: the hand folded back along the flank behind the shoulder, the foot trailing beside the tail, just off the ground)
+      const pk2 = L.pk2 && L.pk2f === this.t ? L.pk2 : (L.pk2f = this.t, L.pk2 = P.fk('crawl', out)), pr = pk2[l.root], q = l.q || (l.q = new THREE.Vector3());
+      q.set(pr.x + (l.arm ? 0.07 : 0.065) * l.m, l.home.y + (l.arm ? 0.045 : 0.035), pr.z - (l.arm ? 0.23 : 0.27)); q.lerpVectors(l.p, q, sl); tp = q; lift = Math.max(lift, 0.8 * sl); }
+    out.contact(l.en, tp, LV2.set(LB.fwd.x * l.m * (1 - sl) + 0.25 * l.m * sl, -0.35 * lift * (1 - sl), LB.fwd.z * (1 - sl) - sl), LV3.set(LB.pole.x * l.m, LB.pole.y, LB.pole.z), 1);
+    const dig = this.chain[l.arm ? 'fingers' : 'toes'][l.m > 0 ? 0 : 1]; dig.forEach((g, k) => { rot(out, g[0], 4 + lift * 16 - (air ? 8 : 0), 0, (k - 1.5) * (5 + (air ? 5 : 0)) * l.m); rot(out, g[1], 3 + l.lift * 12, 0, 0); });
   }
   // the tail carries the wave on behind the hips
-  this.tailWave(2 * Math.PI * L.ph + Math.PI * 0.85, (4 + 15 * clamp01(v / 6.5)) * act + 1.5, 0.75, air ? -3 : 0);
+  this.tailWave(2 * Math.PI * L.ph + Math.PI * 0.85, ((4 + 15 * clamp01(v / 6.5)) * act + 1.5) * (1 - sl), 0.75, air ? -3 : 0);
+  if (sl > 0.001) { const tt = this.tailTarget, c = L.ttc || (L.ttc = new Float32Array(tt.length)); c.set(tt); // (the slither's wave carries on down the tail, bigger toward its tip)
+    this.tailWave(SL.ph - 1.4, SLITHER.tail * sl, 0.85, 0); for (let k = 0; k < tt.length; k++) tt[k] += c[k]; }
   { const cc = L.tcurl = (L.tcurl || 0) + ((M.climbCurl || 0) - (L.tcurl || 0)) * Math.min(1, dt * 8), up = (L.tailUp || 0) - 0.4 * cc, tl = this.chain.tail; // (a positive pitch lifts a tail joint)
     if (Math.abs(up) > 0.005) { this.pitchTurn(out, tl[0], up * 0.85); this.pitchTurn(out, tl[1], up * 0.25); if (up > 0) { this.pitchTurn(out, tl[2], -up * 0.35); this.pitchTurn(out, tl[3], -up * 0.2); } } // (up over the rim, the far end draped back down)
     if (cc > 0.01) for (let k = 0; k < tl.length; k++) this.worldTurn(out, tl[k], (k ? 26 : 14) * cc, 0); } // (still in the tub: its tail curled round inside it, down in the paint) this.tailFree = 1; this.neck.amt = 0.7 - 0.3 * act;
@@ -7851,7 +7959,7 @@ Animator.prototype.crawl = function (t, out, dt) {
     // the original computes the targets and steps the spring: the turn's swing goes in through the push the spring is given
     ss0.call(this, dt);
     // the tail follows the body's bend round a turn (its spring lags it in and swings it back after)
-    if (L && this.state === 'crawl') this.tailLat += L.bend * 0.16;
+    if (L && this.state === 'crawl') this.tailLat += L.bend * (this.motion.spin !== undefined ? 0 : 0.16) + (this.motion.spin !== undefined ? L.tlg * 0.27 : 0);
   };
   // the targets: wrapped so the added swing lands in the spring's target before it is stepped
   const SpringStep = Spring.prototype.step;
@@ -8499,7 +8607,7 @@ const AXOC = (() => {
       if (X.wasAir && !air) A.motion.landV = Math.max(0, -(X.lastVy || 0)) * k; X.wasAir = air; X.lastVy = vy;
       A.motion.air = air; A.motion.vy = vy * k; A.motion.h = hh * k;
       A.motion.tl = vy > 0 ? vy / g1 + Math.sqrt(2 * (hh + vy * vy / (2 * g1)) / g2) : (vy + Math.sqrt(vy * vy + 2 * g2 * hh)) / g2;
-      A.motion.steer = clamp(o.lean || 0, -1, 1);
+      A.motion.steer = clamp(o.lean || 0, -1, 1); A.motion.spin = o.spinV; // (turned round on the spot in the locker: how fast)
       // curled up: the slingshot's ball (a long pull, the quick part of the flight), the roll, the pound's tuck
       // (rolling, it opens out only as it comes round onto its feet: the ball holds until the roll brings it upright)
       const want = Math.max(o.blob || 0, o.curl || 0), ph = (((X.spin || 0) % 6.2832) + 6.2832) % 6.2832;
@@ -12084,6 +12192,7 @@ function updateSlamBtn() {
     if (!rk && P.st === 'play' && !P.slam && P.paint >= POUND_MIN && P.slamCD > 0 && P.slamMax > 0) { frac = 1 - P.slamCD / P.slamMax; n = String(Math.ceil(P.slamCD)); kind = 'cd'; }
     if (frac < 0) { if (!dl.hidden) dl.hidden = true; } else { if (dl.hidden) dl.hidden = false; if (dl.dataset.k !== kind) dl.dataset.k = kind; const deg = (clamp(frac, 0, 1) * 360).toFixed(0); if (dl.dataset.d !== deg) { dl.dataset.d = deg; $('sbRing').style.background = 'conic-gradient(var(--pc) ' + deg + 'deg, rgba(23,19,32,.35) 0)'; }
       const v = n; if ($('sbN').dataset.v !== v) { $('sbN').dataset.v = v; $('sbN').innerHTML = v; } } }
+  { const as = P.assistT > 0 && !P.slam; if (b._as !== as) { b._as = as; b.classList.toggle('assist', as); } }
   const up = P.st === 'hide', fwd = !up && ((P.air && (P.flingC || 0) > 0.15 && !P.slam) || (P.slam && P.missile));
   if (b._up !== up) { b._up = up; b.classList.toggle('up', up); wasReady = null; }
   if (b._fwd !== fwd) { b._fwd = fwd; b.classList.toggle('fwd', fwd); wasReady = null; }
@@ -12274,6 +12383,16 @@ function shove(A, B) {
   if (B === P) { shake = Math.max(shake, 0.35); buzz([20, 25, 30]); popText('Bounced!'); }
   else if (A === P) { shake = Math.max(shake, 0.25); buzz(18); popText('Bounced ' + nameOf(B) + '!'); }
 }
+// the pound assist: you rolled into a rival and stunned it, your pound ready: the roll carries you up off it into a quick little hop (most of
+// the roll's speed goes into the lift, so you stay over them, landing just past), the pound button pulsing. Press it and you come straight down on them;
+// don't, and you just land. (Not in the lesson's dodge steps, where the pound is locked, nor before the lesson has given you the pound.)
+const ASSIST_VY = 6.2, ASSIST_SPD = 2.6;
+function poundAssist(D) {
+  const B = D.assistB; D.assistB = null;
+  if (state !== 'play' || D.st !== 'play' || D.air || D.slam || D.rocket || D.turret || D.giantT > 0 || D.charging || !slamReady(D) || (tut && (tut.noPound || tut.hidePound)) || !B || !(B.stunT > 0.8)) return;
+  D.rollT = 0; D.air = true; D.vy = ASSIST_VY; D.spd = Math.min(D.spd, ASSIST_SPD); D.turn = 0; D.buf = 0; D.stroke++; D.squash = Math.max(D.squash, 0.45); D.assistT = 1.2;
+  fxLaunch(D, 0.6); if (hearable(D)) AU.jump(); if (D === P) buzz(10);
+}
 // rolled into: seeing stars for 2 seconds, can't move or act (a pound will finish you), then a moment where it can't happen again
 const STUN_T = 2;
 function stun(B, A) {
@@ -12283,6 +12402,7 @@ function stun(B, A) {
   A.passT = 0.45; A.squash = Math.max(A.squash, 0.35); A.wob = Math.max(A.wob, 0.6); emote(A, 'glee', 1.1);
   for (let i = 0; i < 12; i++) { const a = i / 12 * 6.283; spawnPart(B.x, B.y + 0.5, B.z, Math.cos(a) * 2.6, 1 + Math.random() * 1.5, Math.sin(a) * 2.6, 0.4, puHaloMat, 0.5); }
   if (hearable(A) || hearable(B)) { AU.bonk(1); AU.pop(); } if (B === P) { AU.vox('oof'); hitEdge(A); } hitStop(0.07, A, B);
+  if (A === P && !A.ai) { A.assistQ = 0.02; A.assistB = B; }
   if (B === P) { shake = Math.max(shake, 0.3); buzz([25, 30, 25]); banner('Stunned!'); }
   else if (A === P) { shake = Math.max(shake, 0.2); buzz(18); banner('Stunned ' + nameOf(B) + '!', 'Pound ' + nameOf(B) + '!'); }
 }
@@ -12298,7 +12418,7 @@ function pairContact(P, H) {
   for (let s = 0, A = P, B = H; s < 2; s++, A = H, B = P) if (A.rollT > 0 && B.giantT <= 0 && B.immuneT <= 0 && !safe(B) && !(B.stunT > 0) && !(B.stunGuard > 0) && B.flatT <= 0) return stun(B, A);
   for (let s = 0, A = P, B = H; s < 2; s++, A = H, B = P) if (A.flung && !A.slam && A.spd > cfg.speed * speedMul * 1.15 && B.immuneT <= 0 && !safe(B) && !(A.air && A.vy < -0.5 && A.y > B.y + 0.25)) return shove(A, B);
   if (d > PR * 2 || Math.abs(dy) > 0.95) return;
-  for (let s = 0, A = P, B = H; s < 2; s++, A = H, B = P) if (A.air && A.vy < -0.5 && A.y > B.y + 0.25 && !A.slam && B.flatT <= 0 && B.immuneT <= 0 && !safe(B)) { flatten(B, A, 'stomp'); A.vy = 6.5; A.air = true; A.y = Math.max(A.y, B.y + 0.3); fxLaunch(A, 0.8); return; }
+  for (let s = 0, A = P, B = H; s < 2; s++, A = H, B = P) if (A.air && A.vy < -0.5 && A.y > B.y + 0.25 && !A.slam && !(A.assistT > 0) && B.flatT <= 0 && B.immuneT <= 0 && !safe(B)) { flatten(B, A, 'stomp'); A.vy = 6.5; A.air = true; A.y = Math.max(A.y, B.y + 0.3); fxLaunch(A, 0.8); return; }
   if (P.air || H.air) return;
   if (P.flatT > 0 || H.flatT > 0) return; // roll right over a pancake
   if ((P.stunT > 0 && H.passT > 0) || (H.stunT > 0 && P.passT > 0)) return; // the roller that just stunned it rolls on through
@@ -12492,6 +12612,8 @@ function stepBlob(D, dt) {
   if (D.exposed) { D.paint -= BURN_RATE * 2.4 * dt; burnFx(D, dt); if (D.paint <= 0) { D.paint = 0; if (!D.dry && D.st === 'play') goDry(D); } } // (the sun dries you out; it no longer knocks you out)
   if (D.stunGuard > 0) D.stunGuard -= dt;
   if (D.passT > 0) D.passT -= dt;
+  if (D.assistQ > 0) { D.assistQ -= dt; if (D.assistQ <= 0) { D.assistQ = 0; poundAssist(D); } }
+  if (D.assistT > 0) { D.assistT -= dt; if (!D.air || D.slam || D.st !== 'play') D.assistT = 0; }
   if (D.stunT > 0) { D.stunT -= dt; D.spd = 0; D.turn = 0; D.wob = Math.max(D.wob, 0.5); if (D.stunT <= 0) { D.stunT = 0; D.stunGuard = 1.5; D.squash = 0.6; D.fxShk = Math.max(D.fxShk, 0.8); fxLaunch(D, 0.5); if (hearable(D)) AU.pop(); } }
   else if (D.flatT > 0) { D.flatT -= dt; D.spd = 0; D.turn = 0; if (D.flatT <= 0) { D.immuneT = 1.0; D.squash = 0.9; D.wob = 1; D.fxShk = Math.max(D.fxShk, 1); fxLaunch(D, 0.6); if (hearable(D)) AU.pop(); } }
   else steerAndTurn(D, dt, D.slam ? 0 : D.air ? (D.knockT > 0 ? 0.12 : D.charging ? 0.85 : 0.65) : D.charging ? 0.75 : D.rollT > ROLL_T - ROLL_DASH ? 0.4 : 1);
@@ -13662,7 +13784,9 @@ const idle = { t: 2.5, act: null, u: 0, dur: 1, sway: 0, push: 0, hop: 0, spin: 
 const newShim = () => ({ yaw: 0, tgt: 0, vel: 0, ph: 0, push: 0, shove: 0 });
 const shim = newShim();
 function shimStep(S, dt) {
-  dt = Math.min(dt, 0.05); const d = S.tgt - S.yaw, want = clamp(d * 4.5, -3, 3), go = Math.abs(d) > 0.004 || Math.abs(S.vel) > 0.02;
+  dt = Math.min(dt, 0.05);
+  if (AXOC.S.ready) { const d = S.tgt - S.yaw; S.vel += (clamp(d * 4.5, -6, 6) - S.vel) * Math.min(1, dt * 10); S.yaw += S.vel * dt; S.push = S.shove = 0; return; } /* (the axolotl: eased in and out, its body does the rest) */
+  const d = S.tgt - S.yaw, want = clamp(d * 4.5, -3, 3), go = Math.abs(d) > 0.004 || Math.abs(S.vel) > 0.02;
   if (go) S.ph += dt * (7 + Math.abs(want) * 2.4);
   const step = 0.35 + 0.65 * Math.pow(Math.abs(Math.sin(S.ph)), 0.7);
   S.vel += (want * step - S.vel) * Math.min(1, dt * 14); S.yaw += S.vel * dt;
@@ -13676,7 +13800,7 @@ const beatNow = () => { const B = AU.beat ? AU.beat() : null; return B ? B.t * B
 function idleStep(rdt) {
   idle.sway = idle.push = idle.hop = idle.spin = idle.sq = idle.rise = idle.roll = idle.pitch = idle.bank = idle.hand = idle.earCover = 0;
   let lxT = 0, lyT = 0;
-  if (state === 'menu' && (lookOpen || menuPage === 'home') && !lookIntro && !vic && menuReact <= 0) {
+  if (state === 'menu' && (lookOpen || menuPage === 'home') && !lookIntro && !vic && menuReact <= 0 && !lkDip) {
     if (!idle.act) { idle.t -= rdt; if (window.__idleForce && idle.t > 0.15) idle.t = 0.15; if (idle.t <= 0) { const a = pickIdle(); idle.act = a[0]; idle.dur = a[1]; idle.u = 0; idle.b0 = beatNow(); if (idle.act === 'yawn') emote(P, 'yawn', a[1]); if (idle.act === 'face') emote(P, ['glee', 'smug', 'ouch', 'bonk'][(Math.random() * 4) | 0], a[1] * 0.8); if (idle.act === 'listen' || idle.act === 'bounce') idle.dur = Math.max(a[1], (idle.act === 'listen' ? 8 : 4) * 60 / (AU.beat && AU.beat() ? AU.beat().bpm : 148)); if (idle.act === 'shimmy') { const home = Math.round(shim.tgt / 6.2832) * 6.2832, off = shim.tgt - home; shim.tgt = Math.abs(off) > 0.8 ? shim.tgt - Math.sign(off) * (0.55 + Math.random() * 0.25) : home + clamp(off + (Math.random() < 0.5 ? -1 : 1) * (0.35 + Math.random() * 0.25), -0.7, 0.7); } } }
     if (idle.act) { idle.u += rdt / idle.dur; const u = Math.min(1, idle.u);
       const env = Math.sin(Math.min(1, u * 4) * Math.PI / 2) * (1 - smoothstep(0.82, 1, u)), bt = beatNow() - idle.b0;
@@ -13817,6 +13941,7 @@ function blobVisual(D, V, dt, ke, kf) {
     sq = ph < 0.3 ? 0 : ph < 0.44 ? (1 - (ph - 0.3) / 0.14) * 0.42 : ph > 0.9 ? (ph - 0.9) / 0.1 * 0.2 : 0;
     if (D === P && (lookOpen || menuPage === 'home') && !lookIntro && !vsSnap) { sq = idle.sq || 0.04 + 0.035 * Math.sin(clock * 2.3); rise = idle.rise; hop = idle.hop; spinY = idle.spin; } // breathing, plus its little idle bits
     if (D === P && menuReact > 0 && !vsSnap) { const u = 1 - menuReact / 0.7; hop = Math.sin(u * Math.PI) * 0.6; sq = u > 0.85 ? (u - 0.85) / 0.15 * 0.5 : 0; rise = u < 0.4 ? 0.7 : 0; }
+    if (D === P && lkDip && lkDip.pose) { const q = lkDip.pose; hop = q.y; sq = q.sq; rise = q.rise; spinY = q.spin; }
     if (D === P && lookIntro) { const I = introPose(lookIntro.t); hop = I.y; sq = I.sq; rise = I.rise; spinY = 0; U.gDrop.value = I.drop; U.gWob.value = I.wob; V.introSc = I.sc; }
   }
   const isc = D === P && lookIntro && state === 'menu' ? V.introSc : 1;
@@ -13852,7 +13977,7 @@ function blobVisual(D, V, dt, ke, kf) {
   if (D === P && idle.sway) { const sc = idle.sway * 0.035 * rad / PR, yw = yawD + spinY; V.scootX = -Math.cos(yw) * sc; V.scootZ = Math.sin(yw) * sc; V.root.position.x += V.scootX; V.root.position.z += V.scootZ; } else V.scootX = V.scootZ = 0; V.misK = (V.misK || 0) + (((D.missile && D.slam) ? 1 : 0) - (V.misK || 0)) * Math.min(1, dt * 14); if (V.root.rotation.order !== 'YXZ') V.root.rotation.order = 'YXZ';
   if (D.rollOutT > 0) D.rollOutT = D.st === 'play' ? Math.max(0, D.rollOutT - dt) : 0; // (rolling out of a basin: one tumble, easing out as it lands)
   const IPr = state === 'intro' || state === 'play' ? D.ip : null; // (an intro's pose: a flip, a wobble)
-  V.root.rotation.set(V.misK * (D.missile && D.slam ? clamp(Math.atan2(-D.vy, Math.max(1, D.spd)), 0, 1.2) : 0.25) + (D.rollT > ROLL_T - ROLL_DASH ? 6.2832 * (1 - Math.pow((D.rollT - ROLL_T + ROLL_DASH) / ROLL_DASH, 2)) : 0) + (D.rollOutT > 0 ? 6.2832 * (1 - Math.pow(D.rollOutT / ROLL_OUT_T, 1.6)) : 0) + V.pullLean + (IPr ? IPr.pitch : 0), yawD + spinY, (D === P && idle.sway ? idle.sway * 0.06 : 0) + (D === P ? idle.bank : 0) + (D.shimNow ? D.shimNow.shove * 0.05 : 0) + (IPr ? IPr.roll : 0), 'YXZ');
+  V.root.rotation.set(V.misK * (D.missile && D.slam ? clamp(Math.atan2(-D.vy, Math.max(1, D.spd)), 0, 1.2) : 0.25) + (D.rollT > ROLL_T - ROLL_DASH ? 6.2832 * (1 - Math.pow((D.rollT - ROLL_T + ROLL_DASH) / ROLL_DASH, 2)) : 0) + (D.rollOutT > 0 ? 6.2832 * (1 - Math.pow(D.rollOutT / ROLL_OUT_T, 1.6)) : 0) + V.pullLean + (IPr ? IPr.pitch : 0) + (D === P && lkDip && lkDip.pose ? lkDip.pose.pitch : 0), yawD + spinY, (D === P && idle.sway ? idle.sway * 0.06 : 0) + (D === P ? idle.bank : 0) + (D.shimNow ? D.shimNow.shove * 0.05 : 0) + (IPr ? IPr.roll : 0), 'YXZ');
   V.yawDraw = V.root.userData.yawDraw = yawD + spinY;
   if (V.tum && (tumX || tumZ)) { const c = Math.cos(V.yawDraw), s = Math.sin(V.yawDraw), lx = V.tum.wx * c - V.tum.wz * s, lz = V.tum.wx * s + V.tum.wz * c;
     tumQ.setFromAxisAngle(tumA.set(lz, 0, -lx), tumX); V.root.quaternion.multiply(tumQ); tumQ.setFromAxisAngle(tumA.set(lx, 0, lz), tumZ); V.root.quaternion.multiply(tumQ); }
@@ -14055,10 +14180,10 @@ function slimeVisual(D, V, dt, sq, rise, rad, gy, hop, fxK, fxL) {
   I.root.visible = on; V.oldBlob.visible = !on && !tur; if (!on) return;
   if (!was) { if (I.kind === 'axo') I.ax.fresh = true; if (lookIntro) { if (!reduceMotion) I.popIn(); } else { I.st.formK = 0; I.st.pop = 1; I.st.earKick = 1; } }
   I.setForm(D.giantT > 0 ? 'giant' : 'slime');
-  I.setColor(V.mat.color); const op = V.mat.opacity; for (const k in I.mats) { I.mats[k].body.opacity = op; I.mats[k].ink.opacity = op; }
+  I.setColor(D === P && lkDip && !lkDip.swapped ? lkDip.oldC : V.mat.color); const op = V.mat.opacity; for (const k in I.mats) { I.mats[k].body.opacity = op; I.mats[k].ink.opacity = op; }
   // covered in its paint: down in a refill (eyes peeking out of the paint), or gathering itself into a drop in the countdown. Out of it
   // (a leap from the refill, or the fall at Go), the blob pulls into shape and the paint bursts off, mid-leap or as it lands
-  I.setPaint(coatCol.setHex(TEAMS[D.team].wet)); if (!I.onBurst) I.onBurst = () => coatSplash(D, V);
+  I.setPaint(coatCol.setHex(D === P && lkDip && !lkDip.swapped ? lkDip.old : TEAMS[D.team].wet)); if (!I.onBurst) I.onBurst = () => coatSplash(D, V);
   const ipc = D.ip ? D.ip.coat : null, soaked = !ipc && ((state === 'intro' && !D.introLeap && !D.introOut && !D.introCrawl && !D.introAct && !D.introBare) || D.st === 'hide');
   if (D.ipBurst) { D.ipBurst = false; if (I.coated()) { I.coatBurst(0.001); V.coatSt = 'out'; V.coatAirT = 0; } V.wade = 1; D.shook = true; } // (an intro's moves throw the paint off)
   else if (ipc === 'blob') { if (V.coatSt !== 'blob') { V.coatSt = 'blob'; I.coatOn(0.85); } } // (all paint, pulled round into a ball, its eyes showing)
@@ -14120,7 +14245,7 @@ function slimeVisual(D, V, dt, sq, rise, rad, gy, hop, fxK, fxL) {
   if (fxK > 0) { const ry = V.yawDraw, c = Math.cos(ry), s = Math.sin(ry); I.impact(D.fxX * c - D.fxZ * s, D.fxX * s + D.fxZ * c, fxK); }
   if (fxL > 0) I.launch(fxL);
   const o = V.so || (V.so = { pos: [0, 0, 0], wt: { yaw: 0, pitch: 0 } }), W = V.slimeWatchT;
-  o.dt = dt; o.spd = U.gSpd.value; o.lean = L.lean; o.air = hopAir ? 1 : 1 - L.flat; o.inAir = (vAir && D.st === 'play') || hopAir; o.vy = hopAir ? hv * 2.6 : D.vy || 0; o.height = hopAir ? mHop * 2.6 : gy > -Infinity ? D.y - gy : 9; o.grav = GRAV;
+  o.dt = dt; o.spinV = D === P && P.shimNow === shim ? shim.vel : undefined; o.spd = U.gSpd.value; o.lean = L.lean; o.air = hopAir ? 1 : 1 - L.flat; o.inAir = (vAir && D.st === 'play') || hopAir; o.vy = hopAir ? hv * 2.6 : D.vy || 0; o.height = hopAir ? mHop * 2.6 : gy > -Infinity ? D.y - gy : 9; o.grav = GRAV;
   o.pos[0] = D.x + (V.scootX || 0); o.pos[1] = D.y + D.stepOff + mHop; o.pos[2] = D.z + (V.scootZ || 0);
   // (turning on the spot as it lines up a fling, the stubs do all of it)
   const tp = live && !vAir && !(D.rollT > 0) ? (D.charging ? clamp(D.turn / TURN * 2.2, -1, 1) * 0.85 : D.spd > 0.4 ? clamp(L.lean * 1.3, -1, 1) * Math.min(1, D.spd / 3) * 0.75 : 0) : 0; V.tPush = (V.tPush || 0) + (tp - (V.tPush || 0)) * Math.min(1, dt * 10);
@@ -15035,7 +15160,7 @@ const lobbyKey = new THREE.Color(0xFFF1E2), lobbySunPos = new THREE.Vector3(), l
 const heroSay = $('heroSay');
 function renderLobby() {
   vicLayer(P, true); drop.visible = true; strand.layers.enable(4);
-  const sc = 0.9 + 0.5 * clamp(P.y, 0, 1); lobbyShadow.visible = true; lobbyShadow.position.set(P.x, 0.01, P.z); lobbyShadow.scale.set(sc, sc, 1); lobbyShadow.material.opacity = clamp(1 - P.y * 0.6, 0.3, 1);
+  const sc = 0.9 + 0.5 * clamp(P.y, 0, 1); lobbyShadow.visible = true; lobbyShadow.position.set(P.x, 0.01, P.z); lobbyShadow.scale.set(sc, sc, 1); lobbyShadow.material.opacity = clamp(1 - P.y * 0.6, 0.3, 1); if (lkDip && lkDip.pose) { const y = lkDip.pose.y; lobbyShadow.material.opacity *= y < -0.05 ? 0 : clamp(1 - y * 0.7, 0.3, 1); }
   lobbyCam.copy(camera, false); lobbyCam.layers.set(4); lobbyCam.updateMatrixWorld();
   camera.updateMatrixWorld(); camera.matrixWorldInverse.copy(camera.matrixWorld).invert(); lobbyU.uInvPV.value.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse).invert(); lobbyU.uCam.value.copy(camera.position); lobbyU.uBlob.value.set(P.x, 0, P.z);
   const nx = camera.position.x - P.x, nz = camera.position.z - P.z, nl = Math.hypot(nx, nz) || 1; lobbyU.uWallN.value.set(nx / nl, nz / nl); lobbyU.uTime.value = clock; lobbyPropsTick(); lobbyU.uDim.value = lookOpen ? 0.04 : 0; lobbyU.uCol.value.setHex(TEAMS[0].wet); lobbyU.uLook.value += ((lookOpen ? 1 : 0) - lobbyU.uLook.value) * 0.1; if (lobbyU.uSweep.value < 2) lobbyU.uSweep.value = Math.min(2, lobbyU.uSweep.value + 0.028);
@@ -15259,7 +15384,11 @@ function renderSwatches() {
 }
 // picking a color: the logo repaints, your blob hops and splats the floor in it
 function pickColor(id) {
-  const same = id === colorId; if (!same) { lobbyU.uCol2.value.setHex(TEAMS[0].wet); setColor(id); store.color = colorId; save(); kick($('logo'), 'paint'); if (lookOpen) lobbyU.uSweep.value = 0; }
+  const same = id === colorId, dip = !same && lookOpen && state === 'menu' && !lookIntro && !reduceMotion && AXOC.S.ready && !!(VP && VP.slime), old = TEAMS[0].wet;
+  if (!same) { if (!(lkDip && !lkDip.out)) lobbyU.uCol2.value.setHex(TEAMS[0].wet); setColor(id); store.color = colorId; save(); kick($('logo'), 'paint'); if (lookOpen) lobbyU.uSweep.value = 0; }
+  if (!same && lookOpen) { const b = $('lc-paint'); if (b) b.innerHTML = '<small>Paint</small><span class="lci"><i class="dab" style="--c:' + TEAMS[0].css + '"></i></span><b>' + colorOf().name + '</b>'; }
+  if (dip) { AU.pop(); dipStart(lkDip && !lkDip.swapped ? lkDip.old : old); return; }
+  if (lkDip) { AU.pop(); return; }
   { const now = performance.now(); if (!(now - (pickColor.hopAt || -1e9) < 5000)) { menuReact = 0.7; pickColor.hopAt = now; } } AU.pop(); AU.splat(same ? 0.4 : 0.8); // (a hop for the first pick, then no more than one every few seconds: browsing the swatches is not a trampoline)
   if (state === 'menu') { addSplat(P.x, P.y, P.z, P.yaw, 0.9, -8, false, false, 0); for (let i = 0; i < 14; i++) { const a = i / 14 * 6.283; spawnPart(P.x, P.y + 0.3, P.z, Math.cos(a) * 2.2, 2 + Math.random() * 1.6, Math.sin(a) * 2.2, 0.5, teamMats[0], 0.7); } }
 }
@@ -15339,7 +15468,7 @@ function renderStages() {
   if (!el.children.length) { let h = ''; for (const [k, name, tag] of DIFFS) h += '<button type="button" data-d="' + k + '" title="' + tag + '">' + name + '</button>'; el.innerHTML = h; }
   for (const b of el.children) b.setAttribute('aria-pressed', String(b.dataset.d === diff));
   $('cvName').textContent = (mode === 'solo' ? '' : 'Your vote \u00b7 ') + TH.label; $('shuffleBtn').setAttribute('aria-label', (mode === 'solo' ? 'Shuffle the canvas. Now: ' : 'Shuffle your vote. Now: ') + TH.label);
-  { const sn = $('soloNote'); sn.innerHTML = mode === 'solo' ? '<b>Your canvas:</b> ' + escAttr(TH.label) + '. Solo plays the canvas you choose.' : '<b>Your vote:</b> ' + escAttr(TH.label) + '. Your rivals vote too. Most votes wins, and a tie is drawn.'; sn.hidden = false; }
+  { const sn = $('soloNote'); sn.innerHTML = mode === 'solo' ? '<b>Your canvas:</b> ' + escAttr(TH.label) + '. Solo plays the canvas you choose.' : 'Your rivals vote too. <b>Most votes wins</b>, and a tie is drawn.'; sn.hidden = false; }
   for (const b of el.children) b.textContent = CRITICS[b.dataset.d] || b.textContent;
   renderWorlds(); if (typeof renderLobbyUI === 'function' && $('lobbyStage')) renderLobbyUI();
 }
@@ -15348,7 +15477,7 @@ let menuPage = 'home', galT = 0;
 const gallery = $('stagePick'), worldBtns = [...gallery.querySelectorAll('.world')];
 /* the side padding matches the painting's real width (it changes with the screen), so the first and last can sit dead centre too */
 { let gpW = 0, gpQ = 0; const gpFit = () => { gpQ = 0; const on = worldBtns.find(b => b.getAttribute('aria-pressed') === 'true') || worldBtns[0]; if (!on || !gallery.clientWidth || !on.offsetWidth) return;
-    const mw = $('mWorld'), gr = gallery.getBoundingClientRect(), mr = mw.getBoundingClientRect(); mw.style.setProperty('--gmid', Math.round(gr.top - mr.top + gr.height / 2) + 'px'); /* (the arrows' height: the middle of the gallery) */
+    const mw = $('mWorld'), gr = gallery.getBoundingClientRect(), mr = mw.getBoundingClientRect(); { const ff = (on.querySelector('.frame') || on).getBoundingClientRect(); mw.style.setProperty('--gmid', Math.round((ff.height ? ff.top + ff.height / 2 : gr.top + gr.height / 2) - mr.top) + 'px'); } /* (the arrows' height: the middle of the painting) */
     const fr = on.querySelector('.frame') || on, fl = fr === on ? 0 : fr.offsetLeft, fw = fr.offsetWidth, ww = on.offsetWidth, cw = gallery.clientWidth; /* (the frame can be wider than its button: centre the frame) */
     const pl = Math.max(12, Math.round(cw / 2 - fl - fw / 2)), pr = Math.max(12, Math.round(cw / 2 + fl + fw / 2 - ww)); if (pl + ',' + pr !== gpW) { gpW = pl + ',' + pr; gallery.style.paddingLeft = pl + 'px'; gallery.style.paddingRight = pr + 'px'; }
     if (gallery.scrollWidth > cw + 4) gallery.scrollLeft = on.offsetLeft + fl + fw / 2 - cw / 2; };
@@ -15598,6 +15727,73 @@ function introFrame() {
   if (t >= IN_END) endIntro();
 }
 function startIntro() { lookIntro = reduceMotion ? { t: IN_LAND, landed: true } : { t: 0 }; }
+// the locker's paint dip: a new color, and it hops up, dives nose first into a pool of the new paint opening under it, and bursts back out in
+// the new color (a spin on the way up), lands and shakes the paint off. Its old color holds until it's under; the pool closes after it
+let lkDip = null, dipSide = 1;
+const DIP = { crouch: 0.12, apex: 0.3, dive: 0.43, swap: 0.76, out: 0.94, top: 1.17, land: 1.38, end: 1.85 };
+const dipPool = (() => {
+  const U = { uCol: { value: new THREE.Color() }, uT: { value: 0 }, uRip: { value: 0 }, uHole: { value: 0 } };
+  const m = new THREE.Mesh(new THREE.CircleGeometry(1, 64).rotateX(-Math.PI / 2), new THREE.ShaderMaterial({ uniforms: U, transparent: true, depthWrite: false,
+    vertexShader: 'varying vec2 vP; void main(){ vP = position.xz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: `uniform vec3 uCol; uniform float uT, uRip, uHole; varying vec2 vP;
+void main(){
+  float r = length(vP), a = atan(vP.y, vP.x);
+  float edge = 0.9 + 0.045 * sin(a * 5.0 + uT * 2.3) + 0.03 * sin(a * 11.0 - uT * 3.1);
+  float m = 1.0 - smoothstep(edge - 0.035, edge, r); if (m < 0.004) discard;
+  float fall = smoothstep(edge, 0.1, r) * smoothstep(0.0, 0.12, r), w = sin(r * 26.0 - uT * 14.0) * uRip * fall;
+  vec3 c = uCol * (0.74 + 0.26 * smoothstep(edge, edge - 0.22, r)) * (1.0 - 0.22 * max(-w, 0.0));
+  float hl = smoothstep(0.3, 0.0, length((vP - vec2(-0.34, -0.3)) * vec2(1.0, 1.7)));
+  c *= 1.0 - 0.4 * uHole * smoothstep(0.34, 0.0, r);
+  c = mix(c, vec3(1.0), clamp(hl * 0.42 + max(w, 0.0) * 0.45, 0.0, 0.8));
+  c = mix(c, uCol * 0.45, smoothstep(edge - 0.07, edge - 0.01, r) * 0.55);
+  gl_FragColor = vec4(c, m);
+  #include <colorspace_fragment>
+}` }));
+  m.layers.set(4); m.renderOrder = 30; m.visible = false; m.userData.U = U; scene.add(m);
+  // (the floor is drawn behind everything: under the pool, a floor of depth alone hides whatever has gone down into it)
+  const k = new THREE.Mesh(new THREE.PlaneGeometry(40, 40).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ colorWrite: false })); k.layers.set(4); k.renderOrder = -5; k.visible = false; scene.add(k); m.userData.mask = k;
+  return m; })();
+const dipEase = u => { u = clamp(u, 0, 1); return u * u * (3 - 2 * u); };
+// where it is at time t: up (or down into the paint) from where it stands, its nose down (+) or up (-), its spin, its squash
+function dipPose(t) {
+  const T = DIP;
+  if (t < T.crouch) { const u = t / T.crouch; return { y: 0, pitch: -0.14 * dipEase(u), spin: 0, sq: 0.4 * Math.sin(u * Math.PI / 2), rise: 0 }; }
+  if (t < T.swap) { const g = 0.46 / ((T.apex - T.crouch) * (T.apex - T.crouch)), y = Math.max(-2.4, 0.46 - g * (t - T.apex) * (t - T.apex));
+    return { y, pitch: -0.14 + 1.66 * dipEase((t - T.crouch - 0.04) / (T.dive - T.crouch - 0.02)), spin: 0, sq: 0, rise: t < T.apex ? 0.5 : 0.25 }; }
+  if (t < T.land) { const g = 0.42 / ((T.land - T.top) * (T.land - T.top)), y = Math.max(-2.4, 0.42 - g * (t - T.top) * (t - T.top));
+    const p = t < T.out - 0.03 ? -1.52 : -1.52 * (1 - dipEase((t - T.out + 0.03) / (T.top - T.out + 0.03))) + 0.14 * Math.sin(Math.PI * clamp((t - T.top) / (T.land - T.top), 0, 1));
+    return { y, pitch: p, spin: dipSide * 6.2832 * dipEase((t - T.out - 0.04) / 0.36), sq: 0, rise: t < T.top ? 0.55 : 0.2 }; }
+  const k = t - T.land, osc = 0.55 * Math.exp(-k * 7) * Math.cos(k * 17);
+  return { y: 0, pitch: 0, spin: 0, sq: Math.max(0, osc), rise: Math.max(0, -osc) * 0.8 };
+}
+function dipCrown(n, r, up, out, life) { for (let i = 0; i < n; i++) { const a = i / n * 6.2832 + Math.random() * 0.3, c = Math.cos(a), sn = Math.sin(a), sp = out * (0.7 + 0.6 * Math.random());
+  spawnPart(P.x + c * r, 0.06, P.z + sn * r, c * sp, up * (0.75 + 0.5 * Math.random()), sn * sp, life, teamMats[0], 0.55 + 0.45 * Math.random()); } }
+function dipStart(oldHex) {
+  if (lkDip) { if (!lkDip.swapped) lkDip.nu = TEAMS[0].wet; return; }
+  const I = VP && VP.slime, bb = I ? new THREE.Box3().setFromObject(I.root) : null, half = bb && !bb.isEmpty() ? Math.max(bb.max.x - bb.min.x, bb.max.z - bb.min.z) / 2 : 1.2;
+  dipSide = -dipSide; lkDip = { t: 0, old: oldHex, oldC: new THREE.Color().setHex(oldHex), nu: TEAMS[0].wet, swapped: false, out: false, R: clamp(half * 0.78, 0.7, 1.6), rip: 0, pose: dipPose(0) };
+  idle.act = null; idle.t = Math.max(idle.t, 3); menuReact = 0; AU.vox('hup', 0.8);
+}
+function dipEnd() { lkDip = null; dipPool.visible = dipPool.userData.mask.visible = false; }
+function dipTick(dt) {
+  const D = lkDip, pool = dipPool, U = pool.userData.U;
+  if (!D) return;
+  if (!lookOpen || state !== 'menu' || lookIntro) { dipEnd(); return; }
+  const t0 = D.t; D.t += Math.min(dt, 0.05); const t = D.t, at = x => t0 < x && t >= x, I = VP && VP.slime;
+  D.pose = dipPose(t);
+  // the pool: opens under it as it crouches, ripples with each splash, closes after it's back out
+  const open = t < DIP.land ? easeBack(Math.min(1, t / 0.26)) : 1 - dipEase((t - DIP.land - 0.08) / (DIP.end - DIP.land - 0.08));
+  pool.visible = pool.userData.mask.visible = open > 0.01; pool.position.set(P.x, 0.006, P.z); pool.scale.setScalar(Math.max(0.01, open) * D.R); pool.userData.mask.position.set(P.x, 0, P.z);
+  D.rip = Math.max(0, D.rip - dt * 1.4); U.uRip.value = D.rip; U.uT.value = t; U.uCol.value.setHex(D.nu); U.uHole.value = t > DIP.dive && t < DIP.out + 0.2 ? Math.min(1, (t - DIP.dive) * 6) * (1 - clamp((t - DIP.out) / 0.2, 0, 1)) : 0;
+  if (!D.out) lobbyU.uSweep.value = 0; // (the floor keeps its old color until it's out)
+  if (at(DIP.crouch)) AU.jump();
+  if (at(DIP.dive)) { dipCrown(18, D.R * 0.3, 3.6, 1.8, 0.55); D.rip = 1; AU.splashWater(); AU.splat(0.8); emote(P, 'bonk', 0.5); }
+  if (at(DIP.swap)) { D.swapped = true; D.nu = TEAMS[0].wet; if (I && I.coatOn) I.coatOn(); }
+  if (at(DIP.out)) { D.out = true; dipCrown(26, D.R * 0.26, 5.2, 1.5, 0.7); D.rip = 1; AU.splashWater(); AU.splat(1); AU.vox('hyah', 0.85); lobbyU.uSweep.value = 0; emote(P, 'glee', 1.1); }
+  if (at(DIP.land)) { AU.land(0.4); AU.plop(); D.rip = Math.max(D.rip, 0.5); if (I) { if (I.shake) I.shake(1); if (I.coatBurst) I.coatBurst(0.1); }
+    for (let i = 0; i < 16; i++) { const a = i / 16 * 6.2832, c = Math.cos(a), sn = Math.sin(a); spawnPart(P.x + c * 0.3, 0.45, P.z + sn * 0.3, c * (2.4 + Math.random()), 1.4 + Math.random() * 1.6, sn * (2.4 + Math.random()), 0.5, teamMats[0], 0.6); } }
+  if (t >= DIP.end) dipEnd();
+}
 function endIntro() { if (!lookIntro) return; lookIntro = null; strand.visible = false; introFade(1, 1); }
 let lookOpen = false, lookSpin = 0, lookDrag = null;
 const EYE_ICON = {
@@ -15696,7 +15892,13 @@ function renderShop() {
   const n = store.drops || 0; $('shBal').innerHTML = DROP_SVG + '<b>' + n + '</b>';
   let h = '', any = false; const done = new Set();
   for (const [c, label] of SHOP_CATS) { const items = ITEMS.filter(w => !bought(w.id) && !done.has(w.id) && (c === 'season' ? !!w.season : w.cat === c)).sort((a, b) => PRICE(a) - PRICE(b)); if (!items.length) continue; any = true; for (const w of items) done.add(w.id);
-    h += '<div class="shcat' + (c === 'season' ? ' season' : '') + '"><b>' + label + '</b>' + (c === 'season' ? '<small>Found on the Halloween canvases</small>' : '') + '</div>' + items.map(w => { const found = owns(w.id) || !needFind(w), broke = found && n < PRICE(w), where = WEAR_WHERE[w.stage], pic = shopPic(w);
+    if (c === 'season') { const all = ITEMS.filter(w => w.season), got = all.filter(w => bought(w.id) || owns(w.id) || !needFind(w)).length;
+      h += '<div class="shcat season shban" role="heading" aria-level="2"><span class="sbart" style="--sbbg:url(art/shop_hw_bg.webp)"></span><span class="sbrim"></span>'
+        + '<span class="sbtx"><i class="sbkick">Season One</i><b class="sbtitle">Halloween</b><small>Find these on the Halloween canvases</small>'
+        + '<span class="sbprog"><i style="--p:' + (all.length ? got / all.length : 0).toFixed(3) + '"></i>' + got + ' of ' + all.length + ' found</span></span>'
+        + '<img class="sbpump" src="art/shop_hw_pump.webp" alt="" draggable="false"></div>'; }
+    else h += '<div class="shcat"><b>' + label + '</b></div>';
+    h += items.map(w => { const found = owns(w.id) || !needFind(w), broke = found && n < PRICE(w), where = WEAR_WHERE[w.stage], pic = shopPic(w);
       return '<div class="shitem' + (found ? (broke ? ' broke' : '') : ' locked') + (found && owns(w.id) && needFind(w) && !bought(w.id) ? ' fresh' : '') + '" role="button" tabindex="0" data-w="' + w.id + '" aria-label="' + escAttr(w.name + ', ' + PRICE(w) + ' dabs' + (found ? (broke ? ', ' + (PRICE(w) - n) + ' more needed' : '') : ', locked. Find it on ' + where)) + '">'
         + '<span class="shin"><span class="shpic">' + (pic ? '<img src="' + pic + '" alt="">' : '<svg viewBox="0 0 40 40" aria-hidden="true">' + WEAR_ICON[w.id] + '</svg>') + (found ? '' : LOCK_ICON) + '</span>'
         + '<span class="shplate"><b class="shn">' + w.name + '</b><span class="shw">' + (found ? (broke ? 'Need ' + (PRICE(w) - n) + ' more' : owns(w.id) && needFind(w) ? 'Found on ' + where : 'In stock') : 'Find it on ' + where) + '</span><span class="shp">' + DROP_SVG + PRICE(w) + '</span></span></span></div>'; }).join(''); }
@@ -15784,8 +15986,8 @@ $('unlockForm').addEventListener('submit', e => { e.preventDefault(); const v = 
   if (v === '1234') { for (const w of ITEMS) { OWNED.add(w.id); BOUGHT.add(w.id); } store.owned = [...OWNED]; store.bought = [...BOUGHT]; save(); $('unlockCode').value = ''; $('unlockForm').hidden = true; $('unlockLink').hidden = false; renderLook(); lookPop(); note('Every item is unlocked.'); }
   else { AU.nope(); kick($('unlockForm'), 'nope'); note("That code doesn't work.", true); } });
 canvas.addEventListener('pointerdown', e => { if (lookOpen || lobbyOn()) lookDrag = { id: e.pointerId, x: e.clientX, x0: e.clientX, t: performance.now() }; });
-canvas.addEventListener('pointermove', e => { if ((lookOpen || lobbyOn()) && lookDrag && lookDrag.id === e.pointerId) { shim.tgt += (e.clientX - lookDrag.x) * 0.012; lookDrag.x = e.clientX; idle.t = Math.max(idle.t, 3); } });
-const endLookDrag = e => { if (lookDrag && lookDrag.id === e.pointerId) { if (e.type === 'pointerup' && !lookOpen && lobbyOn() && Math.abs(e.clientX - lookDrag.x0) < 8 && performance.now() - lookDrag.t < 400 && $('orient').hidden) { AU.init(); menuReact = 0.7; AU.pop(); if (Math.random() < 0.6) AU.vox(['hup', 'whee', 'giggle', 'hoh'][(Math.random() * 4) | 0]); } lookDrag = null; } };
+canvas.addEventListener('pointermove', e => { if ((lookOpen || lobbyOn()) && lookDrag && lookDrag.id === e.pointerId) { { const now = performance.now(), dm = Math.max(4, now - (lookDrag.tm || now - 16)); lookDrag.v = (lookDrag.v || 0) * 0.5 + 0.5 * (e.clientX - lookDrag.x) / dm; lookDrag.tm = now; } shim.tgt += (e.clientX - lookDrag.x) * 0.012; lookDrag.x = e.clientX; idle.t = Math.max(idle.t, 3); } });
+const endLookDrag = e => { if (lookDrag && lookDrag.id === e.pointerId) { if (lookOpen && AXOC.S.ready && e.type === 'pointerup' && performance.now() - (lookDrag.tm || 0) < 90) shim.tgt += clamp((lookDrag.v || 0) * 0.012 * 160, -2.6, 2.6); /* (let go mid-swipe: it glides on round) */ if (e.type === 'pointerup' && !lookOpen && lobbyOn() && Math.abs(e.clientX - lookDrag.x0) < 8 && performance.now() - lookDrag.t < 400 && $('orient').hidden) { AU.init(); menuReact = 0.7; AU.pop(); if (Math.random() < 0.6) AU.vox(['hup', 'whee', 'giggle', 'hoh'][(Math.random() * 4) | 0]); } lookDrag = null; } };
 canvas.addEventListener('pointerup', endLookDrag); canvas.addEventListener('pointercancel', endLookDrag);
 // a few strokes and splats in both colors so the menu canvas looks like a match in progress
 const RBM = { L: null, C: null, R: null, stroke: -1 };
@@ -17065,7 +17267,7 @@ function frameBody(t) {
   if (state === 'paused') dt = 0; else if (hold > 0) { hold -= rdt; dt = 0; } else if (slow > 0) { slow -= rdt; dt = rdt * 0.35; }
   if (tut && tut.slowK < 1 && state === 'play') dt *= tut.slowK; else if (tut2 && tut2.slowK < 1 && state === 'play') dt *= tut2.slowK; // (the lesson: slowed right down while a tip waits on you)
   if (dt > 0) { const n = Math.ceil(dt / 0.012); for (let i = 0; i < n; i++) step(dt / n); }
-  visuals(dt, rdt); flushTrail(); pbarTick(rdt); lockerTick();
+  visuals(dt, rdt); flushTrail(); pbarTick(rdt); lockerTick(); dipTick(rdt);
   if (shadowLite >= 2) sun.shadow.needsUpdate = (++frameNo & 1) === 0;
   if (!(state === 'menu' && (menuPage === 'worlds' || menuPage === 'events'))) renderFrame();
   lastCpu = (performance.now() - cpu0) / 1000;
@@ -17115,7 +17317,7 @@ colorId = PALETTE.some(p => p.id === store.color) ? store.color : 'red'; renderS
 // always lands on a Halloween canvas. Settings can start it over.
 if (!store.tut || typeof store.tut !== 'object' || !store.tut.ph) store.tut = { ph: (store.runs || 0) > 0 ? 'done' : 'match' };
 const tutArrowEl = $('tutArrow'), tutGV = new THREE.Vector3(), tutHandEl = $('tutHand'), tutEl = $('tut'), tutTxt = $('tutText'), tutCall = $('tutCall'), tutSlowEl = $('tutSlow'), tutDim = $('tutDim'), tutAva = $('tutAva');
-let tut2 = null, tut = null, tutPrev = null, tutTip = null, tutWinDue = false, tutNiAt = 0; // tutNiAt: when the new item card came up (the coach waits for the item to land) // tutWinDue: the lesson's finish screen is owed, before the tally // tut: the scripted match; tutPrev: the mode, level and canvas to put back after it; tutTip: the tip up now
+let tut2 = null, tut = null, tutPrev = null, tutTip = null, tutWinDue = false, tutNiAt = 0, tutFirstAt = 0; // tutFirstAt: when the lobby first stood clear for the onboarding's first word (it waits a second) // tutNiAt: when the new item card came up (the coach waits for the item to land) // tutWinDue: the lesson's finish screen is owed, before the tally // tut: the scripted match; tutPrev: the mode, level and canvas to put back after it; tutTip: the tip up now
 const tutPh = () => store.tut.ph, tutSet = ph => { if (store.tut.ph === ph) return; store.tut.ph = ph; save(); };
 const tutMatchDue = () => tutPh() === 'match';
 const TUT_SLOW = 0.35, TUT_HALLO = ['crypt', 'cathedral', 'manor'];
@@ -17178,7 +17380,7 @@ function coachTalk() { coachEl.classList.remove('talk'); void coachEl.offsetWidt
 function tutUnderHead(r0) { const w = $('mWorld'); if (w.hidden || innerWidth > innerHeight || menuPage !== 'worlds') return 0; const h = w.querySelector('.whead').getBoundingClientRect(); return h.height ? h.bottom - r0.top + 4 : 0; }
 function tutShow(text, at, key, call, nodim, side, loose) {
   if (tutTip && tutTip.key === key) return;
-  tutTip = { text, at: at || null, key, call: !!call, nodim: !!(nodim || loose), side: side || null, loose: !!loose }; /* (loose: up top, a hand on the control, nothing dimmed or blocked) */ tutEl.dataset.style = call ? 'call' : 'coach'; if (call) tutCall.innerHTML = escAttr(text).replace(/\*([^*]+)\*/g, '<em>$1</em>'); else tutTxt.textContent = text; if (!call && coachEl.classList.contains('on')) coachTalk(); tutEl.hidden = false; tutEl.classList.remove('on'); void tutEl.offsetWidth; tutEl.classList.add('on');
+  tutTip = { text, at: at || null, key, call: !!call, nodim: !!(nodim || loose), side: side || null, loose: !!loose }; /* (loose: up top, a hand on the control, nothing dimmed or blocked) */ tutEl.dataset.style = call ? 'call' : 'coach'; { const fw = key === 'first'; if (tutEl.classList.contains('swipe') !== fw) tutEl.classList.toggle('swipe', fw); if (tutDim.classList.contains('slow') !== fw) tutDim.classList.toggle('slow', fw); } if (call) tutCall.innerHTML = escAttr(text).replace(/\*([^*]+)\*/g, '<em>$1</em>'); else tutTxt.textContent = text; if (!call && coachEl.classList.contains('on')) coachTalk(); tutEl.hidden = false; tutEl.classList.remove('on'); void tutEl.offsetWidth; tutEl.classList.add('on');
   const el = tutAt(); if (el) tutReveal(el);
   tutPlace(); tutDim.classList.toggle('on', !nodim && !loose && state !== 'play'); if (call) AU.plop(); else AU.bloop(); // (no dim in a match: the play must stay clear; Ol' Bloop says his lines, the short callouts just pop)
   tutGest(state === 'play' ? TUT_GEST[key] : null);
@@ -17229,6 +17431,8 @@ function tutPlace() {
   tutHandAt(null); if (tutDim.classList.contains('block') !== block) tutDim.classList.toggle('block', block); // (between matches only the instructed control takes a tap)
   { const nb = shopOpen || lookOpen; if (tutDim.classList.contains('noblur') !== nb) tutDim.classList.toggle('noblur', nb); if (tutDim.classList.contains('clear') !== nb) tutDim.classList.toggle('clear', nb); } // (in the shop and the locker: no dim, no blur, the control ringed)
   const vis = el && !el.closest('[hidden]') && el.getClientRects().length > 0;
+  if (vis && block) { const sc = el.closest('.shgrid, .lrail'); if (sc) { const a = el.getBoundingClientRect(), g = sc.getBoundingClientRect(), lr = sc.classList.contains('lrail'), lo = lr ? Math.max(a.left, g.left) : Math.max(a.top, g.top), hi = lr ? Math.min(a.right, g.right) : Math.min(a.bottom, g.bottom);
+    if (Math.max(0, hi - lo) < 0.6 * (lr ? a.width : a.height)) tutReveal(el); } } // (what the tip is about, mostly out of its scroller (a turn of the phone, a scroll): back in the middle of it)
   if (!vis) { if (tutEl.dataset.pos !== 'top') { tutEl.dataset.pos = 'top'; tutEl.style.cssText = ''; } tutWindow(viewW / 2, viewH / 2, 0, 0); return; }
   const r = el.getBoundingClientRect(), cx = r.left - r0.left + r.width / 2, cw = Math.min(tutEl.offsetWidth, viewW - 24);
   tutWindow(r.left - r0.left - 10, r.top - r0.top - 10, r.width + 20, r.height + 20);
@@ -17578,7 +17782,7 @@ function tutMenuTick() {
   if (tutPh() === 'done') { if (menu.classList.contains('tutoring')) menu.classList.remove('tutoring'); if (!(state === 'play' && tutTip && tutTip.key === 'protip')) tutHide(); return; } /* (the onboarding is over: nothing to point at, so no hunting the page for open dialogs every frame) */
   if (bootHold || !booted || !tutBootEl.classList.contains('gone') || !tutOrientEl.hidden || document.querySelector('.modal:not([hidden])')) return tutHide(); // (nothing over the loading screen, the orientation chooser or any dialog) // (nothing over the loading screen: its tap to start must get through)
   const ph = tutPh(); if (menu.classList.contains('tutoring') !== (ph !== 'done')) menu.classList.toggle('tutoring', ph !== 'done'); // (the lesson keeps the lobby simple: no commissions, no how-to)
-  if (ph === 'match') { if (state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden) tutShow('Hey, rookie! Ready to roll? Your first match is a little training session. Tap Play and show me what you\u2019ve got!', 'homePlay', 'first'); else tutHide(); return; }
+  if (ph === 'match') { if (state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden) { if (!tutFirstAt) tutFirstAt = performance.now(); if (performance.now() - tutFirstAt < 1000) return tutHide(); /* (a second of the lobby first) */ tutShow('Hey, rookie! Ready to roll? Your first match is a little training session. Tap Play and show me what you\u2019ve got!', 'homePlay', 'first'); } else tutHide(); return; }
   if (ph === 'welcome') { if (state === 'dead') { if (!end.hidden) return tutShow('Back to the lobby. Something new is waiting', 'menuBtn', 'welback'); return tutHide(); }
     if (state === 'menu' && lookOpen && store.zombieDeal && bought('zombie') && myLook.eyes !== 'zombie') { if (lookCat !== 'eyes') return tutShow('Open Eyes', 'lc-eyes', 'eyesz'); return tutShow('Tap the zombie eyes to wear them', () => $('eyeStyles').querySelector('[data-es="zombie"]'), 'wearz'); } /* (bought just now: the shop's Back brought you here to put them on) */
     tutHide(); if (state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy) tutWelcome(); return; }

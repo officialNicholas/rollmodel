@@ -178,8 +178,8 @@ def dilate(img, cov, rounds=12):
     return img
 
 # ---------------- the bake ----------------
-def bake(nm, src, res, lookup, verbose=True):
-    t0 = time.time(); r = load_rt(nm); P, T, N = r['P'].astype(float), r['T'], r['N']; n = r['n']; reg = region_of(r)
+def bake(nm, src, res, lookup, verbose=True, rt_dir=RT):
+    t0 = time.time(); r = load_rt(nm, d=rt_dir); P, T, N = r['P'].astype(float), r['T'], r['N']; n = r['n']; reg = region_of(r)
     gillW = r['W'][:, [i for i, k in enumerate(r['names']) if k.startswith('gill')]].sum(1); thin = r['jelly'][:, 2] / 255.0
     frond = (gillW > 0.5) & (thin > 0.35)
     keep = ~frond[T].all(1)   # the thin gill fronds stay out of the atlas
@@ -245,21 +245,22 @@ def encode(img, quality=88, fmt='WEBP'):
     else: im.save(bio, 'JPEG', quality=quality, subsampling=0)
     return bio.getvalue()
 if __name__ == '__main__':
-    args = sys.argv[1:]; out = OUT; res = {'crawl': 2048, 'stand': 1024}; png = False; which = ['crawl', 'stand']; redo = False
+    args = sys.argv[1:]; out = OUT; res = {'crawl': 2048, 'stand': 1024}; png = False; which = ['crawl', 'stand']; redo = False; src_dir = RT
     while args:
         a = args.pop(0)
         if a == '--res': c, s_ = args.pop(0).split(','); res = {'crawl': int(c), 'stand': int(s_)}
         elif a == '--png': png = True
         elif a == '--only': which = args.pop(0).split(',')
         elif a == '--redo': redo = True   # (the finishing only, from the saved texel colours)
+        elif a == '--src': src_dir = args.pop(0)   # (the runtime meshes to texture; today's ws/axo by default)
         else: out = a
     os.makedirs(out, exist_ok=True)
     for nm in which:
         if redo:
-            z = np.load(f'{out}/bake_{nm}.npz'); B = finish(dict(r=load_rt(nm), vm=z['vm'], T2=z['T2'], uv=z['uv'], keep=z['keep'], ty=z['ty'], tx=z['tx'], col=z['col']), res[nm])
+            z = np.load(f'{out}/bake_{nm}.npz'); B = finish(dict(r=load_rt(nm, d=src_dir), vm=z['vm'], T2=z['T2'], uv=z['uv'], keep=z['keep'], ty=z['ty'], tx=z['tx'], col=z['col']), res[nm])
         else:
             src = source_crawl() if nm == 'crawl' else source_stand()
-            B = bake(nm, src, res[nm], lookup_crawl if nm == 'crawl' else lookup_stand)
+            B = bake(nm, src, res[nm], lookup_crawl if nm == 'crawl' else lookup_stand, rt_dir=src_dir)
             np.savez(f'{out}/bake_{nm}.npz', vm=B['vm'], T2=B['T2'], uv=B['uv'], keep=B['keep'], cov=B['cov'], ty=B['ty'], tx=B['tx'], col=B['col'])
         im = Image.fromarray(np.clip(np.round(B['img'] * 255), 0, 255).astype(np.uint8)); im.save(f'{out}/axo_{nm}_tex.png'); im.save(f'{out}/axo_{nm}_tex_raw.png')   # (raw: before any grade)
         tb = encode(B['img']); open(f'{out}/axo_{nm}_tex.webp', 'wb').write(tb)

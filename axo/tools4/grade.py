@@ -3,7 +3,7 @@
 # the belly's white and the fin's blue by its chroma; per class the stand's mean and spread (linear RGB) are moved onto the crawl's, and
 # the texel takes the blend of its classes' transforms. The crawl atlas is the reference, so the statistics are surface-weighted alike.
 # Rewrites <dir>/axo_stand_tex.{png,webp} and re-exports <dir>/axo_stand.bin/.json with the graded texture inside.
-#   python3 -I grade.py [dir = S/look/rt1]
+#   python3 -I grade.py [dir = S/look/rt1] [runtime mesh dir = ws/axo]
 import sys, os, json
 import numpy as np
 from PIL import Image
@@ -40,5 +40,5 @@ if __name__ == '__main__':
     img = tb.dilate(img, zs['cov'])
     Image.fromarray(np.clip(np.round(img * 255), 0, 255).astype(np.uint8)).save(d + '/axo_stand_tex.png')
     tbytes = tb.encode(img); open(d + '/axo_stand_tex.webp', 'wb').write(tbytes)
-    r = tb.load_rt('stand'); B = dict(r=r, vm=zs['vm'], T2=zs['T2'], uv=zs['uv'], img=img)
+    r = tb.load_rt('stand', d=sys.argv[2] if len(sys.argv) > 2 else tb.RT); B = dict(r=r, vm=zs['vm'], T2=zs['T2'], uv=zs['uv'], img=img)
     tb.export('stand', B, d + '/axo_stand', tbytes)
