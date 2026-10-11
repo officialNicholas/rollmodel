@@ -9,7 +9,7 @@
   clean run with the frame's own work well inside its time and it tries a notch back up, backing off for longer each time a notch
   doesn't hold. The old tuning only reacted below about 49 frames a second and, on a 60 a second screen, could never step back up.
   A phone held to 30 a second (Low Power Mode) is recognised and not dragged down. Where it settles is remembered for next time,
-  and a phone starts without the depth blur."""
+  and a phone starts without the depth blur and the blob's see-through copy (it climbs back when there is room)."""
 import subprocess
 S = '/tmp/claude-0/-home-user-rollmodel/5c52352e-692f-5301-ac55-ec4d2c708f3e/scratchpad'
 subprocess.run(['python3', '-I', S + '/tools/ui130_patch.py'], check=True)
@@ -49,15 +49,14 @@ cut("// keep it smooth: if frames run long, render at a slightly lower resolutio
 // then lighter shadows, then a little under the screen's own resolution. Where it settles is remembered for next time
 let curPR = Math.min(PR_CAP, window.devicePixelRatio || 1); const maxPR = curPR;
 const Q_LAD = (() => {
-  const L = [], q = o => L.push(Object.assign({ mirror: false, dof: !!post, bloom: !!post, grab: !!post, pr: maxPR, sh: 0 }, o)), off = { dof: false, bloom: false };
+  // (the blob's see-through look copies the frame half way through drawing it, which is dear on a phone's graphics chip and hardly
+  // shows: it goes early)
+  const L = [], q = o => L.push(Object.assign({ mirror: false, dof: !!post, bloom: !!post, grab: !!post, pr: maxPR, sh: 0 }, o)), off = { dof: false, grab: false, bloom: false };
   if (post && DEV_TIER >= 3) q({ mirror: true });
-  q({}); if (post) { q({ dof: false }); q(off); }
-  const prs = []; for (let p = maxPR - 0.25; p > 1.001; p -= 0.25) prs.push(Math.round(p * 100) / 100); const lo = Math.min(1, maxPR); if (maxPR > 1) prs.push(lo);
-  // the blob's see-through look copies the frame half way through drawing it, which is dear on a phone's graphics chip: it goes after
-  // the first step down in resolution
-  prs.forEach((pr, i) => { if (i === 1 && post) q(Object.assign({}, off, { pr: prs[0], grab: false })); q(Object.assign({}, off, { pr, grab: !post || i === 0 ? !!post : false })); });
-  if (prs.length <= 1 && post) q(Object.assign({}, off, { pr: lo, grab: false }));
-  const fl = Object.assign({}, off, { grab: false, pr: lo }); q(Object.assign({}, fl, { sh: 1 })); q(Object.assign({}, fl, { sh: 2 })); q(Object.assign({}, fl, { pr: Math.min(lo, 0.85), sh: 2 }));
+  q({}); if (post) { q({ dof: false }); q({ dof: false, grab: false }); q(off); }
+  for (let p = maxPR - 0.25; p > 1.001; p -= 0.25) q(Object.assign({}, off, { pr: Math.round(p * 100) / 100 }));
+  const lo = Math.min(1, maxPR); if (maxPR > 1) q(Object.assign({}, off, { pr: lo }));
+  q(Object.assign({}, off, { pr: lo, sh: 1 })); q(Object.assign({}, off, { pr: lo, sh: 2 })); q(Object.assign({}, off, { pr: Math.min(lo, 0.85), sh: 2 }));
   return L; })();
 let shadowLite = 0, frameNo = 0, lastCpu = 0;
 function setShadowLite(k) {
@@ -83,8 +82,9 @@ function nativeEase() {
   let n = qLvl; while (n < Q_LAD.length - 1 && !ok(Q_LAD[n])) n++; if (n !== qLvl) setQ(n); qClean = 0;
 }
 window.addEventListener('nativechange', nativeEase);
-// where this phone settled last time, one notch better (it steps straight back if that's too much); a phone's first go is without the depth blur
-{ const sv = store.qLv, mine = !!(sv && sv[0] === qKey); let n = mine ? Math.max(0, (sv[1] | 0) - 1) : 0; if (!mine && MOBILE && post) n = Math.max(0, Q_LAD.findIndex(q => !q.mirror && !q.dof && q.bloom)); setQ(n); qSkip = 0; }
+// where this phone settled last time, one notch better (it steps straight back if that's too much); a phone's first go is without the depth
+// blur and the see-through copy, and climbs from there if it has room
+{ const sv = store.qLv, mine = !!(sv && sv[0] === qKey); let n = mine ? Math.max(0, (sv[1] | 0) - 1) : 0; if (!mine && MOBILE && post) n = Math.max(0, Q_LAD.findIndex(q => !q.mirror && !q.dof && !q.grab && q.bloom)); setQ(n); qSkip = 0; }
 nativeEase(); // launched in Low Power Mode, or already warm
 let awakeSent = false; // keep the screen on while a match is being played (the iPhone shell does this)
 function tunePerf(ft) {

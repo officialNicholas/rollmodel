@@ -11,7 +11,7 @@ for n in names:
     inj += f"try {{ if (typeof {n} === 'function') {{ {n} = __pw('{n}', {n}); __pf.wrapped.push('{n}'); }} }} catch (e) {{}}\n"
 inj += "{ const fb0 = frameBody; frameBody = function (t) { if (!__pf.on) return fb0.apply(this, arguments); __pf.cur = {}; const t0 = performance.now(); try { return fb0.apply(this, arguments); } finally { __pf.fb.push(performance.now() - t0); for (const k in __pf.cur) (__pf.st[k] || (__pf.st[k] = [])).push(__pf.cur[k]); __pf.cur = null; } }; }\n" \
        "window.__perfAI = () => { P.cpu = true; aiReset(P); };\n"
-inj += "try { window.__tp = ft => tunePerf(ft); window.__setCpu = v => { lastCpu = v; }; window.__q = () => ({ lvl: qLvl, n: Q_LAD.length, lad: Q_LAD, pr: curPR, post: post && { b: post.bloom, d: post.dof, m: post.mirror }, sh: shadowLite, ban: qBan.slice(), capped: qCapped, win: qWin, state }); } catch (e) {}\n"
+inj += "try { const __tp0 = tunePerf; tunePerf = ft => { if (!window.__tpManual) __tp0(ft); }; window.__tp = ft => __tp0(ft); window.__setCpu = v => { lastCpu = v; }; window.__q = () => ({ lvl: qLvl, n: Q_LAD.length, lad: Q_LAD, pr: curPR, post: post && { b: post.bloom, d: post.dof, m: post.mirror }, sh: shadowLite, ban: qBan.slice(), capped: qCapped, win: qWin, state }); } catch (e) {}\n"
 anchor = "window.__orbKind = window.__orbKind === undefined"
 assert src.count(anchor) == 1
 src = src.replace(anchor, inj + anchor)
