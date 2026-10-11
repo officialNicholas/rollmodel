@@ -142,7 +142,7 @@ def despeckle(img, cov, res, max_area=None):
     """small patches of frond red on the skin (a texel whose closest source point was a frill fused onto the neck) refilled from the skin
     round them; the dorsal band is as saturated but runs in one large piece, so only small connected patches go"""
     from scipy.ndimage import label
-    max_area = max_area or int(1500 * (res / 2048) ** 2)
+    max_area = max_area or int(320 * (res / 2048) ** 2)   # (a real speck is a centimetre or two across; the band's own pieces are far larger)
     mx = img.max(2); mn = img.min(2); sat = (mx - mn) / np.maximum(mx, 1e-3)
     frond = (sat > 0.75) & (mx > 0.6) & (img[:, :, 0] > img[:, :, 1]) & (img[:, :, 0] > img[:, :, 2]) & (cov > 0)
     lab, nl = label(frond)
@@ -186,13 +186,16 @@ def bake(nm, src, res, lookup, verbose=True):
         if not sel.any(): continue
         bt, bc, d = kind(q[sel], qn[sel]); col[sel] = src.sample(src.uv_at(bt, bc)); dist[sel] = d
         if verbose: print(f'  lookup {int(sel.sum())} texels: distance p50 {np.percentile(d, 50) * 1000:.1f} p95 {np.percentile(d, 95) * 1000:.1f} max {d.max() * 1000:.0f} mm ({time.time() - t0:.1f}s)')
+    return finish(dict(r=r, vm=vm, T2=T2, uv=uv, keep=keep, dist=dist, ty=ty, tx=tx, col=col), res, verbose, t0)
+def finish(B, res, verbose=True, t0=None):
+    t0 = t0 or time.time(); ty, tx, col = B['ty'], B['tx'], B['col']
     img = np.zeros((res, res, 3), np.float32); cov = np.zeros((res, res), np.float32)
     img[ty, tx] = col; cov[ty, tx] = 1
     img, nsp = despeckle(img, cov, res)
     if verbose: print(f'  despeckle: {nsp} frond-red specks refilled from the skin round them')
     img = dilate(img, cov)
     if verbose: print(f'  atlas done ({time.time() - t0:.1f}s)')
-    return dict(r=r, vm=vm, T2=T2, uv=uv, img=img, cov=cov, keep=keep, dist=dist, ty=ty, tx=tx)
+    B.update(img=img, cov=cov); return B
 def skin_tris(src, near=0.12):
     """the source triangles that are skin: not labelled gill, and not frond-coloured sheets lying within `near` of the gills (the sculpt's
     frills fused onto the neck and shoulders are welded into the skin and labelled trunk; the texture tells them apart)"""
@@ -234,18 +237,22 @@ def encode(img, quality=88, fmt='WEBP'):
     else: im.save(bio, 'JPEG', quality=quality, subsampling=0)
     return bio.getvalue()
 if __name__ == '__main__':
-    args = sys.argv[1:]; out = OUT; res = {'crawl': 2048, 'stand': 1024}; png = False; which = ['crawl', 'stand']
+    args = sys.argv[1:]; out = OUT; res = {'crawl': 2048, 'stand': 1024}; png = False; which = ['crawl', 'stand']; redo = False
     while args:
         a = args.pop(0)
         if a == '--res': c, s_ = args.pop(0).split(','); res = {'crawl': int(c), 'stand': int(s_)}
         elif a == '--png': png = True
         elif a == '--only': which = args.pop(0).split(',')
+        elif a == '--redo': redo = True   # (the finishing only, from the saved texel colours)
         else: out = a
     os.makedirs(out, exist_ok=True)
     for nm in which:
-        src = source_crawl() if nm == 'crawl' else source_stand()
-        B = bake(nm, src, res[nm], lookup_crawl if nm == 'crawl' else lookup_stand)
-        np.savez(f'{out}/bake_{nm}.npz', vm=B['vm'], T2=B['T2'], uv=B['uv'], keep=B['keep'], cov=B['cov'])
+        if redo:
+            z = np.load(f'{out}/bake_{nm}.npz'); B = finish(dict(r=load_rt(nm), vm=z['vm'], T2=z['T2'], uv=z['uv'], keep=z['keep'], ty=z['ty'], tx=z['tx'], col=z['col']), res[nm])
+        else:
+            src = source_crawl() if nm == 'crawl' else source_stand()
+            B = bake(nm, src, res[nm], lookup_crawl if nm == 'crawl' else lookup_stand)
+            np.savez(f'{out}/bake_{nm}.npz', vm=B['vm'], T2=B['T2'], uv=B['uv'], keep=B['keep'], cov=B['cov'], ty=B['ty'], tx=B['tx'], col=B['col'])
         im = Image.fromarray(np.clip(np.round(B['img'] * 255), 0, 255).astype(np.uint8)); im.save(f'{out}/axo_{nm}_tex.png'); im.save(f'{out}/axo_{nm}_tex_raw.png')   # (raw: before any grade)
         tb = encode(B['img']); open(f'{out}/axo_{nm}_tex.webp', 'wb').write(tb)
         export(nm, B, f'{out}/axo_{nm}', tb)
