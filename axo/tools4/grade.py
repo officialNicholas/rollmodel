@@ -3,7 +3,8 @@
 # the belly's white and the fin's blue by its chroma; per class the stand's mean and spread (linear RGB) are moved onto the crawl's, and
 # the texel takes the blend of its classes' transforms. The crawl atlas is the reference, so the statistics are surface-weighted alike.
 # Rewrites <dir>/axo_stand_tex.{png,webp} and re-exports <dir>/axo_stand.bin/.json with the graded texture inside.
-#   python3 -I grade.py [dir = S/look/rt1] [runtime mesh dir = ws/axo]
+#   python3 -I grade.py [bake dir = S/look/rt1] [the meshes the bake textured = ws/axo]
+# (the second argument is the bake's INPUT mesh folder, never its output: the exported bin is rebuilt from the untextured mesh)
 import sys, os, json
 import numpy as np
 from PIL import Image

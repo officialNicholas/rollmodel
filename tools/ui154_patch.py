@@ -4,7 +4,7 @@ the turn, the tail sweeping out behind and swinging back past straight as it sto
 the new paint that opens under it, and bursts back out of it in the new color with a spin, lands, and shakes the paint off."""
 import subprocess
 S = '/tmp/claude-0/-home-user-rollmodel/5c52352e-692f-5301-ac55-ec4d2c708f3e/scratchpad'
-subprocess.run(['python3', '-I', S + '/tools/mk_axo_embed.py', S + '/tools/assets/axo_base_v225.js', S + '/tools/assets/axo_embed.js'], check=True)
+subprocess.run(['python3', '-I', S + '/tools/mk_axo_embed.py', S + '/tools/assets/axo_base_v227.js', S + '/tools/assets/axo_embed.js'], check=True)
 subprocess.run(['python3', '-I', S + '/tools/ui153_patch.py'], check=True)
 DST = '/home/claude/paint-the-canvas.html'
 s = open(DST).read(); n0 = len(s)

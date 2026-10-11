@@ -12,7 +12,8 @@
 # fronds take the UV of the nearest textured vertex (the stalk root's skin colour, continuous at the join).
 # Output: <out>/axo_{stand,crawl}.bin / .json (format axo7 + 'uv' and 'tex' sections; the texture (WebP) rides inside the .bin) and the
 # textures as PNG / WebP files for viewing.
-#   python3 -I texbake.py [out dir] [--res 2048,1024] [--png]
+#   python3 -I texbake.py [out dir] [--src mesh dir] [--res 2048,1024] [--only crawl,stand] [--redo]
+# (keep the output dir apart from the source meshes: grade.py reads the untextured source again)
 import sys, os, json, time, io
 import numpy as np
 from scipy.spatial import cKDTree
