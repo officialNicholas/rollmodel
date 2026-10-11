@@ -175,22 +175,25 @@ def bake(nm, src, res, lookup, verbose=True):
     img = dilate(img, cov)
     if verbose: print(f'  atlas done ({time.time() - t0:.1f}s)')
     return dict(r=r, vm=vm, T2=T2, uv=uv, img=img, cov=cov, keep=keep, dist=dist, ty=ty, tx=tx)
+def skin_tris(src, near=0.06):
+    """the source triangles that are skin: not labelled gill, and not frond-coloured sheets lying within `near` of the gills (the sculpt's
+    frills fused onto the neck and shoulders are welded into the skin and labelled trunk; the texture tells them apart)"""
+    isg = np.array([l.startswith('gill') for l in src.label])[src.T].any(1)
+    col = src.sample(src.UV[src.T].mean(1)); mx = col.max(1); mn = col.min(1); sat = (mx - mn) / np.maximum(mx, 1e-3)
+    frond = (sat > 0.72) & (mx > 0.6) & (col[:, 0] > col[:, 1]) & (col[:, 0] > col[:, 2])
+    d, _ = cKDTree(src.c[isg]).query(src.c) if isg.any() else (np.full(len(src.T), np.inf), None)
+    skin = ~isg & ~(frond & (d < near))
+    return np.where(skin)[0]
 def lookup_crawl(q, qn, qreg, src):
-    """the body straight onto the source; the right arm and hand (mirror copies of the left) through their mirror image"""
+    """the body straight onto the source's skin; the right arm and hand (mirror copies of the left) through their mirror image; the gill
+    stalks onto the skin too (their roots' pink: the shader paints the fronds)"""
     mir = (qreg == 'arm') | (qreg == 'digit'); mir = mir & (q[:, 0] < 0)
-    gill = qreg == 'gill'; gt = np.where(np.array([l.startswith('gill') for l in src.label])[src.T].all(1))[0]; bt_ = np.where(~np.array([l.startswith('gill') for l in src.label])[src.T].any(1))[0]
-    M = np.array([-1, 1, 1])
-    yield (lambda a, b: src.project(a, b, tris=bt_)), ~mir & ~gill
-    yield (lambda a, b: src.project(a * M, b * M, tris=bt_)), mir
-    yield (lambda a, b: src.project(a, b, tris=gt)), gill
+    sk = skin_tris(src); M = np.array([-1, 1, 1])
+    yield (lambda a, b: src.project(a, b, tris=sk)), ~mir
+    yield (lambda a, b: src.project(a * M, b * M, tris=sk)), mir
 def lookup_stand(q, qn, qreg, src):
-    gill = qreg == 'gill'
-    if src.label is not None:
-        isg = np.array([l.startswith('gill') for l in src.label]); gt = np.where(isg[src.T].all(1))[0]; bt_ = np.where(~isg[src.T].any(1))[0]
-        yield (lambda a, b: src.project(a, b, tris=bt_)), ~gill
-        yield (lambda a, b: src.project(a, b, tris=gt)), gill
-    else:
-        yield (lambda a, b: src.project(a, b)), np.ones(len(q), bool)
+    sk = skin_tris(src) if src.label is not None else np.arange(len(src.T))
+    yield (lambda a, b: src.project(a, b, tris=sk)), np.ones(len(q), bool)
 
 # ---------------- export ----------------
 def export(nm, B, out, tex_bytes, mime='image/webp', extra_meta=None):
