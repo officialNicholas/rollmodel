@@ -118,7 +118,7 @@ const AXOC = (() => {
       if (X.wasAir && !air) A.motion.landV = Math.max(0, -(X.lastVy || 0)) * k; X.wasAir = air; X.lastVy = vy;
       A.motion.air = air; A.motion.vy = vy * k; A.motion.h = hh * k;
       A.motion.tl = vy > 0 ? vy / g1 + Math.sqrt(2 * (hh + vy * vy / (2 * g1)) / g2) : (vy + Math.sqrt(vy * vy + 2 * g2 * hh)) / g2;
-      A.motion.steer = clamp(o.lean || 0, -1, 1);
+      A.motion.steer = clamp(o.lean || 0, -1, 1); A.motion.spin = o.spinV; // (turned round on the spot in the locker: how fast)
       // curled up: the slingshot's ball (a long pull, the quick part of the flight), the roll, the pound's tuck
       // (rolling, it opens out only as it comes round onto its feet: the ball holds until the roll brings it upright)
       const want = Math.max(o.blob || 0, o.curl || 0), ph = (((X.spin || 0) % 6.2832) + 6.2832) % 6.2832;

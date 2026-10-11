@@ -20,6 +20,7 @@ const LIMB = [{ en: 'hand.L', off: 0, m: 1, arm: true }, { en: 'foot.R', off: 0.
 // spend less of each step on the ground, so at speed they kick through quickly while the hands take long reaching strides)
 const GAIT = { handX: 0.4, handZ: 0.035, footX: 0.29, footZ: -0.8, reachH: 0.27, reachF: 0.15, sweepF: 0.28, sMax: 0.54, fMax: 5.6, fMin: 1.7 };
 const frac = x => x - Math.floor(x);
+const SLITHER = { on: 4.4, off: 3.2, after: 0.45, f0: 1.4, f1: 0.8, tail: 34 };
 const spr = (s, target, k, c, dt) => { const h = Math.min(dt, 1 / 30); s.v += (k * (target - s.x) - c * s.v) * h; s.x += s.v * h; return s.x; };
 // a pitch about the body's own sideways axis (positive: nose down), put in the bone's own frame
 const AXX = new THREE.Vector3(1, 0, 0), LQ2 = new THREE.Quaternion(), LQ3 = new THREE.Quaternion();
@@ -52,13 +53,23 @@ Animator.prototype.crawl = function (t, out, dt) {
   if (air) f = 0; L.f += (f - L.f) * Math.min(1, dt * 30); L.ph += L.f * dt;
   L.act = smooth(clamp01((v - 0.05) / 0.9)) * on * (air ? 0 : 1);
   const act = L.act, liftH = 0.028 + 0.03 * clamp01(v / 5);
+  // ---- at speed it slithers (as the old jelly did): once it has crawled up to speed and held it a moment, the arms fold back along its
+  // flanks and the legs trail beside the tail, the belly settles to the ground and a wave runs from its head down its tail; slowing
+  // down, the limbs come back to the ground and the crawl takes over again (never in the air, climbing, curled, or turned on the spot)
+  const SL = L.sl || (L.sl = { k: 0, on: false, hold: 0, ph: 0 });
+  { const vc = L.vc, ok = !air && !TR && M.spin === undefined && !((M.climbCurl || 0) > 0) && !((M.ball || 0) > 0.05) && L.ballK < 0.05;
+    if (ok && vc > SLITHER.on) SL.hold += dt; else if (!ok || vc < SLITHER.off) SL.hold = 0;
+    SL.on = ok && (SL.on ? vc > SLITHER.off : SL.hold > SLITHER.after);
+    SL.k += ((SL.on ? 1 : 0) - SL.k) * Math.min(1, dt * (SL.on ? 4.5 : 6)); }
+  const sl = L.slK = smooth(SL.k);
   // ---- the body's line (worked out before the limbs: they step from where it carries the shoulders and hips). A salamander's standing
   // wave: the shoulders and hips swing against each other with each pair of steps, the trunk bowing one way then the other, the tail
   // answering it in an S, the head kept steadier. Round a turn the whole body bends into a C: the trunk takes most of it, the neck and
   // head carry the curve on (never a kink at the neck), the tail follows it round; on a spring, so it eases in and swings back past straight
   const sp = this.chain.spine, c1 = Math.cos(2 * Math.PI * L.ph);
-  const kap = L.yr / Math.max(L.vc, 1.3), bend = L.bend = spr(L.bd, Math.max(-64, Math.min(64, kap * 90)) * on, 55, 11, dt);
-  const amp = (12 + 28 * clamp01(v / 6.5)) * act * (1 - 0.7 * Math.min(1, Math.abs(bend) / 64)), Ap = 0.4 * amp, As = 0.6 * amp, hs = As * c1 * (1 - Math.min(1, Math.abs(bend) / 64));
+  const kap = L.yr / Math.max(L.vc, 1.3), spun = M.spin !== undefined, bend = L.bend = spr(L.bd, (spun ? 66 * Math.tanh(M.spin / 1.9) : Math.max(-64, Math.min(64, kap * 90))) * on, spun ? 48 : 55, spun ? 10 : 11, dt);
+  L.tlg = spr(L.tg || (L.tg = { x: 0, v: 0 }), bend, 24, 4, dt);   // (the tail's own lag round a turn: it trails, then swings back past)
+  const amp = (12 + 28 * clamp01(v / 6.5)) * act * (1 - sl) * (1 - 0.7 * Math.min(1, Math.abs(bend) / 64)), Ap = 0.4 * amp, As = 0.6 * amp, hs = As * c1 * (1 - Math.min(1, Math.abs(bend) / 64));
   const HT = spr(L.ht, (L.steer * 10 + Math.max(-8, Math.min(8, L.yr * 3))) * on, 75, 10, dt);
   const T = 50 * Math.tanh((-amp * c1 + bend * 0.92 + HT * 0.45) / 50);
   this.worldTurn(out, I.hips, Ap * c1, 0);
@@ -67,6 +78,11 @@ Animator.prototype.crawl = function (t, out, dt) {
   this.worldTurn(out, sp[3], T * 0.29, 0);
   this.worldTurn(out, I.neck, hs * 0.25 + bend * 0.1 + HT * 0.3, -HT * 0.12);
   this.worldTurn(out, I.head, hs * 0.25 + bend * 0.07 + HT * 0.25, -HT * 0.3);
+  if (sl > 0.001) { // (the slither's wave: each joint a little behind the one before it, so the bend travels from the head to the hips; the head kept steadier)
+    SL.ph += dt * 2 * Math.PI * (SLITHER.f0 + SLITHER.f1 * clamp01((L.vc - 3) / 5));
+    const w = (j, A, s) => this.worldTurn(out, j, A * sl * Math.sin(SL.ph - s * 1.2), 0);
+    w(I.hips, 7, 1.0); w(sp[1], 15, 0.8); w(sp[2], 15, 0.6); w(sp[3], 11, 0.4); w(I.neck, 4, 0.2); w(I.head, -13, 0.1);
+    out.root.y -= 0.03 * sl; }
   // the body over uneven ground (climbing out of a basin): the hips up or down to the ground under them, the back tilted to the ground under
   // the chest and the head, bridging a narrow rim (the highest ground within a hand's width under each), eased so it rolls over
   if (TR || L.tbOn) {
@@ -150,7 +166,7 @@ Animator.prototype.crawl = function (t, out, dt) {
       if (z.s >= 1) { L.settle = null; L.still = 0.1; l.st = 'stance'; } }
   }
   // the bob of each pair's footfall, the push-off's arch, the landing's dip onto the lead hand (on springs: they overshoot and settle)
-  const bob = Math.cos(4 * Math.PI * (L.ph - D * 0.5)) * 0.009 * act;
+  const bob = Math.cos(4 * Math.PI * (L.ph - D * 0.5)) * 0.009 * act * (1 - sl);
   const arch = spr(L.arch, 0, 90, 12, dt), dip = spr(L.dip, 0, 110, 13, dt), dipR = spr(L.dipR, 0, 110, 12, dt);
   const brI = (this.breath - 0.5) * (1 - act);   // (stopped, the breath shows: the chest rises and falls, the belly swells, the gills flare)
   out.root.y += -bob + dip * 0.0012 + brI * 0.02;
@@ -161,11 +177,17 @@ Animator.prototype.crawl = function (t, out, dt) {
   // ---- the limbs on their marks (in the air the same marks steer them, with no ground under them)
   for (const l of L.limbs) {
     const LB = this.limbBind[l.arm ? 'arm' : 'leg'];
-    out.contact(l.en, l.p, LV2.set(LB.fwd.x * l.m, -0.35 * l.lift, LB.fwd.z), LV3.set(LB.pole.x * l.m, LB.pole.y, LB.pole.z), 1);
-    const dig = this.chain[l.arm ? 'fingers' : 'toes'][l.m > 0 ? 0 : 1]; dig.forEach((g, k) => { rot(out, g[0], 4 + l.lift * 16 - (air ? 8 : 0), 0, (k - 1.5) * (5 + (air ? 5 : 0)) * l.m); rot(out, g[1], 3 + l.lift * 12, 0, 0); });
+    let tp = l.p, lift = l.lift;
+    if (sl > 0.001) { // (slithering: the hand folded back along the flank behind the shoulder, the foot trailing beside the tail, just off the ground)
+      const pk2 = L.pk2 && L.pk2f === this.t ? L.pk2 : (L.pk2f = this.t, L.pk2 = P.fk('crawl', out)), pr = pk2[l.root], q = l.q || (l.q = new THREE.Vector3());
+      q.set(pr.x + (l.arm ? 0.07 : 0.065) * l.m, l.home.y + (l.arm ? 0.045 : 0.035), pr.z - (l.arm ? 0.23 : 0.27)); q.lerpVectors(l.p, q, sl); tp = q; lift = Math.max(lift, 0.8 * sl); }
+    out.contact(l.en, tp, LV2.set(LB.fwd.x * l.m * (1 - sl) + 0.25 * l.m * sl, -0.35 * lift * (1 - sl), LB.fwd.z * (1 - sl) - sl), LV3.set(LB.pole.x * l.m, LB.pole.y, LB.pole.z), 1);
+    const dig = this.chain[l.arm ? 'fingers' : 'toes'][l.m > 0 ? 0 : 1]; dig.forEach((g, k) => { rot(out, g[0], 4 + lift * 16 - (air ? 8 : 0), 0, (k - 1.5) * (5 + (air ? 5 : 0)) * l.m); rot(out, g[1], 3 + l.lift * 12, 0, 0); });
   }
   // the tail carries the wave on behind the hips
-  this.tailWave(2 * Math.PI * L.ph + Math.PI * 0.85, (4 + 15 * clamp01(v / 6.5)) * act + 1.5, 0.75, air ? -3 : 0);
+  this.tailWave(2 * Math.PI * L.ph + Math.PI * 0.85, ((4 + 15 * clamp01(v / 6.5)) * act + 1.5) * (1 - sl), 0.75, air ? -3 : 0);
+  if (sl > 0.001) { const tt = this.tailTarget, c = L.ttc || (L.ttc = new Float32Array(tt.length)); c.set(tt); // (the slither's wave carries on down the tail, bigger toward its tip)
+    this.tailWave(SL.ph - 1.4, SLITHER.tail * sl, 0.85, 0); for (let k = 0; k < tt.length; k++) tt[k] += c[k]; }
   { const cc = L.tcurl = (L.tcurl || 0) + ((M.climbCurl || 0) - (L.tcurl || 0)) * Math.min(1, dt * 8), up = (L.tailUp || 0) - 0.4 * cc, tl = this.chain.tail; // (a positive pitch lifts a tail joint)
     if (Math.abs(up) > 0.005) { this.pitchTurn(out, tl[0], up * 0.85); this.pitchTurn(out, tl[1], up * 0.25); if (up > 0) { this.pitchTurn(out, tl[2], -up * 0.35); this.pitchTurn(out, tl[3], -up * 0.2); } } // (up over the rim, the far end draped back down)
     if (cc > 0.01) for (let k = 0; k < tl.length; k++) this.worldTurn(out, tl[k], (k ? 26 : 14) * cc, 0); } // (still in the tub: its tail curled round inside it, down in the paint) this.tailFree = 1; this.neck.amt = 0.7 - 0.3 * act;
@@ -207,7 +229,7 @@ Animator.prototype.crawl = function (t, out, dt) {
     // the original computes the targets and steps the spring: the turn's swing goes in through the push the spring is given
     ss0.call(this, dt);
     // the tail follows the body's bend round a turn (its spring lags it in and swings it back after)
-    if (L && this.state === 'crawl') this.tailLat += L.bend * 0.16;
+    if (L && this.state === 'crawl') this.tailLat += L.bend * (this.motion.spin !== undefined ? 0 : 0.16) + (this.motion.spin !== undefined ? L.tlg * 0.27 : 0);
   };
   // the targets: wrapped so the added swing lands in the spring's target before it is stepped
   const SpringStep = Spring.prototype.step;
