@@ -18,9 +18,9 @@ async def main():
         if os.environ.get('SLIME'): await ctx.add_init_script("window.AXO_PACK = 'no-axo.txt'; Object.defineProperty(window, 'AXO_PACK_BUF', { set() {}, get() { return undefined; } });")
         await ctx.add_init_script("window.__tut = true; try { localStorage.setItem('paint-world-red.v1', JSON.stringify({ orient:'port', name:'Dusk', seen:{look:1}, drops: 50, runs: 5, flings: 50, tut: { ph: 'done' } })); } catch (e) {}")
         pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)[:300]))
-        await pg.goto('http://localhost:8765/pc_perf.html', timeout=300000); await pg.wait_for_function('typeof __T === "object"', timeout=300000)
+        await pg.goto('http://localhost:8765/' + os.environ.get('PAGE', 'pc_perf.html'), timeout=300000); await pg.wait_for_function('typeof __T === "object"', timeout=300000)
         print('wrapped', await pg.evaluate(WRAP))
-        await pg.evaluate("document.getElementById('homePlay').click()")
+        await pg.evaluate("__T.start()")  # (Play opens the events page now: a match is started straight off)
         await pg.wait_for_function("__T.state === 'play'", timeout=300000); await pg.wait_for_timeout(1500)
         await pg.evaluate("window.__perfAI()")  # the game's own AI plays you
         if MODE == 'logic': await pg.evaluate("(() => { __T.renderer.render = () => {}; })()")

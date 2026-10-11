@@ -2798,7 +2798,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 213</p>
+      <p class="ver">Version 214</p>
     </div>
   </div>
 
@@ -7609,6 +7609,198 @@ class Animator {
   }
 }
 
+// ---------------- v214: the crawl's life, measured against the ground (inserted into the animator by tools/mk_axo_embed.py) ----------------
+// The game moves the body; this works out how the ground moves under it (motion.carry: where world-fixed points go in the body's space
+// from one frame to the next) and walks on that ground:
+//  - feet stay where they land: a planted hand or foot is carried with the ground, so it never slides, whatever the speed, the turn or a
+//    bump; each limb lands where the ground will bring it back under its shoulder or hip half way through its stance;
+//  - the stride and its rate come from the speed (a slow creep with long deliberate steps up to a lizard's scurry at full tilt, the time
+//    on the ground shrinking as it goes faster), and the body throws a salamander's S-wave into it: the shoulders and hips swing against
+//    each other with each pair of steps, the head held steady against it, the tail carrying the wave on;
+//  - turns: the body bends round the curve it runs on, the head leads into the turn and leans with it, on a spring, so it swings back
+//    past straight and settles when the turn ends;
+//  - stopped, it breathes and now and then moves a foot that was left stretched out;
+//  - a jump: the planted limbs push the body off (they hold the ground as it rises until they are straight), tuck back as it rises, then
+//    reach down for the ground as it comes up; one hand takes the landing, the others come down after it, the body dipping onto it;
+//  - curled (the slingshot's long pull, the roll, the pound's tuck): the spine rolls up nose to tail, the limbs tuck in, the gills fold.
+{
+const LV1 = new THREE.Vector3(), LV2 = new THREE.Vector3(), LV3 = new THREE.Vector3(), LV4 = new THREE.Vector3(), LQ = new THREE.Quaternion();
+const LIMB = [{ en: 'hand.L', off: 0, m: 1, arm: true }, { en: 'foot.R', off: 0.04, m: -1, arm: false }, { en: 'hand.R', off: 0.5, m: -1, arm: true }, { en: 'foot.L', off: 0.54, m: 1, arm: false }];
+// homes (where each hand / foot sits under its shoulder / hip), how far one may be from it, the longest stride, the fastest steps
+// (the crawl's hind legs are short, a quarter of a metre hip to ankle, against nearly half a metre of arm: their feet sweep less and
+// spend less of each step on the ground, so at speed they kick through quickly while the hands take long reaching strides)
+const GAIT = { handX: 0.4, handZ: 0.035, footX: 0.29, footZ: -0.8, reachH: 0.27, reachF: 0.15, sweepF: 0.28, sMax: 0.54, fMax: 5.6, fMin: 1.7 };
+const frac = x => x - Math.floor(x);
+const spr = (s, target, k, c, dt) => { const h = Math.min(dt, 1 / 30); s.v += (k * (target - s.x) - c * s.v) * h; s.x += s.v * h; return s.x; };
+Animator.prototype.initLoco = function () {
+  const L = this.loco = { ph: 0, f: 0, v: 0, yr: 0, steer: 0, D: 0.65, S: 0.2, act: 0, air: false, airT: 0, lead: 1, landK: 0, still: 0, settle: null, ballK: 0, ballV: 0,
+    ht: { x: 0, v: 0 }, dip: { x: 0, v: 0 }, dipR: { x: 0, v: 0 }, arch: { x: 0, v: 0 }, limbs: [] };
+  for (const d of LIMB) {
+    const home = new THREE.Vector3(d.arm ? GAIT.handX * d.m : GAIT.footX * d.m, d.arm ? this.H.crawlHand : this.H.crawlFoot, d.arm ? GAIT.handZ : GAIT.footZ);
+    L.limbs.push(Object.assign({}, d, { home, p: home.clone(), p0: home.clone(), tgt: home.clone(), gv: new THREE.Vector3(), st: 'stance', lift: 0, held: false, root: this.I[(d.arm ? 'upperarm.' : 'thigh.') + d.en.slice(-1)], len: 0 }));
+  }
+  const R0 = this.P.m.crawl.rest, I = this.I; for (const l of L.limbs) { const s = l.en.slice(-1), a = I[(l.arm ? 'upperarm.' : 'thigh.') + s], b = I[(l.arm ? 'forearm.' : 'shin.') + s], c = I[l.en]; l.len = R0[a].distanceTo(R0[b]) + R0[b].distanceTo(R0[c]); }
+  return L;
+};
+Animator.prototype.crawl = function (t, out, dt) {
+  const I = this.I, P = this.P, M = this.motion, L = this.loco || this.initLoco(), C = M.carry || null, h = Math.max(dt, 1e-4);
+  out.copy(this.LS); out.contacts = {};
+  const on = smooth(clamp01((this.t - (this.stT || 0)) / 0.6));
+  // the ground's speed under each limb's home, and the body's turn rate (a world-fixed point turns the other way in the body's space)
+  let vmax = 0; for (const l of L.limbs) { l.gv.copy(l.home); if (C) l.gv.applyMatrix4(C); l.gv.sub(l.home).divideScalar(h); l.gv.y = 0; vmax = Math.max(vmax, Math.hypot(l.gv.x, l.gv.z)); }
+  const yr = C ? -Math.atan2(C.elements[8], C.elements[10]) / h : 0;
+  L.v += (Math.min(vmax, 14) - L.v) * Math.min(1, dt * 30); L.yr += ((Math.abs(yr) < 12 ? yr : 0) - L.yr) * Math.min(1, dt * 10); L.steer += ((M.steer || 0) - L.steer) * Math.min(1, dt * 10);
+  const v = L.v, ball = L.ballK = (L.ballF || (L.ballF = new Follow(13))).step(clamp01(M.ball || 0), dt), air = !!M.air;
+  // ---- the gait: the time on the ground shrinks and the stride lengthens with speed; the step rate is what keeps a planted foot still
+  const Dt = 0.66 - 0.28 * smooth(clamp01(v / 6.5)), S = Math.min(GAIT.sMax, 0.24 + 0.08 * v); L.D += (Dt - L.D) * Math.min(1, dt * 6); L.S = S; const D = L.D;
+  let f = v > 0.05 ? Math.min(GAIT.fMax, v * D / S) : 0;
+  const swinging = L.limbs.some(l => l.st === 'swing'); if (!air && swinging && f < GAIT.fMin) f = GAIT.fMin;   // (a step under way is finished)
+  if (air) f = 0; L.f += (f - L.f) * Math.min(1, dt * 30); L.ph += L.f * dt;
+  L.act = smooth(clamp01((v - 0.05) / 0.9)) * on * (air ? 0 : 1);
+  const act = L.act, liftH = 0.028 + 0.03 * clamp01(v / 5);
+  // ---- in the air: the push-off, the tuck, the reach for the ground
+  if (air) {
+    if (!L.air) { L.air = true; L.airT = 0; L.lead = (L.steer > 0.2 ? 1 : L.steer < -0.2 ? -1 : -L.lead); for (const l of L.limbs) { l.held = l.st === 'stance'; l.st = 'air'; } L.arch.v += 60; }
+    L.airT += dt;
+    const tl = M.tl === undefined ? 1 : M.tl, reach = 1 - smooth(clamp01((tl - 0.04) / 0.34)), hgt = Math.max(0, M.h || 0), rising = (M.vy || 0) > 0.5;
+    const pos = P.fk('crawl', out);
+    for (const l of L.limbs) {
+      if (C && l.held) { l.p.applyMatrix4(C); l.p0.applyMatrix4(C); }
+      if (l.held) { const d = l.p.distanceTo(pos[l.root]); if (d > 0.94 * l.len || L.airT > 0.2 || !rising) { l.held = false; l.p0.copy(l.p); } }
+      if (!l.held) {
+        // tucked back as it rises, reaching down and forward as the ground comes up (the lead hand lowest: it touches first)
+        const lead = l.arm && l.m === L.lead, dn = Math.min(hgt, 0.32), push = 1 - smooth(clamp01((L.airT - 0.06) / 0.14));
+        LV1.copy(l.home).add(l.arm ? LV2.set(-0.1 * l.m, 0.16, -0.2) : LV2.set(-0.04 * l.m, 0.07, -0.16));
+        LV4.copy(l.home).add(l.arm ? LV2.set(-0.03 * l.m, -0.1, -0.1) : LV2.set(-0.02 * l.m, -0.06, -0.1)); LV1.lerp(LV4, push);
+        LV3.copy(l.home).add(l.arm ? LV2.set(0.0, -dn + (lead ? -0.02 : 0.05), 0.15) : LV2.set(0.0, -Math.min(dn, 0.12) + 0.05, 0.06));
+        LV1.lerp(LV3, rising ? 0 : reach); l.p.lerp(LV1, 1 - Math.exp(-dt * 18));
+      }
+      l.lift = l.held ? 0 : 1;
+    }
+  } else if (L.air) {
+    // touching down: the lead hand takes it, then the other hand, then the feet, one after another (closer together the faster it goes),
+    // the body dipping onto the lead hand; then the gait picks up from there
+    L.air = false; const k = Math.min(1.4, (M.landV || 4) / 6), sc = 1 / (1 + v / 1.2);
+    const pick = (arm, lead) => L.limbs.find(l => l.arm === arm && (l.m === L.lead) === lead);
+    L.land = { t: 0, list: [[pick(true, true), 0], [pick(true, false), 0.075], [pick(false, false), 0.13], [pick(false, true), 0.18]].map(([l, d]) => ({ l, d: d * sc })) };
+    for (const z of L.land.list) { const l = z.l; l.st = 'land'; l.p0.copy(l.p); }
+    L.ph = frac(-L.land.list[0].l.off + 0.12 * L.D);
+    L.dip.v -= 34 * k; L.dipR.v += 40 * k * L.lead; L.landK = k;
+  }
+  if (!air && L.land) {
+    const Z = L.land; Z.t += dt; let done = true;
+    const fl = Math.max(GAIT.fMin, Math.min(GAIT.fMax, v * D / S));
+    for (const z of Z.list) { const l = z.l; if (l.st !== 'land') continue;
+      // still coming down: onto a spot ahead of the shoulder / hip (moving with the body until it touches), then the gait has it
+      const Dl = l.arm ? D : Math.max(0.16, Math.min(D, GAIT.sweepF * fl / Math.max(v, 0.01)));
+      l.tgt.copy(l.home).addScaledVector(l.gv, -Dl / fl * 0.5); LV1.copy(l.tgt).sub(l.home); LV1.y = 0; const r = (l.arm ? GAIT.reachH : GAIT.reachF) * 0.92; if (LV1.length() > r) LV1.setLength(r); l.tgt.set(l.home.x + LV1.x, l.home.y, l.home.z + LV1.z);
+      if (Z.t >= z.d) { l.st = 'stance'; l.p.copy(l.tgt); l.fresh = true; }
+      else { done = false; const s = Z.t / Math.max(z.d, 1e-3), e = s * s * (3 - 2 * s); l.p.lerpVectors(l.p0, l.tgt, e); l.lift = 1 - e; } }
+    if (done) L.land = null;
+  }
+  if (!air) {
+    for (const l of L.limbs) {
+      if (l.st === 'land') continue;
+      if (l.fresh) l.fresh = false; else if (C) { l.p.applyMatrix4(C); l.p0.applyMatrix4(C); }
+      const Dl = l.arm ? D : Math.max(0.16, Math.min(D, GAIT.sweepF * Math.max(L.f, 0.5) / Math.max(v, 0.01))), u = frac(L.ph + l.off), stance = u < Dl;
+      if (L.settle && L.settle.l === l) continue;
+      if (stance) {
+        if (l.st !== 'stance') { l.st = 'stance'; l.p.copy(l.tgt); }
+        // stretched further than it reaches: it lets the ground drag it (only at full tilt, or shoved)
+        LV1.copy(l.p).sub(l.home); LV1.y = 0; const r = l.arm ? GAIT.reachH : GAIT.reachF; if (LV1.length() > r) { LV1.setLength(r); l.p.x = l.home.x + LV1.x; l.p.z = l.home.z + LV1.z; }
+        l.p.y += (l.home.y - l.p.y) * Math.min(1, dt * 30); l.lift = 0;
+      } else {
+        if (l.st === 'stance') { l.st = 'swing'; l.p0.copy(l.p); }
+        const s = (u - Dl) / (1 - Dl), Ts = Dl / Math.max(L.f, 0.5);
+        l.tgt.copy(l.home).addScaledVector(l.gv, -Ts * 0.5); LV1.copy(l.tgt).sub(l.home); LV1.y = 0; const r = (l.arm ? GAIT.reachH : GAIT.reachF) * 0.92; if (LV1.length() > r) LV1.setLength(r);
+        l.tgt.set(l.home.x + LV1.x, l.home.y, l.home.z + LV1.z);
+        const e = s * s * (3 - 2 * s), lf = Math.pow(Math.sin(Math.PI * Math.min(1, s * 1.08)), 1.4); l.lift = lf;
+        l.p.lerpVectors(l.p0, l.tgt, e); l.p.y = l.home.y + liftH * lf + (l.p0.y - l.home.y) * (1 - e);
+      }
+    }
+    // stopped: now and then it moves a foot that was left stretched out back under itself, one at a time
+    if (v < 0.08 && !swinging) {
+      L.still += dt;
+      if (!L.settle && L.still > 0.35) { let best = null, bd = 0.055; for (const l of L.limbs) { LV1.copy(l.p).sub(l.home); LV1.y = 0; const d = LV1.length(); if (d > bd) { bd = d; best = l; } } if (best) { L.settle = { l: best, s: 0 }; best.p0.copy(best.p); best.tgt.copy(best.home); } }
+    } else L.still = 0;
+    if (L.settle) { const z = L.settle, l = z.l; z.s += dt / 0.24; const s = Math.min(1, z.s), e = s * s * (3 - 2 * s), lf = Math.sin(Math.PI * s); l.lift = lf; l.p.lerpVectors(l.p0, l.tgt, e); l.p.y = l.home.y + 0.035 * lf;
+      if (z.s >= 1) { L.settle = null; L.still = 0.1; l.st = 'stance'; } }
+  }
+  // ---- the body: a salamander's standing wave (shoulders and hips swing against each other with each pair of steps), bent round the
+  // turn it runs on, the head steady against the sway and leading into the turn, leaning with it
+  const c1 = Math.cos(2 * Math.PI * L.ph), amp = (6 + 15 * clamp01(v / 6.5)) * act, Ap = 0.45 * amp, As = 0.55 * amp;
+  const kap = L.yr / Math.max(v, 1.3), bend = Math.max(-34, Math.min(34, kap * 52)) * on;
+  const HT = spr(L.ht, (L.steer * 24 + Math.max(-12, Math.min(12, L.yr * 5))) * on, 75, 10, dt);
+  const sp = this.chain.spine;
+  this.worldTurn(out, I.hips, Ap * c1 + bend * 0.1, 0);
+  this.worldTurn(out, sp[1], -(As + Ap) * 0.3 * c1 + bend * 0.25, 0);
+  this.worldTurn(out, sp[2], -(As + Ap) * 0.4 * c1 + bend * 0.3, -L.steer * 3 * act);
+  this.worldTurn(out, sp[3], -(As + Ap) * 0.3 * c1 + bend * 0.25, 0);
+  this.worldTurn(out, I.neck, As * 0.35 * c1 + bend * 0.1 + HT * 0.35, -HT * 0.12);
+  this.worldTurn(out, I.head, As * 0.5 * c1 + HT * 0.65, -HT * 0.4);
+  // the bob of each pair's footfall, the push-off's arch, the landing's dip onto the lead hand (on springs: they overshoot and settle)
+  const bob = Math.cos(4 * Math.PI * (L.ph - D * 0.5)) * 0.009 * act;
+  const arch = spr(L.arch, 0, 90, 12, dt), dip = spr(L.dip, 0, 110, 13, dt), dipR = spr(L.dipR, 0, 110, 12, dt);
+  const brI = (this.breath - 0.5) * (1 - act);   // (stopped, the breath shows: the chest rises and falls, the belly swells, the gills flare)
+  out.root.y += -bob + dip * 0.0012 + brI * 0.02;
+  const fallK = air && (M.vy || 0) < 0 ? 1 - smooth(clamp01(((M.tl === undefined ? 1 : M.tl) - 0.05) / 0.4)) : 0;
+  rot(out, I.chest, -arch * 0.12 + dip * 0.1 - 4.5 * brI, 0, 0); rot(out, sp[2], -2 * brI, 0, 0); rot(out, I.head, 2 - arch * 0.1 - Math.min(0, dip) * 0.05 + (air ? -7 + 15 * fallK : 0), 0, 0);
+  this.worldTurn(out, sp[3], 0, dipR * 0.12);
+  if (air) { rot(out, sp[1], -4 + 7 * fallK, 0, 0); rot(out, sp[2], -4 + 6 * fallK, 0, 0); }
+  // ---- the limbs on their marks (in the air the same marks steer them, with no ground under them)
+  for (const l of L.limbs) {
+    const LB = this.limbBind[l.arm ? 'arm' : 'leg'];
+    out.contact(l.en, l.p, LV2.set(LB.fwd.x * l.m, -0.35 * l.lift, LB.fwd.z), LV3.set(LB.pole.x * l.m, LB.pole.y, LB.pole.z), 1);
+    const dig = this.chain[l.arm ? 'fingers' : 'toes'][l.m > 0 ? 0 : 1]; dig.forEach((g, k) => { rot(out, g[0], 4 + l.lift * 16 - (air ? 8 : 0), 0, (k - 1.5) * (5 + (air ? 5 : 0)) * l.m); rot(out, g[1], 3 + l.lift * 12, 0, 0); });
+  }
+  // the tail carries the wave on behind the hips
+  this.tailWave(2 * Math.PI * L.ph + Math.PI * 0.85, (3 + 11 * clamp01(v / 6.5)) * act + 1.5, 0.75, air ? -3 : 0); this.tailFree = 1; this.neck.amt = 0.7 - 0.3 * act;
+  // ---- curled into a ball: the spine rolls up nose to tail, the limbs tuck in, the gills fold back
+  if (ball > 0.002) {
+    const b = smooth(ball);
+    // (curled, the back bends further than walking ever takes it: the joint limits let the spine, the head and the tail go for the ball)
+    rot(out, I.hips, 34 * b, 0, 0); rot(out, sp[1], 42 * b, 0, 0); rot(out, sp[2], 42 * b, 0, 0); rot(out, sp[3], 36 * b, 0, 0); rot(out, I.neck, 40 * b, 0, 0); rot(out, I.head, 40 * b, 0, 0);
+    // (the tail wraps round the outside of the ball, the tip tucking in over the head)
+    const tl = this.chain.tail; for (let k = 0; k < tl.length; k++) rot(out, tl[k], [58, 46, 46, 46, 48, 52][k] * b, 0, 0);
+    for (const s of ['L', 'R']) { const m = s === 'L' ? 1 : -1; rot(out, I['upperarm.' + s], 0, 0, -35 * m * b); rot(out, I['forearm.' + s], 70 * b, 0, 0); rot(out, I['thigh.' + s], 55 * b, 0, -10 * m * b); rot(out, I['shin.' + s], 70 * b, 0, 0); }
+    for (const k in out.contacts) out.contacts[k].w *= (1 - b) * (1 - b);
+    this.tailFree = 1 - 0.8 * b; this.neck.amt *= 1 - b; this.gillHold = 1;
+    { const pos = P.fk('crawl', out), c = this.ballC || (this.ballC = new THREE.Vector3()); c.copy(pos[sp[1]]).lerp(pos[sp[3]], 0.5); }
+  }
+  this.ballOn = ball;
+  return out;
+};
+// the belly swells with the breath further when it is still
+{ const j0 = Animator.prototype.jelly;
+  Animator.prototype.jelly = function (dt) { j0.call(this, dt); const L = this.look2, lo = this.loco; if (L && lo && this.mesh === 'crawl') L.U.uJelly.value.x *= 1 + 0.9 * (1 - lo.act); };
+}
+// curled, the joint limits leave the back, the head and the tail alone (the ball is a designed pose; walking keeps its limits)
+{ const lim0 = Animator.prototype.limits;
+  Animator.prototype.limits = function (pose, which, list) {
+    if (!(this.ballOn > 0.01) || which !== 'crawl') return lim0.call(this, pose, which, list);
+    const skip = this.ballSkip || (this.ballSkip = new Set([...this.chain.spine, this.I.head, ...this.chain.tail]));
+    return lim0.call(this, pose, which, (list ? Array.from(list) : Array.from(this.P.lim.keys())).filter(i => !skip.has(i)));
+  };
+}
+// the gills: besides the flutter and the drag of the head's own motion, they swing out round a turn (thrown outward, lagging the
+// head's swing and overshooting when it stops), and flare a little with each breath in
+{ const ss0 = Animator.prototype.stepSecondary;
+  Animator.prototype.stepSecondary = function (dt) {
+    const L = this.loco; if (!this.gillSpring2) { this.gillSpring2 = 1; this.gillSpring.k = 230; this.gillSpring.c = 10; }
+    if (L) { const swing = Math.max(-1, Math.min(1, -(L.yr * Math.max(1.5, L.v) * 0.12 + L.ht.v * 0.012))), fl = (this.breath - 0.5) * 2;
+      const add = this.gillAdd || (this.gillAdd = new Float32Array(12));
+      for (let j = 0; j < 6; j++) { const sgn = j < 3 ? 1 : -1; add[j * 2] = -fl * 2.5 * (1 - L.act); add[j * 2 + 1] = swing * 14 * sgn + fl * 7 * (1 - L.act); } this.gillAddOn = true; }
+    // the original computes the targets and steps the spring: the turn's swing goes in through the push the spring is given
+    ss0.call(this, dt);
+  };
+  // the targets: wrapped so the added swing lands in the spring's target before it is stepped
+  const SpringStep = Spring.prototype.step;
+  Spring.prototype.step = function (target, dt) { if (this.addTo) { const a = this.addTo(); if (a) for (let i = 0; i < target.length; i++) target[i] += a[i]; } return SpringStep.call(this, target, dt); };
+  const init0 = Animator.prototype.initLoco;
+  Animator.prototype.initLoco = function () { const L = init0.call(this); this.gillSpring.addTo = () => this.gillAddOn ? this.gillAdd : null; return L; };
+}
+}
+
 return { ease, Spring, Animator };
 })();
 const { ease, Spring, Animator } = __anim;
@@ -8151,6 +8343,9 @@ const AXOC = (() => {
   const HEAD_R0 = 0.425;
   const _m = new THREE.Matrix4(), _mi = new THREE.Matrix4(), _v = new THREE.Vector3(), _v2 = new THREE.Vector3(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _k = new THREE.Vector3();
   const SUN_DIR = new THREE.Vector3();
+  // its mesh's frame in the blob's body (where its group sits, without the spin of a curled flight or the squash): the animator walks on the
+  // ground by how world-fixed points move in that frame from one frame to the next
+  const G0 = new THREE.Matrix4().compose(new THREE.Vector3(0, GROUND, MID_Z * SC), new THREE.Quaternion(), new THREE.Vector3(SC, SC, SC)), _T = new THREE.Matrix4(), _ax = new THREE.Vector3(1, 0, 0);
   function make(opt) {
     opt = opt || {};
     const col = new THREE.Color(opt.color || 0xE3122F), look = new AXO.Look({ color: col.getHex(), faceCell: HI ? 320 : 176 });
@@ -8216,9 +8411,30 @@ const AXOC = (() => {
   function update(I, o) {
     const X = I.ax, A = X.A, look = X.look, D = o.D, dt = Math.min(0.05, o.dt || 0); I.st.t += dt;
     // the state, then how it moves: its stride with its speed, bending into the turns, breathing harder worn out
-    const st = stateFor(I, o); if (st !== X.state) { X.state = st; A.set(st); }
+    const st = stateFor(I, o); if (st !== X.state) { X.state = st; A.set(st); if (st === 'crawl') A.loco = null; }
+    // shown again after being hidden (the game says so), or back on all fours after standing: its feet start again under it
+    if (X.fresh) { X.fresh = false; X.hasPrev = false; A.loco = null; }
     const busy = D && D.st === 'play' && state !== 'menu', inAir = !!o.inAir, charging = busy && D.charging && !D.air;
     A.motion.speed = inAir || charging ? 0 : clamp((o.spd || 0) * 1.5, 0, 1.5);
+    // the ground under it: where a point fixed in the world moved in its mesh's space since last frame (none across a jump of the map)
+    { const par = I.root.parent; let carry = null;
+      if (par) { par.updateWorldMatrix(true, false); const mw = X.mw || (X.mw = new THREE.Matrix4()), pv = X.mwPrev || (X.mwPrev = new THREE.Matrix4());
+        mw.copy(par.matrixWorld).multiply(_T.makeTranslation(I.root.position.x, I.root.position.y, I.root.position.z)).multiply(G0);
+        if (X.hasPrev && dt > 0) { carry = X.carry || (X.carry = new THREE.Matrix4()); carry.copy(mw).invert().multiply(pv); const e = carry.elements; if (Math.hypot(e[12], e[13], e[14]) > 2.5) carry = null; }
+        pv.copy(mw); X.hasPrev = true; }
+      A.motion.carry = carry;
+      // in the air: how high, how fast up or down, how soon it lands (the game's gravity, heavier falling), in its mesh's metres
+      const k = 1 / (SC * (par ? par.scale.x : 1) || 1), vy = o.vy || 0, hh = Math.max(0, o.height || 0), g1 = GRAV, g2 = GRAV * 1.45;
+      const air = !!o.inAir && !(D && D.st !== 'play' && state !== 'menu');
+      if (X.wasAir && !air) A.motion.landV = Math.max(0, -(X.lastVy || 0)) * k; X.wasAir = air; X.lastVy = vy;
+      A.motion.air = air; A.motion.vy = vy * k; A.motion.h = hh * k;
+      A.motion.tl = vy > 0 ? vy / g1 + Math.sqrt(2 * (hh + vy * vy / (2 * g1)) / g2) : (vy + Math.sqrt(vy * vy + 2 * g2 * hh)) / g2;
+      A.motion.steer = clamp(o.lean || 0, -1, 1);
+      // curled up: the slingshot's ball (a long pull, the quick part of the flight), the roll, the pound's tuck
+      // (rolling, it opens out only as it comes round onto its feet: the ball holds until the roll brings it upright)
+      const want = Math.max(o.blob || 0, o.curl || 0), ph = (((X.spin || 0) % 6.2832) + 6.2832) % 6.2832;
+      if (air && Math.abs(X.spinV || 0) > 3 && want < 0.6 && (X.ballHold || (X.lastWant || 0) >= 0.6)) X.ballHold = !(ph > 5.6 || ph < 0.25); else X.ballHold = false;
+      X.lastWant = want; A.motion.ball = X.ballHold ? Math.max(want, 0.8) : want; }
     A.motion.turn = clamp(-(o.lean || 0) * 1.2, -1, 1);
     A.motion.exert = Math.max(o.tired ? 1 : 0, charging ? 0.4 + 0.6 * (D.charge || 0) : 0, busy && D.spd > 4 ? 0.3 : 0);
     // where it looks: at a rival close by, or wherever the game has it watching
@@ -8248,6 +8464,15 @@ const AXOC = (() => {
     // the light it's lit by, in the camera's space (its fin glows from behind, its rim catches it)
     SUN_DIR.copy(sun.position).sub(sun.target.position).normalize().transformDirection(camera.matrixWorldInverse); look.U.uKeyDir.value.copy(SUN_DIR);
     A.update(dt);
+    // curled into a ball in flight it rolls over and over the way it's flying, faster the faster it goes; opening out it comes round upright
+    { const bk = A.ballOn || 0, fly = (o.blob || 0) > 0.05 && !!o.inAir, sp = D ? Math.hypot(D.spd || 0, D.vy || 0) : 0, wsc = SC * (I.root.parent ? I.root.parent.scale.x : 1) || 1;
+      X.spin = X.spin || 0; X.spinV = X.spinV || 0;
+      const rollK = fly ? clamp(((A.motion.ball || 0) - 0.3) / 0.4, 0, 1) * clamp(bk / 0.3, 0, 1) : 0; // (driven by the ball it's asked for: it stops rolling the moment it lets go)
+      if (rollK > 0) X.spinV += (clamp(sp / (0.42 * wsc), 0, 22) * rollK - X.spinV) * Math.min(1, dt * 18);
+      else { const to = Math.round(X.spin / 6.2832) * 6.2832; X.spinV += ((to - X.spin) * 420 - X.spinV * 38) * Math.min(dt, 1 / 60); } // (opening out: settled upright, the nearest way)
+      X.spin += X.spinV * dt; if (Math.abs(X.spinV) < 0.01 && Math.abs(X.spin - Math.round(X.spin / 6.2832) * 6.2832) < 0.002) X.spin = 0;
+      const g = X.g; if (X.spin !== 0 && A.ballC) { g.quaternion.setFromAxisAngle(_ax, X.spin); _v.copy(A.ballC).applyQuaternion(g.quaternion).sub(A.ballC).multiplyScalar(-SC); g.position.set(_v.x, GROUND + _v.y, MID_Z * SC + _v.z); }
+      else if (g.quaternion.w !== 1) { g.quaternion.identity(); g.position.set(0, GROUND, MID_Z * SC); } }
     // which body shows (both while it changes over between them), with the animator's jelly squash
     const cur = X.P.m[A.mesh].mesh, oth = X.P.m[A.mesh === 'stand' ? 'crawl' : 'stand'].mesh;
     cur.visible = true; oth.visible = A.fade < 1; cur.scale.set(1, A.squash, 1); oth.scale.set(1, A.squash, 1);
@@ -13744,7 +13969,7 @@ function slimeVisual(D, V, dt, sq, rise, rad, gy, hop, fxK, fxL) {
   // slime pops out of the bead's splat, and pops back when the roller wears off
   const tur = !!D.turret && D.st === 'play', on = L.roll < 0.5 && !tur && !(D === P && lookIntro && lookIntro.t < IN_LAND), was = I.root.visible; // (on the mount the blob is the paint in the dome: hidden)
   I.root.visible = on; V.oldBlob.visible = !on && !tur; if (!on) return;
-  if (!was) { if (lookIntro) { if (!reduceMotion) I.popIn(); } else { I.st.formK = 0; I.st.pop = 1; I.st.earKick = 1; } }
+  if (!was) { if (I.kind === 'axo') I.ax.fresh = true; if (lookIntro) { if (!reduceMotion) I.popIn(); } else { I.st.formK = 0; I.st.pop = 1; I.st.earKick = 1; } }
   I.setForm(D.giantT > 0 ? 'giant' : 'slime');
   I.setColor(V.mat.color); const op = V.mat.opacity; for (const k in I.mats) { I.mats[k].body.opacity = op; I.mats[k].ink.opacity = op; }
   // covered in its paint: down in a refill (eyes peeking out of the paint), or gathering itself into a drop in the countdown. Out of it

@@ -1,0 +1,18 @@
+<!doctype html><html><head><meta charset="utf-8"><title>axo lab</title>
+<style>html,body{margin:0;height:100%;background:#d9d2c3;overflow:hidden}canvas{display:block}#hud{position:fixed;left:8px;top:6px;font:12px/1.3 monospace;color:#222;white-space:pre}</style></head>
+<body><div id="hud"></div>
+<script src="three.min.js"></script>
+<script src="axo_embed.js"></script>
+<script>
+// the game's globals the adapter reads
+const PR = 0.34, HI = true; let state = 'play'; const vic = null; const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+function charMat() {}
+const renderer = new THREE.WebGLRenderer({ antialias: true }); renderer.setPixelRatio(1); renderer.setSize(innerWidth, innerHeight); renderer.shadowMap.enabled = true; document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0xd9d2c3);
+const camera = new THREE.PerspectiveCamera(32, innerWidth / innerHeight, 0.05, 200);
+const sun = new THREE.DirectionalLight(0xffffff, 2.2); sun.position.set(6, 12, 5); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); const sc = sun.shadow.camera; sc.left = sc.bottom = -6; sc.right = sc.top = 6; scene.add(sun, sun.target);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8a7a66, 1.3));
+</script>
+<script src="axoc.js"></script>
+<script src="lab.js"></script>
+</body></html>

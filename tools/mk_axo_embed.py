@@ -36,6 +36,8 @@ for mo in re.finditer(r'^export const \{ ([^}]*) \} = (__\w+);', s, flags=re.M):
 s = re.sub(r'^export const \{', 'const {', s, flags=re.M)
 assert 'export ' not in re.sub(r'//.*', '', s), 'an export left over'
 names.append('meshFrom')
+# v214: the crawl's life (tools/assets/axolife.js), inside the animator's scope, after its classes and before it hands them out
+rep('return { ease, Spring, Animator };\n})();', open(S + '/tools/assets/axolife.js').read() + '\nreturn { ease, Spring, Animator };\n})();')
 # the game's own additions to the shading:
 # wading (uCoat.w): the paint it walks through, washed up from the ground in a clean wavy line by the fill order, apart from the lumpy coat
 rep("""if (uCoat.x > 0.001) {

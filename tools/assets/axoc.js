@@ -22,6 +22,9 @@ const AXOC = (() => {
   const HEAD_R0 = 0.425;
   const _m = new THREE.Matrix4(), _mi = new THREE.Matrix4(), _v = new THREE.Vector3(), _v2 = new THREE.Vector3(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _k = new THREE.Vector3();
   const SUN_DIR = new THREE.Vector3();
+  // its mesh's frame in the blob's body (where its group sits, without the spin of a curled flight or the squash): the animator walks on the
+  // ground by how world-fixed points move in that frame from one frame to the next
+  const G0 = new THREE.Matrix4().compose(new THREE.Vector3(0, GROUND, MID_Z * SC), new THREE.Quaternion(), new THREE.Vector3(SC, SC, SC)), _T = new THREE.Matrix4(), _ax = new THREE.Vector3(1, 0, 0);
   function make(opt) {
     opt = opt || {};
     const col = new THREE.Color(opt.color || 0xE3122F), look = new AXO.Look({ color: col.getHex(), faceCell: HI ? 320 : 176 });
@@ -87,9 +90,30 @@ const AXOC = (() => {
   function update(I, o) {
     const X = I.ax, A = X.A, look = X.look, D = o.D, dt = Math.min(0.05, o.dt || 0); I.st.t += dt;
     // the state, then how it moves: its stride with its speed, bending into the turns, breathing harder worn out
-    const st = stateFor(I, o); if (st !== X.state) { X.state = st; A.set(st); }
+    const st = stateFor(I, o); if (st !== X.state) { X.state = st; A.set(st); if (st === 'crawl') A.loco = null; }
+    // shown again after being hidden (the game says so), or back on all fours after standing: its feet start again under it
+    if (X.fresh) { X.fresh = false; X.hasPrev = false; A.loco = null; }
     const busy = D && D.st === 'play' && state !== 'menu', inAir = !!o.inAir, charging = busy && D.charging && !D.air;
     A.motion.speed = inAir || charging ? 0 : clamp((o.spd || 0) * 1.5, 0, 1.5);
+    // the ground under it: where a point fixed in the world moved in its mesh's space since last frame (none across a jump of the map)
+    { const par = I.root.parent; let carry = null;
+      if (par) { par.updateWorldMatrix(true, false); const mw = X.mw || (X.mw = new THREE.Matrix4()), pv = X.mwPrev || (X.mwPrev = new THREE.Matrix4());
+        mw.copy(par.matrixWorld).multiply(_T.makeTranslation(I.root.position.x, I.root.position.y, I.root.position.z)).multiply(G0);
+        if (X.hasPrev && dt > 0) { carry = X.carry || (X.carry = new THREE.Matrix4()); carry.copy(mw).invert().multiply(pv); const e = carry.elements; if (Math.hypot(e[12], e[13], e[14]) > 2.5) carry = null; }
+        pv.copy(mw); X.hasPrev = true; }
+      A.motion.carry = carry;
+      // in the air: how high, how fast up or down, how soon it lands (the game's gravity, heavier falling), in its mesh's metres
+      const k = 1 / (SC * (par ? par.scale.x : 1) || 1), vy = o.vy || 0, hh = Math.max(0, o.height || 0), g1 = GRAV, g2 = GRAV * 1.45;
+      const air = !!o.inAir && !(D && D.st !== 'play' && state !== 'menu');
+      if (X.wasAir && !air) A.motion.landV = Math.max(0, -(X.lastVy || 0)) * k; X.wasAir = air; X.lastVy = vy;
+      A.motion.air = air; A.motion.vy = vy * k; A.motion.h = hh * k;
+      A.motion.tl = vy > 0 ? vy / g1 + Math.sqrt(2 * (hh + vy * vy / (2 * g1)) / g2) : (vy + Math.sqrt(vy * vy + 2 * g2 * hh)) / g2;
+      A.motion.steer = clamp(o.lean || 0, -1, 1);
+      // curled up: the slingshot's ball (a long pull, the quick part of the flight), the roll, the pound's tuck
+      // (rolling, it opens out only as it comes round onto its feet: the ball holds until the roll brings it upright)
+      const want = Math.max(o.blob || 0, o.curl || 0), ph = (((X.spin || 0) % 6.2832) + 6.2832) % 6.2832;
+      if (air && Math.abs(X.spinV || 0) > 3 && want < 0.6 && (X.ballHold || (X.lastWant || 0) >= 0.6)) X.ballHold = !(ph > 5.6 || ph < 0.25); else X.ballHold = false;
+      X.lastWant = want; A.motion.ball = X.ballHold ? Math.max(want, 0.8) : want; }
     A.motion.turn = clamp(-(o.lean || 0) * 1.2, -1, 1);
     A.motion.exert = Math.max(o.tired ? 1 : 0, charging ? 0.4 + 0.6 * (D.charge || 0) : 0, busy && D.spd > 4 ? 0.3 : 0);
     // where it looks: at a rival close by, or wherever the game has it watching
@@ -119,6 +143,15 @@ const AXOC = (() => {
     // the light it's lit by, in the camera's space (its fin glows from behind, its rim catches it)
     SUN_DIR.copy(sun.position).sub(sun.target.position).normalize().transformDirection(camera.matrixWorldInverse); look.U.uKeyDir.value.copy(SUN_DIR);
     A.update(dt);
+    // curled into a ball in flight it rolls over and over the way it's flying, faster the faster it goes; opening out it comes round upright
+    { const bk = A.ballOn || 0, fly = (o.blob || 0) > 0.05 && !!o.inAir, sp = D ? Math.hypot(D.spd || 0, D.vy || 0) : 0, wsc = SC * (I.root.parent ? I.root.parent.scale.x : 1) || 1;
+      X.spin = X.spin || 0; X.spinV = X.spinV || 0;
+      const rollK = fly ? clamp(((A.motion.ball || 0) - 0.3) / 0.4, 0, 1) * clamp(bk / 0.3, 0, 1) : 0; // (driven by the ball it's asked for: it stops rolling the moment it lets go)
+      if (rollK > 0) X.spinV += (clamp(sp / (0.42 * wsc), 0, 22) * rollK - X.spinV) * Math.min(1, dt * 18);
+      else { const to = Math.round(X.spin / 6.2832) * 6.2832; X.spinV += ((to - X.spin) * 420 - X.spinV * 38) * Math.min(dt, 1 / 60); } // (opening out: settled upright, the nearest way)
+      X.spin += X.spinV * dt; if (Math.abs(X.spinV) < 0.01 && Math.abs(X.spin - Math.round(X.spin / 6.2832) * 6.2832) < 0.002) X.spin = 0;
+      const g = X.g; if (X.spin !== 0 && A.ballC) { g.quaternion.setFromAxisAngle(_ax, X.spin); _v.copy(A.ballC).applyQuaternion(g.quaternion).sub(A.ballC).multiplyScalar(-SC); g.position.set(_v.x, GROUND + _v.y, MID_Z * SC + _v.z); }
+      else if (g.quaternion.w !== 1) { g.quaternion.identity(); g.position.set(0, GROUND, MID_Z * SC); } }
     // which body shows (both while it changes over between them), with the animator's jelly squash
     const cur = X.P.m[A.mesh].mesh, oth = X.P.m[A.mesh === 'stand' ? 'crawl' : 'stand'].mesh;
     cur.visible = true; oth.visible = A.fade < 1; cur.scale.set(1, A.squash, 1); oth.scale.set(1, A.squash, 1);
