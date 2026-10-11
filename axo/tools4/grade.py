@@ -35,8 +35,7 @@ def grade(src_img, src_cov, ref_img, ref_cov, keep_spread=0.85):
 if __name__ == '__main__':
     d = sys.argv[1] if len(sys.argv) > 1 else S + '/look/rt1'
     ref = tb.load_tex(d + '/axo_crawl_tex.png'); zr = np.load(d + '/bake_crawl.npz'); zs = np.load(d + '/bake_stand.npz')
-    src = tb.load_tex(d + '/axo_stand_tex_raw.png') if os.path.exists(d + '/axo_stand_tex_raw.png') else tb.load_tex(d + '/axo_stand_tex.png')
-    if not os.path.exists(d + '/axo_stand_tex_raw.png'): Image.open(d + '/axo_stand_tex.png').save(d + '/axo_stand_tex_raw.png')
+    src = tb.load_tex(d + '/axo_stand_tex_raw.png')   # (the bake's own output, before any grade)
     img = grade(src, zs['cov'], ref, zr['cov'])
     img = tb.dilate(img, zs['cov'])
     Image.fromarray(np.clip(np.round(img * 255), 0, 255).astype(np.uint8)).save(d + '/axo_stand_tex.png')

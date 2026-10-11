@@ -193,7 +193,7 @@ def bake(nm, src, res, lookup, verbose=True):
     img = dilate(img, cov)
     if verbose: print(f'  atlas done ({time.time() - t0:.1f}s)')
     return dict(r=r, vm=vm, T2=T2, uv=uv, img=img, cov=cov, keep=keep, dist=dist, ty=ty, tx=tx)
-def skin_tris(src, near=0.06):
+def skin_tris(src, near=0.12):
     """the source triangles that are skin: not labelled gill, and not frond-coloured sheets lying within `near` of the gills (the sculpt's
     frills fused onto the neck and shoulders are welded into the skin and labelled trunk; the texture tells them apart)"""
     isg = np.array([l.startswith('gill') for l in src.label])[src.T].any(1)
@@ -246,6 +246,6 @@ if __name__ == '__main__':
         src = source_crawl() if nm == 'crawl' else source_stand()
         B = bake(nm, src, res[nm], lookup_crawl if nm == 'crawl' else lookup_stand)
         np.savez(f'{out}/bake_{nm}.npz', vm=B['vm'], T2=B['T2'], uv=B['uv'], keep=B['keep'], cov=B['cov'])
-        Image.fromarray(np.clip(np.round(B['img'] * 255), 0, 255).astype(np.uint8)).save(f'{out}/axo_{nm}_tex.png')
+        im = Image.fromarray(np.clip(np.round(B['img'] * 255), 0, 255).astype(np.uint8)); im.save(f'{out}/axo_{nm}_tex.png'); im.save(f'{out}/axo_{nm}_tex_raw.png')   # (raw: before any grade)
         tb = encode(B['img']); open(f'{out}/axo_{nm}_tex.webp', 'wb').write(tb)
         export(nm, B, f'{out}/axo_{nm}', tb)
