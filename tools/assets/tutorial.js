@@ -95,12 +95,15 @@ const TUT_STEPS = [
     tick() { if (P.st === 'play' && !P.air) tut.moved += Math.hypot(P.x - tut.lx, P.z - tut.lz); tut.lx = P.x; tut.lz = P.z;
       if (Math.abs(steerIn) > 0.3 || keyL || keyR) tut.steered = true; if (P.st === 'play' && P.air && P.vy > 3 && !P.flung && !P.slam) tut.jumped = true; // (a steer and a jump: that is the lesson, done the moment both have happened)
       return (tut.steered && tut.jumped) || tut.moved > 14; } },
-  { id: 'free0', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 3.5; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
+  { id: 'free0', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 1; }, /* (a beat, then the fling: both are ways to get about) */ tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
   { id: 'sling', max: 40, enter() { tut.slowK = TUT_SLOW; tutShow(say('*HOLD*, *PULL DOWN*, then let go to fling!', 'Hold *S*, then let go to fling!'), null, 'sling', true); },
     tick() { return P.st === 'play' && P.air && P.flung && (P.flingC || 0) > 0.1; } },
   { id: 'free1', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 7; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
-  { id: 'basin', max: 45, enter() { if (P.paint > 0.42) P.paint = 0.42; pingTank(4); tut.slowK = 1; /* (a trip, not a move: full speed) */ tutShow('Low paint! Drop into a *' + potWord().toUpperCase() + '* to refill', 'bar', 'basin', true, true); },
-    tick() { return P.st === 'hide'; } },
+  { id: 'basin', max: 55, enter() { if (P.paint > 0.14) P.paint = 0.14; tut.slowK = 1; tut.basinTip = false; tutHide(); }, /* (it runs dry for real, then the way to a refill is shown) */
+    tick(dt) { if (P.dryT) P.dryT = 0; /* (no running dry into a knock-out in the lesson) */
+      if (P.st === 'play') P.paint = tut.basinTip ? Math.min(P.paint, 0.02) : Math.max(0, Math.min(P.paint, 0.14) - dt * 0.035); /* (the tank runs out over a few seconds and stays out till you refill) */
+      if (!tut.basinTip && P.paint <= 0.02) { tut.basinTip = true; pingTank(4); tutShow('Out of paint! Roll into a *' + potWord().toUpperCase() + '* to refill', null, 'basin', true, true); }
+      return P.st === 'hide'; } },
   { id: 'pound', max: 80, exit() { tut.drive = null; tut.driveMode = null; TUT_AI.speed = 0.8; }, enter() { tut.hidePound = false; tut.keepAway = false; tut.drive = H; tut.driveMode = 'near'; TUT_AI.speed = 0.62; tutGivePound(); tut.kos0 = P.kos; tut.flat0 = P.flatted; tut.slowK = 1; tut.slowT = 0; tut.poundIn = false; tut.poundShown = false; tut.sub = ''; tutHide(); },
     tick(dt) { if (tut.slowT > 0) { tut.slowT -= dt / Math.max(tut.slowK, 0.05); if (tut.slowT <= 0) tut.slowK = 1; }
       if (P.st === 'play' && P.paint < 0.6) P.paint = Math.min(1, P.paint + dt * 1.6); if (P.slamCD > 1.5) P.slamCD = 1.5; // (paint and the pound keep coming back until one lands)
@@ -239,10 +242,22 @@ function tutGoal() {
   if (id === 'flower' && gift.on && !gift.got) return [gift.x, gift.z];
   if (id === 'item' && !P.held && !P.power) { const pw = powers.find(q => q.g && q.type === 'roller'); if (pw) return [pw.x, pw.z]; }
   if (id === 'orb' && orb.on && !P.rocket) return [orb.x, orb.z];
+  if (id === 'basin' && tut.basinTip) { const q = tutNearPot(); if (q) return [q.x, q.z]; }
   return null;
+}
+// the nearest basin you can drop into (up, with paint in it, free), on your level first
+function tutNearPot() { let best = null, bd = 1e9; for (const q of pots) { if (!potUp(q) || q.ink < 0.05 || q.occ) continue; const d = Math.hypot(q.x - P.x, q.z - P.z) + Math.abs(q.y - P.y) * 6; if (d < bd) { bd = d; best = q; } } return best; }
+// a finger on the spot itself when it is on screen (a basin), bobbing above it
+const tutPinEl = document.createElement('i'); tutPinEl.className = 'tuthand'; tutPinEl.hidden = true; tutPinEl.setAttribute('aria-hidden', 'true');
+function tutPin(q) {
+  if (!tutPinEl.parentNode) stage.appendChild(tutPinEl); if (!tutPinEl.firstChild) { const h = tutEl.querySelector('.thand'); if (h) tutPinEl.innerHTML = h.innerHTML; }
+  if (q) { tutGV.set(q.x, q.y + 0.9, q.z).project(camera); if (tutGV.z > 1 || tutGV.x < -0.95 || tutGV.x > 0.95 || tutGV.y < -0.9 || tutGV.y > 0.9) q = null; }
+  if (!q) { if (!tutPinEl.hidden) tutPinEl.hidden = true; return; }
+  const x = ((tutGV.x + 1) / 2 * viewW - 22).toFixed(0) + 'px', y = ((1 - tutGV.y) / 2 * viewH - 64).toFixed(0) + 'px'; if (tutPinEl.hidden) tutPinEl.hidden = false; tutPinEl.style.left = x; tutPinEl.style.top = y;
 }
 // the arrow: from your spot on screen toward the goal (the screen direction of a step taken toward it, so it is right even when the goal is behind the camera)
 function tutGuide() {
+  tutPin(tut && state === 'play' && P.st === 'play' && tut.step >= 0 && TUT_STEPS[tut.step].id === 'basin' && tut.basinTip ? tutNearPot() : null);
   const g = tutGoal(); if (!g || Math.hypot(g[0] - P.x, g[1] - P.z) < 2.4) { if (!tutArrowEl.hidden) tutArrowEl.hidden = true; return; }
   const d = Math.hypot(g[0] - P.x, g[1] - P.z), ux = (g[0] - P.x) / d, uz = (g[1] - P.z) / d;
   tutGV.set(P.x, P.y + 0.35, P.z).project(camera); const px = (tutGV.x + 1) / 2 * viewW, py = (1 - tutGV.y) / 2 * viewH;
@@ -255,7 +270,7 @@ function tutFrame(rdt) {
   if (tut) { if (state === 'play' && tut.step >= 0) { tut.st += rdt; if (tut.st > TUT_STEPS[tut.step].max) tutNext(); } const on = state === 'play' && tut.slowK < 1 && !tut.card; if (tutSlowEl.classList.contains('on') !== on) { tutSlowEl.classList.toggle('on', on); AU.slow(on); } }
   else { const on2 = !!tut2 && state === 'play' && tut2.slowK < 1; if (tutSlowEl.classList.contains('on') !== on2) { tutSlowEl.classList.toggle('on', on2); tutSlowEl.classList.toggle('dark', on2); AU.slow(on2); } if (!(tut2 && state === 'play')) tutMenuTick(); } // (the first real match runs its own tips)
   if (tutTip) tutPlace(); else if (popMoved) { popMoved = false; $('pop').style.top = ''; }
-  if (tut || tut2) tutGuide(); else if (!tutArrowEl.hidden) tutArrowEl.hidden = true;
+  if (tut || tut2) tutGuide(); else { if (!tutArrowEl.hidden) tutArrowEl.hidden = true; if (!tutPinEl.hidden) tutPinEl.hidden = true; }
   if (tut || tutPipsEl.classList.contains('on')) tutPipsTick();
 }
 let popMoved = false;
