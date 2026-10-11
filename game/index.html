@@ -1477,6 +1477,15 @@ body.homeon .corner{display:none}
 .plate{animation:plateidle 4s ease-in-out infinite}
 .plate:nth-child(2){animation-delay:-1.3s}.plate:nth-child(3){animation-delay:-2.6s}
 @keyframes plateidle{0%,100%{transform:rotate(0)}50%{transform:rotate(.6deg) translateY(-1px)}}
+/* the locker: your dabs over the top of the view, a big Shop button in its bottom right corner (both placed by lockerTick) */
+#lkDabs{position:absolute;z-index:6;left:0;top:max(10px,calc(env(safe-area-inset-top,0px) + 8px))}
+.lkshop{appearance:none;position:absolute;z-index:6;left:0;top:0;display:grid;justify-items:center;align-content:end;width:92px;height:76px;margin:0;padding:0 0 10px;border:0;border-radius:16px;background:linear-gradient(180deg,#4F4A69 0%,#38334E 58%,#2B273D 100%);box-shadow:0 0 0 2.5px #171320,inset 0 2px 0 rgba(255,255,255,.2),inset 0 -4px 0 rgba(0,0,0,.25),0 5px 0 #171320,0 12px 20px rgba(23,19,32,.3);cursor:pointer;font:inherit;-webkit-tap-highlight-color:transparent;transition:transform .14s cubic-bezier(.3,1.6,.5,1)}
+.lkshop svg{position:absolute;left:50%;top:-24px;width:74px;height:62px;transform:translateX(-50%);filter:drop-shadow(0 3px 0 rgba(23,19,32,.35));pointer-events:none}
+.lkshop .aw{fill:var(--ink)}.lkshop .aw2{fill:#fff}
+.lkshop b{font:400 19px/1 var(--font-display);color:#fff;letter-spacing:.04em;text-transform:uppercase;text-shadow:0 2px 0 #171320,1.5px 0 0 #171320,-1.5px 0 0 #171320,0 -1.5px 0 #171320}
+.lkshop:hover{transform:translateY(-2px)}.lkshop:active{transform:translateY(3px)}
+.lkshop:focus-visible{outline:3px solid var(--gold);outline-offset:4px}
+#lkBal{display:none}
 /* abilities: violet construction paper, cut by hand, set crooked and taped down at two corners; locked until rank 3, then coming soon */
 .plate.abil{width:70px;min-height:76px;padding:14px 4px 13px;align-content:center;border-radius:0;background:none;box-shadow:none;color:#FFF6E4;text-shadow:0 1px 0 rgba(23,19,32,.5);transform:rotate(-4deg);animation:abilidle 4.6s -.8s ease-in-out infinite}
 .plate.abil .abpaper{position:absolute;inset:0;z-index:-1;background:url(art/m_cpaper.webp) center/100% 100% no-repeat;filter:drop-shadow(2px 3px 0 rgba(23,19,32,.22))} /* (the shadow on a layer of its own: a filter on the button would clip the note that pops out of it) */
@@ -2799,7 +2808,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 215</p>
+      <p class="ver">Version 216</p>
     </div>
   </div>
 
@@ -2844,6 +2853,8 @@ html.touchnav :focus-visible{outline:none!important}
     <div class="shgrid" id="shopGrid" role="list"></div>
     <p class="shnote" id="shopNote" aria-live="polite"></p>
   </section>
+  <button class="dabs" id="lkDabs" hidden type="button" title="Dabs. Open the Paint Shop" aria-haspopup="dialog"><span class="dcoin" aria-hidden="true"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18.6" fill="#F2C14E" stroke="#171320" stroke-width="2.6"/><circle cx="20" cy="20" r="14.4" fill="#C98E22"/><circle cx="20" cy="20.6" r="12.8" fill="#EDB43F"/><path class="dabk" transform="scale(2)" d="M10 5.2c.9 0 1.3 1.1 2 1.5 1 .5 2.2-.3 2.6.7.4 1-.9 1.6-.9 2.6s1.2 1.6.7 2.5c-.5.9-1.6.2-2.5.6-.8.4-1 1.7-1.9 1.7s-1.1-1.3-2-1.7c-.9-.4-2 .3-2.5-.6s.7-1.5.7-2.5-1.3-1.6-.9-2.6c.4-1 1.6-.2 2.6-.7.7-.4 1.1-1.5 2.1-1.5z" stroke="#171320" stroke-width=".85"/><path d="M8.6 14.2a13 13 0 0 1 7.6-6.6" fill="none" stroke="#FFF1BF" stroke-width="2.2" stroke-linecap="round" opacity=".85"/></svg></span><span class="dtab"><span class="dsr">Dabs: </span><b id="lkDabsN">0</b><i class="dshop">Shop</i></span></button>
+  <button class="lkshop" id="lkShop" type="button" hidden aria-haspopup="dialog" aria-label="Open the Paint Shop"><svg viewBox="0 0 48 40" aria-hidden="true"><rect x="8" y="15" width="32" height="21" rx="2" fill="#F4EEE3" stroke="#171320" stroke-width="2.4"/><rect x="19.5" y="22" width="9" height="14" rx="1.6" fill="#38334E" stroke="#171320" stroke-width="2"/><circle cx="26" cy="29.5" r="1" fill="#F2C14E"/><rect x="11.5" y="20.5" width="6" height="6" rx="1" fill="#A9DDF2" stroke="#171320" stroke-width="1.6"/><rect x="30.5" y="20.5" width="6" height="6" rx="1" fill="#A9DDF2" stroke="#171320" stroke-width="1.6"/><path class="aw" d="M3.0 9h8.4v6.4a4.2 3.6 0 0 1-8.4 0z" stroke="#171320" stroke-width="2" stroke-linejoin="round"/><path class="aw2" d="M11.4 9h8.4v6.4a4.2 3.6 0 0 1-8.4 0z" stroke="#171320" stroke-width="2" stroke-linejoin="round"/><path class="aw" d="M19.8 9h8.4v6.4a4.2 3.6 0 0 1-8.4 0z" stroke="#171320" stroke-width="2" stroke-linejoin="round"/><path class="aw2" d="M28.2 9h8.4v6.4a4.2 3.6 0 0 1-8.4 0z" stroke="#171320" stroke-width="2" stroke-linejoin="round"/><path class="aw" d="M36.6 9h8.4v6.4a4.2 3.6 0 0 1-8.4 0z" stroke="#171320" stroke-width="2" stroke-linejoin="round"/><rect x="2.5" y="5" width="43" height="5" rx="2" fill="#171320"/></svg><b>Shop</b></button>
   <section class="sheet lookp" id="look" hidden role="dialog" aria-labelledby="lookTitle">
     <div class="lktop"><h2 class="ctitle" id="lookTitle">My locker</h2><button class="lkbal" id="lkBal" type="button" aria-label="Dabs. Open the Paint Shop" aria-haspopup="dialog"><svg class="dropi" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#F2C14E" stroke="#8A5A12" stroke-width="1.6"/><circle cx="10" cy="10" r="6.7" fill="none" stroke="#C98E22" stroke-width="1"/><path d="M10 5.2c.9 0 1.3 1.1 2 1.5 1 .5 2.2-.3 2.6.7.4 1-.9 1.6-.9 2.6s1.2 1.6.7 2.5c-.5.9-1.6.2-2.5.6-.8.4-1 1.7-1.9 1.7s-1.1-1.3-2-1.7c-.9-.4-2 .3-2.5-.6s.7-1.5.7-2.5-1.3-1.6-.9-2.6c.4-1 1.6-.2 2.6-.7.7-.4 1.1-1.5 2.1-1.5z"/></svg><b id="lkBalN">0</b><small>Shop</small></button><button class="lnbtn" id="lookNameBtn" type="button" aria-label="Change your name"><span id="lookNameTxt">You</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l1-4.2L15.4 5.4a1.9 1.9 0 0 1 2.7 0l.5.5a1.9 1.9 0 0 1 0 2.7L8.7 18.5z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M13.6 7.2l3.2 3.2" stroke="currentColor" stroke-width="2.2"/></svg></button></div>
     <div class="swatches" id="swatches" role="group" aria-label="Your color"></div>
@@ -15143,7 +15154,7 @@ if (!Array.isArray(store.bought)) { store.bought = [...BOUGHT]; }
 if (!(store.drops >= 0)) store.drops = 0;
 const bought = id => BOUGHT.has(id);
 function buyItem(id) { const w = ITEMS.find(x => x.id === id); if (!w || (!OWNED.has(id) && needFind(w)) || BOUGHT.has(id) || store.drops < PRICE(w)) return false; store.drops -= PRICE(w); OWNED.add(id); store.owned = [...OWNED]; BOUGHT.add(id); store.bought = [...BOUGHT]; store.fresh = [...new Set([...(store.fresh || []), id])]; save(); return true; }
-function showDrops() { const n = store.drops || 0; if ($('statDrops')) $('statDrops').lastChild.nodeValue = String(n); if ($('lkBalN')) $('lkBalN').textContent = String(n); }
+function showDrops() { const n = store.drops || 0; if ($('statDrops')) $('statDrops').lastChild.nodeValue = String(n); if ($('lkBalN')) $('lkBalN').textContent = String(n); if ($('lkDabsN')) $('lkDabsN').textContent = String(n); }
 const owns = id => OWNED.has(id);
 function unlockItem(id) { if (OWNED.has(id)) return false; OWNED.add(id); store.owned = [...OWNED]; store.fresh = [...new Set([...(store.fresh || []), id])]; store.seen = store.seen || {}; store.seen.look = 0; save(); $('lookBtn').classList.add('hot'); return true; }
 if (typeof store.itemIn !== 'number') store.itemIn = 4 + Math.floor(Math.random() * 5); // matches to go before the next item can turn up
@@ -15627,7 +15638,7 @@ function openShop(from) {
 function closeShop(quiet) {
   if (!shopOpen) return; shopOpen = false; { const sh = $('shop'); if (quiet || reduceMotion) sh.hidden = true; else { sh.classList.add('out'); sh._outT = setTimeout(() => { sh._outT = 0; if (!shopOpen) { sh.hidden = true; sh.classList.remove('out'); } }, 240); } } menu.classList.remove('shopping'); $('shopNote').classList.remove('on');
   if (quiet) return;
-  if (lookOpen) { renderLook(); railEdge(); setTimeout(() => $('lkBal').focus({ preventScroll: true }), 30); }
+  if (lookOpen) { renderLook(); railEdge(); setTimeout(() => $('lkShop').focus({ preventScroll: true }), 30); }
   else { AU.music('menu'); renderLobbyUI(); setTimeout(() => $('dabsBtn').focus({ preventScroll: true }), 30); }
 }
 $('shopBack').addEventListener('click', () => { AU.init(); AU.ui(); if (!lookOpen && shopBought.has('zombie') && store.zombieDeal && myLook.eyes !== 'zombie') { closeShop(true); lookCat = 'eyes'; openLook(); return; } closeShop(); }); // (the zombie eyes just bought after the first real match: Back goes to the locker to put them on)
@@ -15649,6 +15660,21 @@ function lookPop() { menuReact = 0.7; AU.pop(); }
 $('lookNameBtn').addEventListener('click', () => { AU.init(); AU.ui(); openName(false); });
 $('lookBtn').addEventListener('click', () => { AU.init(); AU.ui(); openLook(); });
 $('lkBal').addEventListener('click', () => { AU.init(); AU.ui(); openShop('look'); });
+// the locker's dabs and shop: shown while it's open (not under the shop), the counter centred over the view, the button in the view's
+// bottom right corner just above the panel (or beside it, when the panel stands at the side)
+function lockerTick() {
+  const on = lookOpen && !shopOpen && !lookEl.hidden && state === 'menu', dB = $('lkDabs'), sB = $('lkShop');
+  if (dB.hidden === on) { dB.hidden = sB.hidden = !on; }
+  if (!on) return;
+  const r = stage.getBoundingClientRect(), k = lookEl.getBoundingClientRect(), side = k.left - r.left > r.width * 0.4 && k.height > r.height * 0.5;
+  const viewR = side ? k.left - r.left : r.width, dw = dB.offsetWidth || 150;
+  dB.style.left = Math.max(8, viewR / 2 - dw / 2).toFixed(1) + 'px';
+  const sw = sB.offsetWidth || 92, sh = sB.offsetHeight || 76;
+  if (side) { sB.style.left = (k.left - r.left - sw - 18).toFixed(1) + 'px'; sB.style.top = (k.bottom - r.top - sh - 6).toFixed(1) + 'px'; }
+  else { sB.style.left = (Math.min(r.width, k.right - r.left) - sw - 16).toFixed(1) + 'px'; sB.style.top = (k.top - r.top - sh - 20).toFixed(1) + 'px'; }
+}
+$('lkDabs').addEventListener('click', () => { AU.init(); AU.ui(); openShop('look'); });
+$('lkShop').addEventListener('click', () => { AU.init(); AU.ui(); openShop('look'); });
 $('dabsBtn').addEventListener('click', () => { AU.init(); AU.ui(); openShop('lobby'); });
 $('lookDone').addEventListener('click', () => { AU.init(); AU.ui(); closeLook(); });
 const lookNote = $('lookNote'); let noteT = 0; const note = (t, bad) => { lookNote.textContent = t; lookNote.classList.toggle('bad', !!bad);
@@ -15656,7 +15682,7 @@ const lookNote = $('lookNote'); let noteT = 0; const note = (t, bad) => { lookNo
   lookNote.style.left = (side ? (k.left - r.left) / 2 : k.left - r.left + k.width / 2).toFixed(0) + 'px'; lookNote.style.top = (side ? r.height - 28 : k.top - r.top - 12).toFixed(0) + 'px'; restartCls(lookNote, 'on'); clearTimeout(noteT); noteT = setTimeout(() => lookNote.classList.remove('on'), 3200); };
 const wearPick = e => { const b = e.target.closest('.ltile'); if (!b) return; AU.init(); if (b.dataset.shop) { AU.ui(); openShop('look'); return; } const w = WEAR.find(x => x.id === b.dataset.w); if (!w) return;
   if (!owns(w.id)) { AU.nope(); kick(b, 'nope'); note('Find the ' + w.name.toLowerCase() + ' on ' + WEAR_WHERE[w.stage] + '.'); return; }
-  if (!bought(w.id)) { if (!buyItem(w.id)) { AU.nope(); kick(b, 'nope'); note('Needs ' + (PRICE(w) - (store.drops || 0)) + ' more dabs. Matches pay in dabs.', true); return; } AU.power(); note('Bought the ' + w.name.toLowerCase() + '!'); kick($('lkBal'), 'bump'); }
+  if (!bought(w.id)) { if (!buyItem(w.id)) { AU.nope(); kick(b, 'nope'); note('Needs ' + (PRICE(w) - (store.drops || 0)) + ' more dabs. Matches pay in dabs.', true); return; } AU.power(); note('Bought the ' + w.name.toLowerCase() + '!'); kick($('lkDabs'), 'bump'); }
   if (store.fresh && store.fresh.includes(w.id)) store.fresh = store.fresh.filter(x => x !== w.id);
   const on = myLook[w.slot] !== w.id;
   if (on && w.cat !== 'face') for (const o of WEAR) if (o.cat === w.cat && o.slot !== w.slot && myLook[o.slot] === o.id) myLook[o.slot] = null; // (one of each)
@@ -16902,7 +16928,7 @@ function frameBody(t) {
   if (state === 'paused') dt = 0; else if (hold > 0) { hold -= rdt; dt = 0; } else if (slow > 0) { slow -= rdt; dt = rdt * 0.35; }
   if (tut && tut.slowK < 1 && state === 'play') dt *= tut.slowK; else if (tut2 && tut2.slowK < 1 && state === 'play') dt *= tut2.slowK; // (the lesson: slowed right down while a tip waits on you)
   if (dt > 0) { const n = Math.ceil(dt / 0.012); for (let i = 0; i < n; i++) step(dt / n); }
-  visuals(dt, rdt); flushTrail(); pbarTick(rdt);
+  visuals(dt, rdt); flushTrail(); pbarTick(rdt); lockerTick();
   if (shadowLite >= 2) sun.shadow.needsUpdate = (++frameNo & 1) === 0;
   if (!(state === 'menu' && (menuPage === 'worlds' || menuPage === 'events'))) renderFrame();
   lastCpu = (performance.now() - cpu0) / 1000;
@@ -17363,7 +17389,7 @@ function tutMenuTick() {
     if (shopOpen) { if (!bought('flower')) return tutShow('You found a flower! It\u2019s half price today. Buy it', () => card('flower'), 'buyflower');
       if (!bought('fangs')) { tutFangsSale(); return tutShow('It\u2019s Halloween season! Fangs are also on sale! Grab it', () => card('fangs'), 'buyfangs'); }
       tutSet('locker'); return; }
-    if (lookOpen) return tutShow('Open the Paint Shop', 'lkBal', 'shop');
+    if (lookOpen) return tutShow('Open the Paint Shop', 'lkShop', 'shop');
     if (menuPage === 'worlds') return tutShow('Back to the lobby', 'worldBack', 'back');
     if (menuPage === 'events') return tutShow('Back to the lobby', 'evBack', 'back');
     return tutShow('You earned dabs. Open the Paint Shop', 'dabsBtn', 'shop');
