@@ -2513,7 +2513,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 206</p>
+      <p class="ver">Version 207</p>
     </div>
   </div>
 
@@ -8066,7 +8066,7 @@ function aiRocketDodge(D, dt) {
   for (const F of foes(D)) { const R = F.rocket; if (!R || R.ph === 'up' || F.st !== 'play') continue;
     if (ai.rkId !== R.id) { ai.rkId = R.id; ai.rkFlee = Math.random() < Math.max(0.3, AI.evade); ai.rkHop = Math.random() < AI.dodge; }
     const d = Math.hypot(F.x - D.x, F.z - D.z), koR = ROCKET_R + PR, h = F.y - (R.gy > -Infinity ? R.gy : D.y), eta = R.ph === 'dive' ? h / Math.max(4, -F.vy) : 9;
-    if (ai.rkHop && !D.air && R.ph === 'dive' && d < koR && eta < 0.3 && eta > 0.04 && Math.abs((R.gy || 0) - D.y) < 1.4) { if (D.charging) cancelCharge(D); jump(D); return true; }
+    if (ai.rkHop && !D.air && R.ph === 'dive' && d < koR && eta < 0.3 && eta > 0.04 && Math.abs((R.gy || 0) - D.y) < 1.4 && hopOK(D)) { if (D.charging) cancelCharge(D); jump(D); return true; }
     if (!ai.rkFlee || d > koR + (R.ph === 'hover' ? 3.5 : 2)) continue;
     if (D.charging) cancelCharge(D);
     const ux = d > 0.2 ? (D.x - F.x) / d : Math.sin(D.yaw), uz = d > 0.2 ? (D.z - F.z) / d : Math.cos(D.yaw);
@@ -9853,7 +9853,7 @@ function fling(D, cIn) {
 }
 function enterPot(D, p) {
   potClaim(p, D.team);
-  D.st = 'hide'; D.pot = p; p.occ = D; D.air = false; D.vy = 0; D.stroke++; D.x = p.x; D.z = p.z; D.y = p.y; p.bounce = 1; D.slam = false; D.exposed = false; D.slowed = false;
+  D.st = 'hide'; D.pot = p; p.occ = D; D.emptyT = 0; D.air = false; D.vy = 0; D.stroke++; D.x = p.x; D.z = p.z; D.y = p.y; p.bounce = 1; D.slam = false; D.exposed = false; D.slowed = false;
   if (D.charging) clearCharge(D);
   if (D === P) { AU.enter(); buzz(10); if (Math.random() < 0.3) AU.vox('ahh'); }
   for (let i = 0; i < 10; i++) { const a = Math.random() * 6.283; spawnPart(p.x, p.y + 0.45, p.z, Math.cos(a) * 1.8, 2 + Math.random() * 1.5, Math.sin(a) * 1.8, 0.4, tmat(D), 0.6); }
@@ -10325,7 +10325,7 @@ function stepBlob(D, dt) {
     D.paint += take; p.ink -= take;
     if (take > 0) { spawnSuck(p, dt, D); if (D === P) { glugAcc += dt; if (glugAcc > 0.09) { glugAcc = 0; AU.glug(D.paint); } } }
     // drained dry: it pops you out and sinks (it still shelters you while the sun is up)
-    if (p.ink <= 0.02 && wxPhase !== 'sun' && wxPhase !== 'warn') { D.emptyT = (D.emptyT || 0) + dt; if (D.emptyT > 0.8) { D.emptyT = 0; if (D.charging) clearCharge(D); if (D === P) { holdCharge = false; slingOff(); } exitPot(D); } } else D.emptyT = 0;
+    if (p.ink <= 0.02 && wxPhase !== 'sun' && wxPhase !== 'warn') { D.emptyT = (D.emptyT || 0) + dt; if (D.emptyT > 0.8) { D.emptyT = 0; if (D.charging) clearCharge(D); if (D === P) { holdCharge = false; slingOff(); } D.yaw = exitYaw(D, D.yaw); D.turn = 0; exitPot(D); } } else D.emptyT = 0;
     return;
   }
   // sunrise: out in the open the sun burns you away; coffins and shadows keep you safe
@@ -10340,7 +10340,7 @@ function stepBlob(D, dt) {
   if (D.slam) D.slamT += dt;
   if (D.dilT > 0) { D.dilT -= dt; if (D.spd > 1 && Math.random() < dt * 10) { const a = Math.random() * 6.283; spawnPart(D.x + Math.cos(a) * 0.3, D.y + 0.35, D.z + Math.sin(a) * 0.3, Math.cos(a) * 1.2, 1.5 + Math.random(), Math.sin(a) * 1.2, 0.3, boilPartMat, 0.45); } }
   if (D.kx || D.kz) { const f = Math.exp(-dt * (D.air ? 1.2 : 5)); D.kx *= f; D.kz *= f; if (D.kx * D.kx + D.kz * D.kz < 0.01) D.kx = D.kz = 0; }
-  if (D.charging) { D.spd += (0 - D.spd) * Math.min(1, dt * 16); updateCharge(D, dt); }
+  if (D.charging) { D.spd += (0 - D.spd) * Math.min(1, dt * 16); updateCharge(D, dt); if (!D.air && D.spd > 0.05) { const r = 0.3 + D.spd * 0.08; if (surfaceUnder(D.x + Math.sin(D.yaw) * r, D.z + Math.cos(D.yaw) * r, D.y + STEP, true) === -Infinity) D.spd = 0; } } // (holding to aim is a brake: it stops at a hole or the edge rather than sliding into it)
   else if ((D.slam && !D.missile) || D.flatT > 0 || D.stunT > 0) D.spd = 0;
   else if (!D.air && D.rollT > ROLL_T - ROLL_DASH) D.spd = D.rollV * (0.62 + 0.38 * (D.rollT - ROLL_T + ROLL_DASH) / ROLL_DASH);
   else if (!D.air && D.turret) D.spd += (0 - D.spd) * Math.min(1, dt * 12); // planted
@@ -10970,6 +10970,18 @@ function aiShovePlan(D) {
   const od = Math.hypot(tx - D.x, tz - D.z), c = solveFling(Math.max(1, od - 1.2), D.y - o.y);
   return c > 0 && flingLanding(D, yaw, c, true) ? { kind: 'shove', yaw, c, t: 0 } : null;
 }
+// solid floor at (x, z) and all round it (radius r) at about height y
+function solidAround(x, z, y, r) { if (surfaceUnder(x, z, y + STEP, true) === -Infinity) return false; for (let a = 0; a < 6.28; a += 1.05) if (surfaceUnder(x + Math.sin(a) * r, z + Math.cos(a) * r, y + STEP, true) === -Infinity) return false; return true; }
+// a hop from here lands about 0.68 s of rolling ahead: only hop if that's floor (a dodge or a grab is no use off the edge)
+function hopOK(D) { return solidAround(D.x + Math.sin(D.yaw) * D.spd * 0.68, D.z + Math.cos(D.yaw) * D.spd * 0.68, D.y, 0.6); }
+// mid-air, heading a: does it come down on something (straight on at its speed for the time left to fall to the floor below), with
+// nothing in the way at the height it'll be (a wall turns it aside, maybe into a hole), and floor just past where it lands
+function airLandOK(D, a) {
+  const gy = surfaceUnder(D.x, D.z, D.y + 0.1, true), g0 = gy > -Infinity ? gy : D.y, G1 = GRAV * 1.45, t = clamp((Math.max(0, D.vy) + Math.sqrt(D.vy * D.vy + 2 * G1 * Math.max(0, D.y - g0))) / G1, 0.05, 1.5);
+  const sx = Math.sin(a), sz = Math.cos(a), L = D.spd * t;
+  for (let k = 1; k <= 4; k++) { const f = k / 4; if (blockedAt(D.x + sx * L * f, D.z + sz * L * f, D.y + (g0 - D.y) * f * f)) return false; }
+  return solidAround(D.x + sx * L, D.z + sz * L, g0, 0.8) && solidAround(D.x + sx * (L + 1), D.z + sz * (L + 1), g0, 0.4);
+}
 // is the straight line from the blob to a point safe to roll
 function lineClear(D, x, z, h) {
   const L = Math.hypot(x - D.x, z - D.z), n = Math.max(1, Math.ceil(L / 0.4)); let y = D.y;
@@ -10989,7 +11001,10 @@ function boilNear(x, z, y, pad) { for (let i = 0; i < rivals.length; i++) { cons
 const AI_OFFS = [0.35, -0.35, 0.7, -0.7, 1.05, -1.05, 1.4, -1.4, 1.9, -1.9, 2.5, -2.5, Math.PI];
 const timeToSun = () => wxPhase === 'warn' ? wxLeft : wxPhase === 'sun' ? 0 : 99; // a sunrise is only known once the warning goes up
 // the planner: price every route, then pick what to do
-const gainT = new Float64Array(16), ownT = new Float64Array(16), topS = new Float64Array(8), topI = new Int32Array(8), topP = new Float64Array(8);
+const gainT = new Float64Array(16), ownT = new Float64Array(16), topS = new Float64Array(8), topI = new Int32Array(8), topP = new Float64Array(8), topT = new Float64Array(8);
+// how far round a route makes you turn as it sets off (0 straight on, 1 right round): the first point of it a couple of steps out,
+// not the straight line to its end, which can look ahead when the way there starts by turning back
+function routeTurn(D, id) { let i = id, a = id, g = 0; while (i >= 0 && g++ < 600) { const n = NAV.nodes[i]; if (Math.hypot(n.x - D.x, n.z - D.z) < 2.6) break; a = i; i = nPrev[i]; } const n = NAV.nodes[a]; return Math.abs(wrapA(Math.atan2(n.x - D.x, n.z - D.z) - D.yaw)) / Math.PI; }
 function aiThink(D) {
   const ai = D.ai, O = other(D), o = ai.o || (aiSee(D), ai.o), me = D.team + 1;
   const src = NAV.at(D.x, D.z, D.y); if (!src) { ai.path = null; return; }
@@ -11132,15 +11147,19 @@ function aiThink(D) {
     const turn = Math.abs(wrapA(Math.atan2(n.x - D.x, n.z - D.z) - D.yaw)) / Math.PI, p = (n.i + n.j) % 2 ? 0 : pv(n);
     const rv = (nAcc[n.id] + 0.7 * v) / (d + 2.5) * (1 - 0.4 * turn); if (rv > rollBest) rollBest = rv;
     const sc = (nAcc[n.id] + 0.7 * v + p) / (d + 2.5) * (1 - 0.4 * turn);
-    if (nTop < K || sc > topS[nTop - 1]) { let q = nTop < K ? nTop++ : nTop - 1; while (q > 0 && topS[q - 1] < sc) { topS[q] = topS[q - 1]; topI[q] = topI[q - 1]; topP[q] = topP[q - 1]; q--; } topS[q] = sc; topI[q] = n.id; topP[q] = p; }
+    if (nTop < K || sc > topS[nTop - 1]) { let q = nTop < K ? nTop++ : nTop - 1; while (q > 0 && topS[q - 1] < sc) { topS[q] = topS[q - 1]; topI[q] = topI[q - 1]; topP[q] = topP[q - 1]; topT[q] = topT[q - 1]; q--; } topS[q] = sc; topI[q] = n.id; topP[q] = p; topT[q] = turn; }
   }
   if (!nTop) { ai.path = null; return; }
+  // the short list, judged by the way each route sets off: one that looks ahead but turns back first loses the turn bonus, one that
+  // carries straight on keeps it, so the CPU sweeps on instead of zig-zagging
+  for (let q = 0; q < nTop; q++) topS[q] = topS[q] / (1 - 0.4 * topT[q]) * (1 - 0.4 * routeTurn(D, topI[q]));
+  for (let q = 1; q < nTop; q++) { const sv = topS[q], iv = topI[q], pv2 = topP[q], tv = topT[q]; let r = q; while (r > 0 && topS[r - 1] < sv) { topS[r] = topS[r - 1]; topI[r] = topI[r - 1]; topP[r] = topP[r - 1]; topT[r] = topT[r - 1]; r--; } topS[r] = sv; topI[r] = iv; topP[r] = pv2; topT[r] = tv; }
   const pq = Math.min(nTop - 1, (Math.random() * Math.min(AI.pick, nTop)) | 0);
   let pick = [topS[pq], topI[pq], topP[pq]];
   // stick with the current target unless something clearly better turns up
   if (ai.mode === 'paint' && ai.tgt >= 0 && nDist[ai.tgt] < Infinity && Math.hypot(NAV.nodes[ai.tgt].x - D.x, NAV.nodes[ai.tgt].z - D.z) > 1.5) {
     const n = NAV.nodes[ai.tgt]; let v = nGain[n.id]; for (let e = 0; e < n.nb.length; e += 2) v += nGain[n.nb[e]] * 0.5;
-    const p = ai.poundAt === ai.tgt ? pv(n) : 0, cur = (nAcc[n.id] + 0.7 * v + p) / (nDist[n.id] + 2.5) * (1 - 0.4 * Math.abs(wrapA(Math.atan2(n.x - D.x, n.z - D.z) - D.yaw)) / Math.PI); if (cur > pick[0] * 0.78) pick = [cur, ai.tgt, p];
+    const p = ai.poundAt === ai.tgt ? pv(n) : 0, rt = routeTurn(D, n.id), cur = (nAcc[n.id] + 0.7 * v + p) / (nDist[n.id] + 2.5) * (1 - 0.4 * rt); if (cur > pick[0] * (rt < 0.5 ? 0.66 : 0.85)) pick = [cur, ai.tgt, p]; /* (a change of plan costs a turn and a wobble: only for a clearly better spot) */
   }
   // slingshot around when the splats beat rolling there
   if (AI.flingPaint && !sunNow) { const fp = aiFlingPaint(D, rollBest * speed, need, sunNow); if (fp) { ai.plan = fp; ai.mode = 'paint'; ai.poundAt = -1; return; } }
@@ -11189,15 +11208,21 @@ function hazardAt(D, h, quick) {
   return score;
 }
 function aiSafe(D, want) {
-  const base = hazardAt(D, want); if (base < 0.5) return want;
-  let best = want, bs = base;
-  for (let i = 0; i < AI_OFFS.length; i++) { const off = AI_OFFS[i], s = hazardAt(D, want + off) + Math.abs(off) * 1.4; if (s < bs) { bs = s; best = want + off; } }
-  return best;
+  const ai = D.ai, base = hazardAt(D, want); ai.hz = base; if (base < (ai.safeSide ? 0.3 : 0.5)) { ai.safeSide = 0; return want; }
+  let best = want, bs = base, side = 0;
+  // (going round the same side as last time gets a small edge, so a puddle dead ahead doesn't flick it left, right, left)
+  for (let i = 0; i < AI_OFFS.length; i++) { const off = AI_OFFS[i], s = hazardAt(D, want + off) + Math.abs(off) * 1.4 + (ai.safeSide && off * ai.safeSide < 0 ? 0.8 : 0); if (s < bs) { bs = s; best = want + off; side = Math.sign(off); } }
+  ai.safeSide = side; return best;
 }
 function aiSteer(D, tx, tz, dt, urgent, precise) {
   const ai = D.ai;
   let want = Math.atan2(tx - D.x, tz - D.z);
-  if (!(Math.random() < AI.slip * dt)) want = aiSafe(D, want);
+  if (!(Math.random() < AI.slip * dt)) want = aiSafe(D, want); else ai.hz = 0;
+  // ease round to a new heading when nothing's pressing: a waypoint popping into view or a change of plan swings the wanted heading
+  // in one step, and steering straight at it reads as a twitch (a drop ahead, a chase, a careful approach, or going fast as a giant gets it at once: at
+  // double speed the lag carries it past the corner and it circles back)
+  if (urgent || precise || D.charging || ai.hz > 30 || D.spd > cfg.speed * 1.2 || !(runT - (ai.wantT || -9) < 0.1)) ai.wantS = want; else ai.wantS += wrapA(want - ai.wantS) * Math.min(1, dt * 8);
+  ai.wantT = runT; want = ai.wantS;
   ai.noisePh += dt * 1.6;
   const err = wrapA(want + AI.noise * Math.sin(ai.noisePh) * (urgent ? 0.4 : 1) - D.yaw);
   // something deadly right ahead on the current heading: brake and turn on the spot
@@ -11246,7 +11271,7 @@ function aiAir(D, dt) {
   if (ai.flight === 'paint' && ai.flMissile && !D.slam && D.vy < 0.6) { ai.flMissile = false; if (slamReady(D)) { useSlam(D); return; } }
   if (o && o.st === 'play' && runT - o.t < 0.6 && o.imm <= 0.35) {
     const dx = o.x - D.x, dz = o.z - D.z, d = Math.hypot(dx, dz);
-    if (ai.flight === 'attack' || d < 4) { const err = wrapA(Math.atan2(dx, dz) - D.yaw); D.steer = -clamp(err * 2.5, -1, 1); }
+    if ((ai.flight === 'attack' || d < 4) && airLandOK(D, Math.atan2(dx, dz))) { const err = wrapA(Math.atan2(dx, dz) - D.yaw); D.steer = -clamp(err * 2.5, -1, 1); }
     else D.steer = 0;
     // over the top of you with the pound ready: drop on you
     if (!D.slam && slamReady(D) && ((D.flingC || 0) > 0.15 ? (mh => !!mh && Math.hypot(mh.x - o.x, mh.z - o.z) < MISSILE_R + PR - 1.2)(missileHit(D)) : d < AI.poundR * 0.85) && D.vy < 2 && Math.random() < Math.min(1, AI.pound * dt * 3)) useSlam(D);
@@ -11297,7 +11322,7 @@ function aiEvade(D, dt) {
       if (D.rollT > 0) return true;
       const away = Math.sin(D.yaw) * (D.x - sc.x) + Math.cos(D.yaw) * (D.z - sc.z) > 0.2;
       if (away && D.rollCD <= 0 && rollSafe(D)) { if (eta > 0.44) return false; if (D.charging) cancelCharge(D); dodgeRoll(D); return true; }
-      if (D.charging) cancelCharge(D); jump(D); return true;
+      if (hopOK(D)) { if (D.charging) cancelCharge(D); jump(D); return true; }
     } }
   } else if (!O.slam) ai.dodgeRolled = false;
   if (ai.evadeT > 0) { ai.evadeT -= dt; if (D.charging) cancelCharge(D); aiSteer(D, D.x + (D.x - ai.evX) * 4, D.z + (D.z - ai.evZ) * 4, dt, true); return true; }
@@ -11308,16 +11333,21 @@ function aiEvade(D, dt) {
   } else if (!O.slam) ai.evadeRolled = false;
   if (AI.hop && O.st === 'play' && !O.air && O.flatT <= 0 && D.immuneT <= 0) {
     const d = Math.hypot(O.x - D.x, O.z - D.z);
-    if (d < 1.6 && d > 0.01) { const nx = (D.x - O.x) / d, nz = (D.z - O.z) / d, vO = O.spd * (Math.sin(O.yaw) * nx + Math.cos(O.yaw) * nz), vD = D.spd * -(Math.sin(D.yaw) * nx + Math.cos(D.yaw) * nz); if (vO > 2.2 && vO - vD > RAM_EDGE - 0.3 && Math.random() < AI.hop) { if (D.charging) cancelCharge(D); jump(D); return true; } }
+    if (d < 1.6 && d > 0.01) { const nx = (D.x - O.x) / d, nz = (D.z - O.z) / d, vO = O.spd * (Math.sin(O.yaw) * nx + Math.cos(O.yaw) * nz), vD = D.spd * -(Math.sin(D.yaw) * nx + Math.cos(D.yaw) * nz); if (vO > 2.2 && vO - vD > RAM_EDGE - 0.3 && Math.random() < AI.hop && hopOK(D)) { if (D.charging) cancelCharge(D); jump(D); return true; } }
   }
   return false;
 }
 // the hop out of a coffin carries you about four units: pick a heading where that lands on something
+// how far the floor runs from coffin p along heading a (past L: all of it)
+function exitRun(p, a, d0, L, boil) { for (let d = d0; d <= L; d += 0.35) { const x = p.x + Math.sin(a) * d, z = p.z + Math.cos(a) * d; if (surfaceUnder(x, z, p.y + 1.2) === -Infinity) return d; if (boil && d > 2.4 && rivals.some(r => r.on && Math.abs(r.y - p.y) < 0.4 && Math.hypot(x - r.x, z - r.z) < r.hit)) return d; } return L + 1; }
+// a safe way out: the hop lands about four units out and rolls on, so floor well past that, and a little either side too (it can
+// leave while still turning, and lands where it was facing then)
+function exitOK(D, a) { return exitRun(D.pot, a, 0.5, 5.9, true) > 5.9 && exitRun(D.pot, a - 0.3, 2.1, 4.9) > 4.9 && exitRun(D.pot, a + 0.3, 2.1, 4.9) > 4.9; }
 function exitYaw(D, want) {
-  const p = D.pot, ok = a => { for (let d = 0.5; d <= 4.8; d += 0.35) { const x = p.x + Math.sin(a) * d, z = p.z + Math.cos(a) * d; if (surfaceUnder(x, z, p.y + 1.2) === -Infinity) return false; if (d > 2.4 && rivals.some(r => r.on && Math.abs(r.y - p.y) < 0.4 && Math.hypot(x - r.x, z - r.z) < r.hit)) return false; } return true; };
-  if (ok(want)) return want;
-  for (let k = 1; k <= 8; k++) for (const sg of [1, -1]) { const a = want + sg * k * 0.393; if (ok(a)) return a; }
-  return want;
+  if (exitOK(D, want)) return want;
+  for (let k = 1; k <= 8; k++) for (const sg of [1, -1]) { const a = want + sg * k * 0.393; if (exitOK(D, a)) return a; }
+  let best = want, bd = -1; for (let k = 0; k < 16; k++) { const a = want + k * 0.393, d = exitRun(D.pot, a, 0.5, 5.9, true); if (d > bd) { bd = d; best = a; } } // (boxed in: the way with the most floor)
+  return best;
 }
 // inside a coffin: wait out the sun, top up, don't hop out into your pound, then leave toward the next target
 function aiCoffin(D, dt) {
@@ -11342,7 +11372,10 @@ function aiCoffin(D, dt) {
   }
   const ep = ai.exitPlan; ep.t += dt;
   const err = wrapA(ep.yaw - D.yaw); D.steer = -clamp(err * 3, -1, 1);
-  if (Math.abs(err) < (ep.flee ? 1.3 : 0.35) || ep.t > (ep.flee ? 0.3 : 1.2)) {
+  // lined up before it hops (the way out is only checked a little either side), and never out over a drop: running from a pound it
+  // goes as soon as it faces a safe way out, and a slow turn only gives up waiting once the way it faces is safe
+  const safeNow = exitOK(D, D.yaw);
+  if (ep.flee ? safeNow && (Math.abs(err) < 1.3 || ep.t > 0.3) || Math.abs(err) < 0.25 : Math.abs(err) < 0.25 || ep.t > 1.2 && (safeNow || ep.t > 2.4)) {
     ai.exitPlan = null; ai.campT = 0; ai.thinkT = ep.flee ? 0 : 0.15; ai.fleeRolled = false;
     // a big way out: burst if there's a lot of fresh canvas around the coffin
     if (AI.plan > 0.8 && slamReady(D) && !sunny && D.paint - SLAM_COST > 0.45 && localGain(D, SLAM_R * 0.84) > AI.covPound * COV_K * 0.75) useSlam(D); else jump(D);
@@ -11374,7 +11407,7 @@ function aiStep(D, dt) {
   ai.flight = null; ai.flMissile = false; ai.airRolled = false; if (ai.airAim) { ai.airAim = null; if (D.charging) cancelCharge(D); }
   if (ai.ramT > 0) { ai.ramT -= dt; const O = other(D); if (O.st === 'play' && D.flung) { if (D.charging) cancelCharge(D); D.steer = -clamp(wrapA(Math.atan2(O.x - D.x, O.z - D.z) - D.yaw) * 3, -1, 1); return; } ai.ramT = 0; }
   if (aiEvade(D, dt)) return;
-  if (ai.mode === 'orb') { if (!orb.on) { ai.mode = 'paint'; ai.thinkT = 0; } else { ai.thinkT = Math.min(ai.thinkT, 0.25); if (Math.hypot(orb.x - D.x, orb.z - D.z) < 2.6 && orb.y - D.y < 2.1 && orb.y - D.y > -0.2 && !D.charging) jump(D); } }
+  if (ai.mode === 'orb') { if (!orb.on) { ai.mode = 'paint'; ai.thinkT = 0; } else { ai.thinkT = Math.min(ai.thinkT, 0.25); if (Math.hypot(orb.x - D.x, orb.z - D.z) < 2.6 && orb.y - D.y < 2.1 && orb.y - D.y > -0.2 && !D.charging && solidAround(orb.x, orb.z, D.y, 1.2)) jump(D); /* (not for an orb hanging over a hole: the grab drops it straight down) */ } }
   if (aiTryPound(D, dt)) return;
   if (ai.plan) return aiDoPlan(D, dt);
   ai.thinkT -= dt;

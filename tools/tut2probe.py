@@ -1,6 +1,6 @@
 """v200: the first real match after the lesson: the sun in three steps (find shade with the way shown, hold to stay put, or a coffin), the rain
 in one plain line with no slow-down, the zombie eyes' box and the orb near you, then: bought in the shop, Back goes to the locker to wear them"""
-import asyncio, sys
+import asyncio, os, sys
 from playwright.async_api import async_playwright
 WS = '/tmp/claude-0/-home-user-rollmodel/5c52352e-692f-5301-ac55-ec4d2c708f3e/scratchpad/ws'
 async def main(w, h, tag):
@@ -13,7 +13,7 @@ async def main(w, h, tag):
         async def wait(js, t=240000): await pg.wait_for_function(js, timeout=t, polling=100)
         async def shot(name): await pg.evaluate("__T.renderer.render = window.__o; 0"); await pg.wait_for_timeout(800); await pg.screenshot(path=f'{WS}/ui/t2_{tag}_{name}.png'); await pg.evaluate("__T.renderer.render = () => {}; 0")
         st = "(() => { const t = __T.tut2, P = __T.P, el = document.getElementById('tut'), ar = document.getElementById('tutArrow'), pin = document.querySelector('.tuthand:not(#tutHand)'), g = document.querySelector('.tutgest'); return { tip: __T.tutTip && __T.tutTip.key, text: __T.tutTip && __T.tutTip.text, ph: t && t.ph, sub: t && t.sub, wx: __T.wxPhase, slow: document.getElementById('tutSlow').className, arrow: !ar.hidden, pin: pin ? !pin.hidden : null, gest: g && !g.hidden ? g.dataset.g : null, shade: t && t.shade ? +Math.hypot(t.shade[0] - P.x, t.shade[1] - P.z).toFixed(1) : null, inShade: __T.inShadow(P.x, P.z, P.y), pst: P.st, paint: +P.paint.toFixed(2) }; })()"
-        await pg.goto('http://localhost:8765/pc_h.html', timeout=240000); await wait('typeof __T === "object"'); await pg.wait_for_timeout(1500)
+        await pg.goto('http://localhost:8765/' + os.environ.get('PAGE', 'pc_h.html'), timeout=240000); await wait('typeof __T === "object"'); await pg.wait_for_timeout(1500)
         await pg.evaluate("(() => { const r = __T.renderer; window.__o = r.render.bind(r); r.render = () => {}; })(); 0")
         await pg.evaluate("__T.stageSel = 'crypt'; document.getElementById('homePlay').click()"); await wait("__T.state === 'play'"); await wait("!!__T.tut2")
         print('match2', await pg.evaluate("[__T.tutPh(), __T.TH && __T.TH.id, __T.tut2.ph]"))

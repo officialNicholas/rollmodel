@@ -1,4 +1,4 @@
-import asyncio, sys, json
+import asyncio, os, sys, json
 from playwright.async_api import async_playwright
 WS = '/tmp/claude-0/-home-user-rollmodel/5c52352e-692f-5301-ac55-ec4d2c708f3e/scratchpad/ws'
 async def main(w, h, tag):
@@ -11,7 +11,7 @@ async def main(w, h, tag):
         async def shot(name): await pg.screenshot(path=f'{WS}/ui/tut_{tag}_{name}.png'); shots.append(name)
         async def tip(): return await pg.evaluate("[__T.tutPh(), __T.tut && __T.tut.step, __T.tutTip && __T.tutTip.key, __T.tutTip && __T.tutTip.text, document.getElementById('tut').dataset.pos, document.getElementById('tut').hidden]")
         async def wait(js, t=90000): await pg.wait_for_function(js, timeout=t, polling=150)
-        await pg.goto('http://localhost:8765/pc_h.html', timeout=240000); await wait('typeof __T === "object"', 240000); await pg.wait_for_timeout(1500)
+        await pg.goto('http://localhost:8765/' + os.environ.get('PAGE', 'pc_h.html'), timeout=240000); await wait('typeof __T === "object"', 240000); await pg.wait_for_timeout(1500)
         print('lobby', await tip()); await shot('lobby')
         await pg.evaluate("document.getElementById('homePlay').click()"); await wait("__T.state === 'play'"); await wait("__T.tut && __T.tut.step === 0"); await pg.wait_for_timeout(600)
         print('move', await tip(), await pg.evaluate("[document.getElementById('slamBtn').hidden, document.getElementById('tutSlow').classList.contains('on'), __T.P.air]")); await shot('move')
