@@ -2400,6 +2400,21 @@ html.touchnav :focus-visible{outline:none!important}
 .vsrow.rows .vcol .vbox canvas{object-fit:cover;object-position:50% 50%}
 @keyframes figrow{from{opacity:0;transform:scale(1.08)}}
 .vsrow.rows.trio .vhead b{font-size:clamp(16px,5.6vw,26px)}
+/* the round in-match buttons are plain pictures (tools/bake_buttons.py): on iPhones Safari punched a hole in the masked, colour-blended disc wherever the icon sat on it */
+.slamBtn,.slamBtn:active,.slamBtn.off,.slamBtn.boost,.slamBtn.locked,.itemBtn{filter:none}
+.slamBtn.locked{opacity:.35}
+.slamBtn .sdisc,.itemBtn .sdisc{inset:0 -4px -6px 0;border-radius:0;background:url(art/sd_red.webp) 0 0/100% 100% no-repeat;background-blend-mode:normal;-webkit-mask:none;mask:none;transition:none;filter:none}
+.slamBtn.off .sdisc{background-image:url(art/sd_off.webp);filter:none}
+.slamBtn.boost .sdisc{background:url(art/sd_boost.webp) 0 0/100% 100% no-repeat}
+.slamBtn.boost.off .sdisc{background-image:url(art/sd_boostoff.webp)}
+.slamBtn.locked .sdisc{background-image:url(art/sd_grey.webp)}
+.itemBtn .sdisc{background-image:url(art/sd_cream.webp)}
+.slamBtn svg,.itemBtn svg{filter:none}
+.itemBtn.in{animation:slamin .4s cubic-bezier(.3,1.7,.5,1)}
+.itemBtn::before{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:0 0 12px rgba(var(--ink-rgb),.8);opacity:0;pointer-events:none}
+.itemBtn.in::before{animation:itemglow2 1.6s ease-in-out .4s infinite}
+@keyframes itemglow2{50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.itemBtn.in::before{animation:none}}
 </style>
 
 <div id="stage">
@@ -2498,7 +2513,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 204</p>
+      <p class="ver">Version 205</p>
     </div>
   </div>
 
