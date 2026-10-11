@@ -2321,6 +2321,21 @@ html.touchnav :focus-visible{outline:none!important}
 @media (min-aspect-ratio:1/1) and (max-height:520px){.menu.tutoring .mworld .whead h2{visibility:hidden}}
 #stagePick .world{scroll-snap-align:none}
 #stagePick .world .frame{scroll-snap-align:center}
+.vsx .vsrow.rows{flex-direction:column;bottom:20%}
+.vsrow.rows .vcol{animation-name:rowin}
+.vsrow.rows .vcol.foe,.vsrow.rows .vcol.foe2{animation-name:rowinr}
+@keyframes rowin{from{transform:translateX(-100%)}}
+@keyframes rowinr{from{transform:translateX(100%)}}
+.vsrow.rows .vcol+.vcol{box-shadow:0 -4px 0 var(--cream),0 -9px 14px rgba(0,0,0,.35)}
+.vsrow.rows .vseam{display:none}
+.vsrow.rows .vhead{position:absolute;left:0;top:0;min-height:0;padding:9px 18px 8px 14px;justify-items:start;text-align:left;border-radius:0 0 14px 0}
+.vsrow.rows .vcol.foe .vhead,.vsrow.rows .vcol.foe2 .vhead{left:auto;right:0;justify-items:end;text-align:right;border-radius:0 0 0 14px;padding:9px 14px 8px 18px}
+.vsrow.rows .vhead b{font-size:clamp(20px,7vw,32px)}
+.vsrow.rows .vhead::after{right:auto;left:auto;top:4px;width:36px;height:36px}
+.vsx .vsrow.rows .vcol .vbox,.vsx .vsrow.rows.trio .vcol .vbox{left:0;top:0;right:0;bottom:0;width:auto;height:auto;aspect-ratio:auto;transform:none;margin:0;animation:figrow .6s .18s cubic-bezier(.2,1.2,.35,1) both}
+.vsrow.rows .vcol .vbox canvas{object-fit:cover;object-position:50% 50%}
+@keyframes figrow{from{opacity:0;transform:scale(1.08)}}
+.vsrow.rows.trio .vhead b{font-size:clamp(16px,5.6vw,26px)}
 </style>
 
 <div id="stage">
@@ -2419,7 +2434,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 192</p>
+      <p class="ver">Version 193</p>
     </div>
   </div>
 
@@ -8152,7 +8167,7 @@ function makeAudio() {
     trkStop(fadeOut || 0.6);
     const t = T(), src = ctx.createBufferSource(), g = ctx.createGain(), lvl = R.k * (key === 'menu' || key === 'spook' ? TRK_LVL.menu : key === 'win' || key === 'lost' ? TRK_LVL.end : TRK_LVL.play);
     src.buffer = R.buf; src.loop = true; src.loopStart = R.a; src.loopEnd = Math.min(R.b, R.buf.duration);
-    if (!off && key === 'menu') { off = 1.08; fadeIn = Math.max(fadeIn || 0, 0.25); } /* (the menu song opens on a lone bell before its first beat: start on the beat) */
+    if (!off && key === 'menu') { off = R.a; fadeIn = Math.max(fadeIn || 0, 0.6); } /* (the menu song's intro rings a bell three times before the loop: a fresh start skips to the loop) */
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(lvl, t + (fadeIn || 0.03)); src.connect(g); g.connect(trkBus); off = Math.max(0, Math.min(off || 0, src.loopEnd - 0.01)); src.start(t + 0.005, off);
     trk = { key, src, g, t0: t + 0.005 - off }; musOn = false; mus.gain.cancelScheduledValues(t); mus.gain.setTargetAtTime(0, t, (fadeOut || 0.6) / 3); return true;
   }
@@ -13856,7 +13871,7 @@ function portraitOf(D, W, Hh, o) {
   o = o || {};
   if (!portRT || portRT.width !== W || portRT.height !== Hh) { if (portRT) portRT.dispose(); portRT = new THREE.WebGLRenderTarget(W, Hh, { colorSpace: THREE.SRGBColorSpace }); }
   const look = lookOf(D), tall = look.head === 'hat' ? 1.3 : look.head === 'tophat' ? 1.22 : look.head === 'pirate' ? 1.16 : look.head === 'tiara' ? 1.1 : look.head ? 1.08 : 0.92;
-  const tv = Math.tan(portCam.fov * Math.PI / 360), d = tall / (2 * tv * (o.zoom || 0.8)), ly = tall * 0.46, low = o.low || 0, fx = Math.sin(D.yaw + (o.yaw || 0)), fz = Math.cos(D.yaw + (o.yaw || 0));
+  const tv = Math.tan(portCam.fov * Math.PI / 360), d = o.face ? (0.84 + (tall - 0.92) * 0.6) / (2 * tv * Math.min(1, W / Hh / 1.25)) : tall / (2 * tv * (o.zoom || 0.8)), ly = o.face ? 0.5 + (tall - 0.92) * 0.4 : tall * 0.46, low = o.low || 0, fx = Math.sin(D.yaw + (o.yaw || 0)), fz = Math.cos(D.yaw + (o.yaw || 0));
   portCam.aspect = W / Hh; portCam.updateProjectionMatrix(); portCam.position.set(D.x + fx * d, ly + d * (0.2 - 0.3 * low), D.z + fz * d); portCam.up.set(0, 1, 0); portCam.lookAt(D.x, ly - 0.03 + 0.1 * low, D.z); portCam.updateMatrixWorld();
   for (const o of [P, H, H2]) vicLayer(o, o === D);
   const shWas = lobbyShadow.visible, stWas = strand.visible; lobbyShadow.visible = false; strand.visible = false;
@@ -13874,7 +13889,8 @@ function portraitOf(D, W, Hh, o) {
 }
 function vsSnapTick() {
   const q = vsSnap; if (--q.t > 0) return; vsSnap = null;
-  if (q.id === runId) for (const [D, el, pose] of q.list) { if (!el) continue; const c = portraitOf(D, 600, 720, pose); el.replaceChildren(c); }
+  if (q.id === runId) { const rows = $('vsRow').classList.contains('rows'); for (const [D, el, pose] of q.list) { if (!el) continue; const r = el.getBoundingClientRect(), fw = 720, fh = Math.max(240, Math.min(900, Math.round(fw * (r.height || 360) / (r.width || 480)))); /* (the shot takes the row's own shape: nothing cropped) */
+      const c = rows ? portraitOf(D, fw, fh, Object.assign({}, pose, { face: true, yaw: 0 })) : portraitOf(D, 600, 720, pose); el.replaceChildren(c); } }
   for (const [D] of q.list) { D.ip = D.vsIp || null; D.vsIp = null; if (D !== P) { D.look.drop.visible = false; if (D.vsSt) { D.st = D.vsSt; D.vsSt = null; } } }
 }
 function showVS(cb) {
@@ -13882,7 +13898,7 @@ function showVS(cb) {
   const el = $('vsx'), md = MODES.find(m => m[0] === mode) || MODES[0];
   const card = (D, name, cls) => '<div class="vcol ' + cls + '" style="--sc:' + TEAMS[D.team].css + ';--cd:' + mixHex(TEAMS[D.team].wet, 0x0C0620, 0.62) + '">' + (cls === 'me' ? '' : '<i class="vseam" aria-hidden="true"></i>') + '<i class="vsweep" aria-hidden="true"></i><div class="vhead"><small>' + (cls === 'me' ? 'You' : 'CPU') + '</small><b>' + escAttr(name) + '</b></div><span class="vbox" id="vbox' + D.team + '"></span>' + Array.from({ length: 9 }, (_, i) => '<i class="pt" style="--x:' + (6 + Math.random() * 88).toFixed(0) + '%;--s:' + (3 + Math.random() * 7).toFixed(0) + 'px;--d:' + (2.2 + Math.random() * 2.4).toFixed(2) + 's;--w:' + (-Math.random() * 4).toFixed(2) + 's;--dx:' + ((Math.random() - 0.5) * 60).toFixed(0) + 'px"></i>').join('') + '</div>';
   let h = card(P, playerName(), 'me'); if (mode !== 'solo') { h += card(H, NAMES[1], 'foe'); if (mode === 'trio') h += card(H2, NAMES[2], 'foe2'); }
-  $('vsRow').innerHTML = h; $('vsRow').classList.toggle('trio', mode === 'trio');
+  $('vsRow').innerHTML = h; $('vsRow').classList.toggle('trio', mode === 'trio'); $('vsRow').classList.toggle('rows', viewH > viewW && mode !== 'solo'); /* (upright: one fighter per row, shot on the face) */
   // the rivals step out, dressed, with their game face on; the portraits are taken two frames on, once their bodies have settled
   const list = [[P, $('vbox0'), VS_POSE.me]]; if (mode !== 'solo') list.push([H, $('vbox1'), VS_POSE.foe]); if (mode === 'trio') list.push([H2, $('vbox2'), VS_POSE.foe2]);
   for (const [D, , pose] of list) { D.wearPop = 1; D.wearOff = false; D.wearHid = false; if (D !== P) { D.look.drop.visible = true; D.yaw = P.yaw; D.flatT = 0; D.stunT = 0; D.dry = false; D.vsSt = D.st; D.st = 'play'; }
