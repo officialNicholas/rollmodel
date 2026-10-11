@@ -2492,7 +2492,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 200</p>
+      <p class="ver">Version 201</p>
     </div>
   </div>
 
@@ -12859,7 +12859,8 @@ function placeSay() {
 }
 function heroSpeak(t) { $('heroSayTxt').textContent = t; heroSay.hidden = false; sayObsT = 0; placeSay(); heroSay.style.animation = 'none'; void heroSay.offsetWidth; heroSay.style.animation = ''; sayT = 7 + Math.random() * 3; }
 function sayRandom() { let i; do { i = (Math.random() * SAY_LINES.length) | 0; } while (i === sayLast); sayLast = i; heroSpeak(SAY_LINES[i]); }
-function sayTick(rdt) { if (!(state === 'menu' && menuPage === 'home' && !lookOpen && $('orient').hidden)) { if (!heroSay.hidden) heroSay.hidden = true; sayT = Math.min(sayT, 1.2); return; } sayT -= rdt; if (sayT <= 0) sayRandom(); }
+const onboarding = () => !!(store.tut && store.tut.ph && store.tut.ph !== 'done'); // (Ol' Bloop is talking: the lobby character keeps quiet)
+function sayTick(rdt) { if (!(state === 'menu' && menuPage === 'home' && !lookOpen && $('orient').hidden) || onboarding()) { if (!heroSay.hidden) heroSay.hidden = true; sayT = Math.min(sayT, 1.2); return; } sayT -= rdt; if (sayT <= 0) sayRandom(); }
 
 // ---------- your painting: a top-down snapshot of the canvas ----------
 // ---------- the print of the canvas: the stage's floor laid flat with the paint splattered over it where it landed ----------
@@ -13495,7 +13496,7 @@ $('unlockForm').addEventListener('submit', e => { e.preventDefault(); const v = 
   else { AU.nope(); kick($('unlockForm'), 'nope'); note("That code doesn't work.", true); } });
 canvas.addEventListener('pointerdown', e => { if (lookOpen || lobbyOn()) lookDrag = { id: e.pointerId, x: e.clientX, x0: e.clientX, t: performance.now() }; });
 canvas.addEventListener('pointermove', e => { if ((lookOpen || lobbyOn()) && lookDrag && lookDrag.id === e.pointerId) { shim.tgt += (e.clientX - lookDrag.x) * 0.012; lookDrag.x = e.clientX; idle.t = Math.max(idle.t, 3); } });
-const endLookDrag = e => { if (lookDrag && lookDrag.id === e.pointerId) { if (e.type === 'pointerup' && !lookOpen && lobbyOn() && Math.abs(e.clientX - lookDrag.x0) < 8 && performance.now() - lookDrag.t < 400 && $('orient').hidden) { AU.init(); menuReact = 0.7; AU.pop(); sayRandom(); if (Math.random() < 0.6) AU.vox(['hup', 'whee', 'giggle', 'hoh'][(Math.random() * 4) | 0]); } lookDrag = null; } };
+const endLookDrag = e => { if (lookDrag && lookDrag.id === e.pointerId) { if (e.type === 'pointerup' && !lookOpen && lobbyOn() && Math.abs(e.clientX - lookDrag.x0) < 8 && performance.now() - lookDrag.t < 400 && $('orient').hidden) { AU.init(); menuReact = 0.7; AU.pop(); if (!onboarding()) sayRandom(); if (Math.random() < 0.6) AU.vox(['hup', 'whee', 'giggle', 'hoh'][(Math.random() * 4) | 0]); } lookDrag = null; } };
 canvas.addEventListener('pointerup', endLookDrag); canvas.addEventListener('pointercancel', endLookDrag);
 // a few strokes and splats in both colors so the menu canvas looks like a match in progress
 const RBM = { L: null, C: null, R: null, stroke: -1 };
