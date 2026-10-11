@@ -1,0 +1,9 @@
+import asyncio, sys
+sys.path.insert(0, '.')
+from rsheet import render
+# usage: v_at.py name dir mode tx ty tz dist [out]
+name, d, mode = sys.argv[1], sys.argv[2], sys.argv[3]; tx, ty, tz, dist = map(float, sys.argv[4:8]); out = sys.argv[8] if len(sys.argv) > 8 else f'{name}_at.jpg'
+cells = []
+for yaw, pitch, nm in ((0, 1.55, 'top'), (0, -1.55, 'bottom'), (0.0, 0.05, 'front'), (1.57, 0.05, 'side +x'), (-1.57, 0.05, 'side -x'), (0.7, 0.35, '3/4 +x'), (-0.7, 0.35, '3/4 -x'), (3.14, 0.3, 'back')):
+    cells.append((f"(async()=>{{await V.show('{name}','{mode}',{{joints:false}}); V.view({yaw},{pitch},{dist},{tx},{ty},{tz},30);}})()", f'{name} {nm}'))
+asyncio.run(render(f'http://localhost:8811/view.html?d={d}', cells, 4, 460, 460, out, shot_js='V.shot()', size_js='V.size(460,460)'))

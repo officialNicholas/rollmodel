@@ -6,7 +6,7 @@ html,body{margin:0;height:100%;background:#dfe6ee;overflow:hidden;font-family:sy
 #ui button,#opts button{pointer-events:auto;border:0;border-radius:999px;padding:8px 12px;font:600 13px system-ui;background:#fff;color:#243;box-shadow:0 2px 8px #0002;cursor:pointer}
 #ui button.on,#opts button.on{background:#ff6b8a;color:#fff}
 #ui button.sm{padding:5px 9px;font-size:12px}
-#ui .sw{width:26px;height:26px;border-radius:50%;padding:0;border:2px solid #fff}
+#ui .sw{width:26px;height:26px;border-radius:50%;padding:0;border:2px solid #fff}#ui .sw.on{outline:2px solid #243}
 #ui label{pointer-events:auto;font:12px system-ui;color:#345;display:flex;align-items:center;gap:6px;background:#fff9;border-radius:8px;padding:4px 8px}
 #hud{position:fixed;left:12px;top:10px;font:12px/1.5 ui-monospace,monospace;color:#345;white-space:pre;pointer-events:none}
 #opts{position:fixed;right:12px;top:10px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:50vw}#opts button{border-radius:8px;padding:6px 10px;font:12px system-ui;background:#fff8}
@@ -15,12 +15,12 @@ html,body{margin:0;height:100%;background:#dfe6ee;overflow:hidden;font-family:sy
 <script type="importmap">{"imports":{"three":"./lib/three.module.js","three/addons/":"./lib/addons/"}}</script>
 <div id="hud"></div>
 <div id="opts"><button id="skel">skeleton</button><button id="wire">wireframe</button><button id="cam">camera: auto</button><button id="slow">slow-mo</button><button id="look">head look</button></div>
-<div id="ui"><div class="row" id="states"></div><div class="row" id="expr"></div><div class="row" id="eyes"></div><div class="row" id="motion"></div><div class="row" id="colors"></div></div>
+<div id="ui"><div class="row" id="states"></div><div class="row" id="expr"></div><div class="row" id="eyes"></div><div class="row" id="iris"></div><div class="row" id="motion"></div><div class="row" id="colors"></div></div>
 <script type="module">
 import * as THREE from 'three'; import { OrbitControls } from 'three/addons/controls/OrbitControls.js'; import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { loadMesh, Puppet, Animator, Look, EXPR, FACE, EyeRig } from './axo.js';
+import { loadMesh, Puppet, Animator, Look, EXPR, FACE, EYE_COLS, EYE_STYLES } from './axo.js'; import * as AXO from './axo.js';
 const R = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' }); R.setPixelRatio(Math.min(devicePixelRatio, 2)); R.setSize(innerWidth, innerHeight); R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.05;
-R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFSoftShadowMap; document.body.appendChild(R.domElement);
+R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFShadowMap; document.body.appendChild(R.domElement);
 const sc = new THREE.Scene(); sc.background = new THREE.Color(0xdfe6ee); sc.fog = new THREE.Fog(0xdfe6ee, 9, 18);
 sc.environment = new THREE.PMREMGenerator(R).fromScene(new RoomEnvironment(), 0.04).texture;
 sc.add(new THREE.HemisphereLight(0xeaf2ff, 0x8d7f6a, 1.1));
@@ -37,10 +37,10 @@ const blob = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMa
 const tl = new THREE.TextureLoader(); const tex = async (u) => { const t = await tl.loadAsync(u); t.colorSpace = THREE.SRGBColorSpace; t.flipY = false; t.anisotropy = 4; return t; };
 const base = new URL('.', location.href).pathname; const q = new URLSearchParams(location.search);
 const look = new Look({ color: 0xff6b8a });
-const [S, C] = await Promise.all([loadMesh(base + 'axo_stand', await tex(base + 'axo_stand.webp'), { look }), loadMesh(base + 'axo_crawl', await tex(base + 'axo_crawl.webp'), { look })]);
-for (const M of [S, C]) { sc.add(M.mesh); }
+const [S, C] = await Promise.all([loadMesh(base + 'axo_stand', null, { look, name: 'stand' }), loadMesh(base + 'axo_crawl', null, { look, name: 'crawl' })]);
+for (const M of [S, C]) { sc.add(M.mesh); if (q.has('plain')) { const pm = new THREE.MeshStandardMaterial({ color: 0xc97585, roughness: 0.5, metalness: 0 }); M.mesh.material = M.dqTex ? AXO.dqsMaterial(pm, M.meta) : pm; } }
+if (q.has('iris')) look.setIris(q.get('iris')); if (q.has('eyes')) look.setEyeStyle(q.get('eyes'));
 S.meta.name = 'stand'; C.meta.name = 'crawl';
-look.attachEyes(EyeRig, S); look.attachEyes(EyeRig, C);   // the shared FACE definition places the same eyes on both heads
 const P = new Puppet({ stand: S, crawl: C }), A = new Animator(P); A.setLook(look);
 const skelGroup = new THREE.Group(); skelGroup.visible = false; sc.add(skelGroup); const sk = {};
 for (const w of ['stand', 'crawl']) { sk[w] = new THREE.SkeletonHelper(P.m[w].mesh); sk[w].material.depthTest = false; skelGroup.add(sk[w]); }
@@ -52,7 +52,11 @@ const btns = {}; for (const [k, label] of states) btns[k] = mk(row('states'), la
 function setState(k) { A.set(k); for (const s in btns) btns[s].classList.toggle('on', s === k); }
 // expressions, eye styles, fangs
 const ebt = {}; for (const k of Object.keys(EXPR)) ebt[k] = mk(row('expr'), k, () => { look.setExpression(k); for (const s in ebt) ebt[s].classList.toggle('on', s === k); }, 'sm'); ebt.neutral.classList.add('on');
-const eyeNames = ['round', 'edgy', 'dot', 'zombie']; const sbt = eyeNames.map((n, i) => mk(row('eyes'), 'eyes: ' + n, () => { look.setEyeStyle(i); sbt.forEach((b, j) => b.classList.toggle('on', j === i)); }, 'sm')); sbt[0].classList.add('on');
+const eyeNames = ['round', 'edgy', 'dot', 'zombie']; const sbt = eyeNames.map((n, i) => mk(row('eyes'), 'eyes: ' + EYE_STYLES[n], () => { look.setEyeStyle(i); sbt.forEach((b, j) => b.classList.toggle('on', j === i)); }, 'sm')); sbt[q.has('eyes') ? Math.max(0, eyeNames.indexOf(q.get('eyes'))) : 0].classList.add('on');
+// iris colours (the game's eye colours)
+{ const l = document.createElement('label'); l.textContent = 'iris'; row('iris').appendChild(l); const ib = {};
+  for (const k in EYE_COLS) { ib[k] = mk(row('iris'), '', () => { look.setIris(k); for (const j in ib) ib[j].classList.toggle('on', j === k); }, 'sw'); ib[k].style.background = EYE_COLS[k].css; ib[k].title = EYE_COLS[k].name; }
+  if (ib[look.iris]) ib[look.iris].classList.add('on'); }
 mk(row('eyes'), 'fangs', b => { look.setFangs(!look.fangs); b.classList.toggle('on', look.fangs); }, 'sm');
 mk(row('eyes'), 'blink', () => look.blink(), 'sm');
 // motion: crawl speed, turn, jump, exertion, paint level
@@ -82,10 +86,8 @@ function frame(dt, render = true) {
   if (!lookOn) { A.look.yaw = 0; A.look.pitch = 0; }
   A.update(dt);
   const cur = P.m[A.mesh].mesh, oth = P.m[A.mesh === 'stand' ? 'crawl' : 'stand'].mesh;
+  // the swap: both meshes drawn opaque, sharing the screen through a complementary dither the animator sets (no sorting, no see-through double image)
   cur.visible = true; oth.visible = A.fade < 1;
-  if (A.fade < 1) { cur.material.transparent = true; cur.material.opacity = A.fade; cur.material.depthWrite = A.fade >= 0.5; oth.material.transparent = true; oth.material.opacity = 1 - A.fade; oth.material.depthWrite = A.fade < 0.5; cur.renderOrder = A.fade >= 0.5 ? 2 : 3; oth.renderOrder = A.fade >= 0.5 ? 3 : 2; }
-  else { cur.material.transparent = false; cur.material.opacity = 1; cur.material.depthWrite = true; oth.material.transparent = false; oth.material.opacity = 1; oth.material.depthWrite = true; }
-  look.setFade(A.mesh, A.fade); look.setFade(A.mesh === 'stand' ? 'crawl' : 'stand', 1 - A.fade);
   cur.scale.set(1, A.squash, 1); oth.scale.set(1, A.squash, 1);
   gtex.offset.y = -A.gait / (2 * Math.PI) * A.stride * 12 / 9;
   const root = A.pose.root; blob.position.x = root.x; blob.position.z = root.z; const h = Math.max(0, root.y - (A.mesh === 'crawl' ? 0.28 : 0.57));
@@ -100,7 +102,7 @@ function frame(dt, render = true) {
 let manual = q.has('manual');
 function loop() { const now = performance.now(); let dt = (now - lastT) / 1000; lastT = now; if (slow) dt *= 0.25; if (!manual) frame(dt); requestAnimationFrame(loop); }
 setState('stand'); loop();
-window.axo = { A, P, S, C, look, FACE, setState, step: (dt, n = 1) => { for (let i = 0; i < n; i++) frame(dt, false); }, manual: (m) => manual = m,
+window.axo = { R, A, P, S, C, look, FACE, setState, step: (dt, n = 1) => { for (let i = 0; i < n; i++) frame(dt, false); }, manual: (m) => manual = m,
   view: (yaw, pitch, dist, ty, tx = 0, tz = 0, fov) => { camAuto = false; if (fov) { cam.fov = fov; cam.updateProjectionMatrix(); } ctl.target.set(tx, ty, tz); cam.position.set(tx + Math.sin(yaw) * Math.cos(pitch) * dist, ty + Math.sin(pitch) * dist, tz + Math.cos(yaw) * Math.cos(pitch) * dist); ctl.update(); },
   shot: () => { R.render(sc, cam); return R.domElement.toDataURL('image/jpeg', 0.9); }, skel: (v) => skelGroup.visible = v, size: (w, h) => { cam.aspect = w / h; cam.updateProjectionMatrix(); R.setSize(w, h); },
   joint: (which, name) => P.jointWorld(which, name).toArray(), hc: (which) => { const M = P.m[which]; M.mesh.updateMatrixWorld(true); const hb = M.byName.head; hb.updateWorldMatrix(true, false); return new THREE.Vector3(...M.meta.headc).applyMatrix4(hb.matrixWorld).toArray(); }, showMesh: (w) => { A.mesh = w; A.fade = 1; }, setLook: (yaw, pitch) => { lookOn = true; A.look.yaw = yaw; A.look.pitch = pitch; },
@@ -111,4 +113,4 @@ window.axo = { A, P, S, C, look, FACE, setState, step: (dt, n = 1) => { for (let
       out['hand' + s] = { dHead: +h.distanceTo(hc).toFixed(3), tipMinHead: +Math.min(...tips.map(t => t.distanceTo(hc))).toFixed(3), x: +h.x.toFixed(2), y: +h.y.toFixed(2), z: +h.z.toFixed(2), elbowZ: +e.z.toFixed(2) }; }
     return out; } };
 window.ready = true;
-</script></body></html>
+</script>

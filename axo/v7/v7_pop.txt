@@ -1,0 +1,20 @@
+pop detector (popdetect.js, 1/60 s steps): v6 runtime vs v7 merged runtime (ws/axo). vel = one-frame vertex acceleration spikes, flip = triangle normal turning > 60 deg in a frame, area = triangle area jump > x1.8, inv = triangle turning inside out (in creases)
+v7 "drawn" counts only geometry the swap dither actually draws; "all" counts every vertex of both meshes during the swap
+scenario           | v6 vel/flip/area/inv         | v7 drawn vel/flip/area/inv   | v7 all vel/flip/area
+crawl cycle x1.0   | 32804/2218/1724/3103         | 0/0/16/1163                  | 0/0/16
+crawl cycle x0.5   | 7671/1027/801/917            | 0/0/0/285                    | 0/0/0
+crawl cycle x1.5   | 36329/3400/3111/4951         | 0/88/293/2144                | 0/88/295
+crawl turning      | 54126/2398/1795/3370         | 0/5/10/1707                  | 0/5/10
+crawl start/stop   | 21312/1079/822/1308          | 0/0/2/458                    | 0/0/2
+stand idle         | 202/0/0/7                    | 0/0/0/0                      | 0/0/0
+state changes      | 340069/4582/2892/4906        | 0/12/26/2014                 | 0/14/26
+stand -> crawl     | 59840/3659/1909/1994         | 0/28/52/1313                 | 1592/848/806
+crawl -> stand     | 16931/1400/615/776           | 6/24/62/931                  | 1706/763/1017
+crawl -> jetpack   | 15892/1232/517/686           | 6/24/62/1015                 | 1706/763/1017
+crawl -> pound     | 15908/1107/462/664           | 6/27/68/1180                 | 1706/767/1024
+crawl -> crouch    | 15158/680/352/370            | 6/24/62/839                  | 1706/764/1018
+crouch -> crawl    | 49828/2516/1555/1680         | 0/24/47/1135                 | 1592/842/799
+pound -> crawl     | 61797/3157/1873/2062         | 0/32/77/1516                 | 1592/850/832
+jetpack -> crawl   | 69280/3601/1923/2029         | 0/26/60/1468                 | 1592/844/815
+jump crawl         | 17132/481/440/700            | 0/13/47/308                  | 0/13/47
+jump stand         | 22913/78/184/451             | 0/2/6/86                     | 0/3/7
