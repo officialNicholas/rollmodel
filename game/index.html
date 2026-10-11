@@ -2915,7 +2915,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 228</p>
+      <p class="ver">Version 229</p>
     </div>
   </div>
 
@@ -17394,7 +17394,7 @@ colorId = PALETTE.some(p => p.id === store.color) ? store.color : 'red'; renderS
 // always lands on a Halloween canvas. Settings can start it over.
 if (!store.tut || typeof store.tut !== 'object' || !store.tut.ph) store.tut = { ph: (store.runs || 0) > 0 ? 'done' : 'match' };
 const tutArrowEl = $('tutArrow'), tutGV = new THREE.Vector3(), tutHandEl = $('tutHand'), tutEl = $('tut'), tutTxt = $('tutText'), tutCall = $('tutCall'), tutSlowEl = $('tutSlow'), tutDim = $('tutDim'), tutAva = $('tutAva');
-let tut2 = null, tut = null, tutPrev = null, tutTip = null, tutWinDue = false, tutNiAt = 0, tutFirstAt = 0; // tutFirstAt: when the lobby first stood clear for the onboarding's first word (it waits a second) // tutNiAt: when the new item card came up (the coach waits for the item to land) // tutWinDue: the lesson's finish screen is owed, before the tally // tut: the scripted match; tutPrev: the mode, level and canvas to put back after it; tutTip: the tip up now
+let tut2 = null, tut = null, tutPrev = null, tutTip = null, tutWinDue = false, tutNiAt = 0, tutFirstAt = 0, tutBrowseAt = 0; // tutBrowseAt: when the free look round the shop began // tutFirstAt: when the lobby first stood clear for the onboarding's first word (it waits a second) // tutNiAt: when the new item card came up (the coach waits for the item to land) // tutWinDue: the lesson's finish screen is owed, before the tally // tut: the scripted match; tutPrev: the mode, level and canvas to put back after it; tutTip: the tip up now
 const tutPh = () => store.tut.ph, tutSet = ph => { if (store.tut.ph === ph) return; store.tut.ph = ph; save(); };
 const tutMatchDue = () => tutPh() === 'match';
 const TUT_SLOW = 0.35, TUT_HALLO = ['crypt', 'cathedral', 'manor'];
@@ -17582,7 +17582,7 @@ const TUT_STEPS = [
       return tut.rkStarted && !H.rocket && (tut.rolled || tut.hit || tut.st > 20) && P.st === 'play'; },
     exit() { tut.rocketLock = null; tut.slowK = 1; tut.noPound = false; } },
   { id: 'flower', max: 42, enter() { if (orb.on) tutOrbOff(); orb.spawnT = 1e9; gift.id = 'flower'; gift.at = 1e9; tut.slowK = 1; tutHide(); tut.wait = 2.2; tut.flowerPaint = Math.max(P.paint, 0.5); },
-    tick(dt) { if (P.st === 'play' && P.paint < tut.flowerPaint) P.paint = tut.flowerPaint; /* (no paint drain while you go for the flower) */ if (tut.wait > 0) { tut.wait -= dt; if (tut.wait <= 0) { gift.at = runT; tutShow('Something rare! *GRAB IT!*', null, 'flower', true, true); } return false; } return gift.got; }, /* (a breath after the dodge, then the flower and its tip) */
+    tick(dt) { if (P.st === 'play' && P.paint < tut.flowerPaint) P.paint = tut.flowerPaint; /* (no paint drain while you go for the flower) */ if (tut.wait > 0) { tut.wait -= dt; if (tut.wait <= 0) { gift.at = runT; tutShow('A gift has appeared on the canvas! *Grab it!*', null, 'flower', true, true); } return false; } return gift.got; }, /* (a breath after the dodge, then the flower and its tip) */
     exit() { if (!gift.got) { gift.got = true; gift.on = false; giftM.visible = giftRing.visible = giftBeam.visible = false; unlockItem('flower'); newItem = 'flower'; } if (!owns('fangs')) unlockItem('fangs'); newItem = ['flower', 'fangs']; orb.spawnT = 8; } },
   { id: 'rest', max: 1e9, enter() { tutHide(); tut.slowK = 1; tut.noTurret = false; if (matchLeft < 28) matchLeft = 28; tut.cardIn = 1.1; tut.card = false; },
     tick(dt) { if (tut.cardIn > 0) { tut.cardIn -= dt; if (tut.cardIn <= 0) tutCard(true); }
@@ -17644,7 +17644,7 @@ function tut2Step(dt) {
     if (wxPhase === 'rain') { t.ph = 'rain'; t.sub = ''; t.tipT = 3.6; tutShow('You move faster when the floor is wet', null, 'wxrain', false, true); } } /* (no slow-down: they'll feel it) */
   else if (t.ph === 'rain') { if (wxPhase !== 'rain') { if (owns('zombie')) { t.ph = 'done'; return; } t.ph = 'gift'; gift.id = 'zombie'; gift.got = false; gift.on = false; gift.at = runT + 0.8; wxLeft = Math.max(wxLeft, 30); } }
   else if (t.ph === 'gift') {
-    if (gift.on && !gift.got) tutShow('Something rare! *GRAB IT!*', null, 'zgift', true, true);
+    if (gift.on && !gift.got) tutShow('A gift has appeared on the canvas! *Grab it!*', null, 'zgift', true, true);
     if (gift.got) { t.ph = 'done'; tutHide(); store.zombieDeal = 1; save(); return; }
     if (matchLeft < 12 && t.hold < 25) { t.hold += dt; matchLeft = 12; } // (time enough to reach them)
   }
@@ -17877,7 +17877,7 @@ function tutMenuTick() {
     return tutShow('You earned dabs. Open the Paint Shop', 'dabsBtn', 'shop');
   }
   if (ph === 'locker') {
-    if (shopOpen) return tutShow('Back to the lobby', 'shopBack', 'back');
+    if (shopOpen) { if (!tutBrowseAt) tutBrowseAt = performance.now(); if (performance.now() - tutBrowseAt > 4200) return tutHide(); return tutShow('Take a look around, squirt. Express yourself!', null, 'browse', false, true, null, true); } /* (a free look round the shop: no pointing at Back, he steps aside after a few seconds; leaving on your own goes on to the locker) */
     if (lookOpen) {
       if (myLook.mouth !== 'fangs') { if (lookCat !== 'face') return tutShow('Open Facial', 'lc-face', 'face'); return tutShow('Tap the fangs to wear them', () => tile('fangs'), 'wear'); }
       if (bought('flower') && myLook.side !== 'flower') { if (lookCat !== 'head') return tutShow('Now your flower. Open Headgear', 'lc-head', 'headg'); return tutShow('Tap the flower to wear it', () => tile('flower'), 'wearf'); } // (and the flower, found in the lesson)
