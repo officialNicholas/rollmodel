@@ -23,10 +23,15 @@
 .tut[data-style="call"][data-pos="top"]{top:22%}
 .tut.on[data-style="call"] .tcall{animation:tutin .36s cubic-bezier(.2,1.2,.4,1) both}
 /* behind the plate the screen goes dark, with a window left round what the plate points at; between matches only that window takes a tap */
-.tutdim{position:absolute;inset:0;z-index:59;pointer-events:none;background:rgba(23,19,32,.66);opacity:0;transition:opacity .25s,clip-path .22s;clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,50% 50%,50% 50%,50% 50%,50% 50%,50% 50%)}
-.tutdim.on{opacity:1;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)} /* (darker, and softly blurred, outside the window round what the tip is about) */
-.tutdim.on.block{pointer-events:auto}
-.tutdim.on.noblur{-webkit-backdrop-filter:none;backdrop-filter:none}
+.tutdim{position:absolute;inset:0;z-index:59;pointer-events:none}
+.tutdim>b{position:absolute;display:block;background:rgba(23,19,32,.66);opacity:0;pointer-events:none;transition:opacity .25s,top .22s,left .22s,width .22s,height .22s}
+.tutdim>b:nth-child(1){left:0;right:0;top:0;height:100%}
+.tutdim>b:nth-child(2){left:0;right:0;top:100%;bottom:0}
+.tutdim>b:nth-child(3){left:0;top:50%;width:0;height:0}
+.tutdim>b:nth-child(4){left:100%;right:0;top:50%;height:0}
+.tutdim.on>b{opacity:1;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)} /* (darker, and softly blurred, outside the window round what the tip is about) */
+.tutdim.on.block>b{pointer-events:auto}
+.tutdim.on.noblur>b{-webkit-backdrop-filter:none;backdrop-filter:none}
 .menu.tutoring #commBtn,.menu.tutoring #howBtn{display:none}
 /* the slow-down: a gold frame and a soft vignette while a lesson is up */
 .tutslow{position:absolute;inset:0;z-index:7;pointer-events:none;opacity:0;transition:opacity .4s;background:radial-gradient(ellipse at center,transparent 58%,rgba(23,19,32,.42) 100%);box-shadow:inset 0 0 0 3px var(--gold)}

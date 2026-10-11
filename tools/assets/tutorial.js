@@ -86,8 +86,11 @@ function tutHandAt(el, r0, nudge) {
   if (tutHandEl.hidden) tutHandEl.hidden = false; if (tutHandEl.style.left !== x) tutHandEl.style.left = x; if (tutHandEl.style.top !== y) tutHandEl.style.top = y;
 }
 function tutHide() { tutHandAt(null); tutGest(null); if ($('tutGo').hidden) coachCorner(null); if (!tutTip) return; tutTip = null; tutEl.classList.remove('on'); tutEl.hidden = true; tutDim.classList.remove('on'); }
-function tutWindow(x, y, w, h) { const x0 = x.toFixed(0), y0 = y.toFixed(0), x1 = (x + w).toFixed(0), y1 = (y + h).toFixed(0), c = x0 + ' ' + y0 + ' ' + x1 + ' ' + y1; if (tutDim.dataset.w === c) return; tutDim.dataset.w = c;
-  tutDim.style.clipPath = 'polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,' + x0 + 'px ' + y0 + 'px,' + x0 + 'px ' + y1 + 'px,' + x1 + 'px ' + y1 + 'px,' + x1 + 'px ' + y0 + 'px,' + x0 + 'px ' + y0 + 'px)'; }
+// the dim is four panes round the window on what the tip is about: above, below, left and right of it. (It was one sheet with a clip-path
+// hole, but Safari doesn't always repaint a hole that moves, so on iPhones the window went missing.) Taps fall through the gap
+function tutWindow(x, y, w, h) { const x0 = Math.round(x), y0 = Math.round(y), x1 = Math.round(x + w), y1 = Math.round(y + h), c = x0 + ' ' + y0 + ' ' + x1 + ' ' + y1; if (tutDim.dataset.w === c) return; tutDim.dataset.w = c;
+  const [a, b, l, r] = tutDim.children, none = w <= 0 || h <= 0; a.style.height = none ? '100%' : Math.max(0, y0) + 'px'; b.style.top = none ? '100%' : y1 + 'px';
+  l.style.top = r.style.top = y0 + 'px'; l.style.height = r.style.height = none ? '0px' : Math.max(0, y1 - y0) + 'px'; l.style.width = Math.max(0, x0) + 'px'; r.style.left = x1 + 'px'; }
 const tutAt = () => !tutTip || !tutTip.at ? null : typeof tutTip.at === 'string' ? $(tutTip.at) : typeof tutTip.at === 'function' ? tutTip.at() : tutTip.at;
 // the plate sits over what it is about, pointing down at it (or under it, pointing up, when there is no room above); with nothing to point at it sits up top
 function tutPlace() {

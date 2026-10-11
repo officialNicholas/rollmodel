@@ -2168,10 +2168,15 @@ svg{shape-rendering:geometricPrecision}
 .tut[data-style="call"][data-pos="top"]{top:22%}
 .tut.on[data-style="call"] .tcall{animation:tutin .36s cubic-bezier(.2,1.2,.4,1) both}
 /* behind the plate the screen goes dark, with a window left round what the plate points at; between matches only that window takes a tap */
-.tutdim{position:absolute;inset:0;z-index:59;pointer-events:none;background:rgba(23,19,32,.66);opacity:0;transition:opacity .25s,clip-path .22s;clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,50% 50%,50% 50%,50% 50%,50% 50%,50% 50%)}
-.tutdim.on{opacity:1;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)} /* (darker, and softly blurred, outside the window round what the tip is about) */
-.tutdim.on.block{pointer-events:auto}
-.tutdim.on.noblur{-webkit-backdrop-filter:none;backdrop-filter:none}
+.tutdim{position:absolute;inset:0;z-index:59;pointer-events:none}
+.tutdim>b{position:absolute;display:block;background:rgba(23,19,32,.66);opacity:0;pointer-events:none;transition:opacity .25s,top .22s,left .22s,width .22s,height .22s}
+.tutdim>b:nth-child(1){left:0;right:0;top:0;height:100%}
+.tutdim>b:nth-child(2){left:0;right:0;top:100%;bottom:0}
+.tutdim>b:nth-child(3){left:0;top:50%;width:0;height:0}
+.tutdim>b:nth-child(4){left:100%;right:0;top:50%;height:0}
+.tutdim.on>b{opacity:1;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)} /* (darker, and softly blurred, outside the window round what the tip is about) */
+.tutdim.on.block>b{pointer-events:auto}
+.tutdim.on.noblur>b{-webkit-backdrop-filter:none;backdrop-filter:none}
 .menu.tutoring #commBtn,.menu.tutoring #howBtn{display:none}
 .menu.tutoring #modes,.menu.tutoring .wfoot .critics,.menu.tutoring #stages{display:none}
 /* the slow-down: a gold frame and a soft vignette while a lesson is up */
@@ -2427,7 +2432,7 @@ html.touchnav :focus-visible{outline:none!important}
   <svg class="sling" id="sling" aria-hidden="true"><line id="slBandO" x1="0" y1="0" x2="0" y2="0"/><line id="slBand" x1="0" y1="0" x2="0" y2="0"/><circle id="slA" r="15"/><circle id="slB" r="11"/></svg>
   <div class="pop" id="pop"></div>
   <div class="hint" id="hint" aria-live="polite"><span id="hintText"></span></div>
-  <div class="tutslow" id="tutSlow" aria-hidden="true"></div><p class="errline" id="errLine" hidden></p><i class="tuthand" id="tutHand" hidden aria-hidden="true"></i><section class="tutgo" id="tutGo" hidden role="dialog" aria-modal="true" aria-labelledby="tgTitle"><div class="tgcard"><span class="tava" id="tgAva" aria-hidden="true"></span><b class="tname">Ol&rsquo; Bloop</b><h2 id="tgTitle">Now <em>win it!</em></h2><p id="tgText">Beat him and cover as much of the canvas as you can. Bonus points every time you take him out.</p><button class="btn play sm" id="tgGo" type="button">Let&rsquo;s do it!</button><button id="tgLater" type="button" hidden>Later</button></div></section><div class="tutpips" id="tutPips" aria-hidden="true"></div><p class="tutpraise" id="tutPraise" aria-live="polite"></p><i class="tutarrow" id="tutArrow" hidden aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M8 17h18V7l17 17-17 17V31H8z"/></svg></i><div class="tutdim" id="tutDim" aria-hidden="true"></div><div class="tut" id="tut" hidden data-pos="top" role="status" aria-live="polite"><div class="tplate"><b class="tname">Ol&rsquo; Bloop</b><span class="tava" id="tutAva" aria-hidden="true"></span><span class="ttext" id="tutText"></span></div><p class="tcall" id="tutCall"></p><i class="thand" aria-hidden="true"><svg viewBox="0 0 64 84"><g fill="#F2C08A" stroke="#171320" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"><path d="M18 16c0-8 6-13 14-13h13c9 0 16 7 16 16v15c0 10-7 18-16 20H30c-6 0-10-3-12-9z"/><path d="M45 19c7-2 12 3 10 9M45 31c7-2 12 3 10 9M43 43c6-2 10 3 8 8" fill="none"/><path d="M18 16v53c0 6 4 11 9.5 11S37 75 37 69V34"/></g><ellipse cx="27.5" cy="71" rx="5" ry="4" fill="#E39A66"/></svg></i></div>
+  <div class="tutslow" id="tutSlow" aria-hidden="true"></div><p class="errline" id="errLine" hidden></p><i class="tuthand" id="tutHand" hidden aria-hidden="true"></i><section class="tutgo" id="tutGo" hidden role="dialog" aria-modal="true" aria-labelledby="tgTitle"><div class="tgcard"><span class="tava" id="tgAva" aria-hidden="true"></span><b class="tname">Ol&rsquo; Bloop</b><h2 id="tgTitle">Now <em>win it!</em></h2><p id="tgText">Beat him and cover as much of the canvas as you can. Bonus points every time you take him out.</p><button class="btn play sm" id="tgGo" type="button">Let&rsquo;s do it!</button><button id="tgLater" type="button" hidden>Later</button></div></section><div class="tutpips" id="tutPips" aria-hidden="true"></div><p class="tutpraise" id="tutPraise" aria-live="polite"></p><i class="tutarrow" id="tutArrow" hidden aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M8 17h18V7l17 17-17 17V31H8z"/></svg></i><div class="tutdim" id="tutDim" aria-hidden="true"><b></b><b></b><b></b><b></b></div><div class="tut" id="tut" hidden data-pos="top" role="status" aria-live="polite"><div class="tplate"><b class="tname">Ol&rsquo; Bloop</b><span class="tava" id="tutAva" aria-hidden="true"></span><span class="ttext" id="tutText"></span></div><p class="tcall" id="tutCall"></p><i class="thand" aria-hidden="true"><svg viewBox="0 0 64 84"><g fill="#F2C08A" stroke="#171320" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"><path d="M18 16c0-8 6-13 14-13h13c9 0 16 7 16 16v15c0 10-7 18-16 20H30c-6 0-10-3-12-9z"/><path d="M45 19c7-2 12 3 10 9M45 31c7-2 12 3 10 9M43 43c6-2 10 3 8 8" fill="none"/><path d="M18 16v53c0 6 4 11 9.5 11S37 75 37 69V34"/></g><ellipse cx="27.5" cy="71" rx="5" ry="4" fill="#E39A66"/></svg></i></div>
   <div class="threat" id="threat" aria-live="assertive"><b>!</b><span id="threatText">Missile!</span></div>
   <div class="threatArrow" id="threatArrow" aria-hidden="true"><i>!</i><u><b></b></u></div>
   <div class="banner" id="banner" aria-live="polite"><div class="plate"><span class="pem" id="bannerEm" aria-hidden="true"><i></i></span><div class="ptxt"><p id="bannerBig"></p><p id="bannerSmall"></p></div></div></div>
@@ -2493,7 +2498,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 203</p>
+      <p class="ver">Version 204</p>
     </div>
   </div>
 
@@ -14656,8 +14661,11 @@ function tutHandAt(el, r0, nudge) {
   if (tutHandEl.hidden) tutHandEl.hidden = false; if (tutHandEl.style.left !== x) tutHandEl.style.left = x; if (tutHandEl.style.top !== y) tutHandEl.style.top = y;
 }
 function tutHide() { tutHandAt(null); tutGest(null); if ($('tutGo').hidden) coachCorner(null); if (!tutTip) return; tutTip = null; tutEl.classList.remove('on'); tutEl.hidden = true; tutDim.classList.remove('on'); }
-function tutWindow(x, y, w, h) { const x0 = x.toFixed(0), y0 = y.toFixed(0), x1 = (x + w).toFixed(0), y1 = (y + h).toFixed(0), c = x0 + ' ' + y0 + ' ' + x1 + ' ' + y1; if (tutDim.dataset.w === c) return; tutDim.dataset.w = c;
-  tutDim.style.clipPath = 'polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,' + x0 + 'px ' + y0 + 'px,' + x0 + 'px ' + y1 + 'px,' + x1 + 'px ' + y1 + 'px,' + x1 + 'px ' + y0 + 'px,' + x0 + 'px ' + y0 + 'px)'; }
+// the dim is four panes round the window on what the tip is about: above, below, left and right of it. (It was one sheet with a clip-path
+// hole, but Safari doesn't always repaint a hole that moves, so on iPhones the window went missing.) Taps fall through the gap
+function tutWindow(x, y, w, h) { const x0 = Math.round(x), y0 = Math.round(y), x1 = Math.round(x + w), y1 = Math.round(y + h), c = x0 + ' ' + y0 + ' ' + x1 + ' ' + y1; if (tutDim.dataset.w === c) return; tutDim.dataset.w = c;
+  const [a, b, l, r] = tutDim.children, none = w <= 0 || h <= 0; a.style.height = none ? '100%' : Math.max(0, y0) + 'px'; b.style.top = none ? '100%' : y1 + 'px';
+  l.style.top = r.style.top = y0 + 'px'; l.style.height = r.style.height = none ? '0px' : Math.max(0, y1 - y0) + 'px'; l.style.width = Math.max(0, x0) + 'px'; r.style.left = x1 + 'px'; }
 const tutAt = () => !tutTip || !tutTip.at ? null : typeof tutTip.at === 'string' ? $(tutTip.at) : typeof tutTip.at === 'function' ? tutTip.at() : tutTip.at;
 // the plate sits over what it is about, pointing down at it (or under it, pointing up, when there is no room above); with nothing to point at it sits up top
 function tutPlace() {
