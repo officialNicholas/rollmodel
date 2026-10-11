@@ -2340,6 +2340,19 @@ svg{shape-rendering:geometricPrecision}
 .tutgo.peek .tgcard .tava{visibility:visible}
 .tutgo .tgcard .tava>*{display:none}
 @media (prefers-reduced-motion:reduce){.coachpop b,.coachpop.talk b{animation:none}.tut.on[data-pos="dock"] .tplate{animation:none}}
+
+/* the hold: a finger pressed down and kept there, a ring swelling under it */
+.tutgest[data-g="hold"]{top:68%}
+.tutgest[data-g="hold"] .ghand{animation:ghold 2.2s ease-in-out infinite}
+.tutgest[data-g="hold"] .gring{animation:gholdring 2.2s ease-out infinite}
+@keyframes ghold{0%{transform:translateY(-16px);opacity:0}12%{opacity:1}22%{transform:translateY(0) scale(.88)}78%{transform:translateY(0) scale(.88)}90%{transform:translateY(-12px) scale(1);opacity:1}100%{transform:translateY(-16px);opacity:0}}
+@keyframes gholdring{0%,20%{opacity:0;transform:scale(.4)}26%{opacity:1;transform:scale(.6)}76%{opacity:.9;transform:scale(1.5)}88%,100%{opacity:0;transform:scale(1.7)}}
+/* the pro tip's pull: slower, and clear of Ol' Bloop's bubble (his corner is the right one upright, the left one sideways) */
+.tutgest[data-g="pullslow"]{top:56%;left:30%}
+.tutgest[data-g="pullslow"] .ghand{animation:gpull 3.2s ease-in-out infinite}
+.tutgest[data-g="pullslow"] .gring{animation:gpullring 3.2s ease-out infinite}
+.tutgest[data-g="pullslow"] .gtrail{left:-4px;top:0;width:8px;height:84px;background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,0));animation:gpulltrail 3.2s ease-in-out infinite}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.tutgest[data-g="pullslow"]{top:42%;left:64%}}
 .errline{position:absolute;left:8px;right:8px;bottom:max(8px,env(safe-area-inset-bottom));z-index:99;margin:0;padding:6px 10px;background:rgba(23,19,32,.88);color:#FFD86B;font:600 11px/1.3 ui-monospace,Menlo,monospace;border-radius:6px;pointer-events:none;word-break:break-all}
 #lastErr{font:600 10px/1.3 ui-monospace,Menlo,monospace;word-break:break-all;opacity:.8}
 .lcat.fresh,.ltile.fresh,.eyes.fresh{box-shadow:0 0 0 3px var(--gold),0 0 16px 2px rgba(242,193,78,.6)!important;animation:lkfresh 1.5s ease-in-out infinite}
@@ -2479,7 +2492,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 199</p>
+      <p class="ver">Version 200</p>
     </div>
   </div>
 
@@ -7806,6 +7819,7 @@ function orbPickTarget() {
 }
 function orbSpawn() {
   let c = null;
+  if (tut2 && (P.st === 'play' || P.st === 'hide')) { let bd = 1e9; for (const q of COF_SPOTS) { if (!q || Math.max(Math.abs(q[0]), Math.abs(q[2])) >= ARENA - 4) continue; const d = Math.hypot(P.x - q[0], P.z - q[2]); if (d < 5 || ACTIVE.some(D => D !== P && D.st !== 'ko' && Math.hypot(D.x - q[0], D.z - q[2]) < 6)) continue; if (d < bd) { bd = d; c = q; } } } /* (the first real match: the orb comes up near you) */
   for (let tries = 0; tries < 40 && !c; tries++) { const q = COF_SPOTS[(Math.random() * COF_SPOTS.length) | 0]; if (q && Math.max(Math.abs(q[0]), Math.abs(q[2])) < ARENA - 4 && ACTIVE.every(D => D.st === 'ko' || Math.hypot(D.x - q[0], D.z - q[2]) > 7)) c = q; }
   if (!c) { orb.spawnT = 2; return; }
   orb.on = true; orb.k = 0; orb.pull = 0; orb.x = c[0]; orb.z = c[2]; orb.base = c[1]; orb.y = c[1] + 1.15; orb.ph = Math.random() * 6.28; orbPickTarget();
@@ -8694,7 +8708,7 @@ function makeAudio() {
   // and one stereo, fetched with the page and decoded while the menu is up. A sound has a few takes: one is picked at random (never the
   // same one twice running) and nudged in pitch, so repeats don't sound copied. Until the sheets are in (or if they can't be had), the
   // synth versions below play instead ----
-  const SFXI = /*SFXI*/{"sheets":{"m":{"mk":0.03106,"dur":88.376},"s":{"mk":0.03106,"dur":38.788}},"snd":{"splat_s":["m",[[0.064,0.49406],[0.61806,0.5]],0.4263],"splat_m":["m",[[1.17806,0.50981],[1.74788,0.65]],0.3707],"splat_l":["m",[[2.45788,0.66971],[3.18758,0.80512]],0.3068],"plop":["m",[[4.05271,0.20683],[4.31954,0.35]],0.2554],"land_s":["m",[[4.72954,0.35],[5.13954,0.35]],0.5144],"land_h":["m",[[5.54954,0.5],[6.10954,0.5]],0.3796],"jump":["m",[[6.66954,0.35],[7.07954,0.35]],0.3547],"glug":["m",[[7.48954,0.22],[7.76954,0.22]],0.2868],"enter":["m",[[8.04954,0.85365]],0.2573],"ball":["m",[[8.96319,0.21346],[9.23665,0.19981],[9.49646,0.23856]],0.2769],"squish":["m",[[9.79502,0.7],[10.55502,0.7]],0.3529],"sink":["m",[[11.31502,1.28831]],0.3102],"rise":["m",[[12.66333,0.79398]],0.3384],"rumble":["m",[[13.51731,2.0]],0.2479],"splash":["m",[[15.57731,0.69558],[16.3329,0.54221]],0.3978],"sprinkle":["m",[[16.9351,0.9281],[17.92321,0.87758]],0.6921],"whoosh":["m",[[18.86079,0.7],[19.62079,0.7]],0.3057],"swish":["m",[[20.38079,0.45],[20.89079,0.35958]],0.2768],"dash":["m",[[21.31038,0.5],[21.87037,0.5]],0.2341],"brake":["m",[[22.43038,0.4],[22.89037,0.4]],0.2266],"fling_s":["m",[[23.35037,0.49019],[23.90056,0.6]],0.3889],"fling_m":["m",[[24.56056,0.72335],[25.34392,0.54029]],0.3231],"fling_l":["m",[[25.94421,0.6736],[26.67781,0.67402]],0.275],"release":["m",[[27.41183,0.15265],[27.62448,0.14692]],0.2207],"charge":["m",[[27.8314,2.1]],0.295],"notch1":["m",[[29.9914,0.1904]],0.3716],"notch2":["m",[[30.24179,0.19062]],0.3294],"notch3":["m",[[30.49242,0.28283]],0.2778],"roll":["m",[[30.83525,2.5]],0.1498],"roller":["m",[[33.39525,2.0]],0.0645],"bonk_s":["m",[[35.45525,0.23619],[35.75144,0.26058]],0.3471],"bonk_h":["m",[[36.07202,0.4],[36.53202,0.4]],0.2856],"die":["m",[[36.99202,0.60629],[37.65831,0.62113]],0.2509],"die_sun":["m",[[38.33944,1.0316]],0.6347],"die_pound":["m",[[39.43104,0.55]],0.4717],"die_dry":["m",[[40.04104,0.6]],0.5843],"ui":["m",[[40.70104,0.15973],[40.92077,0.15737],[41.13815,0.13569]],0.3741],"pop":["m",[[41.33383,0.16],[41.55383,0.16]],0.3089],"nope":["m",[[41.77383,0.5],[42.33383,0.5]],0.2734],"tick_a":["m",[[42.89383,0.38142]],0.2574],"tick_b":["m",[[43.33525,0.39148]],0.2546],"tick_c":["m",[[43.78673,0.38327]],0.2533],"count_lo":["m",[[44.23,0.2609]],0.3553],"count_hi":["m",[[44.5509,0.38569]],0.3554],"ready":["m",[[44.99658,0.9]],0.4642],"alert":["m",[[45.95658,0.34285]],0.2952],"danger":["m",[[46.35944,0.24821]],0.541],"low":["m",[[46.66765,0.4],[47.12765,0.4]],0.258],"shrink":["m",[[47.58765,0.8]],0.2931],"flip":["m",[[48.44765,0.9]],0.4389],"flipback":["m",[[49.40765,0.8]],0.3782],"turret":["m",[[50.26765,0.48998]],0.3378],"shoot":["m",[[50.81762,0.4],[51.27763,0.4]],0.2346],"boost":["m",[[51.73763,0.9]],0.427],"fall":["m",[[52.69763,1.6]],0.463],"sizzle":["m",[[54.35762,2.0]],0.5281],"vox_whee":["m",[[56.41763,1.04898],[57.5266,1.04881]],0.3643],"vox_hup":["m",[[58.63542,0.29056],[58.98598,0.46802]],0.3198],"vox_hyah":["m",[[59.514,0.64335],[60.21735,0.65]],0.3012],"vox_oof":["m",[[60.92735,0.54771],[61.53506,0.54929]],0.3211],"vox_waah":["m",[[62.14435,0.21669],[62.42104,0.52498]],0.3253],"vox_yay":["m",[[63.00602,0.8496],[63.91562,0.85]],0.3402],"vox_ooh":["m",[[64.82563,0.76808],[65.65371,0.84931]],0.3396],"vox_giggle":["m",[[66.56302,0.06969],[66.69271,0.84877]],0.3227],"vox_eep":["m",[[67.60148,0.44965],[68.11113,0.29529]],0.3232],"vox_brr":["m",[[68.46642,0.42935],[68.95577,0.70931]],0.3234],"vox_hoh":["m",[[69.72508,0.74987],[70.53496,0.13175]],0.3213],"vox_ahh":["m",[[70.72671,0.50977],[71.29648,0.84979]],0.3171],"kflood":["m",[[72.20627,0.99294],[73.25921,0.6825]],1.0],"kpart":["m",[[74.00171,1.89694],[75.95865,1.90098]],1.0],"shutter":["m",[[77.91962,0.30456],[78.28419,0.50252]],1.0],"slowin":["m",[[78.84671,0.485],[79.39171,0.59846]],1.0],"slowout":["m",[[80.05017,0.25775]],1.0],"tpour":["m",[[80.36792,1.9561],[82.38402,1.84554]],1.0],"tsettle":["m",[[84.28956,0.80398]],1.0],"tslice":["m",[[85.15354,0.2521],[85.46565,0.30652]],1.0],"tsplash":["m",[[85.83217,0.57815],[86.47031,0.84908]],1.0],"ttick":["m",[[87.3794,0.17863],[87.61802,0.69804]],1.0],"slam":["s",[[0.064,0.70637],[0.83037,0.70988]],1.4242],"quake":["s",[[1.60025,1.30062]],1.8218],"burst":["s",[[2.96088,0.48633],[3.50721,0.33637]],0.279],"cd3":["s",[[3.90358,1.1]],0.2178],"cd2":["s",[[5.06358,1.1]],0.2221],"cd1":["s",[[6.22358,1.1]],0.2142],"go":["s",[[7.38358,0.57577]],0.3642],"horn":["s",[[8.01935,0.90021]],0.3246],"spot":["s",[[8.97956,1.3]],0.3638],"lead_up":["s",[[10.33956,1.1]],0.2718],"lead_down":["s",[[11.49956,0.9409]],0.2467],"fanfare":["s",[[12.50046,1.31275]],0.5203],"sting_win":["s",[[13.87321,2.4]],0.6575],"sting_lose":["s",[[16.33321,2.2]],0.5214],"sting_draw":["s",[[18.59321,2.0]],0.6736],"orb":["s",[[20.65321,0.92425]],0.3533],"power":["s",[[21.63746,0.64738],[22.34483,0.33196]],0.3745],"grow":["s",[[22.73679,0.86313]],0.3991],"rocket":["s",[[23.65992,0.7774]],0.6499],"thunder":["s",[[24.49731,4.2]],0.2214],"heatwarn":["s",[[28.75731,3.4]],0.2963],"heaton":["s",[[32.21731,0.69046]],0.2338],"dusk":["s",[[32.96777,1.8]],0.2957],"rain":["s",[[34.82777,3.9]],0.2174]}}/*SFXI_END*/;
+  const SFXI = /*SFXI*/{"sheets":{"m":{"mk":0.03106,"dur":93.026},"s":{"mk":0.03106,"dur":38.788}},"snd":{"splat_s":["m",[[0.064,0.49406],[0.61806,0.5]],0.4263],"splat_m":["m",[[1.17806,0.50981],[1.74788,0.65]],0.3707],"splat_l":["m",[[2.45788,0.66971],[3.18758,0.80512]],0.3068],"plop":["m",[[4.05271,0.20683],[4.31954,0.35]],0.2554],"land_s":["m",[[4.72954,0.35],[5.13954,0.35]],0.5144],"land_h":["m",[[5.54954,0.5],[6.10954,0.5]],0.3796],"jump":["m",[[6.66954,0.35],[7.07954,0.35]],0.3547],"glug":["m",[[7.48954,0.22],[7.76954,0.22]],0.2868],"enter":["m",[[8.04954,0.85365]],0.2573],"ball":["m",[[8.96319,0.21346],[9.23665,0.19981],[9.49646,0.23856]],0.2769],"squish":["m",[[9.79502,0.7],[10.55502,0.7]],0.3529],"sink":["m",[[11.31502,1.28831]],0.3102],"rise":["m",[[12.66333,0.79398]],0.3384],"rumble":["m",[[13.51731,2.0]],0.2479],"splash":["m",[[15.57731,0.69558],[16.3329,0.54221]],0.3978],"sprinkle":["m",[[16.9351,0.9281],[17.92321,0.87758]],0.6921],"whoosh":["m",[[18.86079,0.7],[19.62079,0.7]],0.3057],"swish":["m",[[20.38079,0.45],[20.89079,0.35958]],0.2768],"dash":["m",[[21.31038,0.5],[21.87037,0.5]],0.2341],"brake":["m",[[22.43038,0.4],[22.89037,0.4]],0.2266],"fling_s":["m",[[23.35037,0.49019],[23.90056,0.6]],0.3889],"fling_m":["m",[[24.56056,0.72335],[25.34392,0.54029]],0.3231],"fling_l":["m",[[25.94421,0.6736],[26.67781,0.67402]],0.275],"release":["m",[[27.41183,0.15265],[27.62448,0.14692]],0.2207],"charge":["m",[[27.8314,2.1]],0.295],"notch1":["m",[[29.9914,0.1904]],0.3716],"notch2":["m",[[30.24179,0.19062]],0.3294],"notch3":["m",[[30.49242,0.28283]],0.2778],"roll":["m",[[30.83525,2.5]],0.1498],"roller":["m",[[33.39525,2.0]],0.0645],"bonk_s":["m",[[35.45525,0.23619],[35.75144,0.26058]],0.3471],"bonk_h":["m",[[36.07202,0.4],[36.53202,0.4]],0.2856],"die":["m",[[36.99202,0.60629],[37.65831,0.62113]],0.2509],"die_sun":["m",[[38.33944,1.0316]],0.6347],"die_pound":["m",[[39.43104,0.55]],0.4717],"die_dry":["m",[[40.04104,0.6]],0.5843],"ui":["m",[[40.70104,0.15973],[40.92077,0.15737],[41.13815,0.13569]],0.3741],"pop":["m",[[41.33383,0.16],[41.55383,0.16]],0.3089],"nope":["m",[[41.77383,0.5],[42.33383,0.5]],0.2734],"tick_a":["m",[[42.89383,0.38142]],0.2574],"tick_b":["m",[[43.33525,0.39148]],0.2546],"tick_c":["m",[[43.78673,0.38327]],0.2533],"count_lo":["m",[[44.23,0.2609]],0.3553],"count_hi":["m",[[44.5509,0.38569]],0.3554],"ready":["m",[[44.99658,0.9]],0.4642],"alert":["m",[[45.95658,0.34285]],0.2952],"danger":["m",[[46.35944,0.24821]],0.541],"low":["m",[[46.66765,0.4],[47.12765,0.4]],0.258],"shrink":["m",[[47.58765,0.8]],0.2931],"flip":["m",[[48.44765,0.9]],0.4389],"flipback":["m",[[49.40765,0.8]],0.3782],"turret":["m",[[50.26765,0.48998]],0.3378],"shoot":["m",[[50.81762,0.4],[51.27763,0.4]],0.2346],"boost":["m",[[51.73763,0.9]],0.427],"fall":["m",[[52.69763,1.6]],0.463],"sizzle":["m",[[54.35762,2.0]],0.5281],"vox_whee":["m",[[56.41763,1.04898],[57.5266,1.04881]],0.3643],"vox_hup":["m",[[58.63542,0.29056],[58.98598,0.46802]],0.3198],"vox_hyah":["m",[[59.514,0.64335],[60.21735,0.65]],0.3012],"vox_oof":["m",[[60.92735,0.54771],[61.53506,0.54929]],0.3211],"vox_waah":["m",[[62.14435,0.21669],[62.42104,0.52498]],0.3253],"vox_yay":["m",[[63.00602,0.8496],[63.91562,0.85]],0.3402],"vox_ooh":["m",[[64.82563,0.76808],[65.65371,0.84931]],0.3396],"vox_giggle":["m",[[66.56302,0.06969],[66.69271,0.84877]],0.3227],"vox_eep":["m",[[67.60148,0.44965],[68.11113,0.29529]],0.3232],"vox_brr":["m",[[68.46642,0.42935],[68.95577,0.70931]],0.3234],"vox_hoh":["m",[[69.72508,0.74987],[70.53496,0.13175]],0.3213],"vox_ahh":["m",[[70.72671,0.50977],[71.29648,0.84979]],0.3171],"bloop":["m",[[72.20627,0.66067],[72.92694,0.60242],[73.58935,0.48762],[74.13698,0.45177],[74.64875,0.89765],[75.6064,0.47129],[76.13769,0.65838]],0.4],"kflood":["m",[[76.85606,0.99294],[77.909,0.6825]],1.0],"kpart":["m",[[78.6515,1.89694],[80.60844,1.90098]],1.0],"shutter":["m",[[82.56942,0.30456],[82.93398,0.50252]],1.0],"slowin":["m",[[83.4965,0.485],[84.0415,0.59846]],1.0],"slowout":["m",[[84.69996,0.25775]],1.0],"tpour":["m",[[85.01771,1.9561],[87.03381,1.84554]],1.0],"tsettle":["m",[[88.93935,0.80398]],1.0],"tslice":["m",[[89.80333,0.2521],[90.11544,0.30652]],1.0],"tsplash":["m",[[90.48196,0.57815],[91.1201,0.84908]],1.0],"ttick":["m",[[92.02919,0.17863],[92.26781,0.69804]],1.0],"slam":["s",[[0.064,0.70637],[0.83037,0.70988]],1.4242],"quake":["s",[[1.60025,1.30062]],1.8218],"burst":["s",[[2.96088,0.48633],[3.50721,0.33637]],0.279],"cd3":["s",[[3.90358,1.1]],0.2178],"cd2":["s",[[5.06358,1.1]],0.2221],"cd1":["s",[[6.22358,1.1]],0.2142],"go":["s",[[7.38358,0.57577]],0.3642],"horn":["s",[[8.01935,0.90021]],0.3246],"spot":["s",[[8.97956,1.3]],0.3638],"lead_up":["s",[[10.33956,1.1]],0.2718],"lead_down":["s",[[11.49956,0.9409]],0.2467],"fanfare":["s",[[12.50046,1.31275]],0.5203],"sting_win":["s",[[13.87321,2.4]],0.6575],"sting_lose":["s",[[16.33321,2.2]],0.5214],"sting_draw":["s",[[18.59321,2.0]],0.6736],"orb":["s",[[20.65321,0.92425]],0.3533],"power":["s",[[21.63746,0.64738],[22.34483,0.33196]],0.3745],"grow":["s",[[22.73679,0.86313]],0.3991],"rocket":["s",[[23.65992,0.7774]],0.6499],"thunder":["s",[[24.49731,4.2]],0.2214],"heatwarn":["s",[[28.75731,3.4]],0.2963],"heaton":["s",[[32.21731,0.69046]],0.2338],"dusk":["s",[[32.96777,1.8]],0.2957],"rain":["s",[[34.82777,3.9]],0.2174]}}/*SFXI_END*/;
   const SFX_BASE = (typeof window !== 'undefined' && window.SFX_BASE) || 'sfx/';
   const SB = { m: null, s: null, off: { m: 0, s: 0 }, bytes: {}, busy: {}, fail: {}, last: {} };
   let LP = null, voxT = -9;
@@ -8818,6 +8832,7 @@ function makeAudio() {
     turret() { tone({ f: 140, f1: 90, glide: 0.08, dur: 0.09, v: 0.3 }); tone({ d: 0.1, f: 170, f1: 110, glide: 0.08, dur: 0.09, v: 0.28 }); tone({ d: 0.2, type: 'sawtooth', f: 220, f1: 880, glide: 0.35, dur: 0.4, v: 0.05, lp: [900, 2600, 1, 0, 0.3] }); hiss({ d: 0.05, k: 'w', type: 'bandpass', f: 2600, f1: 900, q: 1.4, dur: 0.2, v: 0.12 }); bellFx(0.42, 84, 0.3, 0.05, 0.2); },
     shoot() { tone({ f: 190, f1: 70, glide: 0.11, dur: 0.13, v: 0.26, a: 0.002 }); hiss({ k: 'p', type: 'bandpass', f: 1500, f1: 420, glide: 0.1, q: 1, dur: 0.11, v: 0.24 }); },
     plop() { hiss({ k: 'p', type: 'lowpass', f: 1300, f1: 300, dur: 0.12, v: 0.16 }); tone({ f: 330 + Math.random() * 120, f1: 160, glide: 0.07, dur: 0.08, v: 0.07 }); },
+    bloop() { fx.plop(); }, /* (Ol' Bloop talking, before the sound sheets have loaded: the plop) */
     ball() { fx.plop(); },
     // the rocket: a roaring lift-off that rises away overhead; the boost: a screaming dive straight down
     rocket() { hiss({ k: 'w', type: 'bandpass', f: 260, f1: 2400, glide: 0.85, q: 0.7, dur: 0.6, hold: 0.45, v: 0.4, a: 0.03, rv: 0.25 }); hiss({ k: 'b', type: 'lowpass', f: 520, f1: 150, glide: 1.2, dur: 1.4, v: 0.42, a: 0.02 }); tone({ f: 62, f1: 130, glide: 0.9, dur: 1.0, v: 0.3, a: 0.02 }); tone({ type: 'sawtooth', uni: 2, spread: 14, f: 196, f1: 784, glide: 0.85, dur: 0.75, v: 0.05, lp: [800, 2600, 1, 0, 0.6], rv: 0.3 }); bellFx(0.62, 88, 0.4, 0.05, 0.3); },
@@ -8889,6 +8904,7 @@ function makeAudio() {
     turret() { return P_('turret', { vary: 0.02 }); },
     shoot() { return P_('shoot'); },
     plop() { return P_('plop'); },
+    bloop(d) { return P_('bloop', { vary: 0.02, d: d || 0 }); }, /* (Ol' Bloop talking: one of his sounds, never the same twice running) */
     ball() { return P_('ball'); },
     boost() { return P_('boost', { vary: 0.02 }); },
     fanfare() { return P_('fanfare', { vary: 0 }); },
@@ -9445,7 +9461,7 @@ function giftSpot() {
 function stepGift(dt) {
   if (!gift.id || gift.got) return;
   if (state !== 'play') { if (gift.on) { gift.on = false; giftPoof(); } return; }
-  if (!gift.on) { if (runT < gift.at || matchLeft < 6) return; const s = giftSpot(); if (!s) { gift.at = runT + 2; return; }
+  if (!gift.on) { if (runT < gift.at || matchLeft < 6) return; const s = (tut2 && tutNearSpot(6, 11)) || giftSpot(); if (!s) { gift.at = runT + 2; return; }
     gift.on = true; gift.x = s[0]; gift.z = s[1]; gift.y = 0; gift.t = 0; gift.pop = 0; if (!tut && !tut2) banner('Something rare!', 'An item has turned up. Go grab it', true); /* (the lesson says it itself) */ AU.spot(); buzz([10, 30, 10]); shockwave(gift.x, 0, gift.z, 1.6, 0xFFD54F); }
   gift.t += dt; gift.pop = Math.min(1, gift.pop + dt * 2.2);
   if (P.st === 'play' && Math.hypot(P.x - gift.x, P.z - gift.z) < 1.0 && Math.abs(P.y - gift.y) < 1.2) giftTake();
@@ -10324,7 +10340,7 @@ function stepBlob(D, dt) {
         if (D.freeLand) { D.freeLand = false; if (D.wearOff) { D.wearOff = false; D.wearPop = -0.14; } addSplat(D.x, D.y, D.z, D.yaw, SPLAT_R * 1.15, dryClock, false, false, tcode(D)); splash(D, 1.5); if (D === P) { AU.splat(1); buzz(12); } shockwave(D.x, D.y, D.z, 2); }
         else {
           const fk = D.flingC || 0, full = flingCost(fk), cost = D.giantT > 0 ? full : Math.max(0, Math.min(full, D.paint - 0.03)), Rr = D.giantT > 0 ? SLAM_R * (0.95 + 0.15 * fk) : SPLAT_R * (0.55 + 0.45 * cost / full) * flingSplatK(fk);
-          if (cost > 0.005) { if (D.giantT <= 0) D.paint -= cost; addSplat(D.x, D.y, D.z, D.yaw, Rr, dryClock, false, false, tcode(D), 0.12 + 0.3 * fk); splash(D, cost / SPLAT_COST * (1 + fk)); if (D === P) { AU.splat(cost / SPLAT_COST); if (fk > 0.4) { shake = Math.max(shake, 0.12 + 0.15 * fk); buzz(14); } } if (fk > 0.25) shockwave(D.x, D.y, D.z, Rr * 1.1, TEAMS[D.team].wet); }
+          if (cost > 0.005) { if (D.giantT <= 0) D.paint -= cost * (D === P && tut2 ? 0.6 : 1); addSplat(D.x, D.y, D.z, D.yaw, Rr, dryClock, false, false, tcode(D), 0.12 + 0.3 * fk); splash(D, cost / SPLAT_COST * (1 + fk)); if (D === P) { AU.splat(cost / SPLAT_COST); if (fk > 0.4) { shake = Math.max(shake, 0.12 + 0.15 * fk); buzz(14); } } if (fk > 0.25) shockwave(D.x, D.y, D.z, Rr * 1.1, TEAMS[D.team].wet); }
           if (fk > 0.2) splashPush(D, Rr, fk);
         }
       }
@@ -10338,7 +10354,7 @@ function stepBlob(D, dt) {
     else { if (Math.abs(g - D.y) > 0.09 + D.spd * dt * 0.8) D.stepOff = clamp(D.stepOff + D.y - g, -0.6, 0.6); D.y = g; }
     if (!D.air) {
       D.turf = turfUnder(D); D.turfK += ((D.turf > 0 ? TURF_OWN : D.turf < 0 ? TURF_FOE : 1) - D.turfK) * Math.min(1, dt * 8);
-      if (D.giantT <= 0 && !D.turret) { if (D.turf > 0 && !D.charging) D.paint = Math.min(1, D.paint + OWN_REFILL * dt); else D.paint -= cfg.drain * dt * (D.charging ? STILL_DRAIN : 1) * (D === P && easyOn() ? EASY_DRAIN : 1); } // rolling on your own color tops you up; holding still barely uses any
+      if (D.giantT <= 0 && !D.turret) { if (D.turf > 0 && !D.charging) D.paint = Math.min(1, D.paint + OWN_REFILL * dt); else D.paint -= cfg.drain * dt * (D.charging ? STILL_DRAIN : 1) * (D === P && easyOn() ? EASY_DRAIN : 1) * (D === P && tut2 ? 0.6 : 1); } /* (the first real match after the lesson: your paint lasts longer) */ // rolling on your own color tops you up; holding still barely uses any
       if (D.paint <= 0) { D.paint = 0; if (!D.dry) goDry(D); }
       grooveStep(D); sandKick(D, dt);
       if (D.flatT <= 0 && !D.dry) { D.dist += D.spd * dt; while (D.dist >= SPACING) { D.dist -= SPACING; addPoint(D.x, D.y, D.z, D.yaw, dryClock, D.stroke, (D.giantT > 0 ? GIANT_K : D.power && D.power.type === 'roller' ? 2.6 : 1) * (D.rollT > ROLL_T - ROLL_DASH ? 0.45 : 1), tcode(D), D.rb); } }
@@ -13417,8 +13433,9 @@ function renderShop() {
         + '<span class="shplate"><b class="shn">' + w.name + '</b><span class="shw">' + (found ? (broke ? 'Need ' + (PRICE(w) - n) + ' more' : owns(w.id) && needFind(w) ? 'Found on ' + where : 'In stock') : 'Find it on ' + where) + '</span><span class="shp">' + DROP_SVG + PRICE(w) + '</span></span></span></div>'; }).join(''); }
   $('shopGrid').innerHTML = any ? h : '<p class="shempty">' + SHOP_ICON + 'Nothing left to buy.<br>Everything is in your locker.</p>';
 }
+const shopBought = new Set(); // (what this visit to the shop bought)
 function openShop(from) {
-  if (state !== 'menu' || building || shopOpen) return; shopOpen = true; shopFrom = from || (lookOpen ? 'look' : 'lobby');
+  if (state !== 'menu' || building || shopOpen) return; shopOpen = true; shopBought.clear(); shopFrom = from || (lookOpen ? 'look' : 'lobby');
   renderShop(); const sh = $('shop'); if (sh._outT) { clearTimeout(sh._outT); sh._outT = 0; } sh.classList.remove('out'); sh.hidden = false; menu.classList.add('shopping'); AU.music('shop'); setTimeout(() => $('shopBack').focus({ preventScroll: true }), 30);
 }
 // back to where you came from: the locker (its song carries on) or the lobby (the lobby song comes back at the same bar)
@@ -13428,12 +13445,12 @@ function closeShop(quiet) {
   if (lookOpen) { renderLook(); railEdge(); setTimeout(() => $('lkBal').focus({ preventScroll: true }), 30); }
   else { AU.music('menu'); renderLobbyUI(); setTimeout(() => $('dabsBtn').focus({ preventScroll: true }), 30); }
 }
-$('shopBack').addEventListener('click', () => { AU.init(); AU.ui(); closeShop(); });
+$('shopBack').addEventListener('click', () => { AU.init(); AU.ui(); if (!lookOpen && shopBought.has('zombie') && store.zombieDeal && myLook.eyes !== 'zombie') { closeShop(true); lookCat = 'eyes'; openLook(); return; } closeShop(); }); // (the zombie eyes just bought after the first real match: Back goes to the locker to put them on)
 $('shopGrid').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('.shitem')) { e.preventDefault(); e.target.closest('.shitem').click(); } });
 $('shopGrid').addEventListener('click', e => { const b = e.target.closest('.shitem'); if (!b) return; AU.init(); const w = ITEMS.find(x => x.id === b.dataset.w); if (!w) return;
   if (!owns(w.id) && needFind(w)) { AU.nope(); kick(b, 'nope'); shopNote('Find the ' + w.name.toLowerCase() + ' on ' + WEAR_WHERE[w.stage] + ' first.'); return; }
   if (!buyItem(w.id)) { AU.nope(); kick(b, 'nope'); shopNote('Needs ' + (PRICE(w) - (store.drops || 0)) + ' more dabs. Matches pay in dabs.', true); return; }
-  AU.power(); b.classList.add('got'); b.classList.remove('fresh'); b.querySelector('.shw').textContent = 'In your locker'; kick(b, 'tpop'); showDrops(); $('shBal').innerHTML = DROP_SVG + '<b>' + (store.drops || 0) + '</b>'; kick($('shBal'), 'bump'); $('lookBtn').classList.add('hot');
+  shopBought.add(w.id); AU.power(); b.classList.add('got'); b.classList.remove('fresh'); b.querySelector('.shw').textContent = 'In your locker'; kick(b, 'tpop'); showDrops(); $('shBal').innerHTML = DROP_SVG + '<b>' + (store.drops || 0) + '</b>'; kick($('shBal'), 'bump'); $('lookBtn').classList.add('hot');
   shopNote('Bought the ' + w.name.toLowerCase() + '! It is in your locker.'); setTimeout(() => { if (shopOpen) renderShop(); }, 1400); });
 function openLook() {
   if (state !== 'menu' || building) return;
@@ -14070,7 +14087,7 @@ function talFrame() {
   tyLiq.set(segs); tyLiq.tick(now);
   if (t >= tal.KOEND && tal.phase === 2) { tal.phase = 3; talWinner(); }
   if (t >= tal.DAB0 && tal.phase === 3) { tal.phase = 4; talDabsShow(); }
-  if (t >= tal.DAB1 && tal.phase === 4) { tal.phase = 5; talDabsFly(); }
+  if (t >= tal.DAB1 && tal.phase === 4) { tal.phase = 5; talDabsFly(); { const info = endInfo, won = info.mode === 'solo' ? info.newBest : info.winner === P; AU.music(won ? 'win' : 'lost'); } } /* (the song starts as the dabs fly up to your bar) */
   if (tal.phase === 5) talDabsCount(t);
   if (t >= tal.END) { hideTally(); startVictory(); }
 }
@@ -14567,15 +14584,25 @@ function tutApproach(D) {
 }
 function tutDrive(D) {
   if (tut.driveMode === 'near') return tutApproach(D);
+  if (tut.driveMode === 'cross') return tutToCross(D);
   const dx = P.x - D.x, dz = P.z - D.z, d = Math.hypot(dx, dz); if (D.charging) cancelCharge(D);
   D.steer = D.slam ? 0 : -clamp(wrapA(Math.atan2(dx, dz) - D.yaw) * 3, -1, 1);
   if (!D.air && !D.slam && P.st === 'play' && !P.air && d < 3.4 && d > 0.6 && Math.abs(P.y - D.y) < 0.8 && slamReady(D)) useSlam(D);
+}
+// the rocket lesson's rival: into your crosshair (the ring under you) and it stays in it, so the boost lands on it
+function tutToCross(D) {
+  const R = P.rocket; if (!R) return; const lead = R.ph === 'dive' ? 0 : 0.3, tx = P.x + Math.sin(P.yaw) * P.spd * lead, tz = P.z + Math.cos(P.yaw) * P.spd * lead, dx = tx - D.x, dz = tz - D.z, d = Math.hypot(dx, dz), ai = D.ai;
+  TUT_AI.speed = clamp(((R.ph === 'dive' ? 0 : P.spd) + Math.min(6, d * 1.6)) / cfg.speed, 0.25, 2.8); if (D.charging) cancelCharge(D); /* (as fast as the ring moves, plus enough to close in; still under it as it comes down) */
+  if (R.ph === 'dive' && !D.air) D.spd = Math.min(D.spd, Math.max(0.5, d * 2.2)); /* (the boost: it pulls up short under the ring rather than rolling on through) */
+  if (d > 4 && !lineClear(D, tx, tz, D.y)) { if (!ai.tutNavAt || runT - ai.tutNavAt > 0.5 || !ai.path) { ai.tutNavAt = runT; const s = NAV.at(D.x, D.z, D.y), g = NAV.at(tx, tz, D.y); if (s && g) { nMult.fill(1, 0, NN); dijkstra(s.id); if (nDist[g.id] < Infinity) aiGo(D, g, 'hunt'); else ai.path = null; } }
+    const w = aiFollow(D); if (w) return aiSteer(D, w.x, w.z, 1 / 60, true); }
+  D.steer = -clamp(wrapA(Math.atan2(dx, dz) - D.yaw) * 3, -1, 1);
 }
 const TUT_AI_CALM = { speed: 0.8, pound: 0.45, poundR: 1.5, attack: 0.08, hunt: 0.025, dodge: 0, evade: 0 };
 // a tip: the coach's plate (an explanation, its face and name) or, with call set, a short line for an action, *the words that matter* in red
 // a finger acting out the gesture a tip asks for, on a touch screen: drag across and tap to move and jump, hold and pull down to fling,
 // a flick up to roll out of a pound
-const TUT_GEST = { move: 'steertap', sling: 'pull', dodgenow: 'swipe', rdodgenow: 'swipe' };
+const TUT_GEST = { move: 'steertap', sling: 'pull', dodgenow: 'swipe', rdodgenow: 'swipe', wxhold: 'hold', protip: 'pullslow' };
 const tutGestEl = document.createElement('i'); tutGestEl.className = 'tutgest'; tutGestEl.hidden = true; tutGestEl.setAttribute('aria-hidden', 'true');
 function tutGest(kind) {
   const k = kind && !keysUI ? kind : ''; if (!tutGestEl.parentNode) stage.appendChild(tutGestEl);
@@ -14602,7 +14629,7 @@ function tutShow(text, at, key, call, nodim, side, loose) {
   if (tutTip && tutTip.key === key) return;
   tutTip = { text, at: at || null, key, call: !!call, nodim: !!(nodim || loose), side: side || null, loose: !!loose }; /* (loose: up top, a hand on the control, nothing dimmed or blocked) */ tutEl.dataset.style = call ? 'call' : 'coach'; if (call) tutCall.innerHTML = escAttr(text).replace(/\*([^*]+)\*/g, '<em>$1</em>'); else tutTxt.textContent = text; if (!call && coachEl.classList.contains('on')) coachTalk(); tutEl.hidden = false; tutEl.classList.remove('on'); void tutEl.offsetWidth; tutEl.classList.add('on');
   const el = tutAt(); if (el) tutReveal(el);
-  tutPlace(); tutDim.classList.toggle('on', !nodim && !loose && state !== 'play'); AU.plop(); // (no dim in a match: the play must stay clear)
+  tutPlace(); tutDim.classList.toggle('on', !nodim && !loose && state !== 'play'); if (call) AU.plop(); else AU.bloop(); // (no dim in a match: the play must stay clear; Ol' Bloop says his lines, the short callouts just pop)
   tutGest(state === 'play' ? TUT_GEST[key] : null);
 }
 // bring a card or tile into the middle of its own scroller (the shop grid down, the locker rail across), and nothing else: scrollIntoView would scroll the page too on a phone
@@ -14702,6 +14729,7 @@ const TUT_STEPS = [
   { id: 'free2', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 6; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
   { id: 'orb', max: 55, enter() { orb.spawnT = 0; tut.orbMine = true; tut.hadRocket = false; tut.slowK = 1; tutShow('A special orb! Roll up to it for a super move', null, 'orb', false, true); },
     tick() { if (P.rocket && !tut.hadRocket) { tut.hadRocket = true; tut.slowK = 1; /* (full speed: the rocket ride is the fun part) */ tutShow(say('Steer over the rival, then tap Boost', 'Steer over the rival, then press E to boost'), 'slamBtn', 'rocket'); }
+      const cross = !!P.rocket; if (cross && tut.driveMode !== 'cross') { tut.drive = H; tut.driveMode = 'cross'; if (H.ai) { H.ai.plan = null; H.ai.path = null; } } else if (!cross && tut.driveMode === 'cross') { tut.drive = null; tut.driveMode = null; TUT_AI.speed = 0.8; } /* (the rival walks into your crosshair) */
       return tut.hadRocket && !P.rocket; },
     exit() { tut.orbMine = false; TUT_AI.orb = 0.35; } },
   { id: 'free3', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 8; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
@@ -14740,7 +14768,7 @@ function tutCardText(t) { $('tgTitle').innerHTML = t[0]; $('tgText').textContent
 function tutWelcome() {
   const el = $('tutGo'); if (!el.hidden) return; el.dataset.mode = 'welcome';
   tutCardText(['Commissions <em>are open!</em>', 'Commissions are goals that pay extra dabs, and they refresh every day. Check in whenever you\u2019re here.', 'Show me', 'Later']);
-  el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); tutCardCoach(); AU.fanfare && AU.fanfare(); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);
+  el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); tutCardCoach(); AU.fanfare && AU.fanfare(); AU.bloop(0.55); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);
 }
 // the card's coach: over its top edge when there is room above it for him, else up in the corner beside it
 function tutCardCoach() { // (with him over it the card sits half his height lower, so the two of them are centred together)
@@ -14750,27 +14778,49 @@ function tutCardCoach() { // (with him over it the card sits half his height low
 function tutWelcomeDone(open) { const el = $('tutGo'); el.classList.remove('on'); el.hidden = true; coachCorner(null); el.dataset.mode = ''; tutSet('done'); menu.classList.remove('tutoring'); kick($('commBtn'), 'bump'); if (open) setTimeout(() => openComms(), 250); }
 function tutCard(on) {
   const el = $('tutGo'); if (!tut) on = false;
-  if (on) { el.dataset.mode = 'rest'; tutCardText(TG_REST); tut.card = true; tut.slowK = 0; bannerEl.classList.remove('on'); el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); tutCardCoach(); AU.fanfare && AU.fanfare(); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60); return; }
+  if (on) { el.dataset.mode = 'rest'; tutCardText(TG_REST); tut.card = true; tut.slowK = 0; bannerEl.classList.remove('on'); el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); tutCardCoach(); AU.fanfare && AU.fanfare(); AU.bloop(0.55); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60); return; }
   el.classList.remove('on'); el.hidden = true; coachCorner(null); if (tut) { if (tut.card) { P.paint = 1; P.slamCD = 0; banner('Paint it ' + colorOf().name.toLowerCase() + '!', TH.label, true); } /* (Let's do it: a full tank and the pound ready for the final push) */ tut.card = false; tut.slowK = 1; }
 }
 $('tgGo').addEventListener('click', () => { AU.init(); AU.ui(); if ($('tutGo').dataset.mode === 'welcome') tutWelcomeDone(true); else tutCard(false); });
 $('tgLater').addEventListener('click', () => { AU.init(); AU.ui(); tutWelcomeDone(false); });
-// the first real match: no weather until halfway, then the sun and the rain each with the coach's word, then the zombie eyes turn up
-function tut2Begin() { tut2 = { ph: 'calm', tipT: 0, hold: 0, slowK: 1, slowT: 0 }; wxLeft = 1e9; wxPhase = 'clear'; gift.id = null; gift.on = false; gift.got = false; giftM.visible = giftRing.visible = giftBeam.visible = false; }
+// the first real match: no weather until halfway, then the sun in three short steps (find shade, with the way to it shown; hold to stay put in
+// it; or hide in a coffin), then the rain in one plain line, no slow-down, then the zombie eyes turn up close by. Your paint lasts longer
+// this match (stepBlob), and the orb comes up near you (orbSpawn)
+function tut2Begin() { tut2 = { ph: 'calm', sub: '', subT: 0, tipT: 0, hold: 0, slowK: 1, slowT: 0, shade: null, held: 0 }; wxLeft = 1e9; wxPhase = 'clear'; gift.id = null; gift.on = false; gift.got = false; giftM.visible = giftRing.visible = giftBeam.visible = false; }
 function tut2Step(dt) {
   const t = tut2; if (!t || state !== 'play') return;
-  if (t.slowT > 0) { t.slowT -= dt / Math.max(t.slowK, 0.05); t.slowK = t.slowT > 0 ? 0.3 : 1; } /* (a weather tip: a couple of seconds slowed and dimmed so it sinks in) */
+  if (t.slowT > 0) { t.slowT -= dt / Math.max(t.slowK, 0.05); t.slowK = t.slowT > 0 ? 0.3 : 1; } /* (the sun's first word: a moment slowed and dimmed so it sinks in) */
   if (t.tipT > 0) { t.tipT -= dt; if (t.tipT <= 0) tutHide(); }
-  if (t.ph === 'calm') { wxLeft = Math.max(wxLeft, 1); if (matchLeft <= MATCH_T * 0.5) { t.ph = 'sun'; setWx('warn', SUN_WARN); AU.heatWarn(); t.tipT = SUN_WARN + SUN_TIME;
-      t.slowK = 0.3; t.slowT = 2.4; tutShow('The sun is coming up! Out in the open it dries your paint fast. Hide in the shade or a ' + potWord() + ' until it passes', null, 'wxsun', false, true); } }
-  else if (t.ph === 'sun') { if (wxPhase === 'dusk' && t.tipT > 0.4) t.tipT = 0.4; if (wxPhase === 'rain') { t.ph = 'rain'; t.tipT = RAIN_TIME;
-      t.slowK = 0.3; t.slowT = 2.4; tutShow('Rain! Everyone speeds up and hard paint goes soft. Fresh puddles water your paint down, so roll around them', null, 'wxrain', false, true); } }
+  if (t.ph === 'calm') { wxLeft = Math.max(wxLeft, 1); if (matchLeft <= MATCH_T * 0.5) { t.ph = 'sun'; setWx('warn', 7); AU.heatWarn(); t.shade = tutShadeSpot(); t.sub = 'shade'; t.subT = 0;
+      t.slowK = 0.3; t.slowT = 1.6; tutShow('The sun\u2019s coming out! Find some shade', null, 'wxsun', false, true); } }
+  else if (t.ph === 'sun') {
+    t.subT += dt; const hid = P.st === 'hide', shaded = hid || (P.st === 'play' && inShadow(P.x, P.z, P.y));
+    if (t.sub === 'shade') { t.shadeT = (t.shadeT || 0) + dt; if (!shaded && P.st === 'play' && t.shadeT > 1.5) { t.shadeT = 0; t.shade = tutShadeSpot() || t.shade; } /* (the nearest shade from where you are now) */
+      if (hid && t.subT > 1.2) { t.sub = 'pot'; t.subT = 0; tutShow('Safe in a ' + potWord() + '! That works too', null, 'wxpot', false, true); }
+      else if ((shaded && t.subT > 2.5) || t.subT > 9) { t.sub = 'hold'; t.subT = 0; t.held = 0; tutShow(say('*HOLD* the screen to stop in place', 'Hold *S* to stop in place'), null, 'wxhold', true, true); } }
+    else if (t.sub === 'hold') { if (P.charging) t.held += dt; if (t.held > 0.9 || t.subT > 6 || hid) { t.sub = 'pot'; t.subT = 0; tutShow('You can also hide in a ' + potWord() + '!', null, 'wxpot', false, true); } }
+    else if (t.sub === 'pot' && t.subT > 4.5) { t.sub = ''; tutHide(); }
+    if (wxPhase === 'dusk' && t.sub && t.sub !== 'pot') { t.sub = ''; tutHide(); } // (the heat's over before you got there: the tips go)
+    if (wxPhase === 'rain') { t.ph = 'rain'; t.sub = ''; t.tipT = 3.6; tutShow('You move faster when the floor is wet', null, 'wxrain', false, true); } } /* (no slow-down: they'll feel it) */
   else if (t.ph === 'rain') { if (wxPhase !== 'rain') { if (owns('zombie')) { t.ph = 'done'; return; } t.ph = 'gift'; gift.id = 'zombie'; gift.got = false; gift.on = false; gift.at = runT + 0.8; wxLeft = Math.max(wxLeft, 30); } }
   else if (t.ph === 'gift') {
     if (gift.on && !gift.got) tutShow('Something rare! *GRAB IT!*', null, 'zgift', true, true);
     if (gift.got) { t.ph = 'done'; tutHide(); store.zombieDeal = 1; save(); return; }
     if (matchLeft < 12 && t.hold < 25) { t.hold += dt; matchLeft = 12; } // (time enough to reach them)
   }
+}
+// the nearest shade from where you are, on your level and open enough to sit in: a ring at a time outwards
+function tutShadeSpot() {
+  const y = P.y, ok = (x, z) => Math.abs(x) < ARENA - 1.2 && Math.abs(z) < ARENA - 1.2 && Math.abs(surfaceUnder(x, z, y + 0.5) - y) < 0.05 && !blockedAt(x, z, y) && NAV.at(x, z, y) && inShadow(x, z, y) && [[0.7, 0], [-0.7, 0], [0, 0.7], [0, -0.7]].filter(([dx, dz]) => inShadow(x + dx, z + dz, y) && !blockedAt(x + dx, z + dz, y)).length >= 2;
+  for (let r = 2; r <= 24; r += 1.25) { let best = null, bd = 1e9; for (let k = 0; k < 28; k++) { const a = k / 28 * 6.2832, x = P.x + Math.sin(a) * r, z = P.z + Math.cos(a) * r; if (!ok(x, z)) continue; const d = Math.abs(wrapA(a - P.yaw)); if (d < bd) { bd = d; best = [x, z, y]; } } if (best) return best; } /* (ahead of you first, at each distance) */
+  return null;
+}
+// a clear spot on the floor a little way off, ahead of you first (the gift in the first real match)
+function tutNearSpot(d0, d1) {
+  const open = (x, z) => Math.abs(x) < ARENA - 2 && Math.abs(z) < ARENA - 2 && surfaceUnder(x, z, 0.3) === 0 && !blockedAt(x, z, 0) && [[1, 0], [-1, 0], [0, 1], [0, -1]].every(([dx, dz]) => surfaceUnder(x + dx, z + dz, 0.3) === 0 && !blockedAt(x + dx, z + dz, 0))
+    && !pots.some(p => Math.hypot(p.x - x, p.z - z) < 2.5) && !rivals.some(r => Math.hypot(r.x - x, r.z - z) < r.rad + 1.5) && !powers.some(o => Math.hypot(o.x - x, o.z - z) < 2.2) && ACTIVE.every(D => D === P || Math.hypot(D.x - x, D.z - z) > 4);
+  for (let d = d0; d <= d1; d += 1) for (const da of [0, 0.4, -0.4, 0.8, -0.8, 1.3, -1.3, 1.9, -1.9, 2.6, -2.6, 3.14]) { const a = P.yaw + da, x = P.x + Math.sin(a) * d, z = P.z + Math.cos(a) * d; if (open(x, z)) return [x, z]; }
+  return null;
 }
 function tutOrbOff() { orb.on = false; orb.pull = 0; orb.g.visible = false; orb.ring.visible = false; }
 // the lesson's roller: on the ground floor, a few steps ahead of you (in front first, then wider), never up on a platform
@@ -14813,6 +14863,7 @@ function tutNext() { if (!tut) return; const cur = TUT_STEPS[tut.step]; if (cur 
 // where the lesson wants you to go: the flower, the roller, the orb (null when there is nothing to reach, or you are on it)
 function tutGoal() {
   if (tut2 && tut2.ph === 'gift' && state === 'play' && P.st === 'play' && gift.on && !gift.got) return [gift.x, gift.z];
+  if (tut2 && tut2.ph === 'sun' && tut2.sub === 'shade' && tut2.shade && state === 'play' && P.st === 'play' && !inShadow(P.x, P.z, P.y)) return [tut2.shade[0], tut2.shade[1]];
   if (!tut || state !== 'play' || P.st !== 'play' || tut.step < 0) return null; const id = TUT_STEPS[tut.step].id;
   if (id === 'flower' && gift.on && !gift.got) return [gift.x, gift.z];
   if (id === 'item' && !P.held && !P.power) { const pw = powers.find(q => q.g && q.type === 'roller'); if (pw) return [pw.x, pw.z]; }
@@ -14847,7 +14898,8 @@ function tutPin(q) {
 }
 // the arrow: from your spot on screen toward the goal (the screen direction of a step taken toward it, so it is right even when the goal is behind the camera)
 function tutGuide() {
-  tutPin(tut && state === 'play' && P.st === 'play' && tut.step >= 0 && TUT_STEPS[tut.step].id === 'basin' && tut.basinTip ? tutPotMark() : null);
+  tutPin(tut && state === 'play' && P.st === 'play' && tut.step >= 0 && TUT_STEPS[tut.step].id === 'basin' && tut.basinTip ? tutPotMark()
+    : tut2 && state === 'play' && P.st === 'play' && tut2.ph === 'sun' ? (tut2.sub === 'shade' && tut2.shade && !inShadow(P.x, P.z, P.y) ? { x: tut2.shade[0], y: tut2.shade[2], z: tut2.shade[1] } : tut2.sub === 'pot' ? tutNearPot() : null) : null);
   const g = tutGoal(); if (!g || Math.hypot(g[0] - P.x, g[1] - P.z) < 2.4) { if (!tutArrowEl.hidden) tutArrowEl.hidden = true; return; }
   const d = Math.hypot(g[0] - P.x, g[1] - P.z), ux = (g[0] - P.x) / d, uz = (g[1] - P.z) / d;
   tutGV.set(P.x, P.y + 0.35, P.z).project(camera); const px = (tutGV.x + 1) / 2 * viewW, py = (1 - tutGV.y) / 2 * viewH;
@@ -14859,12 +14911,23 @@ function tutFrame(rdt) {
   { const bUp = state === 'play' && performance.now() < bannerUntil; if (bUp && tut) tut.bannerSeen = true; const w = bUp || (state === 'play' && P.st === 'ko'); if (tutEl.classList.contains('wait') !== w) { tutEl.classList.toggle('wait', w); tutHandEl.classList.toggle('wait', w); tutGestEl.classList.toggle('wait', w); } } /* (a game banner up, or you knocked out and waiting to come back: the coach waits out of sight) */
   if (tut) { if (state === 'play' && tut.step >= 0) { tut.st += rdt; if (tut.st > TUT_STEPS[tut.step].max) tutNext(); } const on = state === 'play' && tut.slowK < 1 && !tut.card; if (tutSlowEl.classList.contains('on') !== on) { tutSlowEl.classList.toggle('on', on); AU.slow(on); } }
   else { const on2 = !!tut2 && state === 'play' && tut2.slowK < 1; if (tutSlowEl.classList.contains('on') !== on2) { tutSlowEl.classList.toggle('on', on2); tutSlowEl.classList.toggle('dark', on2); AU.slow(on2); } if (!(tut2 && state === 'play')) tutMenuTick(); } // (the first real match runs its own tips)
+  tutProTip();
   if (tutTip) tutPlace(); else if (popMoved) { popMoved = false; $('pop').style.top = ''; }
   { const g = $('tutGo'), card = !g.hidden; if (card) tutCardCoach(); coachCorner(card ? (g.classList.contains('peek') ? null : 'l') : tutTip && tutEl.dataset.pos === 'dock' && !tutEl.classList.contains('wait') ? tutEl.dataset.side : null, card); }
   if (tut || tut2) tutGuide(); else { if (!tutArrowEl.hidden) tutArrowEl.hidden = true; if (!tutPinEl.hidden) tutPinEl.hidden = true; }
   if (tut || tutPipsEl.classList.contains('on')) tutPipsTick();
 }
 let popMoved = false;
+// a real match where you have hardly flung: Ol' Bloop's pro tip, with the finger slowly pulling down. Once a match, five times in all, and
+// not once you fling a lot (it goes the moment you do)
+let tutPT = null;
+function tutProTip() {
+  if (tut || state !== 'play') { if (tutTip && tutTip.key === 'protip') tutHide(); return; } if (!tutPT || tutPT.run !== runId) tutPT = { run: runId, n: 0, last: 0, was: false, shown: false, hideAt: 0 }; const pt = tutPT;
+  if (P.flung && !pt.was) { pt.n++; pt.last = runT; store.flings = (store.flings || 0) + 1; if (tutTip && tutTip.key === 'protip') tutHide(); } pt.was = !!P.flung;
+  if (tutTip && tutTip.key === 'protip' && runT > pt.hideAt) tutHide();
+  if (pt.shown || tutTip || P.st !== 'play' || runT < 25 || pt.n >= 2 || runT - pt.last < 20 || (store.slingTips || 0) >= 5 || (store.flings || 0) >= 40 || (tut2 && tut2.ph !== 'calm' && tut2.ph !== 'done') || matchLeft < 12) return;
+  pt.shown = true; pt.hideAt = runT + 5.5; store.slingTips = (store.slingTips || 0) + 1; save(); tutShow('Pro tip: Slingshotting is much faster to get around!', null, 'protip', false, true);
+}
 // the lesson match plays as a duel on the blank canvas against a gentle CPU, whatever the lobby was set to; it all goes back after
 function tutPrep() { if (!tutMatchDue()) return; if (!tutPrev) tutPrev = { mode, diff, stageSel }; mode = 'duel'; diff = 'easy'; stageSel = 'blank'; applyMode(); }
 function tutRestore() { if (!tutPrev) return; mode = tutPrev.mode; diff = tutPrev.diff; stageSel = tutPrev.stageSel; tutPrev = null; applyMode(); }
@@ -14897,14 +14960,15 @@ function tutMenuTick() {
   const ph = tutPh(); if (menu.classList.contains('tutoring') !== (ph !== 'done')) menu.classList.toggle('tutoring', ph !== 'done'); // (the lesson keeps the lobby simple: no commissions, no how-to)
   if (ph === 'match') { if (state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden) tutShow('Hey, rookie! Ready to roll? Your first match is a little training session. Tap Play and show me what you\u2019ve got!', 'homePlay', 'first'); else tutHide(); return; }
   if (ph === 'welcome') { if (state === 'dead') { if (!end.hidden) return tutShow('Back to the lobby. Something new is waiting', 'menuBtn', 'welback'); return tutHide(); }
+    if (state === 'menu' && lookOpen && store.zombieDeal && bought('zombie') && myLook.eyes !== 'zombie') { if (lookCat !== 'eyes') return tutShow('Open Eyes', 'lc-eyes', 'eyesz'); return tutShow('Tap the zombie eyes to wear them', () => $('eyeStyles').querySelector('[data-es="zombie"]'), 'wearz'); } /* (bought just now: the shop's Back brought you here to put them on) */
     tutHide(); if (state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy) tutWelcome(); return; }
-  if (ph !== 'shop' && ph !== 'locker' && ph !== 'vote') return tutHide();
+  if (ph !== 'shop' && ph !== 'locker' && ph !== 'vote') { if (!(state === 'play' && tutTip && tutTip.key === 'protip')) tutHide(); return; } // (a real match's pro tip runs itself)
   if (state === 'dead') { if (ph === 'shop' && !$('newItem').hidden) { if (!tutNiAt) tutNiAt = performance.now(); if (performance.now() - tutNiAt < 1600) return tutHide(); return innerHeight < 520 && innerWidth > innerHeight ? tutShow('Tap to see them in the *shop*', 'niTry', 'ni', true, false, 'below') : tutShow('Tap to see your flower and fangs in the shop', 'niTry', 'ni', false, false, 'below'); } /* (a short screen gets the short callout, so the button stays clear) */ tutNiAt = 0; if (!end.hidden) return tutShow('Head back to the lobby', 'menuBtn', 'tomenu'); return tutHide(); }
   if (state !== 'menu' || building || irisBusy || !setModal.hidden || !nameModal.hidden || !howModal.hidden) return tutHide();
   const card = id => $('shopGrid').querySelector('.shitem[data-w="' + id + '"]'), tile = id => $('lookRail').querySelector('.ltile[data-w="' + id + '"]');
   if (ph === 'shop') {
     if (shopOpen) { if (!bought('flower')) return tutShow('You found a flower! It\u2019s half price today. Buy it', () => card('flower'), 'buyflower');
-      if (!bought('fangs')) { tutFangsSale(); return tutShow('It\u2019s Halloween season! Fangs are on sale for the rest of your dabs', () => card('fangs'), 'buyfangs'); }
+      if (!bought('fangs')) { tutFangsSale(); return tutShow('It\u2019s Halloween season! Fangs are also on sale! Grab it', () => card('fangs'), 'buyfangs'); }
       tutSet('locker'); return; }
     if (lookOpen) return tutShow('Open the Paint Shop', 'lkBal', 'shop');
     if (menuPage === 'worlds') return tutShow('Back to the lobby', 'worldBack', 'back');

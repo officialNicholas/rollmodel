@@ -194,3 +194,16 @@
 .tutgo.peek .tgcard .tava{visibility:visible}
 .tutgo .tgcard .tava>*{display:none}
 @media (prefers-reduced-motion:reduce){.coachpop b,.coachpop.talk b{animation:none}.tut.on[data-pos="dock"] .tplate{animation:none}}
+
+/* the hold: a finger pressed down and kept there, a ring swelling under it */
+.tutgest[data-g="hold"]{top:68%}
+.tutgest[data-g="hold"] .ghand{animation:ghold 2.2s ease-in-out infinite}
+.tutgest[data-g="hold"] .gring{animation:gholdring 2.2s ease-out infinite}
+@keyframes ghold{0%{transform:translateY(-16px);opacity:0}12%{opacity:1}22%{transform:translateY(0) scale(.88)}78%{transform:translateY(0) scale(.88)}90%{transform:translateY(-12px) scale(1);opacity:1}100%{transform:translateY(-16px);opacity:0}}
+@keyframes gholdring{0%,20%{opacity:0;transform:scale(.4)}26%{opacity:1;transform:scale(.6)}76%{opacity:.9;transform:scale(1.5)}88%,100%{opacity:0;transform:scale(1.7)}}
+/* the pro tip's pull: slower, and clear of Ol' Bloop's bubble (his corner is the right one upright, the left one sideways) */
+.tutgest[data-g="pullslow"]{top:56%;left:30%}
+.tutgest[data-g="pullslow"] .ghand{animation:gpull 3.2s ease-in-out infinite}
+.tutgest[data-g="pullslow"] .gring{animation:gpullring 3.2s ease-out infinite}
+.tutgest[data-g="pullslow"] .gtrail{left:-4px;top:0;width:8px;height:84px;background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,0));animation:gpulltrail 3.2s ease-in-out infinite}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.tutgest[data-g="pullslow"]{top:42%;left:64%}}

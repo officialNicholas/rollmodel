@@ -25,15 +25,25 @@ function tutApproach(D) {
 }
 function tutDrive(D) {
   if (tut.driveMode === 'near') return tutApproach(D);
+  if (tut.driveMode === 'cross') return tutToCross(D);
   const dx = P.x - D.x, dz = P.z - D.z, d = Math.hypot(dx, dz); if (D.charging) cancelCharge(D);
   D.steer = D.slam ? 0 : -clamp(wrapA(Math.atan2(dx, dz) - D.yaw) * 3, -1, 1);
   if (!D.air && !D.slam && P.st === 'play' && !P.air && d < 3.4 && d > 0.6 && Math.abs(P.y - D.y) < 0.8 && slamReady(D)) useSlam(D);
+}
+// the rocket lesson's rival: into your crosshair (the ring under you) and it stays in it, so the boost lands on it
+function tutToCross(D) {
+  const R = P.rocket; if (!R) return; const lead = R.ph === 'dive' ? 0 : 0.3, tx = P.x + Math.sin(P.yaw) * P.spd * lead, tz = P.z + Math.cos(P.yaw) * P.spd * lead, dx = tx - D.x, dz = tz - D.z, d = Math.hypot(dx, dz), ai = D.ai;
+  TUT_AI.speed = clamp(((R.ph === 'dive' ? 0 : P.spd) + Math.min(6, d * 1.6)) / cfg.speed, 0.25, 2.8); if (D.charging) cancelCharge(D); /* (as fast as the ring moves, plus enough to close in; still under it as it comes down) */
+  if (R.ph === 'dive' && !D.air) D.spd = Math.min(D.spd, Math.max(0.5, d * 2.2)); /* (the boost: it pulls up short under the ring rather than rolling on through) */
+  if (d > 4 && !lineClear(D, tx, tz, D.y)) { if (!ai.tutNavAt || runT - ai.tutNavAt > 0.5 || !ai.path) { ai.tutNavAt = runT; const s = NAV.at(D.x, D.z, D.y), g = NAV.at(tx, tz, D.y); if (s && g) { nMult.fill(1, 0, NN); dijkstra(s.id); if (nDist[g.id] < Infinity) aiGo(D, g, 'hunt'); else ai.path = null; } }
+    const w = aiFollow(D); if (w) return aiSteer(D, w.x, w.z, 1 / 60, true); }
+  D.steer = -clamp(wrapA(Math.atan2(dx, dz) - D.yaw) * 3, -1, 1);
 }
 const TUT_AI_CALM = { speed: 0.8, pound: 0.45, poundR: 1.5, attack: 0.08, hunt: 0.025, dodge: 0, evade: 0 };
 // a tip: the coach's plate (an explanation, its face and name) or, with call set, a short line for an action, *the words that matter* in red
 // a finger acting out the gesture a tip asks for, on a touch screen: drag across and tap to move and jump, hold and pull down to fling,
 // a flick up to roll out of a pound
-const TUT_GEST = { move: 'steertap', sling: 'pull', dodgenow: 'swipe', rdodgenow: 'swipe' };
+const TUT_GEST = { move: 'steertap', sling: 'pull', dodgenow: 'swipe', rdodgenow: 'swipe', wxhold: 'hold', protip: 'pullslow' };
 const tutGestEl = document.createElement('i'); tutGestEl.className = 'tutgest'; tutGestEl.hidden = true; tutGestEl.setAttribute('aria-hidden', 'true');
 function tutGest(kind) {
   const k = kind && !keysUI ? kind : ''; if (!tutGestEl.parentNode) stage.appendChild(tutGestEl);
@@ -60,7 +70,7 @@ function tutShow(text, at, key, call, nodim, side, loose) {
   if (tutTip && tutTip.key === key) return;
   tutTip = { text, at: at || null, key, call: !!call, nodim: !!(nodim || loose), side: side || null, loose: !!loose }; /* (loose: up top, a hand on the control, nothing dimmed or blocked) */ tutEl.dataset.style = call ? 'call' : 'coach'; if (call) tutCall.innerHTML = escAttr(text).replace(/\*([^*]+)\*/g, '<em>$1</em>'); else tutTxt.textContent = text; if (!call && coachEl.classList.contains('on')) coachTalk(); tutEl.hidden = false; tutEl.classList.remove('on'); void tutEl.offsetWidth; tutEl.classList.add('on');
   const el = tutAt(); if (el) tutReveal(el);
-  tutPlace(); tutDim.classList.toggle('on', !nodim && !loose && state !== 'play'); AU.plop(); // (no dim in a match: the play must stay clear)
+  tutPlace(); tutDim.classList.toggle('on', !nodim && !loose && state !== 'play'); if (call) AU.plop(); else AU.bloop(); // (no dim in a match: the play must stay clear; Ol' Bloop says his lines, the short callouts just pop)
   tutGest(state === 'play' ? TUT_GEST[key] : null);
 }
 // bring a card or tile into the middle of its own scroller (the shop grid down, the locker rail across), and nothing else: scrollIntoView would scroll the page too on a phone
@@ -160,6 +170,7 @@ const TUT_STEPS = [
   { id: 'free2', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 6; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
   { id: 'orb', max: 55, enter() { orb.spawnT = 0; tut.orbMine = true; tut.hadRocket = false; tut.slowK = 1; tutShow('A special orb! Roll up to it for a super move', null, 'orb', false, true); },
     tick() { if (P.rocket && !tut.hadRocket) { tut.hadRocket = true; tut.slowK = 1; /* (full speed: the rocket ride is the fun part) */ tutShow(say('Steer over the rival, then tap Boost', 'Steer over the rival, then press E to boost'), 'slamBtn', 'rocket'); }
+      const cross = !!P.rocket; if (cross && tut.driveMode !== 'cross') { tut.drive = H; tut.driveMode = 'cross'; if (H.ai) { H.ai.plan = null; H.ai.path = null; } } else if (!cross && tut.driveMode === 'cross') { tut.drive = null; tut.driveMode = null; TUT_AI.speed = 0.8; } /* (the rival walks into your crosshair) */
       return tut.hadRocket && !P.rocket; },
     exit() { tut.orbMine = false; TUT_AI.orb = 0.35; } },
   { id: 'free3', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 8; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
@@ -198,7 +209,7 @@ function tutCardText(t) { $('tgTitle').innerHTML = t[0]; $('tgText').textContent
 function tutWelcome() {
   const el = $('tutGo'); if (!el.hidden) return; el.dataset.mode = 'welcome';
   tutCardText(['Commissions <em>are open!</em>', 'Commissions are goals that pay extra dabs, and they refresh every day. Check in whenever you\u2019re here.', 'Show me', 'Later']);
-  el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); tutCardCoach(); AU.fanfare && AU.fanfare(); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);
+  el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); tutCardCoach(); AU.fanfare && AU.fanfare(); AU.bloop(0.55); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);
 }
 // the card's coach: over its top edge when there is room above it for him, else up in the corner beside it
 function tutCardCoach() { // (with him over it the card sits half his height lower, so the two of them are centred together)
@@ -208,27 +219,49 @@ function tutCardCoach() { // (with him over it the card sits half his height low
 function tutWelcomeDone(open) { const el = $('tutGo'); el.classList.remove('on'); el.hidden = true; coachCorner(null); el.dataset.mode = ''; tutSet('done'); menu.classList.remove('tutoring'); kick($('commBtn'), 'bump'); if (open) setTimeout(() => openComms(), 250); }
 function tutCard(on) {
   const el = $('tutGo'); if (!tut) on = false;
-  if (on) { el.dataset.mode = 'rest'; tutCardText(TG_REST); tut.card = true; tut.slowK = 0; bannerEl.classList.remove('on'); el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); tutCardCoach(); AU.fanfare && AU.fanfare(); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60); return; }
+  if (on) { el.dataset.mode = 'rest'; tutCardText(TG_REST); tut.card = true; tut.slowK = 0; bannerEl.classList.remove('on'); el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); tutCardCoach(); AU.fanfare && AU.fanfare(); AU.bloop(0.55); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60); return; }
   el.classList.remove('on'); el.hidden = true; coachCorner(null); if (tut) { if (tut.card) { P.paint = 1; P.slamCD = 0; banner('Paint it ' + colorOf().name.toLowerCase() + '!', TH.label, true); } /* (Let's do it: a full tank and the pound ready for the final push) */ tut.card = false; tut.slowK = 1; }
 }
 $('tgGo').addEventListener('click', () => { AU.init(); AU.ui(); if ($('tutGo').dataset.mode === 'welcome') tutWelcomeDone(true); else tutCard(false); });
 $('tgLater').addEventListener('click', () => { AU.init(); AU.ui(); tutWelcomeDone(false); });
-// the first real match: no weather until halfway, then the sun and the rain each with the coach's word, then the zombie eyes turn up
-function tut2Begin() { tut2 = { ph: 'calm', tipT: 0, hold: 0, slowK: 1, slowT: 0 }; wxLeft = 1e9; wxPhase = 'clear'; gift.id = null; gift.on = false; gift.got = false; giftM.visible = giftRing.visible = giftBeam.visible = false; }
+// the first real match: no weather until halfway, then the sun in three short steps (find shade, with the way to it shown; hold to stay put in
+// it; or hide in a coffin), then the rain in one plain line, no slow-down, then the zombie eyes turn up close by. Your paint lasts longer
+// this match (stepBlob), and the orb comes up near you (orbSpawn)
+function tut2Begin() { tut2 = { ph: 'calm', sub: '', subT: 0, tipT: 0, hold: 0, slowK: 1, slowT: 0, shade: null, held: 0 }; wxLeft = 1e9; wxPhase = 'clear'; gift.id = null; gift.on = false; gift.got = false; giftM.visible = giftRing.visible = giftBeam.visible = false; }
 function tut2Step(dt) {
   const t = tut2; if (!t || state !== 'play') return;
-  if (t.slowT > 0) { t.slowT -= dt / Math.max(t.slowK, 0.05); t.slowK = t.slowT > 0 ? 0.3 : 1; } /* (a weather tip: a couple of seconds slowed and dimmed so it sinks in) */
+  if (t.slowT > 0) { t.slowT -= dt / Math.max(t.slowK, 0.05); t.slowK = t.slowT > 0 ? 0.3 : 1; } /* (the sun's first word: a moment slowed and dimmed so it sinks in) */
   if (t.tipT > 0) { t.tipT -= dt; if (t.tipT <= 0) tutHide(); }
-  if (t.ph === 'calm') { wxLeft = Math.max(wxLeft, 1); if (matchLeft <= MATCH_T * 0.5) { t.ph = 'sun'; setWx('warn', SUN_WARN); AU.heatWarn(); t.tipT = SUN_WARN + SUN_TIME;
-      t.slowK = 0.3; t.slowT = 2.4; tutShow('The sun is coming up! Out in the open it dries your paint fast. Hide in the shade or a ' + potWord() + ' until it passes', null, 'wxsun', false, true); } }
-  else if (t.ph === 'sun') { if (wxPhase === 'dusk' && t.tipT > 0.4) t.tipT = 0.4; if (wxPhase === 'rain') { t.ph = 'rain'; t.tipT = RAIN_TIME;
-      t.slowK = 0.3; t.slowT = 2.4; tutShow('Rain! Everyone speeds up and hard paint goes soft. Fresh puddles water your paint down, so roll around them', null, 'wxrain', false, true); } }
+  if (t.ph === 'calm') { wxLeft = Math.max(wxLeft, 1); if (matchLeft <= MATCH_T * 0.5) { t.ph = 'sun'; setWx('warn', 7); AU.heatWarn(); t.shade = tutShadeSpot(); t.sub = 'shade'; t.subT = 0;
+      t.slowK = 0.3; t.slowT = 1.6; tutShow('The sun\u2019s coming out! Find some shade', null, 'wxsun', false, true); } }
+  else if (t.ph === 'sun') {
+    t.subT += dt; const hid = P.st === 'hide', shaded = hid || (P.st === 'play' && inShadow(P.x, P.z, P.y));
+    if (t.sub === 'shade') { t.shadeT = (t.shadeT || 0) + dt; if (!shaded && P.st === 'play' && t.shadeT > 1.5) { t.shadeT = 0; t.shade = tutShadeSpot() || t.shade; } /* (the nearest shade from where you are now) */
+      if (hid && t.subT > 1.2) { t.sub = 'pot'; t.subT = 0; tutShow('Safe in a ' + potWord() + '! That works too', null, 'wxpot', false, true); }
+      else if ((shaded && t.subT > 2.5) || t.subT > 9) { t.sub = 'hold'; t.subT = 0; t.held = 0; tutShow(say('*HOLD* the screen to stop in place', 'Hold *S* to stop in place'), null, 'wxhold', true, true); } }
+    else if (t.sub === 'hold') { if (P.charging) t.held += dt; if (t.held > 0.9 || t.subT > 6 || hid) { t.sub = 'pot'; t.subT = 0; tutShow('You can also hide in a ' + potWord() + '!', null, 'wxpot', false, true); } }
+    else if (t.sub === 'pot' && t.subT > 4.5) { t.sub = ''; tutHide(); }
+    if (wxPhase === 'dusk' && t.sub && t.sub !== 'pot') { t.sub = ''; tutHide(); } // (the heat's over before you got there: the tips go)
+    if (wxPhase === 'rain') { t.ph = 'rain'; t.sub = ''; t.tipT = 3.6; tutShow('You move faster when the floor is wet', null, 'wxrain', false, true); } } /* (no slow-down: they'll feel it) */
   else if (t.ph === 'rain') { if (wxPhase !== 'rain') { if (owns('zombie')) { t.ph = 'done'; return; } t.ph = 'gift'; gift.id = 'zombie'; gift.got = false; gift.on = false; gift.at = runT + 0.8; wxLeft = Math.max(wxLeft, 30); } }
   else if (t.ph === 'gift') {
     if (gift.on && !gift.got) tutShow('Something rare! *GRAB IT!*', null, 'zgift', true, true);
     if (gift.got) { t.ph = 'done'; tutHide(); store.zombieDeal = 1; save(); return; }
     if (matchLeft < 12 && t.hold < 25) { t.hold += dt; matchLeft = 12; } // (time enough to reach them)
   }
+}
+// the nearest shade from where you are, on your level and open enough to sit in: a ring at a time outwards
+function tutShadeSpot() {
+  const y = P.y, ok = (x, z) => Math.abs(x) < ARENA - 1.2 && Math.abs(z) < ARENA - 1.2 && Math.abs(surfaceUnder(x, z, y + 0.5) - y) < 0.05 && !blockedAt(x, z, y) && NAV.at(x, z, y) && inShadow(x, z, y) && [[0.7, 0], [-0.7, 0], [0, 0.7], [0, -0.7]].filter(([dx, dz]) => inShadow(x + dx, z + dz, y) && !blockedAt(x + dx, z + dz, y)).length >= 2;
+  for (let r = 2; r <= 24; r += 1.25) { let best = null, bd = 1e9; for (let k = 0; k < 28; k++) { const a = k / 28 * 6.2832, x = P.x + Math.sin(a) * r, z = P.z + Math.cos(a) * r; if (!ok(x, z)) continue; const d = Math.abs(wrapA(a - P.yaw)); if (d < bd) { bd = d; best = [x, z, y]; } } if (best) return best; } /* (ahead of you first, at each distance) */
+  return null;
+}
+// a clear spot on the floor a little way off, ahead of you first (the gift in the first real match)
+function tutNearSpot(d0, d1) {
+  const open = (x, z) => Math.abs(x) < ARENA - 2 && Math.abs(z) < ARENA - 2 && surfaceUnder(x, z, 0.3) === 0 && !blockedAt(x, z, 0) && [[1, 0], [-1, 0], [0, 1], [0, -1]].every(([dx, dz]) => surfaceUnder(x + dx, z + dz, 0.3) === 0 && !blockedAt(x + dx, z + dz, 0))
+    && !pots.some(p => Math.hypot(p.x - x, p.z - z) < 2.5) && !rivals.some(r => Math.hypot(r.x - x, r.z - z) < r.rad + 1.5) && !powers.some(o => Math.hypot(o.x - x, o.z - z) < 2.2) && ACTIVE.every(D => D === P || Math.hypot(D.x - x, D.z - z) > 4);
+  for (let d = d0; d <= d1; d += 1) for (const da of [0, 0.4, -0.4, 0.8, -0.8, 1.3, -1.3, 1.9, -1.9, 2.6, -2.6, 3.14]) { const a = P.yaw + da, x = P.x + Math.sin(a) * d, z = P.z + Math.cos(a) * d; if (open(x, z)) return [x, z]; }
+  return null;
 }
 function tutOrbOff() { orb.on = false; orb.pull = 0; orb.g.visible = false; orb.ring.visible = false; }
 // the lesson's roller: on the ground floor, a few steps ahead of you (in front first, then wider), never up on a platform
@@ -271,6 +304,7 @@ function tutNext() { if (!tut) return; const cur = TUT_STEPS[tut.step]; if (cur 
 // where the lesson wants you to go: the flower, the roller, the orb (null when there is nothing to reach, or you are on it)
 function tutGoal() {
   if (tut2 && tut2.ph === 'gift' && state === 'play' && P.st === 'play' && gift.on && !gift.got) return [gift.x, gift.z];
+  if (tut2 && tut2.ph === 'sun' && tut2.sub === 'shade' && tut2.shade && state === 'play' && P.st === 'play' && !inShadow(P.x, P.z, P.y)) return [tut2.shade[0], tut2.shade[1]];
   if (!tut || state !== 'play' || P.st !== 'play' || tut.step < 0) return null; const id = TUT_STEPS[tut.step].id;
   if (id === 'flower' && gift.on && !gift.got) return [gift.x, gift.z];
   if (id === 'item' && !P.held && !P.power) { const pw = powers.find(q => q.g && q.type === 'roller'); if (pw) return [pw.x, pw.z]; }
@@ -305,7 +339,8 @@ function tutPin(q) {
 }
 // the arrow: from your spot on screen toward the goal (the screen direction of a step taken toward it, so it is right even when the goal is behind the camera)
 function tutGuide() {
-  tutPin(tut && state === 'play' && P.st === 'play' && tut.step >= 0 && TUT_STEPS[tut.step].id === 'basin' && tut.basinTip ? tutPotMark() : null);
+  tutPin(tut && state === 'play' && P.st === 'play' && tut.step >= 0 && TUT_STEPS[tut.step].id === 'basin' && tut.basinTip ? tutPotMark()
+    : tut2 && state === 'play' && P.st === 'play' && tut2.ph === 'sun' ? (tut2.sub === 'shade' && tut2.shade && !inShadow(P.x, P.z, P.y) ? { x: tut2.shade[0], y: tut2.shade[2], z: tut2.shade[1] } : tut2.sub === 'pot' ? tutNearPot() : null) : null);
   const g = tutGoal(); if (!g || Math.hypot(g[0] - P.x, g[1] - P.z) < 2.4) { if (!tutArrowEl.hidden) tutArrowEl.hidden = true; return; }
   const d = Math.hypot(g[0] - P.x, g[1] - P.z), ux = (g[0] - P.x) / d, uz = (g[1] - P.z) / d;
   tutGV.set(P.x, P.y + 0.35, P.z).project(camera); const px = (tutGV.x + 1) / 2 * viewW, py = (1 - tutGV.y) / 2 * viewH;
@@ -317,12 +352,23 @@ function tutFrame(rdt) {
   { const bUp = state === 'play' && performance.now() < bannerUntil; if (bUp && tut) tut.bannerSeen = true; const w = bUp || (state === 'play' && P.st === 'ko'); if (tutEl.classList.contains('wait') !== w) { tutEl.classList.toggle('wait', w); tutHandEl.classList.toggle('wait', w); tutGestEl.classList.toggle('wait', w); } } /* (a game banner up, or you knocked out and waiting to come back: the coach waits out of sight) */
   if (tut) { if (state === 'play' && tut.step >= 0) { tut.st += rdt; if (tut.st > TUT_STEPS[tut.step].max) tutNext(); } const on = state === 'play' && tut.slowK < 1 && !tut.card; if (tutSlowEl.classList.contains('on') !== on) { tutSlowEl.classList.toggle('on', on); AU.slow(on); } }
   else { const on2 = !!tut2 && state === 'play' && tut2.slowK < 1; if (tutSlowEl.classList.contains('on') !== on2) { tutSlowEl.classList.toggle('on', on2); tutSlowEl.classList.toggle('dark', on2); AU.slow(on2); } if (!(tut2 && state === 'play')) tutMenuTick(); } // (the first real match runs its own tips)
+  tutProTip();
   if (tutTip) tutPlace(); else if (popMoved) { popMoved = false; $('pop').style.top = ''; }
   { const g = $('tutGo'), card = !g.hidden; if (card) tutCardCoach(); coachCorner(card ? (g.classList.contains('peek') ? null : 'l') : tutTip && tutEl.dataset.pos === 'dock' && !tutEl.classList.contains('wait') ? tutEl.dataset.side : null, card); }
   if (tut || tut2) tutGuide(); else { if (!tutArrowEl.hidden) tutArrowEl.hidden = true; if (!tutPinEl.hidden) tutPinEl.hidden = true; }
   if (tut || tutPipsEl.classList.contains('on')) tutPipsTick();
 }
 let popMoved = false;
+// a real match where you have hardly flung: Ol' Bloop's pro tip, with the finger slowly pulling down. Once a match, five times in all, and
+// not once you fling a lot (it goes the moment you do)
+let tutPT = null;
+function tutProTip() {
+  if (tut || state !== 'play') { if (tutTip && tutTip.key === 'protip') tutHide(); return; } if (!tutPT || tutPT.run !== runId) tutPT = { run: runId, n: 0, last: 0, was: false, shown: false, hideAt: 0 }; const pt = tutPT;
+  if (P.flung && !pt.was) { pt.n++; pt.last = runT; store.flings = (store.flings || 0) + 1; if (tutTip && tutTip.key === 'protip') tutHide(); } pt.was = !!P.flung;
+  if (tutTip && tutTip.key === 'protip' && runT > pt.hideAt) tutHide();
+  if (pt.shown || tutTip || P.st !== 'play' || runT < 25 || pt.n >= 2 || runT - pt.last < 20 || (store.slingTips || 0) >= 5 || (store.flings || 0) >= 40 || (tut2 && tut2.ph !== 'calm' && tut2.ph !== 'done') || matchLeft < 12) return;
+  pt.shown = true; pt.hideAt = runT + 5.5; store.slingTips = (store.slingTips || 0) + 1; save(); tutShow('Pro tip: Slingshotting is much faster to get around!', null, 'protip', false, true);
+}
 // the lesson match plays as a duel on the blank canvas against a gentle CPU, whatever the lobby was set to; it all goes back after
 function tutPrep() { if (!tutMatchDue()) return; if (!tutPrev) tutPrev = { mode, diff, stageSel }; mode = 'duel'; diff = 'easy'; stageSel = 'blank'; applyMode(); }
 function tutRestore() { if (!tutPrev) return; mode = tutPrev.mode; diff = tutPrev.diff; stageSel = tutPrev.stageSel; tutPrev = null; applyMode(); }
@@ -353,14 +399,15 @@ function tutMenuTick() {
   const ph = tutPh(); if (menu.classList.contains('tutoring') !== (ph !== 'done')) menu.classList.toggle('tutoring', ph !== 'done'); // (the lesson keeps the lobby simple: no commissions, no how-to)
   if (ph === 'match') { if (state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden) tutShow('Hey, rookie! Ready to roll? Your first match is a little training session. Tap Play and show me what you\u2019ve got!', 'homePlay', 'first'); else tutHide(); return; }
   if (ph === 'welcome') { if (state === 'dead') { if (!end.hidden) return tutShow('Back to the lobby. Something new is waiting', 'menuBtn', 'welback'); return tutHide(); }
+    if (state === 'menu' && lookOpen && store.zombieDeal && bought('zombie') && myLook.eyes !== 'zombie') { if (lookCat !== 'eyes') return tutShow('Open Eyes', 'lc-eyes', 'eyesz'); return tutShow('Tap the zombie eyes to wear them', () => $('eyeStyles').querySelector('[data-es="zombie"]'), 'wearz'); } /* (bought just now: the shop's Back brought you here to put them on) */
     tutHide(); if (state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy) tutWelcome(); return; }
-  if (ph !== 'shop' && ph !== 'locker' && ph !== 'vote') return tutHide();
+  if (ph !== 'shop' && ph !== 'locker' && ph !== 'vote') { if (!(state === 'play' && tutTip && tutTip.key === 'protip')) tutHide(); return; } // (a real match's pro tip runs itself)
   if (state === 'dead') { if (ph === 'shop' && !$('newItem').hidden) { if (!tutNiAt) tutNiAt = performance.now(); if (performance.now() - tutNiAt < 1600) return tutHide(); return innerHeight < 520 && innerWidth > innerHeight ? tutShow('Tap to see them in the *shop*', 'niTry', 'ni', true, false, 'below') : tutShow('Tap to see your flower and fangs in the shop', 'niTry', 'ni', false, false, 'below'); } /* (a short screen gets the short callout, so the button stays clear) */ tutNiAt = 0; if (!end.hidden) return tutShow('Head back to the lobby', 'menuBtn', 'tomenu'); return tutHide(); }
   if (state !== 'menu' || building || irisBusy || !setModal.hidden || !nameModal.hidden || !howModal.hidden) return tutHide();
   const card = id => $('shopGrid').querySelector('.shitem[data-w="' + id + '"]'), tile = id => $('lookRail').querySelector('.ltile[data-w="' + id + '"]');
   if (ph === 'shop') {
     if (shopOpen) { if (!bought('flower')) return tutShow('You found a flower! It\u2019s half price today. Buy it', () => card('flower'), 'buyflower');
-      if (!bought('fangs')) { tutFangsSale(); return tutShow('It\u2019s Halloween season! Fangs are on sale for the rest of your dabs', () => card('fangs'), 'buyfangs'); }
+      if (!bought('fangs')) { tutFangsSale(); return tutShow('It\u2019s Halloween season! Fangs are also on sale! Grab it', () => card('fangs'), 'buyfangs'); }
       tutSet('locker'); return; }
     if (lookOpen) return tutShow('Open the Paint Shop', 'lkBal', 'shop');
     if (menuPage === 'worlds') return tutShow('Back to the lobby', 'worldBack', 'back');
