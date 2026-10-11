@@ -21,6 +21,9 @@ const LIMB = [{ en: 'hand.L', off: 0, m: 1, arm: true }, { en: 'foot.R', off: 0.
 const GAIT = { handX: 0.4, handZ: 0.035, footX: 0.29, footZ: -0.8, reachH: 0.27, reachF: 0.15, sweepF: 0.28, sMax: 0.54, fMax: 5.6, fMin: 1.7 };
 const frac = x => x - Math.floor(x);
 const spr = (s, target, k, c, dt) => { const h = Math.min(dt, 1 / 30); s.v += (k * (target - s.x) - c * s.v) * h; s.x += s.v * h; return s.x; };
+// a pitch about the body's own sideways axis (positive: nose down), put in the bone's own frame
+const AXX = new THREE.Vector3(1, 0, 0), LQ2 = new THREE.Quaternion(), LQ3 = new THREE.Quaternion();
+Animator.prototype.pitchTurn = function (pose, i, a) { if (!a) return; const F = LQ2.copy(this.P.frames(pose)[i]).normalize(); LQ.setFromAxisAngle(AXX, a); LQ3.copy(F).invert().multiply(LQ).multiply(F); pose.q[i].multiply(LQ3).normalize(); };
 Animator.prototype.initLoco = function () {
   const L = this.loco = { ph: 0, f: 0, v: 0, yr: 0, steer: 0, D: 0.65, S: 0.2, act: 0, air: false, airT: 0, lead: 1, landK: 0, still: 0, settle: null, ballK: 0, ballV: 0,
     ht: { x: 0, v: 0 }, bd: { x: 0, v: 0 }, vc: 0, bend: 0, dip: { x: 0, v: 0 }, dipR: { x: 0, v: 0 }, arch: { x: 0, v: 0 }, limbs: [] };
@@ -33,7 +36,7 @@ Animator.prototype.initLoco = function () {
   return L;
 };
 Animator.prototype.crawl = function (t, out, dt) {
-  const I = this.I, P = this.P, M = this.motion, L = this.loco || this.initLoco(), C = M.carry || null, h = Math.max(dt, 1e-4);
+  const I = this.I, P = this.P, M = this.motion, L = this.loco || this.initLoco(), C = M.carry || null, h = Math.max(dt, 1e-4), TR = M.terrain || null, gY = (x, z) => TR ? TR(x, z) : 0;
   out.copy(this.LS); out.contacts = {};
   const on = smooth(clamp01((this.t - (this.stT || 0)) / 0.6));
   // the ground's speed under each limb's home, and the body's turn rate (a world-fixed point turns the other way in the body's space)
@@ -64,6 +67,16 @@ Animator.prototype.crawl = function (t, out, dt) {
   this.worldTurn(out, sp[3], T * 0.29, 0);
   this.worldTurn(out, I.neck, hs * 0.25 + bend * 0.1 + HT * 0.3, -HT * 0.12);
   this.worldTurn(out, I.head, hs * 0.25 + bend * 0.07 + HT * 0.25, -HT * 0.3);
+  // the body over uneven ground (climbing out of a basin): the hips up or down to the ground under them, the back tilted to the ground under
+  // the chest and the head, bridging a narrow rim (the highest ground within a hand's width under each), eased so it rolls over
+  if (TR || L.tbOn) {
+    const tb = L.tb || (L.tb = { h: 0, a1: 0, a2: 0, a3: 0, tl: 0 }), on2 = TR ? 1 : 0, bh = (z, back) => { let m = -1e9; for (const dz of back ? [-0.16, -0.08, 0, 0.08, 0.16] : [-0.04, 0, 0.08, 0.16]) m = Math.max(m, gY(0, z + dz)); return m; }; // (ahead of the hips only: a rim it's left behind doesn't hold them up)
+    const zH = -0.777, zS = -0.249, zC = 0.015, zN = 0.33, hH = TR ? bh(zH) : 0, sH = TR ? bh(zS, 1) : 0, cH = TR ? bh(zC, 1) : 0, nH = TR ? bh(zN, 1) : 0, t1 = TR ? Math.max(bh(zH - 0.3, 1), bh(zH - 0.6, 1), bh(zH - 0.95, 1)) : 0;
+    const a1 = Math.atan2(sH - hH, zS - zH), a2 = Math.atan2(cH - sH, zC - zS) - a1, a3 = Math.atan2(nH - cH, zN - zC) - a1 - a2, cl = x => Math.max(-0.7, Math.min(0.7, x)), k = Math.min(1, dt * 14);
+    tb.h += (hH - tb.h) * k; tb.a1 += (cl(a1) - tb.a1) * k; tb.a2 += (cl(a2) - tb.a2) * k; tb.a3 += (cl(a3) - tb.a3) * k; tb.tl += (Math.max(0, Math.atan2(t1 - hH, 0.55)) - tb.tl) * k;
+    out.root.y += tb.h; this.pitchTurn(out, I.hips, -tb.a1); this.pitchTurn(out, sp[2], -tb.a2 * 0.6); this.pitchTurn(out, sp[3], -tb.a2 * 0.4); this.pitchTurn(out, I.neck, -tb.a3 * 0.6);
+    L.tailUp = tb.a1 + 0.5 * tb.tl * (M.climbTail === undefined ? 1 : M.climbTail); L.tbOn = on2 || Math.abs(tb.h) > 0.002 || Math.abs(tb.a1) > 0.002; // (the tail kept off the hips' tilt, and up over ground behind)
+  } else L.tailUp = 0;
   { const pk = P.fk('crawl', out); for (const l of L.limbs) l.hb.set(l.home.x + pk[l.root].x - l.rr.x, l.home.y, l.home.z + pk[l.root].z - l.rr.z); }
   // ---- in the air: the push-off, the tuck, the reach for the ground
   if (air) {
@@ -117,14 +130,15 @@ Animator.prototype.crawl = function (t, out, dt) {
         if (l.st !== 'stance') { l.st = 'stance'; l.p.copy(l.tgt); }
         // stretched further than it reaches: it lets the ground drag it (only at full tilt, or shoved)
         LV1.copy(l.p).sub(l.hb); LV1.y = 0; const r = l.arm ? GAIT.reachH : GAIT.reachF; if (LV1.length() > r) { LV1.setLength(r); l.p.x = l.hb.x + LV1.x; l.p.z = l.hb.z + LV1.z; }
-        l.p.y += (l.home.y - l.p.y) * Math.min(1, dt * 30); l.lift = 0;
+        l.p.y += (gY(l.p.x, l.p.z) + l.home.y - l.p.y) * Math.min(1, dt * 30); l.lift = 0;
       } else {
         if (l.st === 'stance') { l.st = 'swing'; l.p0.copy(l.p); }
         const s = (u - Dl) / (1 - Dl), Ts = Dl / Math.max(L.f, 0.5);
         l.tgt.copy(l.hb).addScaledVector(l.gv, -Ts * 0.5); LV1.copy(l.tgt).sub(l.hb); LV1.y = 0; const r = (l.arm ? GAIT.reachH : GAIT.reachF) * 0.92; if (LV1.length() > r) LV1.setLength(r);
-        l.tgt.set(l.hb.x + LV1.x, l.home.y, l.hb.z + LV1.z);
+        l.tgt.set(l.hb.x + LV1.x, gY(l.hb.x + LV1.x, l.hb.z + LV1.z) + l.home.y, l.hb.z + LV1.z);
         const e = s * s * (3 - 2 * s), lf = Math.pow(Math.sin(Math.PI * Math.min(1, s * 1.08)), 1.4); l.lift = lf;
-        l.p.lerpVectors(l.p0, l.tgt, e); l.p.y = l.home.y + liftH * lf + (l.p0.y - l.home.y) * (1 - e);
+        let bump = 0; if (TR) { for (const q of [0.25, 0.5, 0.75]) bump = Math.max(bump, gY(l.p0.x + (l.tgt.x - l.p0.x) * q, l.p0.z + (l.tgt.z - l.p0.z) * q) + l.home.y - Math.max(l.p0.y, l.tgt.y)); } /* (something to clear on the way) */
+        l.p.lerpVectors(l.p0, l.tgt, e); l.p.y = l.p0.y * (1 - e) + l.tgt.y * e + (liftH + bump * 1.3) * lf;
       }
     }
     // stopped: now and then it moves a foot that was left stretched out back under itself, one at a time
@@ -151,7 +165,10 @@ Animator.prototype.crawl = function (t, out, dt) {
     const dig = this.chain[l.arm ? 'fingers' : 'toes'][l.m > 0 ? 0 : 1]; dig.forEach((g, k) => { rot(out, g[0], 4 + l.lift * 16 - (air ? 8 : 0), 0, (k - 1.5) * (5 + (air ? 5 : 0)) * l.m); rot(out, g[1], 3 + l.lift * 12, 0, 0); });
   }
   // the tail carries the wave on behind the hips
-  this.tailWave(2 * Math.PI * L.ph + Math.PI * 0.85, (4 + 15 * clamp01(v / 6.5)) * act + 1.5, 0.75, air ? -3 : 0); this.tailFree = 1; this.neck.amt = 0.7 - 0.3 * act;
+  this.tailWave(2 * Math.PI * L.ph + Math.PI * 0.85, (4 + 15 * clamp01(v / 6.5)) * act + 1.5, 0.75, air ? -3 : 0);
+  { const cc = L.tcurl = (L.tcurl || 0) + ((M.climbCurl || 0) - (L.tcurl || 0)) * Math.min(1, dt * 8), up = (L.tailUp || 0) - 0.4 * cc, tl = this.chain.tail; // (a positive pitch lifts a tail joint)
+    if (Math.abs(up) > 0.005) { this.pitchTurn(out, tl[0], up * 0.85); this.pitchTurn(out, tl[1], up * 0.25); if (up > 0) { this.pitchTurn(out, tl[2], -up * 0.35); this.pitchTurn(out, tl[3], -up * 0.2); } } // (up over the rim, the far end draped back down)
+    if (cc > 0.01) for (let k = 0; k < tl.length; k++) this.worldTurn(out, tl[k], (k ? 26 : 14) * cc, 0); } // (still in the tub: its tail curled round inside it, down in the paint) this.tailFree = 1; this.neck.amt = 0.7 - 0.3 * act;
   // ---- curled into a ball: the spine rolls up nose to tail, the limbs tuck in, the gills fold back
   if (ball > 0.002) {
     const b = smooth(ball);

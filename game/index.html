@@ -2823,7 +2823,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 222</p>
+      <p class="ver">Version 224</p>
     </div>
   </div>
 
@@ -7659,6 +7659,9 @@ const LIMB = [{ en: 'hand.L', off: 0, m: 1, arm: true }, { en: 'foot.R', off: 0.
 const GAIT = { handX: 0.4, handZ: 0.035, footX: 0.29, footZ: -0.8, reachH: 0.27, reachF: 0.15, sweepF: 0.28, sMax: 0.54, fMax: 5.6, fMin: 1.7 };
 const frac = x => x - Math.floor(x);
 const spr = (s, target, k, c, dt) => { const h = Math.min(dt, 1 / 30); s.v += (k * (target - s.x) - c * s.v) * h; s.x += s.v * h; return s.x; };
+// a pitch about the body's own sideways axis (positive: nose down), put in the bone's own frame
+const AXX = new THREE.Vector3(1, 0, 0), LQ2 = new THREE.Quaternion(), LQ3 = new THREE.Quaternion();
+Animator.prototype.pitchTurn = function (pose, i, a) { if (!a) return; const F = LQ2.copy(this.P.frames(pose)[i]).normalize(); LQ.setFromAxisAngle(AXX, a); LQ3.copy(F).invert().multiply(LQ).multiply(F); pose.q[i].multiply(LQ3).normalize(); };
 Animator.prototype.initLoco = function () {
   const L = this.loco = { ph: 0, f: 0, v: 0, yr: 0, steer: 0, D: 0.65, S: 0.2, act: 0, air: false, airT: 0, lead: 1, landK: 0, still: 0, settle: null, ballK: 0, ballV: 0,
     ht: { x: 0, v: 0 }, bd: { x: 0, v: 0 }, vc: 0, bend: 0, dip: { x: 0, v: 0 }, dipR: { x: 0, v: 0 }, arch: { x: 0, v: 0 }, limbs: [] };
@@ -7671,7 +7674,7 @@ Animator.prototype.initLoco = function () {
   return L;
 };
 Animator.prototype.crawl = function (t, out, dt) {
-  const I = this.I, P = this.P, M = this.motion, L = this.loco || this.initLoco(), C = M.carry || null, h = Math.max(dt, 1e-4);
+  const I = this.I, P = this.P, M = this.motion, L = this.loco || this.initLoco(), C = M.carry || null, h = Math.max(dt, 1e-4), TR = M.terrain || null, gY = (x, z) => TR ? TR(x, z) : 0;
   out.copy(this.LS); out.contacts = {};
   const on = smooth(clamp01((this.t - (this.stT || 0)) / 0.6));
   // the ground's speed under each limb's home, and the body's turn rate (a world-fixed point turns the other way in the body's space)
@@ -7702,6 +7705,16 @@ Animator.prototype.crawl = function (t, out, dt) {
   this.worldTurn(out, sp[3], T * 0.29, 0);
   this.worldTurn(out, I.neck, hs * 0.25 + bend * 0.1 + HT * 0.3, -HT * 0.12);
   this.worldTurn(out, I.head, hs * 0.25 + bend * 0.07 + HT * 0.25, -HT * 0.3);
+  // the body over uneven ground (climbing out of a basin): the hips up or down to the ground under them, the back tilted to the ground under
+  // the chest and the head, bridging a narrow rim (the highest ground within a hand's width under each), eased so it rolls over
+  if (TR || L.tbOn) {
+    const tb = L.tb || (L.tb = { h: 0, a1: 0, a2: 0, a3: 0, tl: 0 }), on2 = TR ? 1 : 0, bh = (z, back) => { let m = -1e9; for (const dz of back ? [-0.16, -0.08, 0, 0.08, 0.16] : [-0.04, 0, 0.08, 0.16]) m = Math.max(m, gY(0, z + dz)); return m; }; // (ahead of the hips only: a rim it's left behind doesn't hold them up)
+    const zH = -0.777, zS = -0.249, zC = 0.015, zN = 0.33, hH = TR ? bh(zH) : 0, sH = TR ? bh(zS, 1) : 0, cH = TR ? bh(zC, 1) : 0, nH = TR ? bh(zN, 1) : 0, t1 = TR ? Math.max(bh(zH - 0.3, 1), bh(zH - 0.6, 1), bh(zH - 0.95, 1)) : 0;
+    const a1 = Math.atan2(sH - hH, zS - zH), a2 = Math.atan2(cH - sH, zC - zS) - a1, a3 = Math.atan2(nH - cH, zN - zC) - a1 - a2, cl = x => Math.max(-0.7, Math.min(0.7, x)), k = Math.min(1, dt * 14);
+    tb.h += (hH - tb.h) * k; tb.a1 += (cl(a1) - tb.a1) * k; tb.a2 += (cl(a2) - tb.a2) * k; tb.a3 += (cl(a3) - tb.a3) * k; tb.tl += (Math.max(0, Math.atan2(t1 - hH, 0.55)) - tb.tl) * k;
+    out.root.y += tb.h; this.pitchTurn(out, I.hips, -tb.a1); this.pitchTurn(out, sp[2], -tb.a2 * 0.6); this.pitchTurn(out, sp[3], -tb.a2 * 0.4); this.pitchTurn(out, I.neck, -tb.a3 * 0.6);
+    L.tailUp = tb.a1 + 0.5 * tb.tl * (M.climbTail === undefined ? 1 : M.climbTail); L.tbOn = on2 || Math.abs(tb.h) > 0.002 || Math.abs(tb.a1) > 0.002; // (the tail kept off the hips' tilt, and up over ground behind)
+  } else L.tailUp = 0;
   { const pk = P.fk('crawl', out); for (const l of L.limbs) l.hb.set(l.home.x + pk[l.root].x - l.rr.x, l.home.y, l.home.z + pk[l.root].z - l.rr.z); }
   // ---- in the air: the push-off, the tuck, the reach for the ground
   if (air) {
@@ -7755,14 +7768,15 @@ Animator.prototype.crawl = function (t, out, dt) {
         if (l.st !== 'stance') { l.st = 'stance'; l.p.copy(l.tgt); }
         // stretched further than it reaches: it lets the ground drag it (only at full tilt, or shoved)
         LV1.copy(l.p).sub(l.hb); LV1.y = 0; const r = l.arm ? GAIT.reachH : GAIT.reachF; if (LV1.length() > r) { LV1.setLength(r); l.p.x = l.hb.x + LV1.x; l.p.z = l.hb.z + LV1.z; }
-        l.p.y += (l.home.y - l.p.y) * Math.min(1, dt * 30); l.lift = 0;
+        l.p.y += (gY(l.p.x, l.p.z) + l.home.y - l.p.y) * Math.min(1, dt * 30); l.lift = 0;
       } else {
         if (l.st === 'stance') { l.st = 'swing'; l.p0.copy(l.p); }
         const s = (u - Dl) / (1 - Dl), Ts = Dl / Math.max(L.f, 0.5);
         l.tgt.copy(l.hb).addScaledVector(l.gv, -Ts * 0.5); LV1.copy(l.tgt).sub(l.hb); LV1.y = 0; const r = (l.arm ? GAIT.reachH : GAIT.reachF) * 0.92; if (LV1.length() > r) LV1.setLength(r);
-        l.tgt.set(l.hb.x + LV1.x, l.home.y, l.hb.z + LV1.z);
+        l.tgt.set(l.hb.x + LV1.x, gY(l.hb.x + LV1.x, l.hb.z + LV1.z) + l.home.y, l.hb.z + LV1.z);
         const e = s * s * (3 - 2 * s), lf = Math.pow(Math.sin(Math.PI * Math.min(1, s * 1.08)), 1.4); l.lift = lf;
-        l.p.lerpVectors(l.p0, l.tgt, e); l.p.y = l.home.y + liftH * lf + (l.p0.y - l.home.y) * (1 - e);
+        let bump = 0; if (TR) { for (const q of [0.25, 0.5, 0.75]) bump = Math.max(bump, gY(l.p0.x + (l.tgt.x - l.p0.x) * q, l.p0.z + (l.tgt.z - l.p0.z) * q) + l.home.y - Math.max(l.p0.y, l.tgt.y)); } /* (something to clear on the way) */
+        l.p.lerpVectors(l.p0, l.tgt, e); l.p.y = l.p0.y * (1 - e) + l.tgt.y * e + (liftH + bump * 1.3) * lf;
       }
     }
     // stopped: now and then it moves a foot that was left stretched out back under itself, one at a time
@@ -7789,7 +7803,10 @@ Animator.prototype.crawl = function (t, out, dt) {
     const dig = this.chain[l.arm ? 'fingers' : 'toes'][l.m > 0 ? 0 : 1]; dig.forEach((g, k) => { rot(out, g[0], 4 + l.lift * 16 - (air ? 8 : 0), 0, (k - 1.5) * (5 + (air ? 5 : 0)) * l.m); rot(out, g[1], 3 + l.lift * 12, 0, 0); });
   }
   // the tail carries the wave on behind the hips
-  this.tailWave(2 * Math.PI * L.ph + Math.PI * 0.85, (4 + 15 * clamp01(v / 6.5)) * act + 1.5, 0.75, air ? -3 : 0); this.tailFree = 1; this.neck.amt = 0.7 - 0.3 * act;
+  this.tailWave(2 * Math.PI * L.ph + Math.PI * 0.85, (4 + 15 * clamp01(v / 6.5)) * act + 1.5, 0.75, air ? -3 : 0);
+  { const cc = L.tcurl = (L.tcurl || 0) + ((M.climbCurl || 0) - (L.tcurl || 0)) * Math.min(1, dt * 8), up = (L.tailUp || 0) - 0.4 * cc, tl = this.chain.tail; // (a positive pitch lifts a tail joint)
+    if (Math.abs(up) > 0.005) { this.pitchTurn(out, tl[0], up * 0.85); this.pitchTurn(out, tl[1], up * 0.25); if (up > 0) { this.pitchTurn(out, tl[2], -up * 0.35); this.pitchTurn(out, tl[3], -up * 0.2); } } // (up over the rim, the far end draped back down)
+    if (cc > 0.01) for (let k = 0; k < tl.length; k++) this.worldTurn(out, tl[k], (k ? 26 : 14) * cc, 0); } // (still in the tub: its tail curled round inside it, down in the paint) this.tailFree = 1; this.neck.amt = 0.7 - 0.3 * act;
   // ---- curled into a ball: the spine rolls up nose to tail, the limbs tuck in, the gills fold back
   if (ball > 0.002) {
     const b = smooth(ball);
@@ -8460,6 +8477,16 @@ const AXOC = (() => {
         if (X.hasPrev && dt > 0) { carry = X.carry || (X.carry = new THREE.Matrix4()); carry.copy(mw).invert().multiply(pv); const e = carry.elements; if (Math.hypot(e[12], e[13], e[14]) > 2.5) carry = null; }
         pv.copy(mw); X.hasPrev = true; }
       A.motion.carry = carry;
+      // climbing out of a basin (o.climb: the world into the tub's own frame, its oval outside and in, its rim's height, the paint's level
+      // and how deep it still is under it, the floor outside): the ground's height under a point of the body's own space
+      if (o.climb && par && X.mw) { const T = X.trn || (X.trn = { mw: new THREE.Matrix4(), sy: 1, c: null, v: new THREE.Vector3() });
+        T.mw.copy(X.mw); const e = X.mw.elements; T.sy = Math.hypot(e[4], e[5], e[6]); T.c = o.climb;
+        A.motion.terrain = X.trnF || (X.trnF = (x, z) => { const c = T.c, v = T.v.set(x, 0, z).applyMatrix4(T.mw), wy = v.y; v.applyMatrix4(c.inv);
+          const lx = v.x - (c.ox || 0), lz = v.z - (c.oz || 0), ro = Math.hypot(lx / c.ao, lz / c.bo), ri = Math.hypot(lx / c.ai, lz / c.bi), sm = (a, b, x) => { const u = Math.max(0, Math.min(1, (x - a) / (b - a))); return u * u * (3 - 2 * u); };
+          const liq = c.liq - (c.sink || 0) - (c.deep || 0), y = ri < 1 ? liq + (c.top - liq) * sm(0.9, 1, ri) : ro <= 1 ? c.top : c.top + (c.floor - c.top) * sm(1, 1.08, ro);
+          return (y - wy) / T.sy; }); }
+      else A.motion.terrain = null;
+      A.motion.climbTail = o.climb ? (o.climb.tailK === undefined ? 1 : o.climb.tailK) : undefined; A.motion.climbCurl = o.climb ? o.climb.curl || 0 : 0;
       // in the air: how high, how fast up or down, how soon it lands (the game's gravity, heavier falling), in its mesh's metres
       const k = 1 / (SC * (par ? par.scale.x : 1) || 1), vy = o.vy || 0, hh = Math.max(0, o.height || 0), g1 = GRAV, g2 = GRAV * 1.45;
       const air = !!o.inAir && !(D && D.st !== 'play' && state !== 'menu');
@@ -9976,7 +10003,7 @@ function updateOrb(dt) {
   if (!orb.on) { orb.spawnT -= dt; if (orb.spawnT <= 0 && matchLeft > 8) orbSpawn(); return; }
   orb.k = Math.min(1, orb.k + dt * 1.8);
   const dx = orb.tx - orb.x, dz = orb.tz - orb.z, d = Math.hypot(dx, dz);
-  if (d < 0.4) orbPickTarget(); else { const sp = Math.min(d, 1.3 * dt); orb.x += dx / d * sp; orb.z += dz / d * sp; }
+  if (d < 0.4) { if (!orb.stay) orbPickTarget(); } else { const sp = Math.min(d, 1.3 * dt); orb.x += dx / d * sp; orb.z += dz / d * sp; }
   const g = surfaceUnder(orb.x, orb.z, orb.base + 2.2, true); if (g > -Infinity) orb.base += (g - orb.base) * Math.min(1, dt * 4);
   orb.y = orb.base + 1.15 + Math.sin(runT * 2.2 + orb.ph) * 0.12;
   if (orb.k < 0.5) return;
@@ -9992,14 +10019,14 @@ function updateOrb(dt) {
     orb.y += (ty - orb.y) * Math.min(1, orb.pull * 1.4);
     orb.sparkT = (orb.sparkT || 0) + dt * 40;
     while (orb.sparkT >= 1) { orb.sparkT -= 1; const a = Math.random() * 6.283, r = 0.3 + Math.random() * 0.25; spawnPart(orb.x + Math.cos(a) * r, orb.y + (Math.random() - 0.5) * 0.4, orb.z + Math.sin(a) * r, (tx - orb.x) * 4.5, (ty - orb.y) * 4.5 + 0.4, (tz - orb.z) * 4.5, 0.32, orbPartMats[(Math.random() * orbPartMats.length) | 0], 0.28); }
-  } else if (orb.pull) { orb.pull = Math.max(0, orb.pull - dt * 3); if (!orb.pull) orbPickTarget(); }
+  } else if (orb.pull) { orb.pull = Math.max(0, orb.pull - dt * 3); if (!orb.pull && !orb.stay) orbPickTarget(); }
   // roll, jump, fling, anything: touch it and it's yours
   for (const D of ACTIVE) { if (D.st !== 'play' || D.giantT > 0 || D.rocket || D.turret) continue; if (Math.hypot(D.x - orb.x, D.y + 0.3 - orb.y, D.z - orb.z) < PR + ORB_R + 0.12) { takeOrb(D); return; } }
 }
 // a pound or a coffin burst that goes off right under it takes it too
 function orbPound(D, R) { if (orb.on && orb.k > 0.5 && D.giantT <= 0 && !D.rocket && !D.turret && Math.hypot(orb.x - D.x, orb.z - D.z) < R * 0.6 && orb.y - D.y < 3 && orb.y - D.y > -0.5) takeOrb(D); }
 function takeOrb(D) {
-  orb.on = false; orb.pull = 0; orb.g.visible = false; orb.ring.visible = false; orb.spawnT = 16 + Math.random() * 6;
+  orb.on = false; orb.pull = 0; orb.stay = false; orb.g.visible = false; orb.ring.visible = false; orb.spawnT = 16 + Math.random() * 6;
   for (let i = 0; i < 26; i++) { const a = Math.random() * 6.283; spawnPart(orb.x, orb.y, orb.z, Math.cos(a) * 4, 1 + Math.random() * 4, Math.sin(a) * 4, 0.55, orbPartMats[i % orbPartMats.length], 0.6); }
   shockwave(orb.x, D.y, orb.z, 2.6, 0xFFFFFF);
   const gift = tut ? 'rocket' : window.__orbKind || ['giant', 'rocket'][(Math.random() * 2) | 0];
@@ -14042,7 +14069,7 @@ function slimeVisual(D, V, dt, sq, rise, rad, gy, hop, fxK, fxL) {
   if (V.coatSt === 'out') { V.coatAirT += dt; if (!D.air && V.coatAirT > 0.08) I.coatBurst(0.02); if (!I.coated()) V.coatSt = null; }
   const inPot = D.st === 'hide', basin = inPot && state === 'intro', under = basin && !D.peeked;
   if (inPot) { V.sink = basin ? BASIN_DEEP : (V.sink || 0) + (BASIN_DEEP - (V.sink || 0)) * Math.min(1, dt * 7); V.sinkV = 0; }
-  else if (D.introCrawl) V.sink = D.introCrawl.sink;
+  else if (D.introCrawl) V.sink = I.kind === 'axo' && D.introCrawl.path ? 0 : D.introCrawl.sink; // (the axolotl: down in the paint by its own climb, not lowered whole)
   else if (D.ip && D.ip.sink !== null) V.sink = D.ip.sink;
   else V.sink = (V.sink || 0) + (0 - (V.sink || 0)) * Math.min(1, dt * 18);
   { const RM = I.U.sRim.value; if (D.introCrawl) RM.fromArray(D.introCrawl.rim); else if (RM.w !== 0) RM.set(0, 0, 0, 0); I.noGhost = !!D.introCrawl || inPot || !!(D.ip && D.ip.sink > 0.05); }
@@ -14099,6 +14126,7 @@ function slimeVisual(D, V, dt, sq, rise, rad, gy, hop, fxK, fxL) {
   const VJ = vic && D.vicPose ? D.vicPose : null; // (a victory jump: sprung off its tail and hands, stretched out through the air, reaching down to land)
   o.coil = VJ ? VJ.coil : 0; o.kick = VJ ? VJ.kick : 0; o.coilSide = VJ ? VJ.side : 1; o.leapTip = VJ ? 0.1 : 1; if (VJ && hopAir && hv < 0) brace = Math.max(brace, 1 - smoothstep(0.03, 0.24, mHop * 2.6));
   o.leap = (vAir && D.st === 'play' && !hopAir && !D.slam && !D.missile && !D.rocket && !D.turret && !(D.giantT > 0) && !TM) || !!(VJ && VJ.leap && hopAir); o.hover = state === 'intro' && !D.pot && !D.introLeap && !D.introOut && !D.introCrawl && !D.introAct; o.maxBall = hopAir ? 0.3 : 1; o.hang = D.rocket && D.st === 'play' ? (D.rocket.ph === 'dive' && !D.rocket.slow ? 0.35 : 1) : 0;
+  o.climb = I.kind === 'axo' && D.introCrawl && D.introCrawl.path ? climbOf(D) : null;
   o.lizard = D.introCrawl ? D.introCrawl.liz : 0; o.tailCurl = D.introCrawl ? D.introCrawl.curl : 0;
   // slingshot: a long pull and it pulls itself into a ball for the quick part of the flight (drawn out along it), opening back out into its
   // usual flight pose, ears flapping, as it slows toward the top of the arc; a short pull keeps the plain jump. Smooth both ways
@@ -15933,13 +15961,41 @@ function basinRim(p, fx, fz) {
 // itself up and over the rim hand over hand, wiggling, its body pouring over the edge and down onto the floor, covered in paint; its tail
 // curls up over the rim as it comes out (its accessories pop on as its head clears the rim). Out on the floor it shakes itself like a wet
 // dog, and the paint flies off it, all but what's left on its lower half; then it waits there for Go
+// ---------- the axolotl's climb out: the tub's own shape (an oval: its outside, the paint inside, the rim's height, read off its meshes in
+// its own frame), how far out its rim is along the way out, and the way out itself: up out of the paint toward the rim, slow while it hauls
+// itself over, easing off onto the floor ----------
+function tubDims(p) {
+  if (p.tubD) return p.tubD; const g = p.g; g.updateMatrixWorld(true); const inv = new THREE.Matrix4().copy(g.matrixWorld).invert(), m = new THREE.Matrix4(), b = new THREE.Box3();
+  let ao = 0, bo = 0, ox = 0, oz = 0, top = 0, ai = 0, bi = 0, liq = 0;
+  g.traverse(o => { if (!o.isMesh || !o.geometry) return; if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); b.copy(o.geometry.boundingBox).applyMatrix4(m.multiplyMatrices(inv, o.matrixWorld)); const hx = (b.max.x - b.min.x) / 2, hz = (b.max.z - b.min.z) / 2;
+    if (o === p.liq) { ai = hx; bi = hz; liq = (b.max.y + b.min.y) / 2; return; }
+    if (b.min.y < 0.12 && b.max.y > 0.35 && b.max.y < 0.9 && hx < 0.95 && hz < 0.95 && hx > 0.3) { if (hx > ao) { ao = hx; ox = (b.max.x + b.min.x) / 2; } if (hz > bo) { bo = hz; oz = (b.max.z + b.min.z) / 2; } top = Math.max(top, b.max.y); } });
+  return (p.tubD = { ao: ao || 0.62, bo: bo || 0.77, ox, oz, ai: (ai || 0.46) + 0.02, bi: (bi || 0.61) + 0.02, top: top || 0.5, liq: liq || 0.42 });
+}
+function tubExit(p, fx, fz) { const d = tubDims(p), q = new THREE.Quaternion(); p.g.getWorldQuaternion(q); const v = new THREE.Vector3(fx, 0, fz).applyQuaternion(q.invert()); return { rw: 1 / Math.hypot(v.x / d.ao, v.z / d.bo), rin: 1 / Math.hypot(v.x / d.ai, v.z / d.bi) }; }
+function crawlTable(s0, rw, s1, T) {
+  const N = 96, ss = [], ts = [0], sm = smoothstep; let tt = 0;
+  const v = x => (0.3 + 0.7 * sm(s0, s0 + 0.5, x)) * (0.12 + 0.88 * (1 - sm(s1 - 1.0, s1, x))) * (1 - 0.7 * Math.exp(-Math.pow((x - (rw - 0.3)) / 0.45, 2)));
+  for (let i = 0; i <= N; i++) ss.push(s0 + (s1 - s0) * i / N);
+  for (let i = 1; i <= N; i++) { tt += (ss[i] - ss[i - 1]) / v((ss[i] + ss[i - 1]) / 2); ts.push(tt); }
+  for (let i = 0; i <= N; i++) ts[i] *= T / tt;
+  return t => { if (t <= 0) return s0; if (t >= T) return s1; let lo = 0, hi = N; while (hi - lo > 1) { const k = (lo + hi) >> 1; if (ts[k] <= t) lo = k; else hi = k; } return ss[lo] + (ss[hi] - ss[lo]) * (t - ts[lo]) / (ts[hi] - ts[lo]); };
+}
+// what the axolotl's body is told of the ground under it, this frame
+function climbOf(D) {
+  const C = D.introCrawl, p = C.p, d = tubDims(p); p.g.updateMatrixWorld(true); const inv = C.inv || (C.inv = new THREE.Matrix4()); inv.copy(p.g.matrixWorld).invert(); const gy = p.g.matrixWorld.elements[13];
+  const c = C.cl || (C.cl = {}); c.inv = inv; c.ao = d.ao; c.bo = d.bo; c.ox = d.ox; c.oz = d.oz; c.ai = d.ai; c.bi = d.bi; c.top = gy + d.top; c.liq = gy + d.liq; c.deep = 0.3; c.sink = C.sink; c.floor = D.y;
+  c.tailK = smoothstep(C.rw2 - 0.45, C.rw2 - 0.05, C.s); c.curl = 1 - smoothstep(C.rw2 - 0.9, C.rw2 - 0.3, C.s); return c;
+}
 function introCrawl(D) {
   const p = D.pot, fx = Math.sin(D.yaw), fz = Math.cos(D.yaw), R = D.rimInfo || basinRim(p, fx, fz), K = 1.75;
   const s1 = R.rw + CRAWL_PAST, y1 = Math.max(0, surfaceUnder(p.x + fx * s1, p.z + fz * s1, p.y + 1, true));
   p.cool = 1.0; p.occ = null; p.lastOcc = null; D.pot = null; D.st = 'play'; D.stroke++; D.air = false; D.vy = 0; D.spd = 0; D.freeLand = false; D.y = y1; D.dist = 0;
   D.introCrawl = { t: 0, p, cx: p.x, cz: p.z, fx, fz, rw: R.rw, rimH: R.h, lq: R.lq, s0: -0.35, s1, s: -0.35, sink: 1.3, rim: [0, R.h / K, 0.42, 1], popped: false, liz: 0, curl: 0 };
+  { const V = vOf(D); if (V && V.slime && V.slime.kind === 'axo') { const E = tubExit(p, fx, fz), C = D.introCrawl; C.rw2 = E.rw; C.s0 = C.s = 0.37 - E.rin; C.s1 = E.rw + CRAWL_PAST; C.T = 1.85; C.path = crawlTable(C.s0, E.rw, C.s1, C.T);
+    D.y = Math.max(0, surfaceUnder(p.x + fx * C.s1, p.z + fz * C.s1, p.y + 1, true)); } } // (the axolotl: the tub's own shape, its hips just inside the back of the paint to start)
   D.introShake = null; D.shook = false;
-  D.x = p.x - fx * 0.35; D.z = p.z - fz * 0.35;
+  D.x = p.x + fx * D.introCrawl.s0; D.z = p.z + fz * D.introCrawl.s0;
   p.slosh = Math.min(1.4, (p.slosh || 0) + 0.9); p.crT = 0; p.dripD = D; p.dripT = 1.9; p.dripN = 0;
   if (Math.abs(p.x - P.x) + Math.abs(p.z - P.z) < 22) for (let i = 0; i < 7; i++) { const a = Math.random() * 6.283, sp = 0.4 + Math.random() * 0.7; spawnPart(p.x + fx * 0.15 + Math.cos(a) * 0.2, p.y + R.lq + 0.04, p.z + fz * 0.15 + Math.sin(a) * 0.2, Math.cos(a) * sp, 1.2 + Math.random() * 1.2, Math.sin(a) * sp, 0.4, tmat(D), 0.3 + Math.random() * 0.2); }
   if (D === P) { AU.pop(); buzz(6); }
@@ -15949,17 +16005,17 @@ function crawlOut(D, dt) {
   // hauling itself up out of the paint (edging toward the rim as it comes up), then the climb: gathering pace, steady over the rim, easing
   // to a stop out on the floor
   const ur = Math.min(1, C.t / CRAWL_RISE); C.sink = 1.3 * (1 - ur) * (1 - ur) * (1 - ur);
-  const uc = clamp((C.t - CRAWL_RISE * 0.45) / CRAWL_T, 0, 1), e = uc * uc * uc * (uc * (6 * uc - 15) + 10), sPrev = C.s; C.s = C.s0 + (C.s1 - C.s0) * e;
+  const uc = clamp((C.t - CRAWL_RISE * 0.45) / CRAWL_T, 0, 1), e = uc * uc * uc * (uc * (6 * uc - 15) + 10), sPrev = C.s; C.s = C.path ? C.path(C.t - CRAWL_RISE * 0.45) : C.s0 + (C.s1 - C.s0) * e;
   // climbing hand over hand from the moment it starts up until its tail's coming out; the tail curls up over the rim as it passes under it
   C.liz = smoothstep(0, CRAWL_RISE * 0.6, C.t) * (1 - smoothstep(0.72, 0.95, uc));
   const spR = (0.42 - ((C.rw - C.s) / K + 0.3)) / 1.37; C.curl = Math.sin(Math.PI * clamp((spR - 0.4) / 0.68, 0, 1));
   D.x = C.cx + C.fx * C.s; D.z = C.cz + C.fz * C.s; D.spd = dt > 0 ? Math.max(0, (C.s - sPrev) / dt) : 0; D.air = false;
   // the rim, where it crosses the body (the model's own units, from its front back), fading out once the tail's past it
   const zr = (C.rw - C.s) / K + 0.3; C.rim[0] = zr; C.rim[3] = 1 - smoothstep(-0.85, -1.05, zr);
-  if (!C.popped && C.s > C.rw - 0.1) { C.popped = true; if (D.wearOff) { D.wearOff = false; D.wearPop = -0.14; } if (D === P) { AU.land(0.35); buzz(6); } }
+  if (!C.popped && C.s > (C.rw2 || C.rw) - 0.1) { C.popped = true; if (D.wearOff) { D.wearOff = false; D.wearPop = -0.14; } if (D === P) { AU.land(0.35); buzz(6); } }
   // its trail starts where it comes down off the rim
-  if (C.s > C.rw + 0.25) { D.dist = (D.dist || 0) + D.spd * dt; while (D.dist >= SPACING) { D.dist -= SPACING; addPoint(D.x, D.y, D.z, D.yaw, dryClock, D.stroke, 1, tcode(D), D.rb); } }
-  if (C.t < CRAWL_RISE * 0.45 + CRAWL_T) return;
+  if (C.s > (C.rw2 || C.rw) + 0.25) { D.dist = (D.dist || 0) + D.spd * dt; while (D.dist >= SPACING) { D.dist -= SPACING; addPoint(D.x, D.y, D.z, D.yaw, dryClock, D.stroke, 1, tcode(D), D.rb); } }
+  if (C.t < CRAWL_RISE * 0.45 + (C.T || CRAWL_T)) return;
   D.introCrawl = null; D.introOut = true; D.spd = 0; D.squash = 0.2; D.wob = 0.35; D.introShake = { t: 0, on: false, burst: false };
   if (D.wearOff) { D.wearOff = false; D.wearPop = -0.14; }
   addSplat(D.x, D.y, D.z, D.yaw, SPLAT_R * 0.75, dryClock, true, true, tcode(D));
@@ -16294,7 +16350,7 @@ function beginMatch() {
   const basins = introBasins();
   for (const D of ACTIVE) { const p = basins.get(D); D.stroke++; D.wearOff = true; D.peeked = false; D.introBare = false; D.introLeap = null; D.introOut = false; D.introCrawl = null; D.introAct = null; D.ip = null; D.eyeSink = D.eyeShut = D.eyeWide = 0; D.introKind = pickIntro(D);
     if (p) { D.st = 'hide'; D.pot = p; p.occ = p.lastOcc = D; D.x = p.x; D.z = p.z; D.y = D.introY0 = p.y; D.yaw = basinLeap(p); D.rimInfo = basinRim(p, Math.sin(D.yaw), Math.cos(D.yaw)); // (read now, behind the wipe, not mid-countdown) D.air = false; D.vy = 0; D.spd = 0; D.freeLand = false; D.formK = 1; D.fT = 1; D.fV = 0; D.wob = 0;
-      potClaim(p, D.team); p.paintC.copy(TEAM_COLS[D.team]); p.slosh = 0; D.popAt = D === P ? 0.32 : 0.36 + Math.random() * 0.16; D.leapAt = D.popAt + (D === P ? 0.85 : 0.8 + Math.random() * 0.08); continue; }
+      potClaim(p, D.team); p.paintC.copy(TEAM_COLS[D.team]); p.slosh = 0; D.popAt = D === P ? 0.32 : 0.36 + Math.random() * 0.16; D.leapAt = D.popAt + (D === P ? 0.85 : 0.8 + Math.random() * 0.08) - (D.introKind === 'climb' ? 0.2 : 0); /* (the climb takes longer now: it starts a little sooner) */ continue; }
     D.introY0 = Math.max(0, surfaceUnder(D.x, D.z, 3, true)); D.y = D.introY0 + INTRO_H; D.air = true; D.vy = 0; D.freeLand = true; D.formK = 0.12; D.fT = 0.34; D.fV = 0; D.wob = 0.8; }
   camYaw = P.yaw; camYawV = 0; introCam(true); gyCam = P.introY0 || 0; camSnap = true;
   if (!reduceMotion && !window.__noReveal) { state = 'reveal'; revealT = 0; revealA0 = P.yaw + 0.67 + 0.75; revealCam(); camera.position.copy(dPos); camera.lookAt(dLook); camera.updateMatrixWorld(); revealShow(); irisOpen(); AU.whoosh(); return; }
@@ -17187,10 +17243,11 @@ const TUT_STEPS = [
   { id: 'sling', max: 40, enter() { tut.slowK = TUT_SLOW; tutShow(say('*HOLD*, *PULL DOWN*, then let go to fling!', 'Hold *S*, then let go to fling!'), null, 'sling', true); },
     tick() { return P.st === 'play' && P.air && P.flung && (P.flingC || 0) > 0.1; } },
   { id: 'free1', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 2; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
-  { id: 'basin', max: 55, enter() { tut.slowK = 1; tut.basinTip = false; tut.potQ = tutRaisePot(); tutHide(); }, /* (the tank drains, a basin comes up just ahead, and the way to it is shown) */
+  { id: 'basin', max: 55, enter() { tut.slowK = 1; tut.basinTip = false; tut.basinT = 0; tut.basinSw = false; tut.potQ = tutRaisePot(); tutHide(); }, /* (the tank drains, a basin comes up just ahead, and the way to it is shown) */
     exit() { tut.potQ = null; },
     tick(dt) { if (P.dryT) P.dryT = 0; /* (no running dry into a knock-out in the lesson) */
       if (P.st === 'play') P.paint = tut.basinTip ? Math.min(P.paint, 0.02) : Math.max(0, P.paint - dt * 1.1); /* (the tank empties in under a second and stays out till you refill) */
+      if (tut.basinTip && !tut.basinSw) { tut.basinT += dt; if (tut.basinT > 2.5 && P.st === 'play') { tut.basinSw = true; tutGest('swipe'); } } /* (not there yet: a finger shows the swipe up, a roll gets you there faster) */
       if (!tut.basinTip && P.paint <= 0.02) { tut.basinTip = true; pingTank(4); tutShow('Out of paint! Roll into a *' + potWord().toUpperCase() + '* to refill', null, 'basin', true, true); }
       return P.st === 'hide'; } },
   { id: 'pound', max: 80, exit() { tut.drive = null; tut.driveMode = null; TUT_AI.speed = 0.8; }, enter() { tut.hidePound = false; tut.keepAway = false; tut.drive = H; tut.driveMode = 'near'; TUT_AI.speed = 0.62; tutGivePound(); tut.kos0 = P.kos; tut.flat0 = P.flatted; tut.slowK = 1; tut.slowT = 0; tut.poundIn = false; tut.poundShown = false; tut.sub = ''; tutHide(); },
@@ -17241,6 +17298,7 @@ const TUT_STEPS = [
     exit() { if (!gift.got) { gift.got = true; gift.on = false; giftM.visible = giftRing.visible = giftBeam.visible = false; unlockItem('flower'); newItem = 'flower'; } if (!owns('fangs')) unlockItem('fangs'); newItem = ['flower', 'fangs']; orb.spawnT = 8; } },
   { id: 'rest', max: 1e9, enter() { tutHide(); tut.slowK = 1; tut.noTurret = false; if (matchLeft < 28) matchLeft = 28; tut.cardIn = 1.1; tut.card = false; },
     tick(dt) { if (tut.cardIn > 0) { tut.cardIn -= dt; if (tut.cardIn <= 0) tutCard(true); }
+      if (tut.fin) tutFinTick(dt);
       const lead = teamCov(0) - teamCov(1), close = lead < 7; TUT_AI.speed = close ? 0.58 : 0.8; TUT_AI.steal = close ? 0.25 : 0.7; TUT_AI.pound = close ? 0 : 0.45; return false; } } // (a beat for the new item banner, then the card; then the rival eases off whenever it is close, so the first win is yours)
 ];
 const TUT_REST = TUT_STEPS.length - 1;
@@ -17272,8 +17330,8 @@ function tutCardCoach() { // (with him over it the card sits half his height low
 function tutWelcomeDone(open) { const el = $('tutGo'); el.classList.remove('on'); el.hidden = true; coachCorner(null); el.dataset.mode = ''; tutSet('done'); menu.classList.remove('tutoring'); kick($('commBtn'), 'bump'); if (open) setTimeout(() => openComms(), 250); }
 function tutCard(on) {
   const el = $('tutGo'); if (!tut) on = false;
-  if (on) { el.dataset.mode = 'rest'; tutCardText(TG_REST); tut.card = true; tut.slowK = 0; bannerEl.classList.remove('on'); el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); tutCardCoach(); AU.fanfare && AU.fanfare(); AU.bloop(0.55); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60); return; }
-  el.classList.remove('on'); el.hidden = true; coachCorner(null); if (tut) { if (tut.card) { P.paint = 1; P.slamCD = 0; banner('Paint it ' + colorOf().name.toLowerCase() + '!', TH.label, true); } /* (Let's do it: a full tank and the pound ready for the final push) */ tut.card = false; tut.slowK = 1; }
+  if (on) { el.dataset.mode = 'rest'; tutCardText(TG_REST); matchLeft = 10; tut.card = true; tut.slowK = 0; bannerEl.classList.remove('on'); el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); tutCardCoach(); AU.fanfare && AU.fanfare(); AU.bloop(0.55); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60); return; }
+  el.classList.remove('on'); el.hidden = true; coachCorner(null); if (tut) { if (tut.card) { P.paint = 1; P.slamCD = 0; matchLeft = 10; banner('Paint it ' + colorOf().name.toLowerCase() + '!', TH.label, false, true); tutFinStart(); } /* (Let's do it: a full tank and the pound ready for the final push) */ tut.card = false; tut.slowK = 1; }
 }
 $('tgGo').addEventListener('click', () => { AU.init(); AU.ui(); if ($('tutGo').dataset.mode === 'welcome') tutWelcomeDone(true); else tutCard(false); });
 $('tgLater').addEventListener('click', () => { AU.init(); AU.ui(); tutWelcomeDone(false); });
@@ -17329,6 +17387,46 @@ function tutSpawnRoller() {
   const spot = tutRollerSpot(); if (!spot) return;
   const pw = { phase: Math.random() * 6, pop: 0, grace: 0, owner: null }; placePower(pw, 'roller', spot); powers.push(pw); itemSpawn.last = 'roller'; itemSpawn.t = 12; AU.spot();
 }
+// the lesson's finale, the ten seconds after Ol' Bloop's card: rollers close by either side of you to start (one more if you have none a few
+// seconds in), then with about four seconds left the orb right in front of you; its rocket's landing is the last big moment (the clock holds
+// while you're up there, it boosts down by itself if you don't, and the match ends a moment after the blast)
+function tutNearSpot(ds, as, anyView) {
+  for (const d of ds) for (const da of as) {
+    const a = P.yaw + da, x = P.x + Math.sin(a) * d, z = P.z + Math.cos(a) * d; if (Math.abs(x) > ARENA - 1.5 || Math.abs(z) > ARENA - 1.5) continue;
+    const y = surfaceUnder(x, z, P.y + 0.3); if (!(Math.abs(y - P.y) < 0.3) || blockedAt(x, z, y) || !lineClear(P, x, z, P.y)) continue;
+    if (pots.some(p => Math.hypot(p.x - x, p.z - z) < 2) || powers.some(o => Math.hypot(o.x - x, o.z - z) < 1.6) || rivals.some(r => Math.hypot(r.x - x, r.z - z) < r.rad + 1.2)) continue;
+    tv1.set(x, y + 0.3, z).project(camera); if (!anyView && !(tv1.z < 1 && Math.abs(tv1.x) < 0.8 && tv1.y > -0.7 && tv1.y < 0.8)) continue;
+    return [x, y, z]; }
+  return null;
+}
+function tutFinRoller(side) {
+  const as = side > 0 ? [side, side + 0.25, side - 0.2, 0.15, 0.7] : side < 0 ? [side, side - 0.25, side + 0.2, -0.15, -0.7] : [0, 0.25, -0.25, 0.5, -0.5];
+  const sp = tutNearSpot([3.8, 4.8, 5.8, 3], as) || tutNearSpot([3, 4, 5, 6.5], [0.3, -0.3, 0.6, -0.6, 0.95, -0.95, 1.3, -1.3, 0]) || tutNearSpot([3.5, 5], [0, 0.6, -0.6, 1.3, -1.3, 2, -2, 3.1], true); if (!sp) return false; /* (a cluttered canvas: anywhere close and in view) */
+  const pw = { phase: Math.random() * 6, pop: 0, grace: 0, owner: null }; placePower(pw, 'roller', sp); powers.push(pw); AU.spot(); return true;
+}
+function tutFinStart() {
+  tut.fin = { more: false, orb: false, orbT: 0, useTip: false, boostTip: false, rk: false, landed: false, outSw: false }; tut.orbMine = true; tut.items = true;
+  if (orb.on) tutOrbOff(); orb.spawnT = 1e9; itemSpawn.t = 1e9; tutFinRoller(0.45); tutFinRoller(-0.45);
+}
+function tutFinOrb(sp) {
+  orb.on = true; orb.k = 0; orb.pull = 0; orb.x = sp[0]; orb.z = sp[2]; orb.base = sp[1]; orb.y = sp[1] + 1.15; orb.ph = Math.random() * 6.28; orb.tx = orb.x; orb.tz = orb.z; orb.stay = true;
+  orb.g.visible = true; orb.ring.visible = true; AU.orb(); kick($('orbFlash'), 'on'); popText('Orb!');
+  for (let i = 0; i < 16; i++) { const a = i / 16 * 6.283; spawnPart(orb.x, orb.y, orb.z, Math.cos(a) * 2.5, (Math.random() - 0.3) * 3, Math.sin(a) * 2.5, 0.5, orbPartMats[i % orbPartMats.length], 0.5); }
+}
+function tutFinTick(dt) {
+  const F = tut.fin;
+  if (!F.more && matchLeft < 7.2 && !P.held && !P.power && !P.rocket && P.st === 'play' && !powers.some(q => q.type === 'roller' && Math.hypot(q.x - P.x, q.z - P.z) < 9)) F.more = tutFinRoller(0);
+  if (!F.useTip && P.held === 'roller' && !P.rocket) { F.useTip = true; tutShow(say('*TAP* the roller!', 'Press *F* to roll!'), 'itemBtn', 'finuse', true, true); }
+  if (F.useTip && tutTip && tutTip.key === 'finuse' && P.held !== 'roller') tutHide();
+  if (!F.orb && matchLeft <= 4.2 && !P.rocket && (P.st === 'play' || P.st === 'hide')) { const sp = tutNearSpot([2.8, 3.4, 2.3, 4], [0, 0.2, -0.2, 0.4, -0.4, 0.7, -0.7]) || tutNearSpot([2.6, 3.4, 4.2], [1, -1, 1.4, -1.4]) || tutNearSpot([2.6, 3.4], [0, 1, -1, 2, -2, 3.1], true); if (sp) { F.orb = true; tutFinOrb(sp); } }
+  // (not taken in a moment, it comes to you; still down in a basin, a finger shows the swipe out)
+  if (F.orb && orb.on && orb.stay) { F.orbT += dt; if (P.st === 'play' && !P.rocket) { const dx = P.x - orb.x, dz = P.z - orb.z, d = Math.hypot(dx, dz);
+      if (F.orbT > 0.8 && d > 0.01) { const st = Math.min(d, dt * 4.5); orb.x += dx / d * st; orb.z += dz / d * st; orb.tx = orb.x; orb.tz = orb.z; }
+      if (d < 1.3 && orb.k > 0.45) takeOrb(P); } if (P.st === 'hide' && !F.outSw) { F.outSw = true; tutGest('swipe'); } else if (P.st !== 'hide' && F.outSw) { F.outSw = false; tutGest(null); } }
+  if (P.rocket) { F.rk = true; if (matchLeft < 0.9) matchLeft = 0.9; const R = P.rocket;
+    if (R.ph === 'hover') { if (!F.boostTip) { F.boostTip = true; tutShow(say('Tap *BOOST* to slam down!', 'Press *E* to slam down!'), 'slamBtn', 'finboost', true, true); } if (R.t > 1.5) rocketDive(P, false); } }
+  else if (F.rk && !F.landed) { F.landed = true; tutHide(); matchLeft = Math.min(matchLeft, 1.6); }
+}
 // the lesson's rival, far off and out of sight: brought round to open ground a few steps ahead of you, in view (with a little pop of
 // paint), so what it does next happens where you can see it coming
 let tutRivT = -9;
@@ -17377,6 +17475,7 @@ function tutGoal() {
   if (tut2 && tut2.ph === 'gift' && state === 'play' && P.st === 'play' && gift.on && !gift.got) return [gift.x, gift.z];
   if (tut2 && tut2.ph === 'sun' && tut2.sub === 'shade' && tut2.shade && state === 'play' && P.st === 'play' && !inShadow(P.x, P.z, P.y)) return [tut2.shade[0], tut2.shade[1]];
   if (!tut || state !== 'play' || P.st !== 'play' || tut.step < 0) return null; const id = TUT_STEPS[tut.step].id;
+  if (id === 'rest' && tut.fin) { if (orb.on && !P.rocket) return [orb.x, orb.z]; if (!P.held && !P.power && !P.rocket) { let b = null, bd = 1e9; for (const q of powers) if (q.g && q.type === 'roller') { const d = Math.hypot(q.x - P.x, q.z - P.z); if (d < bd) { bd = d; b = q; } } if (b) return [b.x, b.z]; } return null; }
   if (id === 'flower' && gift.on && !gift.got) return [gift.x, gift.z];
   if (id === 'item' && !P.held && !P.power) { const pw = powers.find(q => q.g && q.type === 'roller'); if (pw) return [pw.x, pw.z]; }
   if (id === 'orb' && orb.on && !P.rocket) return [orb.x, orb.z];
@@ -17391,7 +17490,8 @@ function tutRaisePot() {
     for (let k = 0; k < 8; k++) { const a = k * 0.785; if (Math.abs(surfaceUnder(x + Math.cos(a) * 1.1, z + Math.sin(a) * 1.1, P.y + 0.5) - P.y) > 0.05) return false; }
     return !pots.some(o => Math.hypot(o.x - x, o.z - z) < 3) && !rivals.some(r => Math.hypot(r.x - x, r.z - z) < r.rad + 1.6) && !powers.some(w => Math.hypot(w.x - x, w.z - z) < 2.2) && Math.hypot(H.x - x, H.z - z) > 2; };
   let spot = null;
-  for (const d of [7, 6, 8, 5]) { for (const da of [0, 0.3, -0.3, 0.6, -0.6, 0.9, -0.9]) { const a = P.yaw + da, x = P.x + Math.sin(a) * d, z = P.z + Math.cos(a) * d; if (ok(x, z)) { spot = [x, P.y, z]; break; } } if (spot) break; }
+  const seen = (x, z) => { tv1.set(x, P.y + 0.4, z).project(camera); return tv1.z < 1 && Math.abs(tv1.x) < 0.75 && tv1.y > -0.55 && tv1.y < 0.75; }; // (somewhere on screen)
+  for (const pass of [0, 1]) { for (const d of pass ? [9.5, 8.5, 7.5, 6.5, 5.5, 5, 4.5] : [9.5, 10.5, 8.5, 11.5, 7.5, 6.5]) { for (const da of [0, 0.25, -0.25, 0.5, -0.5, 0.8, -0.8]) { const a = P.yaw + da, x = P.x + Math.sin(a) * d, z = P.z + Math.cos(a) * d; if (ok(x, z) && (pass || seen(x, z))) { spot = [x, P.y, z]; break; } } if (spot) break; } if (spot) break; }
   if (!spot) return null;
   let q = null, bd = -1; for (const o of pots) { if (o.st !== 'up' || o.occ) continue; const d = Math.hypot(o.x - P.x, o.z - P.z); if (d > bd) { bd = d; q = o; } }
   if (!q) return null;

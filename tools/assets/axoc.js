@@ -102,6 +102,16 @@ const AXOC = (() => {
         if (X.hasPrev && dt > 0) { carry = X.carry || (X.carry = new THREE.Matrix4()); carry.copy(mw).invert().multiply(pv); const e = carry.elements; if (Math.hypot(e[12], e[13], e[14]) > 2.5) carry = null; }
         pv.copy(mw); X.hasPrev = true; }
       A.motion.carry = carry;
+      // climbing out of a basin (o.climb: the world into the tub's own frame, its oval outside and in, its rim's height, the paint's level
+      // and how deep it still is under it, the floor outside): the ground's height under a point of the body's own space
+      if (o.climb && par && X.mw) { const T = X.trn || (X.trn = { mw: new THREE.Matrix4(), sy: 1, c: null, v: new THREE.Vector3() });
+        T.mw.copy(X.mw); const e = X.mw.elements; T.sy = Math.hypot(e[4], e[5], e[6]); T.c = o.climb;
+        A.motion.terrain = X.trnF || (X.trnF = (x, z) => { const c = T.c, v = T.v.set(x, 0, z).applyMatrix4(T.mw), wy = v.y; v.applyMatrix4(c.inv);
+          const lx = v.x - (c.ox || 0), lz = v.z - (c.oz || 0), ro = Math.hypot(lx / c.ao, lz / c.bo), ri = Math.hypot(lx / c.ai, lz / c.bi), sm = (a, b, x) => { const u = Math.max(0, Math.min(1, (x - a) / (b - a))); return u * u * (3 - 2 * u); };
+          const liq = c.liq - (c.sink || 0) - (c.deep || 0), y = ri < 1 ? liq + (c.top - liq) * sm(0.9, 1, ri) : ro <= 1 ? c.top : c.top + (c.floor - c.top) * sm(1, 1.08, ro);
+          return (y - wy) / T.sy; }); }
+      else A.motion.terrain = null;
+      A.motion.climbTail = o.climb ? (o.climb.tailK === undefined ? 1 : o.climb.tailK) : undefined; A.motion.climbCurl = o.climb ? o.climb.curl || 0 : 0;
       // in the air: how high, how fast up or down, how soon it lands (the game's gravity, heavier falling), in its mesh's metres
       const k = 1 / (SC * (par ? par.scale.x : 1) || 1), vy = o.vy || 0, hh = Math.max(0, o.height || 0), g1 = GRAV, g2 = GRAV * 1.45;
       const air = !!o.inAir && !(D && D.st !== 'play' && state !== 'menu');
