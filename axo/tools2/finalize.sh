@@ -9,16 +9,17 @@ rm -f $DST/stand.glb $DST/crawl.glb
 # single-module runtime: core + animator (strip the animator's import of the core)
 python3 - <<'EOF'
 S='/tmp/claude-0/-home-user-rollmodel/5c52352e-692f-5301-ac55-ec4d2c708f3e/scratchpad'
-core = open(S + '/ws/axo2/axo.js').read(); anim = open(S + '/ws/axo2/anim.js').read(); look = open(S + '/ws/axo2/look.js').read()
+core = open(S + '/ws/axo2/axo.js').read(); anim = open(S + '/ws/axo2/anim.js').read(); look = open(S + '/ws/axo2/look.js').read(); eyes = open(S + '/ws/axo2/eyes.js').read()
 anim = anim.replace("import * as THREE from 'three';\nimport { Pose, rot, setRot, mirrorQ, DEG } from './axo.js';\n", '')
 anim = anim.replace("const _v = new THREE.Vector3(), _v2 = new THREE.Vector3(), _q = new THREE.Quaternion();", "const _av = new THREE.Vector3(), _av2 = new THREE.Vector3(), _aq = new THREE.Quaternion();")
 import re
 # the animator's scratch names must not clash with the core's: rename inside the animator part only
 anim = re.sub(r'\b_v3\b', '_av3', anim); anim = re.sub(r'\b_v2\b', '_av2', anim); anim = re.sub(r'\b_v\b', '_av', anim); anim = re.sub(r'\b_q\b', '_aq', anim)
-core = core.replace("import { axoMaterial } from './look.js';\n", ''); look = look.replace("import * as THREE from 'three';\n", '')
-out = core + '\n// ======================================================================\n' + anim + '\n// ======================================================================\n' + look
+core = core.replace("import { axoMaterial } from './look.js';\n", ''); look = look.replace("import * as THREE from 'three';\n", ''); eyes = eyes.replace("import * as THREE from 'three';\nimport { FACE } from './look.js';\n", '')
+out = core + '\n// ======================================================================\n' + anim + '\n// ======================================================================\n' + look + '\n// ======================================================================\n' + eyes
 open(S + '/ws/axo/axo.js', 'w').write(out)
-pv = open(S + '/ws/axo2/preview.html').read().replace("import { loadMesh, Puppet } from './axo.js'; import { Animator } from './anim.js'; import { Look, EXPR } from './look.js';", "import { loadMesh, Puppet, Animator, Look, EXPR } from './axo.js';")
+pv = open(S + '/ws/axo2/preview.html').read().replace("import { loadMesh, Puppet } from './axo.js'; import { Animator } from './anim.js'; import { Look, EXPR, FACE } from './look.js'; import { EyeRig } from './eyes.js';", "import { loadMesh, Puppet, Animator, Look, EXPR, FACE, EyeRig } from './axo.js';")
+assert "from './axo.js';" in pv and "eyes.js" not in pv, 'preview import rewrite failed'
 open(S + '/ws/axo/preview.html', 'w').write(pv)
 print('merged axo.js', len(out), 'bytes')
 EOF

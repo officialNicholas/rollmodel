@@ -12,18 +12,23 @@ export async function loadMesh(base, tex, matOpts = {}) {
   const n = meta.n, o = meta.off, g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(buf, o[0], n * 3), 3));
   g.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(buf, o[1], n * 3), 3));
-  g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(buf, o[2], n * 2), 2));
+  g.setAttribute('uv', meta.uv16 ? new THREE.BufferAttribute(new Uint16Array(buf, o[2], n * 2), 2, true) : new THREE.BufferAttribute(new Float32Array(buf, o[2], n * 2), 2));
   g.setAttribute('skinIndex', new THREE.BufferAttribute(new Uint8Array(buf, o[3], n * 4), 4));
   g.setAttribute('skinWeight', new THREE.BufferAttribute(new Uint8Array(buf, o[4], n * 4), 4, true));
   g.setIndex(new THREE.BufferAttribute(meta.i32 ? new Uint32Array(buf, o[5], meta.ni) : new Uint16Array(buf, o[5], meta.ni), 1));
   if (o.length > 7) { g.setAttribute('jelly', new THREE.BufferAttribute(new Uint8Array(buf, o[6], n * 4), 4, true)); g.setAttribute('fill', new THREE.BufferAttribute(new Uint8Array(buf, o[7], n * 2), 2, true)); }
   else { g.setAttribute('jelly', new THREE.BufferAttribute(new Uint8Array(n * 4), 4, true)); g.setAttribute('fill', new THREE.BufferAttribute(new Uint8Array(n * 2), 2, true)); }
+  g.setAttribute('xtra', o.length > 8 ? new THREE.BufferAttribute(new Uint8Array(buf, o[8], n * 2), 2, true) : new THREE.BufferAttribute(new Uint8Array(n * 2), 2, true));   // x ambient occlusion, y webbing
   const bones = [], byName = {}, F = [], rest = [], end = [];
   for (const b of meta.bones) { const bn = new THREE.Bone(); bn.name = b.name; bones.push(bn); byName[b.name] = bn; F.push(new THREE.Quaternion(...b.q)); rest.push(new THREE.Vector3(...b.pos)); end.push(new THREE.Vector3(...b.end)); }
   const pidx = {}; meta.bones.forEach((b, i) => pidx[b.name] = i);
   for (let i = 0; i < bones.length; i++) { const b = meta.bones[i], bn = bones[i]; if (b.parent) { byName[b.parent].add(bn); bn.position.copy(rest[i]).sub(rest[pidx[b.parent]]); } else bn.position.copy(rest[i]); }
   // the head centre in rest space (for the face projection) = the head joint + the exported offset
   const hb = meta.bones.find(b => b.name === 'head'); meta.headAbs = meta.headc ? [hb.pos[0] + meta.headc[0], hb.pos[1] + meta.headc[1], hb.pos[2] + meta.headc[2]] : hb.pos; meta.headr = meta.headr || 0.38;
+  // the face frame: the vertical extent of the front of the head (dome top to chin, gills excluded), so face heights mean the same on a flat head and a round one
+  { const pa = g.getAttribute('position'), ja = g.getAttribute('jelly'); let lo = Infinity, hi = -Infinity;
+    for (let i = 0; i < n; i++) { if (ja.getW(i) > 0.9 && pa.getZ(i) > meta.headAbs[2] + 0.15 * meta.headr) { const y = pa.getY(i); if (y < lo) lo = y; if (y > hi) hi = y; } }
+    if (hi > lo) { meta.headMid = (lo + hi) / 2; meta.headH = (hi - lo) / 2; } else { meta.headMid = meta.headAbs[1]; meta.headH = meta.headr; } }
   const mat = matOpts && matOpts.look ? axoMaterial(tex, matOpts.look, meta) : new THREE.MeshStandardMaterial(Object.assign({ map: tex, roughness: 0.6, metalness: 0 }, matOpts || {}));
   const mesh = new THREE.SkinnedMesh(g, mat); mesh.add(bones[0]); mesh.bind(new THREE.Skeleton(bones)); mesh.frustumCulled = false; mesh.castShadow = true;
   return { mesh, bones, byName, meta, F, rest, end, names: meta.bones.map(b => b.name), parent: meta.bones.map(b => b.parent ? pidx[b.parent] : -1) };
@@ -204,7 +209,7 @@ export class Animator {
     const dv = (this.speedS - spd0) / Math.max(dt, 1e-3);
     this.accS.x += (-this.turnS * this.speedS * 2.5 - this.accS.x) * Math.min(1, dt * 8); this.accS.z += (dv * 1.5 - this.accS.z) * Math.min(1, dt * 8);
     // a hop (jump / land): the root rises on a simple arc, the landing squashes the body and kicks the gills and the tail
-    if (this.inAir) { this.airV -= 9.8 * dt; this.airY += this.airV * dt; if (this.airY <= 0) { this.airY = 0; this.inAir = false; const imp = Math.min(1, -this.airV / 4); this.sqV += 4.5 * imp; this.landK = imp; this.kickGills(0, 1.2 * imp); this.lagV.y += 0.5 * imp; for (let k = 0; k < 6; k++) this.tailSpring.v[k * 2 + 1] -= 60 * imp; } }
+    if (this.inAir) { this.airV -= 9.8 * dt; this.airY += this.airV * dt; if (this.airY <= 0) { this.airY = 0; this.inAir = false; const imp = Math.min(1, -this.airV / 4); this.sqV += 6.5 * imp; this.landK = imp; this.kickGills(0, 1.2 * imp); this.lagV.y += 0.5 * imp; for (let k = 0; k < 6; k++) this.tailSpring.v[k * 2 + 1] -= 60 * imp; } }
     this.landK = Math.max(0, this.landK - dt * 3);
     if (this.trans) this.updateTransition(dt, out);
     else {
@@ -270,8 +275,8 @@ export class Animator {
     for (const [en, off, m, isArm] of limbs) {
       const u = ((ph + off) / (2 * Math.PI)) % 1, base = isArm ? this.crawlHand : this.crawlFoot, h = isArm ? this.H.crawlHand : this.H.crawlFoot, S = this.stride * speed;
       let z, y, lift = 0;
-      if (u < 0.6) { z = base.z + S / 2 - S * (u / 0.6); y = h; } else { const sw = (u - 0.6) / 0.4; z = base.z - S / 2 + S * smooth(sw); lift = Math.sin(sw * Math.PI); y = h + 0.07 * lift; }
-      const fwd = isArm ? _av2.set(0.35 * m, 0, 1) : _av2.set(0.45 * m, 0, 1), pole = isArm ? _av3.set(m, 0.3, -0.5) : _av3.set(m, 0.3, 0.4);
+      if (u < 0.6) { z = base.z + S / 2 - S * (u / 0.6); y = h; } else { const sw = (u - 0.6) / 0.4; z = base.z - S / 2 + S * smooth(sw); lift = Math.sin(sw * Math.PI); y = h + 0.045 * lift; }
+      const fwd = isArm ? _av2.set(0.35 * m, 0, 1) : _av2.set(0.45 * m, 0, 1), pole = isArm ? _av3.set(m, 0.25, -0.5) : _av3.set(m, -0.2, 0.3);
       out.contact(en, _av.set(base.x * m, y, z), fwd, pole, 1);
       // digits: flat on the ground in stance, relaxed curl in the air
       const dig = this.chain[isArm ? 'fingers' : 'toes'][m > 0 ? 0 : 1]; dig.forEach((f, k) => { rot(out, f[0], 4 + lift * 14, 0, (k - 1.5) * 5 * m); rot(out, f[1], 3 + lift * 10, 0, 0); });
@@ -284,7 +289,7 @@ export class Animator {
     out.copy(this.LS); out.contacts = {}; this.tailWave(0, 0, 1, 0);
     for (const s of ['L', 'R']) { const m = s === 'L' ? 1 : -1;
       out.contact('hand.' + s, _av.set(this.crawlHand.x * m, this.H.crawlHand, this.crawlHand.z), _av2.set(0.35 * m, 0, 1), _av3.set(m, 0.3, -0.5), 1);
-      out.contact('foot.' + s, _av.set(this.crawlFoot.x * m, this.H.crawlFoot, this.crawlFoot.z), _av2.set(0.45 * m, 0, 1), _av3.set(m, 0.3, 0.4), 1); }
+      out.contact('foot.' + s, _av.set(this.crawlFoot.x * m, this.H.crawlFoot, this.crawlFoot.z), _av2.set(0.45 * m, 0, 1), _av3.set(m, -0.2, 0.3), 1); }
     this.digits(out, 0.08, 0.3, 0.08); return out;
   }
   // ---------------- POWER POSE: akimbo. chest out, elbows out, fists planted on the hips, chin up ----------------
@@ -416,7 +421,7 @@ export class Animator {
     for (let k = 0; k < 6; k++) rot(pose, this.chain.tail[k], tl[k * 2 + 1], 0, tl[k * 2] + lat * (0.25 + k * 0.15));
     // breathing: the chest / belly expand (jelly layer) and the chest bone lifts a little; faster and deeper with exertion
     const rate = 1.9 + 2.6 * this.exertS + 0.6 * this.speedS; this.breathPh += dt * rate; this.breath = 0.5 + 0.5 * Math.sin(this.breathPh); const br = this.breath * (0.6 + 0.9 * this.exertS);
-    rot(pose, I.chest, -1.2 * br, 0, 0); rot(pose, I.spine1, -0.8 * br, 0, 0);
+    rot(pose, I.chest, -1.8 * br, 0, 0); rot(pose, I.spine1, -1.2 * br, 0, 0);
     const g = this.chain.gills, vel = this.headVelS;
     for (let j = 0; j < 6; j++) {
       const i1 = g[j * 2]; _aq.copy(this.P.Fp[i1]).invert(); _av.copy(vel).applyQuaternion(_aq);   // head velocity in the stalk's posed frame
@@ -449,7 +454,7 @@ export class Animator {
     const stretch = this.inAir ? -0.08 * Math.min(1, Math.abs(this.airV) / 3) : 0;
     this.jellyRipple += ((this.speedS * 0.35 + this.landK * 0.6) * 0.004 - this.jellyRipple) * Math.min(1, dt * 6);
     if (!L) return;
-    L.U.uJelly.value.set(0.012 * this.breath * (0.7 + 0.8 * this.exertS), this.sq * 0.6 + stretch, this.mesh === 'crawl' ? 0.9 : 1.6, this.jellyRipple);
+    L.U.uJelly.value.set(0.018 * this.breath * (0.7 + 0.8 * this.exertS), this.sq * 0.9 + stretch, this.mesh === 'crawl' ? 0.9 : 1.6, this.jellyRipple);
     L.U.uLag.value.x = this.lagP.x; L.U.uLag.value.y = this.lagP.y; L.U.uLag.value.z = this.lagP.z;
     L.coatMixT = this.mesh === 'crawl' ? 0 : 1;
     L.update(dt, [this.look.yaw / 90 * 0.3, this.look.pitch / -50 * 0.2], this.sq * 0.6 + stretch);
@@ -467,6 +472,14 @@ export class Animator {
 // a soft-body jelly layer in the vertex shader (breathing, lag wobble, squash / stretch, ripple; the head is rigid), rim light and thin-part
 // warmth, and the face (eyes, pupils, blink, mouth, fangs) projected onto the front of the head from the rest-space head frame.
 
+// ---------------- the shared face: one definition in head-local units (head radii, angles from the head centre), so both meshes carry the same face ----------------
+export const FACE = {
+  // eyes: direction from the head centre (yaw out to the side, pitch up), ball radius in head radii, how deep the ball sinks into the skin,
+  // how much the gaze turns outward (0 = both eyes dead ahead), a vertical tilt of the gaze, the socket ring and the lid shell radii (in ball radii)
+  eye: { yaw: 0.9, height: 0.2, size: 0.25, embed: 0.62, gaze: 0.22, tilt: 0.0, socket: 1.25, lid: 1.07 },
+  // mouth / nostril sheet projection: yaw half-width (rad) and half-height (face-frame half heights) of the sheet, the height of its centre
+  sheet: { yaw: 1.2, height: 0.7, centre: 0.0 },
+};
 // ---------------- face sheets (ported from the game's slime: 4 x 5 cells; 0-5 eyes, 6 closed, 7 squeezed, 8-13 mouths, 14-19 mouths with fangs) ----------------
 export const FACE_EYE = { x: 0.4, y: 0.16, rx: 0.3, ry: 0.33 };
 export const FACE_KINDS = ['neutral', 'happy', 'angry', 'hurt', 'glee', 'scared'];
@@ -539,17 +552,37 @@ export function makeFaceSheets(C) {
   const fang = (ctx, x, y, s) => { ctx.beginPath(); ctx.moveTo(x - 0.035 * s, y + 0.005); ctx.quadraticCurveTo(x - 0.01 * s, y - 0.07 * s, x + 0.002 * s, y - 0.088 * s); ctx.quadraticCurveTo(x + 0.014 * s, y - 0.06 * s, x + 0.035 * s, y + 0.005); ctx.closePath(); const fg = ctx.createLinearGradient(0, y, 0, y - 0.09 * s); fg.addColorStop(0, '#FFFFFF'); fg.addColorStop(1, '#E9E2F0'); ctx.fillStyle = fg; ctx.fill(); ctx.strokeStyle = 'rgba(' + INK + ',0.7)'; ctx.lineWidth = 0.014; ctx.stroke(); };
   const line = (ctx, pts, w) => { ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.strokeStyle = 'rgba(' + INK + ',0.92)'; ctx.lineWidth = w || 0.045; ctx.stroke(); };
   const dPath = (ctx, w, top, h, dip) => () => { ctx.beginPath(); ctx.moveTo(-w, top); ctx.quadraticCurveTo(0, top - dip, w, top); for (let k = 1; k <= 40; k++) { const t = k / 40 * Math.PI; ctx.lineTo(w * Math.cos(t), top - h * Math.sin(t)); } ctx.closePath(); };
+  const lip = (ctx, path, y0, y1) => { ctx.save(); path(); ctx.clip(); const lg = ctx.createLinearGradient(0, y0, 0, y1); lg.addColorStop(0, 'rgba(255,220,225,0.0)'); lg.addColorStop(1, 'rgba(255,228,232,0.85)'); ctx.fillStyle = lg; ctx.fillRect(-2, y1 - 0.5, 4, 0.5 + (y0 - y1)); ctx.restore(); };
+  const smile = (ctx, w, lift, thick, f) => { line(ctx, Array.from({ length: 41 }, (_, i) => { const u = i / 40 - 0.5; return [u * 2 * w, MY + 0.02 + lift * (1 - Math.cos(u * Math.PI * 2)) * 0.5 - 0.02 * Math.cos(u * Math.PI)]; }), thick); if (f) { fang(ctx, -0.16, MY + 0.03, 0.8); fang(ctx, 0.16, MY + 0.03, 0.8); } };
   const MOUTHS = {
-    neutral: (ctx, f) => { line(ctx, Array.from({ length: 21 }, (_, i) => { const u = i / 20 - 0.5; return [u * 0.2, MY + 0.03 - 0.035 * Math.cos(u * Math.PI)]; }), 0.034); if (f) { fang(ctx, -0.05, MY + 0.0, 0.8); fang(ctx, 0.05, MY + 0.0, 0.8); } },
-    happy: (ctx, f) => { cavity(ctx, dPath(ctx, 0.2, MY + 0.08, 0.2, 0.03), MY + 0.08, MY - 0.12, [0, MY - 0.09, 0.11, 0.07]); if (f) { fang(ctx, -0.085, MY + 0.072, 0.95); fang(ctx, 0.085, MY + 0.072, 0.95); } },
-    angry: (ctx, f) => { line(ctx, [[-0.12, MY - 0.03], [-0.03, MY + 0.01], [0.05, MY + 0.0], [0.12, MY - 0.035]], 0.04); if (f) { fang(ctx, -0.055, MY + 0.003, 0.85); fang(ctx, 0.045, MY + 0.002, 0.85); } },
-    hurt: (ctx, f) => { line(ctx, Array.from({ length: 33 }, (_, i) => { const u = i / 32; return [-0.15 + 0.3 * u, MY + 0.025 * Math.sin(u * Math.PI * 4)]; }), 0.036); if (f) { fang(ctx, -0.06, MY + 0.02, 0.75); fang(ctx, 0.06, MY - 0.005, 0.75); } },
-    glee: (ctx, f) => { cavity(ctx, dPath(ctx, 0.27, MY + 0.12, 0.3, 0.05), MY + 0.12, MY - 0.18, [0, MY - 0.14, 0.15, 0.1]); if (f) { fang(ctx, -0.12, MY + 0.11, 1.1); fang(ctx, 0.12, MY + 0.11, 1.1); } },
-    scared: (ctx, f) => { cavity(ctx, () => { ctx.beginPath(); ctx.ellipse(0, MY - 0.02, 0.07, 0.1, 0, 0, Math.PI * 2); }, MY + 0.08, MY - 0.12, null); if (f) { fang(ctx, -0.035, MY + 0.07, 0.6); fang(ctx, 0.035, MY + 0.07, 0.6); } },
+    neutral: (ctx, f) => smile(ctx, 0.8, 0.11, 0.03, f),
+    happy: (ctx, f) => { const P = dPath(ctx, 0.74, MY + 0.1, 0.24, 0.05); cavity(ctx, P, MY + 0.1, MY - 0.16, [0, MY - 0.1, 0.3, 0.09]); lip(ctx, P, MY - 0.02, MY - 0.16); if (f) { fang(ctx, -0.3, MY + 0.085, 0.95); fang(ctx, 0.3, MY + 0.085, 0.95); } },
+    angry: (ctx, f) => { line(ctx, [[-0.62, MY + 0.04], [-0.35, MY - 0.06], [-0.1, MY - 0.09], [0.1, MY - 0.09], [0.35, MY - 0.06], [0.62, MY + 0.04]], 0.036); if (f) { fang(ctx, -0.2, MY - 0.07, 0.85); fang(ctx, 0.2, MY - 0.07, 0.85); } },
+    hurt: (ctx, f) => { line(ctx, Array.from({ length: 49 }, (_, i) => { const u = i / 48; return [-0.6 + 1.2 * u, MY - 0.02 + 0.03 * Math.sin(u * Math.PI * 6)]; }), 0.034); if (f) { fang(ctx, -0.2, MY, 0.75); fang(ctx, 0.2, MY - 0.03, 0.75); } },
+    glee: (ctx, f) => { const P = dPath(ctx, 0.8, MY + 0.14, 0.34, 0.07); cavity(ctx, P, MY + 0.14, MY - 0.22, [0, MY - 0.15, 0.36, 0.12]); lip(ctx, P, MY - 0.04, MY - 0.22); if (f) { fang(ctx, -0.34, MY + 0.12, 1.1); fang(ctx, 0.34, MY + 0.12, 1.1); } },
+    scared: (ctx, f) => { const P = () => { ctx.beginPath(); ctx.ellipse(0, MY - 0.03, 0.13, 0.12, 0, 0, Math.PI * 2); }; cavity(ctx, P, MY + 0.08, MY - 0.15, null); if (f) { fang(ctx, -0.07, MY + 0.07, 0.6); fang(ctx, 0.07, MY + 0.07, 0.6); } },
   };
-  const big = (ctx, fn) => { ctx.translate(0, MY); ctx.scale(1.2, 1.2); ctx.translate(0, -MY); fn(); };   // (the axolotl's mouth: small)
+  const big = (ctx, fn) => { ctx.translate(0, MY); ctx.scale(1.0, 1.0); ctx.translate(0, -MY); fn(); };
   FACE_KINDS.forEach((k, i) => { at(g, 8 + i, ctx => big(ctx, () => MOUTHS[k](ctx, false))); at(g, 14 + i, ctx => big(ctx, () => MOUTHS[k](ctx, true))); });
   return { col, msk };
+}
+// a tiling height map of bumpy amphibian skin: soft lumps (two octaves of wrapped value noise) with small pits (pores) between them
+let BUMP = null;
+export function bumpTexture(N = 256) {
+  if (BUMP) return BUMP;
+  const lat = (n, seed) => { const a = new Float32Array(n * n); let x = seed; for (let i = 0; i < a.length; i++) { x = (x * 1664525 + 1013904223) >>> 0; a[i] = (x >>> 8) / 16777216; } return a; };
+  const sm = t => t * t * (3 - 2 * t);
+  const noise = (L, n, u, v) => { const x = u * n, y = v * n, x0 = Math.floor(x), y0 = Math.floor(y), fx = sm(x - x0), fy = sm(y - y0); const g = (i, j) => L[((j % n + n) % n) * n + ((i % n + n) % n)];
+    return (g(x0, y0) * (1 - fx) + g(x0 + 1, y0) * fx) * (1 - fy) + (g(x0, y0 + 1) * (1 - fx) + g(x0 + 1, y0 + 1) * fx) * fy; };
+  const L8 = lat(8, 7), L16 = lat(16, 19), L32 = lat(32, 41); const pts = []; const PN = 14, PL = lat(PN * PN * 2, 5);
+  for (let j = 0; j < PN; j++) for (let i = 0; i < PN; i++) pts.push([(i + 0.15 + 0.7 * PL[(j * PN + i) * 2]) / PN, (j + 0.15 + 0.7 * PL[(j * PN + i) * 2 + 1]) / PN]);
+  const data = new Uint8Array(N * N);
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const u = x / N, v = y / N;
+    let h = 0.5 * noise(L8, 8, u, v) + 0.32 * noise(L16, 16, u, v) + 0.18 * noise(L32, 32, u, v);
+    let pit = 0; for (const [px, py] of pts) { let dx = Math.abs(u - px), dy = Math.abs(v - py); dx = Math.min(dx, 1 - dx); dy = Math.min(dy, 1 - dy); const d2 = (dx * dx + dy * dy) * PN * PN * 9.0; pit = Math.max(pit, Math.exp(-d2)); }
+    h = h * 0.8 + 0.1 - 0.28 * pit; data[y * N + x] = Math.max(0, Math.min(255, Math.round(h * 255))); }
+  const t = new THREE.DataTexture(data, N, N, THREE.RedFormat, THREE.UnsignedByteType); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true; t.anisotropy = 4; t.needsUpdate = true;
+  return BUMP = t;
 }
 let SHEETS = null;
 export function faceSheets(C = 256) {
@@ -562,18 +595,19 @@ export function faceSheets(C = 256) {
 // ---------------- shader pieces ----------------
 // vertex: the jelly layer on the skinned position, and the face / coat varyings from the REST position (so the face rides the head rigidly)
 const VERT_PARS = `
-attribute vec4 jelly; attribute vec2 fill;
+attribute vec4 jelly; attribute vec2 fill; attribute vec2 xtra;
 uniform vec4 uJelly;   // x breath (m), y squash (-stretch .. +squash), z body height (m), w ripple (m)
 uniform vec4 uLag;     // xyz: lag offset of the soft body (object space, m), w: time
-uniform vec4 uFace;    // x yaw half-width (rad), y pitch half-height (rad), z pitch of the face centre (rad), w on
+uniform vec4 uFace;    // x yaw half-width (rad), y half-height (head radii), z height of the sheet centre (head radii), w on
 uniform vec4 uHead;    // xyz head centre (rest, object space), w head radius
+uniform vec2 uHeadF;   // x height of the face frame's centre (object space), y its half height (dome top to chin)
 uniform float uCoatMix;
-varying vec3 vSkinP, vFace; varying vec4 vJelly; varying float vFill;`;
+varying vec3 vSkinP, vFace, vRestN; varying vec4 vJelly; varying float vFill; varying vec2 vXtra;`;
 const VERT_MAIN = `
 {
-  vJelly = jelly; vSkinP = position; vFill = mix(fill.x, fill.y, uCoatMix);
-  vec3 d = position - uHead.xyz; float yw = atan(d.x, d.z), pt = atan(d.y, length(d.xz));
-  vFace = vec3(yw / uFace.x, (pt - uFace.z) / uFace.y, smoothstep(0.05, 0.4, d.z / uHead.w) * smoothstep(0.6, 0.9, jelly.w) * uFace.w);
+  vJelly = jelly; vSkinP = position; vRestN = normal; vXtra = xtra; vFill = mix(fill.x, fill.y, uCoatMix);
+  vec3 d = position - uHead.xyz; float yw = atan(d.x, d.z), ht = (position.y - uHeadF.x) / uHeadF.y;
+  vFace = vec3(yw / uFace.x, (ht - uFace.z) / uFace.y, smoothstep(0.05, 0.4, d.z / uHead.w) * smoothstep(0.6, 0.9, jelly.w) * uFace.w);
   float soft = jelly.y, h = clamp(transformed.y / uJelly.z, 0.0, 1.0);
   transformed += objectNormal * (jelly.x * uJelly.x + uJelly.w * soft * sin(position.x * 23.0 + position.y * 17.0 + uLag.w * 9.0) * sin(position.z * 19.0 - uLag.w * 7.0));
   float s = uJelly.y * soft; transformed.y *= 1.0 - s; transformed.xz *= 1.0 + 0.5 * s;
@@ -583,8 +617,17 @@ const VERT_MAIN = `
 const FRAG_PARS = `
 uniform vec3 uTeam, uPaint; uniform vec4 uCoat;   // uCoat: x level 0..1, y seed, z wet 0..1, w 0
 uniform sampler2D fCol, fMsk; uniform vec4 fCells, fMix, fPupil, fComp; uniform vec3 fIris; uniform float fStyle; uniform vec3 uKeyDir;
-varying vec3 vSkinP, vFace; varying vec4 vJelly; varying float vFill;
-float sCoatM = 0.0, sGloss = 0.5, faceInk = 0.0, sEyeM = 0.0;
+uniform sampler2D uBump; uniform vec4 uBumpK; uniform vec3 uAlong; uniform float uDebug;
+varying vec3 vSkinP, vFace, vRestN; varying vec4 vJelly; varying float vFill; varying vec2 vXtra;
+float sCoatM = 0.0, sGloss = 0.5, faceInk = 0.0, sRed = 0.0, sFil = 0.0;
+// skin relief: a tiling bumpy-skin height sampled triplanar in rest space (no seams, the same scale everywhere), perturbing the lit normal
+// from its screen-space derivatives (Mikkelsen's unparametrized bump mapping, as three's bumpMap does)
+float skinH(vec3 p, vec3 n) { vec3 w = pow(abs(n), vec3(3.0)); w /= (w.x + w.y + w.z + 1e-4); float f = uBumpK.y;
+  return texture2D(uBump, p.yz * f).r * w.x + texture2D(uBump, p.xz * f).r * w.y + texture2D(uBump, p.xy * f).r * w.z; }
+vec3 axoPerturb(vec3 surf_pos, vec3 surf_norm, vec2 dHdxy, float faceDirection) {
+  vec3 vSigmaX = normalize(dFdx(surf_pos.xyz)), vSigmaY = normalize(dFdy(surf_pos.xyz)), vN = surf_norm;
+  vec3 R1 = cross(vSigmaY, vN), R2 = cross(vN, vSigmaX); float fDet = dot(vSigmaX, R1) * faceDirection;
+  vec3 vGrad = sign(fDet) * (dHdxy.x * R1 + dHdxy.y * R2); return normalize(abs(fDet) * surf_norm - vGrad); }
 vec3 sHue(vec3 c, float a){ const vec3 k = vec3(0.57735); float ca = cos(a); return c * ca + cross(k, c) * sin(a) + k * dot(k, c) * (1.0 - ca); }
 vec3 rgb2hsv(vec3 c){ vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0); vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g)); vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
   float d = q.x - min(q.w, q.y), e = 1.0e-10; return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x); }
@@ -597,77 +640,68 @@ const MAP_FS = `
 {
   const vec3 LW = vec3(0.2126, 0.7152, 0.0722);
   vec4 texel = texture2D(map, vMapUv); vec3 tl = texel.rgb; float lum = dot(tl, LW); vec3 hsv = rgb2hsv(tl);
-  vec3 T = mix(vec3(dot(uTeam, LW)), uTeam, 0.92);
+  vec3 T = max(mix(vec3(dot(uTeam, LW)), uTeam, 1.1), vec3(0.0));   // the team colour, a touch richer than the swatch
   vec3 HA = max(sHue(T, 0.34), vec3(0.0)), HB = max(sHue(T, -0.34), vec3(0.0)); float upA = step(dot(HB, LW), dot(HA, LW));
   vec3 up = mix(HB, HA, upA), dn = mix(HA, HB, upA);
-  vec3 skinC = mix(T, vec3(1.0, 0.93, 0.9), 0.3), bellyC = mix(T, vec3(1.0, 0.96, 0.9), 0.8), gillC = mix(pow(T, vec3(1.6)) * 1.25, dn, 0.3), finC = mix(up, vec3(1.0), 0.25);
+  vec3 skinC = T, bellyC = mix(T, vec3(1.0), 0.26), gillC = clamp(mix(pow(T, vec3(1.7)) * 1.35, dn, 0.3), 0.0, 1.0), finC = mix(up, vec3(1.0), 0.2);
   float redM = smoothstep(0.45, 0.65, hsv.y) * (1.0 - smoothstep(0.04, 0.09, min(hsv.x, 1.0 - hsv.x))) * (1.0 - smoothstep(0.3, 0.5, lum));
   float blueM = smoothstep(0.2, 0.35, hsv.y) * smoothstep(0.5, 0.58, hsv.x) * (1.0 - smoothstep(0.82, 0.9, hsv.x));
-  float paleM = (1.0 - smoothstep(0.1, 0.28, hsv.y)) * smoothstep(0.25, 0.5, lum) * (1.0 - redM) * (1.0 - blueM);
-  float skinM = max(0.0, 1.0 - redM - blueM - paleM);
-  vec3 pal = skinC * min(1.25, lum / 0.36) * skinM + bellyC * min(1.1, lum / 0.6) * paleM + gillC * clamp(lum / 0.2, 0.6, 1.3) * redM + finC * min(1.2, lum / 0.3) * blueM;
+  float paleM = (1.0 - smoothstep(0.08, 0.36, hsv.y)) * smoothstep(0.2, 0.45, lum) * (1.0 - redM) * (1.0 - blueM);
+  paleM = max(paleM, smoothstep(0.25, 0.8, vJelly.x) * (1.0 - redM) * (1.0 - blueM)); float skinM = max(0.0, 1.0 - redM - blueM - paleM); sRed = redM;
+  // the gill filaments: fine feathery stripes across the stalks, denser and deeper at the roots
+  sFil = 0.5 + 0.5 * sin(vSkinP.x * 240.0 + vSkinP.z * 50.0 + 2.5 * sin(vSkinP.y * 70.0 + vSkinP.z * 35.0));
+  vec3 pal = skinC * clamp(lum / 0.4, 0.5, 1.05) * skinM + bellyC * clamp(lum / 0.5, 0.8, 1.0) * paleM + gillC * clamp(lum / 0.2, 0.7, 1.25) * (1.0 - 0.3 * sFil) * redM + finC * min(1.1, lum / 0.3) * blueM;
+  pal = mix(pal, bellyC * 0.95, 0.4 * vXtra.y);   // the webs: a little paler, like the belly
   diffuseColor.rgb = clamp(pal, 0.0, 1.0);
-  // gloss: wet goo, wetter low down, on the belly and the thin frills; a touch drier over the back
-  sGloss = clamp(0.45 + 0.3 * vJelly.z + 0.25 * vJelly.x + 0.3 * uCoat.z + 0.2 * redM - 0.1 * smoothstep(0.3, 0.8, vNormal.y), 0.0, 1.0);
 }
 if (uCoat.x > 0.001) {
   float ch = coatField(vSkinP, vFill), cv = uCoat.x * 1.08 - 0.04;
   sCoatM = smoothstep(ch - 0.035, ch + 0.035, cv);
-  vec3 pc = max(mix(vec3(dot(uPaint, vec3(0.2126, 0.7152, 0.0722))), uPaint, 1.12), vec3(0.0)) * 0.86;
+  vec3 pc = max(mix(vec3(dot(uPaint, vec3(0.2126, 0.7152, 0.0722))), uPaint, 1.1), vec3(0.0)) * 0.8;   // (the paint: the body's colour, a touch deeper and richer, as wet paint is)
   diffuseColor.rgb = mix(diffuseColor.rgb, pc, sCoatM) * (1.0 - 0.3 * (1.0 - smoothstep(0.0, 0.06, abs(cv - ch))) * step(uCoat.x, 0.995));
-  sGloss = max(sGloss, sCoatM);
+}`;
+// the skin relief: bumpy amphibian skin and pores everywhere (softer on the face and the belly), costal grooves across the trunk and
+// rays along the fin, the gill filaments; flat under the paint coat (wet paint levels it)
+const BUMP_FS = `
+{
+  float dorsal = (1.0 - vJelly.x) * vJelly.y * (1.0 - vJelly.w), web = vXtra.y, along = dot(vSkinP, uAlong);
+  float amp = uBumpK.x * (0.55 + 0.45 * dorsal) * (1.0 - 0.5 * vJelly.w) * (1.0 - 0.7 * web) * (1.0 - sCoatM);
+  float h = skinH(vSkinP, vRestN) * amp;
+  h += uBumpK.z * (1.0 - sCoatM) * (dorsal * (1.0 - vJelly.z) * (0.5 + 0.5 * sin(along * 70.0 + 1.2 * sin(vSkinP.x * 40.0 + vSkinP.y * 25.0)))
+     + vJelly.z * (1.0 - sRed) * (1.0 - web) * 0.7 * (0.5 + 0.5 * sin(along * 140.0)) + sRed * 0.8 * sFil);
+  normal = axoPerturb(-vViewPosition, normal, vec2(dFdx(h), dFdy(h)), faceDirection);
 }`;
 const FACE_FS = `
 if (vFace.z > 0.01 && abs(vFace.x * fComp.x) < 0.985 && abs(vFace.y * fComp.y) < 0.985) {
   vec2 fq = vFace.xy * fComp.xy; vec2 cuv = fq * 0.5 + 0.5;
-  float sqd = (fStyle > 0.5 && fStyle < 1.5) ? 1.0 : 0.0, zmb = fStyle > 2.5 ? 1.0 : 0.0; vec2 fqe = fq; if (sqd > 0.5) { float sd0 = fq.x < 0.0 ? -1.0 : 1.0; vec2 pc0 = vec2(sd0 * 0.4, 0.16); vec2 l = fq - pc0; l.y = l.y * 1.1 + 0.01; l.x = (l.x + l.y * sd0 * 0.2) * 0.97; fqe = pc0 + l; }
-  vec2 cuvE = fqe * 0.5 + 0.5;
-  vec4 eA = texture2D(fCol, fCell(fCells.x, cuvE)), eB = texture2D(fCol, fCell(fCells.z, cuvE)), eye = mix(eA, eB, fMix.x);
-  vec3 emL = mix(texture2D(fMsk, fCell(fCells.x, cuvE)).rgb, texture2D(fMsk, fCell(fCells.z, cuvE)).rgb, fMix.x); vec2 em = emL.rg;
-  vec4 bl = texture2D(fCol, fCell(fMix.w, cuvE)); eye = mix(eye, bl, fMix.y); em *= 1.0 - fMix.y;
-  float dotK = 0.0; if (fStyle > 1.5 && fStyle < 2.5) { eye.a = 0.0; em = vec2(0.0); }
-  if (zmb > 0.5) eye.rgb = eye.rgb * vec3(0.78, 0.9, 0.6) + vec3(0.05, 0.06, 0.0) * eye.a;
-  vec3 c = mix(diffuseColor.rgb, eye.rgb, eye.a);
-  if (sqd > 0.5) { float d1 = 0.0; for (int k = 0; k < 16; k++) { float a = float(k) * 0.3927; d1 = max(d1, texture2D(fCol, fCell(0.0, cuvE + vec2(cos(a) * 0.05, sin(a) * 0.052 + 0.026))).a); }
-    float hole = texture2D(fCol, fCell(0.0, cuvE)).a, rim = clamp(d1 - hole, 0.0, 1.0), sp = 0.0;
-    for (int i = 0; i < 2; i++) { float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16); vec2 dw = normalize(vec2(sd, 0.45)); vec2 a = pc + dw * 0.18, b = a + dw * 0.26;
-      vec2 ab = b - a; float t = clamp(dot(fqe - a, ab) / dot(ab, ab), 0.0, 1.0); float dd = length(fqe - a - ab * t) - mix(0.1, 0.004, t); sp = max(sp, 1.0 - smoothstep(-0.004, 0.012, dd)); }
-    float mk = max(rim, sp); c = mix(c, vec3(0.03, 0.012, 0.02), mk);
-    float lidLine = eye.a * step(dot(eye.rgb, vec3(0.333)), 0.3); c = mix(c, vec3(0.03, 0.012, 0.02), hole * (1.0 - eye.a) * (1.0 - mk)); c = mix(c, vec3(0.46, 0.3, 0.38), hole * lidLine * (1.0 - mk)); dotK = max(mk, hole * (1.0 - eye.a)); }
-  if (fStyle > 1.5 && fStyle < 2.5) { float bk = 1.0 - fMix.y * 0.92; for (int i = 0; i < 2; i++) { float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16 + fPupil.w) + fPupil.xy * 0.6; vec2 dd = (fq - pc) * vec2(1.0, 1.0 / max(0.08, bk)); float r = length(dd);
-    float dk = 1.0 - smoothstep(0.125, 0.145, r); c = mix(c, vec3(0.03, 0.012, 0.02), dk); float hl = 1.0 - smoothstep(0.03, 0.046, length((fq - pc - vec2(-0.045, 0.05)) * vec2(1.0, 1.0 / max(0.08, bk)))); c = mix(c, vec3(1.0), hl * dk); dotK = max(dotK, dk); } }
-  for (int i = 0; i < 2; i++) {
-    float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16 + fPupil.w) + fPupil.xy, dd = (fqe - pc) * vec2(1.0, 0.92); float r = length(dd), ri = mix(0.165, 0.235, sqd) * fPupil.z * mix(1.0, i == 0 ? 0.92 : 1.14, zmb), rp = mix(0.092, 0.11, sqd) * fPupil.z * mix(1.0, i == 0 ? 0.5 : 0.78, zmb);
-    vec3 irC = mix(fIris, vec3(0.42, 0.6, 0.3), zmb);
-    float ia = (1.0 - smoothstep(ri - 0.014, ri, r)) * em.r;
-    vec3 ic = mix(irC, irC * 0.2, smoothstep(0.0, ri, r)); ic = mix(ic, vec3(0.004, 0.002, 0.003), 1.0 - smoothstep(rp - 0.012, rp, r));
-    ic += irC * 1.12 * smoothstep(ri * 0.35, ri * 0.95, r) * smoothstep(0.2, -0.6, dd.y / ri) * (1.0 - smoothstep(ri * 0.95, ri, r));
-    ic = mix(ic, vec3(0.72, 0.78, 0.62), zmb * 0.42 * smoothstep(rp, ri * 0.9, r) * (0.6 + 0.4 * sin(atan(dd.y, dd.x) * 11.0 + r * 60.0)));
-    ic = mix(ic, vec3(0.02, 0.008, 0.014), sqd * smoothstep(ri - 0.032, ri - 0.012, r));
-    c = mix(c, ic * (1.0 - 0.55 * em.g), ia);
-    float cl = (1.0 - smoothstep(mix(0.03, 0.05, sqd), mix(0.042, 0.06, sqd), length(fqe - pc - vec2(-0.055, 0.06) * (1.0 + 0.3 * sqd) * fPupil.z))) + 0.8 * (1.0 - sqd) * (1.0 - smoothstep(0.012, mix(0.02, 0.026, sqd), length(fqe - pc - vec2(0.05, -0.05) * (1.0 + 0.3 * sqd) * fPupil.z)));
-    c = mix(c, vec3(1.0), clamp(cl, 0.0, 1.0) * (1.0 - 0.75 * zmb) * em.r * (1.0 - 0.85 * em.g));
-  }
-  if (zmb > 0.5) { for (int i = 0; i < 2; i++) { float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16 + fPupil.w), dd = fq - pc; float r = length(dd), an = atan(dd.y, dd.x);
-      float vn = smoothstep(0.86, 0.99, sin(an * 7.0 + sin(r * 38.0 + an * 3.0) * 0.7 + sd * 1.3)) * smoothstep(0.12, 0.2, r) * (1.0 - smoothstep(0.3, 0.42, r)); c = mix(c, vec3(0.55, 0.03, 0.04), vn * eye.a * (1.0 - em.r * 0.7));
-      float lidY = pc.y + (i == 0 ? 0.05 : 0.13) - sd * dd.x * 0.22, lid = eye.a * smoothstep(lidY - 0.012, lidY + 0.012, fq.y), crease = eye.a * (1.0 - smoothstep(0.0, 0.03, abs(fq.y - lidY)));
-      c = mix(c, vec3(0.1, 0.045, 0.08), lid); c = mix(c, vec3(0.36, 0.2, 0.28), crease * 0.9);
-      float ring = (1.0 - eye.a) * smoothstep(0.52, 0.3, length(dd * vec2(0.9, 1.35))) * smoothstep(0.02, -0.2, dd.y); c = mix(c, c * vec3(0.42, 0.34, 0.5), ring * 0.8); } }
-  vec4 mA = texture2D(fCol, fCell(fCells.y, cuv)), mB = texture2D(fCol, fCell(fCells.w, cuv)), mo = mix(mA, mB, fMix.x) * fMix.z * (1.0 - sCoatM) * (1.0 - zmb);
-  c = mix(c, mo.rgb, mo.a);
-  faceInk = max(max(eye.a, mo.a), dotK) * vFace.z; diffuseColor.rgb = mix(diffuseColor.rgb, c, vFace.z); sEyeM = em.r * vFace.z;
+  vec4 mA = texture2D(fCol, fCell(fCells.y, cuv)), mB = texture2D(fCol, fCell(fCells.w, cuv)), mo = mix(mA, mB, fMix.x) * fMix.z * (1.0 - sCoatM);
+  vec3 c = mix(diffuseColor.rgb, mo.rgb, mo.a);
+  // the nostrils: two small soft dots on the top front of the snout, the skin a shade darker
+  float nz = 0.0; for (int i = 0; i < 2; i++) { float sd = i == 0 ? -1.0 : 1.0; vec2 d = (fq - vec2(sd * 0.17, -0.06)) * vec2(1.0, 1.35); nz = max(nz, 1.0 - smoothstep(0.028, 0.05, length(d))); }
+  c = mix(c, c * vec3(0.72, 0.5, 0.58), nz * (1.0 - sCoatM));
+  faceInk = mo.a * vFace.z; diffuseColor.rgb = mix(diffuseColor.rgb, c, vFace.z);
 }`;
 // the goo's gloss, the face kept crisp, a rim of light along the body's edge, warmth glowing through the thin frills
 const LIT_FS = `
-{ float wet = max(sGloss, sCoatM) * (1.0 - 0.7 * faceInk);
-  material.roughness = min(max(mix(0.62, 0.12, wet), 0.0525) + geometryRoughness, 1.0);
+{ float belly = vJelly.x * (1.0 - vJelly.w), thin = vJelly.z, web = vXtra.y;
+  // regions respond to light differently: the belly a wet satin sheen, the back, the face and the limbs nearly matte, the frills a touch drier;
+  // the paint coat is wet and glossy wherever it covers
+  float satin = max(belly, 0.6 * web);
+  float base = mix(0.8, 0.42, satin); base = mix(base, 0.6, thin * 0.4 * (1.0 - web)) + 0.05 * sRed;
+  float wet = max(sCoatM, 0.45 * uCoat.z);
+  material.roughness = min(max(mix(base, 0.16, wet), 0.0525) + geometryRoughness, 1.0);
 #ifdef USE_CLEARCOAT
-  material.clearcoat = max(0.9 * sGloss * (1.0 - faceInk), sCoatM);
-  material.clearcoatRoughness = min(max(mix(0.3, 0.06, wet), 0.0525) + geometryRoughness, 1.0);
+  material.clearcoat = mix(0.12 + 0.4 * satin, 1.0, sCoatM) * (1.0 - 0.8 * faceInk);
+  material.clearcoatRoughness = min(max(mix(0.5 - 0.3 * satin, 0.07, sCoatM), 0.0525) + geometryRoughness, 1.0);
 #endif
 }`;
 const LOOK_FS = `
-{ float ink = faceInk * (1.0 - sCoatM);
+{ float ink = faceInk * (1.0 - sCoatM), occ = vXtra.x * (1.0 - 0.3 * sCoatM);
+  // baked cavity occlusion: creases, armpits, under the chin, between the toes, the gill roots
+  reflectedLight.indirectDiffuse *= 1.0 - 0.9 * occ; reflectedLight.directDiffuse *= 1.0 - 0.5 * occ; reflectedLight.indirectSpecular *= 1.0 - 0.9 * occ; reflectedLight.directSpecular *= 1.0 - 0.6 * occ;
+#ifdef USE_CLEARCOAT
+  clearcoatSpecularIndirect *= 1.0 - 0.9 * occ; clearcoatSpecularDirect *= 1.0 - 0.6 * occ;
+#endif
   reflectedLight.directDiffuse *= 1.0 - 0.5 * ink; reflectedLight.indirectDiffuse *= 1.0 - 0.5 * ink; reflectedLight.directSpecular *= 1.0 - 0.85 * ink; reflectedLight.indirectSpecular *= 1.0 - 0.85 * ink;
   totalEmissiveRadiance += diffuseColor.rgb * ink * 0.55;
   vec3 vd = normalize(vViewPosition), upV = normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz), kd = normalize(uKeyDir);
@@ -676,19 +710,28 @@ const LOOK_FS = `
   totalEmissiveRadiance += mix(diffuseColor.rgb, vec3(1.0, 0.95, 0.9), 0.4) * rim * 0.3;
   // thin parts: the key light shining through from behind, in the skin's own deeper colour; a soft wrap of warmth on the frills
   float thin = vJelly.z * (1.0 - sCoatM), tr = pow(saturate(dot(vd, -normalize(kd + nonPerturbedNormal * 0.4))), 3.0), wrap = saturate((dot(nonPerturbedNormal, kd) + 0.6) / 1.6);
-  vec3 deep = pow(max(diffuseColor.rgb, vec3(0.0)), vec3(1.5)) * 1.6;
-  totalEmissiveRadiance += deep * thin * (0.55 * tr + 0.12 * wrap) + diffuseColor.rgb * 0.05 * edge * edge * (1.0 - faceInk);
+  vec3 deep = pow(max(diffuseColor.rgb, vec3(0.0)), vec3(1.5)) * 1.6; thin = max(thin, 0.8 * vXtra.y) * (1.0 + 0.4 * sRed);
+  totalEmissiveRadiance += deep * thin * (0.6 * tr + 0.14 * wrap) + diffuseColor.rgb * 0.04 * edge * edge * (1.0 - faceInk);
 }`;
 
+// debug views (the material breakdown sheet): 1 roughness, 2 the detail normal lit by one light, 3 occlusion, 4 regions (belly / head / thin / web)
+const DEBUG_FS = `
+if (uDebug > 0.5) {
+  if (uDebug < 1.5) gl_FragColor = vec4(vec3(material.roughness), 1.0);
+  else if (uDebug < 2.5) { float l = 0.15 + 0.85 * max(0.0, dot(normal, normalize(vec3(0.4, 0.7, 0.6)))); gl_FragColor = vec4(vec3(l), 1.0); }
+  else if (uDebug < 3.5) gl_FragColor = vec4(vec3(1.0 - vXtra.x), 1.0);
+  else gl_FragColor = vec4(vJelly.x, vJelly.w, max(vJelly.z, vXtra.y), 1.0);
+}`;
 // ---------------- the material and its per-character state ----------------
 export class Look {
   constructor(opts = {}) {
     const sh = faceSheets(opts.faceCell || 256);
     this.U = {
       uTeam: { value: new THREE.Color(opts.color || 0xff6b8a) }, uPaint: { value: new THREE.Color(opts.color || 0xff6b8a) }, uCoat: { value: new THREE.Vector4(0, Math.random() * 40, 0, 0) }, uCoatMix: { value: 1 },
-      uJelly: { value: new THREE.Vector4(0, 0, 1.6, 0) }, uLag: { value: new THREE.Vector4(0, 0, 0, 0) }, uFace: { value: new THREE.Vector4(1.15, 0.8, 0.0, 1) }, uHead: { value: new THREE.Vector4(0, 1.37, 0.64, 0.38) },
+      uJelly: { value: new THREE.Vector4(0, 0, 1.6, 0) }, uLag: { value: new THREE.Vector4(0, 0, 0, 0) }, uFace: { value: new THREE.Vector4(FACE.sheet.yaw, FACE.sheet.height, FACE.sheet.centre, 1) }, uHead: { value: new THREE.Vector4(0, 1.37, 0.64, 0.38) },
       fCol: { value: sh.col }, fMsk: { value: sh.msk }, fCells: { value: new THREE.Vector4(0, 8, 0, 8) }, fMix: { value: new THREE.Vector4(0, 0, 1, 6) }, fPupil: { value: new THREE.Vector4(0, -0.03, 1, 0) }, fComp: { value: new THREE.Vector4(1, 1, 0, 0) },
       fIris: { value: new THREE.Vector3(0.16, 0.06, 0.035) }, fStyle: { value: 0 }, uKeyDir: { value: new THREE.Vector3(0.3, 0.6, 0.7) },
+      uDebug: { value: 0 }, uBump: { value: bumpTexture() }, uBumpK: { value: new THREE.Vector4(0.035, 7.0, 0.006, 0) },   // skin detail: amplitude, tiles per metre, groove / filament amplitude
     };
     this.fangs = false; this.expr = 'neutral'; this.exprB = 'neutral'; this.exprK = 1; this.blinkT = 1 + Math.random() * 2; this.blinkK = 0; this.look = [0, 0]; this.lookT = [0, 0];
     this.att = { t: 1 + Math.random() * 2, eye: [0, 0] }; this.t = 0;
@@ -699,6 +742,9 @@ export class Look {
   setEyeStyle(k) { this.U.fStyle.value = k; return this; }
   setExpression(name) { if (!(name in EXPR)) name = 'neutral'; if (name === this.exprB) return this; if (this.exprK < 1) this.expr = this.exprK > 0.5 ? this.exprB : this.expr; this.exprB = name; this.exprK = 0; return this; }
   blink() { this.blinkK = 0.13; }
+  // 3D eyes on a mesh's head bone (place: eye centre offsets in head radii, from the head centre)
+  attachEyes(EyeRigClass, meshRec) { this.rigs = this.rigs || {}; this.rigs[meshRec.meta.name || Object.keys(this.rigs).length] = new EyeRigClass(this, meshRec); return this; }
+  setFade(which, fade) { this.fades = this.fades || {}; this.fades[which] = fade; }
   // per frame: expression crossfade, blinks, pupils drifting toward the look target (x right, y up, in face units), head squash compensation
   update(dt, look, squash = 0) {
     this.t += dt;
@@ -712,22 +758,115 @@ export class Look {
     this.U.fCells.value.set(ea[0], ea[1] + fang, eb[0], eb[1] + fang); this.U.fMix.value.set(k, shut ? 1 : 0, 1, 6);
     this.U.fPupil.value.set(this.look[0], this.look[1], pa.pu + (pb.pu - pa.pu) * k, pa.py + (pb.py - pa.py) * k);
     this.U.fComp.value.set(1, 1 - 0.3 * squash, 0, 0); this.U.uLag.value.w = this.t;
+    if (this.rigs) for (const w in this.rigs) this.rigs[w].update(this.expr, this.exprB, k, this.blinkK, this.look, this.U.fStyle.value, this.U.uTeam.value, this.fades && this.fades[w] !== undefined ? this.fades[w] : 1);
     if (this.coatMixT !== undefined) this.U.uCoatMix.value += (this.coatMixT - this.U.uCoatMix.value) * Math.min(1, dt * 3);   // the coat's fill order glides between the crawl's and the stand's
   }
 }
 // the body material for one mesh of one character (the look's uniforms are shared by the character's two meshes)
 export function axoMaterial(tex, look, meta) {
-  const mat = new THREE.MeshPhysicalMaterial({ map: tex, roughness: 0.4, metalness: 0, clearcoat: 0.6, clearcoatRoughness: 0.15, envMapIntensity: 1.0 });
+  const mat = new THREE.MeshPhysicalMaterial({ map: tex, roughness: 0.7, metalness: 0, clearcoat: 0.3, clearcoatRoughness: 0.3, envMapIntensity: 1.0 });
   mat.onBeforeCompile = sh => {
     Object.assign(sh.uniforms, look.U);
     sh.vertexShader = VERT_PARS + '\n' + sh.vertexShader.replace('#include <skinning_vertex>', '#include <skinning_vertex>\n' + VERT_MAIN);
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\n' + FRAG_PARS)
       .replace('#include <map_fragment>', MAP_FS).replace('#include <color_fragment>', '#include <color_fragment>\n' + FACE_FS)
+      .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n' + BUMP_FS)
       .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\n' + LIT_FS)
-      .replace('#include <aomap_fragment>', '#include <aomap_fragment>\n' + LOOK_FS);
+      .replace('#include <aomap_fragment>', '#include <aomap_fragment>\n' + LOOK_FS)
+      .replace('#include <colorspace_fragment>', '#include <colorspace_fragment>\n' + DEBUG_FS);
     // this mesh's own head frame (rest space): centre and radius from the meta
-    sh.uniforms.uHead = { value: new THREE.Vector4(...meta.headAbs, meta.headr) };
+    sh.uniforms.uHead = { value: new THREE.Vector4(...meta.headAbs, meta.headr) }; sh.uniforms.uHeadF = { value: new THREE.Vector2(meta.headMid, meta.headH) };
+    sh.uniforms.uAlong = { value: new THREE.Vector3(...(meta.bbox[1][1] > 1.2 ? [0, 1, 0] : [0, 0, 1])) };   // the body's long axis in rest space (the standing mesh is upright)
   };
   mat.customProgramCacheKey = () => 'axo-body';
   return mat;
+}
+
+// ======================================================================
+// 3D eyes: for each mesh, two glossy eyeballs (teal iris ring, dark pupil, painted catchlights plus the real clearcoat reflection) set into
+// soft raised sockets with upper and lower lid shells, parented to the head bone so they ride every pose rigidly. Both meshes get the same
+// eye from the shared FACE definition: the same size, the same direction from the head centre and the same gaze, in head radii, with the
+// ball sunk into wherever that direction meets each mesh's own skin. Expressions move the lids, the look turns the balls, the eye style
+// swaps the iris map and the lid rest.
+
+function irisTexture(style) {
+  const W = 512, H = 256, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+  const cx = W * 0.25, cy = H * 0.5;
+  const bg = g.createRadialGradient(cx, cy, 10, cx, cy, 170); bg.addColorStop(0, '#ffffff'); bg.addColorStop(0.45, '#f7f5f9'); bg.addColorStop(0.8, '#e2dde8'); bg.addColorStop(1, '#c9c2d2'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  if (style === 3) { for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2 + 0.3; g.strokeStyle = 'rgba(190,30,40,0.5)'; g.lineWidth = 1.6; g.beginPath(); g.moveTo(cx + Math.cos(a) * 52, cy + Math.sin(a) * 52); g.quadraticCurveTo(cx + Math.cos(a + 0.2) * 85, cy + Math.sin(a + 0.25) * 85, cx + Math.cos(a - 0.1) * 120, cy + Math.sin(a) * 120); g.stroke(); } }
+  // iris radius / pupil radius in pixels (the equirect's 512 px = 360 deg, so 58 px is a 41 deg half-angle: a big expressive iris)
+  const ri = style === 2 ? 0 : style === 1 ? 50 : style === 3 ? 52 : 58, rp = style === 2 ? 44 : style === 3 ? 16 : style === 1 ? 30 : 27;
+  if (ri > 0) {
+    const teal = style === 3 ? ['#c3dcb0', '#8fb886', '#4f7a52', '#2b4a33'] : ['#8cf6ff', '#22cfe2', '#0b8aa0', '#063f4c'];
+    const ir = g.createRadialGradient(cx, cy, rp * 0.9, cx, cy, ri); ir.addColorStop(0, teal[1]); ir.addColorStop(0.45, teal[0]); ir.addColorStop(0.8, teal[1]); ir.addColorStop(0.95, teal[2]); ir.addColorStop(1, teal[3]);
+    g.fillStyle = ir; g.beginPath(); g.arc(cx, cy, ri, 0, Math.PI * 2); g.fill();
+    for (let i = 0; i < 56; i++) { const a = i / 56 * Math.PI * 2, w = 0.5 + (i % 3) * 0.4; g.strokeStyle = 'rgba(0,50,70,' + (0.1 + 0.1 * (i % 2)) + ')'; g.lineWidth = w; g.beginPath(); g.moveTo(cx + Math.cos(a) * rp, cy + Math.sin(a) * rp); g.lineTo(cx + Math.cos(a + 0.06) * (ri - 3), cy + Math.sin(a + 0.06) * (ri - 3)); g.stroke(); }
+    g.strokeStyle = 'rgba(6,30,40,0.85)'; g.lineWidth = 3.5; g.beginPath(); g.arc(cx, cy, ri - 1.5, 0, Math.PI * 2); g.stroke();
+    // limbal shadow: the lid's shadow on the top of the iris
+    const sh = g.createLinearGradient(0, cy - ri, 0, cy); sh.addColorStop(0, 'rgba(0,20,30,0.45)'); sh.addColorStop(1, 'rgba(0,20,30,0)'); g.save(); g.beginPath(); g.arc(cx, cy, ri, 0, Math.PI * 2); g.clip(); g.fillStyle = sh; g.fillRect(cx - ri, cy - ri, ri * 2, ri); g.restore();
+  }
+  g.fillStyle = '#07050a'; g.beginPath(); g.arc(cx + (style === 3 ? 7 : 0), cy + (style === 3 ? 5 : 0), rp, 0, Math.PI * 2); g.fill();
+  if (style === 2) { g.strokeStyle = 'rgba(8,6,10,0.9)'; g.lineWidth = 2; g.beginPath(); g.arc(cx, cy, rp + 1, 0, Math.PI * 2); g.stroke(); }
+  // painted catchlights: a big soft one up-left, a pin-point down-right (the real reflection adds the sharp one)
+  g.fillStyle = 'rgba(255,255,255,0.92)'; g.beginPath(); g.ellipse(cx - 19, cy - 19, style === 2 ? 11 : 13, style === 2 ? 9 : 11, -0.5, 0, Math.PI * 2); g.fill();
+  g.fillStyle = 'rgba(255,255,255,0.75)'; g.beginPath(); g.arc(cx + 17, cy + 15, 5, 0, Math.PI * 2); g.fill();
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
+let IRIS = null;
+// lid rests per expression: a = upper lid edge above the eye's horizontal (rad), b = lower lid edge below it, k = tilt (inner corner down when > 0)
+const LID3 = {
+  neutral: { a: 1.0, b: 0.75, k: 0.0 }, happy: { a: 0.85, b: 0.25, k: 0.08 }, angry: { a: 0.5, b: 0.65, k: -0.55 },
+  hurt: { L: { a: 0.5, b: 0.5, k: 0.3 }, R: { a: -0.12, b: 0.12, k: 0.25 } }, glee: { a: -0.12, b: 0.12, k: 0.2 }, scared: { a: 1.3, b: 1.0, k: 0.12 },
+  yawn: { a: 0.0, b: 0.12, k: 0.1 }, dizzy: { a: 0.4, b: 0.45, k: 0.4 }, peek: { a: 1.25, b: 0.95, k: 0.0 }, leap: { a: 1.25, b: 0.95, k: 0.0 }, brace: { a: -0.12, b: 0.12, k: 0.35 },
+};
+const NO_SHUT = { glee: 1, hurt: 1, yawn: 1, dizzy: 1, brace: 1 };
+const _o = new THREE.Vector3(), _d = new THREE.Vector3(), _z = new THREE.Vector3(0, 0, 1);
+export class EyeRig {
+  constructor(look, meshRec) {
+    IRIS = IRIS || [0, 1, 2, 3].map(irisTexture);
+    this.look = look; this.rec = meshRec; const meta = meshRec.meta, r = meta.headr, E = FACE.eye;
+    const R = r * E.size; this.R = R;
+    const headAbs = new THREE.Vector3(...meta.headAbs), hb = meta.bones.find(b => b.name === 'head'), headJoint = new THREE.Vector3(...hb.pos);
+    this.ballMat = new THREE.MeshPhysicalMaterial({ map: IRIS[0], roughness: 0.06, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.03, envMapIntensity: 1.4 });
+    this.lidMat = new THREE.MeshPhysicalMaterial({ color: 0xff8da6, roughness: 0.6, metalness: 0, clearcoat: 0.25, clearcoatRoughness: 0.35 });
+    this.socketMat = new THREE.MeshPhysicalMaterial({ color: 0xff9fb6, roughness: 0.68, metalness: 0, clearcoat: 0.15, clearcoatRoughness: 0.4 });
+    this.lashMat = new THREE.MeshStandardMaterial({ color: 0x5a1c33, roughness: 0.7, metalness: 0 });
+    // where the eye direction meets this mesh's skin (rest pose): the ball is sunk into the surface there
+    const probe = new THREE.Mesh(meshRec.mesh.geometry, new THREE.MeshBasicMaterial()); const rc = new THREE.Raycaster(); rc.far = r * 2.5;
+    this.eyes = [];
+    for (const sd of [-1, 1]) {
+      _d.set(sd * Math.sin(E.yaw), 0, Math.cos(E.yaw));   // a level ray from the eye height: the same height on a flat head and a round one
+      rc.set(_o.set(headAbs.x, meta.headMid + E.height * meta.headH, headAbs.z), _d); const hits = rc.intersectObject(probe, false); let dist = r * 0.95; for (const h of hits) { if (h.distance > r * 0.3) { dist = h.distance; break; } }
+      const centre = _o.addScaledVector(_d, dist - R * E.embed);
+      const g = new THREE.Group(); g.position.copy(centre).sub(headJoint);
+      const fwd = new THREE.Vector3(0, 0, 1).addScaledVector(_d, E.gaze).normalize(); fwd.y += E.tilt; fwd.normalize(); g.quaternion.setFromUnitVectors(_z, fwd);
+      const socket = new THREE.Mesh(new THREE.SphereGeometry(R * E.socket, 28, 18), this.socketMat); socket.scale.set(1.0, 0.95, 0.55); socket.position.z = R * 0.05;
+      const ball = new THREE.Mesh(new THREE.SphereGeometry(R, 40, 28), this.ballMat);
+      const up = new THREE.Mesh(new THREE.SphereGeometry(R * E.lid, 36, 14, 0, Math.PI * 2, 0, Math.PI * 0.5 + 0.12), this.lidMat);
+      const lo = new THREE.Mesh(new THREE.SphereGeometry(R * E.lid, 36, 14, 0, Math.PI * 2, Math.PI * 0.5 - 0.12, Math.PI * 0.5 + 0.12), this.lidMat);
+      const lash = new THREE.Mesh(new THREE.TorusGeometry(R * E.lid, R * 0.022, 6, 40, Math.PI * 1.1), this.lashMat); lash.rotation.set(Math.PI / 2 - 0.12, 0, -Math.PI * 0.05 + Math.PI); lash.position.y = -R * 0.0;
+      const upPivot = new THREE.Group(), loPivot = new THREE.Group(); upPivot.add(up); upPivot.add(lash); loPivot.add(lo);
+      g.add(socket); g.add(ball); g.add(upPivot); g.add(loPivot);
+      for (const m of [socket, ball, up, lo, lash]) { m.castShadow = true; m.renderOrder = 4; }
+      meshRec.byName.head.add(g); this.eyes.push({ sd, g, ball, up: upPivot, lo: loPivot, socket, dist });
+    }
+    this.probeDist = this.eyes.map(e => +e.dist.toFixed(3));
+  }
+  lidParams(name, sd) { const F = LID3[name] || LID3.neutral; return F.L ? (sd < 0 ? F.L : F.R) : F; }
+  update(expr, exprB, exprK, blinkK, lookV, style, team, fade) {
+    this.ballMat.map = IRIS[style] || IRIS[0];
+    const skin = team.clone().lerp(new THREE.Color(1, 0.93, 0.9), 0.12); this.lidMat.color.copy(skin).multiplyScalar(style === 1 ? 0.78 : 0.92); this.socketMat.color.copy(skin).multiplyScalar(1.0);
+    const shut = blinkK > 0 && !NO_SHUT[exprB];
+    for (const E of this.eyes) {
+      const pa = this.lidParams(expr, E.sd), pb = this.lidParams(exprB, E.sd); let a = pa.a + (pb.a - pa.a) * exprK, b = pa.b + (pb.b - pa.b) * exprK, k = pa.k + (pb.k - pa.k) * exprK;
+      if (style === 1) { a -= 0.3; k -= 0.3; } if (style === 3) { a -= E.sd < 0 ? 0.45 : 0.15; k += 0.15; }
+      if (shut) { a = -0.12; b = 0.12; }
+      a = Math.min(1.3, a); b = Math.min(1.05, b);
+      // the shells sit closed at the eye's horizontal; opening swings the upper lid's edge up (about the eye's x axis) and the lower lid's edge down;
+      // the tilt rolls the upper lid about the eye's axis, the inner corner down for a scowl
+      E.up.rotation.set(-a, 0, -k * E.sd); E.lo.rotation.set(b, 0, -k * E.sd * 0.3);
+      E.ball.rotation.set(-lookV[1] * 0.8, lookV[0] * 0.9, 0);
+    }
+    for (const E of this.eyes) E.g.visible = fade > 0.5;   // through the swap the eyes follow the body that is drawn solid (no see-through balls on the fading head)
+  }
 }

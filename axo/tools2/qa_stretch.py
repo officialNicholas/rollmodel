@@ -8,7 +8,7 @@ W = '/tmp/claude-0/-home-user-rollmodel/5c52352e-692f-5301-ac55-ec4d2c708f3e/scr
 URL = os.environ.get('URL', 'http://localhost:8765/axo2/preview.html?manual')
 REGION = lambda l: 'gills' if l.startswith('gill') else 'fingers' if l.startswith('finger') else 'toes' if l.startswith('toe') else 'tail' if l == 'tail' else 'head' if l == 'head' else 'arms' if l.startswith('arm') else 'legs' if l.startswith('leg') else 'body'
 def mesh_data(nm):
-    meta = json.load(open(W + f'axo_{nm}.json')); m = M(nm); r = np.load(D + f'{nm}_rig.npz', allow_pickle=True); labels = np.array([REGION(str(x)) for x in r['labels']])[m.wid]
+    meta = json.load(open(W + f'axo_{nm}.json')); m = M(nm); r = np.load(D + f'{nm}_rig.npz', allow_pickle=True); labels = np.array([REGION(str(x)) for x in r['labels']])[m.wid]; labels = np.concatenate([labels, np.full(meta['n'] - len(labels), 'web')])
     P0 = np.frombuffer(open(W + f'axo_{nm}.bin', 'rb').read(), np.float32, meta['n'] * 3, meta['off'][0]).reshape(-1, 3)
     E = np.unique(np.sort(np.concatenate([m.I0[:, [0, 1]], m.I0[:, [1, 2]], m.I0[:, [2, 0]]]), axis=1), axis=0); L0 = np.linalg.norm(P0[E[:, 0]] - P0[E[:, 1]], axis=1)
     return dict(E=E, L0=np.maximum(L0, 1e-4), labels=labels, P0=P0, n=meta['n'], wid=m.wid)

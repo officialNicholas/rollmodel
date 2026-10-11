@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw
 async def open_page(p, url, W, H):
     b = await p.chromium.launch(args=['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist'])
     pg = await b.new_page(viewport={'width': W, 'height': H}); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)[:400])); pg.on('console', lambda m: m.type == 'error' and errs.append(m.text[:400]))
-    await pg.goto(url, timeout=600000); await pg.wait_for_function('window.ready', timeout=600000)
+    await pg.goto(url, timeout=120000); await pg.wait_for_function("window.ready", timeout=120000)
     return b, pg, errs
 def grid(cells, ncol, W, H):
     nrow = (len(cells) + ncol - 1) // ncol; sh = Image.new('RGB', (W * ncol, H * nrow), (255, 255, 255))

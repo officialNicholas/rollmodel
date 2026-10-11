@@ -18,7 +18,7 @@ html,body{margin:0;height:100%;background:#dfe6ee;overflow:hidden;font-family:sy
 <div id="ui"><div class="row" id="states"></div><div class="row" id="expr"></div><div class="row" id="eyes"></div><div class="row" id="motion"></div><div class="row" id="colors"></div></div>
 <script type="module">
 import * as THREE from 'three'; import { OrbitControls } from 'three/addons/controls/OrbitControls.js'; import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { loadMesh, Puppet, Animator, Look, EXPR } from './axo.js';
+import { loadMesh, Puppet, Animator, Look, EXPR, FACE, EyeRig } from './axo.js';
 const R = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' }); R.setPixelRatio(Math.min(devicePixelRatio, 2)); R.setSize(innerWidth, innerHeight); R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.05;
 R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFSoftShadowMap; document.body.appendChild(R.domElement);
 const sc = new THREE.Scene(); sc.background = new THREE.Color(0xdfe6ee); sc.fog = new THREE.Fog(0xdfe6ee, 9, 18);
@@ -39,6 +39,8 @@ const base = new URL('.', location.href).pathname; const q = new URLSearchParams
 const look = new Look({ color: 0xff6b8a });
 const [S, C] = await Promise.all([loadMesh(base + 'axo_stand', await tex(base + 'axo_stand.webp'), { look }), loadMesh(base + 'axo_crawl', await tex(base + 'axo_crawl.webp'), { look })]);
 for (const M of [S, C]) { sc.add(M.mesh); }
+S.meta.name = 'stand'; C.meta.name = 'crawl';
+look.attachEyes(EyeRig, S); look.attachEyes(EyeRig, C);   // the shared FACE definition places the same eyes on both heads
 const P = new Puppet({ stand: S, crawl: C }), A = new Animator(P); A.setLook(look);
 const skelGroup = new THREE.Group(); skelGroup.visible = false; sc.add(skelGroup); const sk = {};
 for (const w of ['stand', 'crawl']) { sk[w] = new THREE.SkeletonHelper(P.m[w].mesh); sk[w].material.depthTest = false; skelGroup.add(sk[w]); }
@@ -81,8 +83,9 @@ function frame(dt, render = true) {
   A.update(dt);
   const cur = P.m[A.mesh].mesh, oth = P.m[A.mesh === 'stand' ? 'crawl' : 'stand'].mesh;
   cur.visible = true; oth.visible = A.fade < 1;
-  if (A.fade < 1) { cur.material.transparent = true; cur.material.opacity = A.fade; oth.material.transparent = true; oth.material.opacity = 1 - A.fade; cur.renderOrder = 2; oth.renderOrder = 3; }
-  else { cur.material.transparent = false; cur.material.opacity = 1; oth.material.transparent = false; oth.material.opacity = 1; }
+  if (A.fade < 1) { cur.material.transparent = true; cur.material.opacity = A.fade; cur.material.depthWrite = A.fade >= 0.5; oth.material.transparent = true; oth.material.opacity = 1 - A.fade; oth.material.depthWrite = A.fade < 0.5; cur.renderOrder = A.fade >= 0.5 ? 2 : 3; oth.renderOrder = A.fade >= 0.5 ? 3 : 2; }
+  else { cur.material.transparent = false; cur.material.opacity = 1; cur.material.depthWrite = true; oth.material.transparent = false; oth.material.opacity = 1; oth.material.depthWrite = true; }
+  look.setFade(A.mesh, A.fade); look.setFade(A.mesh === 'stand' ? 'crawl' : 'stand', 1 - A.fade);
   cur.scale.set(1, A.squash, 1); oth.scale.set(1, A.squash, 1);
   gtex.offset.y = -A.gait / (2 * Math.PI) * A.stride * 12 / 9;
   const root = A.pose.root; blob.position.x = root.x; blob.position.z = root.z; const h = Math.max(0, root.y - (A.mesh === 'crawl' ? 0.28 : 0.57));
@@ -97,10 +100,10 @@ function frame(dt, render = true) {
 let manual = q.has('manual');
 function loop() { const now = performance.now(); let dt = (now - lastT) / 1000; lastT = now; if (slow) dt *= 0.25; if (!manual) frame(dt); requestAnimationFrame(loop); }
 setState('stand'); loop();
-window.axo = { A, P, S, C, look, setState, step: (dt, n = 1) => { for (let i = 0; i < n; i++) frame(dt, false); }, manual: (m) => manual = m,
+window.axo = { A, P, S, C, look, FACE, setState, step: (dt, n = 1) => { for (let i = 0; i < n; i++) frame(dt, false); }, manual: (m) => manual = m,
   view: (yaw, pitch, dist, ty, tx = 0, tz = 0, fov) => { camAuto = false; if (fov) { cam.fov = fov; cam.updateProjectionMatrix(); } ctl.target.set(tx, ty, tz); cam.position.set(tx + Math.sin(yaw) * Math.cos(pitch) * dist, ty + Math.sin(pitch) * dist, tz + Math.cos(yaw) * Math.cos(pitch) * dist); ctl.update(); },
   shot: () => { R.render(sc, cam); return R.domElement.toDataURL('image/jpeg', 0.9); }, skel: (v) => skelGroup.visible = v, size: (w, h) => { cam.aspect = w / h; cam.updateProjectionMatrix(); R.setSize(w, h); },
-  joint: (which, name) => P.jointWorld(which, name).toArray(), showMesh: (w) => { A.mesh = w; A.fade = 1; }, setLook: (yaw, pitch) => { lookOn = true; A.look.yaw = yaw; A.look.pitch = pitch; },
+  joint: (which, name) => P.jointWorld(which, name).toArray(), hc: (which) => { const M = P.m[which]; M.mesh.updateMatrixWorld(true); const hb = M.byName.head; hb.updateWorldMatrix(true, false); return new THREE.Vector3(...M.meta.headc).applyMatrix4(hb.matrixWorld).toArray(); }, showMesh: (w) => { A.mesh = w; A.fade = 1; }, setLook: (yaw, pitch) => { lookOn = true; A.look.yaw = yaw; A.look.pitch = pitch; },
   skinned: () => { const M = P.m[A.mesh], g = M.mesh.geometry, pos = g.getAttribute('position'); M.mesh.updateMatrixWorld(true); const v = new THREE.Vector3(); const out = new Float32Array(pos.count * 3);
     for (let i = 0; i < pos.count; i++) { v.fromBufferAttribute(pos, i); M.mesh.applyBoneTransform(i, v); out[i * 3] = v.x; out[i * 3 + 1] = v.y; out[i * 3 + 2] = v.z; } return Array.from(out); },
   probe: () => { const w = A.mesh, M = P.m[w]; M.mesh.updateMatrixWorld(true); const hb = M.byName.head; hb.updateWorldMatrix(true, false); const hc = new THREE.Vector3(...M.meta.headc).applyMatrix4(hb.matrixWorld); const out = { mesh: w, headR: M.meta.headr, hc: hc.toArray().map(v => +v.toFixed(2)) };
@@ -108,4 +111,4 @@ window.axo = { A, P, S, C, look, setState, step: (dt, n = 1) => { for (let i = 0
       out['hand' + s] = { dHead: +h.distanceTo(hc).toFixed(3), tipMinHead: +Math.min(...tips.map(t => t.distanceTo(hc))).toFixed(3), x: +h.x.toFixed(2), y: +h.y.toFixed(2), z: +h.z.toFixed(2), elbowZ: +e.z.toFixed(2) }; }
     return out; } };
 window.ready = true;
-</script>
+</script></body></html>

@@ -127,7 +127,8 @@
 
 /* the gesture finger: fingertip at the bottom centre of the hand, acting the move out in the lower middle of the screen */
 .tutgest{position:absolute;left:50%;top:76%;z-index:59;width:0;height:0;pointer-events:none}
-.tutgest[data-g="steertap"],.tutgest[data-g="swipe"]{top:85%}
+.tutgest[data-g="steertap"]{top:85%}
+.tutgest[data-g="swipe"]{top:60%} /* (well up the screen, clear of the pound button) */
 .tutgest[data-g="pull"]{top:74%;left:62%}
 .tutgest .ghand{position:absolute;left:-25px;top:-62px;width:50px;height:66px;transform-origin:50% 100%}
 .tutgest .ghand svg{width:100%;height:100%;filter:drop-shadow(3px 4px 0 rgba(0,0,0,.35))}

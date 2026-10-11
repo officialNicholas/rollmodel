@@ -98,10 +98,11 @@ const TUT_STEPS = [
   { id: 'free0', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 1; }, /* (a beat, then the fling: both are ways to get about) */ tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
   { id: 'sling', max: 40, enter() { tut.slowK = TUT_SLOW; tutShow(say('*HOLD*, *PULL DOWN*, then let go to fling!', 'Hold *S*, then let go to fling!'), null, 'sling', true); },
     tick() { return P.st === 'play' && P.air && P.flung && (P.flingC || 0) > 0.1; } },
-  { id: 'free1', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 7; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
-  { id: 'basin', max: 55, enter() { if (P.paint > 0.14) P.paint = 0.14; tut.slowK = 1; tut.basinTip = false; tutHide(); }, /* (it runs dry for real, then the way to a refill is shown) */
+  { id: 'free1', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 2; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
+  { id: 'basin', max: 55, enter() { tut.slowK = 1; tut.basinTip = false; tut.potQ = tutRaisePot(); tutHide(); }, /* (the tank drains, a basin comes up just ahead, and the way to it is shown) */
+    exit() { tut.potQ = null; },
     tick(dt) { if (P.dryT) P.dryT = 0; /* (no running dry into a knock-out in the lesson) */
-      if (P.st === 'play') P.paint = tut.basinTip ? Math.min(P.paint, 0.02) : Math.max(0, Math.min(P.paint, 0.14) - dt * 0.035); /* (the tank runs out over a few seconds and stays out till you refill) */
+      if (P.st === 'play') P.paint = tut.basinTip ? Math.min(P.paint, 0.02) : Math.max(0, P.paint - dt * 1.1); /* (the tank empties in under a second and stays out till you refill) */
       if (!tut.basinTip && P.paint <= 0.02) { tut.basinTip = true; pingTank(4); tutShow('Out of paint! Roll into a *' + potWord().toUpperCase() + '* to refill', null, 'basin', true, true); }
       return P.st === 'hide'; } },
   { id: 'pound', max: 80, exit() { tut.drive = null; tut.driveMode = null; TUT_AI.speed = 0.8; }, enter() { tut.hidePound = false; tut.keepAway = false; tut.drive = H; tut.driveMode = 'near'; TUT_AI.speed = 0.62; tutGivePound(); tut.kos0 = P.kos; tut.flat0 = P.flatted; tut.slowK = 1; tut.slowT = 0; tut.poundIn = false; tut.poundShown = false; tut.sub = ''; tutHide(); },
@@ -116,15 +117,17 @@ const TUT_STEPS = [
         else if (sub === 'missile') { tut.slowK = 0.3; tutShow(say('*POUND* now to fire a missile!', 'Press *E* now to fire a missile!'), 'slamBtn', 'missile', true); }
         else if (sub === 'pound') { if (tut.slowT <= 0) tut.slowK = 1; tutShow(hd < 6 ? say('Your Pound splats everything round you. The rival\u2019s close, tap it!', 'Your Pound (E) splats everything round you. The rival\u2019s close, press E!') : say('Your Pound splats everything round you. Get close to the rival and tap it!', 'Your Pound (E) splats everything round you. Get close to the rival and press E!'), 'slamBtn', 'pound'); } }
       return P.kos > tut.kos0 || P.flatted > tut.flat0; } },
-  { id: 'dodge', max: 60, enter() { Object.assign(TUT_AI, TUT_AI_FIGHT); tut.drive = H; tut.driveMode = 'fight'; H.slamCD = 0; if (H.paint < 0.8) H.paint = 1; if (H.ai) { H.ai.plan = null; H.ai.path = null; } tut.rolled = false; tut.hits = 0; tut.wasKo = false; tut.slowK = 1; tut.sub = ''; tutShow(say('Rivals pound too. Swipe up just before it lands to dodge', 'Rivals pound too. Shift just before it lands to dodge'), null, 'dodge', false, true); },
+  { id: 'dodge', max: 60, enter() { tut.noPound = true; Object.assign(TUT_AI, TUT_AI_FIGHT); tut.drive = H; tut.driveMode = 'fight'; H.slamCD = 0; if (H.paint < 0.8) H.paint = 1; if (H.ai) { H.ai.plan = null; H.ai.path = null; } tut.rolled = false; tut.hits = 0; tut.wasKo = false; tut.slowK = 1; tut.sub = ''; tutShow(say('Rivals pound too. Swipe up just before it lands to dodge', 'Rivals pound too. Shift just before it lands to dodge'), null, 'dodge', false, true); },
     tick() { if (H.st === 'play' && !H.slam && H.slamCD > 1.2) H.slamCD = 1.2; if (H.paint < 0.5) H.paint = 1;
       const d = Math.hypot(H.x - P.x, H.z - P.z), eta = H.slam ? H.slamEta - H.slamT : 9, coming = H.slam && H.st === 'play' && P.st === 'play' && !P.air && d < slamRadius(H) + PR + 2.5;
+      if (coming && P.rollT <= 0 && !tut.rolled) P.rollCD = 0; /* (an early swipe never leaves you without a roll for the drop) */
       if (coming && P.rollT > 0) tut.rolled = true; // (a roll while its pound is in the air: that is the timing)
+      if (tut.rolled && H.slam && P.rollT > 0 && P.rollT < 0.05) P.rollT = 0.05; /* (and it holds you clear till the pound lands) */
       if (P.st === 'ko' && !tut.wasKo) tut.hits++; tut.wasKo = P.st === 'ko';
-      const now = coming && eta < 0.62; tut.slowK = now ? 0.14 : coming ? 0.45 : 1;
+      const now = coming && eta < 0.42; tut.slowK = now ? 0.14 : coming ? 0.45 : 1;
       const sub = now ? 'now' : 'dodge'; if (sub !== tut.sub) { tut.sub = sub; if (now) tutShow(say('*NOW!* Swipe up!', '*NOW!* Shift!'), null, 'dodgenow', true, true); else tutShow(say('Rivals pound too. Swipe up just before it lands to dodge', 'Rivals pound too. Shift just before it lands to dodge'), null, 'dodge', false, true); }
       return (tut.rolled || tut.hits >= 2) && P.st === 'play' && !H.slam; },
-    exit() { Object.assign(TUT_AI, TUT_AI_CALM); tut.drive = null; } },
+    exit() { Object.assign(TUT_AI, TUT_AI_CALM); tut.drive = null; tut.noPound = false; } },
   { id: 'item', max: 50, enter() { tut.items = true; tutSpawnRoller(); tut.slowK = 1; tut.sub = ''; },
     tick() { const sub = P.held === 'roller' ? 'use' : 'grab'; if (sub !== tut.sub) { tut.sub = sub; if (sub === 'grab') { tut.slowK = 1; tutShow('Roll over the *ROLLER* to pick it up!', null, 'item', true, true); } else { tut.slowK = 0.35; tutShow(say('*TAP* the roller to use it!', 'Press *F* to use it!'), 'itemBtn', 'use', true); } }
       return !!(P.power && P.power.type === 'roller'); } },
@@ -134,15 +137,15 @@ const TUT_STEPS = [
       return tut.hadRocket && !P.rocket; },
     exit() { tut.orbMine = false; TUT_AI.orb = 0.35; } },
   { id: 'free3', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 8; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
-  { id: 'rocketdodge', max: 60, enter() { tut.drive = null; if (orb.on) tutOrbOff(); orb.spawnT = 1e9; tut.rocketLock = H; tut.rkFrozen = false; tut.rkStarted = false; tut.rolled = false; tut.hit = false; tut.wasKo = false; tut.sub = ''; tut.slowK = 1;
+  { id: 'rocketdodge', max: 60, enter() { tut.noPound = true; tut.drive = null; if (orb.on) tutOrbOff(); orb.spawnT = 1e9; tut.rocketLock = H; tut.rkFrozen = false; tut.rkStarted = false; tut.rolled = false; tut.hit = false; tut.wasKo = false; tut.sub = ''; tut.slowK = 1;
       tutShow(say('The rival has a rocket too. When it drops on you, swipe up to roll clear', 'The rival has a rocket too. When it drops on you, press Shift to roll clear'), null, 'rdodge', false, true); },
     tick() { if (!tut.rkStarted && H.st === 'play' && !H.rocket) { H.paint = 1; startRocket(H); tut.rkStarted = true; } // (it takes off as soon as it is free to)
       const R = H.rocket, down = !!R && R.ph === 'dive' && !R.slow && H.st === 'play' && P.st === 'play', now = down && tut.rkFrozen;
-      if (now && P.rollT > 0) tut.rolled = true; if (P.st === 'ko' && !tut.wasKo) tut.hit = true; tut.wasKo = P.st === 'ko';
+      if (now && P.rollT <= 0 && !tut.rolled) P.rollCD = 0; if (now && P.rollT > 0) tut.rolled = true; if (tut.rolled && H.rocket && P.rollT > 0 && P.rollT < 0.05) P.rollT = 0.05; if (P.st === 'ko' && !tut.wasKo) tut.hit = true; tut.wasKo = P.st === 'ko';
       tut.slowK = now ? 0.12 : 1;
       const sub = now ? 'now' : 'wait'; if (sub !== tut.sub) { tut.sub = sub; if (now) tutShow(say('*NOW!* Swipe up!', '*NOW!* Shift!'), null, 'rdodgenow', true, true); else tutShow(say('The rival has a rocket too. When it drops on you, swipe up to roll clear', 'The rival has a rocket too. When it drops on you, press Shift to roll clear'), null, 'rdodge', false, true); }
       return tut.rkStarted && !H.rocket && (tut.rolled || tut.hit || tut.st > 20) && P.st === 'play'; },
-    exit() { tut.rocketLock = null; tut.slowK = 1; } },
+    exit() { tut.rocketLock = null; tut.slowK = 1; tut.noPound = false; } },
   { id: 'flower', max: 42, enter() { if (orb.on) tutOrbOff(); orb.spawnT = 1e9; gift.id = 'flower'; gift.at = 1e9; tut.slowK = 1; tutHide(); tut.wait = 2.2; tut.flowerPaint = Math.max(P.paint, 0.5); },
     tick(dt) { if (P.st === 'play' && P.paint < tut.flowerPaint) P.paint = tut.flowerPaint; /* (no paint drain while you go for the flower) */ if (tut.wait > 0) { tut.wait -= dt; if (tut.wait <= 0) { gift.at = runT; tutShow('Something rare! *GRAB IT!*', null, 'flower', true, true); } return false; } return gift.got; }, /* (a breath after the dodge, then the flower and its tip) */
     exit() { if (!gift.got) { gift.got = true; gift.on = false; giftM.visible = giftRing.visible = giftBeam.visible = false; unlockItem('flower'); newItem = 'flower'; } if (!owns('fangs')) unlockItem('fangs'); newItem = ['flower', 'fangs']; orb.spawnT = 8; } },
@@ -242,11 +245,26 @@ function tutGoal() {
   if (id === 'flower' && gift.on && !gift.got) return [gift.x, gift.z];
   if (id === 'item' && !P.held && !P.power) { const pw = powers.find(q => q.g && q.type === 'roller'); if (pw) return [pw.x, pw.z]; }
   if (id === 'orb' && orb.on && !P.rocket) return [orb.x, orb.z];
-  if (id === 'basin' && tut.basinTip) { const q = tutNearPot(); if (q) return [q.x, q.z]; }
+  if (id === 'basin' && tut.basinTip) { const q = tutPotMark(); if (q) return [q.x, q.z]; }
   return null;
 }
 // the nearest basin you can drop into (up, with paint in it, free), on your level first
 function tutNearPot() { let best = null, bd = 1e9; for (const q of pots) { if (!potUp(q) || q.ink < 0.05 || q.occ) continue; const d = Math.hypot(q.x - P.x, q.z - P.z) + Math.abs(q.y - P.y) * 6; if (d < bd) { bd = d; best = q; } } return best; }
+// the basin lesson's own basin: the one furthest from you sinks away and comes up a few steps ahead of you (on screen, above you), on clear flat floor
+function tutRaisePot() {
+  const ok = (x, z) => { const y = surfaceUnder(x, z, P.y + 0.5); if (Math.abs(y - P.y) > 0.05 || !NAV.at(x, z, P.y)) return false;
+    for (let k = 0; k < 8; k++) { const a = k * 0.785; if (Math.abs(surfaceUnder(x + Math.cos(a) * 1.1, z + Math.sin(a) * 1.1, P.y + 0.5) - P.y) > 0.05) return false; }
+    return !pots.some(o => Math.hypot(o.x - x, o.z - z) < 3) && !rivals.some(r => Math.hypot(r.x - x, r.z - z) < r.rad + 1.6) && !powers.some(w => Math.hypot(w.x - x, w.z - z) < 2.2) && Math.hypot(H.x - x, H.z - z) > 2; };
+  let spot = null;
+  for (const d of [7, 6, 8, 5]) { for (const da of [0, 0.3, -0.3, 0.6, -0.6, 0.9, -0.9]) { const a = P.yaw + da, x = P.x + Math.sin(a) * d, z = P.z + Math.cos(a) * d; if (ok(x, z)) { spot = [x, P.y, z]; break; } } if (spot) break; }
+  if (!spot) return null;
+  let q = null, bd = -1; for (const o of pots) { if (o.st !== 'up' || o.occ) continue; const d = Math.hypot(o.x - P.x, o.z - P.z); if (d > bd) { bd = d; q = o; } }
+  if (!q) return null;
+  q.st = 'down'; q.g.visible = false; if (q.ring) q.ring.visible = false; q.occ = null; q.next = spot; q.t = DOWN_T - 0.6; /* (its mark shows on the floor at once and it is up a second and a half later) */
+  return q;
+}
+// where to point in the basin lesson: its own basin (or the mark it is coming up on), else the nearest one
+function tutPotMark() { const q = tut.potQ; if (q && q.st !== 'up' && q.next) return { x: q.next[0], y: q.next[1], z: q.next[2] }; if (q && potUp(q) && q.ink > 0.05 && !q.occ) return q; return tutNearPot(); }
 // a finger on the spot itself when it is on screen (a basin), bobbing above it
 const tutPinEl = document.createElement('i'); tutPinEl.className = 'tuthand'; tutPinEl.hidden = true; tutPinEl.setAttribute('aria-hidden', 'true');
 function tutPin(q) {
@@ -257,7 +275,7 @@ function tutPin(q) {
 }
 // the arrow: from your spot on screen toward the goal (the screen direction of a step taken toward it, so it is right even when the goal is behind the camera)
 function tutGuide() {
-  tutPin(tut && state === 'play' && P.st === 'play' && tut.step >= 0 && TUT_STEPS[tut.step].id === 'basin' && tut.basinTip ? tutNearPot() : null);
+  tutPin(tut && state === 'play' && P.st === 'play' && tut.step >= 0 && TUT_STEPS[tut.step].id === 'basin' && tut.basinTip ? tutPotMark() : null);
   const g = tutGoal(); if (!g || Math.hypot(g[0] - P.x, g[1] - P.z) < 2.4) { if (!tutArrowEl.hidden) tutArrowEl.hidden = true; return; }
   const d = Math.hypot(g[0] - P.x, g[1] - P.z), ux = (g[0] - P.x) / d, uz = (g[1] - P.z) / d;
   tutGV.set(P.x, P.y + 0.35, P.z).project(camera); const px = (tutGV.x + 1) / 2 * viewW, py = (1 - tutGV.y) / 2 * viewH;

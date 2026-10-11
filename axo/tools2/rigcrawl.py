@@ -152,7 +152,7 @@ def build():
     for key, (vs, root, axis, L, mid, tip) in stalks.items(): laplacian_smooth_weights(m, W, vs, iters=3, lam=0.5)
     knuckle_smooth(m, W, np.concatenate([q['verts'] for q, _ in digs.values() if len(q['verts'])]))
     # soften seams between parts (trunk / limbs / tail only; digits and gills stay crisp)
-    soft = np.where(np.isin(labels, ['trunk', 'tail', 'arm.L', 'arm.R', 'leg.L', 'leg.R', 'head']))[0]; laplacian_smooth_weights(m, W, soft, iters=4, lam=0.5)
+    soft = np.where(np.isin(labels, ['trunk', 'tail', 'arm.L', 'arm.R', 'leg.L', 'leg.R', 'head']))[0]; laplacian_smooth_weights(m, W, soft, iters=9, lam=0.5)
     idx, w = finalize(W, P=m.P, joints=np.array([R.J[k] for k in R.ORDER]))
     # ---- frames: same conventions as the stand rig
     F = {}; downy = -up
