@@ -176,7 +176,7 @@ function tutWelcomeDone(open) { const el = $('tutGo'); el.classList.remove('on')
 function tutCard(on) {
   const el = $('tutGo'); if (!tut) on = false;
   if (on) { el.dataset.mode = 'rest'; tutCardText(TG_REST); tut.card = true; tut.slowK = 0; bannerEl.classList.remove('on'); try { $('tgAva').innerHTML = tutAva.innerHTML || '<span class="bico" style="--cd:#8C6A14">' + slimeIcon(0xF2C14E, lookOf(P)) + '</span>'; } catch (e) {} el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); AU.fanfare && AU.fanfare(); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60); return; }
-  el.classList.remove('on'); el.hidden = true; if (tut) { if (tut.card) { P.paint = 1; P.slamCD = 0; } /* (Let's do it: a full tank and the pound ready for the final push) */ tut.card = false; tut.slowK = 1; }
+  el.classList.remove('on'); el.hidden = true; if (tut) { if (tut.card) { P.paint = 1; P.slamCD = 0; banner('Paint it ' + colorOf().name.toLowerCase() + '!', TH.label, true); } /* (Let's do it: a full tank and the pound ready for the final push) */ tut.card = false; tut.slowK = 1; }
 }
 $('tgGo').addEventListener('click', () => { AU.init(); AU.ui(); if ($('tutGo').dataset.mode === 'welcome') tutWelcomeDone(true); else tutCard(false); });
 $('tgLater').addEventListener('click', () => { AU.init(); AU.ui(); tutWelcomeDone(false); });
@@ -230,7 +230,7 @@ function tutReward(id, hit) {
 }
 function tutStep(dt) {
   if (!tut || state !== 'play') return;
-  if (tut.step < 0) { if (P.st === 'play' && !P.air && runT > 0.6 && ((tut.bannerSeen && performance.now() > bannerUntil) || runT > 6)) tutNext(); return; } /* (the first lesson waits for the start banner to come and go) */
+  if (tut.step < 0) { if (P.st === 'play' && !P.air && runT > 0.6) tutNext(); return; } /* (the lesson opens straight on the move tip: its Paint it banner comes later, with the Now win it card) */
   const s = TUT_STEPS[tut.step]; if (tut.step < TUT_REST && matchLeft < 20) matchLeft = 20; // (the lesson does not run out the clock)
   if (s.tick(dt)) { if (tut.step < TUT_REST && !s.id.startsWith('free')) tutReward(s.id, (s.id === 'dodge' || s.id === 'rocketdodge') && tut.hit && !tut.rolled); tutNext(); }
 }
