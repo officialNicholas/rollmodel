@@ -2823,7 +2823,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 220</p>
+      <p class="ver">Version 221</p>
     </div>
   </div>
 
@@ -17344,7 +17344,7 @@ function tutPipsTick() {
 function tutReward(id, hit) {
   const k = TUT_PIP[id]; if (k === undefined) return; tut.bonus = (tut.bonus || 0) + 5;
   const fresh = !tut.pips.has(k); tut.pips.add(k); tutPipsTick(); const pe = tutPipsEl.children[k]; if (pe && fresh) restartCls(pe, 'got');
-  tutPraiseEl.textContent = hit ? 'Shake it off!' : TUT_PRAISE[tut.praiseN++ % TUT_PRAISE.length]; clearTimeout(tutPraiseEl._t); clearTimeout(tutPraiseEl._t0); { const bw = Math.max(0, bannerUntil - performance.now()), go = () => { restartCls(tutPraiseEl, 'on'); tutPraiseEl._t = setTimeout(() => tutPraiseEl.classList.remove('on'), 1150); }; if (bw > 30) { tutPraiseEl.classList.remove('on'); tutPraiseEl._t0 = setTimeout(go, bw); } else go(); } // (after a banner, never under it)
+  tutPraiseEl.textContent = hit ? 'Shake it off!' : TUT_PRAISE[tut.praiseN++ % TUT_PRAISE.length]; clearTimeout(tutPraiseEl._t); clearTimeout(tutPraiseEl._t0); { const bw = Math.max(0, bannerUntil - performance.now()), go = () => { tutPraiseEl._pend = false; restartCls(tutPraiseEl, 'on'); tutPraiseEl._t = setTimeout(() => tutPraiseEl.classList.remove('on'), 1150); }; if (bw > 30) { tutPraiseEl.classList.remove('on'); tutPraiseEl._pend = true; tutPraiseEl._t0 = setTimeout(go, bw); } else go(); } // (after a banner, never under it)
   const sce = document.querySelector('#hud .score'); if (sce && state === 'play') { const r0 = stage.getBoundingClientRect(), r = sce.getBoundingClientRect(), pl = document.createElement('p'); pl.className = 'tutplus'; pl.textContent = '+5'; pl.style.left = (r.left - r0.left + r.width / 2).toFixed(0) + 'px'; pl.style.top = (r.bottom - r0.top + 4).toFixed(0) + 'px'; stage.appendChild(pl); setTimeout(() => pl.remove(), 1000); }
   if (AU.tick) AU.tick(5 + tut.pips.size * 2); AU.pop(); buzz(12); if (!reduceMotion && P.st === 'play') confetti(P.x, P.y + 1, P.z, 26, 2.4);
 }
@@ -17352,7 +17352,7 @@ function tutStep(dt) {
   if (!tut || state !== 'play') return;
   if (tut.step < 0) { if (tut.outAt === undefined) { if (P.st === 'play' && !P.air && runT > 0.3) tut.outAt = runT; } else if (runT - tut.outAt >= 1.5) tutNext(); return; } // (a moment at full speed first, so the slow motion isn't taken for your speed) /* (the lesson opens straight on the move tip: its Paint it banner comes later, with the Now win it card) */
   const s = TUT_STEPS[tut.step]; if (tut.step < TUT_REST && matchLeft < 20) matchLeft = 20; // (the lesson does not run out the clock)
-  if (tut.gap > 0) { tut.gap -= dt; if (tut.gap <= 0) { tut.gap = 0; tutNext(); } return; } // (a lesson done: its praise has the screen to itself, then the next tip)
+  if (tut.gap > 0) { tut.gap -= dt; if (tut.gap <= 0) { if (tutPraiseEl.classList.contains('on') || tutPraiseEl._pend) tut.gap = 0.25; else { tut.gap = 0; tutNext(); } } return; } // (the praise gone, and a beat after it) // (a lesson done: its praise has the screen to itself, then the next tip)
   if (s.tick(dt)) { if (tut.step < TUT_REST && !s.id.startsWith('free')) { tutReward(s.id, (s.id === 'dodge' || s.id === 'rocketdodge') && tut.hit && !tut.rolled); if (s.exit) s.exit(); tut.exited = true; tutHide(); tut.slowK = 1; tut.gap = 1.2 + Math.max(0, bannerUntil - performance.now()) / 1000; } else tutNext(); }
 }
 function tutNext() { if (!tut) return; const cur = TUT_STEPS[tut.step]; if (cur && cur.exit && !tut.exited) cur.exit(); tut.exited = false; if (tut.step >= TUT_REST) return; tut.step++; tut.st = 0; TUT_STEPS[tut.step].enter(); }
@@ -17436,7 +17436,7 @@ function tutBegin() { // (as a match begins)
   tut = { step: -1, st: 0, slowK: 1, hidePound: true, keepAway: true, items: false, orbMine: false, drive: null, noTurret: true, pips: new Set(), bonus: 0, praiseN: 0 }; tutPipsDraw();
   wxLeft = 1e9; orb.spawnT = 1e9; Object.assign(gift, { id: 'flower', on: false, got: false, pop: 0, at: 1e9 }); giftM.visible = giftRing.visible = giftBeam.visible = false;
 }
-function tutLeave() { tut2 = null; tutArrowEl.hidden = true; if (tut) tutCard(false); tut = null; tutHide(); if (tutSlowEl.classList.contains('on')) AU.slow(false, true); tutSlowEl.classList.remove('on'); tutRestore(); tutWinDue = false; const tw = $('tutWin'); tw.classList.remove('on'); tw.hidden = true; }
+function tutLeave() { clearTimeout(tutPraiseEl._t0); tutPraiseEl._pend = false; tutPraiseEl.classList.remove('on'); tut2 = null; tutArrowEl.hidden = true; if (tut) tutCard(false); tut = null; tutHide(); if (tutSlowEl.classList.contains('on')) AU.slow(false, true); tutSlowEl.classList.remove('on'); tutRestore(); tutWinDue = false; const tw = $('tutWin'); tw.classList.remove('on'); tw.hidden = true; }
 function tutEndMatch() { // (as a match ends)
   if (tut) {
     const bonus = tut.bonus || 0; if (bonus) { store.drops = (store.drops || 0) + bonus; endInfo.drops = (endInfo.drops || 0) + bonus; } endInfo.tutBonus = bonus; // (the lessons' dabs)
