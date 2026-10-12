@@ -8,7 +8,7 @@ async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch(args=['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist'])
         ctx = await b.new_context(viewport={'width': 390, 'height': 844}, device_scale_factor=1, has_touch=True, is_mobile=True)
-        await ctx.add_init_script("try { localStorage.setItem('paint-world-red.v1', JSON.stringify({ orient:'port', name:'Dusk', seen:{ look: 1 }, drops: 120, runs: 9, xp: 900, owned: [], tut: { ph: 'done', strokes: 1 } })); } catch (e) {}")
+        await ctx.add_init_script("window.__tut = true; try { localStorage.setItem('paint-world-red.v1', JSON.stringify({ orient:'port', name:'Dusk', seen:{ look: 1 }, drops: 120, runs: 9, xp: 900, owned: [], tut: { ph: 'done', strokes: 1 } })); } catch (e) {}")
         pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)[:200])); ev = pg.evaluate
         await pg.goto('http://localhost:8765/' + PAGE, timeout=240000); await pg.wait_for_function('typeof __T === "object"', timeout=240000, polling=100); await pg.wait_for_timeout(4000)
         print('rank', await ev("document.getElementById('abilTag').textContent + ' / ' + document.getElementById('abilBtn').className"))
