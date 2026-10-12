@@ -2972,7 +2972,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 243</p>
+      <p class="ver">Version 244</p>
     </div>
   </div>
 
@@ -7916,6 +7916,7 @@ Animator.prototype.crawl = function (t, out, dt) {
     else if (!want && SL.on && (!ok || vc < 1.5 || (SL.u > 0.58 && SL.u < 0.9))) SL.on = false; // (slowing: it swims on into its crawl steps, and the crawl takes over from there)
     SL.k += ((SL.on ? 1 : 0) - SL.k) * Math.min(1, dt * (SL.on ? 3.6 : 4.2)); }
   const sl = L.slK = smooth(SL.k);
+  const pv = L.pv = clamp01(Math.abs(L.yr) / 1.6) * (1 - clamp01(L.vc / 2.5)) * on; // (a pivot: turning fast while hardly moving forward)
   // ---- the body's line (worked out before the limbs: they step from where it carries the shoulders and hips). A salamander's standing
   // wave: the shoulders and hips swing against each other with each pair of steps, the trunk bowing one way then the other, the tail
   // answering it in an S, the head kept steadier. Round a turn the whole body bends into a C: the trunk takes most of it, the neck and
@@ -7925,7 +7926,7 @@ Animator.prototype.crawl = function (t, out, dt) {
   L.tlg = spr(L.tg || (L.tg = { x: 0, v: 0 }), bend, 24, 4, dt);   // (the tail's own lag round a turn: it trails, then swings back past)
   const amp = (12 + 28 * clamp01(v / 6.5)) * act * (1 - sl) * (1 - 0.7 * Math.min(1, Math.abs(bend) / 64)), Ap = 0.4 * amp, As = 0.6 * amp, hs = As * c1 * (1 - Math.min(1, Math.abs(bend) / 64));
   const HT = spr(L.ht, (L.steer * 10 + Math.max(-8, Math.min(8, L.yr * 3))) * on, 75, 10, dt);
-  const bU = bend * (1 - 0.6 * sl), T = 50 * Math.tanh((-amp * c1 + bU * 0.92 + HT * 0.45 * (1 - 0.5 * sl)) / 50);
+  const bU = bend * (1 - 0.6 * sl) * (1 + 0.3 * pv), Tc = 50 + 18 * pv, T = Tc * Math.tanh((-amp * c1 + bU * 0.92 + HT * 0.45 * (1 - 0.5 * sl)) / Tc); /* (pivoting, the trunk takes a deeper C) */
   this.worldTurn(out, I.hips, Ap * c1, 0);
   this.worldTurn(out, sp[1], T * 0.34, 0);
   this.worldTurn(out, sp[2], T * 0.37, -L.steer * 3 * act);
@@ -8024,7 +8025,10 @@ Animator.prototype.crawl = function (t, out, dt) {
       } else {
         if (l.st === 'stance') { l.st = 'swing'; l.p0.copy(l.p); }
         const s = (u - Dl) / (1 - Dl), Ts = Dl / Math.max(L.f, 0.5);
-        l.tgt.copy(l.hb).addScaledVector(l.gv, -Ts * 0.5); LV1.copy(l.tgt).sub(l.hb); LV1.y = 0; const r = (l.arm ? GAIT.reachH : GAIT.reachF) * 0.92; if (LV1.length() > r) LV1.setLength(r);
+        l.tgt.copy(l.hb).addScaledVector(l.gv, -Ts * 0.5);
+        if (pv > 0.01) { const side = Math.max(-1, Math.min(1, bend / 45)) * l.m, inn = Math.max(0, side), outr = Math.max(0, -side); // (pivoting: the outside hand reaches out and forward to pull the body round, the inside hand steps back and in to push; the feet the same, less)
+          l.tgt.z += (l.arm ? 0.1 * outr - 0.07 * inn : 0.05 * outr - 0.03 * inn) * pv; l.tgt.x += l.m * (l.arm ? 0.06 * outr - 0.04 * inn : 0.03 * outr) * pv; }
+        LV1.copy(l.tgt).sub(l.hb); LV1.y = 0; const r = (l.arm ? GAIT.reachH : GAIT.reachF) * (0.92 + 0.16 * pv); if (LV1.length() > r) LV1.setLength(r);
         l.tgt.set(l.hb.x + LV1.x, gY(l.hb.x + LV1.x, l.hb.z + LV1.z) + l.home.y, l.hb.z + LV1.z);
         const e = s * s * (3 - 2 * s), lf = Math.pow(Math.sin(Math.PI * Math.min(1, s * 1.08)), 1.4); l.lift = lf;
         let bump = 0; if (TR) { for (const q of [0.25, 0.5, 0.75]) bump = Math.max(bump, gY(l.p0.x + (l.tgt.x - l.p0.x) * q, l.p0.z + (l.tgt.z - l.p0.z) * q) + l.home.y - Math.max(l.p0.y, l.tgt.y)); } /* (something to clear on the way) */
