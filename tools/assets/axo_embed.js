@@ -929,7 +929,7 @@ const LIMB = [{ en: 'hand.L', off: 0, m: 1, arm: true }, { en: 'foot.R', off: 0.
 // spend less of each step on the ground, so at speed they kick through quickly while the hands take long reaching strides)
 const GAIT = { handX: 0.4, handZ: 0.035, footX: 0.29, footZ: -0.8, reachH: 0.27, reachF: 0.15, sweepF: 0.28, sMax: 0.54, fMax: 5.6, fMin: 1.7 };
 const frac = x => x - Math.floor(x);
-const SLITHER = { on: 4.4, off: 3.2, after: 0.45, T0: 1.75, T1: 1.4 }; // (T0 / T1: a stroke cycle's length in seconds, just up to speed / at full tilt)
+const SLITHER = { on: 3.8, off: 2.8, after: 0.35, T0: 1.75, T1: 1.4 }; // (T0 / T1: a stroke cycle's length in seconds, just up to speed / at full tilt)
 // one stroke cycle, u from 0 to 1: both hands pull it forward (0 to 0.25: the hands sweep back along the ground, the feet kick back), it
 // glides with everything along its sides (to 0.55), slows a touch and crawls two steps (a hand and the opposite foot, then the other
 // pair, each reaching forward and taking hold), and pulls again. Each limb's marks through the cycle: [u, mark, swing (lifted over)]
@@ -1007,7 +1007,7 @@ Animator.prototype.crawl = function (t, out, dt) {
   this.worldTurn(out, I.neck, hs * 0.25 + bU * 0.1 + HT * 0.3 * (1 - 0.5 * sl), -HT * 0.12);
   this.worldTurn(out, I.head, hs * 0.25 + bU * 0.07 + HT * 0.25 * (1 - 0.5 * sl), -HT * 0.3);
   if (sl > 0.001) {
-    const vk = clamp01((L.vc - SLITHER.on) / 3.6), u = SL.u = (SL.u + dt / (SLITHER.T0 + (SLITHER.T1 - SLITHER.T0) * vk)) % 1;
+    const vk = clamp01((L.vc - SLITHER.on) / 4.2), u = SL.u = (SL.u + dt / (SLITHER.T0 + (SLITHER.T1 - SLITHER.T0) * vk)) % 1;
     // how far into the glide it is (the limbs' tuck, all four averaged): the wave is fullest there, smaller through the steps and the pull
     let g = 0; for (const l of L.limbs) g += swMark(l.en, u, l.arm, SL.m)[3] * 0.25; SL.g = g;
     // the wave: the lower and middle trunk and the tail swing most, the chest hardly, the head held to the way it's going. Each part's own
@@ -1085,8 +1085,8 @@ Animator.prototype.crawl = function (t, out, dt) {
   if (!air) {
     for (const l of L.limbs) {
       if (l.st === 'land') continue;
-      if (l.fresh) l.fresh = false; else if (C) { l.p.applyMatrix4(C); l.p0.applyMatrix4(C); }
       const Dl = l.arm ? D : Math.max(0.16, Math.min(D, GAIT.sweepF * Math.max(L.f, 0.5) / Math.max(v, 0.01))), u = frac(L.ph + l.off), stance = u < Dl;
+      if (l.fresh) l.fresh = false; else if (C) { l.p.applyMatrix4(C); if (stance || l.st !== 'swing') l.p0.applyMatrix4(C); else { const k = 1 - smooth(clamp01((u - Dl) / (1 - Dl) / 0.3)); LV4.copy(l.p0).applyMatrix4(C); l.p0.lerp(LV4, k); } } // (a swinging foot's lift-off point lets go of the ground over the first part of the swing)
       if (L.settle && L.settle.l === l) continue;
       if (stance) {
         if (l.st !== 'stance') { l.st = 'stance'; l.p.copy(l.tgt); }
@@ -1100,7 +1100,7 @@ Animator.prototype.crawl = function (t, out, dt) {
         l.tgt.set(l.hb.x + LV1.x, gY(l.hb.x + LV1.x, l.hb.z + LV1.z) + l.home.y, l.hb.z + LV1.z);
         const e = s * s * (3 - 2 * s), lf = Math.pow(Math.sin(Math.PI * Math.min(1, s * 1.08)), 1.4); l.lift = lf;
         let bump = 0; if (TR) { for (const q of [0.25, 0.5, 0.75]) bump = Math.max(bump, gY(l.p0.x + (l.tgt.x - l.p0.x) * q, l.p0.z + (l.tgt.z - l.p0.z) * q) + l.home.y - Math.max(l.p0.y, l.tgt.y)); } /* (something to clear on the way) */
-        l.p.lerpVectors(l.p0, l.tgt, e); l.p.y = l.p0.y * (1 - e) + l.tgt.y * e + (liftH + bump * 1.3) * lf;
+        l.p.lerpVectors(l.p0, l.tgt, e); { const h11 = (s * s * s - s * s) * 0.6 * (1 - Dl) / Math.max(L.f, 0.5); l.p.x += h11 * l.gv.x; l.p.z += h11 * l.gv.z; } l.p.y = l.p0.y * (1 - e) + l.tgt.y * e + (liftH + bump * 1.3) * lf; // (it lands moving back with the ground)
       }
     }
     // stopped: now and then it moves a foot that was left stretched out back under itself, one at a time
@@ -1132,7 +1132,7 @@ Animator.prototype.crawl = function (t, out, dt) {
       const ox = mk[0] + (l.arm ? 0.07 * inn * (1 - mk[3] * 0.5) + 0.06 * outr * (1 - mk[3]) : 0.03 * outr), oz = mk[2] + (l.arm ? 0.08 * inn : 0);
       q.set(pr.x + ox * l.m, l.home.y + mk[1] * (1 - (l.arm ? 0.75 * inn : 0)), pr.z + oz);
       q.lerpVectors(l.p, q, sl); tp = q; lift = lift * (1 - sl) + Math.max(tk, mk[4]) * sl; tk *= sl; }
-    out.contact(l.en, tp, LV2.set(LB.fwd.x * l.m * (1 - tk) + 0.08 * l.m * tk, -0.35 * lift * (1 - tk), LB.fwd.z * (1 - tk) - tk), LV3.set(LB.pole.x * l.m, LB.pole.y, LB.pole.z), 1);
+    { const r = Math.hypot(LB.fwd.x, LB.fwd.z), a0 = Math.atan2(LB.fwd.x, LB.fwd.z), a = a0 + (Math.PI - 0.08 - a0) * tk; out.contact(l.en, tp, LV2.set(l.m * Math.sin(a) * r, -0.35 * lift * (1 - tk), Math.cos(a) * r), LV3.set(LB.pole.x * l.m, LB.pole.y, LB.pole.z), 1); }
     const dig = this.chain[l.arm ? 'fingers' : 'toes'][l.m > 0 ? 0 : 1], ns = 1 - tk; const sl0 = sl; { const sl = tk; // (along its sides: the fingers and toes closed together, nearly straight)
     dig.forEach((g, k) => { rot(out, g[0], (4 + lift * 16 - (air ? 8 : 0)) * ns + 3 * sl, 0, (k - 1.5) * (5 + (air ? 5 : 0)) * l.m * ns - (k - 1.5) * 2 * l.m * sl); rot(out, g[1], (3 + l.lift * 12) * ns + 2 * sl, 0, 0); }); }
   }

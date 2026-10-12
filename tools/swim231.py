@@ -33,3 +33,30 @@ rep("""    const sg = u < 0.22 ? smooth(u / 0.22) : u < 0.55 ? 1 - 0.15 * smooth
 rep("const hp = (0.07 * Math.sin(Math.PI * clamp01(u / 0.26)) - 0.03 * g + 0.025 * (1 - g) * Math.sin(th + 0.6)) * sl;",
     "const hp = (0.1 * Math.sin(Math.PI * clamp01(u / 0.26)) - 0.05 * g + 0.035 * (1 - g) * Math.sin(th + 0.6)) * sl;")
 open(P, 'w').write(s); print('swim231 ok')
+# ---- (v232) the hand's facing turns from forward to back by way of pointing outward, as a hand does sweeping back, instead of being blended
+# straight through: halfway through that blend the direction all but vanished and the solver flipped the hand round for a frame each stroke
+s = open(P).read()
+rep2_old = "    out.contact(l.en, tp, LV2.set(LB.fwd.x * l.m * (1 - tk) + 0.08 * l.m * tk, -0.35 * lift * (1 - tk), LB.fwd.z * (1 - tk) - tk), LV3.set(LB.pole.x * l.m, LB.pole.y, LB.pole.z), 1);"
+rep2_new = "    { const r = Math.hypot(LB.fwd.x, LB.fwd.z), a0 = Math.atan2(LB.fwd.x, LB.fwd.z), a = a0 + (Math.PI - 0.08 - a0) * tk; out.contact(l.en, tp, LV2.set(l.m * Math.sin(a) * r, -0.35 * lift * (1 - tk), Math.cos(a) * r), LV3.set(LB.pole.x * l.m, LB.pole.y, LB.pole.z), 1); }"
+assert s.count(rep2_old) == 1, 'contact line'
+s = s.replace(rep2_old, rep2_new); open(P, 'w').write(s); print('swim232 hand turn ok')
+# ---- (v232) a swinging foot's lift-off point lets go of the ground over the first part of the swing (it used to ride the ground the whole way,
+# so at speed the foot ran on back to full stretch before whipping forward); and the swim takes over a little sooner, so the crawl's top
+# end, where the short hind legs can only scurry, is passed through quickly
+s = open(P).read()
+o1 = "      if (l.fresh) l.fresh = false; else if (C) { l.p.applyMatrix4(C); l.p0.applyMatrix4(C); }\n      const Dl = l.arm ? D : Math.max(0.16, Math.min(D, GAIT.sweepF * Math.max(L.f, 0.5) / Math.max(v, 0.01))), u = frac(L.ph + l.off), stance = u < Dl;"
+n1 = "      const Dl = l.arm ? D : Math.max(0.16, Math.min(D, GAIT.sweepF * Math.max(L.f, 0.5) / Math.max(v, 0.01))), u = frac(L.ph + l.off), stance = u < Dl;\n      if (l.fresh) l.fresh = false; else if (C) { l.p.applyMatrix4(C); if (stance || l.st !== 'swing') l.p0.applyMatrix4(C); else { const k = 1 - smooth(clamp01((u - Dl) / (1 - Dl) / 0.3)); LV4.copy(l.p0).applyMatrix4(C); l.p0.lerp(LV4, k); } } // (a swinging foot's lift-off point lets go of the ground over the first part of the swing)"
+assert s.count(o1) == 1, 'carry'
+s = s.replace(o1, n1)
+o2 = "const SLITHER = { on: 4.4, off: 3.2, after: 0.45, T0: 1.75, T1: 1.4 };"
+n2 = "const SLITHER = { on: 3.8, off: 2.8, after: 0.35, T0: 1.75, T1: 1.4 };"
+assert s.count(o2) == 1, 'slither'
+s = s.replace(o2, n2); s = s.replace("const vk = clamp01((L.vc - SLITHER.on) / 3.6)", "const vk = clamp01((L.vc - SLITHER.on) / 4.2)")
+open(P, 'w').write(s); print('swim232 swing carry + threshold ok')
+# ---- (v232) a step lands moving back with the ground: the swing reaches a touch past its mark and comes back onto it, so at touchdown the foot
+# is already going the ground's way (it used to arrive still, then had to stop dead on the ground in one frame: a jolt with each step at speed)
+s = open(P).read()
+o3 = "        l.p.lerpVectors(l.p0, l.tgt, e); l.p.y = l.p0.y * (1 - e) + l.tgt.y * e + (liftH + bump * 1.3) * lf;"
+n3 = "        l.p.lerpVectors(l.p0, l.tgt, e); { const h11 = (s * s * s - s * s) * 0.6 * (1 - Dl) / Math.max(L.f, 0.5); l.p.x += h11 * l.gv.x; l.p.z += h11 * l.gv.z; } l.p.y = l.p0.y * (1 - e) + l.tgt.y * e + (liftH + bump * 1.3) * lf; // (it lands moving back with the ground)"
+assert s.count(o3) == 1, 'swing'
+s = s.replace(o3, n3); open(P, 'w').write(s); print('swim232 landing ok')
