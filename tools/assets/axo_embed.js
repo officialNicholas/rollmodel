@@ -960,7 +960,7 @@ const AXX = new THREE.Vector3(1, 0, 0), LQ2 = new THREE.Quaternion(), LQ3 = new 
 Animator.prototype.pitchTurn = function (pose, i, a) { if (!a) return; const F = LQ2.copy(this.P.frames(pose)[i]).normalize(); LQ.setFromAxisAngle(AXX, a); LQ3.copy(F).invert().multiply(LQ).multiply(F); pose.q[i].multiply(LQ3).normalize(); };
 Animator.prototype.initLoco = function () {
   const L = this.loco = { ph: 0, f: 0, v: 0, yr: 0, steer: 0, D: 0.65, S: 0.2, act: 0, air: false, airT: 0, lead: 1, landK: 0, still: 0, settle: null, ballK: 0, ballV: 0,
-    ht: { x: 0, v: 0 }, bd: { x: 0, v: 0 }, vc: 0, bend: 0, dip: { x: 0, v: 0 }, dipR: { x: 0, v: 0 }, arch: { x: 0, v: 0 }, limbs: [] };
+    ht: { x: 0, v: 0 }, bd: { x: 0, v: 0 }, vc: 0, bend: 0, dip: { x: 0, v: 0 }, dipR: { x: 0, v: 0 }, arch: { x: 0, v: 0 }, limbs: [], cr: { x: 0, v: 0 }, lu: { x: 0, v: 0 }, vcP: 0, acc: 0 };
   for (const d of LIMB) {
     const home = new THREE.Vector3(d.arm ? GAIT.handX * d.m : GAIT.footX * d.m, d.arm ? this.H.crawlHand : this.H.crawlFoot, d.arm ? GAIT.handZ : GAIT.footZ);
     L.limbs.push(Object.assign({}, d, { home, p: home.clone(), p0: home.clone(), tgt: home.clone(), gv: new THREE.Vector3(), st: 'stance', lift: 0, held: false, root: this.I[(d.arm ? 'upperarm.' : 'thigh.') + d.en.slice(-1)], len: 0, hb: home.clone(), rr: new THREE.Vector3() }));
@@ -995,7 +995,7 @@ Animator.prototype.crawl = function (t, out, dt) {
   { const vc = L.vc, ok = !air && !TR && !M.dry && M.spin === undefined && !((M.climbCurl || 0) > 0) && !((M.ball || 0) > 0.05) && L.ballK < 0.05; // (out of paint, M.dry: crawling only)
     if (ok && vc > SLITHER.on) SL.hold += dt; else if (!ok || vc < SLITHER.off) SL.hold = 0;
     const want = ok && (SL.on ? vc > SLITHER.off : SL.hold > SLITHER.after);
-    if (want && !SL.on) { SL.on = true; if (SL.k < 0.05) SL.u = 0.86; } // (in from the crawl: it reaches forward and takes hold, then the first pull)
+    if (want && !SL.on) { SL.on = true; if (SL.k < 0.05) { SL.u = 0.86; SL.first = 1; } } // (in from the crawl: it reaches forward and takes hold, then the first pull)
     else if (!want && SL.on && (!ok || vc < 1.5 || (SL.u > 0.58 && SL.u < 0.9))) SL.on = false; // (slowing: it swims on into its crawl steps, and the crawl takes over from there)
     SL.k += ((SL.on ? 1 : 0) - SL.k) * Math.min(1, dt * (SL.on ? 3.6 : 4.2)); }
   const sl = L.slK = smooth(SL.k);
@@ -1033,10 +1033,11 @@ Animator.prototype.crawl = function (t, out, dt) {
     // (the pull carries it ahead in the world, quickest mid-pull; then it eases back to its place over the glide and the steps, slowly at
     // first, carrying the speed it got; and it gathers a touch as the hands reach for the next one)
     const lg = u < 0.26 ? (x => x * x * x * (10 - 15 * x + 6 * x * x))(u / 0.26) : 1 - smooth((u - 0.26) / 0.74), gat = u > 0.86 ? Math.sin(Math.PI * (u - 0.86) / 0.14) : 0;
-    out.root.z += (0.1 * lg - 0.03 * gat) * sl; /* (a smaller lunge of the body: the whole blob surges with the pull now, see strokeMul) */ out.root.y -= (0.012 + 0.022 * g) * sl;
+    SL.first = Math.max(0, (SL.first || 0) - dt / 1.1); const fst = 1 + 0.7 * SL.first; /* (the first pull out of the crawl: a bigger launch) */
+    out.root.z += (0.1 * lg * fst - 0.03 * gat) * sl; /* (a smaller lunge of the body: the whole blob surges with the pull now, see strokeMul) */ out.root.y -= (0.012 + 0.022 * g) * sl;
     if (u < (SL.pu === undefined ? 1 : SL.pu) && sl > 0.5) this.kickGills(0, -0.28 * sl); SL.pu = u; // (each pull: the gills swept back by the lunge, then springing out again)
     // the head: a little dip into each pull, up and steady through the glide, a small nod with each step; the chest rides it gently
-    const hp = (0.1 * Math.sin(Math.PI * clamp01(u / 0.26)) - 0.05 * g + 0.035 * (1 - g) * Math.sin(th + 0.6)) * sl;
+    const hp = (0.1 * fst * Math.sin(Math.PI * clamp01(u / 0.26)) - 0.05 * g + 0.035 * (1 - g) * Math.sin(th + 0.6)) * sl;
     this.pitchTurn(out, sp[3], 0.3 * hp); this.pitchTurn(out, I.neck, 0.5 * hp); this.pitchTurn(out, I.head, 0.45 * hp); }
   // the body over uneven ground (climbing out of a basin): the hips up or down to the ground under them, the back tilted to the ground under
   // the chest and the head, bridging a narrow rim (the highest ground within a hand's width under each), eased so it rolls over
@@ -1078,7 +1079,7 @@ Animator.prototype.crawl = function (t, out, dt) {
     L.land = { t: 0, list: [[pick(true, true), 0], [pick(true, false), 0.075], [pick(false, false), 0.13], [pick(false, true), 0.18]].map(([l, d]) => ({ l, d: d * sc })) };
     for (const z of L.land.list) { const l = z.l; l.st = 'land'; l.p0.copy(l.p); }
     L.ph = frac(-L.land.list[0].l.off + 0.12 * L.D);
-    L.dip.v -= 34 * k; L.dipR.v += 40 * k * L.lead; L.landK = k;
+    L.dip.v -= 44 * k; L.dipR.v += 40 * k * L.lead; L.landK = k;
   }
   if (!air && L.land) {
     const Z = L.land; Z.t += dt; let done = true;
@@ -1087,6 +1088,7 @@ Animator.prototype.crawl = function (t, out, dt) {
       // still coming down: onto a spot ahead of the shoulder / hip (moving with the body until it touches), then the gait has it
       const Dl = l.arm ? D : Math.max(0.16, Math.min(D, GAIT.sweepF * fl / Math.max(v, 0.01)));
       l.tgt.copy(l.hb).addScaledVector(l.gv, -Dl / fl * 0.5); LV1.copy(l.tgt).sub(l.hb); LV1.y = 0; const r = (l.arm ? GAIT.reachH : GAIT.reachF) * 0.92; if (LV1.length() > r) LV1.setLength(r); l.tgt.set(l.hb.x + LV1.x, l.home.y, l.hb.z + LV1.z);
+      l.tgt.x += (l.arm ? 0.07 : 0.05) * Math.min(1, L.landK) * l.m; /* (a braced landing: the limbs set wider, the harder the fall) */
       if (Z.t >= z.d) { l.st = 'stance'; l.p.copy(l.tgt); l.fresh = true; }
       else { done = false; const s = Z.t / Math.max(z.d, 1e-3), e = s * s * (3 - 2 * s); l.p.lerpVectors(l.p0, l.tgt, e); l.lift = 1 - e; } }
     if (done) L.land = null;
@@ -1120,15 +1122,21 @@ Animator.prototype.crawl = function (t, out, dt) {
     if (L.settle) { const z = L.settle, l = z.l; z.s += dt / 0.24; const s = Math.min(1, z.s), e = s * s * (3 - 2 * s), lf = Math.sin(Math.PI * s); l.lift = lf; l.p.lerpVectors(l.p0, l.tgt, e); l.p.y = l.home.y + 0.035 * lf;
       if (z.s >= 1) { L.settle = null; L.still = 0.1; l.st = 'stance'; } }
   }
+  // a finger has landed and may be a jump: a quick crouch, the body dropped and gathered, the head up, ready to spring (or to ease back
+  // out of it if the finger steers instead); and braking hard, the body lurches forward onto its hands, the head dipping, then settles
+  { const cr = spr(L.cr, air ? 0 : clamp01(M.crouch || 0), 420, 28, dt); if (Math.abs(cr) > 0.002) { out.root.y -= 0.045 * cr; out.root.z -= 0.02 * cr; this.pitchTurn(out, I.neck, -0.1 * cr); this.pitchTurn(out, I.head, -0.1 * cr); this.pitchTurn(out, sp[2], 0.06 * cr); }
+    const acc = (L.vc - L.vcP) / Math.max(dt, 1e-3); L.vcP = L.vc; L.acc += (acc - L.acc) * Math.min(1, dt * 20);
+    const lu = spr(L.lu, air ? 0 : clamp01(-L.acc / 22) * on, 150, 14, dt); if (Math.abs(lu) > 0.002) { out.root.z += 0.045 * lu; out.root.y -= 0.012 * lu; this.pitchTurn(out, sp[3], 0.06 * lu); this.pitchTurn(out, I.neck, 0.14 * lu); this.pitchTurn(out, I.head, 0.1 * lu); } }
   // the bob of each pair's footfall, the push-off's arch, the landing's dip onto the lead hand (on springs: they overshoot and settle)
   const bob = Math.cos(4 * Math.PI * (L.ph - D * 0.5)) * 0.009 * act * (1 - sl);
   const arch = spr(L.arch, 0, 90, 12, dt), dip = spr(L.dip, 0, 110, 13, dt), dipR = spr(L.dipR, 0, 110, 12, dt);
   const brI = (this.breath - 0.5) * (1 - act);   // (stopped, the breath shows: the chest rises and falls, the belly swells, the gills flare)
   out.root.y += -bob + dip * 0.0012 + brI * 0.02;
-  const fallK = air && (M.vy || 0) < 0 ? 1 - smooth(clamp01(((M.tl === undefined ? 1 : M.tl) - 0.05) / 0.4)) : 0;
-  rot(out, I.chest, -arch * 0.12 + dip * 0.1 - 4.5 * brI, 0, 0); rot(out, sp[2], -2 * brI, 0, 0); rot(out, I.head, 2 - arch * 0.1 - Math.min(0, dip) * 0.05 + (air ? -7 + 15 * fallK : 0), 0, 0);
+  const fallK = air && (M.vy || 0) < 0 ? 1 - smooth(clamp01(((M.tl === undefined ? 1 : M.tl) - 0.05) / 0.4)) : 0, riseK = air ? 1 - smooth(clamp01(L.airT / 0.3)) : 0; // (riseK: the push-off, fading over the first third of a second)
+  if (air) out.root.y += -0.03 * (1 - smooth(clamp01(L.airT / 0.06))) + 0.02 * Math.sin(Math.PI * clamp01((L.airT - 0.04) / 0.16)); /* (the spring off the ground: a last dip, then thrown up past its line) */
+  rot(out, I.chest, -arch * 0.12 + dip * 0.1 - 4.5 * brI - 4 * riseK, 0, 0); rot(out, sp[2], -2 * brI, 0, 0); rot(out, I.head, 2 - arch * 0.1 - Math.min(0, dip) * 0.05 + (air ? -9 - 5 * riseK + 20 * fallK : 0), 0, 0);
   this.worldTurn(out, sp[3], 0, dipR * 0.12);
-  if (air) { rot(out, sp[1], -4 + 7 * fallK, 0, 0); rot(out, sp[2], -4 + 6 * fallK, 0, 0); }
+  if (air) { rot(out, sp[1], -5 - 3 * riseK + 9 * fallK, 0, 0); rot(out, sp[2], -4 - 2 * riseK + 7 * fallK, 0, 0); }
   // ---- the limbs on their marks (in the air the same marks steer them, with no ground under them)
   for (const l of L.limbs) {
     const LB = this.limbBind[l.arm ? 'arm' : 'leg'];
@@ -1146,7 +1154,7 @@ Animator.prototype.crawl = function (t, out, dt) {
     dig.forEach((g, k) => { rot(out, g[0], (4 + lift * 16 - (air ? 8 : 0)) * ns + 3 * sl, 0, (k - 1.5) * (5 + (air ? 5 : 0)) * l.m * ns - (k - 1.5) * 2 * l.m * sl); rot(out, g[1], (3 + l.lift * 12) * ns + 2 * sl, 0, 0); }); }
   }
   // the tail carries the wave on behind the hips
-  this.tailWave(2 * Math.PI * L.ph + Math.PI * 0.85, ((4 + 15 * clamp01(v / 6.5)) * act + 1.5), 0.75, air ? -3 : 0);
+  this.tailWave(2 * Math.PI * L.ph + Math.PI * 0.85, ((4 + 15 * clamp01(v / 6.5)) * act + 1.5), 0.75, air ? -11 * riseK + 4 * (1 - riseK) + 5 * fallK : 0); // (the tail whipped down with the push-off, lifting through the flight, trailing up on the way down)
   if (sl > 0.001) { const tt = this.tailTarget, th = 4 * Math.PI * SL.u, env = 0.6 + 0.4 * SL.g; let up = 14 * env * Math.sin(th - 5 * 0.55); // (from the hips' own heading on)
     for (let k = 0; k < 6; k++) { const a = (18 + 7 * k) * env * Math.sin(th - (6 + k) * 0.55); tt[k * 2] = tt[k * 2] * (1 - sl) + (a - up) * sl; tt[k * 2 + 1] *= 1 - sl; up = a; } }
   { const cc = L.tcurl = (L.tcurl || 0) + ((M.climbCurl || 0) - (L.tcurl || 0)) * Math.min(1, dt * 8), up = (L.tailUp || 0) - 0.4 * cc, tl = this.chain.tail; // (a positive pitch lifts a tail joint)
@@ -1160,7 +1168,7 @@ Animator.prototype.crawl = function (t, out, dt) {
     // (the tail wraps round the outside of the ball, the tip tucking in over the head)
     const tl = this.chain.tail; for (let k = 0; k < tl.length; k++) rot(out, tl[k], [58, 46, 46, 46, 48, 52][k] * b, 0, 0);
     for (const s of ['L', 'R']) { const m = s === 'L' ? 1 : -1; rot(out, I['upperarm.' + s], 0, 0, -35 * m * b); rot(out, I['forearm.' + s], 70 * b, 0, 0); rot(out, I['thigh.' + s], 55 * b, 0, -10 * m * b); rot(out, I['shin.' + s], 70 * b, 0, 0); }
-    for (const k in out.contacts) out.contacts[k].w *= (1 - b) * (1 - b);
+    for (const k in out.contacts) out.contacts[k].w *= (1 - b) * (1 - b) * (1 - b); // (the planted limbs let go at once: no fight between the tuck and the ground)
     this.tailFree = 1 - 0.8 * b; this.neck.amt *= 1 - b; this.gillHold = 1;
     { const pos = P.fk('crawl', out), c = this.ballC || (this.ballC = new THREE.Vector3()); c.copy(pos[sp[1]]).lerp(pos[sp[3]], 0.5); }
   }

@@ -94,7 +94,7 @@ const AXOC = (() => {
     // shown again after being hidden (the game says so), or back on all fours after standing: its feet start again under it
     if (X.fresh) { X.fresh = false; X.hasPrev = false; A.loco = null; }
     const busy = D && D.st === 'play' && state !== 'menu', inAir = !!o.inAir, charging = busy && D.charging && !D.air;
-    A.motion.speed = inAir || charging ? 0 : clamp((o.spd || 0) * 1.5, 0, 1.5); A.motion.dry = !!(D && D.dry && D.st === 'play'); // (out of paint: it only crawls, never swims)
+    A.motion.speed = inAir || charging ? 0 : clamp((o.spd || 0) * 1.5, 0, 1.5); A.motion.dry = !!(D && D.dry && D.st === 'play'); A.motion.crouch = D && D.preJ > 0 && D.st === 'play' && !D.air && !D.charging ? 1 : 0; // (a finger just landed: it may be a jump) // (out of paint: it only crawls, never swims)
     // the ground under it: where a point fixed in the world moved in its mesh's space since last frame (none across a jump of the map)
     { const par = I.root.parent; let carry = null;
       if (par) { par.updateWorldMatrix(true, false); const mw = X.mw || (X.mw = new THREE.Matrix4()), pv = X.mwPrev || (X.mwPrev = new THREE.Matrix4());
