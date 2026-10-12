@@ -121,6 +121,21 @@ def coat():
     for p in pg: cells.append(cam(p, f'{tag(p)}: blue, wading', [1.4, 0.8, 1.6], [0, 0.35, 0.2], pre="LAB.I.ax.coat = 0; LAB.I.setWade(1); LAB.step(5); "))
     for p in pg: cells.append(cam(p, f'{tag(p)}: blue, drying (wet 0.6)', [1.4, 0.8, 1.6], [0, 0.35, 0.2], pre="LAB.I.setWade(0); LAB.I.ax.coat = 0; LAB.step(3); LAB.I.ax.wet = 0.6; LAB.step(2); "))
     run('coat', pages, cells, 420, 400, 4, 'the paint coat: A / B')
+# the lobby defect check: the stand and the crawl from the front at lobby distance on a light and a dark ground, the crawl 3/4, the
+# game's lobby view (the crawl looking up at the camera) and a close-up of the left ear's top
+def fix():
+    pg = ['A', 'B']; pages = {p: LAB(DIRS[p]) for p in pg}; cells = []
+    LIGHT = "scene.background = new THREE.Color(0xd9d2c3); floor.visible = true; "; DARK = "scene.background = new THREE.Color(0x1a1a1e); floor.visible = false; "
+    LOOKUP = "LAB.I.ax.A.look.pitch = 28; LAB.I.ax.A.look.yaw = 0; "
+    for p in pg: cells.append(cam(p, f'{tag(p)}: crawl, lobby front, light', [0.0, 0.75, 2.0], [0, 0.4, 0.2], pre=RESET + LIGHT + NEUTRAL + "LAB.set('idle'); " + LOOKUP + "LAB.step(60); "))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: crawl, lobby front, dark', [0.0, 0.75, 2.0], [0, 0.4, 0.2], pre=DARK + "LAB.step(2); "))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: crawl 3/4, light', [1.4, 0.9, 1.6], [0, 0.4, 0.2], pre=LIGHT + "LAB.I.ax.A.look.pitch = 0; LAB.step(20); "))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: left ear top, close', [0.55, 1.1, 0.9], [0.3, 0.75, 0.33], pre="LAB.step(2); "))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: stand, lobby front, light', [0.0, 1.2, 2.6], [0, 0.95, 0.0], pre=RESET + LIGHT + "LAB.set('idle'); LAB.step(20); LAB.I.ax.A.set('stand'); LAB.step(150); "))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: stand, lobby front, dark', [0.0, 1.2, 2.6], [0, 0.95, 0.0], pre=DARK + "LAB.step(2); "))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: stand, chest close, dark', [0.3, 1.2, 1.5], [0, 1.0, 0.0], pre="LAB.step(2); "))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: stand 3/4, light', [1.5, 1.3, 1.9], [0, 0.95, 0.0], pre=LIGHT + "LAB.step(2); "))
+    run('fix_seams', pages, cells, 420, 460, 4, 'the lobby defect check: A / B')
 if __name__ == '__main__':
     a = sys.argv[1:]
     if '--pages' in a: i = a.index('--pages'); PG = a[i + 1].split(','); del a[i:i + 2]

@@ -289,7 +289,10 @@ def reshape(nm, untex, tex, out, outsrc, s=SCALE, verbose=True):
     Ptb = np.vstack([Ptb, cen_t]); Tt2 = np.vstack([Tt2, fanTt]); uvb = np.vstack([uvb, uv_c]); ntb += ncen_t
     if verbose: print(f'  textured: open edges near the head now {open_near(Tt2, Ptb)} (seam copies count as open)')
     sit = np.vstack([sit, si_c]); swt = np.vstack([swt, sw_c]); jt = np.vstack([jt, j_c]); ft = np.vstack([ft, f_c]); mtt = np.vstack([mtt, m_c]); cpt = np.vstack([cpt, cp_c])
-    Ntb = vnormals(Ptb, Tt2); Nt_body = np.zeros((ntb, 4), np.int8); Nt_body[:, :3] = np.clip(np.round(Ntb * 127), -127, 127).astype(np.int8)
+    # the textured copies take the welded mesh's normals (a split mesh's own would break along every atlas seam: dark and pale lines
+    # over the chest, shoulders and arms); the hole centres' copies take their hole's
+    Nt_body = np.zeros((ntb, 4), np.int8); Nt_body[:ntb - ncen_t, :3] = np.clip(np.round(Nb[o2n[vmk]] * 127), -127, 127).astype(np.int8)
+    if ncen_t: _, jc = cKDTree(cen).query(cen_t); Nt_body[ntb - ncen_t:, :3] = np.clip(np.round(Nb[nb_ - ncen + jc] * 127), -127, 127).astype(np.int8)
     # the ears' uv: the skin's texel nearest the hinge (the look colours the ear from it)
     ht = np.where((hw[vm][keept] > 0.95) & (gw[vm][keept] < 0.02))[0]; kd_t = cKDTree(Ptb[ht]); uv_l = np.zeros((nl, 2), np.uint16); o_ = 0
     for E in parts:
