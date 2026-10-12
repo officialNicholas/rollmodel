@@ -46,8 +46,10 @@ def even(nm, src, texdir, out, sigma=0.05, wide=0.2, verbose=True):
     new = col + (m_wide - m_near) * k
     # round the gill roots the sculpt's own root shading (a saturated red patch) goes almost entirely: the broad mean with a little detail
     roots = np.array([b['pos'] for b in meta['bones'] if b['name'].startswith('gill') and b['name'].endswith('.1')])
-    dr = np.min(np.linalg.norm(q[:, None, :] - roots[None, :, :], axis=2), axis=1); kr = (1.0 - ss((dr - 0.1) / 0.08))[:, None] * k
-    new = new + kr * ((m_wide + (col - m_near) * 0.3) - new)
+    dr = np.min(np.linalg.norm(q[:, None, :] - roots[None, :, :], axis=2), axis=1); kr = (1.0 - ss((dr - 0.12) / 0.07))[:, None] * k
+    # (the colour of the skin round the patch, from an annulus 16 to 26 cm out, takes the patch's place, with a tenth of its own detail)
+    ann = (dr > 0.16) & (dr < 0.26) & (wq > 0.8); target = col[ann].mean(0) if ann.sum() > 100 else m_wide.mean(0)
+    new = new + kr * ((target[None, :] + (col - m_near) * 0.1) - new)
     if verbose:
         d = np.abs(m_near - m_wide).max(1); print(f'{nm}: {len(ty)} head texels; band removed: mean {d.mean() * 100:.1f}% of linear, p99 {np.percentile(d, 99) * 100:.1f}%, max {d.max() * 100:.1f}%')
     img2 = img.copy(); img2[ty, tx] = srgb(new).astype(np.float32)

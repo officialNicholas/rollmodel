@@ -265,10 +265,10 @@ Animator.prototype.crawl = function (t, out, dt) {
 // head's swing and overshooting when it stops), and flare a little with each breath in
 { const ss0 = Animator.prototype.stepSecondary;
   Animator.prototype.stepSecondary = function (dt) {
-    const L = this.loco; if (!this.gillSpring2) { this.gillSpring2 = 1; this.gillSpring.k = 230; this.gillSpring.c = 10; }
+    const L = this.loco; if (!this.gillSpring2) { this.gillSpring2 = 1; this.gillSpring.k = 110; this.gillSpring.c = 7.5; } // (the gills hang like floppy ears: a slower, looser spring that lags, swings and settles)
     if (L) { const swing = Math.max(-1, Math.min(1, -(L.yr * Math.max(1.5, L.v) * 0.12 + L.ht.v * 0.012))), fl = (this.breath - 0.5) * 2;
       const add = this.gillAdd || (this.gillAdd = new Float32Array(12));
-      for (let j = 0; j < 6; j++) { const sgn = j < 3 ? 1 : -1; add[j * 2] = -fl * 2.5 * (1 - L.act); add[j * 2 + 1] = swing * 24 * sgn + fl * 7 * (1 - L.act); } this.gillAddOn = true; }
+      for (let j = 0; j < 6; j++) { const sgn = j < 3 ? 1 : -1; add[j * 2] = -fl * 1.0 * (1 - L.act); add[j * 2 + 1] = swing * 40 * sgn + fl * 3 * (1 - L.act); } this.gillAddOn = true; }
     // the original computes the targets and steps the spring: the turn's swing goes in through the push the spring is given
     ss0.call(this, dt);
     // the tail follows the body's bend round a turn (its spring lags it in and swings it back after)

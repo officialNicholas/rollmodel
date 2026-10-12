@@ -38,9 +38,10 @@ GILL_YAW = 32.0       # degrees the gill strip turns forward about the dome's ve
 # bottom), the direction of its first segment, of its second, and its stretch along its length; (out, up, forward) on the left side
 # per stalk (top, middle, bottom): the first segment's direction, the second's, the stretch along the stalk, and the lobe's half width
 # fore-aft and half thickness sideways (m); the three splay fore and aft so they layer like locks instead of running through each other
-HANG = [((0.5, -0.62, 0.42), (0.1, -1.0, 0.2), 1.3, 0.056, 0.04),
-        ((0.78, -0.58, 0.0), (0.22, -1.0, -0.02), 1.08, 0.05, 0.036),
-        ((0.62, -0.55, -0.45), (0.2, -1.0, -0.26), 0.9, 0.045, 0.032)]
+HANG = [((0.3, -0.72, 0.3), (0.3, -1.0, 0.1), 1.3, 0.115, 0.029, 30.0),
+        ((0.42, -0.62, -0.3), (0.2, -1.0, -0.12), 1.0, 0.09, 0.027, 15.0),
+        ((0.38, -0.5, -0.55), (0.16, -1.0, -0.3), 0.85, 0.08, 0.025, 12.0)]
+# (the last number: the ear's flat face turned toward the front by that many degrees, so it shows its face from the front like the slime's)
 NECK_THICK = 0.2      # the neck's radius about its axis, grown by this
 HEAD_IN = 0.03        # the head brought this much closer to the body along the neck (in the mesh; the head joint stays)
 def ss(t): t = np.clip(t, 0, 1); return t * t * (3 - 2 * t)
@@ -171,9 +172,14 @@ def reshape(nm, untex, tex, out, outsrc, verbose=True):
             rootsNow[bi[f'gill{k}.{s_}.1']] = gb[f'gill{k}.{s_}.1']['pos']; rootsNow[bi[f'gill{k}.{s_}.2']] = gb[f'gill{k}.{s_}.1']['pos']
     rootP = np.array([rootsNow[int(g)] for g in gdom]); dRoot = np.linalg.norm(P2 - rootP, axis=1)
     own_all = ((gw > 0.3) | ((thin > 0.3) & ((hw + gw) > 0.02) & (dRoot < 0.2))) & ((hw + gw) > 0.02)
-    P2[own_all] = rootP[own_all] + unit(rootP[own_all] - C) * -0.05   # (5 cm inside the skull: the slivers to the base rings stay buried)
     ring_all = (gw > 0.02) & ~own_all; dq_ = P2[ring_all] - C; dd_ = unit(dq_); rho_ = 1.0 / np.sqrt((dd_[:, 0] / RADII[0]) ** 2 + (dd_[:, 1] / RADII[1]) ** 2 + (dd_[:, 2] / RADII[2]) ** 2)
     P2[ring_all] = C + dd_ * (rho_ * shape_factor(dd_))[:, None]
+    # (each stalk's vertices onto the centre of its own base ring, on the skin: the hole the stalk came through closes as a flat cap)
+    for k in range(3):
+        for s_ in 'LR':
+            i1 = bi[f'gill{k}.{s_}.1']; i2 = bi[f'gill{k}.{s_}.2']; mine = (gdom == i1) | (gdom == i2); rk = ring_all & mine; ok_ = own_all & mine
+            if rk.sum() >= 3 and ok_.any(): cen = P2[rk].mean(0); P2[ok_] = cen + unit(cen - C) * 0.0015   # (flush with the skull; the fan is re-wound to face out below)
+            elif ok_.any(): P2[ok_] = rootP[ok_]
     okm = (~own_all).astype(float)
     for _ in range(8):
         avg = (A @ (P2 * okm[:, None])) / np.maximum(A @ okm, 1e-9)[:, None]; P2[ring_all] = 0.5 * P2[ring_all] + 0.5 * avg[ring_all]
@@ -183,10 +189,10 @@ def reshape(nm, untex, tex, out, outsrc, verbose=True):
     for k in range(3):
         for sgn in (1.0, -1.0):
             s_ = 'L' if sgn > 0 else 'R'; i1 = bi[f'gill{k}.{s_}.1']; i2 = bi[f'gill{k}.{s_}.2']; wk = W[:, i1] + W[:, i2]
-            b1 = gb[f'gill{k}.{s_}.1']; b2 = gb[f'gill{k}.{s_}.2']; (o1, u1, f1), (o2, u2, f2), st, A0, B0 = HANG[k]
+            b1 = gb[f'gill{k}.{s_}.1']; b2 = gb[f'gill{k}.{s_}.2']; (o1, u1, f1), (o2, u2, f2), st, A0, B0, twist = HANG[k]
             j1 = b1['pos']; L_old = float(np.linalg.norm(b2['end'] - j1)); L1 = float(np.linalg.norm(b1['end'] - j1))
             t1 = unit([sgn * o1, u1, f1]); t2 = unit([sgn * o2, u2, f2]); Ln = L_old * st; L1n = L1 * st
-            e1 = j1 + t1 * L1n; e2 = e1 + t2 * (Ln - L1n); j0 = j1 - unit(j1 - C) * 0.035
+            e1 = j1 + t1 * L1n; e2 = e1 + t2 * (Ln - L1n); j0 = j1 - unit(j1 - C) * 0.045
             # the old stalk retired: its own vertices onto the root joint, a hair inside the head; its base ring (shared with the head)
             # laid onto the reshaped skull's surface, so no collar of the old cone is left standing
             # the lobe
@@ -194,7 +200,8 @@ def reshape(nm, untex, tex, out, outsrc, verbose=True):
             for ui, uu in enumerate(us):
                 cu = (1 - uu) ** 2 * j0 + 2 * (1 - uu) * uu * e1 + uu ** 2 * e2; tg = unit(2 * (1 - uu) * (e1 - j0) + 2 * uu * (e2 - e1))
                 lat = np.array([sgn, 0.0, 0.0]); l_ = unit(lat - tg * np.dot(lat, tg)); f_ = np.cross(tg, l_)
-                prof = (0.35 + 0.65 * np.sin(np.pi * min(1.0, uu * 1.2))) * (1.0 - 0.82 * ss((uu - 0.78) / 0.22)) if ui < NU - 1 else 0.0
+                tw = np.radians(twist) * sgn; l_, f_ = np.cos(tw) * l_ + np.sin(tw) * f_, -np.sin(tw) * l_ + np.cos(tw) * f_   # (the flat face turned toward the front)
+                prof = (0.18 + 0.82 * ss((uu - 0.04) / 0.5)) * (1.0 + 0.08 * ss((uu - 0.5) / 0.4)) * (np.sqrt(max(0.0, 1.0 - ((uu - 0.86) / 0.14) ** 2)) if uu > 0.86 else 1.0) if ui < NU - 1 else 0.0
                 for ti in range(NT):
                     th_ = 2 * np.pi * ti / NT; verts.append(cu + prof * (B0 * np.cos(th_) * l_ + A0 * np.sin(th_) * f_)); vu.append(uu); vth.append(th_)
                     if ui == NU - 1: break
@@ -282,6 +289,13 @@ def reshape(nm, untex, tex, out, outsrc, verbose=True):
     for _ in range(6):
         y_ = (A @ P2) / np.maximum(deg, 1)[:, None]; P2[dm_] = 0.6 * P2[dm_] + 0.4 * y_[dm_]
     if verbose: print(f'  back rounded: {moved} dorsal trunk verts in {nsl} slabs; neck band {int(bandN.sum())} verts smoothed')
+    # the caps over the stalk holes: the fan triangles (a ring vertex or two and the cap centre) kept the old tube's winding, some of them
+    # facing in and so culled, a dark sliver; each is wound to face out of the head
+    fan = own_all[T].any(1) & ~own_all[T].all(1); fi = np.where(fan)[0]
+    if len(fi):
+        tri = T[fi]; fn_ = np.cross(P2[tri[:, 1]] - P2[tri[:, 0]], P2[tri[:, 2]] - P2[tri[:, 0]]); outw = P2[tri].mean(1) - C
+        flip = (fn_ * outw).sum(1) < 0; T[fi[flip]] = T[fi[flip]][:, [0, 2, 1]]
+        if verbose: print(f'  stalk caps: {len(fi)} fan triangles, {int(flip.sum())} re-wound to face out')
     P2 = np.vstack([P2, Pl]); T = np.vstack([T, T_l]); n2 = len(P2)
     # the retired stalks and their base rings carry no gill mask, frill tip or thinness any more (they would tint the skin round the ears)
     jelly_o = r['jelly'].copy(); fill_o = r['fill'].copy(); mat_o = r['mat'].copy(); ret = gw > 0.02; jelly_o[ret, 2] = 0; fill_o[ret, 3] = 0; mat_o[ret, 1] = 0
@@ -289,7 +303,8 @@ def reshape(nm, untex, tex, out, outsrc, verbose=True):
     # ---- normals (area weighted), the canonical place, the bones, the meta ----
     fn = np.cross(P2[T[:, 1]] - P2[T[:, 0]], P2[T[:, 2]] - P2[T[:, 0]]); vn = np.zeros((n2, 3))
     for k in range(3): np.add.at(vn, T[:, k], fn)
-    N = unit(vn); Nq = np.zeros((n2, 4), np.int8); Nq[:, :3] = np.clip(np.round(N * 127), -127, 127).astype(np.int8)
+    N = unit(vn); N[:n][own_all] = unit(P2[:n][own_all] - C)   # (the retired stalks' vertices: the skull's outward direction, never a zero normal)
+    Nq = np.zeros((n2, 4), np.int8); Nq[:, :3] = np.clip(np.round(N * 127), -127, 127).astype(np.int8)
     cp = cp_old.copy(); dP = P2[:n] - P
     if nm == 'stand': cp[:, :3] = P2[:n]
     else: cp[:, :3] += dP
@@ -331,6 +346,12 @@ def reshape(nm, untex, tex, out, outsrc, verbose=True):
         m = len(L['P']); _, j = kd_t.query(L['root']); uv_l[o_:o_ + m] = uvt[ht[j]]; o_ += m
     Pt2 = np.vstack([P2[:n][vm], Pl]).astype(np.float32); Nt2 = np.vstack([Nq[:n][vm], Nq[n:]]); cqt = np.vstack([cq[:n][vm], cq[n:]])
     sit = np.vstack([rd('skinIndex', np.uint8, 4), si_l]); swt = np.vstack([rd('skinWeight', np.uint8, 4), sw_l]); jt = np.vstack([jelly_o[vm], jelly_l]); ft = np.vstack([fill_o[vm], fill_l]); mtt = np.vstack([mat_o[vm], mat_l])
+    # (the caps' fan triangles re-wound here too: the textured mesh keeps its own index buffer)
+    own_t = own_all[vm]; fan_t = own_t[Tt].any(1) & ~own_t[Tt].all(1); fti = np.where(fan_t)[0]
+    if len(fti):
+        tri = Tt[fti]; Pq = P2[:n][vm]; fn_ = np.cross(Pq[tri[:, 1]] - Pq[tri[:, 0]], Pq[tri[:, 2]] - Pq[tri[:, 0]]); flip = (fn_ * (Pq[tri].mean(1) - C)).sum(1) < 0
+        Tt = Tt.copy(); Tt[fti[flip]] = Tt[fti[flip]][:, [0, 2, 1]]
+        if verbose: print(f'  textured stalk caps: {len(fti)} fan triangles, {int(flip.sum())} re-wound')
     uvt2 = np.vstack([uvt, uv_l]); Tt2 = np.vstack([Tt, T_l - n + nt])
     buf2, off2 = pack([('position', Pt2), ('normal', Nt2), ('skinIndex', sit), ('skinWeight', swt), ('index', Tt2.astype(np.uint16).ravel()), ('cpos', cqt), ('jelly', jt), ('fill', ft), ('mat', mtt), ('uv', uvt2), ('tex', np.frombuffer(texb, np.uint8))])
     for k in ('bones', 'bbox', 'face', 'headc', 'headr'): mt[k] = meta[k]
