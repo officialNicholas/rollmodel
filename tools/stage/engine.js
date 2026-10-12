@@ -65,7 +65,7 @@ function steamTick(dt) {
 // base and settles back; hit properly it tips past its balance and goes over: a cone onto its side, rolling round its tip; a barrel onto its
 // side, rolling straight off; a crate onto a face, sliding to a stop. A pound throws them about; one knocked over the edge sinks.
 // Tipped by th toward dir, each pivots on the edge of its base (its weight low) until it lies down ----------
-const KN_MAX = 18, CONES = [], conePV = new Map();
+const KN_MAX = 32, CONES = [], conePV = new Map();
 const KN = {   // base half-width rp, height h, the height of its weight c (and its spread k2), how it lies (lie: 'apex' rolls round its tip,
   // 'axis' rolls straight, 'flat' slides), how far its tip is from its base (L), its rolling radius rr, how hard a bump tips it (kick)
   cone: { rp: 0.285, h: 0.735, c: 0.165, k2: 0.027, tip: 0.0375, lie: 'apex', L: 0.69, rr: 0.135, kick: 2.4 },
