@@ -2915,7 +2915,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 230</p>
+      <p class="ver">Version 231</p>
     </div>
   </div>
 
@@ -5086,7 +5086,7 @@ function hugY(x, z, cy) { const y = surfaceUnder(x, z, cy + 0.3); return (y > cy
 // the newest stretch of a trail tapers in toward the blob laying it, so the paint looks like it's flowing out from under it rather than
 // starting from nowhere: each point remembers where its edges sit at full width, the last few are drawn pulled in toward the middle (the
 // newest most), and each lets out a notch as the next is laid ahead of it. A roller or a giant tapers the same way over a longer run
-const TAPER_N = 9, TAPER_NMAX = 22, TAPER_TIP = 0.3; let trailGen = 0;
+const TAPER_N = 5, TAPER_NMAX = 22, TAPER_TIP = 0.3, TRAIL_FWD = 0.1; /* (the stream laid a touch ahead of the blob's centre, under its chin, and full width by its hips) */ let trailGen = 0;
 const taperF = (a, k, n) => 1 - (1 - TAPER_TIP) * k * Math.pow(Math.max(0, 1 - a / (n || TAPER_N)), 2);
 const taperV = (o, k, v) => { const j = (o + k) * 3; vPos[j] = v[0]; vPos[j + 1] = v[1]; vPos[j + 2] = v[2]; };
 function taperPut(h, f) {
@@ -7777,11 +7777,16 @@ const SLITHER = { on: 4.4, off: 3.2, after: 0.45, T0: 1.75, T1: 1.4 }; // (T0 / 
 // pair, each reaching forward and taking hold), and pulls again. Each limb's marks through the cycle: [u, mark, swing (lifted over)]
 const SWK = { arm: { F: [0.26, 0, 0.18, 0], G: [0.27, 0, 0.09, 0], M: [0.28, 0, 0.0, 0], B: [0.2, 0.012, -0.16, 0], T: [0.05, 0.045, -0.25, 1] }, // [out, up, along, tucked]
   leg: { F: [0.17, 0, 0.06, 0], M: [0.18, 0, -0.06, 0], B: [0.1, 0.02, -0.24, 0], T: [0.035, 0.035, -0.28, 1] } };
-const SWT = { 'hand.R': [[0, 'M'], [0.15, 'B'], [0.24, 'T'], [0.55, 'T'], [0.68, 'F', 1], [1, 'M']], 'hand.L': [[0, 'G'], [0.17, 'B'], [0.26, 'T'], [0.7, 'T'], [0.83, 'F', 1], [1, 'G']],
-  'foot.L': [[0, 'M'], [0.14, 'B'], [0.24, 'T'], [0.56, 'T'], [0.69, 'F', 1], [1, 'M']], 'foot.R': [[0, 'M'], [0.14, 'B'], [0.24, 'T'], [0.71, 'T'], [0.84, 'F', 1], [1, 'M']] };
+const SWT = { 'hand.R': [[0, 'M', 0, 1], [0.15, 'B', 0, 1], [0.25, 'T'], [0.55, 'T'], [0.68, 'F', 1], [1, 'M', 0, 1]], 'hand.L': [[0, 'G', 0, 1], [0.17, 'B', 0, 1], [0.27, 'T'], [0.7, 'T'], [0.83, 'F', 1], [1, 'G', 0, 1]],
+  'foot.L': [[0, 'M', 0, 1], [0.14, 'B', 0, 1], [0.25, 'T'], [0.56, 'T'], [0.69, 'F', 1], [1, 'M', 0, 1]], 'foot.R': [[0, 'M', 0, 1], [0.14, 'B', 0, 1], [0.25, 'T'], [0.71, 'T'], [0.84, 'F', 1], [1, 'M', 0, 1]] };
+const swTan = (k, K, j, c) => { const n = k.length - 1; if (!k[j][3]) return 0; // (a mark passed through: its pace from the marks either side, round the cycle's end)
+  const jp = j > 0 ? j - 1 : n - 1, jn = j < n ? j + 1 : 1, up = j > 0 ? k[jp][0] : k[jp][0] - 1, un = j < n ? k[jn][0] : k[jn][0] + 1;
+  return 0.85 * (K[k[jn][1]][c] - K[k[jp][1]][c]) / (un - up); };
 const swMark = (en, u, arm, out) => { const k = SWT[en], K = SWK[arm ? 'arm' : 'leg']; let i = 0; while (i < k.length - 2 && u >= k[i + 1][0]) i++;
-  const a = K[k[i][1]], b = K[k[i + 1][1]], x = clamp01((u - k[i][0]) / (k[i + 1][0] - k[i][0])), e = x * x * (3 - 2 * x), arc = k[i + 1][2] ? Math.sin(Math.PI * x) : 0;
-  for (let j = 0; j < 4; j++) out[j] = a[j] + (b[j] - a[j]) * e; out[1] += (arm ? 0.05 : 0.035) * arc; out[4] = arc; return out; };
+  const a = K[k[i][1]], b = K[k[i + 1][1]], d = k[i + 1][0] - k[i][0], x = clamp01((u - k[i][0]) / d), arc = k[i + 1][2] ? Math.sin(Math.PI * x) : 0;
+  const x2 = x * x, x3 = x2 * x, h00 = 2 * x3 - 3 * x2 + 1, h10 = x3 - 2 * x2 + x, h01 = 3 * x2 - 2 * x3, h11 = x3 - x2;
+  for (let j = 0; j < 4; j++) out[j] = h00 * a[j] + h10 * d * swTan(k, K, i, j) + h01 * b[j] + h11 * d * swTan(k, K, i + 1, j);
+  out[3] = clamp01(out[3]); out[1] += (arm ? 0.05 : 0.035) * arc; out[4] = arc; return out; };
 const spr = (s, target, k, c, dt) => { const h = Math.min(dt, 1 / 30); s.v += (k * (target - s.x) - c * s.v) * h; s.x += s.v * h; return s.x; };
 // a pitch about the body's own sideways axis (positive: nose down), put in the bone's own frame
 const AXX = new THREE.Vector3(1, 0, 0), LQ2 = new THREE.Quaternion(), LQ3 = new THREE.Quaternion();
@@ -7858,10 +7863,13 @@ Animator.prototype.crawl = function (t, out, dt) {
     // round a turn, the bend low in the trunk (the tail takes it on in a C; see the secondary motion)
     this.worldTurn(out, sp[1], bend * 0.3 * sl, 0); this.worldTurn(out, sp[2], bend * 0.12 * sl, 0);
     // the surge: forward with the pull, carried through the glide, easing back a touch as it slows into its steps; the belly down on the glide
-    const sg = u < 0.22 ? smooth(u / 0.22) : u < 0.55 ? 1 - 0.15 * smooth((u - 0.22) / 0.33) : 0.85 * (1 - smooth((u - 0.55) / 0.45));
-    out.root.z += (0.06 * sg - 0.03) * sl; out.root.y -= (0.012 + 0.022 * g) * sl;
+    // (the pull carries it ahead in the world, quickest mid-pull; then it eases back to its place over the glide and the steps, slowly at
+    // first, carrying the speed it got; and it gathers a touch as the hands reach for the next one)
+    const lg = u < 0.26 ? (x => x * x * x * (10 - 15 * x + 6 * x * x))(u / 0.26) : 1 - smooth((u - 0.26) / 0.74), gat = u > 0.86 ? Math.sin(Math.PI * (u - 0.86) / 0.14) : 0;
+    out.root.z += (0.2 * lg - 0.03 * gat) * sl; out.root.y -= (0.012 + 0.022 * g) * sl;
+    if (u < (SL.pu === undefined ? 1 : SL.pu) && sl > 0.5) this.kickGills(0, -0.28 * sl); SL.pu = u; // (each pull: the gills swept back by the lunge, then springing out again)
     // the head: a little dip into each pull, up and steady through the glide, a small nod with each step; the chest rides it gently
-    const hp = (0.07 * Math.sin(Math.PI * clamp01(u / 0.26)) - 0.03 * g + 0.025 * (1 - g) * Math.sin(th + 0.6)) * sl;
+    const hp = (0.1 * Math.sin(Math.PI * clamp01(u / 0.26)) - 0.05 * g + 0.035 * (1 - g) * Math.sin(th + 0.6)) * sl;
     this.pitchTurn(out, sp[3], 0.3 * hp); this.pitchTurn(out, I.neck, 0.5 * hp); this.pitchTurn(out, I.head, 0.45 * hp); }
   // the body over uneven ground (climbing out of a basin): the hips up or down to the ground under them, the back tilted to the ground under
   // the chest and the head, bridging a narrow rim (the highest ground within a hand's width under each), eased so it rolls over
@@ -11323,12 +11331,12 @@ function makeAudio() {
 
   function build(c, live) {
     ctx = c;
-    const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -1.5; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.002; lim.release.value = 0.08; lim.connect(ctx.destination);
+    const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -4; lim.knee.value = 2; lim.ratio.value = 20; lim.attack.value = 0.001; lim.release.value = 0.12; const trimO = ctx.createGain(); trimO.gain.value = 0.9; lim.connect(trimO); trimO.connect(ctx.destination); /* (headroom: the limiter catches earlier, and the output sits under full scale) */
     const clip = ctx.createWaveShaper(), cv = new Float32Array(1025); for (let i = 0; i < 1025; i++) { const x = i / 512 - 1; cv[i] = Math.tanh(x * 1.3) / Math.tanh(1.3); } clip.curve = cv; clip.oversample = '2x'; clip.connect(lim);
     const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -16; comp.knee.value = 8; comp.ratio.value = 3; comp.attack.value = 0.005; comp.release.value = 0.2; comp.connect(clip);
-    const hi = ctx.createBiquadFilter(); hi.type = 'highshelf'; hi.frequency.value = 7500; hi.gain.value = 2; hi.connect(comp);
-    const lo = ctx.createBiquadFilter(); lo.type = 'lowshelf'; lo.frequency.value = 110; lo.gain.value = 2.5; lo.connect(hi);
-    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 30; hp.connect(lo);
+    const hi = ctx.createBiquadFilter(); hi.type = 'highshelf'; hi.frequency.value = 7500; hi.gain.value = 0; hi.connect(comp);
+    const lo = ctx.createBiquadFilter(); lo.type = 'lowshelf'; lo.frequency.value = 110; lo.gain.value = 0; lo.connect(hi);
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 45; const trimI = ctx.createGain(); trimI.gain.value = 0.7; hp.connect(trimI); trimI.connect(lo); /* (a quieter feed into the bus: about 3 dB under where it was, so the clipper stays out of the way) */
     out = ctx.createGain(); out.gain.value = store.muted ? 0 : 1; out.connect(hp);
     sfx = ctx.createGain(); sfx.gain.value = store.sfxOff ? 0 : 0.95; sfx.connect(out);
     musLP = ctx.createBiquadFilter(); musLP.type = 'lowpass'; musLP.frequency.value = 20000; musLP.Q.value = 0.8; musGate = ctx.createGain(); musGate.gain.value = store.musicOff ? 0 : 1; musLP.connect(musGate); musGate.connect(out);
@@ -12768,7 +12776,7 @@ function stepBlob(D, dt) {
       if (D.giantT <= 0 && !D.turret) { if (D.turf > 0 && !D.charging) D.paint = Math.min(1, D.paint + OWN_REFILL * dt); else D.paint -= cfg.drain * dt * (D.charging ? STILL_DRAIN : 1) * (D === P && easyOn() ? EASY_DRAIN : 1) * (D === P && tut2 ? 0.6 : 1); } /* (the first real match after the lesson: your paint lasts longer) */ // rolling on your own color tops you up; holding still barely uses any
       if (D.paint <= 0) { D.paint = 0; if (!D.dry) goDry(D); }
       grooveStep(D); sandKick(D, dt);
-      if (D.flatT <= 0 && !D.dry) { D.dist += D.spd * dt; while (D.dist >= SPACING) { D.dist -= SPACING; addPoint(D.x, D.y, D.z, D.yaw, dryClock, D.stroke, (D.giantT > 0 ? GIANT_K : D.power && D.power.type === 'roller' ? 2.6 : 1) * (D.rollT > ROLL_T - ROLL_DASH ? 0.45 : 1), tcode(D), D.rb); } }
+      if (D.flatT <= 0 && !D.dry) { D.dist += D.spd * dt; const fx = D.x + Math.sin(D.yaw) * TRAIL_FWD, fz = D.z + Math.cos(D.yaw) * TRAIL_FWD, fy = hugY(fx, fz, D.y); while (D.dist >= SPACING) { D.dist -= SPACING; addPoint(fx, fy, fz, D.yaw, dryClock, D.stroke, (D.giantT > 0 ? GIANT_K : D.power && D.power.type === 'roller' ? 2.6 : 1) * (D.rollT > ROLL_T - ROLL_DASH ? 0.45 : 1), tcode(D), D.rb); } }
       // rain puddles water your blood down; hard paint of either color slows you
       D.inBoil = boilNear(D.x, D.z, D.y, 0);
       if (D.inBoil) { if (D.dilT <= 0) dilute(D); D.dilT = DIL_T; }
@@ -15290,7 +15298,7 @@ function lobbyFrame() {
   const fw = x1 - x0, fh = y1 - y0, tx = (x0 + x1) / 2, feetY = y0 + fh * (land ? 0.86 : 0.86);
   const tall = charTall(myLook);
   const px = Math.min(fh * (land ? 0.84 : 0.84), fw * 0.74, Hh * 0.6);
-  const tv = Math.tan(heroFov() * Math.PI / 360), dist = clamp(tall * Hh / (2 * tv * px), 1.65, 12), ly = 0.36;
+  const tv = Math.tan(heroFov() * Math.PI / 360), asp = W / Math.max(1, Hh), wide = VP.slime && VP.slime.kind === 'axo' ? 0.9 : 0.8, dist = clamp(Math.max(tall * Hh / (2 * tv * px), wide / (2 * tv * asp * 0.46)), 1.65, 12), ly = 0.36; /* (by width too: on a wider screen the height alone made it fill the view) */
   heroDist = dist; hero.mx = P.x; hero.mz = P.z;
   const lookY = feetY - ly * Hh / (2 * tv * dist); heroOff.x = W / 2 - tx; heroOff.y = Hh / 2 - lookY;
   return heroDist;
@@ -17903,16 +17911,16 @@ function tutMenuTick() {
     return tutShow('You earned dabs. Open the Paint Shop', 'dabsBtn', 'shop');
   }
   if (ph === 'locker') {
-    if (shopOpen) { if (!tutBrowseAt) tutBrowseAt = performance.now(); if (performance.now() - tutBrowseAt > 4200) return tutHide(); return tutShow('Take a look around, squirt. Express yourself!', null, 'browse', false, true, null, true); } /* (a free look round the shop: no pointing at Back, he steps aside after a few seconds; leaving on your own goes on to the locker) */
+    if (shopOpen) return tutShow('Back to the lobby', 'shopBack', 'back');
     if (lookOpen) {
       if (myLook.mouth !== 'fangs') { if (lookCat !== 'face') return tutShow('Open Facial', 'lc-face', 'face'); return tutShow('Tap the fangs to wear them', () => tile('fangs'), 'wear'); }
       if (bought('flower') && myLook.side !== 'flower') { if (lookCat !== 'head') return tutShow('Now your flower. Open Headgear', 'lc-head', 'headg'); return tutShow('Tap the flower to wear it', () => tile('flower'), 'wearf'); } // (and the flower, found in the lesson)
-      tutSet('vote'); return tutShow('Looking sharp, squirt. Done.', 'lookDone', 'done'); }
+      tutSet('vote'); tutBrowseAt = performance.now(); return tutShow('Take a look around, squirt. Express yourself!', null, 'browse', false, true, null, true); } /* (dressed: the locker's yours to play with; he steps aside after a few seconds, and closing it goes on with the lesson) */
     if (menuPage === 'worlds') return tutShow('Back to the lobby', 'worldBack', 'back');
     if (menuPage === 'events') return tutShow('Back to the lobby', 'evBack', 'back');
     return tutShow('Open your locker to wear your fangs and flower', 'lookBtn', 'locker');
   }
-  if (shopOpen) return tutShow('Back to the lobby', 'shopBack', 'back'); if (lookOpen) return tutShow('Done', 'lookDone', 'done');
+  if (shopOpen) return tutShow('Back to the lobby', 'shopBack', 'back'); if (lookOpen) { if (tutBrowseAt && performance.now() - tutBrowseAt < 4200) return tutShow('Take a look around, squirt. Express yourself!', null, 'browse', false, true, null, true); return tutHide(); } /* (no nudge at Done: closing the locker is up to you) */
   if (menuPage === 'worlds') return innerWidth > innerHeight && innerHeight < 520 ? tutShow('*SWIPE* to pick your painting, then tap *PLAY*', 'startBtn', 'startS', true, true, null, true) : tutShow('Swipe the paintings and pick one: that\u2019s your vote. Rivals vote too, and most votes wins. Then Play', 'startBtn', 'start', false, true, null, true); /* (a short screen gets a one-line callout, so the paintings stay clear) */
   if (menuPage === 'events') return $('evVsPick').hidden ? tutShow('Play the CPU: tap *Versus CPU*', 'evVs', 'evvs') : tutShow('Tap *1 v 1*', () => $('evVsPick').querySelector('[data-m="duel"]'), 'ev1v1');
   return tutShow('Time for a real match. Tap *Play*', 'homePlay', 'pick');
