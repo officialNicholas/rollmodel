@@ -59,7 +59,8 @@ def fix(nm, src, texdir, out, verbose=True):
             sec = (phr >= s0 - 20) & (phr < s0 + 65); up = sec & (alr > 0.07) & (alr < 0.16); dn = sec & (alr > -0.46) & (alr < -0.34)
             cu = colr[up].mean(0) if up.sum() > 40 else colr[sec].mean(0); cd = colr[dn].mean(0) if dn.sum() > 40 else cu
             t = np.clip((0.07 - alz[inz]) / 0.41, 0, 1)[:, None]; t = t * t * (3 - 2 * t)
-            newz[inz] = cu * (1 - t) + cd * t + (colz[inz] - colz[inz].mean(0)) * 0.25
+            wt = np.clip((0.10 - alz[inz]) / 0.06, 0, 1); wb_ = np.clip((alz[inz] + 0.30) / 0.08, 0, 1); wgt = (wt * wt * (3 - 2 * wt) * wb_ * wb_ * (3 - 2 * wb_))[:, None]   # (fading into the skin above and below)
+            newz[inz] = colz[inz] + (cu * (1 - t) + cd * t + (colz[inz] - colz[inz].mean(0)) * 0.25 - colz[inz]) * wgt
         img2[ny_, nx_] = srgb(newz).astype(np.float32)
     cov = np.zeros((res, res), np.float32); cov[ty, tx] = 1; cov[hy, hx] = 1; cov[ny_, nx_] = 1
     ring = binary_dilation(cov > 0, iterations=6) & (cov == 0); fill = tb.dilate(img2, cov, rounds=8); img2[ring] = fill[ring]

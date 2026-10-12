@@ -222,6 +222,16 @@ def reshape(nm, untex, tex, out, outsrc, s=SCALE, verbose=True):
     if verbose:
         alf, radf, rrf, rtf = junction(P2)
         print(f'  junction: {int(zone.sum())} verts in the zone, {int(lifted.sum())} brought out to the fillet (mean {np.linalg.norm((P2 - P)[lifted], axis=1).mean() * 100:.1f} cm); side radius now at al 0 / -0.08 / -0.2: ' + ' / '.join(f'{np.median(rrf[zone & (np.abs(alf - a) < 0.02) & (np.abs(radf @ sidev) > 0.9 * rrf)]):.3f}' for a in (0.0, -0.08, -0.2)))
+    # ---- the limbs a touch fuller to go with the chest (v10b): the upper arms and thighs grow about their bone's axis over the middle
+    # of the bone, easing to nothing at both joints, by the vertex's own weight on that bone, so the joints, the hands and feet and every
+    # contact stay where they are (the crawl a little less than the stand) ----
+    FULL = {'upperarm': 0.10 if nm == 'stand' else 0.06, 'thigh': 0.08 if nm == 'stand' else 0.06}; grown = 0
+    for part, frac in FULL.items():
+        for s_ in 'LR':
+            bn = [b for b in meta['bones'] if b['name'] == f'{part}.{s_}'][0]; j0 = np.array(bn['pos']); ax = unit(np.array(bn['end']) - j0); L = float(np.linalg.norm(np.array(bn['end']) - j0))
+            wb = W[:, bi[f'{part}.{s_}']]; m = (wb > 0.05) & ~own; rel = P2[m] - j0; al = rel @ ax; rad = rel - np.outer(al, ax); rr = np.linalg.norm(rad, axis=1)
+            taper = ss(al / (0.3 * L)) * (1 - ss((al - 0.7 * L) / (0.3 * L))); P2[m] += rad * (frac * taper * wb[m] / np.maximum(rr, 1e-6) * rr)[:, None]; grown += int(m.sum())
+    if verbose: print(f'  limbs: {grown} upper arm and thigh verts grown ({FULL})')
     core = (hw > 0.95) & ~own; qq = P2[core] - C
     if verbose:
         print(f'  slime ball hits {int(onball.sum())} of {int(grp.sum())} head-group verts; blended {int((k > 0.5).sum())}; neck floor on {int(low.sum())}; smoothed {int(sm.sum())}')

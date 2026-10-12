@@ -150,12 +150,32 @@ def neck():
     for p in pg: cells.append(cam(p, f'{tag(p)}: stand, from under the chin', [0.3, 0.45, 1.6], [0, 1.05, 0.0], pre="LAB.step(2); "))
     for p in pg: cells.append(cam(p, f'{tag(p)}: stand, chin and throat close, dark', [0.5, 0.8, 1.3], [0, 1.05, 0.0], pre=DARK + "LAB.step(2); "))
     for p in pg: cells.append(cam(p, f'{tag(p)}: stand, nape close, dark', [0.8, 1.35, -1.3], [0, 1.05, 0.0], pre="LAB.step(2); "))
-    CR = RESET + LIGHT + "LAB.set('idle'); LAB.I.ax.A.look.pitch = 28; LAB.step(90); "
+    CR = RESET + LIGHT + "LAB.set('idle'); LAB.I.ax.A.set('crawl'); LAB.I.ax.state = 'crawl'; LAB.step(120); LAB.I.ax.A.look.pitch = 28; LAB.step(60); "
     for p in pg: cells.append(cam(p, f'{tag(p)}: crawl side, looking up', [2.0, 0.6, 0.3], [0, 0.42, 0.25], pre=CR))
     for p in pg: cells.append(cam(p, f'{tag(p)}: crawl 3/4, looking up', [1.4, 0.8, 1.5], [0, 0.42, 0.25], pre="LAB.step(2); "))
     for p in pg: cells.append(cam(p, f'{tag(p)}: crawl, throat close, dark', [0.6, 0.35, 1.4], [0, 0.5, 0.33], pre=DARK + "LAB.step(2); "))
     for p in pg: cells.append(cam(p, f'{tag(p)}: crawl, nape close, dark', [0.8, 1.2, -0.9], [0, 0.55, 0.2], pre="LAB.step(2); "))
     run('neck', pages, cells, 420, 440, 4, 'the neck: A / B')
+# the locker (v10b): the game's locker camera, about 1.3x the lobby distance, front, a little above, the crawl looking up at it, on a red
+# carpet with a warm backdrop; v10 A and B, A with the toon look off, v239 as shipped, and the slime's recording frame beside them
+CARPET = ("if (!window.__carpet) { const rc = new THREE.Mesh(new THREE.PlaneGeometry(8, 2.4), new THREE.MeshStandardMaterial({ color: 0xc81428, roughness: 0.35 })); rc.rotation.x = -Math.PI / 2; rc.position.set(0, 0.003, 0.3); rc.receiveShadow = true; scene.add(rc); window.__carpet = rc; } "
+          "scene.background = new THREE.Color(0xd6cdc8); floor.visible = true; ")
+def locker():
+    pg = ['A', 'B']; pages = {p: LAB(DIRS[p]) for p in pg + ['v239']}; cells = []
+    LK = RESET + CARPET + NEUTRAL + "LAB.set('idle'); LAB.I.ax.A.set('crawl'); LAB.I.ax.state = 'crawl'; LAB.step(120); LAB.I.ax.A.look.pitch = 24; LAB.step(60); "
+    V = ([0.0, 1.0, 2.7], [0, 0.4, 0.25])
+    cells.append(img(REF + '/f03.png', 'slime recording', [60, 40, 300, 300]))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: locker, toon 0.7', *V, pre=LK))
+    cells.append(cam('v239', 'v239 (shipped): locker', *V, pre=LK))
+    cells.append(cam('A', 'v10 A: locker, toon off (0)', *V, pre="LAB.I.ax.look.U.uToon.value = 0; LAB.step(2); "))
+    cells.append(cam('A', 'v10 A: locker, toon 1.0', *V, pre="LAB.I.ax.look.U.uToon.value = 1; LAB.step(2); "))
+    cells.append(cam('A', 'v10 A: locker close, toon 0.7', [0.0, 0.8, 1.6], [0, 0.45, 0.3], pre="LAB.I.ax.look.U.uToon.value = 0.7; LAB.step(2); "))
+    cells.append(cam('B', 'v10 B: locker close, toon 0.7', [0.0, 0.8, 1.6], [0, 0.45, 0.3], pre="LAB.step(2); "))
+    cells.append(cam('A', 'v10 A: locker 3/4, toon 0.7', [1.6, 1.0, 2.2], [0, 0.4, 0.25], pre="LAB.step(2); "))
+    cells.append(cam('v239', 'v239 (shipped): locker 3/4', [1.6, 1.0, 2.2], [0, 0.4, 0.25], pre="LAB.step(2); "))
+    cells.append(cam('A', 'v10 A: stand, locker camera', [0.0, 1.3, 3.0], [0, 0.9, 0.0], pre="LAB.I.ax.A.look.pitch = 0; LAB.I.ax.A.set('stand'); LAB.step(150); "))
+    cells.append(cam('v239', 'v239 (shipped): stand, locker camera', [0.0, 1.3, 3.0], [0, 0.9, 0.0], pre="LAB.I.ax.A.look.pitch = 0; LAB.I.ax.A.set('stand'); LAB.step(150); "))
+    run('locker', pages, cells, 420, 460, 4, 'the locker: slime recording / v10 A / v10 B / v239, toon 0 vs 0.7 vs 1')
 if __name__ == '__main__':
     a = sys.argv[1:]
     if '--pages' in a: i = a.index('--pages'); PG = a[i + 1].split(','); del a[i:i + 2]

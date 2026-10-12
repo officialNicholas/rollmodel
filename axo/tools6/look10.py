@@ -24,6 +24,27 @@ rep("float sFaceK = 0.0, sCoatH = 0.0, sCoatT = 0.0, sBead = 0.0, sDbgDm = 0.0, 
     "float sEar = 0.0, sHeadM = 0.0, sJelly = 0.0, sFaceM = 0.0;   // v10: the ears, the head (skull and ears), the jelly look on them, the face's oval")
 rep("uniform vec3 uSkin, uBelly, uSpot, uGill, uGillTip, uFinCore, uFinGlow, uPaint; uniform vec4 uCoat, uDetail, uDetail2, uTint, uTintTo; uniform float uCoatMix;",
     "uniform vec3 uSkin, uBelly, uSpot, uGill, uGillTip, uFinCore, uFinGlow, uPaint, uTeam; uniform vec4 uCoat, uDetail, uDetail2, uTint, uTintTo; uniform float uCoatMix;")
+# ---- the toon look (v10b, the user: "remove or drastically reduce the shadows", "apply the toon look of the previous character"):
+# the diffuse of every light wrapped round the terminator (half-Lambert style) and banded softly in two wide steps, its dark side never
+# under a third of the key; the baked occlusion mostly off; a warm fill in the shade; the highlight smaller and crisper. uToon 0..1 ----
+rep("      uDetail: { value: new THREE.Vector4(0.0009, 26, 1.0, 0.0007) }, uDetail2: { value: new THREE.Vector4(0, 0, 0, 0) },",
+    "      uDetail: { value: new THREE.Vector4(0.0009, 26, 1.0, 0.0007) }, uDetail2: { value: new THREE.Vector4(0, 0, 0, 0) },\n"
+    "      uToon: { value: 0.7 },   // v10b: the toon look's strength (0 the plain material, 1 full)")
+rep("float sEar = 0.0, sHeadM = 0.0, sJelly = 0.0, sFaceM = 0.0;   // v10: the ears, the head (skull and ears), the jelly look on them, the face's oval",
+    "float sEar = 0.0, sHeadM = 0.0, sJelly = 0.0, sFaceM = 0.0;   // v10: the ears, the head (skull and ears), the jelly look on them, the face's oval\n"
+    "uniform float uToon;\n"
+    "// v10b: the diffuse ramp of each light: wrapped past the terminator, two soft wide bands, a floor so the shade stays a lighter skin\n"
+    "float axoRamp(float x) { float w = mix(saturate(x), saturate((x + 0.55) / 1.55), uToon);\n"
+    "  float b = 0.5 * smoothstep(0.1, 0.42, w) + 0.5 * smoothstep(0.5, 0.78, w); return mix(w, max(0.3 + 0.7 * b, 0.3), uToon); }")
+rep("""    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\\n' + FRAG_PARS)""",
+    """    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\\n' + FRAG_PARS)
+      .replace('#include <lights_physical_pars_fragment>', THREE.ShaderChunk.lights_physical_pars_fragment.replace('reflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );',
+        'reflectedLight.directDiffuse += axoRamp( dot( geometryNormal, directLight.direction ) ) * directLight.color * BRDF_Lambert( material.diffuseColor );'))""")
+rep("{ float occ = sAO * (1.0 - 0.3 * sCoatM), ink = clamp(sDrawM - sEyeM, 0.0, 1.0) * (1.0 - sCoatM), eyeK = sEyeM * (1.0 - sCoatM);",
+    "{ float occ = sAO * (1.0 - 0.3 * sCoatM) * (1.0 - 0.7 * uToon), ink = clamp(sDrawM - sEyeM, 0.0, 1.0) * (1.0 - sCoatM), eyeK = sEyeM * (1.0 - sCoatM);\n"
+    "  reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(1.0, 0.9, 0.84) * (0.14 * uToon) * (1.0 - sCoatM) * (1.0 - ink);   // (v10b: a warm fill in the shade)")
+rep("  rough = mix(rough, 0.4, 0.6 * sFaceK);   // (the face skin a touch smoother)",
+    "  rough = mix(rough, 0.4, 0.6 * sFaceK);   // (the face skin a touch smoother)\n  rough = mix(rough, 0.3, 0.45 * uToon);   // (v10b: a smaller, crisper highlight)")
 # the textured skin: the ears are skin (the texel at their root), with a mild mottle of their own so they do not read flat
 rep("""  gk = smoothstep(0.35, 0.8, gill);   // (the stalks keep the skin's pink; the thin fronds take the frill colour)
 #else""",
