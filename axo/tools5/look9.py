@@ -24,15 +24,17 @@ def rep(old, new, count=1):
 
 # ---- v9b: the rest-space frame through to the fragment (for the paint's runs and beads), the soft body's gentle wobble ----
 rep("varying vec3 vCp, vFace; varying vec4 vJelly, vFill, vMat; varying float vAlong, vFillO;`;",
-    "varying vec3 vCp, vFace, vRestP, vRestN; varying vec4 vJelly, vFill, vMat; varying float vAlong, vFillO;`;")
+    "varying vec3 vCp, vFace; varying vec4 vJelly, vFill, vMat; varying float vAlong, vFillO; varying vec2 vRest;`;")
 rep("varying vec3 vCp, vFace; varying vec4 vJelly, vFill, vMat; varying float vAlong, vFillO;\nfloat sCoatM",
-    "varying vec3 vCp, vFace, vRestP, vRestN; varying vec4 vJelly, vFill, vMat; varying float vAlong, vFillO;\nfloat sCoatM")
+    "varying vec3 vCp, vFace; varying vec4 vJelly, vFill, vMat; varying float vAlong, vFillO; varying vec2 vRest;\nfloat sCoatM")
 rep("""  float soft = 1.0 - jelly.w, h = clamp(transformed.y / uJelly.z, 0.0, 1.0);
   transformed += objectNormal * (jelly.x * uJelly.x + uJelly.w * soft * sin(position.x * 23.0 + position.y * 17.0 + uLag.w * 9.0) * sin(position.z * 19.0 - uLag.w * 7.0));""",
-"""  float soft = 1.0 - jelly.w, h = clamp(transformed.y / uJelly.z, 0.0, 1.0); vRestP = position; vRestN = normal;
+"""  float soft = 1.0 - jelly.w, h = clamp(transformed.y / uJelly.z, 0.0, 1.0);
+  // (v9b: the body's own frame for the paint's runs and beads: across the rest body along the surface, and the rest height)
+  { vec3 acr = cross(normal, vec3(0.0, -1.0, 0.0)); acr = normalize(acr + vec3(1e-3, 0.0, 0.0)); vRest = vec2(dot(position, acr), position.y); }
   // (v9b: a gentle wobble of the soft parts, so the body reads as paint; never the head)
-  float wob = sin(position.y * 4.1 + position.x * 1.7 + uLag.w * 2.7) * sin(position.z * 3.3 - uLag.w * 1.9) + 0.6 * sin(position.y * 7.0 - uLag.w * 3.9 + position.z * 2.1);
-  transformed += objectNormal * (jelly.x * uJelly.x + uJelly.w * soft * sin(position.x * 23.0 + position.y * 17.0 + uLag.w * 9.0) * sin(position.z * 19.0 - uLag.w * 7.0) + soft * 0.0045 * wob * (1.0 - 0.6 * jelly.z));""")
+  float wob = sin(position.y * 4.1 + position.x * 1.7 + uLag.w * 2.7) * sin(position.z * 3.3 - uLag.w * 1.9);
+  transformed += objectNormal * (jelly.x * uJelly.x + uJelly.w * soft * sin(position.x * 23.0 + position.y * 17.0 + uLag.w * 9.0) * sin(position.z * 19.0 - uLag.w * 7.0) + soft * 0.005 * wob * (1.0 - 0.6 * jelly.z));""")
 # the runtime keeps the paint's living state in uDetail2 (x the flow, y the coat's high water, z the wade's high water, w how dry)
 rep("""    if (this.coatMixT !== undefined) U.uCoatMix.value += (this.coatMixT - U.uCoatMix.value) * Math.min(1, dt * 3);
   }""", """    if (this.coatMixT !== undefined) U.uCoatMix.value += (this.coatMixT - U.uCoatMix.value) * Math.min(1, dt * 3);
@@ -134,7 +136,7 @@ sWetK = smoothstep(-0.1, 0.1, uCoat.z - (0.1 + 0.75 * vFillO));
 if (uCoat.x > 0.001 || uCoat.w > 0.001) {
   float gcp = max(length(fwidth(vCp)), 1e-5), flow = uDetail2.x;
   // the body's own frame for the runs and beads: down the rest body (gravity in either body's rest), across it along the surface
-  vec3 rn = normalize(vRestN), acr = normalize(cross(rn, vec3(0.0, -1.0, 0.0)) + vec3(1e-3, 0.0, 0.0)); float hc = dot(vRestP, acr);
+  float hc = vRest.x;
   float run = clamp(pow(aNoise(vec3(hc * 24.0, flow * 0.04, 4.1)), 3.0) * 1.3, 0.0, 1.0) * (1.0 - smoothstep(0.25, 0.7, fwidth(hc) * 24.0));
   float lumpLo = coatLumpLo(vCp), lump = coatLump(vCp);
   // the fill coat: its field with a lobed edge; the runs above the edge reach toward where the level was a moment ago
@@ -152,7 +154,7 @@ if (uCoat.x > 0.001 || uCoat.w > 0.001) {
   float cmF = smoothstep(0.8, 0.97, uCoat.x + 0.05 * (lumpLo - 0.5)) * (1.0 - sEyeM); cmF = max(cmF, full * (1.0 - sEyeM));
   cm = mix(cm, cmF, vFace.z);
   // the paint colour: the team's, deep and saturated; the streaks flowing down it, the creases between the lumps a shade darker
-  float flw = aNoise(vec3(hc * 35.0, vRestP.y * 2.2 + flow * 0.5, 7.7));
+  float flw = aNoise(vec3(hc * 35.0, vRest.y * 2.2 + flow * 0.5, 7.7));
   vec3 pc = max(mix(vec3(dot(uPaint, vec3(0.2126, 0.7152, 0.0722))), uPaint, 1.25), vec3(0.0)) * 0.85;
   pc *= 1.0 + 0.1 * (flw - 0.5) * (1.0 - full) - 0.1 * (1.0 - lump) * smoothstep(0.0, 0.05, dm) * (1.0 - full);
   // the thickness: a rounded lip over the first 4 cm, soft lumps in the thick paint, none in a fresh full coat; the beads sliding down
@@ -229,7 +231,7 @@ rep("""  // a soft rim along the body's outline, a whisper of light on the moist
   totalEmissiveRadiance += deep * sFaceK * (1.0 - sCoatM) * (0.1 * wrap + 0.07 * back);
   // the wet paint: a fresnel sheen and a cheap reflection of the sky and ground off the bumped surface (the clear coat layer, where
   // there is one, adds the real one), the beads and the lip catching most
-  { vec3 wup = normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz), rv = reflect(-vd, normal); float ru = dot(rv, wup) * 0.5 + 0.5;
+  if (sCoatM + sWetK > 0.002) { vec3 wup = normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz), rv = reflect(-vd, normal); float ru = dot(rv, wup) * 0.5 + 0.5;
     float fr = pow(1.0 - saturate(dot(normal, vd)), 3.5), sky = mix(0.08, 0.5, smoothstep(0.35, 0.9, ru)) * (0.6 + 0.4 * fr);
     vec3 refl = mix(vec3(1.0), sPaintC * 2.0, 0.3);
     totalEmissiveRadiance += refl * (0.14 * fr + 0.22 * sky * (0.35 + 0.65 * sCoatT)) * max(sCoatM, 0.5 * sWetK); }

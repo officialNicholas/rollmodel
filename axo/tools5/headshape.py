@@ -186,15 +186,15 @@ def reshape(nm, untex, tex, out, outsrc, verbose=True):
             b1 = gb[f'gill{k}.{s_}.1']; b2 = gb[f'gill{k}.{s_}.2']; (o1, u1, f1), (o2, u2, f2), st, A0, B0 = HANG[k]
             j1 = b1['pos']; L_old = float(np.linalg.norm(b2['end'] - j1)); L1 = float(np.linalg.norm(b1['end'] - j1))
             t1 = unit([sgn * o1, u1, f1]); t2 = unit([sgn * o2, u2, f2]); Ln = L_old * st; L1n = L1 * st
-            e1 = j1 + t1 * L1n; e2 = e1 + t2 * (Ln - L1n); j0 = j1 - unit(j1 - C) * 0.02
+            e1 = j1 + t1 * L1n; e2 = e1 + t2 * (Ln - L1n); j0 = j1 - unit(j1 - C) * 0.035
             # the old stalk retired: its own vertices onto the root joint, a hair inside the head; its base ring (shared with the head)
             # laid onto the reshaped skull's surface, so no collar of the old cone is left standing
             # the lobe
-            NU, NT = 16, 12; us = np.linspace(0.0, 1.0, NU); verts = []; vu = []; vth = []
+            NU, NT = 16, 14; us = np.linspace(0.0, 1.0, NU); verts = []; vu = []; vth = []
             for ui, uu in enumerate(us):
                 cu = (1 - uu) ** 2 * j0 + 2 * (1 - uu) * uu * e1 + uu ** 2 * e2; tg = unit(2 * (1 - uu) * (e1 - j0) + 2 * uu * (e2 - e1))
                 lat = np.array([sgn, 0.0, 0.0]); l_ = unit(lat - tg * np.dot(lat, tg)); f_ = np.cross(tg, l_)
-                prof = (0.5 + 0.5 * np.sin(np.pi * min(1.0, uu * 1.25))) * (1.0 - 0.82 * ss((uu - 0.78) / 0.22)) if ui < NU - 1 else 0.0
+                prof = (0.35 + 0.65 * np.sin(np.pi * min(1.0, uu * 1.2))) * (1.0 - 0.82 * ss((uu - 0.78) / 0.22)) if ui < NU - 1 else 0.0
                 for ti in range(NT):
                     th_ = 2 * np.pi * ti / NT; verts.append(cu + prof * (B0 * np.cos(th_) * l_ + A0 * np.sin(th_) * f_)); vu.append(uu); vth.append(th_)
                     if ui == NU - 1: break
