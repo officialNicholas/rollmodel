@@ -27,16 +27,22 @@ SHAPE = dict(
     top=-0.045,       # the pole itself lowered
     cheek=0.055,      # the sides fuller round the gill roots
     brow=0.017,       # a soft ridge over the eyes
-    muzzle=0.06,      # the lower front brought forward
+    muzzle=0.035,     # the lower front brought forward (softer, under the flatter face)
+    flat=-0.07,       # the front of the face flattened, gently: the pull-in falls off as the 4th power of how far forward a direction points
+    chin=-0.045,      # the underside of the chin flatter, the same way
     forehead=-0.025,  # the upper front sloped back
     neck=-0.05,       # the lower back drawn in toward the neck
 )
-GILL_YAW = 24.0       # degrees the gill strip turns forward about the dome's vertical axis
+GILL_YAW = 32.0       # degrees the gill strip turns forward about the dome's vertical axis (the roots land where ears would be)
 # the hang (v9b, the user's reference: the stalks drooping down the sides of the head like locks of hair): per stalk (top, middle,
 # bottom), the direction of its first segment, of its second, and its stretch along its length; (out, up, forward) on the left side
-HANG = [((0.62, -0.62, 0.22), (0.18, -1.0, 0.12), 1.32),
-        ((0.7, -0.6, 0.0), (0.26, -1.0, -0.06), 1.08),
-        ((0.75, -0.55, -0.22), (0.32, -1.0, -0.2), 0.9)]
+# per stalk (top, middle, bottom): the first segment's direction, the second's, the stretch along the stalk, and the lobe's half width
+# fore-aft and half thickness sideways (m); the three splay fore and aft so they layer like locks instead of running through each other
+HANG = [((0.5, -0.62, 0.42), (0.1, -1.0, 0.2), 1.3, 0.056, 0.04),
+        ((0.78, -0.58, 0.0), (0.22, -1.0, -0.02), 1.08, 0.05, 0.036),
+        ((0.62, -0.55, -0.45), (0.2, -1.0, -0.26), 0.9, 0.045, 0.032)]
+NECK_THICK = 0.2      # the neck's radius about its axis, grown by this
+HEAD_IN = 0.03        # the head brought this much closer to the body along the neck (in the mesh; the head joint stays)
 def ss(t): t = np.clip(t, 0, 1); return t * t * (3 - 2 * t)
 def unit(v): v = np.asarray(v, float); return v / (np.linalg.norm(v, axis=-1, keepdims=True) + 1e-12)
 def adjacency(n, T):
@@ -60,12 +66,14 @@ def shape_factor(d, K=SHAPE):
     f += K['muzzle'] * np.exp(-((dy + 0.32) / 0.42) ** 2) * ss((dz - 0.3) / 0.6) * (1.0 - 0.4 * ss((ax - 0.5) / 0.4))
     f += K['forehead'] * ss((dy - 0.3) / 0.5) * ss((dz - 0.2) / 0.55)
     f += K['neck'] * ss((-dy - 0.35) / 0.5) * ss((-dz - 0.05) / 0.5)
+    f += K['flat'] * np.clip(dz, 0, 1) ** 4 * (1.0 - 0.35 * ss((dy - 0.3) / 0.5))
+    f += K['chin'] * np.clip(-dy, 0, 1) ** 4 * (1.0 - 0.5 * ss((-dz - 0.3) / 0.5))
     return f
 def yaw_field(P, C, roots, theta, phi_lo, phi_hi, y_lo, y_hi):
     """the turn (rad) of each point about the dome's vertical axis: theta on the gill strip, fading to 0 over the skin"""
     q = P - C; phi = np.degrees(np.arctan2(np.abs(q[:, 0]), q[:, 2]))   # 0 front, 180 back, both sides alike
     sgn = np.sign(q[:, 0]); sgn[sgn == 0] = 1
-    bphi = ss((phi - (phi_lo - 80)) / 80) * (1.0 - ss((phi - phi_hi) / max(1e-3, 178 - phi_hi)))   # (an 80 degree ramp ahead: the skin there squeezes to 0.6, not 0.4)
+    bphi = ss((phi - (phi_lo - 88)) / 88) * (1.0 - ss((phi - phi_hi) / max(1e-3, 178 - phi_hi)))   # (an 88 degree ramp ahead: the skin there squeezes to about 0.6)
     by = ss((q[:, 1] - (y_lo - 0.2)) / 0.2) * (1.0 - ss((q[:, 1] - y_hi) / 0.16))
     return theta * bphi * by * sgn   # (the left side turns forward one way, the right the other)
 def quat_from_to(a, b):
@@ -146,33 +154,51 @@ def reshape(nm, untex, tex, out, outsrc, verbose=True):
         sgn = 1.0 if b['pos'][0] > 0 else -1.0; R = rot_y(th * sgn); root = roots[b['name'] if b['name'].endswith('.1') else b['name'][:-1] + '1']
         rq1 = R @ (root - C); shift = (shape_factor(unit(rq1)[None])[0] - 1.0) * rq1
         gb[b['name']] = dict(pos=R @ (np.array(b['pos']) - C) + C + shift, end=R @ (np.array(b['end']) - C) + C + shift, sgn=sgn)
-    # ---- the hang: each stalk posed to droop down the side of the head (its first segment turned to HANG's first direction about its
-    # root, its second bent on to the second direction, the whole stalk stretched along itself), and that pose baked into the rest
-    # geometry through the mesh's own skin weights with dual quaternion blending, so the base rings and the fronds shared between
-    # stalks blend exactly as the runtime's skinning blends them: no tearing. The bones take the posed joints and ends, and explicit new
-    # canonical frames: Y down the stalk, X lateral (so the animator's flex swings the hanging stalk fore and aft, its swing sideways)
-    moves = {}; newb = {}
+    # ---- the hang (v9b): the gills as six fresh lobes, like the old slime's floppy ears, hanging down the sides of the head. The old
+    # stalks and fronds cannot be bent into soft lobes (they are antler tubes with fan sheets), so each is retired: its own vertices
+    # (gill weight over half) collapse onto its root joint inside the head (their triangles vanish; the base ring stays as head skin),
+    # and a new closed lobe is built per stalk: a bezier axis from the root through the first segment's end to the tip, an elliptical
+    # cross-section (wide fore and aft, thin sideways), fat in the middle and rounded at the tip, with the lobe's own skin weights (the
+    # root ring shared with the head, the first segment, then the second), canonical place, fill order (the root's, rising a little to
+    # the tip) and gill mask (the root takes the skin, the lobe the frill colour). Both bodies get the same lobes relative to the face
+    # centre. The bones take the axis: joint at the root, the second where the first segment ends, the end at the tip; explicit frames,
+    # Y down the lobe, X lateral, so the animator's flex swings a lobe fore and aft and its swing sideways.
+    newb = {}; LOBES = []
+    hidx = bi['head']; iw = W.copy()
     for k in range(3):
         for sgn in (1.0, -1.0):
-            s_ = 'L' if sgn > 0 else 'R'; b1 = gb[f'gill{k}.{s_}.1']; b2 = gb[f'gill{k}.{s_}.2']; (o1, u1, f1), (o2, u2, f2), st = HANG[k]
-            t1 = unit([sgn * o1, u1, f1]); t2 = unit([sgn * o2, u2, f2])
-            d1 = unit(b1['end'] - b1['pos']); q1 = quat_from_to(d1, t1); j1 = b1['pos']
-            d2w = qrot(q1, unit(b2['end'] - b2['pos'])); q2 = quat_from_to(d2w, t2)   # (the bend, on top of the first turn)
-            j2 = j1 + qrot(q1, b2['pos'] - j1); e1 = j1 + (j2 - j1) * st; L2 = np.linalg.norm(b2['end'] - b2['pos']) * st
-            Q2 = qmul(q2, q1); e2 = e1 + t2 * L2   # (the second joint sits where the stretched first segment ends)
-            i1 = bi[f'gill{k}.{s_}.1']; i2 = bi[f'gill{k}.{s_}.2']
-            # rigid moves (rotation about the origin + translation) for the dqs: segment 1 about j1; segment 2: its rotation Q2 about j2,
-            # landing at e1 (the stretch of segment 1 is put in as a translation of segment 2 and as a per-vertex stretch below)
-            moves[i1] = (q1, j1 - qrot(q1, j1)); moves[i2] = (Q2, e1 - qrot(Q2, b2['pos']))
+            s_ = 'L' if sgn > 0 else 'R'; i1 = bi[f'gill{k}.{s_}.1']; i2 = bi[f'gill{k}.{s_}.2']; wk = W[:, i1] + W[:, i2]
+            b1 = gb[f'gill{k}.{s_}.1']; b2 = gb[f'gill{k}.{s_}.2']; (o1, u1, f1), (o2, u2, f2), st, A0, B0 = HANG[k]
+            j1 = b1['pos']; L_old = float(np.linalg.norm(b2['end'] - j1)); L1 = float(np.linalg.norm(b1['end'] - j1))
+            t1 = unit([sgn * o1, u1, f1]); t2 = unit([sgn * o2, u2, f2]); Ln = L_old * st; L1n = L1 * st
+            e1 = j1 + t1 * L1n; e2 = e1 + t2 * (Ln - L1n)
+            # the old stalk retired: its own vertices onto the root joint, a hair inside the head; its base ring (shared with the head)
+            # laid onto the reshaped skull's surface, so no collar of the old cone is left standing
+            own = wk > 0.5; P2[own] = j1 + unit(j1 - C) * -0.01
+            ring = (wk > 0.02) & ~own; dq_ = P2[ring] - C; dd_ = unit(dq_); rr = RADII; rho_ = 1.0 / np.sqrt((dd_[:, 0] / rr[0]) ** 2 + (dd_[:, 1] / rr[1]) ** 2 + (dd_[:, 2] / rr[2]) ** 2)
+            P2[ring] = C + dd_ * (rho_ * shape_factor(dd_))[:, None]
+            # the lobe
+            NU, NT = 16, 12; us = np.linspace(0.0, 1.0, NU); verts = []; vu = []; vth = []
+            for ui, uu in enumerate(us):
+                cu = (1 - uu) ** 2 * j1 + 2 * (1 - uu) * uu * e1 + uu ** 2 * e2; tg = unit(2 * (1 - uu) * (e1 - j1) + 2 * uu * (e2 - e1))
+                lat = np.array([sgn, 0.0, 0.0]); l_ = unit(lat - tg * np.dot(lat, tg)); f_ = np.cross(tg, l_)
+                prof = (0.7 + 0.3 * np.sin(np.pi * uu)) * (1.0 - 0.82 * ss((uu - 0.78) / 0.22)) if ui < NU - 1 else 0.0
+                for ti in range(NT):
+                    th_ = 2 * np.pi * ti / NT; verts.append(cu + prof * (B0 * np.cos(th_) * l_ + A0 * np.sin(th_) * f_)); vu.append(uu); vth.append(th_)
+                    if ui == NU - 1: break
+            Vl = np.array(verts); vu = np.array(vu); nl = len(Vl); tris = []
+            for ui in range(NU - 1):
+                for ti in range(NT):
+                    a = ui * NT + ti; b = ui * NT + (ti + 1) % NT
+                    if ui < NU - 2: c = (ui + 1) * NT + ti; d = (ui + 1) * NT + (ti + 1) % NT; tris += [[a, c, d], [a, d, b]]
+                    else: tris.append([a, (NU - 1) * NT, b])
+            Tl = np.array(tris)
+            # weights: the root ring shared with the head, the first segment, the second
+            w1 = ss((vu - 0.02) / 0.3) * (1.0 - ss((vu - 0.4) / 0.3)); w2 = ss((vu - 0.4) / 0.3); wh = 1.0 - ss((vu - 0.02) / 0.3)
+            Wl = np.zeros((nl, 3)); Wl[:, 0] = wh; Wl[:, 1] = w1; Wl[:, 2] = w2; Wl /= Wl.sum(1, keepdims=True)
+            LOBES.append(dict(P=Vl, T=Tl, u=vu, Wl=Wl, bones=(hidx, i1, i2), root=j1, sgn=sgn, length=Ln))
             newb[f'gill{k}.{s_}.1'] = dict(pos=j1, end=e1, q=mkframe(t1, [sgn, 0, 0])); newb[f'gill{k}.{s_}.2'] = dict(pos=e1, end=e2, q=mkframe(t2, [sgn, 0, 0]))
-    Pg = dqs(P2, W, moves)
-    # the stretch along each stalk: a vertex moves out along its stalk's first direction by (st - 1) times how far along it sits
-    for k in range(3):
-        for sgn in (1.0, -1.0):
-            s_ = 'L' if sgn > 0 else 'R'; i1 = bi[f'gill{k}.{s_}.1']; i2 = bi[f'gill{k}.{s_}.2']; st = HANG[k][2]; nb1 = newb[f'gill{k}.{s_}.1']
-            wk = W[:, i1] + W[:, i2]; ax = unit(nb1['end'] - nb1['pos']); along = (Pg - nb1['pos']) @ ax
-            Pg += (wk * (st - 1.0) * np.clip(along, 0, None))[:, None] * ax[None]
-    P2 = Pg
+            if verbose and sgn > 0: print(f'  gill{k}.L lobe: {nl} verts {len(Tl)} tris, length {Ln * 100:.0f} cm, tip rel C {np.round(e2 - C, 3).tolist()}')
     # ---- diagnostics: the skull's new extents, the roots, triangle quality ----
     core = (s > 0.99); qq = P2[core] - C
     def edge_stats(PP):
@@ -187,14 +213,48 @@ def reshape(nm, untex, tex, out, outsrc, verbose=True):
         for w in worst:
             ti = ht[w // 3]; a, b = T[ti, w % 3], T[ti, (w % 3 + 1) % 3]
             print(f'    edge ratio {rr[w]:.2f}: v{a} relC {np.round(P[a] - C, 3).tolist()} gw {gw[a]:.2f} hw {hw[a]:.2f} s {s[a]:.2f} | v{b} relC {np.round(P[b] - C, 3).tolist()} gw {gw[b]:.2f} hw {hw[b]:.2f} s {s[b]:.2f}')
+    # ---- the lobes appended: positions, weights, attributes (the old gill data as a pattern: jelly thin at the tips, the fill order of
+    # the root rising a little to the tip, the gill mask from the root up, the canonical place the stand's position of the same point,
+    # the arc coordinate the distance along the lobe) ----
+    n0 = n; Pl = np.vstack([L['P'] for L in LOBES]); nl = len(Pl); T_l = np.vstack([L['T'] + n0 + sum(len(LOBES[j]['P']) for j in range(i)) for i, L in enumerate(LOBES)])
+    si_l = np.zeros((nl, 4), np.uint8); sw_l = np.zeros((nl, 4), np.uint8); jelly_l = np.zeros((nl, 4), np.uint8); fill_l = np.zeros((nl, 4), np.uint8); mat_l = np.zeros((nl, 4), np.uint8); cp_l = np.zeros((nl, 4), np.int16)
+    hv = np.where((hw > 0.95) & (gw < 0.02))[0]; kd_head = cKDTree(P2[hv]); o_ = 0
+    cps = meta['cpScale']; cp_old = r['cp'].astype(float) / 32767 * cps
+    for L in LOBES:
+        m = len(L['P']); sl = slice(o_, o_ + m); u = L['u']; hb_, i1_, i2_ = L['bones']
+        wq = np.clip(np.round(L['Wl'] * 255), 0, 255).astype(np.uint8); si_l[sl, 0] = hb_; si_l[sl, 1] = i1_; si_l[sl, 2] = i2_; sw_l[sl, :3] = wq
+        # (the weights must sum to 255 exactly for the skinning)
+        for i in range(m): sw_l[o_ + i, int(np.argmax(sw_l[o_ + i, :3]))] += np.uint8(255 - int(sw_l[o_ + i, :3].sum()))
+        _, nh = kd_head.query(L['root']); hroot = hv[nh]
+        jelly_l[sl] = [0, 0, 0, 255]; jelly_l[sl, 2] = np.clip(np.round(255 * 0.35 * ss((u - 0.55) / 0.45)), 0, 255)
+        fr = r['fill'][hroot].astype(float); fill_l[sl, 0] = np.clip(fr[0] + 20 * u, 0, 255); fill_l[sl, 1] = np.clip(fr[1] + 20 * u, 0, 255); fill_l[sl, 2] = np.clip(np.round(60 * (1 - u)), 0, 255); fill_l[sl, 3] = np.clip(np.round(110 * ss((u - 0.5) / 0.5)), 0, 255)
+        mat_l[sl] = [128, 0, 0, 230]; mat_l[sl, 1] = np.clip(np.round(255 * 0.62 * ss((u - 0.05) / 0.35)), 0, 255)
+        cpl = (L['P'] - C) + (cp_old[hroot, :3] - (P2[hroot] - C)) if nm == 'crawl' else L['P'].copy()
+        cp_l[sl, :3] = np.clip(np.round(cpl / cps * 32767), -32767, 32767); cp_l[sl, 3] = np.clip(np.round((u * L['length'] + 1.1) / cps * 32767), -32767, 32767)
+        o_ += m
+    # ---- the neck thicker and shorter: the neck's own verts (and the neck band) grow radially about the neck axis (chest end to head
+    # joint); the head group (the skull, the lobes, their bones, the face centre) slides HEAD_IN down the neck axis, the band following
+    # by its head weight. The head joint itself stays (the rig contract): the skull sits a little lower on it ----
+    hbj = np.array([b for b in meta['bones'] if b['name'] == 'head'][0]['pos']); nkb = [b for b in meta['bones'] if b['name'] == 'neck'][0]
+    nax = unit(hbj - np.array(nkb['pos'])); nw = W[:, bi['neck']]
+    neckK = np.clip(nw / 0.6, 0, 1) * (1.0 - ss((hw - 0.6) / 0.35)); neckK = np.maximum(neckK, ss((hw - 0.02) / 0.3) * (1.0 - ss((hw - 0.55) / 0.4)))
+    rel = P2 - hbj; alongN = rel @ nax; radial = rel - np.outer(alongN, nax); P2 += (neckK * NECK_THICK)[:, None] * radial
+    headK = ss((hw - 0.25) / 0.6) * ((hw + gw) > 0.02); P2 -= (headK * HEAD_IN)[:, None] * nax[None]
+    Pl -= HEAD_IN * nax[None]
+    for L in LOBES: L['root'] = L['root'] - HEAD_IN * nax
+    for k_ in newb: newb[k_]['pos'] = newb[k_]['pos'] - HEAD_IN * nax; newb[k_]['end'] = newb[k_]['end'] - HEAD_IN * nax
+    Cn = C - HEAD_IN * nax; meta['face'] = {'c': Cn.round(4).tolist(), 'r': meta['face']['r']}; meta['headc'] = (Cn - hbj).round(4).tolist()
+    if verbose: print(f'  neck axis {np.round(nax, 3).tolist()}, {int((neckK > 0.5).sum())} neck verts thickened, head group moved {HEAD_IN * 100:.0f} cm down the neck; face.c {meta["face"]["c"]} headc {meta["headc"]}')
+    P2 = np.vstack([P2, Pl]); T = np.vstack([T, T_l]); n2 = len(P2)
+    si2 = np.vstack([r['si'], si_l]); sw2 = np.vstack([r['sw'], sw_l]); jelly2 = np.vstack([r['jelly'], jelly_l]); fill2 = np.vstack([r['fill'], fill_l]); mat2 = np.vstack([r['mat'], mat_l])
     # ---- normals (area weighted), the canonical place, the bones, the meta ----
-    fn = np.cross(P2[T[:, 1]] - P2[T[:, 0]], P2[T[:, 2]] - P2[T[:, 0]]); vn = np.zeros((n, 3))
+    fn = np.cross(P2[T[:, 1]] - P2[T[:, 0]], P2[T[:, 2]] - P2[T[:, 0]]); vn = np.zeros((n2, 3))
     for k in range(3): np.add.at(vn, T[:, k], fn)
-    N = unit(vn); Nq = np.zeros((n, 4), np.int8); Nq[:, :3] = np.clip(np.round(N * 127), -127, 127).astype(np.int8)
-    cps = meta['cpScale']; cp = r['cp'].astype(float) / 32767 * cps; dP = P2 - P
-    if nm == 'stand': cp[:, :3] = P2
+    N = unit(vn); Nq = np.zeros((n2, 4), np.int8); Nq[:, :3] = np.clip(np.round(N * 127), -127, 127).astype(np.int8)
+    cp = cp_old.copy(); dP = P2[:n] - P
+    if nm == 'stand': cp[:, :3] = P2[:n]
     else: cp[:, :3] += dP
-    cq = np.zeros((n, 4), np.int16); cq[:, :3] = np.clip(np.round(cp[:, :3] / cps * 32767), -32767, 32767); cq[:, 3] = r['cp'][:, 3]
+    cq = np.zeros((n2, 4), np.int16); cq[:n, :3] = np.clip(np.round(cp[:, :3] / cps * 32767), -32767, 32767); cq[:n, 3] = r['cp'][:, 3]; cq[n:] = cp_l
     bones = []
     for b in meta['bones']:
         b = dict(b)
@@ -207,24 +267,37 @@ def reshape(nm, untex, tex, out, outsrc, verbose=True):
             if b['name'].startswith('gill') and '.L' in b['name']: print(f'  {b["name"]}: pos {b["pos"]} end {b["end"]} q {b["q"]} (rel C {np.round(np.array(b["pos"]) - C, 3).tolist()}, tip rel C {np.round(np.array(b["end"]) - C, 3).tolist()})')
     # ---- the untextured mesh (reference) ----
     os.makedirs(outsrc, exist_ok=True)
-    parts = [('position', P2.astype(np.float32)), ('normal', Nq), ('skinIndex', r['si']), ('skinWeight', r['sw']), ('index', T.astype(np.uint16).ravel()), ('cpos', cq), ('jelly', r['jelly']), ('fill', r['fill']), ('mat', r['mat'])]
-    off = {}; o = 0; blobs = []
-    for k, arr in parts:
-        bb = np.ascontiguousarray(arr).tobytes(); off[k] = o; blobs.append((o, bb)); o += len(bb); o += (-o) % 4
-    buf = bytearray(o)
-    for of, bb in blobs: buf[of:of + len(bb)] = bb
-    m2 = dict(meta); m2['off7'] = off; open(f'{outsrc}/axo_{nm}.bin', 'wb').write(buf); json.dump(m2, open(f'{outsrc}/axo_{nm}.json', 'w'))
-    # ---- the textured mesh: its vertices are copies of these (texbake's vm), found by exact position; the three sections rewritten in place ----
-    mt = json.load(open(f'{tex}/axo_{nm}.json')); bt = bytearray(open(f'{tex}/axo_{nm}.bin', 'rb').read()); ot = mt['off7']; n2 = mt['n']
-    Pt = np.frombuffer(bytes(bt), np.float32, n2 * 3, ot['position']).reshape(n2, 3)
+    def pack(parts):
+        off = {}; o = 0; blobs = []
+        for k, arr in parts:
+            bb = np.ascontiguousarray(arr).tobytes(); off[k] = o; blobs.append((o, bb)); o += len(bb); o += (-o) % 4
+        buf = bytearray(o)
+        for of, bb in blobs: buf[of:of + len(bb)] = bb
+        return buf, off
+    buf, off = pack([('position', P2.astype(np.float32)), ('normal', Nq), ('skinIndex', si2), ('skinWeight', sw2), ('index', T.astype(np.uint16).ravel()), ('cpos', cq), ('jelly', jelly2), ('fill', fill2), ('mat', mat2)])
+    m2 = dict(meta); m2['off7'] = off; m2['n'] = n2; m2['ni'] = int(T.size); open(f'{outsrc}/axo_{nm}.bin', 'wb').write(buf); json.dump(m2, open(f'{outsrc}/axo_{nm}.json', 'w'))
+    # ---- the textured mesh: its vertices are copies of the old ones (texbake's vm), found by exact position; the lobes appended with the
+    # uv of the nearest textured head vertex to their root (the skin's pink there; the shader colours the lobe) ----
+    mt = json.load(open(f'{tex}/axo_{nm}.json')); bt = bytes(open(f'{tex}/axo_{nm}.bin', 'rb').read()); ot = mt['off7']; nt = mt['n']
+    Pt = np.frombuffer(bt, np.float32, nt * 3, ot['position']).reshape(nt, 3)
     _, vm = cKDTree(P.astype(np.float32)).query(Pt); miss = np.linalg.norm(P[vm] - Pt, axis=1)
     assert miss.max() < 1e-6, f'textured mesh is not a copy of the untextured one (max {miss.max()})'
-    bt[ot['position']:ot['position'] + n2 * 12] = P2.astype(np.float32)[vm].tobytes()
-    bt[ot['normal']:ot['normal'] + n2 * 4] = Nq[vm].tobytes()
-    bt[ot['cpos']:ot['cpos'] + n2 * 8] = cq[vm].tobytes()
+    Tt = np.frombuffer(bt, np.uint16, mt['ni'], ot['index']).reshape(-1, 3).astype(np.int64)
+    uvt = np.frombuffer(bt, np.uint16, nt * 2, ot['uv']).reshape(nt, 2); texb = bt[ot['tex']:ot['tex'] + mt['texLen']]
+    rd = lambda k, dt, w: np.frombuffer(bt, dt, nt * w, ot[k]).reshape(nt, w)
+    # (the textured head vertices with the old skin, for the lobes' uv)
+    ht = np.where(hw[vm] > 0.95)[0]; kd_t = cKDTree(P2[:n][vm[ht]])
+    uv_l = np.zeros((nl, 2), np.uint16); o_ = 0
+    for L in LOBES:
+        m = len(L['P']); _, j = kd_t.query(L['root']); uv_l[o_:o_ + m] = uvt[ht[j]]; o_ += m
+    Pt2 = np.vstack([P2[:n][vm], Pl]).astype(np.float32); Nt2 = np.vstack([Nq[:n][vm], Nq[n:]]); cqt = np.vstack([cq[:n][vm], cq[n:]])
+    sit = np.vstack([rd('skinIndex', np.uint8, 4), si_l]); swt = np.vstack([rd('skinWeight', np.uint8, 4), sw_l]); jt = np.vstack([rd('jelly', np.uint8, 4), jelly_l]); ft = np.vstack([rd('fill', np.uint8, 4), fill_l]); mtt = np.vstack([rd('mat', np.uint8, 4), mat_l])
+    uvt2 = np.vstack([uvt, uv_l]); Tt2 = np.vstack([Tt, T_l - n + nt])
+    buf2, off2 = pack([('position', Pt2), ('normal', Nt2), ('skinIndex', sit), ('skinWeight', swt), ('index', Tt2.astype(np.uint16).ravel()), ('cpos', cqt), ('jelly', jt), ('fill', ft), ('mat', mtt), ('uv', uvt2), ('tex', np.frombuffer(texb, np.uint8))])
     for k in ('bones', 'bbox', 'face', 'headc', 'headr'): mt[k] = meta[k]
-    os.makedirs(out, exist_ok=True); open(f'{out}/axo_{nm}.bin', 'wb').write(bt); json.dump(mt, open(f'{out}/axo_{nm}.json', 'w'))
-    if verbose: print(f'  {out}/axo_{nm}.bin {len(bt)} bytes ({n2} verts), {outsrc}/axo_{nm}.bin {len(buf)} bytes ({n} verts); face c {meta["face"]["c"]} r {meta["face"]["r"]}; headc {meta["headc"]} headr {meta["headr"]}')
+    mt['off7'] = off2; mt['n'] = nt + nl; mt['ni'] = int(Tt2.size)
+    os.makedirs(out, exist_ok=True); open(f'{out}/axo_{nm}.bin', 'wb').write(buf2); json.dump(mt, open(f'{out}/axo_{nm}.json', 'w'))
+    if verbose: print(f'  {out}/axo_{nm}.bin {len(buf2)} bytes ({nt + nl} verts, +{nl} lobe verts, {len(Tt2)} tris), {outsrc}/axo_{nm}.bin {len(buf)} bytes ({n2} verts); face c {meta["face"]["c"]} r {meta["face"]["r"]}; headc {meta["headc"]} headr {meta["headr"]}')
 if __name__ == '__main__':
     a = sys.argv[1:]; untex = S + '/fable/rt2src'; tex = S + '/fable/rt2'; out = WORK + '/rt3'; outsrc = WORK + '/rt3src'
     while a:
