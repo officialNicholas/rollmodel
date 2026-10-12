@@ -937,6 +937,15 @@ const SWK = { arm: { F: [0.26, 0, 0.18, 0], G: [0.27, 0, 0.09, 0], M: [0.28, 0, 
   leg: { F: [0.17, 0, 0.06, 0], M: [0.18, 0, -0.06, 0], B: [0.1, 0.02, -0.24, 0], T: [0.035, 0.035, -0.28, 1] } };
 const SWT = { 'hand.R': [[0, 'M', 0, 1], [0.15, 'B', 0, 1], [0.25, 'T'], [0.55, 'T'], [0.68, 'F', 1], [1, 'M', 0, 1]], 'hand.L': [[0, 'G', 0, 1], [0.17, 'B', 0, 1], [0.27, 'T'], [0.7, 'T'], [0.83, 'F', 1], [1, 'G', 0, 1]],
   'foot.L': [[0, 'M', 0, 1], [0.14, 'B', 0, 1], [0.25, 'T'], [0.56, 'T'], [0.69, 'F', 1], [1, 'M', 0, 1]], 'foot.R': [[0, 'M', 0, 1], [0.14, 'B', 0, 1], [0.25, 'T'], [0.71, 'T'], [0.84, 'F', 1], [1, 'M', 0, 1]] };
+// the stroke's pace, for the game to move the blob by: a short slow beat as the limbs come out to reach, a surge through the pull, a touch
+// fast through the glide, a touch slow through the steps; scaled to average exactly 1 over the cycle, so the distance covered is unchanged
+const SWP = (() => { const k = [[0, 0.8], [0.12, 1.38], [0.26, 1.15], [0.45, 1.03], [0.6, 0.95], [0.82, 0.93], [0.92, 0.72]], n = k.length;
+  const at = i => { const j = ((i % n) + n) % n, w = Math.floor(i / n); return [k[j][0] + w, k[j][1]]; }, tan = i => { const a = at(i - 1), b = at(i + 1); return (b[1] - a[1]) / (b[0] - a[0]); };
+  const f = u => { u -= Math.floor(u); let i = n - 1; for (let j = 0; j < n - 1; j++) if (u >= k[j][0] && u < k[j + 1][0]) { i = j; break; } if (u < k[0][0]) i = -1;
+    const a = at(i), b = at(i + 1), d = b[0] - a[0], uu = u < a[0] ? u + 1 : u, x = (uu - a[0]) / d, x2 = x * x, x3 = x2 * x;
+    return (2 * x3 - 3 * x2 + 1) * a[1] + (x3 - 2 * x2 + x) * d * tan(i) + (3 * x2 - 2 * x3) * b[1] + (x3 - x2) * d * tan(i + 1); };
+  let m = 0; for (let i = 0; i < 1000; i++) m += f(i / 1000); m /= 1000; return u => f(u) / m; })();
+Animator.prototype.strokeMul = function () { const L = this.loco, Q = L && L.sl; return Q && L.slK > 0.001 ? 1 + (SWP(Q.u) - 1) * L.slK : 1; };
 const swTan = (k, K, j, c) => { const n = k.length - 1; if (!k[j][3]) return 0; // (a mark passed through: its pace from the marks either side, round the cycle's end)
   const jp = j > 0 ? j - 1 : n - 1, jn = j < n ? j + 1 : 1, up = j > 0 ? k[jp][0] : k[jp][0] - 1, un = j < n ? k[jn][0] : k[jn][0] + 1;
   return 0.85 * (K[k[jn][1]][c] - K[k[jp][1]][c]) / (un - up); };
@@ -1024,7 +1033,7 @@ Animator.prototype.crawl = function (t, out, dt) {
     // (the pull carries it ahead in the world, quickest mid-pull; then it eases back to its place over the glide and the steps, slowly at
     // first, carrying the speed it got; and it gathers a touch as the hands reach for the next one)
     const lg = u < 0.26 ? (x => x * x * x * (10 - 15 * x + 6 * x * x))(u / 0.26) : 1 - smooth((u - 0.26) / 0.74), gat = u > 0.86 ? Math.sin(Math.PI * (u - 0.86) / 0.14) : 0;
-    out.root.z += (0.2 * lg - 0.03 * gat) * sl; out.root.y -= (0.012 + 0.022 * g) * sl;
+    out.root.z += (0.1 * lg - 0.03 * gat) * sl; /* (a smaller lunge of the body: the whole blob surges with the pull now, see strokeMul) */ out.root.y -= (0.012 + 0.022 * g) * sl;
     if (u < (SL.pu === undefined ? 1 : SL.pu) && sl > 0.5) this.kickGills(0, -0.28 * sl); SL.pu = u; // (each pull: the gills swept back by the lunge, then springing out again)
     // the head: a little dip into each pull, up and steady through the glide, a small nod with each step; the chest rides it gently
     const hp = (0.1 * Math.sin(Math.PI * clamp01(u / 0.26)) - 0.05 * g + 0.035 * (1 - g) * Math.sin(th + 0.6)) * sl;

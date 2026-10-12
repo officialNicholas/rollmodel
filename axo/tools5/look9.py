@@ -52,6 +52,20 @@ rep("""  float cr = Y + ch.x, cb = Y + ch.y; col = max(vec3(cr, (Y - 0.2126 * cr
 """  float cr = Y + ch.x, cb = Y + ch.y; col = max(vec3(cr, (Y - 0.2126 * cr - 0.0722 * cb) / 0.7152, cb), vec3(0.0));
   col = max(mix(vec3(dot(col, vec3(0.2126, 0.7152, 0.0722))), col, 1.14), vec3(0.0));
   float bk = smoothstep(0.1, 0.85, belly); sBelly = bk;""")
+# ---- v9b: the ear lobes hang under gravity. The lobes are rigidly skinned to the gill bones, so without this they turn with the head
+# (up and back when it looks up on the jetpack, back in the victory). Each stalk's first joint is turned so the lobe's hang relative to
+# the mesh's down stays what it is in rest, whatever the head does: the down direction in the lobe's would-be frame (the head's posed
+# frame times the lobe's canonical relative frame, so the lobe's own turn never feeds back) against the down direction in its rest
+# frame, as a shortest arc. The spring's flutter, drag and swing go on top; the hang eases off in the ball and the pound ----
+rep("""    const g = this.chain.gills, gs = this.gs, hold = this.gillHoldS;
+    const cm = hold, lo = 0.4;   // (one head in both states: the same gills, the same motion)""",
+"""    const g = this.chain.gills, gs = this.gs, hold = this.gillHoldS;
+    { const P = this.P, Fp = P.Fp, hi = P.idx.head, F0 = P.m.stand.F, k = 0.92 * hold * (1 - (this.ballOn || 0));
+      if (!this.gillDownRest) { this.gillDownRest = []; for (let j = 0; j < 6; j++) this.gillDownRest.push(new THREE.Vector3(0, -1, 0).applyQuaternion(_q.copy(F0[g[j * 2]]).invert())); }
+      if (k > 0.001) for (let j = 0; j < 6; j++) { const i1 = g[j * 2];
+        _q.copy(Fp[hi]).multiply(P.Rel[i1]); _v.set(0, -1, 0).applyQuaternion(_q.invert());
+        _q2.setFromUnitVectors(this.gillDownRest[j], _v); if (k < 0.999) _q2.slerp(_q.identity(), 1 - k); pose.q[i1].multiply(_q2); } }
+    const cm = hold, lo = 0.4;   // (one head in both states: the same gills, the same motion)""")
 # ---- shader globals and helpers ----
 rep("float sCoatM = 0.0, faceInk = 0.0, sEyeM = 0.0, sDrawM = 0.0, sGill = 0.0, sFin = 0.0, sBelly = 0.0, sSpot = 0.0, sAO = 0.0;",
     "float sCoatM = 0.0, faceInk = 0.0, sEyeM = 0.0, sDrawM = 0.0, sGill = 0.0, sFin = 0.0, sBelly = 0.0, sSpot = 0.0, sAO = 0.0;\n"

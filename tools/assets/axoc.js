@@ -152,7 +152,7 @@ const AXOC = (() => {
     look.U.uCoat.value.z = Math.max(X.wet, X.coat > 0.5 ? 1 : 0);
     // the light it's lit by, in the camera's space (its fin glows from behind, its rim catches it)
     SUN_DIR.copy(sun.position).sub(sun.target.position).normalize().transformDirection(camera.matrixWorldInverse); look.U.uKeyDir.value.copy(SUN_DIR);
-    A.update(dt);
+    A.update(dt); if (D) D.strokeK = A.strokeMul ? A.strokeMul() : 1; // (swimming: the blob's pace follows the stroke; the game moves it by this)
     // curled into a ball in flight it rolls over and over the way it's flying, faster the faster it goes; opening out it comes round upright
     { const bk = A.ballOn || 0, fly = (o.blob || 0) > 0.05 && !!o.inAir, sp = D ? Math.hypot(D.spd || 0, D.vy || 0) : 0, wsc = SC * (I.root.parent ? I.root.parent.scale.x : 1) || 1;
       X.spin = X.spin || 0; X.spinV = X.spinV || 0;

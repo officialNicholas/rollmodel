@@ -2915,7 +2915,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 234</p>
+      <p class="ver">Version 236</p>
     </div>
   </div>
 
@@ -7779,6 +7779,15 @@ const SWK = { arm: { F: [0.26, 0, 0.18, 0], G: [0.27, 0, 0.09, 0], M: [0.28, 0, 
   leg: { F: [0.17, 0, 0.06, 0], M: [0.18, 0, -0.06, 0], B: [0.1, 0.02, -0.24, 0], T: [0.035, 0.035, -0.28, 1] } };
 const SWT = { 'hand.R': [[0, 'M', 0, 1], [0.15, 'B', 0, 1], [0.25, 'T'], [0.55, 'T'], [0.68, 'F', 1], [1, 'M', 0, 1]], 'hand.L': [[0, 'G', 0, 1], [0.17, 'B', 0, 1], [0.27, 'T'], [0.7, 'T'], [0.83, 'F', 1], [1, 'G', 0, 1]],
   'foot.L': [[0, 'M', 0, 1], [0.14, 'B', 0, 1], [0.25, 'T'], [0.56, 'T'], [0.69, 'F', 1], [1, 'M', 0, 1]], 'foot.R': [[0, 'M', 0, 1], [0.14, 'B', 0, 1], [0.25, 'T'], [0.71, 'T'], [0.84, 'F', 1], [1, 'M', 0, 1]] };
+// the stroke's pace, for the game to move the blob by: a short slow beat as the limbs come out to reach, a surge through the pull, a touch
+// fast through the glide, a touch slow through the steps; scaled to average exactly 1 over the cycle, so the distance covered is unchanged
+const SWP = (() => { const k = [[0, 0.8], [0.12, 1.38], [0.26, 1.15], [0.45, 1.03], [0.6, 0.95], [0.82, 0.93], [0.92, 0.72]], n = k.length;
+  const at = i => { const j = ((i % n) + n) % n, w = Math.floor(i / n); return [k[j][0] + w, k[j][1]]; }, tan = i => { const a = at(i - 1), b = at(i + 1); return (b[1] - a[1]) / (b[0] - a[0]); };
+  const f = u => { u -= Math.floor(u); let i = n - 1; for (let j = 0; j < n - 1; j++) if (u >= k[j][0] && u < k[j + 1][0]) { i = j; break; } if (u < k[0][0]) i = -1;
+    const a = at(i), b = at(i + 1), d = b[0] - a[0], uu = u < a[0] ? u + 1 : u, x = (uu - a[0]) / d, x2 = x * x, x3 = x2 * x;
+    return (2 * x3 - 3 * x2 + 1) * a[1] + (x3 - 2 * x2 + x) * d * tan(i) + (3 * x2 - 2 * x3) * b[1] + (x3 - x2) * d * tan(i + 1); };
+  let m = 0; for (let i = 0; i < 1000; i++) m += f(i / 1000); m /= 1000; return u => f(u) / m; })();
+Animator.prototype.strokeMul = function () { const L = this.loco, Q = L && L.sl; return Q && L.slK > 0.001 ? 1 + (SWP(Q.u) - 1) * L.slK : 1; };
 const swTan = (k, K, j, c) => { const n = k.length - 1; if (!k[j][3]) return 0; // (a mark passed through: its pace from the marks either side, round the cycle's end)
   const jp = j > 0 ? j - 1 : n - 1, jn = j < n ? j + 1 : 1, up = j > 0 ? k[jp][0] : k[jp][0] - 1, un = j < n ? k[jn][0] : k[jn][0] + 1;
   return 0.85 * (K[k[jn][1]][c] - K[k[jp][1]][c]) / (un - up); };
@@ -7866,7 +7875,7 @@ Animator.prototype.crawl = function (t, out, dt) {
     // (the pull carries it ahead in the world, quickest mid-pull; then it eases back to its place over the glide and the steps, slowly at
     // first, carrying the speed it got; and it gathers a touch as the hands reach for the next one)
     const lg = u < 0.26 ? (x => x * x * x * (10 - 15 * x + 6 * x * x))(u / 0.26) : 1 - smooth((u - 0.26) / 0.74), gat = u > 0.86 ? Math.sin(Math.PI * (u - 0.86) / 0.14) : 0;
-    out.root.z += (0.2 * lg - 0.03 * gat) * sl; out.root.y -= (0.012 + 0.022 * g) * sl;
+    out.root.z += (0.1 * lg - 0.03 * gat) * sl; /* (a smaller lunge of the body: the whole blob surges with the pull now, see strokeMul) */ out.root.y -= (0.012 + 0.022 * g) * sl;
     if (u < (SL.pu === undefined ? 1 : SL.pu) && sl > 0.5) this.kickGills(0, -0.28 * sl); SL.pu = u; // (each pull: the gills swept back by the lunge, then springing out again)
     // the head: a little dip into each pull, up and steady through the glide, a small nod with each step; the chest rides it gently
     const hp = (0.1 * Math.sin(Math.PI * clamp01(u / 0.26)) - 0.05 * g + 0.035 * (1 - g) * Math.sin(th + 0.6)) * sl;
@@ -8749,7 +8758,7 @@ const AXOC = (() => {
     look.U.uCoat.value.z = Math.max(X.wet, X.coat > 0.5 ? 1 : 0);
     // the light it's lit by, in the camera's space (its fin glows from behind, its rim catches it)
     SUN_DIR.copy(sun.position).sub(sun.target.position).normalize().transformDirection(camera.matrixWorldInverse); look.U.uKeyDir.value.copy(SUN_DIR);
-    A.update(dt);
+    A.update(dt); if (D) D.strokeK = A.strokeMul ? A.strokeMul() : 1; // (swimming: the blob's pace follows the stroke; the game moves it by this)
     // curled into a ball in flight it rolls over and over the way it's flying, faster the faster it goes; opening out it comes round upright
     { const bk = A.ballOn || 0, fly = (o.blob || 0) > 0.05 && !!o.inAir, sp = D ? Math.hypot(D.spd || 0, D.vy || 0) : 0, wsc = SC * (I.root.parent ? I.root.parent.scale.x : 1) || 1;
       X.spin = X.spin || 0; X.spinV = X.spinV || 0;
@@ -12631,7 +12640,7 @@ function wallNormal(D) {
 // hitting a wall slides you along it: you keep the part of your roll that runs along the wall and lose the part that ran into it
 function moveFlat(D, dt) {
   if (blockedAt(D.x, D.z, D.y) && !nudgeFree(D)) return unstick(D);
-  const back = D.dashDir < 0 && D.air, fx = Math.sin(D.yaw) * (back ? -1 : 1), fz = Math.cos(D.yaw) * (back ? -1 : 1), d = D.spd * dt, x0 = D.x, z0 = D.z, kx = D.kx * dt, kz = D.kz * dt;
+  const back = D.dashDir < 0 && D.air, fx = Math.sin(D.yaw) * (back ? -1 : 1), fz = Math.cos(D.yaw) * (back ? -1 : 1), d = D.spd * dt * (D.air ? 1 : (D.strokeK || 1)) /* (swimming: the pace follows the stroke) */, x0 = D.x, z0 = D.z, kx = D.kx * dt, kz = D.kz * dt;
   let hit = false;
   const nx = D.x + fx * d + kx; if (!blockedAt(nx, D.z, D.y)) D.x = nx; else { hit = true; D.kx = 0; }
   const nz = D.z + fz * d + kz; if (!blockedAt(D.x, nz, D.y)) D.z = nz; else { hit = true; D.kz = 0; }
@@ -12777,7 +12786,7 @@ function stepBlob(D, dt) {
       if (D.giantT <= 0 && !D.turret) { if (D.turf > 0 && !D.charging) D.paint = Math.min(1, D.paint + OWN_REFILL * dt); else D.paint -= cfg.drain * dt * (D.charging ? STILL_DRAIN : 1) * (D === P && easyOn() ? EASY_DRAIN : 1) * (D === P && tut2 ? 0.6 : 1); } /* (the first real match after the lesson: your paint lasts longer) */ // rolling on your own color tops you up; holding still barely uses any
       if (D.paint <= 0) { D.paint = 0; if (!D.dry) goDry(D); }
       grooveStep(D); sandKick(D, dt);
-      if (D.flatT <= 0 && !D.dry) { if (D.flowT > 0) { D.flowT -= dt; D.dist = 0; if (D.flowT <= 0) D.stroke++; } /* (a second of crawling clean first) */ else { D.flowK = Math.min(1, (D.flowK === undefined ? 1 : D.flowK) + dt / 0.5); const fk = 0.3 + 0.7 * D.flowK * D.flowK * (3 - 2 * D.flowK); /* (then the stream swells in) */ D.dist += D.spd * dt; const fx = D.x + Math.sin(D.yaw) * TRAIL_FWD, fz = D.z + Math.cos(D.yaw) * TRAIL_FWD, fy = hugY(fx, fz, D.y); while (D.dist >= SPACING) { D.dist -= SPACING; addPoint(fx, fy, fz, D.yaw, dryClock, D.stroke, (D.giantT > 0 ? GIANT_K : D.power && D.power.type === 'roller' ? 2.6 : 1) * (D.rollT > ROLL_T - ROLL_DASH ? 0.45 : 1) * fk, tcode(D), D.rb, [D.x, D.y, D.z]); } } }
+      if (D.flatT <= 0 && !D.dry) { if (D.flowT > 0) { D.flowT -= dt; D.dist = 0; if (D.flowT <= 0) D.stroke++; } /* (a second of crawling clean first) */ else { D.flowK = Math.min(1, (D.flowK === undefined ? 1 : D.flowK) + dt / 0.5); const fk = 0.3 + 0.7 * D.flowK * D.flowK * (3 - 2 * D.flowK); /* (then the stream swells in) */ D.dist += D.spd * dt * (D.strokeK || 1); const fx = D.x + Math.sin(D.yaw) * TRAIL_FWD, fz = D.z + Math.cos(D.yaw) * TRAIL_FWD, fy = hugY(fx, fz, D.y); while (D.dist >= SPACING) { D.dist -= SPACING; addPoint(fx, fy, fz, D.yaw, dryClock, D.stroke, (D.giantT > 0 ? GIANT_K : D.power && D.power.type === 'roller' ? 2.6 : 1) * (D.rollT > ROLL_T - ROLL_DASH ? 0.45 : 1) * fk, tcode(D), D.rb, [D.x, D.y, D.z]); } } }
       // rain puddles water your blood down; hard paint of either color slows you
       D.inBoil = boilNear(D.x, D.z, D.y, 0);
       if (D.inBoil) { if (D.dilT <= 0) dilute(D); D.dilT = DIL_T; }
