@@ -2972,7 +2972,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 242</p>
+      <p class="ver">Version 243</p>
     </div>
   </div>
 
@@ -7975,13 +7975,13 @@ Animator.prototype.crawl = function (t, out, dt) {
     const pos = P.fk('crawl', out);
     for (const l of L.limbs) {
       if (C && l.held) { l.p.applyMatrix4(C); l.p0.applyMatrix4(C); }
-      if (l.held) { const d = l.p.distanceTo(pos[l.root]); if (d > 0.94 * l.len || L.airT > 0.12 || !rising) { l.held = false; l.p0.copy(l.p); } }
+      if (l.held) { const d = l.p.distanceTo(pos[l.root]); if (d > 0.82 * l.len || L.airT > 0.07 || !rising) { l.held = false; l.p0.copy(l.p); } } /* (the hands let go early: never stretched down to the ground as it rises) */
       if (!l.held) {
         // tucked in once it is off the ground (the hands folded back along the chest, the feet drawn up beside the belly), held there
         // through the flight, then reaching down and forward as the ground comes up, the hands first (the lead hand lowest: it touches
         // first), the feet just after
         const lead = l.arm && l.m === L.lead, dn = Math.min(hgt, 0.32), push = 1 - smooth(clamp01((L.airT - 0.04) / 0.08));
-        LV1.copy(l.rr).add(l.arm ? LV2.set(0.06 * l.m, -0.12, -0.3) : LV2.set(0.05 * l.m, 0.07, -0.02)).add(LV4.set(l.hb.x - l.home.x, 0, l.hb.z - l.home.z));
+        LV1.copy(l.rr).add(l.arm ? LV2.set(0.03 * l.m, -0.03, -0.24) : LV2.set(0.04 * l.m, 0.1, -0.1)).add(LV4.set(l.hb.x - l.home.x, 0, l.hb.z - l.home.z)); /* (tucked tight: hands up under the chest, feet up and back) */
         LV4.copy(l.hb).add(l.arm ? LV2.set(-0.03 * l.m, -0.1, -0.1) : LV2.set(-0.02 * l.m, -0.06, -0.1)); LV1.lerp(LV4, push);
         LV3.copy(l.hb).add(l.arm ? LV2.set(0.0, -dn + (lead ? -0.02 : 0.05), 0.15) : LV2.set(0.0, -Math.min(dn, 0.12) + 0.05, 0.06));
         LV1.lerp(LV3, rising ? 0 : l.arm ? reachA : reachL); l.p.lerp(LV1, 1 - Math.exp(-dt * 22));
@@ -8053,7 +8053,7 @@ Animator.prototype.crawl = function (t, out, dt) {
   if (air) out.root.y += -0.03 * (1 - smooth(clamp01(L.airT / 0.06))) + 0.02 * Math.sin(Math.PI * clamp01((L.airT - 0.04) / 0.16)); /* (the spring off the ground: a last dip, then thrown up past its line) */
   rot(out, I.chest, -arch * 0.12 + dip * 0.1 - 4.5 * brI - 4 * riseK, 0, 0); rot(out, sp[2], -2 * brI, 0, 0); rot(out, I.head, 2 - arch * 0.1 - Math.min(0, dip) * 0.05 + (air ? -9 - 5 * riseK + 20 * fallK : 0), 0, 0);
   this.worldTurn(out, sp[3], 0, dipR * 0.12);
-  if (air) { rot(out, sp[1], -5 - 3 * riseK + 9 * fallK, 0, 0); rot(out, sp[2], -4 - 2 * riseK + 7 * fallK, 0, 0); }
+  if (air) { rot(out, sp[1], -7 - 3 * riseK + 9 * fallK, 0, 0); rot(out, sp[2], -6 - 2 * riseK + 7 * fallK, 0, 0); } /* (a touch more arch in the air) */
   // ---- the limbs on their marks (in the air the same marks steer them, with no ground under them)
   for (const l of L.limbs) {
     const LB = this.limbBind[l.arm ? 'arm' : 'leg'];
@@ -8848,7 +8848,7 @@ const AXOC = (() => {
     const xray = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.55, depthWrite: false, depthFunc: THREE.GreaterDepth }), ghosts = [];
     // the ink line: a back-face hull of the same skinned mesh, pushed out along the skinned normals by a width that grows with the distance from
     // the camera (clamped), so the line stays about as wide on screen close up and far away
-    const INK = window.__axoInk || [0.0011, 0.004, 0.016], inkOf = meta => { const m = new THREE.MeshBasicMaterial({ color: C.outline, side: THREE.BackSide });
+    const INK = window.__axoInk || [0.0011, 0.004, 0.011], inkOf = meta => { const m = new THREE.MeshBasicMaterial({ color: C.outline, side: THREE.BackSide });
       m.onBeforeCompile = sh => { sh.vertexShader = sh.vertexShader.replace('#include <project_vertex>', '{ float gD = -(modelViewMatrix * vec4(transformed, 1.0)).z, gS = 0.5 * (length(modelMatrix[0].xyz) + length(modelMatrix[1].xyz)); transformed += normalize(objectNormal) * clamp(' + INK[0].toFixed(5) + ' * gD / max(gS, 1e-3), ' + INK[1].toFixed(4) + ', ' + INK[2].toFixed(4) + '); }\n#include <project_vertex>'); };
       AXO.dqsMaterial(m, meta); m.customProgramCacheKey = () => 'axo-ink'; return m; };
     for (const M of [Sm, Cm]) { const me = M.mesh; g.add(me); me.renderOrder = 32; me.layers.enable(3); charMat(me.material);
@@ -14531,7 +14531,7 @@ function slimeVisual(D, V, dt, sq, rise, rad, gy, hop, fxK, fxL) {
   if (flA0 && !V.flOn) { V.flOn = true; V.flV0 = Math.max(1, D.vy || 1); } else if (!flA0) V.flOn = false;
   let tl0 = 9; if (flA0) { const gg = surfaceUnder(D.x, D.z, D.y + STEP, true), hh = Math.max(0, D.y - (gg > -Infinity ? gg : D.y - 9)), vy = D.vy || 0, g2 = GRAV * 1.45; tl0 = vy > 0 ? vy / GRAV + Math.sqrt(2 * (hh + vy * vy / (2 * GRAV)) / g2) : (vy + Math.sqrt(vy * vy + 2 * g2 * hh)) / g2; } /* (how soon it lands) */
   const flK0 = flA0 ? smoothstep(0.3, 0.78, D.flingC || 0) * (tl0 > (V.balled ? 0.22 : 0.3) ? 1 : 0) : 0; /* (a ball for the whole flight, back to the axolotl just before it lands) */
-  const ballOn = I.kind === 'axo' && D.st === 'play' && (state === 'play' || state === 'dead') && (flK0 > (V.balled ? 0.12 : 0.3) || D.rollOutT > (V.balled ? 0.1 : 0.16));
+  const ballOn = I.kind === 'axo' && D.st === 'play' && (state === 'play' || state === 'dead') && (flK0 > (V.balled ? 0.12 : 0.3) || D.rollOutT > (V.balled ? 0.1 : 0.16) || D.rollT > (V.balled ? ROLL_T - ROLL_DASH : ROLL_T - ROLL_DASH + 0.06)); /* (the dodge roll: a ball for its tumble, the axolotl back as it comes round onto its feet) */
   if (ballOn !== !!V.balled) { V.balled = ballOn; if (D.st === 'play' && (I.root.visible || V.oldBlob.visible)) ballPoof(D, ballOn); }
   if (V.balled) { U.gRise.value *= 0.3; U.gDrop.value *= 0.35; } // (a ball: drawn out along its flight only a little, never into a column)
   const tur = !!D.turret && D.st === 'play', on = L.roll < 0.5 && !tur && !V.balled && !(D === P && lookIntro && lookIntro.t < (lookIntro.vis !== undefined ? lookIntro.vis : IN_LAND)), was = I.root.visible; // (on the mount the blob is the paint in the dome: hidden)

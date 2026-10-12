@@ -18,7 +18,7 @@ async def main():
         frames = []
         for i in range(N):
             await pg.evaluate(f"LAB.step({EVERY})")
-            await pg.evaluate(f"(() => {{ const D = LAB.D, c = Math.cos(D.yaw), s = Math.sin(D.yaw), o = {json.dumps(OFF)}; LAB.camPos = [D.x + o[0] * c + o[2] * s, o[1], D.z - o[0] * s + o[2] * c]; LAB.camAt = [D.x + {ATDZ} * s, 0.3, D.z + {ATDZ} * c]; LAB.render(); }})()")
+            await pg.evaluate(f"(() => {{ const D = LAB.D, c = Math.cos(D.yaw), s = Math.sin(D.yaw), o = {json.dumps(OFF)}; LAB.camPos = [D.x + o[0] * c + o[2] * s, o[1] + 0.8 * (D.y || 0), D.z - o[0] * s + o[2] * c]; LAB.camAt = [D.x + {ATDZ} * s, 0.3 + 0.8 * (D.y || 0), D.z + {ATDZ} * c]; LAB.render(); }})()")
             fn = f'{S}/lab/{TAG}_{i:02d}.png'; await pg.screenshot(path=fn); frames.append(fn)
         u = await pg.evaluate("(() => { const L = LAB.I.ax.A.loco; return L && L.sl ? [+L.sl.u.toFixed(2), +L.slK.toFixed(2)] : null; })()")
         print('end u/sl', u, 'errors', errs[:3]); await b.close()
