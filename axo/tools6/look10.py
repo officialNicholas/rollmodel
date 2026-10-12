@@ -47,7 +47,7 @@ if B:
 """  col *= 1.0 + sEar * (0.12 * (n1 - 0.5) + 0.05 * (n2 - 0.5));
   // the slime's jelly (v10 B): the team colour a touch softened, deeper over the crown and down the back of the head (darker above, as
   // animals are), a slow drift of light and dark through it; the face a paler, warmer, skin-like shade in the slime's own oval
-  { vec3 lw = vec3(0.2126, 0.7152, 0.0722), bc = max(mix(vec3(dot(uTeam, lw)), uTeam, 0.9), vec3(0.0));
+  if (sHeadM > 0.001) { vec3 lw = vec3(0.2126, 0.7152, 0.0722), bc = max(mix(vec3(dot(uTeam, lw)), uTeam, 0.9), vec3(0.0));
     vec3 deep = max(mix(vec3(dot(bc, lw)), bc, 1.3), vec3(0.0)) * 0.3, lite = mix(bc, vec3(1.0, 0.86, 0.72), 0.07) * 1.1;
     float mot = aNoise(cp * 2.7 + 3.1) * 0.62 + aNoise(cp * 6.1 - 1.7) * 0.38;
     float dors = smoothstep(-0.1, 0.9, dot(normalize(vNormal), normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz)));

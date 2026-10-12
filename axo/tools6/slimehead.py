@@ -74,20 +74,39 @@ def boundary_chains(T, cand):
                     used.add((p, a)); ch.insert(0, p); a = p
             chains.append(ch)
     return chains
-def close_holes(P, T, cand, C, known=None):
-    """every hole bounded by candidate vertices closed with a fan to a new centre vertex (on the ball's surface over the hole): the new
-    centres' positions, the fan triangles (new vertices numbered from len(P)), and per centre the chain it closes. With known centres
-    (the untextured mesh's), each chain takes the nearest of them: a hole an atlas seam cuts into two chains then gets one centre, so its
-    two fans tile it with no sliver between"""
-    chains = boundary_chains(T, cand); cen = []; tris = []; src = []; kd = cKDTree(known) if known is not None and len(known) else None
+def on_ball(P, vs, C):
+    """a centre for the hole rimmed by vertices vs: their mean, pushed out onto the ball's surface over it"""
+    c = P[vs].mean(0); rr = np.linalg.norm(P[vs] - c, axis=1).mean(); R = np.linalg.norm(c - C); sag = R - np.sqrt(max(R * R - rr * rr, 0.0)); return c + unit(c - C) * sag
+def close_holes(P, T, cand, C):
+    """every hole rimmed by candidate vertices closed with a fan to one new centre vertex (on the ball's surface over it): chains of
+    open edges that share a vertex are one hole. Returns the centres (new vertices numbered from len(P)), the fan triangles, per
+    centre a rim vertex to copy attributes from, and per vertex the hole it rims (-1 elsewhere)"""
+    chains = boundary_chains(T, cand); parent = list(range(len(chains)))
+    def find(i):
+        while parent[i] != i: parent[i] = parent[parent[i]]; i = parent[i]
+        return i
+    seen = {}
+    for ci, ch in enumerate(chains):
+        for v in set(ch):
+            if v in seen: parent[find(ci)] = find(seen[v])
+            else: seen[v] = ci
+    roots = sorted(set(find(i) for i in range(len(chains)))); gid = {r: k for k, r in enumerate(roots)}; cg = [gid[find(i)] for i in range(len(chains))]
+    vgroup = -np.ones(len(P), np.int64); cen = []; rep = []
+    for k in range(len(roots)):
+        vs = sorted(set(v for ci, ch in enumerate(chains) if cg[ci] == k for v in ch)); vgroup[vs] = k; cen.append(on_ball(P, vs, C)); rep.append(vs[0])
+    tris = [[b, a, len(P) + cg[ci]] for ci, ch in enumerate(chains) for a, b in zip(ch[:-1], ch[1:])]   # (each edge the other way round: wound with the skin it borders)
+    return np.array(cen).reshape(-1, 3), np.array(tris, np.int64).reshape(-1, 3), rep, vgroup
+def close_holes_tex(P, T, cand, C, vgroup, centres):
+    """the textured mesh's holes: its rim copies chain per chart; every chain of a hole fans to its own copy of the hole's one centre (the
+    copy carries the chart's uv), so the fans tile the hole with no sliver. Returns the centre copies, the fans, per copy a rim vertex
+    to copy attributes from, and per copy its chain (for the uv)"""
+    chains = boundary_chains(T, cand); cen = []; rep = []; tris = []; src = []
     for ch in chains:
-        loop = ch[:-1] if ch[-1] == ch[0] else ch
-        if len(loop) < 2: continue
-        c = P[loop].mean(0); rr = np.linalg.norm(P[loop] - c, axis=1).mean(); R = np.linalg.norm(c - C); sag = R - np.sqrt(max(R * R - rr * rr, 0.0)); c = c + unit(c - C) * sag
-        if kd is not None: dk, jk = kd.query(c); c = known[jk] if dk < 0.06 else c
-        i = len(P) + len(cen); cen.append(c); src.append(loop)
-        for a, b in zip(ch[:-1], ch[1:]): tris.append([b, a, i])   # (the edge the other way round: wound with the skin it borders)
-    return np.array(cen).reshape(-1, 3), np.array(tris, np.int64).reshape(-1, 3), src
+        gs = [int(vgroup[v]) for v in ch if vgroup[v] >= 0]
+        if not gs: continue
+        g = max(set(gs), key=gs.count); i = len(P) + len(cen); cen.append(centres[g]); rep.append(ch[0]); src.append(ch)
+        for a, b in zip(ch[:-1], ch[1:]): tris.append([b, a, i])
+    return np.array(cen).reshape(-1, 3), np.array(tris, np.int64).reshape(-1, 3), rep, src
 # ---------------- the slime ----------------
 def load_slime():
     t = re.sub(r'[^A-Za-z0-9+/=]', '', open(SLIME_PACK).read()); buf = base64.b64decode(t); assert buf[:4] == b'RMS1'
@@ -132,8 +151,14 @@ def reshape(nm, untex, tex, out, outsrc, s=SCALE, verbose=True):
     n = n_all - N_LOBE; assert (r['si'][n:, 0] == bi['head']).all() and (r['si'][:n, 0] != bi['head']).any(); P = r['P'][:n].astype(float); T = r['T'][(r['T'] < n).all(1)]
     W = r['W'][:n]; hw = W[:, bi['head']] + W[:, bi['headfront']]; gw = W[:, gidx].sum(1)
     jelly = r['jelly'][:n].copy(); fill = r['fill'][:n].copy(); mat = r['mat'][:n].copy(); si = r['si'][:n].copy(); sw = r['sw'][:n].copy(); cp = r['cp'][:n].copy()
-    own = gw > 0.5; ring = (gw > 0.02) & ~own; T = T[~own[T].any(1)]
-    if verbose: print(f'{nm}: {n_all} verts -> lobes off {n}, retired stalk verts {int(own.sum())} dropped; {len(T)} tris, {int(ring.sum())} ring verts')
+    # (the retired stalks: v9b collapsed each stalk's vertices onto one point, so they are the vertices stacked three or more deep on a
+    # point; the ring round each is whatever still touches them)
+    key = np.round(P, 4); _, inv, cnt = np.unique(key, axis=0, return_inverse=True, return_counts=True); own = (cnt[inv.ravel()] >= 3) & ((hw + gw) > 0.02)
+    T = T[~own[T].any(1)]; A0, _ = adjacency(n, r['T'][(r['T'] < n).all(1)]); ring = ((A0 @ own.astype(float)) > 0) & ~own
+    def open_near(TT, PP):
+        E = np.concatenate([TT[:, [0, 1]], TT[:, [1, 2]], TT[:, [2, 0]]]); u_, c_ = np.unique(np.sort(E, 1), axis=0, return_counts=True); op = u_[c_ == 1]
+        return int((np.linalg.norm(PP[op].mean(1) - C, axis=1) < 0.5).sum()) if len(op) else 0
+    if verbose: print(f'{nm}: {n_all} verts -> lobes off {n}, retired stalk verts {int(own.sum())} dropped; {len(T)} tris, {int(ring.sum())} ring verts; open edges near the head before {open_near(r["T"][(r["T"] < n).all(1)], P)}, after the drop {open_near(T, P)}')
     # ---- the skull onto the slime's head: each head vertex cast from C along its own direction onto the slime's head surface ----
     sl = load_slime(); body = (sl['ew'] < 0.001) & (sl['stub'] < 0.01); F = sl['T'][body[sl['T']].all(1)]; V = (sl['P'] - SLIME_HEAD) * s + C
     q = P - C; dist = np.linalg.norm(q, axis=1); d = q / np.maximum(dist, 1e-9)[:, None]; grp = (hw > 0.02) & ~own
@@ -165,22 +190,31 @@ def reshape(nm, untex, tex, out, outsrc, s=SCALE, verbose=True):
         print(f'  skull x {qq[:, 0].min():.3f}..{qq[:, 0].max():.3f} y {qq[:, 1].min():.3f}..{qq[:, 1].max():.3f} z {qq[:, 2].min():.3f}..{qq[:, 2].max():.3f}; moved mean {np.linalg.norm(P2 - P, axis=1)[core].mean() * 100:.1f} cm max {np.linalg.norm(P2 - P, axis=1)[core].max() * 100:.1f} cm')
     # ---- the attributes of the head: the head mask for the look (mat.y 0.2 on the skull, fading down the neck; the ears take 1.0) ----
     headK = ss((hw - 0.3) / 0.6); mat[:, 1] = np.clip(np.round(255 * 0.2 * headK), 0, 255).astype(np.uint8); jelly[ring, 2] = 0; fill[ring, 3] = 0
+    # the old base rings shared their weight with the stalks' bones: that share goes to the head now (the ear bones must not dent the skull)
+    gset = np.zeros(len(names), bool); gset[gidx] = True; hidx = bi['head']; moved = 0
+    for v in np.where(gw > 0)[0]:
+        s_, w_ = si[v].astype(int), sw[v].astype(int); s_[gset[s_] & (w_ > 0)] = hidx; acc = {}
+        for a_, b_ in zip(s_, w_):
+            if b_ > 0: acc[int(a_)] = acc.get(int(a_), 0) + int(b_)
+        items = sorted(acc.items(), key=lambda kv: -kv[1])[:4]; si[v] = 0; sw[v] = 0
+        for j, (a_, b_) in enumerate(items): si[v, j] = a_; sw[v, j] = b_
+        sw[v, 0] += 255 - int(sw[v].sum()); moved += 1
+    W = W.copy(); W[:, gidx] = 0; gw0 = gw.copy(); gw = np.zeros(n)   # (no body vertex carries gill weight any more; gw0 keeps the old share for the masks below)
+    if verbose: print(f'  {moved} ring vertices: their stalk-bone share moved to the head')
     # ---- the old rings' holes closed (the untextured mesh): a fan to a centre on the ball, the centre's attributes its ring's ----
     keep = ~own; o2n = -np.ones(n, np.int64); o2n[keep] = np.arange(int(keep.sum())); nb_ = int(keep.sum()); T2 = o2n[T]
-    Pb = P2[keep]; cen, fanT, chains = close_holes(Pb, T2, ring[keep], C); ncen = len(cen)
-    def ring_attrs(chains, arrs):
-        outs = []
-        for arr in arrs: outs.append(np.array([arr[ch[0]] for ch in chains]).reshape(-1, arr.shape[1]) if len(chains) else np.zeros((0, arr.shape[1]), arr.dtype))
-        return outs
+    # (the rims: the dropped vertices' neighbours, which is exactly where the drop left open edges; the untextured mesh has no seams)
+    Pb = P2[keep]; cen, fanT, rep, vgroup = close_holes(Pb, T2, ring[keep], C); ncen = len(cen)
+    def rep_attrs(rep, arrs): return [arr[rep].reshape(-1, arr.shape[1]) if len(rep) else np.zeros((0, arr.shape[1]), arr.dtype) for arr in arrs]
     sib, swb, jb, fb, mb = si[keep], sw[keep], jelly[keep], fill[keep], mat[keep]
     cpb = cp[keep].copy()
     if nm == 'stand': cpb[:, :3] = np.clip(np.round(Pb / cps * 32767), -32767, 32767)
     else: cpb[:, :3] = np.clip(np.round((cp[keep, :3].astype(float) / 32767 * cps + (P2 - P)[keep]) / cps * 32767), -32767, 32767)
-    si_c, sw_c, j_c, f_c, m_c, cp_c = ring_attrs(chains, [sib, swb, jb, fb, mb, cpb])
-    if ncen: cp_c = cp_c.copy(); cp_c[:, :3] = np.array([cpb[ch, :3].astype(float).mean(0) for ch in chains]).round().astype(np.int16)
+    si_c, sw_c, j_c, f_c, m_c, cp_c = rep_attrs(rep, [sib, swb, jb, fb, mb, cpb])
+    if ncen: cp_c = cp_c.copy(); cp_c[:, :3] = np.array([cpb[vgroup == k, :3].astype(float).mean(0) for k in range(ncen)]).round().astype(np.int16)
     Pb = np.vstack([Pb, cen]); T2 = np.vstack([T2, fanT]); nb_ += ncen
     sib = np.vstack([sib, si_c]); swb = np.vstack([swb, sw_c]); jb = np.vstack([jb, j_c]); fb = np.vstack([fb, f_c]); mb = np.vstack([mb, m_c]); cpb = np.vstack([cpb, cp_c])
-    if verbose: print(f'  {ncen} old ring holes closed ({len(fanT)} fan tris), chains of {[len(c) for c in chains]}')
+    if verbose: print(f'  {ncen} old stalk holes closed ({len(fanT)} fan tris), rims of {sorted(np.bincount(vgroup[vgroup >= 0]).tolist(), reverse=True)}; open edges near the head now {open_near(T2, Pb)}')
     Nb = vnormals(Pb, T2)
     # ---- the ears ----
     EARS = [ear_piece(sl, sgn, C, s) for sgn in (1.0, -1.0)]
@@ -237,20 +271,21 @@ def reshape(nm, untex, tex, out, outsrc, s=SCALE, verbose=True):
     rd = lambda k_, dt, w: np.frombuffer(bt, dt, nt_all * w, ot[k_]).reshape(nt_all, w)[:nt]
     own_t = own[vm]; Tt = Tt[~own_t[Tt].any(1)]; used = np.zeros(nt, bool); used[Tt.ravel()] = True; keept = ~own_t & used
     o2nt = -np.ones(nt, np.int64); o2nt[keept] = np.arange(int(keept.sum())); ntb = int(keept.sum()); Tt2 = o2nt[Tt]; assert (Tt2 >= 0).all()
-    Ptb = P2[vm][keept]; uvb = uvt[keept]; ringt = ring[vm][keept]
-    cen_t, fanTt, chains_t = close_holes(Ptb, Tt2, ringt, C, known=cen); ncen_t = len(cen_t)
+    Ptb = P2[vm][keept]; uvb = uvt[keept]; vmk = vm[keept]; ringt = ring[vmk]; vgroup_t = vgroup[o2n[vmk]]   # (the rims' copies and their holes)
+    cen_t, fanTt, rep_t, chains_t = close_holes_tex(Ptb, Tt2, ringt, C, vgroup_t, cen); ncen_t = len(cen_t)
     sit = rd('skinIndex', np.uint8, 4)[keept]; swt = rd('skinWeight', np.uint8, 4)[keept]; jt = jelly[vm][keept]; ft = fill[vm][keept]; mtt = mat[vm][keept]
     cpt = r['cp'][:n][vm].copy()
     if nm == 'stand': cpt[:, :3] = np.clip(np.round(P2[vm] / cps * 32767), -32767, 32767)
     else: cpt[:, :3] = np.clip(np.round((cpt[:, :3].astype(float) / 32767 * cps + (P2 - P)[vm]) / cps * 32767), -32767, 32767)
     cpt = cpt[keept]
-    si_c, sw_c, j_c, f_c, m_c, cp_c, uv_c = ring_attrs(chains_t, [sit, swt, jt, ft, mtt, cpt, uvb])
+    si_c, sw_c, j_c, f_c, m_c, cp_c, uv_c = rep_attrs(rep_t, [sit, swt, jt, ft, mtt, cpt, uvb])
     if ncen_t:
         cp_c = cp_c.copy(); cp_c[:, :3] = np.array([cpt[ch, :3].astype(float).mean(0) for ch in chains_t]).round().astype(np.int16)
         uv_c = np.array([uvb[ch].astype(float).mean(0) for ch in chains_t]).round().astype(np.uint16)
         spread = [float(np.ptp(uvb[ch].astype(float) / 65535, axis=0).max()) for ch in chains_t]
-        if verbose: print(f'  textured: {ncen_t} holes closed, chains of {[len(c) for c in chains_t]}, uv spread {np.round(spread, 3).tolist()}')
+        if verbose: print(f'  textured: {ncen_t} rim chains fanned, of {sorted([len(c) for c in chains_t], reverse=True)[:12]}..., uv spread max {max(spread):.3f}')
     Ptb = np.vstack([Ptb, cen_t]); Tt2 = np.vstack([Tt2, fanTt]); uvb = np.vstack([uvb, uv_c]); ntb += ncen_t
+    if verbose: print(f'  textured: open edges near the head now {open_near(Tt2, Ptb)} (seam copies count as open)')
     sit = np.vstack([sit, si_c]); swt = np.vstack([swt, sw_c]); jt = np.vstack([jt, j_c]); ft = np.vstack([ft, f_c]); mtt = np.vstack([mtt, m_c]); cpt = np.vstack([cpt, cp_c])
     Ntb = vnormals(Ptb, Tt2); Nt_body = np.zeros((ntb, 4), np.int8); Nt_body[:, :3] = np.clip(np.round(Ntb * 127), -127, 127).astype(np.int8)
     # the ears' uv: the skin's texel nearest the hinge (the look colours the ear from it)

@@ -2915,7 +2915,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 237</p>
+      <p class="ver">Version 238</p>
     </div>
   </div>
 
@@ -9015,6 +9015,25 @@ const pearlG = (() => { const pts = [[-0.6, 0.5, -0.78], [-0.56, 0.32, -0.42], [
   for (let i = 0; i <= N; i++) { const u = i / N, p = curve.getPointAt(u), r = 0.048 + 0.026 * Math.sin(u * Math.PI); parts.push(new THREE.SphereGeometry(r, HI ? 14 : 10, HI ? 10 : 8).translate(p.x, p.y, p.z)); }
   return mergeGeos(parts); })();
 const pearlMat = glossMat(0xF7F1E8, { roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.05, iridescence: 0.55, iridescenceIOR: 1.3 });
+// five more everyday pieces, simple shapes: a beanie (a soft dome, a folded band, a pom-pom), a party hat (striped cone, a pom), a scarf
+// (a loop round the neck, a tail hanging down with a fringe), a monocle (a gold rim, a glass, a chain), a curly mustache
+const knitMat = glossMat(0x2A9D8F, { roughness: 0.75, clearcoat: 0.05, sheen: 0.8, sheenColor: new THREE.Color(0x9FE3D8), sheenRoughness: 0.9 }), creamMat = glossMat(0xF6EBD7, { roughness: 0.8, clearcoat: 0.05, sheen: 0.7, sheenColor: new THREE.Color(0xFFFFFF), sheenRoughness: 0.9 });
+const partyAMat = glossMat(0xFF5A8A, { roughness: 0.3, clearcoat: 0.6 }), partyBMat = glossMat(0xFFE066, { roughness: 0.3, clearcoat: 0.6 }), scarfMat = glossMat(0xE3283E, { roughness: 0.78, clearcoat: 0.05, sheen: 0.8, sheenColor: new THREE.Color(0xFF9AA8), sheenRoughness: 0.9 });
+const goldMat = HI ? charMat(new THREE.MeshPhysicalMaterial({ color: 0xE8C25A, metalness: 1, roughness: 0.22, clearcoat: 0.5, envMapIntensity: 1.5 })) : glossMat(0xE8C25A, { roughness: 0.25 }), glassMat = new THREE.MeshPhysicalMaterial({ color: 0xBFE6FF, transparent: true, opacity: 0.28, roughness: 0.05, clearcoat: 1, depthWrite: false }), stacheMat = glossMat(0x3B2418, { roughness: 0.45, clearcoat: 0.4 });
+const simplePiece = (parts, s) => { const g = new THREE.Group(), gin = new THREE.Group(); g.add(gin); for (const [geo, mat] of parts) { const m = new THREE.Mesh(geo, mat), o = new THREE.Mesh(geo, inkMat); m.renderOrder = 33; o.renderOrder = 32.6; m.add(o); gin.add(m); } gin.scale.setScalar(s || 1); g.userData.gin = gin; return g; };
+const beanieParts = (() => { const dome = new THREE.SphereGeometry(0.52, 26, 18, 0, Math.PI * 2, 0, Math.PI * 0.56).scale(1, 1.08, 1); const band = new THREE.TorusGeometry(0.5, 0.1, 12, 36).rotateX(Math.PI / 2).translate(0, -0.08, 0); const pom = new THREE.SphereGeometry(0.15, 16, 12).translate(0, 0.6, 0);
+  return [[dome, knitMat], [band, creamMat], [pom, creamMat]]; })();
+const partyParts = (() => { const list = [], H = 0.84, N = 5; for (let k = 0; k < N; k++) { const y0 = k / N * H, y1 = (k + 1) / N * H, r = y => 0.3 * (1 - y / H); list.push([new THREE.CylinderGeometry(r(y1) + (k === N - 1 ? 0.01 : 0), r(y0), y1 - y0, 24).translate(0, (y0 + y1) / 2, 0), k % 2 ? partyBMat : partyAMat]); }
+  list.push([new THREE.SphereGeometry(0.085, 14, 10).translate(0, H + 0.03, 0), creamMat]); return list; })();
+const scarfParts = (() => { const loop = new THREE.TorusGeometry(0.72, 0.19, 12, 36).rotateX(Math.PI / 2).scale(1, 1, 0.92), tail = new THREE.BoxGeometry(0.34, 0.9, 0.11, 1, 6, 1); { const p = tail.attributes.position; for (let i = 0; i < p.count; i++) { const y = p.getY(i), u = (y + 0.45) / 0.9; p.setZ(i, p.getZ(i) + 0.09 * Math.sin(u * Math.PI * 1.5)); p.setX(i, p.getX(i) * (0.85 + 0.15 * u)); } tail.computeVertexNormals(); } tail.translate(0.26, -0.6, 0.72);
+  const fr = []; for (let k = -2; k <= 2; k++) fr.push(new THREE.CylinderGeometry(0.022, 0.022, 0.2, 6).translate(0.26 + k * 0.065, -1.13, 0.72)); return [[loop, scarfMat], [tail, scarfMat], [mergeGeos(fr), creamMat]]; })();
+const monoParts = (() => { const rim = new THREE.TorusGeometry(0.2, 0.028, 10, 40), glass = new THREE.CircleGeometry(0.18, 32); const pts = [[0.17, -0.1, 0], [0.26, -0.3, -0.04], [0.34, -0.52, -0.1], [0.4, -0.72, -0.2]].map(p => new THREE.Vector3(...p)); const chain = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 16, 0.016, 6);
+  return [[rim, goldMat], [chain, goldMat], [glass, glassMat]]; })();
+const stacheParts = (() => { const side = m => { const pts = [[0, -0.02, 0], [0.11 * m, -0.04, 0.01], [0.21 * m, -0.01, 0.0], [0.28 * m, 0.07, -0.03], [0.3 * m, 0.13, -0.05]].map(p => new THREE.Vector3(...p)); return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, false, 'centripetal'), 20, 0.05, 8); };
+  const cap = m => new THREE.SphereGeometry(0.05, 10, 8).translate(0.3 * m, 0.13, -0.05); return [[mergeGeos([side(1), side(-1), new THREE.SphereGeometry(0.058, 12, 10), cap(1), cap(-1)]), stacheMat]]; })();
+// how each sits (window.__*Fit: a tuning hook)
+const BEANIE_FIT = window.__beanieFit || { s: 1.18, y: -0.36, rx: -0.14, rz: 0.08 }, PARTY_FIT = window.__partyFit || { s: 0.95, y: -0.12, rx: 0.1, rz: 0.4 };
+const MONO_FIT = window.__monoFit || { x: 0.2, y: 0.06, z: 0.44, s: 0.62 }, STACHE_FIT = window.__stacheFit || { x: 0, y: -0.11, z: 0.44, s: 0.48 }, SCARF_FIT = window.__scarfFit || { s: 0.4, y: -0.01, z: 0.04 };
 // the everyday set: the two hats and the bow tie from their models, the patch fitted to the head, the flower
 function makeWear2(body) {
   const grp = (key, s) => { const g = new THREE.Group(), gin = new THREE.Group(); g.add(gin); if (WEAR_A[key]) { gin.add(assetMesh(key, WEAR_AM[key])); gin.scale.setScalar(s); } g.userData.gin = gin; return g; };
@@ -9022,8 +9041,9 @@ function makeWear2(body) {
   const patch = new THREE.Group(); if (WEAR_A.patch) { const m = new THREE.Mesh(WEAR_A.patch.g, patchMat), o = new THREE.Mesh(WEAR_A.patch.ink, inkMat); m.renderOrder = 34.2; o.renderOrder = 32.6; m.add(o); patch.add(m); }
   const flower = new THREE.Group(); { const m = new THREE.Mesh(flowerG, flowerMat), o = new THREE.Mesh(flowerG, inkMat); m.renderOrder = 33; o.renderOrder = 32.6; m.add(o); flower.add(m); }
   const pearls = new THREE.Group(); { const m = new THREE.Mesh(pearlG, pearlMat), o = new THREE.Mesh(pearlG, inkMat); m.renderOrder = 33; o.renderOrder = 32.6; m.add(o); pearls.add(m); }
-  for (const m of [pirate, top, bow, pearls, patch, flower, tiara, glasses, hockey, bunny, skull]) { m.visible = false; body.add(m); }
-  return { pirate, top, bow, pearls, patch, flower, tiara, glasses, hockey, bunny, skull };
+  const beanie = simplePiece(beanieParts, BEANIE_FIT.s), party = simplePiece(partyParts, PARTY_FIT.s), scarf = simplePiece(scarfParts), monocle = simplePiece(monoParts), stache = simplePiece(stacheParts);
+  for (const m of [pirate, top, bow, pearls, patch, flower, tiara, glasses, hockey, bunny, skull, beanie, party, scarf, monocle, stache]) { m.visible = false; body.add(m); }
+  return { pirate, top, bow, pearls, patch, flower, tiara, glasses, hockey, bunny, skull, beanie, party, scarf, monocle, stache };
 }
 // pin each piece to the goo surface (it squashes and stretches) every frame
 const easeElastic = u => u <= 0 ? 0 : u >= 1 ? 1 : Math.pow(2, -10 * u) * Math.sin((u * 10 - 0.75) * 2.0944) + 1;
@@ -9050,11 +9070,12 @@ function placeWear(W, U, look, D, withFangs) {
   const t = clock + (D.cpu ? 1.9 * D.team : 0), off = !!D.wearOff || !!D.wearHid || (D.wearPop !== undefined && D.wearPop < 0);
   W.hat.visible = !off && look.head === 'hat'; W.halo.visible = !off && look.head === 'halo'; W.pirate.visible = !off && look.head === 'pirate'; W.top.visible = !off && look.head === 'tophat'; W.tiara.visible = !off && look.head === 'tiara'; W.bunny.visible = !off && look.head === 'bunny';
   W.bow.visible = !off && look.neck === 'bowtie'; W.pearls.visible = !off && look.neck === 'pearls'; W.patch.visible = false; W.flower.visible = !off && look.side === 'flower'; W.glasses.visible = !off && look.eye === 'glasses'; W.hockey.visible = !off && look.eye === 'hockey'; W.skull.visible = !off && look.head === 'skull';
+  W.beanie.visible = !off && look.head === 'beanie'; W.party.visible = !off && look.head === 'party'; W.scarf.visible = !off && look.neck === 'scarf'; W.monocle.visible = !off && look.eye === 'monocle'; W.stache.visible = !off && look.mouth === 'stache';
   for (const h of W.horns) h.visible = !off && look.head === 'horns';
   const rl = U.gRoll.value, wingK = clamp(1 - rl * 2.2, 0, 1); // a roller has no back to wear wings on: they shrink away as it forms
   for (const w of W.wings) w.visible = !off && look.back === 'wings' && wingK > 0.02;
   for (const f of W.fangs) f.visible = !off && withFangs && look.mouth === 'fangs';
-  if (!W.bs) { W.bs = new Map(); for (const o of [W.hat, W.halo, W.pirate, W.top, W.bow, W.pearls, W.patch, W.flower, W.tiara, W.glasses, W.hockey, W.bunny, W.skull, ...W.horns, ...W.wings, ...W.fangs]) W.bs.set(o, o.scale.clone()); }
+  if (!W.bs) { W.bs = new Map(); for (const o of [W.hat, W.halo, W.pirate, W.top, W.bow, W.pearls, W.patch, W.flower, W.tiara, W.glasses, W.hockey, W.bunny, W.skull, W.beanie, W.party, W.scarf, W.monocle, W.stache, ...W.horns, ...W.wings, ...W.fangs]) W.bs.set(o, o.scale.clone()); }
   const pu = D.wearPop !== undefined && D.wearPop < 0.6 ? clamp(D.wearPop / 0.6, 0, 1) : 1, pk = Math.max(0.001, easeElastic(pu)), S = wearSpring(W);
   for (const [o, bs] of W.bs) if (o.visible) o.scale.set(bs.x * pk, bs.y * pk, bs.z * pk);
   const dropIn = pu < 1 ? Math.pow(1 - Math.min(1, pu * 2.4), 2) * 0.9 : 0;
@@ -9062,14 +9083,17 @@ function placeWear(W, U, look, D, withFangs) {
   if (SI && SI.root.visible) {
     // the hat sits down on the top of the slime's head and turns with it; the halo floats over it; both sized to the head
     const CH = SI.kind === 'axo' ? AXOC : SLIME, hs = CH.headSize(SI) * 1.3; CH.headTop(SI, tv3, wearQ);
-    for (const [o, F] of [[W.hat, HAT_FIT.witch], [W.pirate, HAT_FIT.pirate], [W.top, HAT_FIT.top], [W.tiara, HAT_FIT.tiara], [W.bunny, HAT_FIT.bunny], [W.skull, HAT_FIT.skull]]) if (o.visible) { const fy = o === W.hat && !WEAR_A.witch ? (HI ? -0.27 : -0.2) : F.y;
+    for (const [o, F] of [[W.hat, HAT_FIT.witch], [W.pirate, HAT_FIT.pirate], [W.top, HAT_FIT.top], [W.tiara, HAT_FIT.tiara], [W.bunny, HAT_FIT.bunny], [W.skull, HAT_FIT.skull], [W.beanie, BEANIE_FIT], [W.party, PARTY_FIT]]) if (o.visible) { const fy = o === W.hat && !WEAR_A.witch ? (HI ? -0.27 : -0.2) : F.y;
       o.position.copy(tv3).add(tv1.set(0, (fy + dropIn + S.b * 0.22) * hs, 0)); o.quaternion.copy(wearQ).multiply(wearQ2.setFromEuler(wearE.set(F.rx + S.tx * 0.9, 0, F.rz + S.tz * 0.9))); o.scale.multiplyScalar(hs); o.scale.y *= 1 + S.b * 0.45; const w = 1 - S.b * 0.18; o.scale.x *= w; o.scale.z *= w; }
     // on the face and the side of the head (the everyday slime only: the other forms have their own heads): the patch over its right eye,
     // the flower tucked in by its left ear (lower when a hat's brim is over it); and the bow tie under its chin
     const plain = SI.form === 'slime' && !SI.st.formNext, mk = CH.headSize(SI) / CH.headR0;
-    if (!plain) { W.patch.visible = W.flower.visible = W.bow.visible = W.pearls.visible = W.glasses.visible = W.hockey.visible = W.skull.visible = false; }
+    if (!plain) { W.patch.visible = W.flower.visible = W.bow.visible = W.pearls.visible = W.glasses.visible = W.hockey.visible = W.skull.visible = W.scarf.visible = W.monocle.visible = W.stache.visible = false; }
     // painted on (every form): the lashes (none under the patch), the patch and its strap, the eyes' color
     if (SI.setLashes) { const k = !off ? Math.min(1, pu * 1.4) : 0, lk = look.lash === 'lashes' ? k : 0, pt = look.eye === 'patch' ? k : 0; SI.setLashes(lk, pt > 0 ? 0 : lk); SI.setPatch(pt); SI.setIris((EYE_COLS[look.iris] || EYE_COLS.brown).lin); if (SI.setEyeStyle) SI.setEyeStyle(EYE_STYLE_K[look.eyes] || 0); }
+    if (W.monocle.visible || W.stache.visible) { CH.headTop(SI, wv1, wq1, 0); /* (on the face, from the head's centre: the monocle over the right eye, the mustache under the nose) */
+      if (W.monocle.visible) { W.monocle.position.copy(wv1).add(wv2.set(MONO_FIT.x, MONO_FIT.y, MONO_FIT.z).multiplyScalar(mk).applyQuaternion(wq1)); W.monocle.quaternion.copy(wq1).multiply(wearQ2.setFromEuler(wearE.set(-0.06 + S.tx * 0.2, 0, S.tz * 0.15))); W.monocle.scale.multiplyScalar(mk * MONO_FIT.s * (CH.faceK || 1)); }
+      if (W.stache.visible) { W.stache.position.copy(wv1).add(wv2.set(STACHE_FIT.x, STACHE_FIT.y, STACHE_FIT.z).multiplyScalar(mk).applyQuaternion(wq1)); W.stache.quaternion.copy(wq1).multiply(wearQ2.setFromEuler(wearE.set(-0.1 + S.tx * 0.2, 0, S.tz * 0.15))); W.stache.scale.multiplyScalar(mk * STACHE_FIT.s * (CH.faceK || 1)); } }
     if (W.glasses.visible || W.hockey.visible || W.flower.visible) { CH.headTop(SI, wv1, wq1, 0);
       if (W.hockey.visible) { W.hockey.position.copy(wv1).add(wv2.set(0, HOCKEY_FIT.y, HOCKEY_FIT.z).multiplyScalar(mk).applyQuaternion(wq1)); W.hockey.quaternion.copy(wq1).multiply(wearQ2.setFromEuler(wearE.set(HOCKEY_FIT.rx + S.tx * 0.2, 0, S.tz * 0.15))); W.hockey.scale.multiplyScalar(mk * HOCKEY_FIT.s * (CH.faceK || 1)); W.hockey.scale.x *= HOCKEY_FIT.sx || 1; }
       if (W.glasses.visible) { W.glasses.position.copy(wv1).add(wv2.set(0, 0.062, 0.448).multiplyScalar(mk).applyQuaternion(wq1)); W.glasses.quaternion.copy(wq1).multiply(wearQ2.setFromEuler(wearE.set(-0.06 + S.tx * 0.2, 0, S.tz * 0.15))); W.glasses.scale.multiplyScalar(mk * 0.56 * (CH.faceK || 1)); }
@@ -9078,13 +9102,14 @@ function placeWear(W, U, look, D, withFangs) {
         wv2.set(F.p[0], F.p[1], F.p[2]).multiplyScalar(mk).applyQuaternion(wq1); W.flower.position.copy(wv1).add(wv2);
         wq2.setFromUnitVectors(YAX, wv3.set(F.n[0], F.n[1], F.n[2])); W.flower.quaternion.copy(wq1).multiply(wq2).multiply(wearQ2.setFromAxisAngle(YAX, 0.5 + Math.sin(t * 1.7) * 0.04)); W.flower.scale.multiplyScalar(mk * 0.23 * (1 + 0.04 * Math.sin(t * 2.3))); } }
     if (W.bow.visible && CH.bodyPoint(SI, 0, -0.03, 0.835, wv1)) { W.bow.position.copy(wv1); W.bow.quaternion.setFromEuler(wearE.set(-0.12 + S.tx * 0.35, 0, Math.sin(t * 2.1) * 0.05 + S.tz * 0.5)).premultiply(SI.groups.slime.quaternion); W.bow.scale.multiplyScalar(mk * 0.4); }
+    if (W.scarf.visible && CH.bodyPoint(SI, 0, -0.03, 0.835, wv1)) { W.scarf.position.copy(wv1).add(wv2.set(0, SCARF_FIT.y, SCARF_FIT.z).multiplyScalar(mk).applyQuaternion(wq1)); W.scarf.quaternion.setFromEuler(wearE.set(-0.12 + S.tx * 0.35, 0, Math.sin(t * 2.1) * 0.04 + S.tz * 0.5)).premultiply(SI.groups.slime.quaternion); W.scarf.scale.multiplyScalar(mk * SCARF_FIT.s); }
     if (W.pearls.visible && CH.bodyPoint(SI, 0, -0.03, 0.835, wv1)) { W.pearls.position.copy(wv1); W.pearls.quaternion.setFromEuler(wearE.set(-0.12 + S.tx * 0.35, 0, Math.sin(t * 2.1) * 0.04 + S.tz * 0.5)).premultiply(SI.groups.slime.quaternion); W.pearls.scale.multiplyScalar(mk * 0.4); }
     if (W.halo.visible) { W.halo.position.copy(tv3).add(tv1.set(-S.tz * 0.45 * hs, (0.3 + Math.sin(t * 2.3) * 0.045 + S.b * 0.35 + dropIn) * hs, S.tx * 0.45 * hs)); W.halo.rotation.set(-0.18 + S.tx * 0.6, 0, Math.sin(t * 1.3) * 0.08 + S.tz * 0.6); W.halo.scale.multiplyScalar(hs); }
     return;
   }
   const fl = rl * (0.36 + Math.sin(t * 2.6) * 0.035); // on the roller, head pieces hover just over its top instead of sinking into it
-  W.patch.visible = W.flower.visible = W.bow.visible = W.pearls.visible = W.glasses.visible = W.hockey.visible = W.skull.visible = false;
-  for (const [o, F] of [[W.pirate, HAT_FIT.pirate], [W.top, HAT_FIT.top], [W.tiara, HAT_FIT.tiara], [W.bunny, HAT_FIT.bunny], [W.skull, HAT_FIT.skull]]) if (o.visible) { o.position.copy(gooJS(tv2.set(0, 1, 0), U)).add(tv1.set(0, F.y * 0.8 + dropIn + fl + S.b * 0.22, 0)); o.rotation.set(F.rx * (1 - 0.8 * rl) + S.tx * 0.9, 0, F.rz * (1 - 0.8 * rl) + S.tz * 0.9); }
+  W.patch.visible = W.flower.visible = W.bow.visible = W.pearls.visible = W.glasses.visible = W.hockey.visible = W.skull.visible = W.scarf.visible = W.monocle.visible = W.stache.visible = false;
+  for (const [o, F] of [[W.pirate, HAT_FIT.pirate], [W.top, HAT_FIT.top], [W.tiara, HAT_FIT.tiara], [W.bunny, HAT_FIT.bunny], [W.skull, HAT_FIT.skull], [W.beanie, BEANIE_FIT], [W.party, PARTY_FIT]]) if (o.visible) { o.position.copy(gooJS(tv2.set(0, 1, 0), U)).add(tv1.set(0, F.y * 0.8 + dropIn + fl + S.b * 0.22, 0)); o.rotation.set(F.rx * (1 - 0.8 * rl) + S.tx * 0.9, 0, F.rz * (1 - 0.8 * rl) + S.tz * 0.9); }
   if (W.hat.visible) { W.hat.position.copy(gooJS(tv2.set(0, 1, 0), U)).add(tv1.set(0.03 * (1 - rl), (HI ? -0.27 : -0.2) + dropIn + fl + S.b * 0.22, -0.03 * (1 - rl))); W.hat.rotation.set(-0.14 * (1 - 0.8 * rl) + S.tx * 0.9, 0, -0.16 * (1 - 0.8 * rl) + S.tz * 0.9); W.hat.scale.y *= 1 + S.b * 0.45; const w = 1 - S.b * 0.18; W.hat.scale.x *= w; W.hat.scale.z *= w; }
   if (W.halo.visible) { W.halo.position.copy(gooJS(tv2.set(0, 1, 0), U)).add(tv1.set(-S.tz * 0.45, 0.3 + Math.sin(t * 2.3) * 0.045 + S.b * 0.35, -0.02 + S.tx * 0.45)); W.halo.rotation.set(-0.18 + S.tx * 0.6, 0, Math.sin(t * 1.3) * 0.08 + S.tz * 0.6); }
   if (W.horns[0].visible) for (const h of W.horns) { const sd = h.userData.sd; h.position.copy(gooJS(tv2.set(sd * 0.43, 0.84, 0.33).normalize(), U)).multiplyScalar(0.97 + 0.06 * rl); h.position.y += fl * 0.45; h.rotation.set(-0.25 + S.tx * 0.25, 0, -sd * 0.5 + S.tz * 0.25); }
@@ -14212,7 +14237,7 @@ function rollRivalLooks() { const heads = [null, null, 'halo', 'hat', 'pirate', 
 // in as on the customize screen, and is the whole look if the slime's models never arrive ----------
 const vOf = D => D === P ? VP : D.look && D.look.V;
 function attachSlime(V, W, color) {
-  const keep = new Set([V.rig, V.rk, V.tur, V.bat, ...(W ? [W.hat, W.halo, W.pirate, W.top, W.bow, W.pearls, W.patch, W.flower, W.tiara, W.glasses, W.hockey, W.bunny, W.skull] : [])].filter(Boolean)), old = new THREE.Group();
+  const keep = new Set([V.rig, V.rk, V.tur, V.bat, ...(W ? [W.hat, W.halo, W.pirate, W.top, W.bow, W.pearls, W.patch, W.flower, W.tiara, W.glasses, W.hockey, W.bunny, W.skull, W.beanie, W.party, W.scarf, W.monocle, W.stache] : [])].filter(Boolean)), old = new THREE.Group();
   for (const o of V.body.children.slice()) if (!keep.has(o)) old.add(o); V.body.add(old); V.oldBlob = old;
   const I = (AXOC.S.ready ? AXOC : SLIME).make({ color }); I.root.visible = false; V.body.add(I.root); V.slime = I; V.body.userData.slime = I; return I;
 }
@@ -15446,7 +15471,7 @@ let colorId = 'red', menuReact = 0;
 // your look: color (above), eye shape, and this season's accessories: one on your head, one on your back, one in your mouth
 const EYES = [['round', 'Round'], ['googly', 'Googly'], ['sleepy', 'Sleepy'], ['angry', 'Angry'], ['happy', 'Happy'], ['cyclops', 'Cyclops']];
 const WEAR = [{ id: 'pirate', name: 'Pirate hat', slot: 'head', stage: 'island' }, { id: 'patch', name: 'Eye patch', slot: 'eye', stage: 'island' }, { id: 'flower', name: 'Flower', slot: 'side', stage: 'island' },
-  { id: 'tophat', name: 'Top hat', slot: 'head', stage: 'blank' }, { id: 'bowtie', name: 'Bow tie', slot: 'neck', stage: 'blank' }, { id: 'pearls', name: 'Pearl necklace', slot: 'neck', stage: 'blank' }, { id: 'tiara', name: 'Tiara', slot: 'head', stage: 'blank' }, { id: 'lashes', name: 'Lashes', slot: 'lash', stage: 'blank' }, { id: 'glasses', name: 'Glasses', slot: 'eye', stage: 'blank' },
+  { id: 'tophat', name: 'Top hat', slot: 'head', stage: 'blank' }, { id: 'bowtie', name: 'Bow tie', slot: 'neck', stage: 'blank' }, { id: 'pearls', name: 'Pearl necklace', slot: 'neck', stage: 'blank' }, { id: 'tiara', name: 'Tiara', slot: 'head', stage: 'blank' }, { id: 'lashes', name: 'Lashes', slot: 'lash', stage: 'blank' }, { id: 'glasses', name: 'Glasses', slot: 'eye', stage: 'blank' }, { id: 'beanie', name: 'Beanie', slot: 'head', stage: 'blank' }, { id: 'party', name: 'Party hat', slot: 'head', stage: 'blank' }, { id: 'monocle', name: 'Monocle', slot: 'eye', stage: 'blank' }, { id: 'stache', name: 'Mustache', slot: 'mouth', stage: 'blank' }, { id: 'scarf', name: 'Scarf', slot: 'neck', stage: 'blank' },
   { id: 'hat', name: 'Witch hat', slot: 'head', season: 1, stage: 'halloween' }, { id: 'halo', name: 'Halo', slot: 'head', season: 1, stage: 'halloween' }, { id: 'fangs', name: 'Fangs', slot: 'mouth', season: 1, stage: 'halloween' }, { id: 'hockey', name: 'Hockey mask', slot: 'eye', season: 1, stage: 'halloween' }, { id: 'bunny', name: 'Bunny ears', slot: 'head', season: 1, stage: 'halloween' }, { id: 'skull', name: 'Skull bow', slot: 'head', season: 1, stage: 'halloween' }];
 const WEAR_WHERE = { island: 'Palette Island', blank: 'Blank Canvas', halloween: 'the Halloween stages' };
 // the eyes' color: five to pick from (lin: the iris in the shader, css: on the picker and the basin's eyes)
@@ -15474,8 +15499,8 @@ function eyeShowFace(E) {
 // what you've found so far (everything starts locked)
 const OWNED = new Set(Array.isArray(store.owned) ? store.owned.filter(id => ITEMS.some(w => w.id === id)) : []);
 // drops: paint earned at the end of a match. A found item goes on sale in the locker; it is worn once it is bought
-const PRICES = { sly: 640, flower: 170, pearls: 190, bowtie: 220, lashes: 260, glasses: 320, patch: 390, fangs: 470, tiara: 560, tophat: 680, bunny: 760, pirate: 820, hockey: 900, skull: 980, halo: 1000, zombie: 1150, hat: 1300 };
-const OUTRIGHT = new Set(['flower', 'lashes', 'bowtie', 'pearls']), needFind = w => !OUTRIGHT.has(w.id) && (!!w.season || w.slot === 'head'); // (in stock from the start: nothing to find, only dabs to pay) // (what has to be found on a canvas before it is for sale)
+const PRICES = { sly: 640, flower: 170, pearls: 190, scarf: 210, bowtie: 220, stache: 230, beanie: 240, party: 280, monocle: 340, lashes: 260, glasses: 320, patch: 390, fangs: 470, tiara: 560, tophat: 680, bunny: 760, pirate: 820, hockey: 900, skull: 980, halo: 1000, zombie: 1150, hat: 1300 };
+const OUTRIGHT = new Set(['flower', 'lashes', 'bowtie', 'pearls', 'beanie', 'party', 'monocle', 'stache', 'scarf']), needFind = w => !OUTRIGHT.has(w.id) && (!!w.season || w.slot === 'head'); // (in stock from the start: nothing to find, only dabs to pay) // (what has to be found on a canvas before it is for sale)
 const PRICE = w => { const t = store.tut && store.tut.price; if (t && t[w.id] >= 0) return t[w.id]; if (w.id === 'zombie' && store.zombieDeal && !BOUGHT.has('zombie')) return Math.max(1, Math.floor((store.drops || 0) * 0.7)); /* (the first find of the season: always within reach) */ return PRICES[w.id] || (w.season ? 1000 : w.slot === 'head' ? 600 : 300); }; // (the lesson sets the flower's and the fangs' prices)
 const BOUGHT = new Set(Array.isArray(store.bought) ? store.bought.filter(id => OWNED.has(id)) : [...OWNED]);
 if (!Array.isArray(store.bought)) { store.bought = [...BOUGHT]; }
@@ -15935,6 +15960,11 @@ const EYE_ICON = {
   cyclops: '<circle cx="20" cy="20" r="11" fill="#fff" stroke="#1A1030" stroke-width="2"/><circle cx="21" cy="21.5" r="5.2" fill="#1A1030"/><circle cx="23" cy="19" r="1.6" fill="#fff"/>',
 };
 const WEAR_ICON = {
+  beanie: '<path d="M8 25c0-9 5.5-15 12-15s12 6 12 15z" fill="#2A9D8F" stroke="#D9C8FF" stroke-width="1.6" stroke-linejoin="round"/><rect x="6.5" y="23.5" width="27" height="6.5" rx="3" fill="#F6EBD7" stroke="#D9C8FF" stroke-width="1.6"/><circle cx="20" cy="8.5" r="3.6" fill="#F6EBD7" stroke="#D9C8FF" stroke-width="1.6"/>',
+  party: '<path d="M20 5l11 27H9z" fill="#FF5A8A" stroke="#D9C8FF" stroke-width="1.6" stroke-linejoin="round"/><path d="M12.8 22.5h14.4l2.6 6.5H10.2zM16.6 13h6.8l1.8 4.5h-10.4z" fill="#FFE066"/><circle cx="20" cy="5.5" r="2.8" fill="#F6EBD7" stroke="#D9C8FF" stroke-width="1.4"/>',
+  monocle: '<circle cx="18" cy="16" r="8.5" fill="#BFE6FF" fill-opacity=".35" stroke="#E8C25A" stroke-width="2.6"/><path d="M24.5 21.5c3 3 4.5 7 5.5 11" fill="none" stroke="#E8C25A" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="1.5 2"/>',
+  stache: '<path d="M20 19c-2.5-3-6-3.5-9-2-2.4 1.3-3.5 4.2-2.5 6.5 1.6-1.5 4-1.8 6-1 2.2.9 4 .9 5.5-1 1.5 1.9 3.3 1.9 5.5 1 2-.8 4.4-.5 6 1 1-2.3-.1-5.2-2.5-6.5-3-1.5-6.5-1-9 2z" fill="#3B2418" stroke="#D9C8FF" stroke-width="1.4" stroke-linejoin="round"/>',
+  scarf: '<path d="M8 15c0-4 5.4-7 12-7s12 3 12 7-5.4 7-12 7S8 19 8 15z" fill="#E3283E" stroke="#D9C8FF" stroke-width="1.6"/><path d="M23 21l2 10h8l-3-11z" fill="#E3283E" stroke="#D9C8FF" stroke-width="1.6" stroke-linejoin="round"/><path d="M26 31v3.5M29 31v3.5M32 31v3.5" stroke="#F6EBD7" stroke-width="1.6" stroke-linecap="round"/>',
   sly: '<ellipse cx="21" cy="15.5" rx="15.5" ry="7.5" fill="#F2A6B8" opacity=".6"/><path d="M4.5 22.5c5-6 12-8.4 18.4-7.4 5.2.8 10 3 13.6 6.4-4 6-9.4 9.2-16.4 9.2S9 28 4.5 22.5z" fill="#fff" stroke="#171320" stroke-width="2.2" stroke-linejoin="round"/><circle cx="20.5" cy="23.5" r="6.3" fill="#D9D6E2" stroke="#4A2A33" stroke-width="1.4"/><circle cx="20.5" cy="23.5" r="2.2" fill="#7A3B3B"/><circle cx="18.6" cy="21.8" r="1.1" fill="#fff"/><path d="M4.5 22.5c5-6 12-8.4 18.4-7.4 5.2.8 10 3 13.6 6.4l-.6 1.4c-6.6-2.2-15-2.8-23.6-.6-3 .8-5.6 1-7.8.2z" fill="#C9808E"/><path d="M6.5 22.4c8-2.4 18-2.6 29.4.2" fill="none" stroke="#171320" stroke-width="2.8" stroke-linecap="round"/><path d="M33.5 22l5.4-4.6" stroke="#171320" stroke-width="2.6" stroke-linecap="round"/><path d="M8 11.5c6-4 14-5.6 20-4.4l6.5 2.6" fill="none" stroke="#8E4552" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>',
   skull: '<path d="M6 18c5-6 11-4 14 1 3-5 9-7 14-1 2 5-3 10-9 10-1 0-3-.3-5-1-2 .7-4 1-5 1-6 0-11-5-9-10z" fill="#FF7A1A" stroke="#171320" stroke-width="2.5" stroke-linejoin="round"/><path d="M12 20c3 2 5 2 8-1M28 20c-3 2-5 2-8-1" fill="none" stroke="#C84F0E" stroke-width="1.5" stroke-linecap="round"/><circle cx="20" cy="19.5" r="5" fill="#F2E8D8" stroke="#171320" stroke-width="2"/><circle cx="18.2" cy="18.8" r="1.1" fill="#171320"/><circle cx="21.8" cy="18.8" r="1.1" fill="#171320"/><path d="M18.5 22.5h3" stroke="#171320" stroke-width="1.2"/>',
   bunny: '<path d="M13 36c-4-9-5-20-1-31 3 1 6 9 7 19M27 36c4-9 5-20 1-31-3 1-6 9-7 19" fill="#F4E8DC" stroke="#171320" stroke-width="2.5" stroke-linejoin="round"/><path d="M14 29c-1.5-6-1.8-13 0-19 1.4 2 2.6 8 3 15M26 29c1.5-6 1.8-13 0-19-1.4 2-2.6 8-3 15" fill="#F58BB0"/><path d="M8 36h24" stroke="#171320" stroke-width="2.5" stroke-linecap="round"/>',
@@ -15997,7 +16027,7 @@ const SHOP_CATS = [['season', 'Season One · <em class="hw">Halloween</em>'], ['
 function shopNote(t, bad) { const el = $('shopNote'); el.textContent = t; el.classList.toggle('bad', !!bad); restartCls(el, 'on'); clearTimeout(shopNoteT); shopNoteT = setTimeout(() => el.classList.remove('on'), 3200); }
 // each item as it looks on you: your blob wearing it, rendered once and kept (again if your paint changes)
 const shopPics = new Map(); let shopPicKey = '', picRT = null, picScene = null, picCam = null;
-const PIC_SRC = { pirate: () => pWear.pirate, tophat: () => pWear.top, bowtie: () => pWear.bow, pearls: () => pWear.pearls, patch: () => pWear.patch, flower: () => pWear.flower, tiara: () => pWear.tiara, glasses: () => pWear.glasses, hockey: () => pWear.hockey, bunny: () => pWear.bunny, skull: () => pWear.skull, hat: () => pWear.hat, halo: () => pWear.halo }; // (fangs, lashes and the zombie eyes keep their drawn icons: white teeth on a pale card say nothing)
+const PIC_SRC = { pirate: () => pWear.pirate, tophat: () => pWear.top, bowtie: () => pWear.bow, pearls: () => pWear.pearls, patch: () => pWear.patch, flower: () => pWear.flower, tiara: () => pWear.tiara, glasses: () => pWear.glasses, hockey: () => pWear.hockey, bunny: () => pWear.bunny, skull: () => pWear.skull, hat: () => pWear.hat, halo: () => pWear.halo, beanie: () => pWear.beanie, party: () => pWear.party, scarf: () => pWear.scarf, monocle: () => pWear.monocle, stache: () => pWear.stache }; // (fangs, lashes and the zombie eyes keep their drawn icons: white teeth on a pale card say nothing)
 function itemPic(w) {
   const src = PIC_SRC[w.id]; if (!src || typeof pWear === 'undefined') return '';
   const S = 320; if (!picRT) { picRT = new THREE.WebGLRenderTarget(S, S, { colorSpace: THREE.SRGBColorSpace }); picScene = new THREE.Scene(); picCam = new THREE.PerspectiveCamera(28, 1, 0.01, 100);
