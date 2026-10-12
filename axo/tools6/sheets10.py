@@ -6,7 +6,7 @@ import json, subprocess, sys, os
 S = '/tmp/claude-0/-home-user-rollmodel/5c52352e-692f-5301-ac55-ec4d2c708f3e/scratchpad'
 WORK = S + '/fable3'; HERE = os.path.dirname(os.path.abspath(__file__))
 U = 'http://localhost:8767/fable3/'
-DIRS = {'A': 'lab', 'B': 'labB', 'cur': 'lab_cur', 'v239': 'lab_v239'}
+DIRS = {'6': 'lab6', '5': 'lab5', 'A': 'lab', 'B': 'labB', 'cur': 'lab_cur', 'v239': 'lab_v239'}
 LAB = lambda d, dark=False: {'url': U + d + '/index.html', 'ready': 'window.LAB && LAB.ready', 'shot': 'screenshot', 'init': "LAB.set('idle'); LAB.step(120)" + ("; scene.background = new THREE.Color(0x1a1a1e); floor.visible = false" if dark else '')}
 def cam(page, label, pos, at, pre='', steps=2): return [page, pre + f"LAB.cam='fixed'; LAB.camPos={json.dumps(pos)}; LAB.camAt={json.dumps(at)}; LAB.step({steps}); LAB.render()", label]
 # a camera placed relative to the character's head (off and at as [side, up, forward] in its own frame, from the head joint's world
@@ -20,9 +20,9 @@ def run(name, pages, cells, W, H, ncol, title):
     spec = {'out': f'{WORK}/shots/{name}.jpg', 'W': W, 'H': H, 'ncol': ncol, 'title': title, 'pages': pages, 'cells': cells}
     os.makedirs(f'{WORK}/shots', exist_ok=True); json.dump(spec, open(f'{WORK}/shots/{name}.json', 'w')); subprocess.run(['python3', '-I', HERE + '/shoot.py', f'{WORK}/shots/{name}.json'], check=True)
 PG = ['A', 'B', 'cur']
-RESET = "if (LAB.basin) { scene.remove(LAB.basin); LAB.basin = null; } LAB.D.x = 0; LAB.D.z = 0; LAB.D.y = 0; LAB.D.air = false; LAB.D.rocket = false; LAB.D.dry = true; "
+RESET = "if (LAB.basin) { scene.remove(LAB.basin); LAB.basin = null; } LAB.D.x = 0; LAB.D.z = 0; LAB.D.y = 0; LAB.D.yaw = 0; LAB.D.spd = 0; LAB.D.turn = 0; LAB.D.air = false; LAB.D.rocket = false; LAB.D.dry = true; "
 NEUTRAL = "LAB.I.setEyeStyle(0); LAB.I.setFangs(false); LAB.I.setLashes(0,0); LAB.I.setPatch(0); LAB.I.setExpression('neutral'); LAB.I.ax.look.exprK = 1; LAB.I.ax.look.expr = 'neutral'; LAB.step(8); LAB.I.ax.look.blinkK = 0; "
-def tag(p): return {'A': 'v10 A', 'B': 'v10 B', 'cur': 'current'}[p]
+def tag(p): return {'A': 'v10 A', 'B': 'v10 B', 'cur': 'current', '5': 'v10d', '6': 'v10e'}[p]
 REF = S + '/ref_slime_rec'
 def head():
     pages = {p: LAB(DIRS[p]) for p in PG}; cells = []
@@ -189,6 +189,114 @@ def neckzoom():
     for p in pg: cells.append(cam(p, f'{tag(p)}: crawl, nape from behind', [0.7, 0.95, -0.8], [0, 0.55, 0.15], pre=CR))
     for p in pg: cells.append(cam(p, f'{tag(p)}: crawl, side', [1.3, 0.5, 0.25], [0, 0.45, 0.2], pre="LAB.step(2); "))
     run('neckzoom', pages, cells, 640, 560, 2, 'the neck close: A / B')
+# the lizard body (v10d): v10d beside v241 (the shipped v10) and the slime recording or a bearded dragon silhouette: stand and crawl,
+# front, 3/4, side and top at lobby distance; the locker camera on the red carpet; the win screen close (victory, glee, from a little
+# below the face, 1.5 head radii away); the animator's neck turn (weave) and a glance and a look (idle)
+def lizard():
+    pg = ['5', 'A']; pages = {p: LAB(DIRS[p]) for p in pg}; cells = []; REC = S + '/ref_slime_rec/'; SH = S + '/fable3/shots/'
+    LIGHT = "scene.background = new THREE.Color(0xd9d2c3); floor.visible = true; "
+    lab5 = lambda p: 'v10d' if p == '5' else 'v241'
+    ST = RESET + LIGHT + NEUTRAL + "LAB.set('idle'); LAB.step(20); LAB.I.ax.A.set('stand'); LAB.step(150); LAB.I.ax.look.blinkK = 0; "
+    for p in pg: cells.append(cam(p, f'{lab5(p)}: stand front, lobby distance', [0.0, 1.2, 2.6], [0, 0.95, 0.0], pre=ST))
+    cells.append(img(REC + 'f01.png', 'the recording'))
+    for p in pg: cells.append(cam(p, f'{lab5(p)}: stand 3/4', [1.5, 1.3, 1.9], [0, 1.0, 0.0], pre="LAB.step(2); "))
+    cells.append(img(REC + 'f05.png', 'the recording'))
+    for p in pg: cells.append(cam(p, f'{lab5(p)}: stand side', [2.6, 1.0, 0.0], [0, 0.95, 0.0], pre="LAB.step(2); "))
+    cells.append(img(SH + 'dragon_side.png', 'bearded dragon, side'))
+    for p in pg: cells.append(cam(p, f'{lab5(p)}: stand from above', [0.0, 3.4, 0.6], [0, 0.9, 0.0], pre="LAB.step(2); "))
+    cells.append(img(SH + 'dragon_top.png', 'bearded dragon, top'))
+    for p in pg: cells.append(cam(p, f'{lab5(p)}: stand from behind', [0.0, 1.3, -2.4], [0, 0.95, 0.0], pre="LAB.step(2); "))
+    cells.append(cam('5', 'v10d: stand from behind, above', [0.0, 2.4, -1.8], [0, 0.95, 0.0], pre="LAB.step(2); "))
+    CR = RESET + LIGHT + "LAB.set('idle'); LAB.I.ax.A.set('crawl'); LAB.I.ax.state = 'crawl'; LAB.step(120); LAB.I.ax.look.blinkK = 0; "
+    for p in pg: cells.append(cam(p, f'{lab5(p)}: crawl front, lobby distance', [0.0, 0.85, 2.1], [0, 0.4, 0.2], pre=CR))
+    cells.append(img(REC + 'f03.png', 'the recording'))
+    for p in pg: cells.append(cam(p, f'{lab5(p)}: crawl 3/4', [1.5, 0.9, 1.5], [0, 0.4, 0.0], pre="LAB.step(2); "))
+    cells.append(img(REC + 'f08.png', 'the recording'))
+    for p in pg: cells.append(cam(p, f'{lab5(p)}: crawl side', [2.8, 0.6, -0.4], [0, 0.4, -0.4], pre="LAB.step(2); "))
+    cells.append(img(SH + 'dragon_side.png', 'bearded dragon, side'))
+    for p in pg: cells.append(cam(p, f'{lab5(p)}: crawl from above', [0.0, 3.2, -0.5], [0, 0.3, -0.5], pre="LAB.step(2); "))
+    cells.append(img(SH + 'dragon_top.png', 'bearded dragon, top'))
+    for p in pg: cells.append(cam(p, f'{lab5(p)}: crawl from behind, above', [0.0, 1.6, -2.6], [0, 0.35, -0.3], pre="LAB.step(2); "))
+    cells.append(cam('5', 'v10d: crawl 3/4 from behind', [1.8, 1.2, -1.8], [0, 0.35, -0.2], pre="LAB.step(2); "))
+    LK = RESET + CARPET + "LAB.set('idle'); LAB.I.ax.A.set('crawl'); LAB.I.ax.state = 'crawl'; LAB.step(120); LAB.I.ax.A.look.pitch = 28; LAB.step(60); LAB.I.ax.look.blinkK = 0; "
+    for p in pg: cells.append(cam(p, f'{lab5(p)}: locker camera, red carpet', [0.0, 1.0, 2.7], [0, 0.4, 0.25], pre=LK))
+    cells.append(img(REC + 'f01.png', 'the recording'))
+    VI = RESET + LIGHT + "LAB.set('idle'); LAB.step(20); LAB.I.ax.A.set('victory'); LAB.step(150); LAB.I.setExpression('glee'); LAB.step(12); LAB.I.ax.look.blinkK = 0; "
+    for p in pg: cells.append(rcam(p, f'{lab5(p)}: win screen close (victory, glee, from below, 1.5 r)', [0.0, -0.22, 0.56], [0, 0.02, 0.0], pre=VI))
+    cells.append(img('/root/.claude/uploads/5c52352e-692f-5301-ac55-ec4d2c708f3e/6fede3e0-image.jpg', 'the win screen (v241, user)'))
+    WV = RESET + LIGHT + "LAB.set('weave', {v: 5.4, k: 0.9, T: 1.4}); LAB.step(75); "
+    for p in pg: cells.append(cam(p, f'{lab5(p)}: weave (the neck turn)', [1.3, 0.7, 1.4], [0, 0.1, 0.0], pre=WV))
+    cells.append(cam('5', 'v10d: weave, from above', [0.3, 2.2, 0.3], [0, 0.0, 0.0], pre="LAB.step(10); "))
+    GL = RESET + LIGHT + "LAB.set('idle'); LAB.step(20); LAB.I.ax.A.set('stand'); LAB.step(150); { const N = LAB.I.ax.A.neck; N.glance = [25, -4, 0]; N.holdT = 1; N.glanceT = 3; } LAB.step(30); LAB.I.ax.look.blinkK = 0; "
+    for p in pg: cells.append(cam(p, f'{lab5(p)}: idle glance 25 deg', [0.0, 1.3, 1.7], [0, 1.05, 0.0], pre=GL))
+    cells.append(cam('5', 'v10d: head look yaw 40 pitch 15', [0.0, 1.3, 1.7], [0, 1.05, 0.0], pre="LAB.I.ax.A.look.yaw = 40; LAB.I.ax.A.look.pitch = 15; LAB.step(40); "))
+    run('lizard', pages, cells, 520, 440, 3, 'the lizard body: v10d / v241 / reference')
+# v10e: cameras on the head itself (the face centre, from AXOC.headTop, in world space): FACE puts the camera d head radii out along the
+# face's own forward and up head radii above its centre, looking at up2 radii above it; FOLLOW keeps a camera at [side, up, forward]
+# metres from the face centre in the character's own heading (for scenarios that move it about)
+FACE = lambda d, up, up2: ("{ const I = LAB.I, q = new THREE.Quaternion(), c = AXOC.headTop(I, new THREE.Vector3(), q, 0), wq = new THREE.Quaternion(); I.root.updateWorldMatrix(true, true); "
+    "LAB.V.body.getWorldQuaternion(wq); q.premultiply(wq); c.applyMatrix4(LAB.V.body.matrixWorld); const r = AXOC.headSize(I) * LAB.V.body.scale.x, f = new THREE.Vector3(0, 0, 1).applyQuaternion(q), u = new THREE.Vector3(0, 1, 0).applyQuaternion(q); "
+    f"LAB.cam = 'fixed'; LAB.camPos = c.clone().addScaledVector(f, {d} * r).addScaledVector(u, {up} * r).toArray(); LAB.camAt = c.clone().addScaledVector(u, {up2} * r).toArray(); }} LAB.render()")
+FOLLOW = lambda off, at: ("{ const I = LAB.I, c = AXOC.headTop(I, new THREE.Vector3(), null, 0); I.root.updateWorldMatrix(true, true); c.applyMatrix4(LAB.V.body.matrixWorld); const y = LAB.D.yaw, sy = Math.sin(y), cy = Math.cos(y); "
+    f"const o = {json.dumps(off)}, a = {json.dumps(at)}; LAB.cam = 'fixed'; LAB.camPos = [c.x + o[0] * cy + o[2] * sy, c.y + o[1], c.z - o[0] * sy + o[2] * cy]; LAB.camAt = [c.x + a[0] * cy + a[2] * sy, c.y + a[1], c.z - a[0] * sy + a[2] * cy]; }} LAB.render()")
+def liz6(new='6', old='A'):
+    """v10e beside v241 and the references: stand and crawl front, 3/4, side, top and from behind at lobby distance; the locker camera;
+    the win screen close (victory, glee, a little below the face)"""
+    pg = [new, old]; pages = {p: LAB(DIRS[p]) for p in pg}; cells = []; REC = S + '/ref_slime_rec/'; SH = S + '/fable3/shots/'
+    LIGHT = "scene.background = new THREE.Color(0xd9d2c3); floor.visible = true; "
+    nm = lambda p: tag(p) if p == new else 'v241'
+    ST = RESET + LIGHT + NEUTRAL + "LAB.set('idle'); LAB.step(20); LAB.I.ax.A.set('stand'); LAB.step(150); LAB.I.ax.look.blinkK = 0; "
+    for p in pg: cells.append(cam(p, f'{nm(p)}: stand front, lobby distance', [0.0, 1.2, 2.6], [0, 0.95, 0.0], pre=ST))
+    cells.append(img(REC + 'f01.png', 'the recording'))
+    for p in pg: cells.append(cam(p, f'{nm(p)}: stand 3/4', [1.5, 1.3, 1.9], [0, 1.0, 0.0], pre="LAB.step(2); "))
+    cells.append(img(REC + 'f05.png', 'the recording'))
+    for p in pg: cells.append(cam(p, f'{nm(p)}: stand side', [2.6, 1.0, 0.0], [0, 0.95, 0.0], pre="LAB.step(2); "))
+    cells.append(img(SH + 'dragon_side.png', 'bearded dragon, side'))
+    for p in pg: cells.append(cam(p, f'{nm(p)}: stand from above', [0.0, 3.4, 0.6], [0, 0.9, 0.0], pre="LAB.step(2); "))
+    cells.append(img(SH + 'dragon_top.png', 'bearded dragon, top'))
+    for p in pg: cells.append(cam(p, f'{nm(p)}: stand from behind', [0.0, 1.3, -2.4], [0, 0.95, 0.0], pre="LAB.step(2); "))
+    cells.append(cam(new, f'{tag(new)}: stand from behind, above', [0.0, 2.4, -1.8], [0, 0.95, 0.0], pre="LAB.step(2); "))
+    CR = RESET + LIGHT + "LAB.set('idle'); LAB.I.ax.A.set('crawl'); LAB.I.ax.state = 'crawl'; LAB.step(120); LAB.I.ax.look.blinkK = 0; "
+    for p in pg: cells.append(cam(p, f'{nm(p)}: crawl front, lobby distance', [0.0, 0.85, 2.1], [0, 0.4, 0.2], pre=CR))
+    cells.append(img(REC + 'f03.png', 'the recording'))
+    for p in pg: cells.append(cam(p, f'{nm(p)}: crawl 3/4', [1.5, 0.9, 1.5], [0, 0.4, 0.0], pre="LAB.step(2); "))
+    cells.append(img(REC + 'f08.png', 'the recording'))
+    for p in pg: cells.append(cam(p, f'{nm(p)}: crawl side', [2.8, 0.6, -0.4], [0, 0.4, -0.4], pre="LAB.step(2); "))
+    cells.append(img(SH + 'dragon_side.png', 'bearded dragon, side'))
+    for p in pg: cells.append(cam(p, f'{nm(p)}: crawl from above', [0.0, 3.2, -0.5], [0, 0.3, -0.5], pre="LAB.step(2); "))
+    cells.append(img(SH + 'dragon_top.png', 'bearded dragon, top'))
+    for p in pg: cells.append(cam(p, f'{nm(p)}: crawl from behind, above', [0.0, 1.6, -2.6], [0, 0.35, -0.3], pre="LAB.step(2); "))
+    cells.append(cam(new, f'{tag(new)}: crawl 3/4 from behind', [1.8, 1.2, -1.8], [0, 0.35, -0.2], pre="LAB.step(2); "))
+    LK = RESET + CARPET + "LAB.set('idle'); LAB.I.ax.A.set('crawl'); LAB.I.ax.state = 'crawl'; LAB.step(120); LAB.I.ax.A.look.pitch = 28; LAB.step(60); LAB.I.ax.look.blinkK = 0; "
+    for p in pg: cells.append(cam(p, f'{nm(p)}: locker camera, red carpet', [0.0, 1.0, 2.7], [0, 0.4, 0.25], pre=LK))
+    cells.append(img(REC + 'f01.png', 'the recording'))
+    VI = RESET + LIGHT + "LAB.set('idle'); LAB.step(20); LAB.I.ax.A.set('victory'); LAB.step(150); LAB.I.setExpression('glee'); LAB.step(12); LAB.I.ax.look.blinkK = 0; "
+    for p in pg: cells.append([p, VI + FACE(2.5, -0.7, -0.35), f'{nm(p)}: win close (victory, glee; 1.5 r out from the face, below it)'])
+    cells.append(img('/root/.claude/uploads/5c52352e-692f-5301-ac55-ec4d2c708f3e/6fede3e0-image.jpg', 'the win screen (v241, the user)'))
+    for p in pg: cells.append([p, "LAB.step(2); " + FACE(4.4, -0.5, -0.25), f'{nm(p)}: win close, the user\'s framing'])
+    cells.append([new, "LAB.step(2); scene.background = new THREE.Color(0x1a1a1e); floor.visible = false; " + FACE(2.5, -1.4, -0.6), f'{tag(new)}: win close, from under the chin (dark)'])
+    run('liz6', pages, cells, 520, 440, 3, 'the lizard body: v10e / v241 / reference')
+def liz6poses(new='6', old='A'):
+    """the animator's neck turn and head look on v10e beside v241 (nothing tears, the head still turns): weave (from the side and from
+    above), the crawl gait, the idle glance, a head look, the stand idle"""
+    pg = [new, old]; pages = {p: LAB(DIRS[p]) for p in pg}; cells = []; LIGHT = "scene.background = new THREE.Color(0xd9d2c3); floor.visible = true; "
+    nm = lambda p: tag(p) if p == new else 'v241'
+    WV = RESET + LIGHT + "LAB.set('weave', {v: 5.4, k: 0.9, T: 1.4}); LAB.step(75); "
+    for p in pg: cells.append([p, WV + FOLLOW([1.9, 0.8, 1.8], [0, -0.15, -0.3]), f'{nm(p)}: weave (the neck turn)'])
+    for p in pg: cells.append([p, "LAB.step(10); " + FOLLOW([0.2, 2.6, -0.2], [0, -0.2, -0.4]), f'{nm(p)}: weave, from above'])
+    for p in pg: cells.append([p, "LAB.step(21); " + FOLLOW([-1.9, 0.8, 1.8], [0, -0.15, -0.3]), f'{nm(p)}: weave, the other way'])
+    WK = RESET + LIGHT + "LAB.set('walk', {v: 5.4}); LAB.step(90); "
+    for p in pg: cells.append([p, WK + FOLLOW([2.0, 0.6, 1.2], [0, -0.2, -0.5]), f'{nm(p)}: crawl gait'])
+    for p in pg: cells.append([p, "LAB.step(9); " + FOLLOW([2.6, 0.2, -0.4], [0, -0.2, -0.5]), f'{nm(p)}: crawl gait, side'])
+    GL = RESET + LIGHT + "LAB.set('idle'); LAB.step(20); LAB.I.ax.A.set('stand'); LAB.step(150); { const N = LAB.I.ax.A.neck; N.glance = [25, -4, 0]; N.holdT = 1; N.glanceT = 3; } LAB.step(30); LAB.I.ax.look.blinkK = 0; "
+    for p in pg: cells.append(cam(p, f'{nm(p)}: stand idle glance 25 deg', [0.0, 1.3, 1.9], [0, 1.05, 0.0], pre=GL))
+    for p in pg: cells.append(cam(p, f'{nm(p)}: stand, head look yaw 40 pitch 15', [0.9, 1.3, 1.7], [0, 1.05, 0.0], pre="LAB.I.ax.A.look.yaw = 40; LAB.I.ax.A.look.pitch = 15; LAB.step(40); "))
+    for p in pg: cells.append(cam(p, f'{nm(p)}: stand, head look yaw -40 pitch -20', [-0.9, 1.0, 1.7], [0, 1.05, 0.0], pre="LAB.I.ax.A.look.yaw = -40; LAB.I.ax.A.look.pitch = -20; LAB.step(40); "))
+    CL = RESET + LIGHT + "LAB.set('idle'); LAB.I.ax.A.set('crawl'); LAB.I.ax.state = 'crawl'; LAB.step(120); LAB.I.ax.A.look.yaw = 45; LAB.I.ax.A.look.pitch = 25; LAB.step(60); "
+    for p in pg: cells.append(cam(p, f'{nm(p)}: crawl, head look yaw 45 pitch 25', [1.2, 0.8, 1.5], [0, 0.4, 0.0], pre=CL))
+    VI = RESET + LIGHT + "LAB.set('idle'); LAB.step(20); LAB.I.ax.A.set('victory'); LAB.step(150); "
+    for p in pg: cells.append(cam(p, f'{nm(p)}: victory', [1.2, 1.3, 1.9], [0, 1.0, 0.0], pre=VI))
+    run('liz6poses', pages, cells, 520, 440, 2, 'the neck turn and head look: v10e / v241')
 if __name__ == '__main__':
     a = sys.argv[1:]
     if '--pages' in a: i = a.index('--pages'); PG = a[i + 1].split(','); del a[i:i + 2]
