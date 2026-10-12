@@ -1515,6 +1515,48 @@ body.homeon .corner{display:none}
 @media (min-aspect-ratio:1/1){.shcat.season.shban .sbart{background-size:auto 210%;background-position:right 32%}}
 @media (prefers-reduced-motion:reduce){.shcat.season.shban .sbart::after,.shcat.season.shban .sbpump{animation:none}}
 @media (max-height:520px) and (min-aspect-ratio:1/1){.shcat.season.shban{min-height:104px;margin:6px 0 8px}.shcat.season.shban .sbtx{padding:12px 16px;gap:5px}.shcat.season.shban .sbtitle{font-size:32px}.shcat.season.shban .sbpump{width:110px;bottom:-10px}}
+
+/* strokes: the dark page like the events, two paper slots, the equipped stroke big, the options in a rail; a craft bar with a countdown */
+.mstrokes .stwrap{position:absolute;left:0;right:0;top:calc(max(14px,env(safe-area-inset-top)) + 66px);bottom:0;z-index:1;display:grid;grid-template-columns:minmax(0,1fr);align-content:start;gap:18px;padding:4px max(18px,env(safe-area-inset-right)) calc(max(16px,env(safe-area-inset-bottom)) + 16px) max(18px,env(safe-area-inset-left));overflow-y:auto;overscroll-behavior:contain}
+.mstrokes .stsub{margin:-6px 0 0;font:700 13px/1.3 var(--font-ui);color:#B8B0C8}
+.stslot{position:relative;min-width:0;border-radius:16px;background:#F4EEE3;box-shadow:0 0 0 2.5px #171320,6px 7px 0 rgba(0,0,0,.4);animation:evin .45s cubic-bezier(.2,1.2,.35,1) both}
+.stslot:nth-child(3){animation-delay:.07s}
+.sthead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:10px 14px 9px;border-radius:14px 14px 0 0;background:#171320;color:#fff}
+.sthead b{font:900 17px/1 var(--font-head);font-style:italic;text-transform:uppercase;letter-spacing:.04em;color:var(--gold);text-shadow:.05em .05em 0 rgba(0,0,0,.6)}
+.sthead small{font:700 11px/1.2 var(--font-ui);color:#B8B0C8;text-align:right}
+.stnow{display:grid;grid-template-columns:72px minmax(0,1fr);gap:12px;align-items:center;padding:14px 14px 10px}
+.stnow .stic{width:72px;height:72px;display:grid;place-items:center;border-radius:18px;background:#fff;box-shadow:0 0 0 2.5px #171320,3px 3px 0 rgba(23,19,32,.25)}
+.stnow .stic svg{width:52px;height:52px}
+.stnow .stname{display:block;font:900 24px/1 var(--font-head);color:#171320;text-transform:uppercase;letter-spacing:.01em}
+.stnow .stdesc{display:block;margin-top:4px;font:600 13px/1.3 var(--font-ui);color:#4A4458}
+.stnow .ststamp{display:inline-block;margin-top:7px;padding:3px 8px 2px;border-radius:999px;background:var(--gold);color:#171320;font:900 10px/1 var(--font-head);letter-spacing:.1em;box-shadow:0 0 0 2px #171320}
+.strail{display:flex;gap:10px;padding:4px 14px 14px;overflow-x:auto;scrollbar-width:none}
+.strail::-webkit-scrollbar{display:none}
+.stopt{appearance:none;position:relative;flex:0 0 auto;display:grid;grid-template-rows:auto auto auto;justify-items:center;gap:5px;width:104px;margin:0;padding:10px 8px 9px;border:0;border-radius:14px;background:#fff;color:#171320;box-shadow:0 0 0 2.5px #171320,3px 3px 0 rgba(23,19,32,.25);cursor:pointer;font:inherit;-webkit-tap-highlight-color:transparent;transition:transform .14s cubic-bezier(.3,1.6,.5,1)}
+.stopt:active{transform:translate(1px,2px)}
+.stopt svg{width:38px;height:38px}
+.stopt .stn{font:900 13px/1 var(--font-head);text-transform:uppercase}
+.stopt .sts{display:flex;align-items:center;gap:3px;padding:3px 7px 2px;border-radius:999px;font:900 9px/1 var(--font-head);letter-spacing:.08em;background:#E9E3D6;color:#4A4458}
+.stopt .sts svg{width:9px;height:9px}
+.stopt.on{box-shadow:0 0 0 3px var(--gold),0 0 0 5.5px #171320,3px 3px 0 rgba(23,19,32,.25)}
+.stopt.on .sts{background:var(--gold);color:#171320}
+.stopt.lock svg:not(.sts svg){opacity:.45;filter:grayscale(1)}
+.stopt.lock .stn{color:#8A8396}
+.stopt.free .sts{background:#46E07A;color:#0B2A14}
+.stopt.ready .sts{background:#E3122F;color:#fff}
+.stopt.soon{background:repeating-linear-gradient(135deg,#F4EEE3 0 8px,#ECE5D8 8px 16px);box-shadow:0 0 0 2.5px rgba(23,19,32,.35);cursor:default;color:#8A8396}
+.stopt.soon .stn{color:#8A8396}
+.stcraft{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;margin:0 14px 14px;padding:10px 12px;border-radius:12px;background:#171320;color:#fff}
+.stcraft .stct{font:800 12px/1.2 var(--font-ui);color:#B8B0C8}
+.stcraft .stct b{display:block;font:900 22px/1 var(--font-head);color:#fff;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.stcraft .stbar{grid-column:1/-1;height:8px;border-radius:999px;background:#2A2436;overflow:hidden}
+.stcraft .stbar i{display:block;height:100%;width:var(--p,0%);background:linear-gradient(90deg,#F2C14E,#FFE39A);border-radius:999px;transition:width .5s linear}
+.stcraft .stskip{appearance:none;margin:0;padding:10px 16px;border:0;border-radius:999px;background:var(--gold);color:#171320;font:900 14px/1 var(--font-head);letter-spacing:.08em;text-transform:uppercase;box-shadow:0 0 0 2px #171320,0 3px 0 #171320;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.stcraft .stskip:active{transform:translateY(2px);box-shadow:0 0 0 2px #171320,0 1px 0 #171320}
+.mstrokes .sttoast{position:absolute;left:50%;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 18px);z-index:3;transform:translateX(-50%);padding:9px 14px;border-radius:999px;background:#171320;color:#fff;font:800 13px/1 var(--font-ui);box-shadow:0 0 0 2px var(--gold);white-space:nowrap;animation:sttoast 2.2s ease both;pointer-events:none}
+@keyframes sttoast{0%{opacity:0;transform:translate(-50%,10px)}12%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
+.plate.abil:not(.locked).fresh .abtag{animation:abpulse 1.4s ease-in-out infinite}
+@keyframes abpulse{50%{transform:translateX(-50%) rotate(4deg) scale(1.15)}}
 /* abilities: violet construction paper, cut by hand, set crooked and taped down at two corners; locked until rank 3, then coming soon */
 .plate.abil{width:70px;min-height:76px;padding:14px 4px 13px;align-content:center;border-radius:0;background:none;box-shadow:none;color:#FFF6E4;text-shadow:0 1px 0 rgba(23,19,32,.5);transform:rotate(-4deg);animation:abilidle 4.6s -.8s ease-in-out infinite}
 .plate.abil .abpaper{position:absolute;inset:0;z-index:-1;background:url(art/m_cpaper.webp) center/100% 100% no-repeat;filter:drop-shadow(2px 3px 0 rgba(23,19,32,.22))} /* (the shadow on a layer of its own: a filter on the button would clip the note that pops out of it) */
@@ -2855,7 +2897,7 @@ html.touchnav :focus-visible{outline:none!important}
       <div class="lcol left" id="lobbyRail">
         <button class="plate hot" id="lookBtn" type="button" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5a2.2 2.2 0 0 0-2.2 2.2c0 1 .7 1.6 1.4 2.1.5.4.8.7.8 1.2v1.2L3.5 15.6a1.6 1.6 0 0 0 .9 2.9h15.2a1.6 1.6 0 0 0 .9-2.9L12 10.2" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Locker</span></button>
         <button class="plate" id="commBtn" type="button" aria-haspopup="dialog"><span class="cring" aria-hidden="true"><svg class="cring-r" viewBox="0 0 44 44"><circle class="t" cx="22" cy="22" r="19"/><circle class="a" id="commArc" cx="22" cy="22" r="19" pathLength="100" stroke-dasharray="100 100" transform="rotate(-90 22 22)"/></svg><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="4" width="15" height="17" rx="2.5" fill="none" stroke="currentColor" stroke-width="2.1"/><path d="M9 2.8h6v3H9z" fill="currentColor"/><path d="M8.3 12.6l2.3 2.3 4.9-4.9M8.3 17.2h7.4" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Commissions</span><i class="pbadge" id="commBadge" hidden></i><b class="ctimer" id="commTimer" aria-hidden="true"></b></button>
-        <button class="plate abil locked" id="abilBtn" type="button" aria-label="Abilities, locked until rank 3"><span class="abpaper" aria-hidden="true"></span><span class="abart" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.2 1.6 4.4 13.7h6.5l-1.2 8.7 9.9-12.6h-6.6l1.2-8.2z" fill="#F2C14E"/><path d="M14.2 1.6 4.4 13.7h2.1l7.1-8.9z" fill="#FFE39A"/><path d="M20.6 3.2l.5 1.4 1.4.5-1.4.5-.5 1.4-.5-1.4-1.4-.5 1.4-.5z" fill="#FFF6E4"/></svg></span><span>Abilities</span><b class="abtag" id="abilTag" aria-hidden="true"></b></button>
+        <button class="plate abil locked" id="abilBtn" type="button" aria-label="Abilities, locked until rank 3"><span class="abpaper" aria-hidden="true"></span><span class="abart" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.2 1.6 4.4 13.7h6.5l-1.2 8.7 9.9-12.6h-6.6l1.2-8.2z" fill="#F2C14E"/><path d="M14.2 1.6 4.4 13.7h2.1l7.1-8.9z" fill="#FFE39A"/><path d="M20.6 3.2l.5 1.4 1.4.5-1.4.5-.5 1.4-.5-1.4-1.4-.5 1.4-.5z" fill="#FFF6E4"/></svg></span><span>Strokes</span><b class="abtag" id="abilTag" aria-hidden="true"></b></button>
       </div>
       <div class="lcol right" id="lobbyRight">
         <button class="friends" id="friendsBtn" type="button" aria-haspopup="dialog"><span class="ffaces" aria-hidden="true"><svg viewBox="0 0 40 40"><g fill="none"><path d="M9.5 17 4.5 12.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M8.5 21.5 2.5 20.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M9.5 26 4.5 28.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M30.5 17l5-4.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M31.5 21.5l6-1" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M30.5 26l5 2.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M9.5 17 4.5 12.5" stroke="#E3122F" stroke-width="3" stroke-linecap="round"/><path d="M8.5 21.5 2.5 20.5" stroke="#E3122F" stroke-width="3" stroke-linecap="round"/><path d="M9.5 26 4.5 28.5" stroke="#E3122F" stroke-width="3" stroke-linecap="round"/><path d="M30.5 17l5-4.5" stroke="#E3122F" stroke-width="3" stroke-linecap="round"/><path d="M31.5 21.5l6-1" stroke="#E3122F" stroke-width="3" stroke-linecap="round"/><path d="M30.5 26l5 2.5" stroke="#E3122F" stroke-width="3" stroke-linecap="round"/></g><ellipse cx="20" cy="23.5" rx="13" ry="11.2" fill="#FF6B7D" stroke="#171320" stroke-width="2.3"/><ellipse cx="15" cy="17.6" rx="4.6" ry="2.2" fill="#fff" opacity=".42"/><ellipse cx="11.4" cy="26.4" rx="2.2" ry="1.2" fill="#FF8FB1" opacity=".75"/><ellipse cx="28.6" cy="26.4" rx="2.2" ry="1.2" fill="#FF8FB1" opacity=".75"/><ellipse cx="15.2" cy="22.6" rx="1.9" ry="2.4" fill="#171320"/><ellipse cx="24.8" cy="22.6" rx="1.9" ry="2.4" fill="#171320"/><circle cx="14.6" cy="21.8" r=".7" fill="#fff"/><circle cx="24.2" cy="21.8" r=".7" fill="#fff"/><path d="M16.6 27.2q3.4 4.4 6.8 0z" fill="#5A0C1E" stroke="#171320" stroke-width="1.3" stroke-linejoin="round"/></svg><svg viewBox="0 0 40 40"><g fill="none"><path d="M9.5 17 4.5 12.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M8.5 21.5 2.5 20.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M9.5 26 4.5 28.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M30.5 17l5-4.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M31.5 21.5l6-1" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M30.5 26l5 2.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M9.5 17 4.5 12.5" stroke="#2479D6" stroke-width="3" stroke-linecap="round"/><path d="M8.5 21.5 2.5 20.5" stroke="#2479D6" stroke-width="3" stroke-linecap="round"/><path d="M9.5 26 4.5 28.5" stroke="#2479D6" stroke-width="3" stroke-linecap="round"/><path d="M30.5 17l5-4.5" stroke="#2479D6" stroke-width="3" stroke-linecap="round"/><path d="M31.5 21.5l6-1" stroke="#2479D6" stroke-width="3" stroke-linecap="round"/><path d="M30.5 26l5 2.5" stroke="#2479D6" stroke-width="3" stroke-linecap="round"/></g><ellipse cx="20" cy="23.5" rx="13" ry="11.2" fill="#5BB6FF" stroke="#171320" stroke-width="2.3"/><ellipse cx="15" cy="17.6" rx="4.6" ry="2.2" fill="#fff" opacity=".42"/><ellipse cx="11.4" cy="26.4" rx="2.2" ry="1.2" fill="#FF8FB1" opacity=".75"/><ellipse cx="28.6" cy="26.4" rx="2.2" ry="1.2" fill="#FF8FB1" opacity=".75"/><path d="M12.8 23.4q2.4-2.8 4.8 0M22.4 23.4q2.4-2.8 4.8 0" fill="none" stroke="#171320" stroke-width="2" stroke-linecap="round"/><path d="M16.8 27.2q3.2 2.6 6.4 0" fill="none" stroke="#171320" stroke-width="1.8" stroke-linecap="round"/></svg><svg viewBox="0 0 40 40"><g fill="none"><path d="M9.5 17 4.5 12.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M8.5 21.5 2.5 20.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M9.5 26 4.5 28.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M30.5 17l5-4.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M31.5 21.5l6-1" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M30.5 26l5 2.5" stroke="#171320" stroke-width="5.4" stroke-linecap="round"/><path d="M9.5 17 4.5 12.5" stroke="#7A4FE0" stroke-width="3" stroke-linecap="round"/><path d="M8.5 21.5 2.5 20.5" stroke="#7A4FE0" stroke-width="3" stroke-linecap="round"/><path d="M9.5 26 4.5 28.5" stroke="#7A4FE0" stroke-width="3" stroke-linecap="round"/><path d="M30.5 17l5-4.5" stroke="#7A4FE0" stroke-width="3" stroke-linecap="round"/><path d="M31.5 21.5l6-1" stroke="#7A4FE0" stroke-width="3" stroke-linecap="round"/><path d="M30.5 26l5 2.5" stroke="#7A4FE0" stroke-width="3" stroke-linecap="round"/></g><ellipse cx="20" cy="23.5" rx="13" ry="11.2" fill="#B08BFF" stroke="#171320" stroke-width="2.3"/><ellipse cx="15" cy="17.6" rx="4.6" ry="2.2" fill="#fff" opacity=".42"/><ellipse cx="11.4" cy="26.4" rx="2.2" ry="1.2" fill="#FF8FB1" opacity=".75"/><ellipse cx="28.6" cy="26.4" rx="2.2" ry="1.2" fill="#FF8FB1" opacity=".75"/><ellipse cx="15.2" cy="22.8" rx="1.8" ry="2.3" fill="#171320"/><ellipse cx="24.8" cy="22.8" rx="1.8" ry="2.3" fill="#171320"/><circle cx="14.6" cy="22" r=".7" fill="#fff"/><circle cx="24.2" cy="22" r=".7" fill="#fff"/><path d="M17 27.4q3 2.2 6 0" fill="none" stroke="#171320" stroke-width="1.8" stroke-linecap="round"/></svg></span><b>Friends</b></button>
@@ -2871,6 +2913,14 @@ html.touchnav :focus-visible{outline:none!important}
     <button class="pbar" id="pbar" type="button" hidden aria-haspopup="dialog"><span class="pbrank" aria-hidden="true"><svg viewBox="0 0 46 54"><defs><clipPath id="pbShClip"><path d="M23 2.6 43 8.6V29c0 11.4-9 18.6-20 22.6C12 47.6 3 40.4 3 29V8.6z"/></clipPath></defs><path class="pbsh" d="M23 2.6 43 8.6V29c0 11.4-9 18.6-20 22.6C12 47.6 3 40.4 3 29V8.6z"/><rect width="46" height="20.5" fill="#F4EEE3" clip-path="url(#pbShClip)"/><path d="M3 20.5h40" stroke="#171320" stroke-width="2.4"/><path d="M8.5 44 23 49.6 37.5 44" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="3" clip-path="url(#pbShClip)"/><path d="M23 2.6 43 8.6V29c0 11.4-9 18.6-20 22.6C12 47.6 3 40.4 3 29V8.6z" fill="none" stroke="#171320" stroke-width="3" stroke-linejoin="round"/><path d="M8 11.4 23 7l15 4.4" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" opacity=".9"/></svg><small>RANK</small><b id="pbLvl">1</b></span><span class="pbtrack" aria-hidden="true"><canvas id="pbCanvas"></canvas><span class="pbname" id="pbName">Player</span><span class="pbxp" id="pbXp">0</span></span><span class="pbnext" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M24.0 2.0 L30.4 8.5 L39.6 8.4 L39.5 17.6 L46.0 24.0 L39.5 30.4 L39.6 39.6 L30.4 39.5 L24.0 46.0 L17.6 39.5 L8.4 39.6 L8.5 30.4 L2.0 24.0 L8.5 17.6 L8.4 8.4 L17.6 8.5Z" fill="#171320" stroke="#171320" stroke-width="3" stroke-linejoin="round"/><path d="M24.0 2.0 L30.4 8.5 L39.6 8.4 L39.5 17.6 L46.0 24.0 L39.5 30.4 L39.6 39.6 L30.4 39.5 L24.0 46.0 L17.6 39.5 L8.4 39.6 L8.5 30.4 L2.0 24.0 L8.5 17.6 L8.4 8.4 L17.6 8.5Z" fill="#2A2437" stroke="#F2C14E" stroke-width="2.6" stroke-linejoin="round" transform="translate(24 24) scale(.86) translate(-24 -24)"/><circle cx="24" cy="24" r="12.5" fill="none" stroke="rgba(242,193,78,.35)" stroke-width="1.5"/></svg><small>NEXT</small><b id="pbNext">2</b></span></button>
     <button class="slot" id="slotL" type="button" hidden aria-label="Bring a friend into your lobby (coming soon)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="#171320" stroke-width="6.6" stroke-linecap="round"/><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="3.8" stroke-linecap="round"/></svg></button><button class="slot" id="slotR" type="button" hidden aria-label="Bring a friend into your lobby (coming soon)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="#171320" stroke-width="6.6" stroke-linecap="round"/><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="3.8" stroke-linecap="round"/></svg></button>
     <aside class="smenu" id="sideMenu" hidden><i class="sscrim"></i><div class="spanel" role="dialog" aria-modal="true" aria-label="Menu"><button class="mbtn sx" id="smClose" type="button" aria-label="Close the menu" aria-expanded="true"><i></i><i></i><i></i></button><button class="sitem" id="smSet" type="button" aria-haspopup="dialog"><span class="sic" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M27.5 4.5 29 10a15 15 0 0 1 4.4 2.5l5.5-1.6 3.5 6.1-4.1 4a15 15 0 0 1 0 5l4.1 4-3.5 6.1-5.5-1.6A15 15 0 0 1 29 38l-1.5 5.5h-7L19 38a15 15 0 0 1-4.4-2.5l-5.5 1.6-3.5-6.1 4.1-4a15 15 0 0 1 0-5l-4.1-4 3.5-6.1 5.5 1.6A15 15 0 0 1 19 10l1.5-5.5z" fill="#fff" stroke="#171320" stroke-width="3" stroke-linejoin="round"/><circle cx="24" cy="24" r="6.2" fill="#5B5580" stroke="#171320" stroke-width="3"/><path d="M14 16a12 12 0 0 1 8-5" fill="none" stroke="#C9C2E4" stroke-width="2.4" stroke-linecap="round"/></svg></span><span>Settings</span></button><button class="sitem" id="smSnd" type="button" aria-pressed="true"><span class="sic" id="smSndI" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M7 18h8l11-9v30l-11-9H7z" fill="#fff" stroke="#171320" stroke-width="3" stroke-linejoin="round"/><path d="M32 17a9 9 0 0 1 0 14M36.5 12.5a15 15 0 0 1 0 23" fill="none" stroke="#171320" stroke-width="6.5" stroke-linecap="round"/><path d="M32 17a9 9 0 0 1 0 14M36.5 12.5a15 15 0 0 1 0 23" fill="none" stroke="#46E07A" stroke-width="3.2" stroke-linecap="round"/></svg></span><span id="smSndL">Sound on</span></button></div></aside>
+
+    <div class="mevents mstrokes" id="mStrokes" hidden><div class="evwash" aria-hidden="true"><i></i></div>
+      <div class="evhead"><button class="sback" id="stBack" type="button" aria-label="Back to the lobby"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4.5 7.5 12l7.5 7.5" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2 id="stTitle">Strokes</h2></div>
+      <div class="stwrap" id="stWrap"><p class="stsub">Your special move and your skill. New ones open as you rank up.</p>
+        <section class="stslot" id="stSpecial" aria-labelledby="stSpecialH"><div class="sthead"><b id="stSpecialH">Special stroke</b><small>What the orb gives you</small></div><div class="stnow" id="stSpecialNow"></div><div class="strail" id="stSpecialRail" role="group" aria-label="Special strokes"></div><div class="stcraft" id="stCraft" hidden><span class="stct">Crafting the Giant<b id="stCraftT">20:00</b></span><button class="stskip" id="stSkip" type="button">Skip</button><span class="stbar"><i id="stCraftBar"></i></span></div></section>
+        <section class="stslot" id="stSkill" aria-labelledby="stSkillH"><div class="sthead"><b id="stSkillH">Skill</b><small>Always on</small></div><div class="stnow" id="stSkillNow"></div><div class="strail" id="stSkillRail" role="group" aria-label="Skills"></div></section>
+      </div>
+    </div>
     <div class="mevents" id="mEvents" hidden><div class="evwash" aria-hidden="true"><i></i></div>
       <div class="evhead"><button class="sback" id="evBack" type="button" aria-label="Back to the lobby"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4.5 7.5 12l7.5 7.5" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2 id="evTitle">Choose event</h2></div>
       <button class="evmore" id="evMore" type="button" aria-label="More events below" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9.5l6 6 6-6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="evgrid" id="evGrid" role="group" aria-labelledby="evTitle">
@@ -2915,7 +2965,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 240</p>
+      <p class="ver">Version 241</p>
     </div>
   </div>
 
@@ -7658,8 +7708,8 @@ class Animator {
     const N = this.neck, amt = N.amt; if (!(dt > 0)) return;
     N.glanceT -= dt;
     if (N.glanceT <= 0) {
-      if (N.holdT > 0 || Math.random() < 0.35) { N.glance = [0, 0, 0]; N.holdT = 0; N.glanceT = 1.8 + Math.random() * 3.5; }
-      else { const big = Math.random() < 0.3; N.glance = [(Math.random() * 2 - 1) * (big ? 20 : 10), (Math.random() * 2 - 1) * 5 - 1, (Math.random() * 2 - 1) * 4]; N.holdT = 1; N.glanceT = 0.7 + Math.random() * 1.6; }
+      if (N.holdT > 0 || Math.random() < 0.35) { N.glance = [0, 0, 0]; N.holdT = 0; N.glanceT = Math.random() < 0.15 ? 6 + Math.random() * 4 : 2.5 + Math.random() * 3.5; }   // (v10c: rarer)
+      else { const big = Math.random() < 0.3; N.glance = [(Math.random() * 2 - 1) * (big ? 20 : 10), (Math.random() * 2 - 1) * 5 - 1, (Math.random() * 2 - 1) * 4]; N.holdT = 1; N.glanceT = 1.0 + Math.random() * 1.6; }
       // the eyes get there first (the face's look), and a glance often comes with a blink
       if (this.look2) { this.look2.att.eye[0] = N.glance[0] / 90 * 0.45; this.look2.att.eye[1] = -N.glance[1] / 50 * 0.25; this.look2.att.t = N.glanceT + 0.2; if (Math.random() < 0.4) this.look2.blinkK = Math.max(this.look2.blinkK, 0.1); }
     }
@@ -8276,6 +8326,10 @@ varying vec3 vCp, vFace; varying vec4 vJelly, vFill, vMat; varying float vAlong,
 float sCoatM = 0.0, faceInk = 0.0, sEyeM = 0.0, sDrawM = 0.0, sGill = 0.0, sFin = 0.0, sBelly = 0.0, sSpot = 0.0, sAO = 0.0;
 float sFaceK = 0.0, sCoatH = 0.0, sCoatT = 0.0, sBead = 0.0, sDbgDm = 0.0, sDbgG = 0.0, sCatch = 0.0, sWetK = 0.0; vec3 sPaintC = vec3(0.0);   // v9: face skin, the coat's height (m) and thickness, beads, the paint colour
 float sEar = 0.0, sHeadM = 0.0, sJelly = 0.0, sFaceM = 0.0;   // v10: the ears, the head (skull and ears), the jelly look on them, the face's oval
+uniform float uToon;
+// v10b: the diffuse ramp of each light: wrapped past the terminator, two soft wide bands, a floor so the shade stays a lighter skin
+float axoRamp(float x) { float w = mix(saturate(x), saturate((x + 0.55) / 1.55), uToon);
+  float b = 0.5 * smoothstep(0.1, 0.42, w) + 0.5 * smoothstep(0.5, 0.78, w); return mix(w, max(0.3 + 0.7 * b, 0.3), uToon); }
 float aHash(vec3 p) { p = fract(p * vec3(0.1031, 0.1030, 0.0973)); p += dot(p, p.yzx + 33.33); return fract((p.x + p.y) * p.z); }
 vec3 aHash3(vec3 p) { p = fract(p * vec3(0.1031, 0.1030, 0.0973)); p += dot(p, p.yxz + 33.33); return fract((p.xxy + p.yxx) * p.zyx); }
 float aNoise(vec3 p) { vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -8534,6 +8588,7 @@ const LIT_FS = `
 { float wet = max(sCoatM, 0.8 * sWetK), inkM = clamp(sDrawM - sEyeM, 0.0, 1.0);
   float rough = mix(0.52, 0.32, sBelly); rough = mix(rough, 0.52, sGill * 0.7); rough = mix(rough, 0.34, sFin * 0.6); rough = mix(rough, 0.4, 0.6 * sEar);
   rough = mix(rough, 0.4, 0.6 * sFaceK);   // (the face skin a touch smoother)
+  rough = mix(rough, 0.3, 0.45 * uToon);   // (v10b: a smaller, crisper highlight)
   rough = mix(rough, 0.72, inkM); rough = mix(rough, 0.1, sEyeM);   // (matte ink, a wet eye)
   material.roughness = min(max(mix(rough, 0.05, wet), 0.0525) + geometryRoughness, 1.0);
 #ifdef USE_CLEARCOAT
@@ -8545,7 +8600,8 @@ const LIT_FS = `
 #endif
 }`;
 const LOOK_FS = `
-{ float occ = sAO * (1.0 - 0.3 * sCoatM), ink = clamp(sDrawM - sEyeM, 0.0, 1.0) * (1.0 - sCoatM), eyeK = sEyeM * (1.0 - sCoatM);
+{ float occ = sAO * (1.0 - 0.3 * sCoatM) * (1.0 - 0.7 * uToon), ink = clamp(sDrawM - sEyeM, 0.0, 1.0) * (1.0 - sCoatM), eyeK = sEyeM * (1.0 - sCoatM);
+  reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(1.0, 0.9, 0.84) * (0.14 * uToon) * (1.0 - sCoatM) * (1.0 - ink);   // (v10b: a warm fill in the shade)
   reflectedLight.indirectDiffuse *= 1.0 - 0.5 * occ; reflectedLight.directDiffuse *= 1.0 - 0.2 * occ; reflectedLight.indirectSpecular *= 1.0 - 0.7 * occ; reflectedLight.directSpecular *= 1.0 - 0.4 * occ;
 #ifdef USE_CLEARCOAT
   clearcoatSpecularIndirect *= 1.0 - 0.85 * occ; clearcoatSpecularDirect *= 1.0 - 0.6 * occ;
@@ -8653,11 +8709,12 @@ class Look {
       uKeyDir: { value: new THREE.Vector3(0.3, 0.6, 0.7) }, uDebug: { value: 0 }, uSwap: { value: new THREE.Vector4(0, 0, 0.18, 0.26) },
       // skin detail: x relief amplitude (m), y spot cells per metre, z spot amount, w wrinkle depth (m)
       uDetail: { value: new THREE.Vector4(0.0009, 26, 1.0, 0.0007) }, uDetail2: { value: new THREE.Vector4(0, 0, 0, 0) },
+      uToon: { value: 0.7 },   // v10b: the toon look's strength (0 the plain material, 1 full)
       uTint: { value: new THREE.Vector4(1, 0, 1, 1) }, uTintTo: { value: new THREE.Vector4(1, 0, 1, 0) },
     };
     this.meshU = {};   // per-mesh uniforms (the fade), by mesh name
     this.fangs = false; this.expr = 'neutral'; this.exprB = 'neutral'; this.exprK = 1; this.blinkT = 1 + Math.random() * 2; this.blinkK = 0; this.flut = 0; this.flutT = 0;
-    this.look = [0, 0]; this.dart = [0, 0]; this.dartT = 0.5; this.att = { t: 1 + Math.random() * 2, eye: [0, 0] }; this.t = 0; this.emote = null; this.turnV = 0; this.tbCool = 0;
+    this.look = [0, 0]; this.lookV = [0, 0]; this.dart = [0, 0]; this.dartT = 0.5; this.att = { t: 2 + Math.random() * 3, eye: [0, 0] }; this.t = 0; this.emote = null; this.turnV = 0; this.tbCool = 0;
     this.setColor(opts.color || 0xff6b8a); this.setIris(opts.iris || 'violet'); this.setEyeStyle(opts.eyes || 'round');
   }
   setColor(c) { const p = palette(c); const U = this.U; U.uTeam.value.set(c); U.uPaint.value.set(c);
@@ -8697,10 +8754,11 @@ class Look {
     if (this.flut > 0) { this.flutT -= dt; if (this.flutT <= 0) { this.blinkK = 0.075; this.flut--; this.flutT = 0.15; this.blinkT = Math.max(this.blinkT, 1.4); } }
     this.tbCool -= dt; if (Math.abs(this.turnV) > 3.2 && this.tbCool <= 0) { this.blinkK = Math.max(this.blinkK, 0.11); this.tbCool = 1.4; }
     this.blinkT -= dt; if (this.blinkT <= 0) { this.blinkK = 0.13; this.blinkT = Math.random() < 0.22 ? 0.26 : 1.6 + Math.random() * 3.4; } if (this.blinkK > 0) this.blinkK -= dt;
-    const A = this.att; A.t -= dt; if (A.t <= 0) { A.t = 1.2 + Math.random() * 2.8; A.eye[0] = (Math.random() * 2 - 1) * 0.1; A.eye[1] = (Math.random() * 2 - 1) * 0.045; if (Math.random() < 0.5) this.blinkK = Math.max(this.blinkK, 0.1); }
-    this.dartT -= dt; if (this.dartT <= 0) { this.dartT = 0.35 + Math.random() * 0.9; this.dart[0] = (Math.random() * 2 - 1) * 0.035; this.dart[1] = (Math.random() * 2 - 1) * 0.02; }
+    const A = this.att; A.t -= dt; if (A.t <= 0) { A.t = Math.random() < 0.2 ? 6 + Math.random() * 4 : 2.5 + Math.random() * 3.5; A.eye[0] = (Math.random() * 2 - 1) * 0.1; A.eye[1] = (Math.random() * 2 - 1) * 0.045; if (Math.random() < 0.5) this.blinkK = Math.max(this.blinkK, 0.1); }
+    this.dartT -= dt; if (this.dartT <= 0) { this.dartT = 0.35 + Math.random() * 0.9; this.dart[0] = (Math.random() * 2 - 1) * 0.012; this.dart[1] = (Math.random() * 2 - 1) * 0.007; }   // (v10c: a third of the old size)
     const lx = (look ? look[0] : 0) + A.eye[0] + this.dart[0], ly = (look ? look[1] : 0) + A.eye[1] + this.dart[1];
-    this.look[0] += (lx - this.look[0]) * Math.min(1, dt * 26); this.look[1] += (ly - this.look[1]) * Math.min(1, dt * 26);
+    { const w = 40, e = Math.exp(-w * dt);   // v10c: a critically damped ease to the new spot, settled in about 0.12 s, no snap
+      for (let i = 0; i < 2; i++) { const g = i ? ly : lx, x = this.look[i] - g, c = this.lookV[i] + w * x; this.look[i] = g + (x + c * dt) * e; this.lookV[i] = (this.lookV[i] - c * w * dt) * e; } }
     const shut = this.blinkK > 0 && !NO_SHUT[this.exprB];
     const pa = pupilOf(this.expr), pb = pupilOf(this.exprB), k = this.exprK, fang = this.fangs ? 6 : 0, ea = EXPR[this.expr], eb = EXPR[this.exprB];
     U.fCells.value.set(ea[0], ea[1] + fang, eb[0], eb[1] + fang); U.fMix.value.set(k, shut ? 1 : 0, 1, 6);
@@ -8725,6 +8783,8 @@ function axoMaterial(tex, look, meta) {
     Object.assign(sh.uniforms, look.U, own);
     sh.vertexShader = VERT_PARS + '\n' + sh.vertexShader.replace('#include <skinning_vertex>', '#include <skinning_vertex>\n' + VERT_MAIN);
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\n' + FRAG_PARS)
+      .replace('#include <lights_physical_pars_fragment>', THREE.ShaderChunk.lights_physical_pars_fragment.replace('reflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );',
+        'reflectedLight.directDiffuse += axoRamp( dot( geometryNormal, directLight.direction ) ) * directLight.color * BRDF_Lambert( material.diffuseColor );'))
       .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n' + FADE_FS)
       .replace('#include <color_fragment>', '#include <color_fragment>\n' + SKIN_FS + FACE_FS + COAT_FS)
       .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n' + BUMP_FS)
@@ -8905,7 +8965,7 @@ const AXOC = (() => {
     look.U.uCoat.value.z = Math.max(X.wet, X.coat > 0.5 ? 1 : 0);
     // the light it's lit by, in the camera's space (its fin glows from behind, its rim catches it)
     SUN_DIR.copy(sun.position).sub(sun.target.position).normalize().transformDirection(camera.matrixWorldInverse); look.U.uKeyDir.value.copy(SUN_DIR);
-    A.update(dt); if (D) D.strokeK = A.strokeMul ? A.strokeMul() : 1; // (swimming: the blob's pace follows the stroke; the game moves it by this)
+    A.update(dt); if (D) D.strokeK = (A.strokeMul ? A.strokeMul() : 1) * (D.swimBoost > 1 ? 1 + (D.swimBoost - 1) * (A.loco ? A.loco.slK || 0 : 0) : 1); /* (the Swim faster skill: a touch more pace while it swims) */ // (swimming: the blob's pace follows the stroke; the game moves it by this)
     // curled into a ball in flight it rolls over and over the way it's flying, faster the faster it goes; opening out it comes round upright
     { const bk = A.ballOn || 0, fly = (o.blob || 0) > 0.05 && !!o.inAir, sp = D ? Math.hypot(D.spd || 0, D.vy || 0) : 0, wsc = SC * (I.root.parent ? I.root.parent.scale.x : 1) || 1;
       X.spin = X.spin || 0; X.spinV = X.spinV || 0;
@@ -8930,7 +8990,7 @@ const AXOC = (() => {
     _m.decompose(_v, _q, _s); H.q.copy(_q);
     H.r = (M.meta.face ? M.meta.face.r : M.meta.headr) * SC * I.root.scale.y * (M.mesh.scale.y || 1);
     // under its chin (the bow tie, the pearls): low on the front of the head, where they show over its chest from the front
-    H.neck.set(0, -0.84 * H.r, 0.5 * H.r).applyQuaternion(H.q).add(H.c);
+    H.neck.set(0, -0.84 * H.r, 0.57 * H.r).applyQuaternion(H.q).add(H.c); /* (the neck accessories' anchor, on the fuller throat) */
     X.frame = 0; H.ok = true; return H;
   }
   function headTop(I, out, quat, up) {
@@ -8947,7 +9007,7 @@ const AXOC = (() => {
   function bodyPoint(I, x, y, z, out) { const H = headFrame(I); return out.copy(H.neck); }
   return { S, load, make, update, headTop, headSize, bodyPoint, backPoint, headR0: HEAD_R0, faceK: 1.18 };
 })();
-const axoLoad = AXOC.load(window.AXO_PACK || 'axo-pack-239.txt').catch(e => { AXOC.S.failed = true; console.warn('axolotl pack:', e && e.message); });
+const axoLoad = AXOC.load(window.AXO_PACK || 'axo-pack-241.txt').catch(e => { AXOC.S.failed = true; console.warn('axolotl pack:', e && e.message); });
 // (the slime only comes in if the axolotl never arrives)
 const slimeLoad = axoLoad.then(() => AXOC.S.ready ? null : SLIME.load(window.SLIME_PACK || 'slime-pack.txt')).catch(e => { SLIME.S.failed = true; console.warn('slime pack:', e && e.message); });
 const drop = new THREE.Group(), body = new THREE.Group(); drop.add(body);
@@ -10432,7 +10492,7 @@ function takeOrb(D) {
   orb.on = false; orb.pull = 0; orb.stay = false; orb.g.visible = false; orb.ring.visible = false; orb.spawnT = 16 + Math.random() * 6;
   for (let i = 0; i < 26; i++) { const a = Math.random() * 6.283; spawnPart(orb.x, orb.y, orb.z, Math.cos(a) * 4, 1 + Math.random() * 4, Math.sin(a) * 4, 0.55, orbPartMats[i % orbPartMats.length], 0.6); }
   shockwave(orb.x, D.y, orb.z, 2.6, 0xFFFFFF);
-  const gift = tut ? 'rocket' : window.__orbKind || ['giant', 'rocket'][(Math.random() * 2) | 0];
+  const gift = tut ? 'rocket' : window.__orbKind || (D === P ? strokeSpecial() : ['giant', 'rocket'][(Math.random() * 2) | 0]); /* (yours: the special stroke you equipped) */
   if (gift === 'rocket') { startRocket(D); for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0; return; }
   if (gift === 'turret') { startTurret(D); for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0; return; }
   D.giantT = GIANT_T; D.wob = 1; D.squash = 0.8; D.inkRush = true; emote(D, 'glee', 1.1); AU.grow(); if (D === P) AU.vox('hoh'); // a full tank that doesn't drain while it lasts
@@ -15726,12 +15786,60 @@ function closeComms() { $('commModal').hidden = true; $('commBtn').focus({ preve
 $('commBtn').addEventListener('click', () => { AU.init(); AU.ui(); openComms(); });
 $('commClose').addEventListener('click', () => { AU.init(); AU.ui(); closeComms(); });
 $('commModal').addEventListener('click', e => { if (e.target === $('commModal')) closeComms(); });
-// abilities: on the rail, locked until rank 3; past that, coming soon (a tap says which)
+
+// ---------- strokes: your special stroke (what the orb gives you) and your skill; the Giant crafted free at rank 3 ----------
+const STROKE_ICON = { rocket: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4c9 6 14 18 14 32v6H18v-6C18 22 23 10 32 4z" fill="#F4EEE3" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M18 30l-9 10 9 4zM46 30l9 10-9 4z" fill="#E3122F" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><circle cx="32" cy="26" r="6" fill="#7CC8FF" stroke="#171320" stroke-width="3.2"/><path d="M25 44h14l-7 16z" fill="#F2C14E" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/></svg>', giant: '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="34" cy="30" r="24" fill="#E3122F" stroke="#171320" stroke-width="3.2"/><circle cx="26" cy="27" r="4.2" fill="#fff" stroke="#171320" stroke-width="2.4"/><circle cx="42" cy="27" r="4.2" fill="#fff" stroke="#171320" stroke-width="2.4"/><circle cx="27" cy="28" r="1.8" fill="#171320"/><circle cx="43" cy="28" r="1.8" fill="#171320"/><path d="M27 38q7 5 14 0" fill="none" stroke="#171320" stroke-width="2.6" stroke-linecap="round"/><circle cx="9" cy="54" r="6" fill="#F2C14E" stroke="#171320" stroke-width="2.6"/><path d="M14 46l6-4M12 60l6 2" fill="none" stroke="#171320" stroke-width="2.4" stroke-linecap="round"/></svg>', swim: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M6 40c6-6 12-6 18 0s12 6 18 0 12-6 18 0" fill="none" stroke="#7CC8FF" stroke-width="5" stroke-linecap="round"/><path d="M6 52c6-6 12-6 18 0s12 6 18 0 12-6 18 0" fill="none" stroke="#7CC8FF" stroke-width="5" stroke-linecap="round"/><path d="M12 22h26M30 12l12 10-12 10" fill="none" stroke="#171320" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>' };
+const SPECIALS = [{ id: 'rocket', name: 'Rocket', desc: 'Blast up over the canvas, then dive down in a splash.' }, { id: 'giant', name: 'Giant', desc: 'Grow huge, paint wide, stomp rivals flat.', craft: 20 }];
+const SKILLS = [{ id: 'swim', name: 'Swim faster', desc: 'A touch more pace every time you glide.' }];
+const SWIM_BOOST = 1.08, STROKE_LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 10.5V7.8a4.5 4.5 0 0 1 9 0v2.7" fill="none" stroke="currentColor" stroke-width="3"/><rect x="4.5" y="10" width="15" height="12" rx="2.6" fill="currentColor"/></svg>';
+function strokesOf() { const d = store.strokes || (store.strokes = {}); if (!d.special) d.special = 'rocket'; if (!d.skill) d.skill = 'swim'; if (!Array.isArray(d.own)) d.own = ['rocket', 'swim']; for (const k of ['rocket', 'swim']) if (!d.own.includes(k)) d.own.push(k); return d; }
+const strokeOwned = id => strokesOf().own.includes(id), strokeSpecial = () => { const d = strokesOf(); return strokeOwned(d.special) ? d.special : 'rocket'; }, strokeSkill = () => strokesOf().skill;
+const strokesOpen = () => menuPage === 'strokes', strokesDue = () => repOf(store.xp || 0).lv >= ABIL_RANK; // (the page opens at rank 3)
+let stTick = 0, stToastT = 0;
+function craftLeft() { const c = strokesOf().craft; return c ? Math.max(0, c.end - Date.now()) : 0; }
+function craftTick() { const d = strokesOf(), c = d.craft; if (!c) return false; if (craftLeft() > 0) return true; d.craft = null; if (!d.own.includes(c.id)) d.own.push(c.id); d.fresh = c.id; save(); AU.fanfare && AU.fanfare(); return false; }
+function craftStart(id) { const d = strokesOf(), sp = SPECIALS.find(x => x.id === id); if (!sp || d.craft || d.own.includes(id)) return; d.craft = { id, end: Date.now() + sp.craft * 60000 }; save(); AU.pop(); buzz(10); renderStrokes(); }
+function craftSkip() { const d = strokesOf(); if (!d.craft) return; d.craft.end = Date.now(); craftTick(); AU.ui(); buzz([10, 30, 10]); renderStrokes(); stToast('The Giant is ready!'); }
+function equipSpecial(id) { const d = strokesOf(); if (!d.own.includes(id) || d.special === id) return; d.special = id; if (d.fresh === id) d.fresh = null; save(); AU.ready && AU.ready(); buzz(8); renderStrokes(); stToast(SPECIALS.find(x => x.id === id).name + ' is your special stroke'); }
+function stToast(msg) { const w = $('mStrokes'), old = w.querySelector('.sttoast'); if (old) old.remove(); const t = document.createElement('span'); t.className = 'sttoast'; t.setAttribute('role', 'status'); t.textContent = msg; w.appendChild(t); clearTimeout(stToastT); stToastT = setTimeout(() => t.remove(), 2300); }
+const mmss = ms => { const t = Math.ceil(ms / 1000), m = Math.floor(t / 60), sc = t % 60; return m + ':' + (sc < 10 ? '0' : '') + sc; };
+function renderStrokes() {
+  const d = strokesOf(); craftTick();
+  const now = (id, list, el) => { const o = list.find(x => x.id === id) || list[0]; el.innerHTML = '<span class="stic">' + STROKE_ICON[o.id] + '</span><span><span class="stname">' + o.name + '</span><span class="stdesc">' + o.desc + '</span><span class="ststamp">Equipped</span></span>'; };
+  now(strokeSpecial(), SPECIALS, $('stSpecialNow')); now(strokeSkill(), SKILLS, $('stSkillNow'));
+  const crafting = d.craft, left = craftLeft();
+  $('stSpecialRail').innerHTML = SPECIALS.map(o => { const own = d.own.includes(o.id), on = own && strokeSpecial() === o.id, cr = crafting && crafting.id === o.id, free = !own && !cr && strokesDue(), ready = own && !on && d.fresh === o.id;
+    const st = on ? 'Equipped' : cr ? 'Crafting' : ready ? 'Ready!' : own ? 'Tap to equip' : free ? 'Free to craft' : STROKE_LOCK + 'Rank ' + ABIL_RANK;
+    return '<button class="stopt' + (on ? ' on' : '') + (cr ? ' crafting' : '') + (ready ? ' ready' : '') + (free ? ' free' : '') + (!own && !cr && !free ? ' lock' : '') + '" type="button" data-st="' + o.id + '" aria-pressed="' + on + '" aria-label="' + escAttr(o.name + ', ' + st) + '">' + STROKE_ICON[o.id] + '<span class="stn">' + o.name + '</span><span class="sts">' + st + '</span></button>'; }).join('')
+    + '<span class="stopt soon" aria-hidden="true"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="20" fill="none" stroke="#8A8396" stroke-width="4" stroke-dasharray="7 7"/></svg><span class="stn">More soon</span><span class="sts">Rank up</span></span>';
+  $('stSkillRail').innerHTML = SKILLS.map(o => '<button class="stopt on" type="button" data-sk="' + o.id + '" aria-pressed="true" aria-label="' + escAttr(o.name + ', equipped') + '">' + STROKE_ICON[o.id] + '<span class="stn">' + o.name + '</span><span class="sts">Equipped</span></button>').join('')
+    + '<span class="stopt soon" aria-hidden="true"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="20" fill="none" stroke="#8A8396" stroke-width="4" stroke-dasharray="7 7"/></svg><span class="stn">More soon</span><span class="sts">Rank up</span></span>';
+  const cEl = $('stCraft'); cEl.hidden = !crafting; if (crafting) { const sp = SPECIALS.find(x => x.id === crafting.id), tot = sp.craft * 60000; $('stCraftT').textContent = mmss(left); $('stCraftBar').style.setProperty('--p', (100 * (1 - left / tot)).toFixed(1) + '%'); }
+  paintAbil();
+}
+function strokesFrame() { if (!strokesOpen()) return; const d = strokesOf(); if (d.craft) { if (!craftTick()) { renderStrokes(); stToast('The Giant is ready!'); } else { $('stCraftT').textContent = mmss(craftLeft()); const sp = SPECIALS.find(x => x.id === d.craft.id); $('stCraftBar').style.setProperty('--p', (100 * (1 - craftLeft() / (sp.craft * 60000))).toFixed(1) + '%'); } } }
+function openStrokes() {
+  if (state !== 'menu' || building || lookOpen || shopOpen || strokesOpen()) return;
+  if (menuPage === 'worlds') { closeSeason(); $('mWorld').hidden = true; } if (menuPage === 'events') closeEvents();
+  menuPage = 'strokes'; menu.dataset.page = 'strokes'; $('mHome').hidden = true; $('mStrokes').hidden = false; document.body.classList.add('evon'); closeSide(true); renderStrokes();
+  for (const c of $('mStrokes').querySelectorAll('.stslot')) { c.style.animation = 'none'; void c.offsetWidth; c.style.animation = ''; }
+  clearInterval(stTick); stTick = setInterval(strokesFrame, 500); setTimeout(() => $('stBack').focus({ preventScroll: true }), 40);
+}
+function closeStrokes() { if (!strokesOpen()) return; clearInterval(stTick); $('mStrokes').hidden = true; document.body.classList.remove('evon'); menuPage = 'home'; menu.dataset.page = 'home'; $('mHome').hidden = false; paintAbil(); renderLobbyUI && renderLobbyUI(); setTimeout(() => $('abilBtn').focus({ preventScroll: true }), 40); }
+$('stBack').addEventListener('click', () => { AU.init(); AU.ui(); closeStrokes(); });
+$('stSkip').addEventListener('click', () => { AU.init(); craftSkip(); });
+$('stSpecialRail').addEventListener('click', e => { const b = e.target.closest('.stopt[data-st]'); if (!b) return; AU.init(); const id = b.dataset.st, d = strokesOf();
+  if (d.own.includes(id)) { if (strokeSpecial() !== id) equipSpecial(id); else AU.ui(); return; }
+  if (d.craft) { AU.nope(); stToast('One craft at a time'); return; }
+  if (strokesDue()) craftStart(id); else { AU.nope(); stToast('Reach rank ' + ABIL_RANK + ' to craft the ' + id); } });
+$('stSkillRail').addEventListener('click', e => { if (e.target.closest('.stopt[data-sk]')) { AU.init(); AU.ui(); } });
+
+// abilities: on the rail, locked until rank 3; past that, the Strokes page
 const ABIL_RANK = 3, ABIL_LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 10.5V7.8a4.5 4.5 0 0 1 9 0v2.7" fill="none" stroke="currentColor" stroke-width="3"/><rect x="4.5" y="10" width="15" height="12" rx="2.6" fill="currentColor"/></svg>';
-function paintAbil() { const b = $('abilBtn'), on = repOf(store.xp || 0).lv >= ABIL_RANK; b.classList.toggle('locked', !on); $('abilTag').innerHTML = on ? 'Soon' : ABIL_LOCK + 'Rank ' + ABIL_RANK; b.setAttribute('aria-label', on ? 'Abilities, coming soon' : 'Abilities, locked until rank ' + ABIL_RANK); }
+function paintAbil() { const b = $('abilBtn'), on = repOf(store.xp || 0).lv >= ABIL_RANK, d = strokesOf(), fresh = on && (!!d.fresh || (!!d.craft && craftLeft() <= 0)); b.classList.toggle('locked', !on); b.classList.toggle('fresh', fresh); $('abilTag').innerHTML = on ? (fresh ? 'New!' : 'Strokes') : ABIL_LOCK + 'Rank ' + ABIL_RANK; b.setAttribute('aria-label', on ? 'Strokes: your special stroke and your skill' : 'Abilities, locked until rank ' + ABIL_RANK); }
 let abilT = 0;
-$('abilBtn').addEventListener('click', () => { AU.init(); AU.nope(); const b = $('abilBtn'), rail = b.parentElement, on = !b.classList.contains('locked'), old = b.querySelector('.abtoast'); if (old) old.remove();
-  const t = document.createElement('span'); t.className = 'abtoast'; t.setAttribute('role', 'status'); t.textContent = on ? 'Abilities are coming soon' : 'Reach rank ' + ABIL_RANK + ' to unlock Abilities'; b.appendChild(t); kick(b, 'abnudge');
+$('abilBtn').addEventListener('click', () => { AU.init(); const b = $('abilBtn'), rail = b.parentElement, on = !b.classList.contains('locked'), old = b.querySelector('.abtoast'); if (old) old.remove(); if (on) { AU.ui(); openStrokes(); return; } AU.nope();
+  const t = document.createElement('span'); t.className = 'abtoast'; t.setAttribute('role', 'status'); t.textContent = 'Reach rank ' + ABIL_RANK + ' to unlock Strokes'; b.appendChild(t); kick(b, 'abnudge');
   rail.classList.add('abup'); clearTimeout(abilT); abilT = setTimeout(() => { t.remove(); rail.classList.remove('abup'); }, 2000); }); // (the rail lifts over the spots beside you while its note shows)
 // when the commissions turn over (midnight, when the day's set is replaced): the ring on the plate drains through the day and the tag counts
 // down to it, hours and minutes, then minutes and seconds in the last hour
@@ -16737,7 +16845,7 @@ function introFly(D, dt) {
 }
 function goTime() {
   showCount('Go!', true); state = 'play'; introOut = 1; hud.classList.remove('off');
-  for (const D of ACTIVE) { D.eyeSink = D.eyeShut = D.eyeWide = 0; D.flowT = 1; D.flowK = 0; } // (whatever an intro was doing with the peeking eyes; and a second of crawling before the paint flows)
+  for (const D of ACTIVE) { D.eyeSink = D.eyeShut = D.eyeWide = 0; D.flowT = 1; D.flowK = 0; D.swimBoost = D === P && strokeSkill() === 'swim' ? SWIM_BOOST : 1; } // (whatever an intro was doing with the peeking eyes; and a second of crawling before the paint flows)
   for (const D of ACTIVE) { if (D.st === 'out') continue;
     if (D.introAct) { introActEnd(D); D.introOut = false; D.spawnGuard = 2.4; continue; } // (an intro's moves still playing: finished at once)
     if (D.introOut) { D.introOut = false; D.ip = null; D.introShake = null; D.spawnGuard = 2.4; continue; } // already out and on the floor (steered clear of drops for a moment)
@@ -17754,7 +17862,7 @@ function tutPlace() {
     return;
   }
   tutHandAt(null); if (tutDim.classList.contains('block') !== block) tutDim.classList.toggle('block', block); // (between matches only the instructed control takes a tap)
-  { const nb = shopOpen || lookOpen; if (tutDim.classList.contains('noblur') !== nb) tutDim.classList.toggle('noblur', nb); if (tutDim.classList.contains('clear') !== nb) tutDim.classList.toggle('clear', nb); } // (in the shop and the locker: no dim, no blur, the control ringed)
+  { const nb = shopOpen || lookOpen || strokesOpen(); if (tutDim.classList.contains('noblur') !== nb) tutDim.classList.toggle('noblur', nb); if (tutDim.classList.contains('clear') !== nb) tutDim.classList.toggle('clear', nb); } // (in the shop and the locker: no dim, no blur, the control ringed)
   const vis = el && !el.closest('[hidden]') && el.getClientRects().length > 0;
   if (vis && block) { const sc = el.closest('.shgrid, .lrail'); if (sc) { const a = el.getBoundingClientRect(), g = sc.getBoundingClientRect(), lr = sc.classList.contains('lrail'), lo = lr ? Math.max(a.left, g.left) : Math.max(a.top, g.top), hi = lr ? Math.min(a.right, g.right) : Math.min(a.bottom, g.bottom);
     if (Math.max(0, hi - lo) < 0.6 * (lr ? a.width : a.height)) tutReveal(el); } } // (what the tip is about, mostly out of its scroller (a turn of the phone, a scroll): back in the middle of it)
@@ -17864,13 +17972,35 @@ function tutCardCoach() { // (with him over it the card sits half his height low
   const g = $('tutGo'); if (g.hidden) return; const c = g.querySelector('.tgcard'), ah = $('tgAva').offsetHeight || 160, m = ah * 0.5, H = g.clientHeight - 48, peek = 24 + (H - c.offsetHeight + m) / 2 >= ah + 4, mt = peek ? m.toFixed(0) + 'px' : '';
   if (g.classList.contains('peek') !== peek) g.classList.toggle('peek', peek); if (c.style.marginTop !== mt) c.style.marginTop = mt;
 }
+// strokes: once you're rank 3 (and the first lessons are done), Ol' Bloop stops you in the lobby: look how far you've come; then let's
+// learn some more: the Strokes page, the Giant crafted (Skip, this one's on him) and equipped
+function tutStrokesDue() { return tutPh() === 'done' && !store.tut.strokes && strokesDue() && state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden && $('tutGo').hidden && !vic; }
+function tutStrokesCard(n) {
+  const el = $('tutGo'); el.dataset.mode = 'strokes' + n;
+  if (n === 1) tutCardText(['Look at <em>you</em>, rookie!', 'Rank ' + repOf(store.xp || 0).lv + ' already. You’ve come a long way since that first canvas, and I’ve been watching.', 'Aw, thanks', '']);
+  else tutCardText(['Let’s learn <em>some more</em>', 'And get even better. You’ve unlocked Strokes: your special move, and a skill. Come see.', 'Show me', '']);
+  if (el.hidden) { el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); } tutCardCoach(); if (n === 1) { AU.fanfare && AU.fanfare(); AU.bloop(0.55); menu.classList.add('tutoring'); } else AU.bloop(0.5); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);
+}
+function tutStrokesGo() { const el = $('tutGo'), m = el.dataset.mode; if (m === 'strokes1') return tutStrokesCard(2); el.classList.remove('on'); el.hidden = true; coachCorner(null); el.dataset.mode = ''; store.tut.strokes = 'on'; tutSet('strokes'); setTimeout(() => openStrokes(), 250); }
+function tutStrokesEnd() { tutSDone = 0; store.tut.strokes = 1; tutSet('done'); save(); tutHide(); menu.classList.remove('tutoring'); }
+function tutStrokesTick() {
+  if (state !== 'menu' || building || irisBusy || !setModal.hidden || !nameModal.hidden || !howModal.hidden) return tutHide();
+  if (shopOpen) return tutShow('Back to the lobby', 'shopBack', 'back'); if (lookOpen) return tutShow('Back to the lobby', 'lkDone', 'back');
+  if (menuPage === 'worlds') return tutShow('Back to the lobby', 'worldBack', 'back'); if (menuPage === 'events') return tutShow('Back to the lobby', 'evBack', 'back');
+  if (!strokesOpen()) return tutShow('Tap Strokes to open it', 'abilBtn', 'sOpen');
+  const d = strokesOf(), giant = () => $('stSpecialRail').querySelector('.stopt[data-st="giant"]');
+  if (!d.own.includes('giant')) { if (d.craft) return tutShow('Crafting takes 20 minutes. Tap Skip, this one’s on me', 'stSkip', 'sSkip'); return tutShow('Your Special Stroke is what the orb gives you. The Giant is yours now: tap it to craft it', giant, 'sGiant'); }
+  if (strokeSpecial() !== 'giant') return tutShow('It’s ready! Tap the Giant to make it your special stroke', giant, 'sEquip');
+  if (!tutSDone) { tutSDone = performance.now(); tutShow('Giant it is! Grab the orb in a match and go big. Your Skill is below: Swim faster is on', null, 'sDone', false, true, null, true); }
+  else if (performance.now() - tutSDone > 5200) tutStrokesEnd();
+}
 function tutWelcomeDone(open) { const el = $('tutGo'); el.classList.remove('on'); el.hidden = true; coachCorner(null); el.dataset.mode = ''; tutSet('done'); menu.classList.remove('tutoring'); kick($('commBtn'), 'bump'); if (open) setTimeout(() => openComms(), 250); }
 function tutCard(on) {
   const el = $('tutGo'); if (!tut) on = false;
   if (on) { el.dataset.mode = 'rest'; tutCardText(TG_REST); matchLeft = 10; tut.card = true; tut.slowK = 0; bannerEl.classList.remove('on'); el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); tutCardCoach(); AU.fanfare && AU.fanfare(); AU.bloop(0.55); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60); return; }
   el.classList.remove('on'); el.hidden = true; coachCorner(null); if (tut) { if (tut.card) { P.paint = 1; P.slamCD = 0; matchLeft = 10; banner('Paint it ' + colorOf().name.toLowerCase() + '!', TH.label, false, true); tutFinStart(); } /* (Let's do it: a full tank and the pound ready for the final push) */ tut.card = false; tut.slowK = 1; }
 }
-$('tgGo').addEventListener('click', () => { AU.init(); AU.ui(); if ($('tutGo').dataset.mode === 'welcome') tutWelcomeDone(true); else tutCard(false); });
+$('tgGo').addEventListener('click', () => { AU.init(); AU.ui(); const m = $('tutGo').dataset.mode; if (m === 'welcome') tutWelcomeDone(true); else if (m === 'strokes1' || m === 'strokes2') tutStrokesGo(); else tutCard(false); });
 $('tgLater').addEventListener('click', () => { AU.init(); AU.ui(); tutWelcomeDone(false); });
 // the first real match: no weather until halfway, then the sun in three short steps (find shade, with the way to it shown; hold to stay put in
 // it; or hide in a coffin), then the rain in one plain line, no slow-down, then the zombie eyes turn up close by. Your paint lasts longer
@@ -18103,8 +18233,9 @@ function tutEndMatch() { // (as a match ends)
 }
 function tutFangsSale() { const t = store.tut.price || (store.tut.price = {}); if (t.fangs >= 0) return; if (!OWNED.has('fangs')) { OWNED.add('fangs'); store.owned = [...OWNED]; } t.fangs = store.drops || 0; save(); if (shopOpen) renderShop(); }
 // between matches the coach points the way: the shop for the flower and the fangs, the locker to wear them, then the canvases to vote
-const tutBootEl = $('boot'), tutOrientEl = $('orient');
+const tutBootEl = $('boot'), tutOrientEl = $('orient'); let tutStrokesAt = 0, tutSDone = 0;
 function tutMenuTick() {
+  if (tutPh() === 'done' && tutStrokesDue()) { if (!tutStrokesAt) tutStrokesAt = performance.now(); if (performance.now() - tutStrokesAt > 1200) tutStrokesCard(1); return; } /* (a beat of the lobby, then the praise) */
   if (tutPh() === 'done') { if (menu.classList.contains('tutoring')) menu.classList.remove('tutoring'); if (!(state === 'play' && tutTip && tutTip.key === 'protip')) tutHide(); return; } /* (the onboarding is over: nothing to point at, so no hunting the page for open dialogs every frame) */
   if (bootHold || !booted || !tutBootEl.classList.contains('gone') || !tutOrientEl.hidden || document.querySelector('.modal:not([hidden])')) return tutHide(); // (nothing over the loading screen, the orientation chooser or any dialog) // (nothing over the loading screen: its tap to start must get through)
   const ph = tutPh(); if (menu.classList.contains('tutoring') !== (ph !== 'done')) menu.classList.toggle('tutoring', ph !== 'done'); // (the lesson keeps the lobby simple: no commissions, no how-to)
@@ -18112,6 +18243,7 @@ function tutMenuTick() {
   if (ph === 'welcome') { if (state === 'dead') { if (!end.hidden) return tutShow('Back to the lobby. Something new is waiting', 'menuBtn', 'welback'); return tutHide(); }
     if (state === 'menu' && lookOpen && store.zombieDeal && bought('zombie') && myLook.eyes !== 'zombie') { if (lookCat !== 'eyes') return tutShow('Open Eyes and try them on', 'lc-eyes', 'eyesz'); return tutShow('Tap the zombie eyes to put them on', () => $('eyeStyles').querySelector('[data-es="zombie"]'), 'wearz'); } /* (bought just now: the shop's Back brought you here to put them on) */
     tutHide(); if (state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy) tutWelcome(); return; }
+  if (ph === 'strokes') { tutStrokesTick(); return; }
   if (ph !== 'shop' && ph !== 'locker' && ph !== 'vote') { if (!(state === 'play' && tutTip && tutTip.key === 'protip')) tutHide(); return; } // (a real match's pro tip runs itself)
   if (state === 'dead') { if (ph === 'shop' && !$('newItem').hidden) { if (!tutNiAt) tutNiAt = performance.now(); if (performance.now() - tutNiAt < 1600) return tutHide(); return innerHeight < 520 && innerWidth > innerHeight ? tutShow('Tap to see them in the *shop*', 'niTry', 'ni', true, false, 'below') : tutShow('Tap to see your flower and fangs in the shop', 'niTry', 'ni', false, false, 'below'); } /* (a short screen gets the short callout, so the button stays clear) */ tutNiAt = 0; if (!end.hidden) return tutShow('Head back to the lobby', 'menuBtn', 'tomenu'); return tutHide(); }
   if (state !== 'menu' || building || irisBusy || !setModal.hidden || !nameModal.hidden || !howModal.hidden) return tutHide();
