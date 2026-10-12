@@ -195,25 +195,27 @@ def reshape(nm, untex, tex, out, outsrc, s=SCALE, verbose=True):
     # wider across the shoulders and deeper at the top of the trunk, easing to nothing by the hips; the arms, hips and tail untouched)
     fwdv = unit(np.array([0.0, 0.0, 1.0]) - nax * nax[2]); sidev = np.cross(nax, fwdv); nw = W[:, bi['neck']]; cw = W[:, bi['chest']]; s1w = W[:, bi['spine1']]
     armw = W[:, [i for i, k in enumerate(names) if k.startswith(('upperarm', 'shoulder', 'forearm', 'hand', 'finger'))]].sum(1)
-    AL = np.array([-0.56, -0.52, -0.48, -0.44, -0.40, -0.36, -0.32, -0.28, -0.24, -0.20, -0.16, -0.12, -0.08, -0.04, 0.00, 0.04, 0.08, 0.12])
-    PROF = {'stand': {'front': [0.218, 0.232, 0.232, 0.224, 0.215, 0.205, 0.196, 0.190, 0.190, 0.192, 0.200, 0.215, 0.242, 0.258, 0.279, 0.321, 0.353, 0.378],
-                      'side':  [0.250, 0.238, 0.228, 0.218, 0.215, 0.218, 0.225, 0.232, 0.238, 0.244, 0.250, 0.256, 0.262, 0.270, 0.282, 0.300, 0.328, 0.348],
-                      'back':  [0.440, 0.441, 0.446, 0.424, 0.352, 0.295, 0.256, 0.215, 0.190, 0.180, 0.176, 0.176, 0.180, 0.188, 0.200, 0.209, 0.260, 0.280]},
-            'crawl': {'front': [0.040, 0.062, 0.085, 0.110, 0.138, 0.150, 0.165, 0.175, 0.183, 0.190, 0.198, 0.215, 0.250, 0.290, 0.328, 0.344, 0.357, 0.357],
-                      'side':  [0.100, 0.118, 0.165, 0.178, 0.185, 0.195, 0.205, 0.215, 0.222, 0.228, 0.234, 0.240, 0.248, 0.258, 0.268, 0.309, 0.334, 0.334],
-                      'back':  [0.496, 0.454, 0.410, 0.373, 0.333, 0.299, 0.265, 0.234, 0.217, 0.192, 0.180, 0.172, 0.170, 0.178, 0.195, 0.225, 0.254, 0.265]}}[nm]
+    # (v10c: the profiles run on up to al 0.20, where they lie just inside the ball's own surface, so the fillet's lift fades out
+    # tangentially into the ball; the back no longer steps in 5 cm between al 0.08 and 0.04, which read as a ring round the nape)
+    AL = np.array([-0.56, -0.52, -0.48, -0.44, -0.40, -0.36, -0.32, -0.28, -0.24, -0.20, -0.16, -0.12, -0.08, -0.04, 0.00, 0.04, 0.08, 0.12, 0.16, 0.20])
+    PROF = {'stand': {'front': [0.218, 0.232, 0.232, 0.224, 0.215, 0.205, 0.196, 0.190, 0.190, 0.192, 0.200, 0.215, 0.242, 0.258, 0.279, 0.321, 0.353, 0.366, 0.384, 0.395],
+                      'side':  [0.250, 0.238, 0.228, 0.218, 0.215, 0.218, 0.225, 0.232, 0.238, 0.244, 0.250, 0.256, 0.262, 0.270, 0.282, 0.300, 0.328, 0.348, 0.372, 0.378],
+                      'back':  [0.440, 0.441, 0.446, 0.424, 0.352, 0.295, 0.256, 0.215, 0.190, 0.180, 0.182, 0.189, 0.200, 0.214, 0.230, 0.248, 0.266, 0.277, 0.284, 0.292]},
+            'crawl': {'front': [0.040, 0.062, 0.085, 0.110, 0.138, 0.150, 0.165, 0.175, 0.183, 0.190, 0.198, 0.215, 0.250, 0.290, 0.328, 0.344, 0.357, 0.357, 0.356, 0.343],
+                      'side':  [0.100, 0.118, 0.165, 0.178, 0.185, 0.195, 0.205, 0.215, 0.222, 0.228, 0.234, 0.240, 0.248, 0.258, 0.268, 0.309, 0.334, 0.334, 0.350, 0.375],
+                      'back':  [0.496, 0.454, 0.410, 0.373, 0.333, 0.299, 0.265, 0.234, 0.217, 0.192, 0.182, 0.188, 0.199, 0.212, 0.226, 0.240, 0.254, 0.266, 0.277, 0.286]}}[nm]
     def junction(PP):
         rel = PP - hbj; al = rel @ nax; rad = rel - np.outer(al, nax); rr = np.linalg.norm(rad, axis=1); phi = np.degrees(np.abs(np.arctan2(rad @ sidev, rad @ fwdv)))
         rf, rs, rb = (np.interp(al, AL, PROF[k]) for k in ('front', 'side', 'back'))
         rt = np.where(phi < 90, rf + (rs - rf) * ss(phi / 90), rs + (rb - rs) * ss((phi - 90) / 90))
         return al, rad, rr, rt
     al_, rad_, rr_, rt_ = junction(P2)
-    zone = ((hw + nw + cw + s1w) > 0.02) & ~own & (al_ > -0.54) & (al_ < 0.10) & (gw < 0.02) & (armw < 0.3)
+    zone = ((hw + nw + cw + s1w) > 0.02) & ~own & (al_ > -0.54) & (al_ < 0.18) & (gw < 0.02) & (armw < 0.3)
     def fillet(PP, k=1.0):
         al, rad, rr, rt = junction(PP); lift = zone & (rr < rt * k) & (rr > 1e-4); PP[lift] += (rad[lift] / rr[lift, None]) * (rt[lift] * k - rr[lift])[:, None]; return lift
     lifted = fillet(P2)
     chin = zone & (al_ > -0.07) & ((rad_ @ fwdv) > 0.6 * rr_)   # (the flat chin front keeps its surface; the smoothing leaves it alone)
-    smz = zone & ~chin & (al_ < 0.06) & (armw < 0.05)
+    smz = zone & ~chin & ((al_ < 0.06) | ((rad_ @ fwdv) < 0) & (al_ < 0.10)) & (armw < 0.05)   # (v10c: the nape's smoothing reaches up into the ball)
     for _ in range(8):
         y_ = (A @ P2) / np.maximum(deg, 1)[:, None]; P2[smz] = 0.5 * P2[smz] + 0.5 * y_[smz]
     fillet(P2, 0.985)
@@ -237,7 +239,7 @@ def reshape(nm, untex, tex, out, outsrc, s=SCALE, verbose=True):
         print(f'  slime ball hits {int(onball.sum())} of {int(grp.sum())} head-group verts; blended {int((k > 0.5).sum())}; neck floor on {int(low.sum())}; smoothed {int(sm.sum())}')
         print(f'  skull x {qq[:, 0].min():.3f}..{qq[:, 0].max():.3f} y {qq[:, 1].min():.3f}..{qq[:, 1].max():.3f} z {qq[:, 2].min():.3f}..{qq[:, 2].max():.3f}; moved mean {np.linalg.norm(P2 - P, axis=1)[core].mean() * 100:.1f} cm max {np.linalg.norm(P2 - P, axis=1)[core].max() * 100:.1f} cm')
     # ---- the attributes of the head: the head mask for the look (mat.y 0.2 on the skull, fading down the neck; the ears take 1.0) ----
-    headK = ss((hw - 0.3) / 0.6); mat[:, 1] = np.clip(np.round(255 * 0.2 * headK), 0, 255).astype(np.uint8); jelly[ring, 2] = 0; fill[ring, 3] = 0
+    headK = ss((hw - 0.3) / 0.6) * ss((al_ + 0.10) / 0.16); mat[:, 1] = np.clip(np.round(255 * 0.2 * headK), 0, 255).astype(np.uint8); jelly[ring, 2] = 0; fill[ring, 3] = 0
     # the old base rings shared their weight with the stalks' bones: that share goes to the head now (the ear bones must not dent the skull)
     gset = np.zeros(len(names), bool); gset[gidx] = True; hidx = bi['head']; moved = 0
     for v in np.where(gw > 0)[0]:
