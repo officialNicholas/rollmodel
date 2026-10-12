@@ -153,7 +153,9 @@ def reshape(nm, untex, tex, out, outsrc, s=SCALE, verbose=True):
     jelly = r['jelly'][:n].copy(); fill = r['fill'][:n].copy(); mat = r['mat'][:n].copy(); si = r['si'][:n].copy(); sw = r['sw'][:n].copy(); cp = r['cp'][:n].copy()
     # (the retired stalks: v9b collapsed each stalk's vertices onto one point, so they are the vertices stacked three or more deep on a
     # point; the ring round each is whatever still touches them)
-    key = np.round(P, 4); _, inv, cnt = np.unique(key, axis=0, return_inverse=True, return_counts=True); own = (cnt[inv.ravel()] >= 3) & ((hw + gw) > 0.02)
+    # (stacked within 1.5 mm, not bit-identical: v9b's smoothing nudged a few of them apart, and those few, with their mixed stalk and
+    # head weights, opened into a long sliver textured across the atlas whenever the ear bones moved: the lobby's pale spike)
+    kd0 = cKDTree(P); stack = np.array([len(kd0.query_ball_point(p, 0.0015)) for p in P]); own = (stack >= 3) & ((hw + gw) > 0.02)
     T = T[~own[T].any(1)]; A0, _ = adjacency(n, r['T'][(r['T'] < n).all(1)]); ring = ((A0 @ own.astype(float)) > 0) & ~own
     def open_near(TT, PP):
         E = np.concatenate([TT[:, [0, 1]], TT[:, [1, 2]], TT[:, [2, 0]]]); u_, c_ = np.unique(np.sort(E, 1), axis=0, return_counts=True); op = u_[c_ == 1]
@@ -275,7 +277,7 @@ def reshape(nm, untex, tex, out, outsrc, s=SCALE, verbose=True):
     o2nt = -np.ones(nt, np.int64); o2nt[keept] = np.arange(int(keept.sum())); ntb = int(keept.sum()); Tt2 = o2nt[Tt]; assert (Tt2 >= 0).all()
     Ptb = P2[vm][keept]; uvb = uvt[keept]; vmk = vm[keept]; ringt = ring[vmk]; vgroup_t = vgroup[o2n[vmk]]   # (the rims' copies and their holes)
     cen_t, fanTt, rep_t, chains_t = close_holes_tex(Ptb, Tt2, ringt, C, vgroup_t, cen); ncen_t = len(cen_t)
-    sit = rd('skinIndex', np.uint8, 4)[keept]; swt = rd('skinWeight', np.uint8, 4)[keept]; jt = jelly[vm][keept]; ft = fill[vm][keept]; mtt = mat[vm][keept]
+    sit = si[vm][keept]; swt = sw[vm][keept]; jt = jelly[vm][keept]; ft = fill[vm][keept]; mtt = mat[vm][keept]   # (the weights with the stalk share moved to the head, not the file's own copies)
     cpt = r['cp'][:n][vm].copy()
     if nm == 'stand': cpt[:, :3] = np.clip(np.round(P2[vm] / cps * 32767), -32767, 32767)
     else: cpt[:, :3] = np.clip(np.round((cpt[:, :3].astype(float) / 32767 * cps + (P2 - P)[vm]) / cps * 32767), -32767, 32767)

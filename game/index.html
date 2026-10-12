@@ -2915,7 +2915,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 238</p>
+      <p class="ver">Version 239</p>
     </div>
   </div>
 
@@ -6842,7 +6842,7 @@ void slimeSSS(const in IncidentLight L, const in vec3 N, const in vec3 V, const 
 // start loading the slime's models now; the characters switch over once they're in (see attachSlimes)
 // ---------- the axolotl (Roll Model's character): its runtime, made from the axolotl pipeline's axo.js by tools/mk_axo_embed.py ----------
 const AXO = (() => {
-// Roll Model axolotl runtime v7, single module: the core (mesh loader, dual quaternion skinning, the shared-skeleton Puppet), the
+// Roll Model axolotl runtime v10 (v9b + the slime's head and ears, axo/tools6/slimehead.py and look10.py), single module: the core (mesh loader, dual quaternion skinning, the shared-skeleton Puppet), the
 // procedural Animator and the Look (the layered skin, the game's slime face, the paint coat, the jelly layer).
 // (core) Roll Model axolotl runtime: mesh loader (.bin/.json/.webp), shared-skeleton Puppet with joint limits, procedural Animator.
 // A pose = per-bone local rotation expressed in the bone's canonical frame (Y along the bone, Z = flexion / ventral side, X = Y x Z = hinge)
@@ -7701,8 +7701,8 @@ class Animator {
     for (let j = 0; j < 6; j++) {
       const i1 = g[j * 2]; _q.copy(this.P.Fp[i1]).invert(); _v.copy(vel).applyQuaternion(_q);
       const jj = j % 3, flutter = Math.sin(this.t * 2.3 + jj * 0.6 + (j < 3 ? 0 : 1.9)) * 2.0 + Math.sin(this.t * 3.7 + jj * 0.5 + (j < 3 ? 0 : 0.7)) * 1.0;
-      const cl = x => 16 * Math.tanh(x / 16);   // a soft limit: the drag saturates instead of clipping
-      const sgn = j < 3 ? 1 : -1; this.gillTarget[j * 2] = cl(flutter - _v.z * 15 - this.accS.z * 6); this.gillTarget[j * 2 + 1] = cl(-_v.x * 15 - this.accS.x * 5 * sgn);
+      const cl = x => 28 * Math.tanh(x / 28);   // a soft limit: the drag saturates instead of clipping (v10: wider for the ears)
+      const sgn = j < 3 ? 1 : -1; this.gillTarget[j * 2] = cl(flutter - _v.z * 22 + this.accS.z * 8); this.gillTarget[j * 2 + 1] = cl(this.accS.x * 6);
     }
     // the top and middle stalks grow from one base (fused): they move mostly together, so the frond between them is never torn
     for (const o of [0, 6]) for (let c = 0; c < 2; c++) { const t0 = this.gillTarget[o + c], t1 = this.gillTarget[o + 2 + c], m = 0.5 * (t0 + t1); this.gillTarget[o + c] = m + 0.3 * (t0 - m); this.gillTarget[o + 2 + c] = m + 0.3 * (t1 - m); }
@@ -7715,6 +7715,11 @@ class Animator {
     const I = this.I, tf = this.tf, tl = this.tl, lat = this.tailLat;
     for (let k = 0; k < 6; k++) rot(pose, this.chain.tail[k], tl[k * 2 + 1] * tf, 0, (tl[k * 2] + lat * (0.25 + k * 0.15)) * tf);
     const g = this.chain.gills, gs = this.gs, hold = this.gillHoldS;
+    { const P = this.P, Fp = P.Fp, hi = P.idx.head, F0 = P.m.stand.F, k = 0.92 * hold * (1 - (this.ballOn || 0));
+      if (!this.gillDownRest) { this.gillDownRest = []; for (let j = 0; j < 6; j++) this.gillDownRest.push(new THREE.Vector3(0, -1, 0).applyQuaternion(_q.copy(F0[g[j * 2]]).invert())); }
+      if (k > 0.001) for (let j = 0; j < 6; j++) { const i1 = g[j * 2];
+        _q.copy(Fp[hi]).multiply(P.Rel[i1]); _v.set(0, -1, 0).applyQuaternion(_q.invert());
+        _q2.setFromUnitVectors(this.gillDownRest[j], _v); if (k < 0.999) _q2.slerp(_q.identity(), 1 - k); pose.q[i1].multiply(_q2); } }
     const cm = hold, lo = 0.4;   // (one head in both states: the same gills, the same motion)
     const stalkAmp = [cm, 0.9 * cm, lo * cm, cm, 0.9 * cm, lo * cm];
     for (let j = 0; j < 6; j++) { const a = gs[j * 2] * stalkAmp[j], b = gs[j * 2 + 1] * stalkAmp[j]; rot(pose, g[j * 2], a * 0.55, 0, b * 0.55); rot(pose, g[j * 2 + 1], a * 0.7, 0, b * 0.7); }
@@ -7877,7 +7882,7 @@ Animator.prototype.crawl = function (t, out, dt) {
     const lg = u < 0.26 ? (x => x * x * x * (10 - 15 * x + 6 * x * x))(u / 0.26) : 1 - smooth((u - 0.26) / 0.74), gat = u > 0.86 ? Math.sin(Math.PI * (u - 0.86) / 0.14) : 0;
     SL.first = Math.max(0, (SL.first || 0) - dt / 1.1); const fst = 1 + 0.7 * SL.first; /* (the first pull out of the crawl: a bigger launch) */
     out.root.z += (0.1 * lg * fst - 0.03 * gat) * sl; /* (a smaller lunge of the body: the whole blob surges with the pull now, see strokeMul) */ out.root.y -= (0.012 + 0.022 * g) * sl;
-    if (u < (SL.pu === undefined ? 1 : SL.pu) && sl > 0.5) this.kickGills(0, -0.28 * sl); SL.pu = u; // (each pull: the gills swept back by the lunge, then springing out again)
+    if (u < (SL.pu === undefined ? 1 : SL.pu) && sl > 0.5) this.kickGills(0, 0.28 * sl); SL.pu = u; // (each pull: the gills swept back by the lunge, then springing out again)
     // the head: a little dip into each pull, up and steady through the glide, a small nod with each step; the chest rides it gently
     const hp = (0.1 * fst * Math.sin(Math.PI * clamp01(u / 0.26)) - 0.05 * g + 0.035 * (1 - g) * Math.sin(th + 0.6)) * sl;
     this.pitchTurn(out, sp[3], 0.3 * hp); this.pitchTurn(out, I.neck, 0.5 * hp); this.pitchTurn(out, I.head, 0.45 * hp); }
@@ -7921,7 +7926,7 @@ Animator.prototype.crawl = function (t, out, dt) {
     L.land = { t: 0, list: [[pick(true, true), 0], [pick(true, false), 0.075], [pick(false, false), 0.13], [pick(false, true), 0.18]].map(([l, d]) => ({ l, d: d * sc })) };
     for (const z of L.land.list) { const l = z.l; l.st = 'land'; l.p0.copy(l.p); }
     L.ph = frac(-L.land.list[0].l.off + 0.12 * L.D);
-    L.dip.v -= 44 * k; L.dipR.v += 40 * k * L.lead; L.landK = k;
+    L.dip.v -= 44 * k; L.dipR.v += 40 * k * L.lead; L.landK = k; this.kickGills(0, 0.6 * k); /* (the ears slap down on landing) */
   }
   if (!air && L.land) {
     const Z = L.land; Z.t += dt; let done = true;
@@ -8033,10 +8038,10 @@ Animator.prototype.crawl = function (t, out, dt) {
 // head's swing and overshooting when it stops), and flare a little with each breath in
 { const ss0 = Animator.prototype.stepSecondary;
   Animator.prototype.stepSecondary = function (dt) {
-    const L = this.loco; if (!this.gillSpring2) { this.gillSpring2 = 1; this.gillSpring.k = 230; this.gillSpring.c = 10; }
+    const L = this.loco; if (!this.gillSpring2) { this.gillSpring2 = 1; this.gillSpring.k = 75; this.gillSpring.c = 5; }
     if (L) { const swing = Math.max(-1, Math.min(1, -(L.yr * Math.max(1.5, L.v) * 0.12 + L.ht.v * 0.012))), fl = (this.breath - 0.5) * 2;
       const add = this.gillAdd || (this.gillAdd = new Float32Array(12));
-      for (let j = 0; j < 6; j++) { const sgn = j < 3 ? 1 : -1; add[j * 2] = -fl * 2.5 * (1 - L.act); add[j * 2 + 1] = swing * 24 * sgn + fl * 7 * (1 - L.act); } this.gillAddOn = true; }
+      for (let j = 0; j < 6; j++) { add[j * 2] = -fl * 1.0 * (1 - L.act) + Math.min(1, L.v / 4) * 9; add[j * 2 + 1] = -swing * 24 + fl * 2 * (1 - L.act); } this.gillAddOn = true; } /* (the ears: hang back a little at a run and swing forward on a stop; both thrown to the outside of a turn) */
     // the original computes the targets and steps the spring: the turn's swing goes in through the push the spring is given
     ss0.call(this, dt);
     // the tail follows the body's bend round a turn (its spring lags it in and swings it back after)
@@ -8204,10 +8209,10 @@ function makeFaceSheets(C) {
     if (tongue) { const [tx, ty, tw, th] = tongue, tg = ctx.createRadialGradient(tx - tw * 0.2, ty + th * 0.35, 0, tx, ty, tw * 1.1); tg.addColorStop(0, '#FF9DB0'); tg.addColorStop(0.6, '#F0607E'); tg.addColorStop(1, '#C23A58'); ctx.fillStyle = tg; ctx.beginPath(); ctx.ellipse(tx, ty, tw, th, 0, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = 'rgba(255,215,225,0.55)'; ctx.beginPath(); ctx.ellipse(tx - tw * 0.32, ty + th * 0.42, tw * 0.22, th * 0.14, -0.3, 0, Math.PI * 2); ctx.fill(); }
     const sh = ctx.createLinearGradient(0, top, 0, top - (top - bot) * 0.45); sh.addColorStop(0, 'rgba(10,0,4,0.75)'); sh.addColorStop(1, 'rgba(10,0,4,0)'); ctx.fillStyle = sh; ctx.fillRect(-2, bot, 4, top - bot + 0.2);
-    ctx.restore(); path(); ctx.strokeStyle = 'rgba(' + INK + ',0.85)'; ctx.lineWidth = 0.032; ctx.stroke();
+    ctx.restore(); path(); ctx.strokeStyle = 'rgba(' + INK + ',0.14)'; ctx.lineWidth = 0.07; ctx.stroke(); ctx.strokeStyle = 'rgba(' + INK + ',0.8)'; ctx.lineWidth = 0.03; ctx.stroke();
   };
   const fang = (ctx, x, y, s) => { ctx.beginPath(); ctx.moveTo(x - 0.035 * s, y + 0.005); ctx.quadraticCurveTo(x - 0.01 * s, y - 0.07 * s, x + 0.002 * s, y - 0.088 * s); ctx.quadraticCurveTo(x + 0.014 * s, y - 0.06 * s, x + 0.035 * s, y + 0.005); ctx.closePath(); const fg = ctx.createLinearGradient(0, y, 0, y - 0.09 * s); fg.addColorStop(0, '#FFFFFF'); fg.addColorStop(1, '#E9E2F0'); ctx.fillStyle = fg; ctx.fill(); ctx.strokeStyle = 'rgba(' + INK + ',0.7)'; ctx.lineWidth = 0.014; ctx.stroke(); };
-  const line = (ctx, pts, w) => { ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.strokeStyle = 'rgba(' + INK + ',0.92)'; ctx.lineWidth = w || 0.045; ctx.stroke(); };
+  const line = (ctx, pts, w) => { ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.strokeStyle = 'rgba(' + INK + ',0.16)'; ctx.lineWidth = (w || 0.045) * 2.2; ctx.stroke(); ctx.strokeStyle = 'rgba(' + INK + ',0.84)'; ctx.lineWidth = w || 0.045; ctx.stroke(); };
   const dPath = (ctx, w, top, h, dip) => () => { ctx.beginPath(); ctx.moveTo(-w, top); ctx.quadraticCurveTo(0, top - dip, w, top); for (let k = 1; k <= 40; k++) { const t = k / 40 * Math.PI; ctx.lineTo(w * Math.cos(t), top - h * Math.sin(t)); } ctx.closePath(); };
   const MOUTHS = {
     neutral: (ctx, f) => { line(ctx, Array.from({ length: 21 }, (_, i) => { const u = i / 20 - 0.5; return [u * 0.2, MY + 0.03 - 0.035 * Math.cos(u * Math.PI)]; }), 0.034); if (f) { fang(ctx, -0.05, MY + 0.0, 0.8); fang(ctx, 0.05, MY + 0.0, 0.8); } },
@@ -8232,22 +8237,28 @@ uniform vec4 uLag;     // xyz: lag offset of the soft body (object space, m), w:
 uniform vec4 uHead;    // xyz: the face sphere's centre (rest, object space), w: its radius
 uniform vec4 uFaceP;   // x the face centre's pitch, y the half angle of a face cell, z horizontal squeeze, w on
 uniform float uCoatMix;
-varying vec3 vCp, vFace; varying vec4 vJelly, vFill, vMat; varying float vAlong, vFillO;`;
+varying vec3 vCp, vFace; varying vec4 vJelly, vFill, vMat; varying float vAlong, vFillO; varying vec2 vRest;`;
 const VERT_MAIN = `
 {
   vCp = cpos.xyz * uCpScale; vAlong = cpos.w * uCpScale; vJelly = jelly; vFill = fill; vMat = mat; vFillO = mix(fill.x, fill.y, uCoatMix);
   vec3 d = position - uHead.xyz; float yw = atan(d.x, d.z), pt = atan(d.y, length(d.xz));
   vFace = vec3(yw / (uFaceP.y * uFaceP.z), (pt - uFaceP.x) / uFaceP.y, smoothstep(-0.05, 0.3, d.z / uHead.w) * smoothstep(0.72, 0.95, jelly.w) * (1.0 - smoothstep(0.2, 0.45, mat.y)) * uFaceP.w);
   float soft = 1.0 - jelly.w, h = clamp(transformed.y / uJelly.z, 0.0, 1.0);
-  transformed += objectNormal * (jelly.x * uJelly.x + uJelly.w * soft * sin(position.x * 23.0 + position.y * 17.0 + uLag.w * 9.0) * sin(position.z * 19.0 - uLag.w * 7.0));
+  // (v9b: the body's own frame for the paint's runs and beads: across the rest body along the surface, and the rest height)
+  { vec3 acr = cross(normal, vec3(0.0, -1.0, 0.0)); acr = normalize(acr + vec3(1e-3, 0.0, 0.0)); vRest = vec2(dot(position, acr), position.y); }
+  // (v9b: a gentle wobble of the soft parts, so the body reads as paint; never the head)
+  float wob = sin(position.y * 4.1 + position.x * 1.7 + uLag.w * 2.7) * sin(position.z * 3.3 - uLag.w * 1.9);
+  transformed += objectNormal * (jelly.x * uJelly.x + uJelly.w * soft * sin(position.x * 23.0 + position.y * 17.0 + uLag.w * 9.0) * sin(position.z * 19.0 - uLag.w * 7.0) + soft * 0.005 * wob * (1.0 - 0.6 * jelly.z));
   float s = uJelly.y * soft; transformed.y *= 1.0 - s; transformed.xz *= 1.0 + 0.5 * s;
   transformed += uLag.xyz * soft * h;
 }`;
 const FRAG_PARS = `
-uniform vec3 uSkin, uBelly, uSpot, uGill, uGillTip, uFinCore, uFinGlow, uPaint; uniform vec4 uCoat, uDetail, uDetail2, uTint, uTintTo; uniform float uCoatMix;
+uniform vec3 uSkin, uBelly, uSpot, uGill, uGillTip, uFinCore, uFinGlow, uPaint, uTeam; uniform vec4 uCoat, uDetail, uDetail2, uTint, uTintTo; uniform float uCoatMix;
 uniform sampler2D fCol, fMsk; uniform vec4 fCells, fMix, fPupil, fComp, fLash; uniform vec3 fIris; uniform float fStyle; uniform vec3 uKeyDir; uniform float uDebug, uFadeK, uIsCrawl; uniform vec4 uSwap;
-varying vec3 vCp, vFace; varying vec4 vJelly, vFill, vMat; varying float vAlong, vFillO;
+varying vec3 vCp, vFace; varying vec4 vJelly, vFill, vMat; varying float vAlong, vFillO; varying vec2 vRest;
 float sCoatM = 0.0, faceInk = 0.0, sEyeM = 0.0, sDrawM = 0.0, sGill = 0.0, sFin = 0.0, sBelly = 0.0, sSpot = 0.0, sAO = 0.0;
+float sFaceK = 0.0, sCoatH = 0.0, sCoatT = 0.0, sBead = 0.0, sDbgDm = 0.0, sDbgG = 0.0, sCatch = 0.0, sWetK = 0.0; vec3 sPaintC = vec3(0.0);   // v9: face skin, the coat's height (m) and thickness, beads, the paint colour
+float sEar = 0.0, sHeadM = 0.0, sJelly = 0.0, sFaceM = 0.0;   // v10: the ears, the head (skull and ears), the jelly look on them, the face's oval
 float aHash(vec3 p) { p = fract(p * vec3(0.1031, 0.1030, 0.0973)); p += dot(p, p.yzx + 33.33); return fract((p.x + p.y) * p.z); }
 vec3 aHash3(vec3 p) { p = fract(p * vec3(0.1031, 0.1030, 0.0973)); p += dot(p, p.yxz + 33.33); return fract((p.xxy + p.yxx) * p.zyx); }
 float aNoise(vec3 p) { vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -8273,7 +8284,21 @@ vec2 fCell(float c, vec2 uv){ float col = mod(c, 4.0), row = floor(c * 0.25 + 0.
 float fCone(vec2 p, vec2 a, vec2 b, float w0, float w1) { vec2 ab = b - a; float t = clamp(dot(p - a, ab) / dot(ab, ab), 0.0, 1.0); float d = length(p - a - ab * t) - mix(w0, w1, t); return 1.0 - smoothstep(-0.004, 0.012, d); }
 float coatField(vec3 sp, float sy){ vec3 cq = sp * 5.0 + uCoat.y;
   float ch = 0.5 + 0.25 * sin(cq.x * 1.7 + sin(cq.y * 2.3)) * sin(cq.z * 1.9 + sin(cq.x * 1.3)) + 0.25 * sin(cq.y * 3.1 + cq.z * 1.1 + cq.x * 0.7);
-  return clamp(0.55 * ch + 0.45 * sy, 0.0, 1.0); }`;
+  return clamp(0.55 * ch + 0.45 * sy, 0.0, 1.0); }
+// v9: the thick paint's own lumps (finer than the fill's), 0..1, and the beads splashed past its edge: a jittered grid of little domes
+// (x their cover, y their height in metres)
+float coatLump(vec3 sp){ vec3 w = sp * 26.0 + uCoat.y * 0.7;
+  float a = sin(w.x + 1.4 * sin(w.z * 0.8)) * sin(w.y + 1.2 * sin(w.x * 0.7)) * sin(w.z * 0.9 + 1.1 * sin(w.y * 0.6));
+  float k = 1.0 - smoothstep(0.25, 0.8, length(fwidth(w)) / 6.2832); return 0.5 + 0.5 * a * k; }
+float coatLumpLo(vec3 sp){ vec3 w = sp * 17.0 + uCoat.y * 0.4; return 0.5 + 0.5 * sin(w.x + 1.5 * sin(w.z * 0.7 + 0.4)) * sin(w.y * 1.1 + 1.3 * sin(w.x * 0.8)) * sin(w.z + 1.2 * sin(w.y * 0.9)); }
+vec2 coatBeads(vec3 sp, float band){
+  // (one cell per pixel: each bead sits wholly inside its own cell of a 2.8 cm grid, so no neighbour search; nothing where there is no band)
+  if (band < 0.002) return vec2(0.0);
+  vec3 q = sp * 36.0 + uCoat.y, i = floor(q), f = fract(q); float fw = length(fwidth(q)), pres = aHash(i + 5.17);
+  if (pres > 0.5) return vec2(0.0);
+  vec3 hp = aHash3(i + 2.3); float r = mix(0.1, 0.25, hp.z * hp.z), dd = length(f - (0.25 + 0.5 * hp.xyz));
+  float aa = 0.6 * fw + 0.02, m = (1.0 - smoothstep(r - aa, r + aa, dd)) * band * (1.0 - smoothstep(0.3, 0.8, fw));
+  return vec2(m, m > 0.0 ? r * sqrt(max(0.0, 1.0 - dd * dd / (r * r))) / 36.0 * 0.9 : 0.0); }`;
 // the skin: base tone, dorsal mottling, the belly, the tail fin's bands, spots, gill frills, cavities
 const SKIN_FS = `
 {
@@ -8290,11 +8315,13 @@ const SKIN_FS = `
   float a = dot(ch, uTint.xy), w = smoothstep(0.02, 0.1, a) * uTint.w; vec2 res = ch - a * uTint.xy;
   ch = mix(ch, res + a * uTint.z * uTintTo.xy, w); Y *= mix(1.0, uTintTo.z, w * 0.35);
   float cr = Y + ch.x, cb = Y + ch.y; col = max(vec3(cr, (Y - 0.2126 * cr - 0.0722 * cb) / 0.7152, cb), vec3(0.0));
+  col = max(mix(vec3(dot(col, vec3(0.2126, 0.7152, 0.0722))), col, 1.14), vec3(0.0));
   float bk = smoothstep(0.1, 0.85, belly); sBelly = bk;
   float core = tail * exp(-pow((finh - 0.4) / 0.19, 2.0)), glowE = tail * (1.0 - smoothstep(0.0, 0.24, finh)); sFin = max(core, glowE);
   col = mix(col, uFinGlow, 0.1 * glowE); sSpot = 0.0;
   col *= 1.0 + 0.06 * bk;   // (the cream belly a touch brighter under the game's warm ground light)
-  gk = smoothstep(0.35, 0.8, gill);   // (the stalks keep the skin's pink; the thin fronds take the frill colour)
+  gk = 0.0; sEar = smoothstep(0.35, 0.8, gill); sHeadM = smoothstep(0.08, 0.2, gill);   // (v10: the gill channel is the ear mask; the skull carries 0.2)
+  col *= 1.0 + sEar * (0.12 * (n1 - 0.5) + 0.05 * (n2 - 0.5));
 #else
   col = uSkin * (0.9 + 0.14 * n1 + 0.06 * n2);
   float mot = smoothstep(0.5, 0.78, aNoise(cp * 7.5 + 11.0)) * (1.0 - belly) * (1.0 - gill);   // soft darker patches on the back
@@ -8316,7 +8343,7 @@ const SKIN_FS = `
 #else
   vec3 gc = mix(uGill * (0.9 + 0.2 * n2), uGillTip, clamp(0.55 * vFill.w + 0.08 * fil * gill, 0.0, 1.0));
 #endif
-  col = mix(col, gc, gk); sGill = gill;
+  col = mix(col, gc, gk); sGill = gk;
 #ifdef USE_MAP
   col *= 1.0 - 0.1 * ao;
 #else
@@ -8334,7 +8361,7 @@ if (vFace.z > 0.01 && abs(vFace.x * fComp.x) < 0.985 && abs(vFace.y * fComp.y) <
   vec4 eA = texture2D(fCol, fCell(fCells.x, cuvE)), eB = texture2D(fCol, fCell(fCells.z, cuvE)), eye = mix(eA, eB, fMix.x);
   vec3 emL = mix(texture2D(fMsk, fCell(fCells.x, cuvE)).rgb, texture2D(fMsk, fCell(fCells.z, cuvE)).rgb, fMix.x); vec2 em = emL.rg;
   vec4 bl = texture2D(fCol, fCell(fMix.w, cuvE)); eye = mix(eye, bl, fMix.y); em *= 1.0 - fMix.y;
-  float dotK = 0.0; if (fStyle > 1.5 && fStyle < 2.5) { eye.a = 0.0; em = vec2(0.0); }
+  float dotK = 0.0, dotG = 0.0; if (fStyle > 1.5 && fStyle < 2.5) { eye.a = 0.0; em = vec2(0.0); }
   if (zmb > 0.5) eye.rgb = eye.rgb * vec3(0.78, 0.9, 0.6) + vec3(0.05, 0.06, 0.0) * eye.a;
   float lsh = 0.0; if (fLash.x + fLash.y > 0.0) lsh = mix(emL.b, texture2D(fMsk, fCell(fMix.w, cuvE)).b, fMix.y) * (fq.x < 0.0 ? fLash.x : fLash.y);
   vec3 c = mix(diffuseColor.rgb, eye.rgb, eye.a);
@@ -8344,19 +8371,29 @@ if (vFace.z > 0.01 && abs(vFace.x * fComp.x) < 0.985 && abs(vFace.y * fComp.y) <
     float mk = max(rim, sp); c = mix(c, vec3(0.03, 0.012, 0.02), mk);
     float lidLine = eye.a * step(dot(eye.rgb, vec3(0.333)), 0.3); c = mix(c, vec3(0.03, 0.012, 0.02), hole * (1.0 - eye.a) * (1.0 - mk)); c = mix(c, vec3(0.46, 0.3, 0.38), hole * lidLine * (1.0 - mk)); dotK = max(mk, hole * (1.0 - eye.a)); }
   if (fStyle > 1.5 && fStyle < 2.5) { float bk = 1.0 - fMix.y * 0.92; for (int i = 0; i < 2; i++) { float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16 + fPupil.w) + fPupil.xy * 0.6; vec2 dd = (fq - pc) * vec2(1.0, 1.0 / max(0.08, bk)); float r = length(dd);
-    float dk = 1.0 - smoothstep(0.125, 0.145, r); c = mix(c, vec3(0.03, 0.012, 0.02), dk); float hl = 1.0 - smoothstep(0.03, 0.046, length((fq - pc - vec2(-0.045, 0.05)) * vec2(1.0, 1.0 / max(0.08, bk)))); c = mix(c, vec3(1.0), hl * dk); dotK = max(dotK, dk); } }
+    float daa = fwidth(r) * 1.2 + 0.0015, dk = 1.0 - smoothstep(0.135 - daa, 0.135 + daa, r); c = mix(c, vec3(0.03, 0.012, 0.02), dk); float hl = 1.0 - smoothstep(0.03, 0.046, length((fq - pc - vec2(-0.045, 0.05)) * vec2(1.0, 1.0 / max(0.08, bk)))); c = mix(c, vec3(1.0), hl * dk); dotK = max(dotK, dk); dotG = max(dotG, dk); } }
   for (int i = 0; i < 2; i++) {
     float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16 + fPupil.w) + fPupil.xy, dd = (fqe - pc) * vec2(1.0, 0.92); float r = length(dd), ri = mix(0.165, 0.235, sqd) * fPupil.z * mix(1.0, i == 0 ? 0.92 : 1.14, zmb), rp = mix(0.092, 0.11, sqd) * fPupil.z * mix(1.0, i == 0 ? 0.5 : 0.78, zmb) * mix(1.0, 0.66, sly);
     vec3 irC = mix(fIris, vec3(0.42, 0.6, 0.3), zmb); irC = mix(irC, mix(fIris, vec3(0.86, 0.85, 0.9), 0.74), sly);
-    float ia = (1.0 - smoothstep(ri - 0.014, ri, r)) * em.r;
-    vec3 ic = mix(irC, irC * 0.2, smoothstep(0.0, ri, r)); ic = mix(ic, vec3(0.004, 0.002, 0.003), 1.0 - smoothstep(rp - 0.012, rp, r));
-    ic += irC * 1.12 * smoothstep(ri * 0.35, ri * 0.95, r) * smoothstep(0.2, -0.6, dd.y / ri) * (1.0 - smoothstep(ri * 0.95, ri, r));
+    float faa = fwidth(r) * 1.2 + 0.0015, ia = (1.0 - smoothstep(ri - faa, ri + faa, r)) * em.r;
+    // the iris: lighter round the pupil, deeper toward a dark limbal ring, fine radial fibres (fading where a pixel would blur them), a
+    // bright floor where the light comes through from above; the pupil soft-edged with a dark halo
+    float an = atan(dd.y, dd.x), fib = (0.5 + 0.5 * sin(an * 29.0 + sin(an * 7.0 + r * 50.0) * 1.3)) * (1.0 - smoothstep(0.25, 0.7, fwidth(an) * 29.0 / 6.2832));
+    vec3 ic = mix(irC * 1.4, irC * 0.45, smoothstep(rp * 0.6, ri * 0.9, r)); ic *= 1.0 + 0.2 * (fib - 0.5) * smoothstep(rp, rp * 1.4, r);
+    ic = mix(ic, irC * 0.14, smoothstep(ri * 0.84, ri * 0.98, r));
+    ic = mix(ic, irC * 0.3, (1.0 - smoothstep(rp, rp + 0.03, r)) * 0.6); ic = mix(ic, vec3(0.004, 0.002, 0.003), 1.0 - smoothstep(rp - faa, rp + faa * 0.5, r));
+    ic += irC * 1.25 * smoothstep(ri * 0.3, ri * 0.92, r) * smoothstep(0.25, -0.65, dd.y / ri) * (1.0 - smoothstep(ri * 0.9, ri, r));
     ic = mix(ic, vec3(0.72, 0.78, 0.62), zmb * 0.42 * smoothstep(rp, ri * 0.9, r) * (0.6 + 0.4 * sin(atan(dd.y, dd.x) * 11.0 + r * 60.0)));
     ic = mix(ic, vec3(0.02, 0.008, 0.014), sqd * smoothstep(ri - 0.032, ri - 0.012, r));
     ic = mix(ic, vec3(0.3, 0.17, 0.2), sly * (1.0 - smoothstep(0.006, 0.02, abs(r - ri * 0.93))) * smoothstep(0.3, -0.4, dd.y / ri)); ic = mix(ic, vec3(0.42, 0.19, 0.2), sly * (1.0 - smoothstep(rp - 0.012, rp, r)));
     c = mix(c, ic * (1.0 - 0.55 * em.g), ia);
-    float cl = (1.0 - smoothstep(mix(0.03, 0.05, sqd), mix(0.042, 0.06, sqd), length(fqe - pc - vec2(-0.055, 0.06) * (1.0 + 0.3 * sqd) * fPupil.z))) + 0.8 * (1.0 - sqd) * (1.0 - smoothstep(0.012, mix(0.02, 0.026, sqd), length(fqe - pc - vec2(0.05, -0.05) * (1.0 + 0.3 * sqd) * fPupil.z)));
-    c = mix(c, vec3(1.0), clamp(cl, 0.0, 1.0) * (1.0 - 0.75 * zmb) * em.r * (1.0 - 0.85 * em.g));
+    // the catchlights: a soft main one up and to the left with a faint glow round it, a small sharp one low and right, and a faint wet
+    // sheen over the top of the cornea
+    float caa = fwidth(fqe.x) * 1.2 + 0.001, r1 = mix(0.036, 0.05, sqd) * (0.8 + 0.2 * fPupil.z), d1 = length((fqe - pc - vec2(-0.055, 0.062) * (1.0 + 0.3 * sqd) * fPupil.z) * vec2(1.0, 1.12));
+    float cl = (1.0 - smoothstep(r1 - caa, r1 + caa, d1)) + 0.22 * (1.0 - smoothstep(r1, r1 * 2.4, d1));
+    float d2 = length(fqe - pc - vec2(0.052, -0.05) * (1.0 + 0.3 * sqd) * fPupil.z), r2 = mix(0.013, 0.018, sqd); cl += 0.85 * (1.0 - smoothstep(r2 - caa, r2 + caa, d2));
+    cl += 0.1 * smoothstep(0.1, 0.55, dd.y / ri) * (1.0 - smoothstep(ri * 0.7, ri * 1.3, r));
+    float ck = clamp(cl, 0.0, 1.0) * (1.0 - 0.75 * zmb) * em.r * (1.0 - 0.85 * em.g); c = mix(c, vec3(1.0), ck); sCatch = max(sCatch, (1.0 - smoothstep(r1 - caa, r1 + caa, d1)) * (1.0 - 0.75 * zmb) * em.r * (1.0 - 0.85 * em.g));
   }
   if (zmb > 0.5) { for (int i = 0; i < 2; i++) { float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16 + fPupil.w), dd = fq - pc; float r = length(dd), an = atan(dd.y, dd.x);
       float vn = smoothstep(0.86, 0.99, sin(an * 7.0 + sin(r * 38.0 + an * 3.0) * 0.7 + sd * 1.3)) * smoothstep(0.12, 0.2, r) * (1.0 - smoothstep(0.3, 0.42, r)); c = mix(c, vec3(0.55, 0.03, 0.04), vn * eye.a * (1.0 - em.r * 0.7));
@@ -8390,11 +8427,15 @@ if (vFace.z > 0.01 && abs(vFace.x * fComp.x) < 0.985 && abs(vFace.y * fComp.y) <
     float line = (1.0 - smoothstep(0.02 - fw, 0.02 + fw, abs(dl))) * inx, st = (1.0 - smoothstep(0.01, 0.01 + fw, abs(mod(fq.x + 0.075, 0.15) - 0.075))) * (1.0 - smoothstep(0.06, 0.06 + fw, abs(dl))) * inx * step(0.08, abs(fq.x));
     float tooth = 0.0; for (int i = 0; i < 3; i++) { float cx = i == 0 ? -0.2 : i == 1 ? 0.03 : 0.24, w = 0.036 * (1.0 - clamp(-dl / 0.09, 0.0, 1.0)); tooth = max(tooth, (1.0 - smoothstep(w - fw, w + fw, abs(fq.x - cx))) * step(-0.09, dl) * step(dl, 0.0)); }
     zma = max(line, st); c = mix(c, vec3(0.03, 0.012, 0.02), zma); c = mix(c, vec3(0.93, 0.9, 0.78), tooth * (1.0 - line)); zma = max(zma, tooth); }
-  faceInk = max(max(max(max(eye.a, mo.a), lsh), dotK), zma) * vFace.z; diffuseColor.rgb = mix(diffuseColor.rgb, c, vFace.z); sEyeM = em.r * vFace.z;
+  faceInk = max(max(max(max(eye.a, mo.a), lsh), dotK), zma) * vFace.z;
+  { float bm = exp(-(pow((abs(fq.x) - 0.6) / 0.25, 2.0) + pow((fq.y + 0.3) / 0.19, 2.0))) * (1.0 - faceInk);
+    c = mix(c, mix(c, vec3(0.95, 0.3, 0.42), 0.5), 0.3 * bm); }
+  diffuseColor.rgb = mix(diffuseColor.rgb, c, vFace.z); sEyeM = max(em.r * (1.0 - 0.6 * em.g), dotG) * vFace.z; sFaceK = vFace.z * (1.0 - faceInk);
 }
 sDrawM = faceInk;`;
 // the paint coat: rising by the fill order (the crawl's from the ground contacts, the stand's from the feet), in lumps; wet paint levels the skin
 const COAT_FS = `
+vec3 preCoat = diffuseColor.rgb;
 if (uCoat.x > 0.001 || uCoat.w > 0.001) {
   float ch = coatField(vCp, vFillO), cv = uCoat.x * 1.08 - 0.04, cOn = step(0.001, uCoat.x), wOn = step(0.001, uCoat.w);
   sCoatM = smoothstep(ch - 0.035, ch + 0.035, cv) * cOn;
@@ -8404,6 +8445,55 @@ if (uCoat.x > 0.001 || uCoat.w > 0.001) {
   diffuseColor.rgb = mix(diffuseColor.rgb, pc, sCoatM) * (1.0 - 0.3 * (1.0 - smoothstep(0.0, 0.06, abs(cv - ch))) * step(uCoat.x, 0.995) * cOn);
   diffuseColor.rgb = mix(diffuseColor.rgb, pc, wm * (1.0 - sCoatM)) * (1.0 - 0.24 * we); sCoatM = max(sCoatM, wm);
   faceInk *= 1.0 - sCoatM; sDrawM = faceInk;
+}
+// v9b: the paint as living paint, after the old slime's (the game's v207 coat): one signed distance to the paint's edge in metres
+// (the fill's field and the wading line, whichever reaches further, each turned into metres by how fast it runs across the pixel),
+// so the edge is soft and anti-aliased at any distance and its lip the same width on the body wherever it is; the face never takes
+// the field's line: over the face the paint comes as a soft fade near full (the eyes stay clear). Above the edge thin runs of paint
+// are left where the level has just dropped, sliding down after it (the high water the runtime keeps); the paint carries streaks
+// flowing down and beads sliding down its surface; a rounded lip, soft lumps in the thick paint, a smooth glossy full coat; the
+// wading paint swells round the contacts like a base melting into its puddle, rippling. Out of the paint the skin dries from the top.
+// out of the paint the skin stays wet a while and dries from the top down (uCoat.z the adapter's wet, 1 soaked .. 0 dry)
+sWetK = smoothstep(-0.1, 0.1, uCoat.z - (0.1 + 0.75 * vFillO));
+if (uCoat.x > 0.001 || uCoat.w > 0.001) {
+  float gcp = max(length(fwidth(vCp)), 1e-5), flow = uDetail2.x;
+  // the body's own frame for the runs and beads: down the rest body (gravity in either body's rest), across it along the surface
+  float hc = vRest.x;
+  float run = clamp(pow(aNoise(vec3(hc * 24.0, flow * 0.04, 4.1)), 3.0) * 1.3, 0.0, 1.0) * (1.0 - smoothstep(0.25, 0.7, fwidth(hc) * 24.0));
+  float lumpLo = coatLumpLo(vCp), lump = coatLump(vCp);
+  // the fill coat: its field with a lobed edge; the runs above the edge reach toward where the level was a moment ago
+  float ch = coatField(vCp, vFillO) - 0.03 * lumpLo * lumpLo - 0.005, cv = uCoat.x * 1.08 - 0.04, kch = gcp / max(fwidth(ch), 1e-5);
+  float dm = uCoat.x > 0.001 ? (cv - ch) * kch + max(0.0, uDetail2.y - uCoat.x) * 1.08 * kch * run : -1e3;
+  // the wading paint: the line from the fill order, wavy and lobed, rippling; its runs the same way
+  float wv = uCoat.w - vFillO + 0.02 * sin(vCp.x * 31.0 + vCp.z * 17.0 + uCoat.y) + 0.012 * sin(vCp.z * 53.0 - vCp.x * 23.0 + uCoat.y * 0.7) + 0.022 * lumpLo + 0.006 * sin(vCp.x * 41.0 + vCp.z * 29.0 - flow * 2.6);
+  float kwv = gcp / max(fwidth(wv), 1e-5);
+  float dw = uCoat.w > 0.001 ? wv * kwv + max(0.0, uDetail2.z - uCoat.w) * kwv * run : -1e3;
+  float wadeK = uCoat.w > 0.001 ? smoothstep(-0.02, 0.02, dw - dm) : 0.0;
+  dm = max(dm, dw);
+  float aa = max(0.012, gcp * 1.2), full = step(0.995, uCoat.x);
+  float cm = smoothstep(-aa, aa, dm); cm = max(cm, full);
+  // the face: no line across it; the paint comes over it as a soft fade near full, and never over the eyeballs
+  float cmF = smoothstep(0.8, 0.97, uCoat.x + 0.05 * (lumpLo - 0.5)) * (1.0 - sEyeM); cmF = max(cmF, full * (1.0 - sEyeM));
+  cm = mix(cm, cmF, vFace.z);
+  // the paint colour: the team's, deep and saturated; the streaks flowing down it, the creases between the lumps a shade darker
+  float flw = aNoise(vec3(hc * 35.0, vRest.y * 2.2 + flow * 0.5, 7.7));
+  vec3 pc = max(mix(vec3(dot(uPaint, vec3(0.2126, 0.7152, 0.0722))), uPaint, 1.25), vec3(0.0)) * 0.85;
+  pc *= 1.0 + 0.1 * (flw - 0.5) * (1.0 - full) - 0.1 * (1.0 - lump) * smoothstep(0.0, 0.05, dm) * (1.0 - full);
+  // the thickness: a rounded lip over the first 4 cm, soft lumps in the thick paint, none in a fresh full coat; the beads sliding down
+  // the paint from its edge, one to a column in some columns; the wading paint swollen round the contacts (the base in its puddle)
+  float t = clamp(dm / 0.04, 0.0, 1.0), lip = sqrt(max(0.0, 1.0 - (1.0 - t) * (1.0 - t)));
+  float bc = hc * 70.0, bi = floor(bc), bfx = fract(bc) - 0.5, brn = fract(sin(bi * 91.7 + uCoat.y) * 4375.85);
+  float by = fract(flow * (0.22 + 0.2 * brn) + brn) * 0.14, bd = length(vec2(bfx / 0.42, (dm - by) / 0.011)), bAA = 1.0 - smoothstep(0.15, 0.4, fwidth(bc));
+  float bead = (1.0 - smoothstep(0.55, 1.0, bd)) * step(brn, 0.45) * bAA * smoothstep(0.01, 0.03, dm) * (1.0 - full) * (1.0 - vFace.z);
+  float swell = wadeK * smoothstep(0.1, 0.0, vFillO) * uCoat.w;
+  sBead = bead; sCoatT = cm * max(lip, bead);
+  float ripple = 0.15 * sin(vCp.x * 17.0 + vCp.z * 11.0 - flow * 3.1) * sin(vCp.z * 13.0 - vCp.x * 7.0 + flow * 2.3) * wadeK;
+  sCoatH = (0.0055 * lip + 0.0025 * (lump - 0.5) * t + 0.004 * bead * (1.0 - bd * bd) + 0.003 * ripple * t + 0.012 * swell * (0.5 + 0.5 * lump)) * cm * (1.0 - full) + full * 0.0008 * (lump - 0.5);
+  sCoatM = cm; sPaintC = pc; sWetK *= 1.0 - cm;
+  // the skin under the edge in the paint's shadow; the lip a shade lighter (its thin rim lets the skin's light through)
+  vec3 skin = preCoat * (1.0 - 0.26 * (1.0 - smoothstep(-0.035, 0.0, dm)) * smoothstep(-0.07, -0.03, dm));
+  diffuseColor.rgb = mix(skin, mix(pc, mix(pc, preCoat, 0.35), 0.45 * (1.0 - t) * (1.0 - full) * (1.0 - vFace.z)), cm);
+  faceInk *= 1.0 - cm * (1.0 - sEyeM); sDrawM = faceInk;
 }`;
 // the relief: bumpy amphibian skin and pores (softer on the belly and the face), wrinkle bands across the joints, the gill filaments,
 // the spots a hair lower; flat under the paint; fine octaves fade out where a pixel covers them (no shimmer)
@@ -8419,24 +8509,26 @@ const BUMP_FS = `
   // they would otherwise alias into a moire)
   float fa = fwidth(vAlong), kw = 1.0 - smoothstep(0.12, 0.3, fa * 571.2 / 6.2832), kg = 1.0 - smoothstep(0.12, 0.3, fa * 480.0 / 6.2832);
   h += uDetail.w * vMat.z * k3 * kw * (0.5 + 0.5 * sin(vAlong * 571.2 + aNoise(cp * 60.0) * 2.5)) * (1.0 - sCoatM) * (1.0 - faceInk);
-  h += 0.05 * uDetail.x * sGill * (0.5 + 0.5 * sin(vAlong * 480.0 + aNoise(cp * 11.0 + 7.1) * 8.0)) * k3 * kg;
   h -= 0.5 * uDetail.x * sSpot;
+  h += sCoatH;
   normal = aBump(-vViewPosition, normal, h);
 }`;
 const LIT_FS = `
-{ float wet = max(sCoatM, 0.45 * uCoat.z);
-  float rough = mix(0.52, 0.32, sBelly); rough = mix(rough, 0.52, sGill * 0.7); rough = mix(rough, 0.34, sFin * 0.6); rough = mix(rough, 0.72, sDrawM);
-  material.roughness = min(max(mix(rough, 0.16, wet), 0.0525) + geometryRoughness, 1.0);
+{ float wet = max(sCoatM, 0.8 * sWetK), inkM = clamp(sDrawM - sEyeM, 0.0, 1.0);
+  float rough = mix(0.52, 0.32, sBelly); rough = mix(rough, 0.52, sGill * 0.7); rough = mix(rough, 0.34, sFin * 0.6); rough = mix(rough, 0.4, 0.6 * sEar);
+  rough = mix(rough, 0.4, 0.6 * sFaceK);   // (the face skin a touch smoother)
+  rough = mix(rough, 0.72, inkM); rough = mix(rough, 0.1, sEyeM);   // (matte ink, a wet eye)
+  material.roughness = min(max(mix(rough, 0.05, wet), 0.0525) + geometryRoughness, 1.0);
 #ifdef USE_CLEARCOAT
-  material.clearcoat = mix(0.12 + 0.28 * sBelly + 0.12 * sFin, 1.0, sCoatM) * (1.0 - 0.9 * sDrawM);
-  material.clearcoatRoughness = min(max(mix(0.46 - 0.18 * sBelly, 0.07, sCoatM), 0.0525) + geometryRoughness, 1.0);
+  material.clearcoat = mix(0.12 + 0.28 * sBelly + 0.12 * sFin + 0.2 * sFaceK, 1.0, max(max(sCoatM, 0.45 * sEyeM), 0.7 * sWetK)) * (1.0 - 0.9 * inkM);
+  material.clearcoatRoughness = min(max(mix(0.46 - 0.18 * sBelly - 0.1 * sFaceK, 0.03, max(max(sCoatM, sEyeM), sWetK)), 0.0525) + geometryRoughness, 1.0);
 #endif
 #ifdef USE_SHEEN
-  material.sheenColor = uBelly * (0.5 * sBelly + 0.15 * sGill) * (1.0 - sCoatM); material.sheenRoughness = 0.42;
+  material.sheenColor = (uBelly * (0.5 * sBelly + 0.15 * sGill) + mix(diffuseColor.rgb, vec3(1.0), 0.5) * (0.3 * sFaceK + 0.12 * sEar)) * (1.0 - sCoatM) * (1.0 - sJelly); material.sheenRoughness = 0.42;
 #endif
 }`;
 const LOOK_FS = `
-{ float occ = sAO * (1.0 - 0.3 * sCoatM), ink = sDrawM * (1.0 - sCoatM);
+{ float occ = sAO * (1.0 - 0.3 * sCoatM), ink = clamp(sDrawM - sEyeM, 0.0, 1.0) * (1.0 - sCoatM), eyeK = sEyeM * (1.0 - sCoatM);
   reflectedLight.indirectDiffuse *= 1.0 - 0.5 * occ; reflectedLight.directDiffuse *= 1.0 - 0.2 * occ; reflectedLight.indirectSpecular *= 1.0 - 0.7 * occ; reflectedLight.directSpecular *= 1.0 - 0.4 * occ;
 #ifdef USE_CLEARCOAT
   clearcoatSpecularIndirect *= 1.0 - 0.85 * occ; clearcoatSpecularDirect *= 1.0 - 0.6 * occ;
@@ -8444,6 +8536,9 @@ const LOOK_FS = `
   // the drawn face: matte ink, lit a little from within like the game's (it reads at any light)
   reflectedLight.directDiffuse *= 1.0 - 0.45 * ink; reflectedLight.indirectDiffuse *= 1.0 - 0.45 * ink; reflectedLight.directSpecular *= 1.0 - 0.9 * ink; reflectedLight.indirectSpecular *= 1.0 - 0.9 * ink;
   totalEmissiveRadiance += diffuseColor.rgb * ink * 0.5;
+  // the eye: lit a little from within too (its white stays bright in shade), its gloss kept
+  reflectedLight.directDiffuse *= 1.0 - 0.15 * eyeK; reflectedLight.indirectDiffuse *= 1.0 - 0.15 * eyeK; totalEmissiveRadiance += diffuseColor.rgb * eyeK * 0.42;
+  { float ck = sCatch * vFace.z * (1.0 - sCoatM); reflectedLight.directDiffuse *= 1.0 - ck; reflectedLight.indirectDiffuse *= 1.0 - ck; reflectedLight.directSpecular *= 1.0 - ck; totalEmissiveRadiance = mix(totalEmissiveRadiance, vec3(1.0), ck); }
   // light through the thin parts (fin, frills, toe tips), in the skin's own deeper colour; the free edges of fins and frills lit
   vec3 vd = normalize(vViewPosition), kd = normalize(uKeyDir);
   float thin = vJelly.z * (1.0 - sCoatM) * (1.0 - ink);
@@ -8462,6 +8557,14 @@ const LOOK_FS = `
   // a soft rim along the body's outline, a whisper of light on the moist skin
   float upk = saturate(dot(nonPerturbedNormal, normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz)) + 0.4);
   totalEmissiveRadiance += mix(diffuseColor.rgb, vec3(1.0, 0.95, 0.92), 0.35) * pow(edge, 3.0) * (0.5 + 0.5 * upk) * 0.22 * (1.0 - ink) * (1.0 - 0.5 * sCoatM);
+  // the face skin: a little light through it (wrapped round the terminator and through from behind, in the skin's deeper colour)
+  totalEmissiveRadiance += deep * sFaceK * (1.0 - sCoatM) * (0.1 * wrap + 0.07 * back);
+  // the wet paint: a fresnel sheen and a cheap reflection of the sky and ground off the bumped surface (the clear coat layer, where
+  // there is one, adds the real one), the beads and the lip catching most
+  if (sCoatM + sWetK > 0.002) { vec3 wup = normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz), rv = reflect(-vd, normal); float ru = dot(rv, wup) * 0.5 + 0.5;
+    float fr = pow(1.0 - saturate(dot(normal, vd)), 3.5), sky = mix(0.08, 0.5, smoothstep(0.35, 0.9, ru)) * (0.6 + 0.4 * fr);
+    vec3 refl = mix(vec3(1.0), sPaintC * 2.0, 0.3);
+    totalEmissiveRadiance += refl * (0.14 * fr + 0.22 * sky * (0.35 + 0.65 * sCoatT)) * max(sCoatM, 0.5 * sWetK); }
 }`;
 // a mesh fading in or out (the stand / crawl swap): a screen-space dither, so it is always drawn opaque and sorted right
 // two ways a mesh shares the screen with the other one, both by a screen-space dither (always opaque, sorted right, no see-through double
@@ -8482,9 +8585,14 @@ if (uDebug > 0.5) {
   if (uDebug < 1.5) gl_FragColor = vec4(vec3(material.roughness), 1.0);
   else if (uDebug < 2.5) { float l = 0.15 + 0.85 * max(0.0, dot(normal, normalize(vec3(0.4, 0.7, 0.6)))); gl_FragColor = vec4(vec3(l), 1.0); }
   else if (uDebug < 3.5) gl_FragColor = vec4(vec3(1.0 - sAO), 1.0);
-  else if (uDebug < 4.5) gl_FragColor = vec4(sBelly, vJelly.z, sGill, 1.0);
+  else if (uDebug < 4.5) gl_FragColor = vec4(sBelly, vJelly.z, max(sEar, 0.5 * sHeadM), 1.0);
   else if (uDebug < 5.5) gl_FragColor = vec4(vec3(1.0 - sSpot), 1.0);
-  else gl_FragColor = vec4(fract(vCp * 4.0), 1.0);
+  else if (uDebug < 6.5) gl_FragColor = vec4(fract(vCp * 4.0), 1.0);
+  else if (uDebug < 7.5) gl_FragColor = vec4(sCoatM, sCoatT, sBead, 1.0);
+  else if (uDebug < 8.5) gl_FragColor = vec4(vec3(0.5 + sCoatH * 40.0), 1.0);
+  else if (uDebug < 9.5) gl_FragColor = vec4(vec3(vFillO), 1.0);
+  else if (uDebug < 10.5) gl_FragColor = vec4(vec3(0.5 + sDbgDm * 4.0), 1.0);
+  else gl_FragColor = vec4(vec3(sDbgG * 300.0), 1.0);
 }`;
 
 // ---------------- the palette: every colour from the team colour ----------------
@@ -8582,6 +8690,13 @@ class Look {
     U.fPupil.value.set(this.look[0], this.look[1], pa.pu + (pb.pu - pa.pu) * k, pa.py + (pb.py - pa.py) * k);
     U.fComp.value.set(1, 1, 0, 0); U.uLag.value.w = this.t;
     if (this.coatMixT !== undefined) U.uCoatMix.value += (this.coatMixT - U.uCoatMix.value) * Math.min(1, dt * 3);
+    // the paint's living state (v9b): the high water of the coat and of the wading band (they slip down after the level over a couple
+    // of seconds: the runs the shader leaves above the edge reach up to them), the flow of the streaks (quicker while it drains) and
+    // how dry the skin is (the adapter's wet, uCoat.z, turned round)
+    { const c = U.uCoat.value, D2 = U.uDetail2.value, pw = this._pw === undefined ? c.w : this._pw, pc = this._pc === undefined ? c.x : this._pc, dw = c.w - pw, dc = c.x - pc; this._pw = c.w; this._pc = c.x;
+      D2.z = dw > 0 ? Math.max(D2.z, c.w) : Math.max(c.w, D2.z - dt * (D2.z - c.w) * 0.45);
+      D2.y = dc > 0 ? Math.max(D2.y, c.x) : Math.max(c.x, D2.y - dt * (D2.y - c.x) * 0.55);
+      D2.x = (D2.x + dt * (0.5 + 12 * Math.min(0.2, Math.max(0, -dw - dc) / Math.max(dt, 1e-3)))) % 1000; D2.w = 1 - c.z; }
   }
 }
 // the body material for one mesh of one character (the look's uniforms are shared by the character's two meshes; the head frame, the
@@ -8596,6 +8711,7 @@ function axoMaterial(tex, look, meta) {
       .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n' + FADE_FS)
       .replace('#include <color_fragment>', '#include <color_fragment>\n' + SKIN_FS + FACE_FS + COAT_FS)
       .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n' + BUMP_FS)
+      .replace('#include <clearcoat_normal_fragment_maps>', '#include <clearcoat_normal_fragment_maps>\n#ifdef USE_CLEARCOAT\nclearcoatNormal = normalize(mix(clearcoatNormal, normal, max(max(sCoatM, sEyeM), sWetK)));\n#endif')
       .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\n' + LIT_FS)
       .replace('#include <aomap_fragment>', '#include <aomap_fragment>\n' + LOOK_FS)
       .replace('#include <colorspace_fragment>', '#include <colorspace_fragment>\n' + DEBUG_FS);
@@ -8808,7 +8924,7 @@ const AXOC = (() => {
   function bodyPoint(I, x, y, z, out) { const H = headFrame(I); return out.copy(H.neck); }
   return { S, load, make, update, headTop, headSize, bodyPoint, backPoint, headR0: HEAD_R0, faceK: 1.18 };
 })();
-const axoLoad = AXOC.load(window.AXO_PACK || 'axo-pack.txt').catch(e => { AXOC.S.failed = true; console.warn('axolotl pack:', e && e.message); });
+const axoLoad = AXOC.load(window.AXO_PACK || 'axo-pack-239.txt').catch(e => { AXOC.S.failed = true; console.warn('axolotl pack:', e && e.message); });
 // (the slime only comes in if the axolotl never arrives)
 const slimeLoad = axoLoad.then(() => AXOC.S.ready ? null : SLIME.load(window.SLIME_PACK || 'slime-pack.txt')).catch(e => { SLIME.S.failed = true; console.warn('slime pack:', e && e.message); });
 const drop = new THREE.Group(), body = new THREE.Group(); drop.add(body);
@@ -9033,7 +9149,7 @@ const stacheParts = (() => { const side = m => { const pts = [[0, -0.02, 0], [0.
   const cap = m => new THREE.SphereGeometry(0.05, 10, 8).translate(0.3 * m, 0.13, -0.05); return [[mergeGeos([side(1), side(-1), new THREE.SphereGeometry(0.058, 12, 10), cap(1), cap(-1)]), stacheMat]]; })();
 // how each sits (window.__*Fit: a tuning hook)
 const BEANIE_FIT = window.__beanieFit || { s: 1.18, y: -0.36, rx: -0.14, rz: 0.08 }, PARTY_FIT = window.__partyFit || { s: 0.95, y: -0.12, rx: 0.1, rz: 0.4 };
-const MONO_FIT = window.__monoFit || { x: 0.2, y: 0.06, z: 0.44, s: 0.62 }, STACHE_FIT = window.__stacheFit || { x: 0, y: -0.11, z: 0.44, s: 0.48 }, SCARF_FIT = window.__scarfFit || { s: 0.4, y: -0.01, z: 0.04 };
+const MONO_FIT = window.__monoFit || { x: 0.2, y: 0.06, z: 0.44, s: 0.62 }, STACHE_FIT = window.__stacheFit || { x: 0, y: -0.11, z: 0.44, s: 0.48 }, SCARF_FIT = window.__scarfFit || { s: 0.4, y: 0.05, z: 0.04 };
 // the everyday set: the two hats and the bow tie from their models, the patch fitted to the head, the flower
 function makeWear2(body) {
   const grp = (key, s) => { const g = new THREE.Group(), gin = new THREE.Group(); g.add(gin); if (WEAR_A[key]) { gin.add(assetMesh(key, WEAR_AM[key])); gin.scale.setScalar(s); } g.userData.gin = gin; return g; };
