@@ -2915,7 +2915,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 232</p>
+      <p class="ver">Version 233</p>
     </div>
   </div>
 
@@ -5086,7 +5086,7 @@ function hugY(x, z, cy) { const y = surfaceUnder(x, z, cy + 0.3); return (y > cy
 // the newest stretch of a trail tapers in toward the blob laying it, so the paint looks like it's flowing out from under it rather than
 // starting from nowhere: each point remembers where its edges sit at full width, the last few are drawn pulled in toward the middle (the
 // newest most), and each lets out a notch as the next is laid ahead of it. A roller or a giant tapers the same way over a longer run
-const TAPER_N = 5, TAPER_NMAX = 22, TAPER_TIP = 0.3, TRAIL_FWD = 0.1; /* (the stream laid a touch ahead of the blob's centre, under its chin, and full width by its hips) */ let trailGen = 0;
+const TAPER_N = 3, TAPER_NMAX = 22, TAPER_TIP = 0.3, TRAIL_FWD = 0.3; /* (the stream laid under the head, ahead of the blob's centre, and full width under the chest) */ let trailGen = 0;
 const taperF = (a, k, n) => 1 - (1 - TAPER_TIP) * k * Math.pow(Math.max(0, 1 - a / (n || TAPER_N)), 2);
 const taperV = (o, k, v) => { const j = (o + k) * 3; vPos[j] = v[0]; vPos[j + 1] = v[1]; vPos[j + 2] = v[2]; };
 function taperPut(h, f) {
@@ -5097,7 +5097,7 @@ function taperPut(h, f) {
   if (h.o >= 0) { taperV(h.o, 2, L); taperV(h.o, 5, L); taperV(h.o, 10, R); }
   if (h.o2 >= 0) { taperV(h.o2, 0, L); taperV(h.o2, 7, R); taperV(h.o2, 9, R); }
 }
-function addPoint(x, y, z, yaw, t, stroke, wmul, team, rb) {
+function addPoint(x, y, z, yaw, t, stroke, wmul, team, rb, sp) { /* (sp: where the paint is counted, if not where it is drawn) */
   if (nP >= MAXP) return;
   team = team || 0; rb = rb || RB0;
   const W = TW * (wmul || 1), d = nP * SPACING, lift = nextLift(1);
@@ -5118,7 +5118,7 @@ function addPoint(x, y, z, yaw, t, stroke, wmul, team, rb) {
   let lo = dirtyV;
   for (let a = 0; a < Hs.length; a++) { const q = Hs[Hs.length - 1 - a], f = taperF(a, q.k, q.n); if (f === q.f && q !== p) continue; taperPut(q, f); if (q.o >= 0 && q.o < lo) lo = q.o; else if (q.o < 0 && q.o2 >= 0 && q.o2 < lo) lo = q.o2; }
   dirtyV = lo; rb.stroke = stroke;
-  stamp(x, y, z, W / 2, team);
+  if (sp) stamp(sp[0], sp[1], sp[2], W / 2, team); else stamp(x, y, z, W / 2, team);
   if (nP === 1) addSplat(x, y, z, yaw, TW * 0.52, t, true, false, team);
 }
 // landing splats, projected onto whatever surface is under each point
@@ -7825,7 +7825,7 @@ Animator.prototype.crawl = function (t, out, dt) {
   // slowly from side to side, and the head comes up, held to the way it's going. Slowing down, the limbs come back to the ground and the
   // crawl takes over again (never in the air, climbing, curled, or turned on the spot)
   const SL = L.sl || (L.sl = { k: 0, on: false, hold: 0, u: 0, m: new Float32Array(5), g: 0 });
-  { const vc = L.vc, ok = !air && !TR && M.spin === undefined && !((M.climbCurl || 0) > 0) && !((M.ball || 0) > 0.05) && L.ballK < 0.05;
+  { const vc = L.vc, ok = !air && !TR && !M.dry && M.spin === undefined && !((M.climbCurl || 0) > 0) && !((M.ball || 0) > 0.05) && L.ballK < 0.05; // (out of paint, M.dry: crawling only)
     if (ok && vc > SLITHER.on) SL.hold += dt; else if (!ok || vc < SLITHER.off) SL.hold = 0;
     const want = ok && (SL.on ? vc > SLITHER.off : SL.hold > SLITHER.after);
     if (want && !SL.on) { SL.on = true; if (SL.k < 0.05) SL.u = 0.86; } // (in from the crawl: it reaches forward and takes hold, then the first pull)
@@ -8691,7 +8691,7 @@ const AXOC = (() => {
     // shown again after being hidden (the game says so), or back on all fours after standing: its feet start again under it
     if (X.fresh) { X.fresh = false; X.hasPrev = false; A.loco = null; }
     const busy = D && D.st === 'play' && state !== 'menu', inAir = !!o.inAir, charging = busy && D.charging && !D.air;
-    A.motion.speed = inAir || charging ? 0 : clamp((o.spd || 0) * 1.5, 0, 1.5);
+    A.motion.speed = inAir || charging ? 0 : clamp((o.spd || 0) * 1.5, 0, 1.5); A.motion.dry = !!(D && D.dry && D.st === 'play'); // (out of paint: it only crawls, never swims)
     // the ground under it: where a point fixed in the world moved in its mesh's space since last frame (none across a jump of the map)
     { const par = I.root.parent; let carry = null;
       if (par) { par.updateWorldMatrix(true, false); const mw = X.mw || (X.mw = new THREE.Matrix4()), pv = X.mwPrev || (X.mwPrev = new THREE.Matrix4());
@@ -12263,6 +12263,7 @@ const ROLL_OUT_T = 0.62;
 const WADE_FLOOR = 0.1; // (how much of the paint it's sitting in is always left round its bottom: a little)
 function exitPot(D, roll) {
   const p = D.pot; if (!p) return;
+  if (D.flowArm) { D.flowArm = false; D.flowT = 1; D.flowK = 0; } /* (back from a knock-out: a second of crawling before the paint flows) */
   p.cool = 1.0; p.bounce = 0.7; p.occ = null; D.pot = null; D.st = 'play'; D.stroke++; D.y = p.y + 0.55; D.air = true;
   if (roll) { D.vy = JUMP_V * 0.6; D.spd = cfg.speed * 0.75; D.rollOutT = ROLL_OUT_T; D.squash = Math.max(D.squash, 0.3); if (D === P) AU.dash(); }
   else { D.vy = JUMP_V * 1.05; D.spd = cfg.speed * 0.8; D.rollOutT = 0; fxLaunch(D, 0.8); if (D === P) AU.jump(); }
@@ -12440,7 +12441,7 @@ function respawnBlob(D) {
   if (best.st === 'down') { if (!best.next) best.next = pickCoffinSpot(best); riseCoffin(best); best.st = 'up'; }
   best.ink = Math.max(best.ink, 1);
   D.immuneT = SPAWN_SAFE; // the coffin you come back in is safe for a while, nobody can stake you in it
-  D.vy = 0; D.air = false; D.slam = false; D.spd = 0; D.flatT = 0; D.paint = Math.max(D.paint, 0.5); best.cool = 0; D.spawnImm = true;
+  D.vy = 0; D.air = false; D.slam = false; D.spd = 0; D.flatT = 0; D.paint = Math.max(D.paint, 0.5); best.cool = 0; D.spawnImm = true; D.flowArm = true;
   enterPot(D, best);
   // face the best way out (a long, wide run of level floor) so hopping out doesn't drop you straight into a hole or off an edge
   const R = startRoom(best, true), bestYaw = R.run >= 3.4 ? R.yaw : potRun(best, 9).yaw; D.yaw = bestYaw;
@@ -12776,7 +12777,7 @@ function stepBlob(D, dt) {
       if (D.giantT <= 0 && !D.turret) { if (D.turf > 0 && !D.charging) D.paint = Math.min(1, D.paint + OWN_REFILL * dt); else D.paint -= cfg.drain * dt * (D.charging ? STILL_DRAIN : 1) * (D === P && easyOn() ? EASY_DRAIN : 1) * (D === P && tut2 ? 0.6 : 1); } /* (the first real match after the lesson: your paint lasts longer) */ // rolling on your own color tops you up; holding still barely uses any
       if (D.paint <= 0) { D.paint = 0; if (!D.dry) goDry(D); }
       grooveStep(D); sandKick(D, dt);
-      if (D.flatT <= 0 && !D.dry) { D.dist += D.spd * dt; const fx = D.x + Math.sin(D.yaw) * TRAIL_FWD, fz = D.z + Math.cos(D.yaw) * TRAIL_FWD, fy = hugY(fx, fz, D.y); while (D.dist >= SPACING) { D.dist -= SPACING; addPoint(fx, fy, fz, D.yaw, dryClock, D.stroke, (D.giantT > 0 ? GIANT_K : D.power && D.power.type === 'roller' ? 2.6 : 1) * (D.rollT > ROLL_T - ROLL_DASH ? 0.45 : 1), tcode(D), D.rb); } }
+      if (D.flatT <= 0 && !D.dry) { if (D.flowT > 0) { D.flowT -= dt; D.dist = 0; if (D.flowT <= 0) D.stroke++; } /* (a second of crawling clean first) */ else { D.flowK = Math.min(1, (D.flowK === undefined ? 1 : D.flowK) + dt / 0.5); const fk = 0.3 + 0.7 * D.flowK * D.flowK * (3 - 2 * D.flowK); /* (then the stream swells in) */ D.dist += D.spd * dt; const fx = D.x + Math.sin(D.yaw) * TRAIL_FWD, fz = D.z + Math.cos(D.yaw) * TRAIL_FWD, fy = hugY(fx, fz, D.y); while (D.dist >= SPACING) { D.dist -= SPACING; addPoint(fx, fy, fz, D.yaw, dryClock, D.stroke, (D.giantT > 0 ? GIANT_K : D.power && D.power.type === 'roller' ? 2.6 : 1) * (D.rollT > ROLL_T - ROLL_DASH ? 0.45 : 1) * fk, tcode(D), D.rb, [D.x, D.y, D.z]); } } }
       // rain puddles water your blood down; hard paint of either color slows you
       D.inBoil = boilNear(D.x, D.z, D.y, 0);
       if (D.inBoil) { if (D.dilT <= 0) dilute(D); D.dilT = DIL_T; }
@@ -16523,7 +16524,7 @@ function introFly(D, dt) {
 }
 function goTime() {
   showCount('Go!', true); state = 'play'; introOut = 1; hud.classList.remove('off');
-  for (const D of ACTIVE) { D.eyeSink = D.eyeShut = D.eyeWide = 0; } // (whatever an intro was doing with the peeking eyes)
+  for (const D of ACTIVE) { D.eyeSink = D.eyeShut = D.eyeWide = 0; D.flowT = 1; D.flowK = 0; } // (whatever an intro was doing with the peeking eyes; and a second of crawling before the paint flows)
   for (const D of ACTIVE) { if (D.st === 'out') continue;
     if (D.introAct) { introActEnd(D); D.introOut = false; D.spawnGuard = 2.4; continue; } // (an intro's moves still playing: finished at once)
     if (D.introOut) { D.introOut = false; D.ip = null; D.introShake = null; D.spawnGuard = 2.4; continue; } // already out and on the floor (steered clear of drops for a moment)
@@ -17585,13 +17586,14 @@ const TUT_STEPS = [
         else if (sub === 'pound') { if (tut.slowT <= 0) tut.slowK = 1; tutShow(hd < 6 ? say('Your Pound splats everything round you. The rival\u2019s close, tap it!', 'Your Pound (E) splats everything round you. The rival\u2019s close, press E!') : say('Your Pound splats everything round you. Get close to the rival and tap it!', 'Your Pound (E) splats everything round you. Get close to the rival and press E!'), 'slamBtn', 'pound'); } }
       return P.kos > tut.kos0 || P.flatted > tut.flat0; } },
   { id: 'dodge', max: 60, enter() { tut.noPound = true; Object.assign(TUT_AI, TUT_AI_FIGHT); tut.drive = H; tut.driveMode = 'fight'; H.slamCD = 0; if (H.paint < 0.8) H.paint = 1; if (H.ai) { H.ai.plan = null; H.ai.path = null; } tut.rolled = false; tut.hits = 0; tut.wasKo = false; tut.slowK = 1; tut.sub = ''; tutShow(say('Rivals pound too. Swipe up just before it lands to dodge', 'Rivals pound too. Shift just before it lands to dodge'), null, 'dodge', false, true); },
-    tick() { if (!H.slam && P.st === 'play') tutRivalIn(6.5); if (H.st === 'play' && !H.slam && H.slamCD > 1.2) H.slamCD = 1.2; if (H.paint < 0.5) H.paint = 1;
+    tick(dt) { if (!H.slam && P.st === 'play') tutRivalIn(6.5); if (H.st === 'play' && !H.slam && H.slamCD > 1.2) H.slamCD = 1.2; if (H.paint < 0.5) H.paint = 1;
       const d = Math.hypot(H.x - P.x, H.z - P.z), eta = H.slam ? H.slamEta - H.slamT : 9, coming = H.slam && H.st === 'play' && P.st === 'play' && !P.air && d < slamRadius(H) + PR + 2.5;
       if (coming && P.rollT <= 0 && !tut.rolled) P.rollCD = 0; /* (an early swipe never leaves you without a roll for the drop) */
-      if (coming && P.rollT > 0) tut.rolled = true; // (a roll while its pound is in the air: that is the timing)
+      if (coming && P.rollT > 0 && !tut.rolled) { tut.rolled = true; tut.rollRT = 0; } // (a roll while its pound is in the air: that is the timing)
+      if (tut.rolled) tut.rollRT = (tut.rollRT || 0) + (dt || 0) / Math.max(tut.slowK, 0.05); /* (real seconds since the swipe) */
       if (tut.rolled && H.slam && P.rollT > 0 && P.rollT < 0.05) P.rollT = 0.05; /* (and it holds you clear till the pound lands) */
       if (P.st === 'ko' && !tut.wasKo) tut.hits++; tut.wasKo = P.st === 'ko';
-      const now = coming && eta < 0.42; tut.slowK = now ? 0.14 : coming ? 0.45 : 1;
+      const now = coming && eta < 0.42, base = now ? 0.14 : coming ? 0.45 : 1, back = tut.rolled ? Math.min(1, Math.max(0, (tut.rollRT - 1) / 0.25)) : 0; tut.slowK = base + (1 - base) * back; /* (swiped clear: a second more, then back to speed) */
       const sub = now ? 'now' : 'dodge'; if (sub !== tut.sub) { tut.sub = sub; if (now) tutShow(say('*NOW!* Swipe up!', '*NOW!* Shift!'), null, 'dodgenow', true, true); else tutShow(say('Rivals pound too. Swipe up just before it lands to dodge', 'Rivals pound too. Shift just before it lands to dodge'), null, 'dodge', false, true); }
       return (tut.rolled || tut.hits >= 2) && P.st === 'play' && !H.slam; },
     exit() { Object.assign(TUT_AI, TUT_AI_CALM); tut.drive = null; tut.noPound = false; } },

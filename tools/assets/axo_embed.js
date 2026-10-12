@@ -983,7 +983,7 @@ Animator.prototype.crawl = function (t, out, dt) {
   // slowly from side to side, and the head comes up, held to the way it's going. Slowing down, the limbs come back to the ground and the
   // crawl takes over again (never in the air, climbing, curled, or turned on the spot)
   const SL = L.sl || (L.sl = { k: 0, on: false, hold: 0, u: 0, m: new Float32Array(5), g: 0 });
-  { const vc = L.vc, ok = !air && !TR && M.spin === undefined && !((M.climbCurl || 0) > 0) && !((M.ball || 0) > 0.05) && L.ballK < 0.05;
+  { const vc = L.vc, ok = !air && !TR && !M.dry && M.spin === undefined && !((M.climbCurl || 0) > 0) && !((M.ball || 0) > 0.05) && L.ballK < 0.05; // (out of paint, M.dry: crawling only)
     if (ok && vc > SLITHER.on) SL.hold += dt; else if (!ok || vc < SLITHER.off) SL.hold = 0;
     const want = ok && (SL.on ? vc > SLITHER.off : SL.hold > SLITHER.after);
     if (want && !SL.on) { SL.on = true; if (SL.k < 0.05) SL.u = 0.86; } // (in from the crawl: it reaches forward and takes hold, then the first pull)
