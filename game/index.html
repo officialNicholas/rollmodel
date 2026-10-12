@@ -2555,6 +2555,7 @@ svg{shape-rendering:geometricPrecision}
 .menu.tutoring #commBtn{display:none}
 .menu.tutoring #modes,.menu.tutoring .wfoot .critics,.menu.tutoring #stages{display:none}
 /* the slow-down: a gold frame and a soft vignette while a lesson is up */
+.hud.kc{opacity:0}.kcbars{position:absolute;inset:0;z-index:7;pointer-events:none}.kcbars::before,.kcbars::after{content:'';position:absolute;left:0;right:0;height:0;background:#0d0a14;transition:height .28s cubic-bezier(.2,.8,.3,1)}.kcbars::before{top:0}.kcbars::after{bottom:0}.kcbars.on::before,.kcbars.on::after{height:9.5%}
 .tutslow{position:absolute;inset:0;z-index:7;pointer-events:none;opacity:0;transition:opacity .3s;background:radial-gradient(ellipse at center,transparent 34%,rgba(23,19,32,.3) 64%,rgba(23,19,32,.72) 100%);box-shadow:inset 0 0 0 3px var(--gold)}
 .tutslow::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 24%,rgba(23,19,32,.3) 56%,rgba(23,19,32,.5) 100%);opacity:0;transition:opacity .2s}
 .tutslow.deep::after{opacity:1}
@@ -2972,7 +2973,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 244</p>
+      <p class="ver">Version 245</p>
     </div>
   </div>
 
@@ -8618,10 +8619,13 @@ const LOOK_FS = `
   clearcoatSpecularIndirect *= 1.0 - 0.85 * occ; clearcoatSpecularDirect *= 1.0 - 0.6 * occ;
 #endif
   // the drawn face: matte ink, lit a little from within like the game's (it reads at any light)
-  reflectedLight.directDiffuse *= 1.0 - 0.45 * ink; reflectedLight.indirectDiffuse *= 1.0 - 0.45 * ink; reflectedLight.directSpecular *= 1.0 - 0.9 * ink; reflectedLight.indirectSpecular *= 1.0 - 0.9 * ink;
-  totalEmissiveRadiance += diffuseColor.rgb * ink * 0.5;
+  reflectedLight.directDiffuse *= 1.0 - ink; reflectedLight.indirectDiffuse *= 1.0 - ink; reflectedLight.directSpecular *= 1.0 - ink; reflectedLight.indirectSpecular *= 1.0 - ink;
+#ifdef USE_CLEARCOAT
+  clearcoatSpecularIndirect *= 1.0 - ink; clearcoatSpecularDirect *= 1.0 - ink;
+#endif
+  totalEmissiveRadiance += diffuseColor.rgb * ink * mix(0.3, 0.9, smoothstep(0.35, 0.65, dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722))));   // (v245: flat and unlit; the dark ink (lines, mouth, brows) darker, the light bits (teeth) as they are)
   // the eye: lit a little from within too (its white stays bright in shade), its gloss kept
-  reflectedLight.directDiffuse *= 1.0 - 0.15 * eyeK; reflectedLight.indirectDiffuse *= 1.0 - 0.15 * eyeK; totalEmissiveRadiance += diffuseColor.rgb * eyeK * 0.42;
+  { float el = smoothstep(0.25, 0.6, dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722))), ef = eyeK * smoothstep(0.2, 0.6, sDrawM), eu = ef * mix(1.0, 0.75, el); reflectedLight.directDiffuse *= 1.0 - eu; reflectedLight.indirectDiffuse *= 1.0 - eu; totalEmissiveRadiance += diffuseColor.rgb * ef * mix(0.3, 0.8, el); } /* (only where the eye is drawn: its soft mask reaches onto the cheeks) */   /* (v245: the eye flat: its dark parts (pupil, iris, a closed lid's line) unlit and dark, the white mostly unlit and bright in the shade; its gloss kept) */
   { float ck = sCatch * vFace.z * (1.0 - sCoatM); reflectedLight.directDiffuse *= 1.0 - ck; reflectedLight.indirectDiffuse *= 1.0 - ck; reflectedLight.directSpecular *= 1.0 - ck; totalEmissiveRadiance = mix(totalEmissiveRadiance, vec3(1.0), ck); }
   // light through the thin parts (fin, frills, toe tips), in the skin's own deeper colour; the free edges of fins and frills lit
   vec3 vd = normalize(vViewPosition), kd = normalize(uKeyDir);
@@ -8918,7 +8922,7 @@ const AXOC = (() => {
     // shown again after being hidden (the game says so), or back on all fours after standing: its feet start again under it
     if (X.fresh) { X.fresh = false; X.hasPrev = false; A.loco = null; }
     const busy = D && D.st === 'play' && state !== 'menu', inAir = !!o.inAir, charging = busy && D.charging && !D.air;
-    A.motion.speed = inAir || charging ? 0 : clamp((o.spd || 0) * 1.5, 0, 1.5); A.motion.dry = !!(D && D.dry && D.st === 'play'); A.motion.crouch = D && D.preJ > 0 && D.st === 'play' && !D.air && !D.charging ? 1 : 0; // (a finger just landed: it may be a jump) // (out of paint: it only crawls, never swims)
+    A.motion.speed = inAir || charging ? 0 : clamp((o.spd || 0) * 1.5, 0, 1.5); A.motion.dry = !!(D && (D.dry || D.giantT > 0) && D.st === 'play'); /* (the giant: crawling only too) */ A.motion.crouch = D && D.preJ > 0 && D.st === 'play' && !D.air && !D.charging ? 1 : 0; // (a finger just landed: it may be a jump) // (out of paint: it only crawls, never swims)
     // the ground under it: where a point fixed in the world moved in its mesh's space since last frame (none across a jump of the map)
     { const par = I.root.parent; let carry = null;
       if (par) { par.updateWorldMatrix(true, false); const mw = X.mw || (X.mw = new THREE.Matrix4()), pv = X.mwPrev || (X.mwPrev = new THREE.Matrix4());
@@ -10465,7 +10469,7 @@ function orbPickTarget() {
 }
 function orbSpawn() {
   let c = null;
-  if (tut2 && (P.st === 'play' || P.st === 'hide')) { let bd = 1e9; for (const q of COF_SPOTS) { if (!q || Math.max(Math.abs(q[0]), Math.abs(q[2])) >= ARENA - 4) continue; const d = Math.hypot(P.x - q[0], P.z - q[2]); if (d < 5 || ACTIVE.some(D => D !== P && D.st !== 'ko' && Math.hypot(D.x - q[0], D.z - q[2]) < 6)) continue; if (d < bd) { bd = d; c = q; } } } /* (the first real match: the orb comes up near you) */
+  if ((tut2 || tut3Orb()) && (P.st === 'play' || P.st === 'hide')) { let bd = 1e9; for (const q of COF_SPOTS) { if (!q || Math.max(Math.abs(q[0]), Math.abs(q[2])) >= ARENA - 4) continue; const d = Math.hypot(P.x - q[0], P.z - q[2]); if (d < 5 || ACTIVE.some(D => D !== P && D.st !== 'ko' && Math.hypot(D.x - q[0], D.z - q[2]) < 6)) continue; if (d < bd) { bd = d; c = q; } } } /* (the first real match: the orb comes up near you) */
   for (let tries = 0; tries < 40 && !c; tries++) { const q = COF_SPOTS[(Math.random() * COF_SPOTS.length) | 0]; if (q && Math.max(Math.abs(q[0]), Math.abs(q[2])) < ARENA - 4 && ACTIVE.every(D => D.st === 'ko' || Math.hypot(D.x - q[0], D.z - q[2]) > 7)) c = q; }
   if (!c) { orb.spawnT = 2; return; }
   orb.on = true; orb.k = 0; orb.pull = 0; orb.x = c[0]; orb.z = c[2]; orb.base = c[1]; orb.y = c[1] + 1.15; orb.ph = Math.random() * 6.28; orbPickTarget();
@@ -10495,15 +10499,15 @@ function updateOrb(dt) {
     while (orb.sparkT >= 1) { orb.sparkT -= 1; const a = Math.random() * 6.283, r = 0.3 + Math.random() * 0.25; spawnPart(orb.x + Math.cos(a) * r, orb.y + (Math.random() - 0.5) * 0.4, orb.z + Math.sin(a) * r, (tx - orb.x) * 4.5, (ty - orb.y) * 4.5 + 0.4, (tz - orb.z) * 4.5, 0.32, orbPartMats[(Math.random() * orbPartMats.length) | 0], 0.28); }
   } else if (orb.pull) { orb.pull = Math.max(0, orb.pull - dt * 3); if (!orb.pull && !orb.stay) orbPickTarget(); }
   // roll, jump, fling, anything: touch it and it's yours
-  for (const D of ACTIVE) { if (D.st !== 'play' || D.giantT > 0 || D.rocket || D.turret) continue; if (Math.hypot(D.x - orb.x, D.y + 0.3 - orb.y, D.z - orb.z) < PR + ORB_R + 0.12) { takeOrb(D); return; } }
+  for (const D of ACTIVE) { if (D.st !== 'play' || D.giantT > 0 || D.rocket || D.turret || (D !== P && tut3Orb())) continue; if (Math.hypot(D.x - orb.x, D.y + 0.3 - orb.y, D.z - orb.z) < PR + ORB_R + 0.12) { takeOrb(D); return; } }
 }
 // a pound or a coffin burst that goes off right under it takes it too
-function orbPound(D, R) { if (orb.on && orb.k > 0.5 && D.giantT <= 0 && !D.rocket && !D.turret && Math.hypot(orb.x - D.x, orb.z - D.z) < R * 0.6 && orb.y - D.y < 3 && orb.y - D.y > -0.5) takeOrb(D); }
+function orbPound(D, R) { if (orb.on && orb.k > 0.5 && D.giantT <= 0 && !(D !== P && tut3Orb()) && !D.rocket && !D.turret && Math.hypot(orb.x - D.x, orb.z - D.z) < R * 0.6 && orb.y - D.y < 3 && orb.y - D.y > -0.5) takeOrb(D); }
 function takeOrb(D) {
   orb.on = false; orb.pull = 0; orb.stay = false; orb.g.visible = false; orb.ring.visible = false; orb.spawnT = 16 + Math.random() * 6;
   for (let i = 0; i < 26; i++) { const a = Math.random() * 6.283; spawnPart(orb.x, orb.y, orb.z, Math.cos(a) * 4, 1 + Math.random() * 4, Math.sin(a) * 4, 0.55, orbPartMats[i % orbPartMats.length], 0.6); }
   shockwave(orb.x, D.y, orb.z, 2.6, 0xFFFFFF);
-  const gift = tut ? 'rocket' : window.__orbKind || (D === P ? strokeSpecial() : ['giant', 'rocket'][(Math.random() * 2) | 0]); /* (yours: the special stroke you equipped) */
+  const gift = tut ? 'rocket' : D === P && tut3Orb() ? 'giant' : window.__orbKind || (D === P ? strokeSpecial() : ['giant', 'rocket'][(Math.random() * 2) | 0]); /* (yours: the special stroke you equipped) */
   if (gift === 'rocket') { startRocket(D); for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0; return; }
   if (gift === 'turret') { startTurret(D); for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0; return; }
   D.giantT = GIANT_T; D.wob = 1; D.squash = 0.8; D.inkRush = true; emote(D, 'glee', 1.1); AU.grow(); if (D === P) AU.vox('hoh'); // a full tank that doesn't drain while it lasts
@@ -11829,7 +11833,7 @@ function resetRun() {
   abortVictory(); kofEnd(); abortReveal(); outK = 0; outroFrac = 1; runId++; cfg = VS_CFG; clearTrail(); placeObjects(level);
   resetBlob(P, START.x, START.z, START.yaw); resetBlob(H, CSTART.x, CSTART.z, CSTART.yaw); aiReset(H); resetBlob(H2, CSTART2.x, CSTART2.z, CSTART2.yaw); aiReset(H2);
   if (mode === 'solo') H.st = 'out'; if (mode !== 'trio') H2.st = 'out';
-  for (const D of [P, H, H2]) { D.slamCD = D.slamMax = SLAM_FIRST; D.wearOff = false; D.wearPop = 1; D.held = null; D.heldT = 0; } // the pound builds up before the first one
+  kcamEnd(); kcamUsed = false; for (const D of [P, H, H2]) { D.rag = null; D.slamCD = D.slamMax = SLAM_FIRST; D.wearOff = false; D.wearPop = 1; D.held = null; D.heldT = 0; } // the pound builds up before the first one
   wasReady = false; holdCharge = false; pullTgt = 0; slingOff();
   camYaw = P.yaw; camYawV = 0; look.spd = 0; look.lean = 0; look.drop = 0; look.flat = 1; look.roll = 0; Object.assign(lookC, { spd: 0, lean: 0, drop: 0, flat: 1, roll: 0, flatK: 0 }); lookFlatP = 0; aimRing.visible = false; arrow.visible = false;
   drop.visible = true; shadowBlob.visible = true; LH.drop.visible = LH.shadow.visible = mode !== 'solo'; L2.drop.visible = L2.shadow.visible = mode === 'trio'; Object.assign(L2.look, { spd: 0, lean: 0, drop: 0, flat: 1, roll: 0, flatK: 0 }); hud.classList.toggle('trio', mode === 'trio'); hud.classList.toggle('solo', mode === 'solo');
@@ -11847,7 +11851,7 @@ const hintEl = $('hint'), hintText = $('hintText'); let hintTimer = 0;
 let shownLives = -1;
 function renderLives(pop, force) { const el = $('lives'); if (lives === shownLives && !force) return; let h = ''; for (let i = 0; i < lives; i++) h += '<i style="background:' + TEAMS[(P.team + i) % TEAMS.length].css + '"' + (pop && i === lives - 1 && lives > shownLives ? ' class="gain"' : '') + '></i>'; el.innerHTML = h; el.setAttribute('aria-label', lives + (lives === 1 ? ' life' : ' lives')); shownLives = lives; }
 // each tip shows once, ever
-function hint(id, text, dur) { if (tut || (tut2 && tutTip) || store.seen[id] || hintTimer > 0.4) return; store.seen[id] = 1; save(); hintText.textContent = text; hintEl.classList.add('on'); hintTimer = dur || 3; }
+function hint(id, text, dur) { if (tut || ((tut2 || tut3) && tutTip) || store.seen[id] || hintTimer > 0.4) return; store.seen[id] = 1; save(); hintText.textContent = text; hintEl.classList.add('on'); hintTimer = dur || 3; }
 // on a phone the tips talk about touch; with a keyboard they name the keys
 let keysUI = !!(window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches);
 const say = (touch, keys) => keysUI ? keys : touch;
@@ -12659,17 +12663,45 @@ const KO_MSG = { pound: 'Pounded!', coffin: 'Nailed!', fall: 'Fell off', sun: 'B
 const CPU_KO_MSG = { pound: n => 'Got ' + n + '!', coffin: n => 'Nailed ' + n + '!', fall: n => n + ' fell off', sun: n => 'Baked ' + n + '!', crush: n => 'Crushed ' + n + '!', dry: n => n + ' dried up!' };
 const koLine = (reason, mine, n) => reason === 'coffin' && TH.pot === 'can' ? (mine ? 'Canned!' : 'Canned ' + n + '!') : reason === 'coffin' && (TH.pot === 'tiki' || TH.pot === 'tank') ? (mine ? 'Dunked!' : 'Dunked ' + n + '!') : mine ? KO_MSG[reason] : CPU_KO_MSG[reason] && CPU_KO_MSG[reason](n);
 // out for 5 seconds, then back in a coffin
+// a pound knockout: the one pounded is blasted away limp, tumbling and bouncing, for about a second, and only then pops and is gone
+const RAG_T = 1.15;
+function koHide(D) { if (D === P) { drop.visible = false; shadowBlob.visible = false; } else { D.look.drop.visible = false; D.look.shadow.visible = false; } }
+function ragStart(D, by) { let dx = D.x - by.x, dz = D.z - by.z, l = Math.hypot(dx, dz); if (l < 0.25) { dx = Math.sin(by.yaw); dz = Math.cos(by.yaw); l = 1; } dx /= l; dz /= l;
+  const sp = 4.6 + Math.random() * 1.2; D.rag = { t: 0, vx: dx * sp, vz: dz * sp, wx: dx, wz: dz, vy: 7.4, a: 0, w: 10 + Math.random() * 3, side: Math.random() < 0.5 ? -1 : 1, puff: 0 }; D.air = true; D.wob = 1; }
+function ragStep(D, dt) { const R = D.rag; R.t += dt; R.vy -= GRAV * 1.3 * dt;
+  let nx = D.x + R.vx * dt, nz = D.z + R.vz * dt; if (blockedAt(nx, nz, D.y) || Math.abs(nx) > ARENA + 8 || Math.abs(nz) > ARENA + 8) { R.vx *= -0.35; R.vz *= -0.35; nx = D.x; nz = D.z; } D.x = nx; D.z = nz; D.y += R.vy * dt;
+  const g = surfaceUnder(D.x, D.z, D.y + STEP, true); if (g > -Infinity && D.y <= g && R.vy < 0) { D.y = g; if (R.vy < -3) { R.vy *= -0.36; R.vx *= 0.55; R.vz *= 0.55; R.w *= 0.55; if (hearable(D)) AU.land(0.5); splash(D, 0.8); } else { R.vy = 0; R.vx *= 0.8; R.vz *= 0.8; R.w *= 0.85; } }
+  R.a += R.w * dt; R.puff -= dt; if (R.puff <= 0 && R.t < 0.7) { R.puff = 0.05; spawnPart(D.x, D.y + 0.4, D.z, (Math.random() - 0.5) * 0.6, 0.3 + Math.random() * 0.5, (Math.random() - 0.5) * 0.6, 0.22, puHaloMat, 0.45); }
+  if (R.t >= RAG_T || D.y < -8) ragEnd(D); }
+function ragEnd(D) { if (!D.rag) return; D.rag = null; D.air = false; burst(D, deathColor(D, 'pound')); shockwave(D.x, D.y, D.z, 1.3, deathRing('pound')); if (hearable(D)) AU.pop(); koHide(D); if (kcam && kcam.V === D) kcam.endAt = kcam.t + 0.4; }
+// ---- the kill cam: the first pound knockout you land in a 1v1 match, in slow motion from a low angle off to the side (the clock slows too)
+let kcam = null, kcamUsed = false; const kcBarsEl = document.createElement('div'); kcBarsEl.className = 'kcbars'; kcBarsEl.setAttribute('aria-hidden', 'true');
+function kcamStart(V) {
+  if (kcamUsed || mode !== 'duel' || state !== 'play' || P.rocket) return; kcamUsed = true;
+  const dx = V.x - P.x, dz = V.z - P.z, l = Math.hypot(dx, dz), fx = l > 0.3 ? dx / l : Math.sin(P.yaw), fz = l > 0.3 ? dz / l : Math.cos(P.yaw), mx = (P.x + V.x) / 2, mz = (P.z + V.z) / 2, gy = P.y;
+  // the reverse angle: out past the rival, low and a little off the line, looking back at you, so the rival is blasted toward the lens
+  // (a wall in the way: nearer in; no room at all: over your shoulder instead)
+  let best = null; for (const side of [camSide(fx, fz), -camSide(fx, fz)]) { for (const dist of [7, 5.8, 4.6]) { const nx = fz * side, nz = -fx * side, cx = P.x + fx * dist + nx * 1.9, cz = P.z + fz * dist + nz * 1.9, cy = gy + 1.7;
+      if (Math.abs(cx) > ARENA + 1 || Math.abs(cz) > ARENA + 1) continue; let ok = !blockedAt(cx, cz, cy - 0.5); for (let k = 1; k < 9 && ok; k++) { const t = k / 9; if (blockedAt(cx + (P.x - cx) * t, cz + (P.z - cz) * t, cy - 0.5 + (gy - cy + 0.5) * t)) ok = false; }
+      if (ok) { best = { side, dist, rev: true }; break; } } if (best) break; }
+  if (!best) best = { side: camSide(fx, fz), dist: -3.4, rev: false };
+  kcam = { t: 0, x0: P.x, z0: P.z, gy, fx, fz, side: best.side, dist: best.dist, rev: best.rev, V, endAt: 1e9 };
+  camSnap = true; if (!kcBarsEl.parentNode) stage.appendChild(kcBarsEl); kcBarsEl.classList.add('on'); $('hud').classList.add('kc'); AU.slow(true); AU.whoosh();
+}
+const camSide = (fx, fz) => { const cx = camPos.x - P.x, cz = camPos.z - P.z; return (fz * cx - fx * cz) >= 0 ? 1 : -1; }; // (the side the play camera is on: the cut stays on that side of the line)
+const kcamK = t => t < 0.1 ? 0.1 : t < 0.9 ? 0.22 : t < 1.6 ? 0.22 + 0.63 * smoothstep(0.9, 1.6, t) : 0.85;
+function kcamEnd() { if (!kcam) return; kcam = null; camSnap = true; kcBarsEl.classList.remove('on'); $('hud').classList.remove('kc'); AU.slow(false); }
 function knockOut(D, reason, by) {
   if (D.st === 'ko' || state !== 'play') return;
   const pot = D.pot; if (pot) { pot.occ = null; D.pot = null; }
   if (D.charging) clearCharge(D);
   D.st = 'ko'; D.fxK = D.fxL = D.fxT = D.fxShk = 0; D.rocket = null; D.turret = null; D.dashT = 0; D.dashDir = 0; D.rollT = 0; D.stunT = 0; D.dilT = 0; D.giantT = 0; D.lastHit = null; D.kx = D.kz = 0; D.airSling = false; D.freeLand = false; D.missile = false; D.flung = false; D.flingC = 0; D.koT = by ? RESPAWN_T : SELF_RESPAWN_T; D.reason = reason; D.slam = false; D.flatT = 0; D.exposed = false; D.spd = 0; D.vy = 0; D.slowed = false; D.inBoil = false;
   if (by) { by.kos++; D.kod++; emote(by, 'glee', 1.4); if (D === P) hitEdge(by); } D.outs++; D.outWhy[reason] = (D.outWhy[reason] || 0) + 1;
-  const loud = hearable(D);
+  const loud = hearable(D), rag = reason === 'pound' && !!by && state === 'play';
   if (reason === 'fall') { if (loud) AU.fall(); if (D === P) AU.vox('waah', 0.8); }
-  else { burst(D, deathColor(D, reason)); shockwave(D.x, D.y, D.z, 1.6, deathRing(reason)); if (loud) AU.die(reason === 'coffin' || reason === 'crush' ? 'pound' : reason); if (D === P) AU.vox('waah'); if (reason === 'coffin' && pot) pot.bounce = 1; }
-  if (D === P) { drop.visible = false; shadowBlob.visible = false; AU.roll(0, 0); hold = 0.08; slow = 0.35; shake = 0.4; buzz([40, 30, 40]); if (reason !== 'dry') kofStart(D, reason, by); }
-  else { if (by === P) { hold = Math.max(hold, 0.09); shake = Math.max(shake, 0.3); } D.look.drop.visible = false; D.look.shadow.visible = false; if (mode !== 'trio' || by === P) banner((reason === 'fall' && by ? 'Knocked ' + nameOf(D) + ' off!' : koLine(reason, false, nameOf(D))) || 'Got ' + nameOf(D) + '!'); else if (loud) popText(nameOf(D) + ' is out'); if (by === P) buzz([20, 30, 20]); }
+  else { if (rag) ragStart(D, by); else burst(D, deathColor(D, reason)); shockwave(D.x, D.y, D.z, 1.6, deathRing(reason)); if (loud) AU.die(reason === 'coffin' || reason === 'crush' ? 'pound' : reason); if (D === P) AU.vox('waah'); if (reason === 'coffin' && pot) pot.bounce = 1; }
+  if (D === P) { if (!rag) koHide(D); AU.roll(0, 0); hold = 0.08; slow = 0.35; shake = 0.4; buzz([40, 30, 40]); if (reason !== 'dry') kofStart(D, reason, by); }
+  else { if (by === P) { hold = Math.max(hold, 0.09); shake = Math.max(shake, 0.3); } if (!rag) koHide(D); if (rag && by === P) kcamStart(D); if (mode !== 'trio' || by === P) banner((reason === 'fall' && by ? 'Knocked ' + nameOf(D) + ' off!' : koLine(reason, false, nameOf(D))) || 'Got ' + nameOf(D) + '!'); else if (loud) popText(nameOf(D) + ' is out'); if (by === P) buzz([20, 30, 20]); }
 }
 function openRun(x, z, y, a, r0, L) {
   const dx = Math.sin(a), dz = Math.cos(a); let d = 0;
@@ -12948,7 +12980,7 @@ function stepBlob(D, dt) {
   if (D.inkRush) { D.paint = Math.min(1, D.paint + dt * 3.2); if (D.paint >= 1) D.inkRush = false; } // quick refill so the bars pop in one by one
   if (D.wob > 0) D.wob = Math.max(0, D.wob - dt * 2.5); if (D.coyote > 0) D.coyote -= dt; if (D.stepOff) { D.stepOff *= Math.exp(-dt * 16); if (Math.abs(D.stepOff) < 0.002) D.stepOff = 0; }
   if (D.squash > 0) D.squash = Math.max(0, D.squash - dt * 4.2);
-  if (D.st === 'ko') { D.koT -= dt; if (D.koT <= 0) respawnBlob(D); return; }
+  if (D.st === 'ko') { if (D.rag) ragStep(D, dt); D.koT -= dt; if (D.koT <= 0) { if (D.rag) ragEnd(D); respawnBlob(D); } return; }
   if (D.rollCD > 0) D.rollCD -= dt; if (D.rollT > 0) D.rollT = Math.max(0, D.rollT - dt);
   if (D.dashT > 0) D.dashT -= dt;
   if (safe(D) && D.st === 'play' && Math.random() < dt * 45) spawnPart(D.x + (Math.random() - 0.5) * 0.4, D.y + 0.2 + Math.random() * 0.4, D.z + (Math.random() - 0.5) * 0.4, (Math.random() - 0.5) * 0.6, 0.6 + Math.random() * 0.8, (Math.random() - 0.5) * 0.6, 0.35, puHaloMat, 0.35, 0.2);
@@ -13068,7 +13100,7 @@ function step(dt) {
     if (dangerK > 0) dangerK -= dt;
     for (const D of ACTIVE) if (D.cpu) aiStep(D, dt);
     for (const D of ACTIVE) stepBlob(D, dt);
-    blobContact(); updateOrb(dt); updateShots(dt); if (tut) tutStep(dt); else if (tut2) tut2Step(dt);
+    blobContact(); updateOrb(dt); updateShots(dt); if (tut) tutStep(dt); else if (tut2) tut2Step(dt); else if (tut3) tut3Step(dt);
     // a handful of tips, once each
     if (runT > 5) hint('jump', say('Tap to jump', 'Space to jump'), 2.4);
     if (runT > 10 && !P.dry) hint('hold', say('Pull down and let go to fling', 'Hold S, let go to fling'), 2.8);
@@ -13709,7 +13741,7 @@ function aiThink(D) {
   if (AI.plan > 0 && !sunNow) { pudNear.fill(0, 0, NN); for (const r of rivals) if (r.on) NAV.near(r.x, r.z, r.y, SLAM_R * 0.5 + r.rad - 0.6, n => { if (Math.hypot(n.x - r.x, n.z - r.z) > r.hit + 0.35) pudNear[n.id] = 1; }); }
   // the giant orb means a full tank and a big body: worth a real detour, and close by it beats a coffin run
   let orbN = null;
-  if (orb.on && orb.k > 0.5 && D.giantT <= 0 && AI.orb > 0 && !sunNow) {
+  if (orb.on && orb.k > 0.5 && D.giantT <= 0 && AI.orb > 0 && !sunNow && !tut3Orb()) {
     orbN = NAV.at(orb.x, orb.z, orb.base);
     if (!orbN) { let bd = 3; NAV.near(orb.x, orb.z, orb.base, 3, m => { const dd = Math.hypot(m.x - orb.x, m.z - orb.z); if (dd < bd) { bd = dd; orbN = m; } }); }
     if (orbN && !(nDist[orbN.id] < 22 + 10 * AI.orb)) orbN = null;
@@ -14049,7 +14081,7 @@ function aiStep(D, dt) {
   ai.flight = null; ai.flMissile = false; ai.airRolled = false; if (ai.airAim) { ai.airAim = null; if (D.charging) cancelCharge(D); }
   if (ai.ramT > 0) { ai.ramT -= dt; const O = other(D); if (O.st === 'play' && D.flung) { if (D.charging) cancelCharge(D); D.steer = -clamp(wrapA(Math.atan2(O.x - D.x, O.z - D.z) - D.yaw) * 3, -1, 1); return; } ai.ramT = 0; }
   if (aiEvade(D, dt)) return;
-  if (ai.mode === 'orb') { if (!orb.on) { ai.mode = 'paint'; ai.thinkT = 0; } else { ai.thinkT = Math.min(ai.thinkT, 0.25); if (Math.hypot(orb.x - D.x, orb.z - D.z) < 2.6 && orb.y - D.y < 2.1 && orb.y - D.y > -0.2 && !D.charging && solidAround(orb.x, orb.z, D.y, 1.2)) jump(D); /* (not for an orb hanging over a hole: the grab drops it straight down) */ } }
+  if (ai.mode === 'orb') { if (!orb.on || tut3Orb()) { ai.mode = 'paint'; ai.thinkT = 0; } else { ai.thinkT = Math.min(ai.thinkT, 0.25); if (Math.hypot(orb.x - D.x, orb.z - D.z) < 2.6 && orb.y - D.y < 2.1 && orb.y - D.y > -0.2 && !D.charging && solidAround(orb.x, orb.z, D.y, 1.2)) jump(D); /* (not for an orb hanging over a hole: the grab drops it straight down) */ } }
   if (aiTryPound(D, dt)) return;
   if (ai.plan) return aiDoPlan(D, dt);
   ai.thinkT -= dt;
@@ -14275,7 +14307,7 @@ function rollPoof(D, on) {
 }
 // shared blob animation: stretch with speed, lean into turns, squash on landing, go flat when rolled over
 function blobVisual(D, V, dt, ke, kf) {
-  const L = V.look, U = V.U, hidden = D.st === 'hide';
+  const L = V.look, U = V.U, hidden = D.st === 'hide'; if (D.rag && state !== 'play' && state !== 'paused') ragEnd(D); /* (the match ended mid-blast: it pops now) */
   V.airT = D.air ? (V.airT || 0) + dt : 0; const vAir = V.vAir = D.air && (V.airT > 0.09 || D.vy > 1 || D.vy < -3 || D.knockT > 0 || D.slam || D.flung || D.missile || D.st !== 'play');
   // the reactions asked for since the last frame
   const fxK = D.fxK, fxL = D.fxL, fxT = D.fxT, fxS = D.fxShk; D.fxK = D.fxL = D.fxT = D.fxShk = 0; if (fxS > 0 && V.slime && V.slime.shakeOff) V.slime.shakeOff(fxS);
@@ -14342,6 +14374,8 @@ function blobVisual(D, V, dt, ke, kf) {
   V.yawDraw = V.root.userData.yawDraw = yawD + spinY;
   if (V.tum && (tumX || tumZ)) { const c = Math.cos(V.yawDraw), s = Math.sin(V.yawDraw), lx = V.tum.wx * c - V.tum.wz * s, lz = V.tum.wx * s + V.tum.wz * c;
     tumQ.setFromAxisAngle(tumA.set(lz, 0, -lx), tumX); V.root.quaternion.multiply(tumQ); tumQ.setFromAxisAngle(tumA.set(lx, 0, lz), tumZ); V.root.quaternion.multiply(tumQ); }
+  if (D.rag) { const R = D.rag, c = Math.cos(V.yawDraw), s2 = Math.sin(V.yawDraw), lx = R.wx * c - R.wz * s2, lz = R.wx * s2 + R.wz * c;
+    tumQ.setFromAxisAngle(tumA.set(lz, 0, -lx), R.a); V.root.quaternion.multiply(tumQ); tumQ.setFromAxisAngle(tumA.set(lx, 0, lz), R.side * 0.55 * Math.sin(R.a * 0.6)); V.root.quaternion.multiply(tumQ); }
   if (V.rig) { const k = L.roll; V.rig.visible = k > 0.05 && D.st !== 'ko'; if (V.rig.visible) { const e = easeBack(Math.min(1, (k - 0.05) / 0.7)), sy = 1 - 0.38 * sq + 0.24 * rise, sxz = 1 + 0.3 * sq - 0.1 * rise; V.rig.scale.set(e * sxz, e * sy, e * sxz); V.rig.position.y = -0.82 * (1 - sy); }
     const Hd = V.hdl; if (Hd && V.rigHandle) { const h = Math.min(dt, 0.05), air = !!D.air, spd = air ? Hd.pspd : (D.spd || 0), acc = h > 0 ? (spd - Hd.pspd) / h : 0;
       if (air && !Hd.air) Hd.v += 3 + Math.max(0, D.vy || 0) * 0.2; if (!air && Hd.air) Hd.v -= 6.5 + Math.min(8, Math.max(0, -(Hd.pvy || 0))) * 0.75;
@@ -14894,6 +14928,11 @@ function visuals(dt, rdt) {
     const fx = Math.sin(camYaw), fz = Math.cos(camYaw), h = clamp((P.y - gy) / ROCKET_ALT, 0, 1), back = 6.1 - 0.9 * h, hi = 8.8 + 1.2 * h;
     dPos.set(P.x - fx * back, P.y + hi, P.z - fz * back); dLook.set(P.x + fx * (2.9 - 1.6 * h), gy + (P.y - gy) * 0.06 - 0.4 * (1 - h), P.z + fz * (2.9 - 1.6 * h));
     gyCam += (gy - gyCam) * (1 - Math.exp(-rdt * 6)); camCharge = 0;
+  }
+  else if (state === 'play' && kcam) {
+    const K = kcam, u = smoothstep(0, 2.6, K.t), nx = K.fz * K.side, nz = -K.fx * K.side, V = K.V, d = K.dist * (1 - 0.1 * u), sw = (K.rev ? 1.9 : 1.1) + 0.5 * u; // (a slow drift sideways and in)
+    dPos.set(K.x0 + K.fx * d + nx * sw, K.gy + (K.rev ? 1.7 : 2.1) - 0.25 * u, K.z0 + K.fz * d + nz * sw);
+    const ax = K.x0 + K.fx * (K.rev ? 1.6 : 3), az = K.z0 + K.fz * (K.rev ? 1.6 : 3), lk = V.rag ? 0.35 : 0.15; dLook.set(ax + (V.x - ax) * lk, K.gy + 0.65 + Math.max(0, V.y - K.gy) * 0.35, az + (V.z - az) * lk);
   }
   else if (state === 'dead' || state === 'paused') {
     if (state === 'dead' && outro) { outroT += rdt; { const ty = outroBase + Math.sin(outroT * 0.3) * 0.2; camYaw += (ty - camYaw) * (1 - Math.exp(-rdt * 1.4)); } const sc = end.hidden ? ARENA / 26.4 * Math.max(clamp(0.5 / (Math.tan(camera.fov * Math.PI / 360) * camera.aspect), 1, 1.7), 1.2) : outroSc, fx = Math.sin(camYaw), fz = Math.cos(camYaw); dPos.set(-fx * 31 * sc, 37 * sc, -fz * 31 * sc); dLook.set(fx * 3 * sc, -12 * sc, fz * 3 * sc); }
@@ -16911,7 +16950,7 @@ function portraitOf(D, W, Hh, o) {
     SI.root.updateWorldMatrix(true, true); VB.updateWorldMatrix(true, false); const hq = new THREE.Quaternion(), hc = AXOC.headTop(SI, new THREE.Vector3(), hq, 0).applyMatrix4(VB.matrixWorld);
     const ws = VB.getWorldScale(new THREE.Vector3()).y, Rw = AXOC.headSize(SI) * ws, fw = new THREE.Vector3(0, 0, 1).applyQuaternion(hq).applyQuaternion(VB.getWorldQuaternion(new THREE.Quaternion()));
     const hatK = look.head === 'hat' ? 1.5 : look.head === 'tophat' ? 1.45 : look.head === 'pirate' ? 1.32 : look.head === 'bunny' ? 1.4 : look.head ? 1.24 : 1.08, ext = Rw * hatK, cy = hc.y + Rw * (hatK - 1);
-    const dist = ext / (o.fd * tv), a = Math.atan2(fw.x, fw.z) + (o.turn || 0), el = 0.06;
+    const dist = ext / (o.fd * tv), a = Math.atan2(fw.x, fw.z) + (o.turn || 0), el = clamp(Math.asin(clamp(fw.y, -1, 1)) * 0.9, 0.06, 0.6);
     portCam.position.set(hc.x + Math.sin(a) * Math.cos(el) * dist, cy + Math.sin(el) * dist, hc.z + Math.cos(a) * Math.cos(el) * dist); portCam.lookAt(hc.x, cy, hc.z);
     portCam.setViewOffset(W, Hh, (0.5 - o.fx) * W, (0.5 - o.fy) * Hh, W, Hh); portCam.updateMatrixWorld(); }
   for (const o of [P, H, H2]) vicLayer(o, o === D);
@@ -17712,7 +17751,8 @@ function frameBody(t) {
   checkHold();
   if ((AXOC.S.ready || SLIME.S.ready) && !VP.slime && booted && state === 'menu' && !lookOpen && !irisBusy) { attachSlimes(); queueWarm(); }
   if (state === 'paused') dt = 0; else if (hold > 0) { hold -= rdt; dt = 0; } else if (slow > 0) { slow -= rdt; dt = rdt * 0.35; }
-  if (tut && tut.slowK < 1 && state === 'play') dt *= tut.slowK; else if (tut2 && tut2.slowK < 1 && state === 'play') dt *= tut2.slowK; // (the lesson: slowed right down while a tip waits on you)
+  if (kcam) { if (state !== 'play' && state !== 'paused') kcamEnd(); else if (state === 'play') { kcam.t += rdt; if (kcam.t >= Math.min(kcam.endAt, 3.4)) kcamEnd(); else if (dt > 0) dt = rdt * kcamK(kcam.t); } }
+  if (kcam) {} else if (tut && tut.slowK < 1 && state === 'play') dt *= tut.slowK; else if (tut2 && tut2.slowK < 1 && state === 'play') dt *= tut2.slowK; // (the lesson: slowed right down while a tip waits on you)
   if (dt > 0) { const n = Math.ceil(dt / 0.012); for (let i = 0; i < n; i++) step(dt / n); }
   visuals(dt, rdt); flushTrail(); pbarTick(rdt); lockerTick(); dipTick(rdt);
   if (shadowLite >= 2) sun.shadow.needsUpdate = (++frameNo & 1) === 0;
@@ -17785,6 +17825,7 @@ function tutApproach(D) {
 function tutDrive(D) {
   if (tut.driveMode === 'near') return tutApproach(D);
   if (tut.driveMode === 'cross') return tutToCross(D);
+  if (tut.driveMode === 'ahead') return tutAhead(D);
   const dx = P.x - D.x, dz = P.z - D.z, d = Math.hypot(dx, dz); if (D.charging) cancelCharge(D);
   D.steer = D.slam ? 0 : -clamp(wrapA(Math.atan2(dx, dz) - D.yaw) * 3, -1, 1);
   if (!D.air && !D.slam && P.st === 'play' && !P.air && d < 3.4 && d > 0.6 && Math.abs(P.y - D.y) < 0.8 && slamReady(D)) useSlam(D);
@@ -17802,7 +17843,7 @@ const TUT_AI_CALM = { speed: 0.8, pound: 0.45, poundR: 1.5, attack: 0.08, hunt: 
 // a tip: the coach's plate (an explanation, its face and name) or, with call set, a short line for an action, *the words that matter* in red
 // a finger acting out the gesture a tip asks for, on a touch screen: drag across and tap to move and jump, hold and pull down to fling,
 // a flick up to roll out of a pound
-const TUT_GEST = { move: 'steertap', sling: 'pull', dodgenow: 'swipe', rdodgenow: 'swipe', rroll: 'swipe', wxhold: 'hold', protip: 'pullslow' };
+const TUT_GEST = { msling: 'pull', msling2: 'pull', move: 'steertap', sling: 'pull', dodgenow: 'swipe', rdodgenow: 'swipe', rroll: 'swipe', wxhold: 'hold', protip: 'pullslow' };
 const tutGestEl = document.createElement('i'); tutGestEl.className = 'tutgest'; tutGestEl.hidden = true; tutGestEl.setAttribute('aria-hidden', 'true');
 function tutGest(kind) {
   const k = kind && !keysUI ? kind : ''; if (!tutGestEl.parentNode) stage.appendChild(tutGestEl);
@@ -17935,8 +17976,12 @@ const TUT_STEPS = [
   { id: 'item', max: 50, enter() { tutHide(); tut.items = true; tut.slowK = 1; tut.sub = ''; tut.wait = 1.4; tut.tipIn = 0; itemSpawn.t = Math.max(itemSpawn.t, 14); }, /* (a breath, then the roller pops up; a moment to see it, then its tip) */
     tick(dt) { if (tut.wait > 0) { tut.wait -= dt; if (tut.wait <= 0) { tutSpawnRoller(); tut.tipIn = 0.8; } return false; } if (tut.tipIn > 0 && !P.held) { tut.tipIn -= dt; return false; } const sub = P.held === 'roller' ? 'use' : 'grab'; if (sub !== tut.sub) { tut.sub = sub; if (sub === 'grab') { tut.slowK = 1; tutShow('Roll over the *ROLLER* to pick it up!', null, 'item', true, true); } else { tut.slowK = 0.35; tutShow(say('*TAP* the roller to use it!', 'Press *F* to use it!'), 'itemBtn', 'use', true); } }
       return !!(P.power && P.power.type === 'roller'); } },
-  { id: 'free2', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 6; tut.rTip = !!(P.power && P.power.type === 'roller'); tut.rTipT = 3.4; if (tut.rTip) tutShow(say('*SWIPE UP* to roll over the rival!', 'Press *SHIFT* to roll over the rival!'), null, 'rroll', true, true); }, /* (now a roller: a quick word on rolling over the rival, at full speed) */
-    tick(dt) { if (tut.rTip) { tut.rTipT -= dt; if (tut.rTipT <= 0 || P.rollT > 0 || !(P.power && P.power.type === 'roller')) { tut.rTip = false; tutHide(); } } tut.wait -= dt; return tut.wait <= 0; } },
+  { id: 'free2', max: 30, enter() { tutHide(); tut.slowK = 1; tut.wait = 6; tut.rTip = !!(P.power && P.power.type === 'roller'); tut.rTipT = 0; tut.rSeen = false; if (tut.rTip) { tut.drive = H; tut.driveMode = 'ahead'; if (H.ai) { H.ai.plan = null; H.ai.path = null; } tut.rIn = tutRivalIn(7); } }, /* (now a roller: the rival comes round in front of you, and once he's in your sights, a word on rolling over him) */
+    exit() { if (tut.driveMode === 'ahead') { tut.drive = null; tut.driveMode = null; TUT_AI.speed = 0.8; } },
+    tick(dt) { if (tut.rTip) { const have = !!(P.power && P.power.type === 'roller');
+        if (!tut.rSeen) { if (have) P.power.t = Math.max(P.power.t, 3); /* (the roller lasts till the tip has come) */ if (!tut.rIn) tut.rIn = tutRivalIn(7); if (!have) { tut.rTip = false; } else if (tutRivalSeen(9)) { tut.rSeen = true; tut.rTipT = 3.6; tut.wait = 6; tutShow(say('*SWIPE UP* and roll over him to get him!', 'Press *SHIFT* and roll over him to get him!'), null, 'rroll', true, true); } else { tut.wait = Math.max(tut.wait, 2); return false; } } /* (the tip waits for him to be in your line of sight) */
+        else { tut.rLost = tutRivalSeen(14) || Math.hypot(H.x - P.x, H.z - P.z) < 3.2 ? 0 : (tut.rLost || 0) + dt; tut.rTipT -= dt; if (tut.rTipT <= 0 || P.rollT > 0 || !have || tut.rLost > 0.6) { /* (he's gone out of sight: the tip goes) */ tut.rTip = false; tutHide(); if (tut.driveMode === 'ahead') { tut.drive = null; tut.driveMode = null; TUT_AI.speed = 0.8; } } } }
+      tut.wait -= dt; return tut.wait <= 0; } },
   { id: 'orb', max: 55, enter() { orb.spawnT = 0; tut.orbMine = true; tut.hadRocket = false; tut.slowK = 1; tutShow('A special orb! Roll up to it for a super move', null, 'orb', false, true); },
     tick() { if (P.rocket && !tut.hadRocket) { tut.hadRocket = true; tut.slowK = 1; /* (full speed: the rocket ride is the fun part) */ tutShow(say('Steer over the rival, then tap Boost', 'Steer over the rival, then press E to boost'), 'slamBtn', 'rocket'); }
       const cross = !!P.rocket; if (cross && tut.driveMode !== 'cross') { tut.drive = H; tut.driveMode = 'cross'; if (H.ai) { H.ai.plan = null; H.ai.path = null; } } else if (!cross && tut.driveMode === 'cross') { tut.drive = null; tut.driveMode = null; TUT_AI.speed = 0.8; } /* (the rival walks into your crosshair) */
@@ -17993,7 +18038,7 @@ function tutStrokesDue() { return tutPh() === 'done' && !store.tut.strokes && st
 function tutStrokesCard(n) {
   const el = $('tutGo'); el.dataset.mode = 'strokes' + n;
   if (n === 1) tutCardText(['Look at <em>you</em>, rookie!', 'Rank ' + repOf(store.xp || 0).lv + ' already. You’ve come a long way since that first canvas, and I’ve been watching.', 'Aw, thanks', '']);
-  else tutCardText(['Let’s learn <em>some more</em>', 'And get even better. You’ve unlocked Strokes: your special move, and a skill. Come see.', 'Show me', '']);
+  else tutCardText(['Let’s learn <em>some more</em>', 'You’ve unlocked Strokes: your special move, and a skill. Come see.', 'Show me', '']);
   if (el.hidden) { el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); } tutCardCoach(); if (n === 1) { AU.fanfare && AU.fanfare(); AU.bloop(0.55); menu.classList.add('tutoring'); } else AU.bloop(0.5); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);
 }
 function tutStrokesGo() { const el = $('tutGo'), m = el.dataset.mode; if (m === 'strokes1') return tutStrokesCard(2); el.classList.remove('on'); el.hidden = true; coachCorner(null); el.dataset.mode = ''; store.tut.strokes = 'on'; tutSet('strokes'); setTimeout(() => openStrokes(), 250); }
@@ -18020,12 +18065,13 @@ $('tgLater').addEventListener('click', () => { AU.init(); AU.ui(); tutWelcomeDon
 // the first real match: no weather until halfway, then the sun in three short steps (find shade, with the way to it shown; hold to stay put in
 // it; or hide in a coffin), then the rain in one plain line, no slow-down, then the zombie eyes turn up close by. Your paint lasts longer
 // this match (stepBlob), and the orb comes up near you (orbSpawn)
-function tut2Begin() { tut2 = { ph: 'calm', sub: '', subT: 0, tipT: 0, hold: 0, slowK: 1, slowT: 0, shade: null, held: 0 }; wxLeft = 1e9; wxPhase = 'clear'; gift.id = null; gift.on = false; gift.got = false; giftM.visible = giftRing.visible = giftBeam.visible = false; }
+function tut2Begin() { tut2 = { ph: 'calm', sub: '', subT: 0, tipT: 0, hold: 0, slowK: 1, slowT: 0, shade: null, held: 0, ms: '', msT: 0, msN: 0 }; wxLeft = 1e9; wxPhase = 'clear'; gift.id = null; gift.on = false; gift.got = false; giftM.visible = giftRing.visible = giftBeam.visible = false; }
 function tut2Step(dt) {
   const t = tut2; if (!t || state !== 'play') return;
   if (t.slowT > 0) { t.slowT -= dt / Math.max(t.slowK, 0.05); t.slowK = t.slowT > 0 ? 0.3 : 1; } /* (the sun's first word: a moment slowed and dimmed so it sinks in) */
   if (t.tipT > 0) { t.tipT -= dt; if (t.tipT <= 0) tutHide(); }
-  if (t.ph === 'calm') { wxLeft = Math.max(wxLeft, 1); if (matchLeft <= MATCH_T * 0.5) { t.ph = 'sun'; setWx('warn', 7); AU.heatWarn(); t.shade = tutShadeSpot(); t.sub = 'shade'; t.subT = 0;
+  if (tut2Missile(t, dt)) return;
+  if (t.ph === 'calm') { wxLeft = Math.max(wxLeft, 1); if (matchLeft <= MATCH_T * 0.5 && !t.ms) { t.ph = 'sun'; setWx('warn', 7); AU.heatWarn(); t.shade = tutShadeSpot(); t.sub = 'shade'; t.subT = 0;
       t.slowK = 0.3; t.slowT = 1.6; tutShow('The sun\u2019s coming out! Find some shade', null, 'wxsun', false, true); } }
   else if (t.ph === 'sun') {
     t.subT += dt; const hid = P.st === 'hide', shaded = hid || (P.st === 'play' && inShadow(P.x, P.z, P.y));
@@ -18043,6 +18089,35 @@ function tut2Step(dt) {
     if (matchLeft < 12 && t.hold < 25) { t.hold += dt; matchLeft = 12; } // (time enough to reach them)
   }
 }
+// match 2's missile lesson: true while it holds the floor (the weather's tips wait)
+function tut2Missile(t, dt) {
+  const real = dt / Math.max(t.slowK, 0.05);
+  if (!t.ms) { if (t.ph === 'calm' && !t.sub && !tutTip && P.st === 'play' && !P.air && runT > 4 && slamReady(P)) { t.ms = 'sling'; t.msT = 0; tutShow(say('Don\u2019t forget to *SLINGSHOT*!', 'Don\u2019t forget to *SLINGSHOT*! Hold *S*, let go'), null, 'msling', true, true); } else return false; }
+  if (t.ms === 'sling') { t.msT += real; t.slowK = t.msT < 8 ? 0.3 : 1; /* (slowed while you line it up; not forever) */
+    if (P.st === 'play' && P.air && P.flung && (P.flingC || 0) > 0.15 && slamReady(P)) { t.ms = 'pound'; t.msT = 0; t.slowK = 0.3; tutShow(say('Now press *POUND* to fire a missile!', 'Now press *E* to fire a missile!'), 'slamBtn', 'mpound', true, true); }
+    else if (t.msT > 14 || P.st !== 'play') { t.ms = 'done'; t.slowK = 1; tutHide(); }
+    return true; }
+  if (t.ms === 'pound') { t.msT += real; t.slowK = 0.3;
+    if (P.missile && P.slam) { t.ms = 'elim'; t.msT = 0; t.slowK = 1; tutHide(); tutShow('Missiles eliminate players!', null, 'melim', false, true); }
+    else if (!P.air || P.st !== 'play') { t.slowK = 1; tutHide(); if (++t.msN < 2 && P.st === 'play') { t.ms = 'again'; t.msT = 0; } else t.ms = 'done'; }
+    return true; }
+  if (t.ms === 'again') { t.msT += real; if (t.msT > 1.2 && slamReady(P) && !P.air && P.st === 'play') { t.ms = 'sling'; t.msT = 0; tutShow(say('Slingshot, then *POUND* in the air!', 'Slingshot, then press *E* in the air!'), null, 'msling2', true, true); } return t.msT < 6; }
+  if (t.ms === 'elim') { t.msT += real; if (t.msT > 4.2) { t.ms = 'done'; tutHide(); } return t.msT <= 4.2; }
+  return false;
+}
+// match 3 (the one after): the orb's for you (the CPU leaves it and it comes up near you), it makes you a giant; when that wears off
+// Ol' Bloop says you can swap the giant and the rocket in Strokes; later on, a word on slingshotting
+let tut3 = null;
+function tut3Begin() { tut3 = { ph: 'orb', tipT: 0, remAt: 0, rem: false }; orb.spawnT = Math.min(orb.spawnT, 9); }
+function tut3Step(dt) {
+  const t = tut3; if (!t || state !== 'play') return;
+  if (t.tipT > 0) { t.tipT -= dt; if (t.tipT <= 0) tutHide(); }
+  if (t.ph === 'orb') { if (P.giantT > 0) t.ph = 'giant'; }
+  else if (t.ph === 'giant') { if (P.giantT <= 0) { t.ph = 'said'; t.tipT = 4.5; t.remAt = runT + 16;
+      tutShow(strokesDue() ? 'You can switch between Giant and Rocket any time in Strokes!' : 'Soon you\u2019ll pick Giant or Rocket in Strokes!', null, 'm3swap', false, true); } }
+  if (!t.rem && P.st === 'play' && !tutTip && matchLeft > 6 && (t.ph === 'said' ? runT > t.remAt : matchLeft < MATCH_T * 0.35)) { t.rem = true; t.tipT = 4.5; tutShow('Slingshotting is the fastest way around the canvas!', null, 'm3sling', false, true); }
+}
+const tut3Orb = () => !!tut3 && tut3.ph === 'orb'; // (the orb is being saved for you)
 // the nearest shade from where you are, on your level and open enough to sit in: a ring at a time outwards
 function tutShadeSpot() {
   const y = P.y, ok = (x, z) => Math.abs(x) < ARENA - 1.2 && Math.abs(z) < ARENA - 1.2 && Math.abs(surfaceUnder(x, z, y + 0.5) - y) < 0.05 && !blockedAt(x, z, y) && NAV.at(x, z, y) && inShadow(x, z, y) && [[0.7, 0], [-0.7, 0], [0, 0.7], [0, -0.7]].filter(([dx, dz]) => inShadow(x + dx, z + dz, y) && !blockedAt(x + dx, z + dz, y)).length >= 2;
@@ -18112,6 +18187,20 @@ function tutFinTick(dt) {
 // the lesson's rival, far off and out of sight: brought round to open ground a few steps ahead of you, in view (with a little pop of
 // paint), so what it does next happens where you can see it coming
 let tutRivT = -9;
+// the roller lesson's driver: the rival makes for a spot a few metres ahead of you (its own route there if a wall's in the way), so it
+// comes into your view in front of you, and once it's there, on in toward you
+function tutAhead(D) {
+  const fx = Math.sin(P.yaw), fz = Math.cos(P.yaw), rx = D.x - P.x, rz = D.z - P.z, ahead = rx * fx + rz * fz, side = Math.abs(rx * fz - rz * fx), ai = D.ai;
+  if (ahead > 2.5 && side < 0.6 * ahead + 1) { TUT_AI.speed = 0.8; return tutApproach(D); } /* (in front of you: on in) */
+  const k = clamp(Math.hypot(rx, rz) * 0.5, 4, 7), tx = P.x + fx * k, tz = P.z + fz * k, dx = tx - D.x, dz = tz - D.z, d = Math.hypot(dx, dz); TUT_AI.speed = clamp(0.9 + d / 12, 0.9, 1.6);
+  if (d > 4 && !lineClear(D, tx, tz, D.y)) { if (!ai.tutNavAt || runT - ai.tutNavAt > 0.5 || !ai.path) { ai.tutNavAt = runT; const s0 = NAV.at(D.x, D.z, D.y), g = NAV.at(tx, tz, D.y); if (s0 && g) { nMult.fill(1, 0, NN); dijkstra(s0.id); if (nDist[g.id] < Infinity) aiGo(D, g, 'hunt'); else ai.path = null; } }
+    const w = aiFollow(D); if (w) return aiSteer(D, w.x, w.z, 1 / 60, true); }
+  if (D.charging) cancelCharge(D);
+  D.steer = -clamp(wrapA(Math.atan2(dx, dz) - D.yaw) * 3, -1, 1);
+}
+// the rival in your line of sight: ahead of you, on screen, not too far, nothing in the way
+function tutRivalSeen(maxD) { const D = H; if (!D || D.st !== 'play' || P.st !== 'play') return false; const dx = D.x - P.x, dz = D.z - P.z, d = Math.hypot(dx, dz); if (d > maxD || d < 3.2) return false; /* (too close to react: it waits for the next pass) */
+  if (Math.sin(P.yaw) * dx + Math.cos(P.yaw) * dz < d * 0.3) return false; tv1.set(D.x, D.y + 0.3, D.z).project(camera); return tv1.z < 1 && Math.abs(tv1.x) < 0.82 && Math.abs(tv1.y) < 0.82 && lineClear(P, D.x, D.z, P.y); }
 function tutRivalIn(dist) {
   const D = H; if (!tut || !D || D.st !== 'play' || D.air || D.slam || D.rocket || D.turret || P.st !== 'play' || P.air || runT - tutRivT < 2.5) return false;
   const far = Math.hypot(D.x - P.x, D.z - P.z); tv1.set(D.x, D.y + 0.3, D.z).project(camera); const seen = tv1.z < 1 && Math.abs(tv1.x) < 1 && Math.abs(tv1.y) < 1;
@@ -18204,7 +18293,7 @@ function tutGuide() {
 function tutFrame(rdt) {
   { const bUp = state === 'play' && performance.now() < bannerUntil; if (bUp && tut) tut.bannerSeen = true; const w = bUp || (state === 'play' && P.st === 'ko'); if (tutEl.classList.contains('wait') !== w) { tutEl.classList.toggle('wait', w); tutHandEl.classList.toggle('wait', w); tutGestEl.classList.toggle('wait', w); } } /* (a game banner up, or you knocked out and waiting to come back: the coach waits out of sight) */
   if (tut) { if (state === 'play' && tut.step >= 0) { tut.st += rdt; if (tut.st > TUT_STEPS[tut.step].max && !(tut.gap > 0)) tutNext(); } const on = state === 'play' && tut.slowK < 1 && !tut.card; if (tutSlowEl.classList.contains('on') !== on) { tutSlowEl.classList.toggle('on', on); AU.slow(on); } const dp = on && tut.slowK < 0.2; if (tutSlowEl.classList.contains('deep') !== dp) tutSlowEl.classList.toggle('deep', dp); }
-  else { const on2 = !!tut2 && state === 'play' && tut2.slowK < 1; if (tutSlowEl.classList.contains('on') !== on2) { tutSlowEl.classList.toggle('on', on2); tutSlowEl.classList.toggle('dark', on2); AU.slow(on2); } if (!(tut2 && state === 'play')) tutMenuTick(); } // (the first real match runs its own tips)
+  else { const on2 = !!tut2 && state === 'play' && tut2.slowK < 1; if (tutSlowEl.classList.contains('on') !== on2) { tutSlowEl.classList.toggle('on', on2); tutSlowEl.classList.toggle('dark', on2); AU.slow(on2); } if (!((tut2 || tut3) && state === 'play')) tutMenuTick(); } // (the first real match runs its own tips)
   tutProTip();
   if (tutTip) tutPlace(); else if (popMoved) { popMoved = false; $('pop').style.top = ''; }
   { const g = $('tutGo'), card = !g.hidden; if (card) tutCardCoach(); coachCorner(card ? (g.classList.contains('peek') ? null : 'l') : tutTip && tutEl.dataset.pos === 'dock' && !tutEl.classList.contains('wait') ? tutEl.dataset.side : null, card); }
@@ -18219,7 +18308,7 @@ function tutProTip() {
   if (tut || state !== 'play') { if (tutTip && tutTip.key === 'protip') tutHide(); return; } if (!tutPT || tutPT.run !== runId) tutPT = { run: runId, n: 0, last: 0, was: false, shown: false, hideAt: 0 }; const pt = tutPT;
   if (P.flung && !pt.was) { pt.n++; pt.last = runT; store.flings = (store.flings || 0) + 1; if (tutTip && tutTip.key === 'protip') tutHide(); } pt.was = !!P.flung;
   if (tutTip && tutTip.key === 'protip' && runT > pt.hideAt) tutHide();
-  if (pt.shown || tutTip || P.st !== 'play' || runT < 25 || pt.n >= 2 || runT - pt.last < 20 || (store.slingTips || 0) >= 5 || (store.flings || 0) >= 40 || (tut2 && tut2.ph !== 'calm' && tut2.ph !== 'done') || matchLeft < 12) return;
+  if (pt.shown || tutTip || P.st !== 'play' || runT < 25 || pt.n >= 2 || runT - pt.last < 20 || (store.slingTips || 0) >= 5 || (store.flings || 0) >= 40 || (tut2 && tut2.ph !== 'calm' && tut2.ph !== 'done') || tut3 || matchLeft < 12) return;
   pt.shown = true; pt.hideAt = runT + 5.5; store.slingTips = (store.slingTips || 0) + 1; save(); tutShow('Pro tip: Slingshotting is much faster to get around!', null, 'protip', false, true);
 }
 // the lesson match plays as a duel on the blank canvas against a gentle CPU, whatever the lobby was set to; it all goes back after
@@ -18229,12 +18318,13 @@ function tutBegin() { // (as a match begins)
   tutHide(); /* (nothing from the lobby carries into the match) */
   if (tutPh() === 'vote') tutSet('match2');
   tut2 = null; if (tutPh() === 'match2') tut2Begin();
+  tut3 = null; if (tutPh() === 'done' && store.tut.m3 === 1) tut3Begin();
   if (!tutMatchDue()) { tut = null; return; }
   Object.assign(TUT_AI, TUT_AI_CALM, { pound: 0, attack: 0, orb: 0 }); AI = TUT_AI;
   tut = { step: -1, st: 0, slowK: 1, hidePound: true, keepAway: true, items: false, orbMine: false, drive: null, noTurret: true, pips: new Set(), bonus: 0, praiseN: 0 }; tutPipsDraw();
   wxLeft = 1e9; orb.spawnT = 1e9; Object.assign(gift, { id: 'flower', on: false, got: false, pop: 0, at: 1e9 }); giftM.visible = giftRing.visible = giftBeam.visible = false;
 }
-function tutLeave() { clearTimeout(tutPraiseEl._t0); tutPraiseEl._pend = false; tutPraiseEl.classList.remove('on'); tut2 = null; tutArrowEl.hidden = true; if (tut) tutCard(false); tut = null; tutHide(); if (tutSlowEl.classList.contains('on')) AU.slow(false, true); tutSlowEl.classList.remove('on'); tutRestore(); tutWinDue = false; const tw = $('tutWin'); tw.classList.remove('on'); tw.hidden = true; }
+function tutLeave() { clearTimeout(tutPraiseEl._t0); tutPraiseEl._pend = false; tutPraiseEl.classList.remove('on'); tut2 = null; tut3 = null; tutArrowEl.hidden = true; if (tut) tutCard(false); tut = null; tutHide(); if (tutSlowEl.classList.contains('on')) AU.slow(false, true); tutSlowEl.classList.remove('on'); tutRestore(); tutWinDue = false; const tw = $('tutWin'); tw.classList.remove('on'); tw.hidden = true; }
 function tutEndMatch() { // (as a match ends)
   if (tut) {
     const bonus = tut.bonus || 0; if (bonus) { store.drops = (store.drops || 0) + bonus; endInfo.drops = (endInfo.drops || 0) + bonus; } endInfo.tutBonus = bonus; // (the lessons' dabs)
@@ -18244,7 +18334,8 @@ function tutEndMatch() { // (as a match ends)
     for (const k of ['steer', 'jump', 'hold', 'burst', 'roll', 'pound', 'missile', 'item', 'orb', 'rocket', 'airdash', 'rroll']) store.seen[k] = 1; // (taught: the one-time tips stay down)
     tutSet('shop'); save(); tutWinDue = true; return;
   }
-  if (tutPh() === 'match2') { tut2 = null; tutHide(); delete store.tut.price; tutSet('done'); save(); }
+  if (tutPh() === 'match2') { tut2 = null; tutHide(); delete store.tut.price; store.tut.m3 = 1; tutSet('done'); save(); }
+  else if (tut3) { tut3 = null; tutHide(); store.tut.m3 = 2; save(); }
 }
 function tutFangsSale() { const t = store.tut.price || (store.tut.price = {}); if (t.fangs >= 0) return; if (!OWNED.has('fangs')) { OWNED.add('fangs'); store.owned = [...OWNED]; } t.fangs = store.drops || 0; save(); if (shopOpen) renderShop(); }
 // between matches the coach points the way: the shop for the flower and the fangs, the locker to wear them, then the canvases to vote

@@ -10,10 +10,10 @@ async def main():
         for (w, h) in SIZES:
             for md in MODES:
                 ctx = await b.new_context(viewport={'width': w, 'height': h}, device_scale_factor=1, has_touch=True, is_mobile=True)
-                await ctx.add_init_script("window.__instant = false; window.__noVote = true; try { localStorage.setItem('paint-world-red.v1', JSON.stringify({ orient:'" + ('land' if w > h else 'port') + "', name:'Dusk', seen:{}, drops: 0, runs: 3, tut: { ph: 'done' } })); } catch (e) {}")
+                await ctx.add_init_script("window.__instant = false; window.__noVote = true; try { localStorage.setItem('paint-world-red.v1', JSON.stringify({ orient:'" + ('land' if w > h else 'port') + "', name:'Dusk', seen:{}, drops: 0, runs: 3, " + os.environ.get('LOOK', '') + " tut: { ph: 'done' } })); } catch (e) {}")
                 pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)[:300])); ev = pg.evaluate
                 async def wait(js, t=300000): await pg.wait_for_function(js, timeout=t, polling=50)
-                await pg.goto('http://localhost:8765/pc_h.html', timeout=240000); await wait('typeof __T === "object"'); await pg.wait_for_timeout(1500)
+                await pg.goto('http://localhost:8765/' + os.environ.get('PAGE', 'pc_h.html'), timeout=240000); await wait('typeof __T === "object"'); await pg.wait_for_timeout(1500)
                 await ev("(() => { const st = window.setTimeout; window.setTimeout = (f, d, ...x) => d === 2100 ? 0 : st(f, d, ...x); })()")  # (the card stays up: its own timer to move on is dropped)
                 await ev(f"__T.mode = '{md}'; __T.applyMode(); __T.start()")
                 await wait("!document.getElementById('vsx').hidden && document.querySelectorAll('#vsRow .vbox canvas').length > 0")
