@@ -171,7 +171,7 @@ def reshape(nm, untex, tex, out, outsrc, verbose=True):
             rootsNow[bi[f'gill{k}.{s_}.1']] = gb[f'gill{k}.{s_}.1']['pos']; rootsNow[bi[f'gill{k}.{s_}.2']] = gb[f'gill{k}.{s_}.1']['pos']
     rootP = np.array([rootsNow[int(g)] for g in gdom]); dRoot = np.linalg.norm(P2 - rootP, axis=1)
     own_all = ((gw > 0.3) | ((thin > 0.3) & ((hw + gw) > 0.02) & (dRoot < 0.2))) & ((hw + gw) > 0.02)
-    P2[own_all] = rootP[own_all] + unit(rootP[own_all] - C) * -0.01
+    P2[own_all] = rootP[own_all] + unit(rootP[own_all] - C) * -0.05   # (5 cm inside the skull: the slivers to the base rings stay buried)
     ring_all = (gw > 0.02) & ~own_all; dq_ = P2[ring_all] - C; dd_ = unit(dq_); rho_ = 1.0 / np.sqrt((dd_[:, 0] / RADII[0]) ** 2 + (dd_[:, 1] / RADII[1]) ** 2 + (dd_[:, 2] / RADII[2]) ** 2)
     P2[ring_all] = C + dd_ * (rho_ * shape_factor(dd_))[:, None]
     okm = (~own_all).astype(float)
@@ -250,7 +250,9 @@ def reshape(nm, untex, tex, out, outsrc, verbose=True):
     hbj = np.array([b for b in meta['bones'] if b['name'] == 'head'][0]['pos']); nkb = [b for b in meta['bones'] if b['name'] == 'neck'][0]
     nax = unit(hbj - np.array(nkb['pos'])); nw = W[:, bi['neck']]
     neckK = np.clip(nw / 0.6, 0, 1) * (1.0 - ss((hw - 0.6) / 0.35)); neckK = np.maximum(neckK, ss((hw - 0.02) / 0.3) * (1.0 - ss((hw - 0.55) / 0.4)))
-    rel = P2 - hbj; alongN = rel @ nax; radial = rel - np.outer(alongN, nax); P2 += (neckK * NECK_THICK)[:, None] * radial
+    rel = P2 - hbj; alongN = rel @ nax; radial = rel - np.outer(alongN, nax); rdist = np.linalg.norm(radial, axis=1)
+    neckK *= (1.0 - ss((rdist - 0.19) / 0.1)) * (~own_all) * (~ring_all)   # (the neck itself only: nothing out at the ears)
+    P2 += (neckK * NECK_THICK)[:, None] * radial
     headK = ss((hw - 0.25) / 0.6) * ((hw + gw) > 0.02); P2 -= (headK * HEAD_IN)[:, None] * nax[None]
     Pl -= HEAD_IN * nax[None]
     for L in LOBES: L['root'] = L['root'] - HEAD_IN * nax

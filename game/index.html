@@ -2915,7 +2915,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 233</p>
+      <p class="ver">Version 234</p>
     </div>
   </div>
 
@@ -11866,7 +11866,7 @@ function giftSpot() {
 function stepGift(dt) {
   if (!gift.id || gift.got) return;
   if (state !== 'play') { if (gift.on) { gift.on = false; giftPoof(); } return; }
-  if (!gift.on) { if (runT < gift.at || matchLeft < 6) return; const s = (tut2 && tutNearSpot(6, 11)) || giftSpot(); if (!s) { gift.at = runT + 2; return; }
+  if (!gift.on) { if (runT < gift.at || matchLeft < 6) return; const s = (tut2 && tutGiftSpot(6, 11)) || giftSpot(); if (!s) { gift.at = runT + 2; return; }
     gift.on = true; gift.x = s[0]; gift.z = s[1]; gift.y = 0; gift.t = 0; gift.pop = 0; if (!tut && !tut2) banner('Something rare!', 'An item has turned up. Go grab it', true); /* (the lesson says it itself) */ AU.spot(); buzz([10, 30, 10]); shockwave(gift.x, 0, gift.z, 1.6, 0xFFD54F); }
   gift.t += dt; gift.pop = Math.min(1, gift.pop + dt * 2.2);
   if (P.st === 'play' && Math.hypot(P.x - gift.x, P.z - gift.z) < 1.0 && Math.abs(P.y - gift.y) < 1.2) giftTake();
@@ -17692,7 +17692,7 @@ function tutShadeSpot() {
   return null;
 }
 // a clear spot on the floor a little way off, ahead of you first (the gift in the first real match)
-function tutNearSpot(d0, d1) {
+function tutGiftSpot(d0, d1) { /* (the first real match's gift: open floor d0 to d1 ahead of you; it once shared its name with the finale's spot finder below, which replaced it) */
   const open = (x, z) => Math.abs(x) < ARENA - 2 && Math.abs(z) < ARENA - 2 && surfaceUnder(x, z, 0.3) === 0 && !blockedAt(x, z, 0) && [[1, 0], [-1, 0], [0, 1], [0, -1]].every(([dx, dz]) => surfaceUnder(x + dx, z + dz, 0.3) === 0 && !blockedAt(x + dx, z + dz, 0))
     && !pots.some(p => Math.hypot(p.x - x, p.z - z) < 2.5) && !rivals.some(r => Math.hypot(r.x - x, r.z - z) < r.rad + 1.5) && !powers.some(o => Math.hypot(o.x - x, o.z - z) < 2.2) && ACTIVE.every(D => D === P || Math.hypot(D.x - x, D.z - z) > 4);
   for (let d = d0; d <= d1; d += 1) for (const da of [0, 0.4, -0.4, 0.8, -0.8, 1.3, -1.3, 1.9, -1.9, 2.6, -2.6, 3.14]) { const a = P.yaw + da, x = P.x + Math.sin(a) * d, z = P.z + Math.cos(a) * d; if (open(x, z)) return [x, z]; }
