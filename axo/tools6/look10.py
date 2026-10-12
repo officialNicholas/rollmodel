@@ -37,6 +37,17 @@ rep("  float rough = mix(0.52, 0.32, sBelly); rough = mix(rough, 0.52, sGill * 0
 rep("  h += 0.05 * uDetail.x * sGill * (0.5 + 0.5 * sin(vAlong * 480.0 + aNoise(cp * 11.0 + 7.1) * 8.0)) * k3 * kg;\n", "")
 rep("  material.sheenColor = (uBelly * (0.5 * sBelly + 0.15 * sGill) + mix(diffuseColor.rgb, vec3(1.0), 0.5) * 0.3 * sFaceK) * (1.0 - sCoatM); material.sheenRoughness = 0.42;",
     "  material.sheenColor = (uBelly * (0.5 * sBelly + 0.15 * sGill) + mix(diffuseColor.rgb, vec3(1.0), 0.5) * (0.3 * sFaceK + 0.12 * sEar)) * (1.0 - sCoatM) * (1.0 - sJelly); material.sheenRoughness = 0.42;")
+# the drag of the head's own motion on the ears: the v227 gains back (v9b had halved them for its lobes) and a wider soft limit, so a
+# nod or a lurch of the head swings the big ears further; the spring's k and c live in the animator (axolife.js)
+rep("      const cl = x => 16 * Math.tanh(x / 16);   // a soft limit: the drag saturates instead of clipping",
+    "      const cl = x => 28 * Math.tanh(x / 28);   // a soft limit: the drag saturates instead of clipping (v10: wider for the ears)")
+# (the signs follow the ears' frames: X the hinge along +x on both sides, Z back, Y down. A positive flex swings both tips back, a positive
+# swing moves both tips to -x. The head moving forward (v along -Z) trails them back; speeding up (accS.z > 0) trails them back and
+# stopping swings them forward; a left turn (accS.x > 0) throws them to the outside, -x; the old stalks' mirrored sign is gone. The
+# sideways swing comes from the turn alone: the head joint's sideways velocity in the crawl carries a drift of the gait's own (negative
+# in a turn either way), which threw one turn's swing away and doubled the other's)
+rep("this.gillTarget[j * 2] = cl(flutter - _v.z * 15 - this.accS.z * 6); this.gillTarget[j * 2 + 1] = cl(-_v.x * 15 - this.accS.x * 5 * sgn);",
+    "this.gillTarget[j * 2] = cl(flutter - _v.z * 22 + this.accS.z * 8); this.gillTarget[j * 2 + 1] = cl(this.accS.x * 6);")
 # the debug region view shows the ears where the gills were
 rep("  else if (uDebug < 4.5) gl_FragColor = vec4(sBelly, vJelly.z, sGill, 1.0);", "  else if (uDebug < 4.5) gl_FragColor = vec4(sBelly, vJelly.z, max(sEar, 0.5 * sHeadM), 1.0);")
 

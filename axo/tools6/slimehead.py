@@ -236,10 +236,12 @@ def reshape(nm, untex, tex, out, outsrc, s=SCALE, verbose=True):
         mat_e = np.zeros((m, 4), np.uint8); mat_e[:, 1] = np.clip(np.round(255 * (0.2 + 0.8 * ss(ew / 0.08))), 0, 255); mat_e[:, 3] = 230
         cpl = (Pe - C) + (cpb[hroot, :3].astype(float) / 32767 * cps - (Pb[hroot] - C)) if nm == 'crawl' else Pe.copy()
         cp_e = np.zeros((m, 4), np.int16); cp_e[:, :3] = np.clip(np.round(cpl / cps * 32767), -32767, 32767); cp_e[:, 3] = np.clip(np.round((ew * E['length'] + 1.1) / cps * 32767), -32767, 32767)
-        # the chain: the hinge, the middle of the ear, the tip; Y down the ear, X lateral (out)
+        # the chain: the hinge, the middle of the ear, the tip; Y down the ear, X the hinge along +x on BOTH sides (the puppet's mirror
+        # convention: a mirrored bone keeps the hinge's world direction, so one flex angle swings both ears the same way fore and aft;
+        # Z = X x Y points back on both, so one swing angle moves both tips to the same side)
         j1, e1, e2 = E['hinge'], E['mid'], E['tip']; t1 = unit(e1 - j1); t2 = unit(e2 - e1)
         for k_ in range(3):   # (gill1 and gill2 keep the rig's place with no geometry: at the hinge, the same frames)
-            newb[f'gill{k_}.{s_}.1'] = dict(pos=j1, end=e1, q=mkframe(t1, [sgn, 0, 0])); newb[f'gill{k_}.{s_}.2'] = dict(pos=e1, end=e2, q=mkframe(t2, [sgn, 0, 0]))
+            newb[f'gill{k_}.{s_}.1'] = dict(pos=j1, end=e1, q=mkframe(t1, [1.0, 0, 0])); newb[f'gill{k_}.{s_}.2'] = dict(pos=e1, end=e2, q=mkframe(t2, [1.0, 0, 0]))
         parts.append(dict(P=Pe, N=Ne, T=Te, si=si_e, sw=sw_e, jelly=jelly_e, fill=fill_e, mat=mat_e, cp=cp_e, hroot=hroot, ew=ew))
         if verbose: print(f'  ear {s_}: {m} verts {len(Te)} tris; hinge rel C {np.round(j1 - C, 3).tolist()} mid {np.round(e1 - C, 3).tolist()} tip {np.round(e2 - C, 3).tolist()}; x {Pe[:, 0].min() - C[0]:.3f}..{Pe[:, 0].max() - C[0]:.3f} y {Pe[:, 1].min() - C[1]:.3f}..{Pe[:, 1].max() - C[1]:.3f}')
     Pl = np.vstack([E['P'] for E in parts]); Nl = np.vstack([E['N'] for E in parts]); offs = np.cumsum([0] + [len(E['P']) for E in parts])
