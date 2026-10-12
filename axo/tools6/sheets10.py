@@ -6,7 +6,7 @@ import json, subprocess, sys, os
 S = '/tmp/claude-0/-home-user-rollmodel/5c52352e-692f-5301-ac55-ec4d2c708f3e/scratchpad'
 WORK = S + '/fable3'; HERE = os.path.dirname(os.path.abspath(__file__))
 U = 'http://localhost:8767/fable3/'
-DIRS = {'A': 'lab', 'B': 'labB', 'cur': 'lab_cur'}
+DIRS = {'A': 'lab', 'B': 'labB', 'cur': 'lab_cur', 'v239': 'lab_v239'}
 LAB = lambda d, dark=False: {'url': U + d + '/index.html', 'ready': 'window.LAB && LAB.ready', 'shot': 'screenshot', 'init': "LAB.set('idle'); LAB.step(120)" + ("; scene.background = new THREE.Color(0x1a1a1e); floor.visible = false" if dark else '')}
 def cam(page, label, pos, at, pre='', steps=2): return [page, pre + f"LAB.cam='fixed'; LAB.camPos={json.dumps(pos)}; LAB.camAt={json.dumps(at)}; LAB.step({steps}); LAB.render()", label]
 # a camera placed relative to the character's head (off and at as [side, up, forward] in its own frame, from the head joint's world
@@ -139,10 +139,12 @@ def fix():
 # the neck check (v10b): the stand from the front, 3/4, side and from under the chin; the crawl side and 3/4 looking up (the lobby
 # pose); a dark-ground close of the chin and of the nape; A and B
 def neck():
-    pg = ['A', 'B']; pages = {p: LAB(DIRS[p]) for p in pg}; cells = []
+    pg = ['A', 'B']; pages = {p: LAB(DIRS[p]) for p in pg + ['v239']}; cells = []
     LIGHT = "scene.background = new THREE.Color(0xd9d2c3); floor.visible = true; "; DARK = "scene.background = new THREE.Color(0x1a1a1e); floor.visible = false; "
     ST = RESET + LIGHT + NEUTRAL + "LAB.set('idle'); LAB.step(20); LAB.I.ax.A.set('stand'); LAB.step(150); "
-    for p in pg: cells.append(cam(p, f'{tag(p)}: stand front', [0.0, 1.2, 2.2], [0, 1.0, 0.0], pre=ST))
+    for p in pg + ['v239']: cells.append(cam(p, f'{"v239 (shipped)" if p == "v239" else tag(p)}: stand front, lobby distance', [0.0, 1.2, 2.6], [0, 0.95, 0.0], pre=ST))
+    cells.append(cam('v239', 'v239 (shipped): stand 3/4', [1.5, 1.3, 1.7], [0, 1.0, 0.0], pre="LAB.step(2); "))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: stand front', [0.0, 1.2, 2.2], [0, 1.0, 0.0], pre="LAB.step(2); "))
     for p in pg: cells.append(cam(p, f'{tag(p)}: stand 3/4', [1.5, 1.3, 1.7], [0, 1.0, 0.0], pre="LAB.step(2); "))
     for p in pg: cells.append(cam(p, f'{tag(p)}: stand side', [2.2, 1.2, 0.0], [0, 1.0, 0.0], pre="LAB.step(2); "))
     for p in pg: cells.append(cam(p, f'{tag(p)}: stand, from under the chin', [0.3, 0.45, 1.6], [0, 1.05, 0.0], pre="LAB.step(2); "))

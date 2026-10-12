@@ -191,26 +191,29 @@ def reshape(nm, untex, tex, out, outsrc, s=SCALE, verbose=True):
     # back, blended by azimuth): the ball's own radius down to its lower third, then a concave fillet into a neck nearly that wide, which
     # eases out into the chest and the shoulders. Applied as a floor (the ball above and the flat chin keep their own surface; only
     # what lies inside the target comes out to it), then smoothed for a continuous surface, the floor applied once more ----
-    fwdv = unit(np.array([0.0, 0.0, 1.0]) - nax * nax[2]); sidev = np.cross(nax, fwdv); nw = W[:, bi['neck']]; cw = W[:, bi['chest']]
-    AL = np.array([-0.40, -0.36, -0.32, -0.28, -0.24, -0.20, -0.16, -0.12, -0.08, -0.04, 0.00, 0.04, 0.08, 0.12])
-    PROF = {'stand': {'front': [0.190, 0.192, 0.185, 0.182, 0.182, 0.185, 0.195, 0.212, 0.242, 0.258, 0.279, 0.321, 0.353, 0.378],
-                      'side':  [0.300, 0.300, 0.302, 0.304, 0.296, 0.284, 0.274, 0.268, 0.266, 0.270, 0.282, 0.300, 0.328, 0.348],
-                      'back':  [0.180, 0.180, 0.181, 0.181, 0.178, 0.174, 0.172, 0.172, 0.176, 0.185, 0.200, 0.209, 0.260, 0.280]},
-            'crawl': {'front': [0.106, 0.133, 0.144, 0.160, 0.173, 0.183, 0.190, 0.198, 0.215, 0.250, 0.290, 0.328, 0.344, 0.357],
-                      'side':  [0.145, 0.168, 0.178, 0.190, 0.212, 0.218, 0.226, 0.232, 0.238, 0.245, 0.255, 0.268, 0.309, 0.334],
-                      'back':  [0.150, 0.160, 0.190, 0.210, 0.217, 0.192, 0.180, 0.172, 0.170, 0.175, 0.190, 0.225, 0.254, 0.265]}}[nm]
+    # (and the chest and upper trunk a little fuller below it, the user: "make the chest a little larger to flow better into the neck":
+    # wider across the shoulders and deeper at the top of the trunk, easing to nothing by the hips; the arms, hips and tail untouched)
+    fwdv = unit(np.array([0.0, 0.0, 1.0]) - nax * nax[2]); sidev = np.cross(nax, fwdv); nw = W[:, bi['neck']]; cw = W[:, bi['chest']]; s1w = W[:, bi['spine1']]
+    armw = W[:, [i for i, k in enumerate(names) if k.startswith(('upperarm', 'shoulder', 'forearm', 'hand', 'finger'))]].sum(1)
+    AL = np.array([-0.56, -0.52, -0.48, -0.44, -0.40, -0.36, -0.32, -0.28, -0.24, -0.20, -0.16, -0.12, -0.08, -0.04, 0.00, 0.04, 0.08, 0.12])
+    PROF = {'stand': {'front': [0.218, 0.232, 0.232, 0.224, 0.215, 0.205, 0.196, 0.190, 0.190, 0.192, 0.200, 0.215, 0.242, 0.258, 0.279, 0.321, 0.353, 0.378],
+                      'side':  [0.250, 0.238, 0.228, 0.218, 0.215, 0.218, 0.225, 0.232, 0.238, 0.244, 0.250, 0.256, 0.262, 0.270, 0.282, 0.300, 0.328, 0.348],
+                      'back':  [0.440, 0.441, 0.446, 0.424, 0.352, 0.295, 0.256, 0.215, 0.190, 0.180, 0.176, 0.176, 0.180, 0.188, 0.200, 0.209, 0.260, 0.280]},
+            'crawl': {'front': [0.040, 0.062, 0.085, 0.110, 0.138, 0.150, 0.165, 0.175, 0.183, 0.190, 0.198, 0.215, 0.250, 0.290, 0.328, 0.344, 0.357, 0.357],
+                      'side':  [0.100, 0.118, 0.165, 0.178, 0.185, 0.195, 0.205, 0.215, 0.222, 0.228, 0.234, 0.240, 0.248, 0.258, 0.268, 0.309, 0.334, 0.334],
+                      'back':  [0.496, 0.454, 0.410, 0.373, 0.333, 0.299, 0.265, 0.234, 0.217, 0.192, 0.180, 0.172, 0.170, 0.178, 0.195, 0.225, 0.254, 0.265]}}[nm]
     def junction(PP):
         rel = PP - hbj; al = rel @ nax; rad = rel - np.outer(al, nax); rr = np.linalg.norm(rad, axis=1); phi = np.degrees(np.abs(np.arctan2(rad @ sidev, rad @ fwdv)))
         rf, rs, rb = (np.interp(al, AL, PROF[k]) for k in ('front', 'side', 'back'))
         rt = np.where(phi < 90, rf + (rs - rf) * ss(phi / 90), rs + (rb - rs) * ss((phi - 90) / 90))
         return al, rad, rr, rt
     al_, rad_, rr_, rt_ = junction(P2)
-    zone = ((hw + nw + cw) > 0.02) & ~own & (al_ > -0.42) & (al_ < 0.10) & (gw0 < 0.02)
+    zone = ((hw + nw + cw + s1w) > 0.02) & ~own & (al_ > -0.54) & (al_ < 0.10) & (gw < 0.02) & (armw < 0.3)
     def fillet(PP, k=1.0):
         al, rad, rr, rt = junction(PP); lift = zone & (rr < rt * k) & (rr > 1e-4); PP[lift] += (rad[lift] / rr[lift, None]) * (rt[lift] * k - rr[lift])[:, None]; return lift
     lifted = fillet(P2)
     chin = zone & (al_ > -0.07) & ((rad_ @ fwdv) > 0.6 * rr_)   # (the flat chin front keeps its surface; the smoothing leaves it alone)
-    smz = zone & ~chin & (al_ < 0.06)
+    smz = zone & ~chin & (al_ < 0.06) & (armw < 0.05)
     for _ in range(8):
         y_ = (A @ P2) / np.maximum(deg, 1)[:, None]; P2[smz] = 0.5 * P2[smz] + 0.5 * y_[smz]
     fillet(P2, 0.985)
@@ -341,7 +344,7 @@ def reshape(nm, untex, tex, out, outsrc, s=SCALE, verbose=True):
     open(f'{out}/axo_{nm}.bin', 'wb').write(buf2); json.dump(mt, open(f'{out}/axo_{nm}.json', 'w'))
     # (the old rings and the new centres of the textured mesh, for capfix.py: their texels get repainted skin)
     capv = np.where(ringt)[0].tolist() + list(range(ntb - ncen_t, ntb))
-    json.dump({'cap_verts': capv, 'centres': list(range(ntb - ncen_t, ntb)), 'n_body': ntb, 'neck_verts': np.where(zone[vmk])[0].tolist(), 'neck_axis': {'o': hbj.tolist(), 'n': nax.tolist()}}, open(f'{out}/axo_{nm}_caps.json', 'w'))
+    json.dump({'cap_verts': capv, 'centres': list(range(ntb - ncen_t, ntb)), 'n_body': ntb, 'neck_verts': np.where((zone & (al_ > -0.3))[vmk])[0].tolist(), 'neck_axis': {'o': hbj.tolist(), 'n': nax.tolist()}}, open(f'{out}/axo_{nm}_caps.json', 'w'))
     if verbose: print(f'  {out}/axo_{nm}.bin {len(buf2)} bytes ({ntb + nl} verts: body {ntb} + ears {nl}, {len(Tt3)} tris; was {nt_all}); {outsrc}/axo_{nm}.bin ({n2} verts, {len(Tf)} tris)')
 if __name__ == '__main__':
     a = sys.argv[1:]; untex = S + '/fable2/rt3src'; tex = S + '/fable2/rt3'; out = WORK + '/rt4'; outsrc = WORK + '/rt4src'; s = SCALE

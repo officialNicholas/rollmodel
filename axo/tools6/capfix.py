@@ -50,7 +50,7 @@ def fix(nm, src, texdir, out, verbose=True):
         zv = np.zeros(n, bool); zv[caps['neck_verts']] = True; ax = caps['neck_axis']; o_, nx = np.array(ax['o']), np.array(ax['n'])
         fwdv = np.array([0.0, 0.0, 1.0]) - nx * nx[2]; fwdv /= np.linalg.norm(fwdv); sidev = np.cross(nx, fwdv)
         zT = zv[T].any(1) & body[T].all(1) & small; ny_, nx_, nt_, nb2 = tb.rasterize(uv, T, res, zT); qz = (P[T[nt_]] * nb2[:, :, None]).sum(1); colz = lin(img[ny_, nx_].astype(np.float64))
-        refT = ((hw[T] > 0.3) | zv[T].any(1)) & body[T].all(1) & small & ~zT; ry, rx, rt_, rb = tb.rasterize(uv, T, res, refT); qr = (P[T[rt_]] * rb[:, :, None]).sum(1); colr = lin(img[ry, rx].astype(np.float64))
+        refT = ((hw[T] > 0.3).all(1) | zv[T].any(1)) & body[T].all(1) & small & ~zT; ry, rx, rt_, rb = tb.rasterize(uv, T, res, refT); qr = (P[T[rt_]] * rb[:, :, None]).sum(1); colr = lin(img[ry, rx].astype(np.float64))
         def frame(q): rel = q - o_; al = rel @ nx; rad = rel - np.outer(al, nx); return al, np.degrees(np.arctan2(rad @ sidev, rad @ fwdv))
         alz, phz = frame(qz); alr, phr = frame(qr); newz = colz.copy()
         for s0 in range(-180, 180, 45):

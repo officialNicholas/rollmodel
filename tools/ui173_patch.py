@@ -15,7 +15,7 @@ rep("    const xray = new THREE.MeshBasicMaterial({ color: col, transparent: tru
     """    const xray = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.55, depthWrite: false, depthFunc: THREE.GreaterDepth }), ghosts = [];
     // the ink line: a back-face hull of the same skinned mesh, pushed out along the skinned normals by a width that grows with the distance from
     // the camera (clamped), so the line stays about as wide on screen close up and far away
-    const INK = window.__axoInk || [0.0016, 0.0075, 0.045], inkOf = meta => { const m = new THREE.MeshBasicMaterial({ color: C.outline, side: THREE.BackSide });
+    const INK = window.__axoInk || [0.0011, 0.004, 0.016], inkOf = meta => { const m = new THREE.MeshBasicMaterial({ color: C.outline, side: THREE.BackSide });
       m.onBeforeCompile = sh => { sh.vertexShader = sh.vertexShader.replace('#include <project_vertex>', '{ float gD = -(modelViewMatrix * vec4(transformed, 1.0)).z, gS = 0.5 * (length(modelMatrix[0].xyz) + length(modelMatrix[1].xyz)); transformed += normalize(objectNormal) * clamp(' + INK[0].toFixed(5) + ' * gD / max(gS, 1e-3), ' + INK[1].toFixed(4) + ', ' + INK[2].toFixed(4) + '); }\\n#include <project_vertex>'); };
       AXO.dqsMaterial(m, meta); m.customProgramCacheKey = () => 'axo-ink'; return m; };""")
 rep("      gh.bind(me.skeleton, me.bindMatrix); gh.frustumCulled = false; gh.renderOrder = 30; me.add(gh); ghosts.push(gh); M.ghost = gh; }",
