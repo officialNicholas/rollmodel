@@ -163,26 +163,38 @@ def reshape(nm, untex, tex, out, outsrc, verbose=True):
     # the tip) and gill mask (the root takes the skin, the lobe the frill colour). Both bodies get the same lobes relative to the face
     # centre. The bones take the axis: joint at the root, the second where the first segment ends, the end at the tip; explicit frames,
     # Y down the lobe, X lateral, so the animator's flex swings a lobe fore and aft and its swing sideways.
-    newb = {}; LOBES = []
-    hidx = bi['head']; iw = W.copy()
+    thin = r['jelly'][:, 2] / 255.0; newb = {}; LOBES = []
+    gnames = [k for k in names if k.startswith('gill')]; gcols = np.array([bi[k] for k in gnames]); gdom = gcols[np.argmax(W[:, gcols], 1)]
+    rootsNow = {}
+    for k in range(3):
+        for s_ in 'LR':
+            rootsNow[bi[f'gill{k}.{s_}.1']] = gb[f'gill{k}.{s_}.1']['pos']; rootsNow[bi[f'gill{k}.{s_}.2']] = gb[f'gill{k}.{s_}.1']['pos']
+    rootP = np.array([rootsNow[int(g)] for g in gdom]); dRoot = np.linalg.norm(P2 - rootP, axis=1)
+    own_all = ((gw > 0.3) | ((thin > 0.3) & ((hw + gw) > 0.02) & (dRoot < 0.2))) & ((hw + gw) > 0.02)
+    P2[own_all] = rootP[own_all] + unit(rootP[own_all] - C) * -0.01
+    ring_all = (gw > 0.02) & ~own_all; dq_ = P2[ring_all] - C; dd_ = unit(dq_); rho_ = 1.0 / np.sqrt((dd_[:, 0] / RADII[0]) ** 2 + (dd_[:, 1] / RADII[1]) ** 2 + (dd_[:, 2] / RADII[2]) ** 2)
+    P2[ring_all] = C + dd_ * (rho_ * shape_factor(dd_))[:, None]
+    okm = (~own_all).astype(float)
+    for _ in range(8):
+        avg = (A @ (P2 * okm[:, None])) / np.maximum(A @ okm, 1e-9)[:, None]; P2[ring_all] = 0.5 * P2[ring_all] + 0.5 * avg[ring_all]
+    if verbose: print(f'  old stalks retired: {int(own_all.sum())} verts collapsed, {int(ring_all.sum())} base ring verts laid into the skin')
+    DORSAL_UP = np.array([0.0, 1.0, 0.0]) if nm == 'crawl' else np.array([0.0, 0.0, -1.0]); BODY_AX = np.array([0.0, 0.0, 1.0]) if nm == 'crawl' else np.array([0.0, 1.0, 0.0])
+    hidx = bi['head']
     for k in range(3):
         for sgn in (1.0, -1.0):
             s_ = 'L' if sgn > 0 else 'R'; i1 = bi[f'gill{k}.{s_}.1']; i2 = bi[f'gill{k}.{s_}.2']; wk = W[:, i1] + W[:, i2]
             b1 = gb[f'gill{k}.{s_}.1']; b2 = gb[f'gill{k}.{s_}.2']; (o1, u1, f1), (o2, u2, f2), st, A0, B0 = HANG[k]
             j1 = b1['pos']; L_old = float(np.linalg.norm(b2['end'] - j1)); L1 = float(np.linalg.norm(b1['end'] - j1))
             t1 = unit([sgn * o1, u1, f1]); t2 = unit([sgn * o2, u2, f2]); Ln = L_old * st; L1n = L1 * st
-            e1 = j1 + t1 * L1n; e2 = e1 + t2 * (Ln - L1n)
+            e1 = j1 + t1 * L1n; e2 = e1 + t2 * (Ln - L1n); j0 = j1 - unit(j1 - C) * 0.02
             # the old stalk retired: its own vertices onto the root joint, a hair inside the head; its base ring (shared with the head)
             # laid onto the reshaped skull's surface, so no collar of the old cone is left standing
-            own = wk > 0.5; P2[own] = j1 + unit(j1 - C) * -0.01
-            ring = (wk > 0.02) & ~own; dq_ = P2[ring] - C; dd_ = unit(dq_); rr = RADII; rho_ = 1.0 / np.sqrt((dd_[:, 0] / rr[0]) ** 2 + (dd_[:, 1] / rr[1]) ** 2 + (dd_[:, 2] / rr[2]) ** 2)
-            P2[ring] = C + dd_ * (rho_ * shape_factor(dd_))[:, None]
             # the lobe
             NU, NT = 16, 12; us = np.linspace(0.0, 1.0, NU); verts = []; vu = []; vth = []
             for ui, uu in enumerate(us):
-                cu = (1 - uu) ** 2 * j1 + 2 * (1 - uu) * uu * e1 + uu ** 2 * e2; tg = unit(2 * (1 - uu) * (e1 - j1) + 2 * uu * (e2 - e1))
+                cu = (1 - uu) ** 2 * j0 + 2 * (1 - uu) * uu * e1 + uu ** 2 * e2; tg = unit(2 * (1 - uu) * (e1 - j0) + 2 * uu * (e2 - e1))
                 lat = np.array([sgn, 0.0, 0.0]); l_ = unit(lat - tg * np.dot(lat, tg)); f_ = np.cross(tg, l_)
-                prof = (0.7 + 0.3 * np.sin(np.pi * uu)) * (1.0 - 0.82 * ss((uu - 0.78) / 0.22)) if ui < NU - 1 else 0.0
+                prof = (0.5 + 0.5 * np.sin(np.pi * min(1.0, uu * 1.25))) * (1.0 - 0.82 * ss((uu - 0.78) / 0.22)) if ui < NU - 1 else 0.0
                 for ti in range(NT):
                     th_ = 2 * np.pi * ti / NT; verts.append(cu + prof * (B0 * np.cos(th_) * l_ + A0 * np.sin(th_) * f_)); vu.append(uu); vth.append(th_)
                     if ui == NU - 1: break
@@ -190,8 +202,8 @@ def reshape(nm, untex, tex, out, outsrc, verbose=True):
             for ui in range(NU - 1):
                 for ti in range(NT):
                     a = ui * NT + ti; b = ui * NT + (ti + 1) % NT
-                    if ui < NU - 2: c = (ui + 1) * NT + ti; d = (ui + 1) * NT + (ti + 1) % NT; tris += [[a, c, d], [a, d, b]]
-                    else: tris.append([a, (NU - 1) * NT, b])
+                    if ui < NU - 2: c = (ui + 1) * NT + ti; d = (ui + 1) * NT + (ti + 1) % NT; tris += [[a, d, c], [a, b, d]]   # (wound so the normals point out)
+                    else: tris.append([a, b, (NU - 1) * NT])
             Tl = np.array(tris)
             # weights: the root ring shared with the head, the first segment, the second
             w1 = ss((vu - 0.02) / 0.3) * (1.0 - ss((vu - 0.4) / 0.3)); w2 = ss((vu - 0.4) / 0.3); wh = 1.0 - ss((vu - 0.02) / 0.3)
@@ -245,6 +257,29 @@ def reshape(nm, untex, tex, out, outsrc, verbose=True):
     for k_ in newb: newb[k_]['pos'] = newb[k_]['pos'] - HEAD_IN * nax; newb[k_]['end'] = newb[k_]['end'] - HEAD_IN * nax
     Cn = C - HEAD_IN * nax; meta['face'] = {'c': Cn.round(4).tolist(), 'r': meta['face']['r']}; meta['headc'] = (Cn - hbj).round(4).tolist()
     if verbose: print(f'  neck axis {np.round(nax, 3).tolist()}, {int((neckK > 0.5).sum())} neck verts thickened, head group moved {HEAD_IN * 100:.0f} cm down the neck; face.c {meta["face"]["c"]} headc {meta["headc"]}')
+    # the neck band smoothed over the fold the head's move leaves under the chin (positions, a few Laplacian steps on the band only)
+    bandN = (((hw > 0.03) & (hw < 0.97)) | ((W[:, bi['neck']] > 0.05) & (W[:, bi['neck']] < 0.95))) & (gw < 0.02) & ~own_all
+    for _ in range(10):
+        y_ = (A @ P2) / np.maximum(deg, 1)[:, None]; P2[bandN] = 0.5 * P2[bandN] + 0.5 * y_[bandN]
+    # the back rounded (the user's note: the trunk behind the head read as a box, a flat top with a ridge down each side and a crease
+    # at the neck): the trunk's dorsal verts are pulled half way onto the ellipse that spans their slab's width and height (the slab
+    # 3 cm along the body axis; the corners of a boxy section move in, the crown stays), then the region is smoothed a little
+    dom = np.argmax(W, 1); trunkB = {bi[k] for k in ('hips', 'spine', 'spine1', 'chest')}
+    trunk = np.array([int(d) in trunkB for d in dom]) & (thin < 0.3) & (W[:, bi['neck']] < 0.3)
+    SIDE_AX = np.cross(DORSAL_UP, BODY_AX); ax_ = P2 @ BODY_AX; up_ = P2 @ DORSAL_UP; side_ = P2 @ SIDE_AX
+    lo_, hi_ = np.percentile(ax_[trunk], [1, 99]); nsl = int((hi_ - lo_) / 0.03) + 1; moved = 0
+    for sl in range(nsl):
+        a0 = lo_ + sl * 0.03; m = trunk & (ax_ >= a0 - 0.015) & (ax_ < a0 + 0.045)
+        if m.sum() < 24: continue
+        cs = side_[m].mean(); cu = 0.5 * (up_[m].max() + up_[m].min()); hw_ = max(np.abs(side_[m] - cs).max(), 1e-3); hh_ = max(up_[m].max() - cu, 1e-3)
+        dors = m & (up_ > cu + 0.15 * hh_); sx = (side_[dors] - cs) / hw_; sy = (up_[dors] - cu) / hh_; rr_ = np.sqrt(sx * sx + sy * sy)
+        k_ = ss((up_[dors] - cu - 0.15 * hh_) / (0.5 * hh_)) * 0.55
+        tgt = 1.0 / np.maximum(rr_, 1e-6); dsx = sx * (tgt - 1.0) * k_ * hw_; dsy = sy * (tgt - 1.0) * k_ * hh_
+        P2[dors] += np.outer(dsx, SIDE_AX) + np.outer(dsy, DORSAL_UP); moved += int(dors.sum())
+    dm_ = trunk & (up_ > np.median(up_[trunk]))
+    for _ in range(6):
+        y_ = (A @ P2) / np.maximum(deg, 1)[:, None]; P2[dm_] = 0.6 * P2[dm_] + 0.4 * y_[dm_]
+    if verbose: print(f'  back rounded: {moved} dorsal trunk verts in {nsl} slabs; neck band {int(bandN.sum())} verts smoothed')
     P2 = np.vstack([P2, Pl]); T = np.vstack([T, T_l]); n2 = len(P2)
     si2 = np.vstack([r['si'], si_l]); sw2 = np.vstack([r['sw'], sw_l]); jelly2 = np.vstack([r['jelly'], jelly_l]); fill2 = np.vstack([r['fill'], fill_l]); mat2 = np.vstack([r['mat'], mat_l])
     # ---- normals (area weighted), the canonical place, the bones, the meta ----

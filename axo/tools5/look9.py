@@ -22,10 +22,38 @@ def rep(old, new, count=1):
     c = s.count(old); assert c == count, f'expected {count}, found {c}: {old[:100]!r}'
     s = s.replace(old, new)
 
+# ---- v9b: the rest-space frame through to the fragment (for the paint's runs and beads), the soft body's gentle wobble ----
+rep("varying vec3 vCp, vFace; varying vec4 vJelly, vFill, vMat; varying float vAlong, vFillO;`;",
+    "varying vec3 vCp, vFace, vRestP, vRestN; varying vec4 vJelly, vFill, vMat; varying float vAlong, vFillO;`;")
+rep("varying vec3 vCp, vFace; varying vec4 vJelly, vFill, vMat; varying float vAlong, vFillO;\nfloat sCoatM",
+    "varying vec3 vCp, vFace, vRestP, vRestN; varying vec4 vJelly, vFill, vMat; varying float vAlong, vFillO;\nfloat sCoatM")
+rep("""  float soft = 1.0 - jelly.w, h = clamp(transformed.y / uJelly.z, 0.0, 1.0);
+  transformed += objectNormal * (jelly.x * uJelly.x + uJelly.w * soft * sin(position.x * 23.0 + position.y * 17.0 + uLag.w * 9.0) * sin(position.z * 19.0 - uLag.w * 7.0));""",
+"""  float soft = 1.0 - jelly.w, h = clamp(transformed.y / uJelly.z, 0.0, 1.0); vRestP = position; vRestN = normal;
+  // (v9b: a gentle wobble of the soft parts, so the body reads as paint; never the head)
+  float wob = sin(position.y * 4.1 + position.x * 1.7 + uLag.w * 2.7) * sin(position.z * 3.3 - uLag.w * 1.9) + 0.6 * sin(position.y * 7.0 - uLag.w * 3.9 + position.z * 2.1);
+  transformed += objectNormal * (jelly.x * uJelly.x + uJelly.w * soft * sin(position.x * 23.0 + position.y * 17.0 + uLag.w * 9.0) * sin(position.z * 19.0 - uLag.w * 7.0) + soft * 0.0045 * wob * (1.0 - 0.6 * jelly.z));""")
+# the runtime keeps the paint's living state in uDetail2 (x the flow, y the coat's high water, z the wade's high water, w how dry)
+rep("""    if (this.coatMixT !== undefined) U.uCoatMix.value += (this.coatMixT - U.uCoatMix.value) * Math.min(1, dt * 3);
+  }""", """    if (this.coatMixT !== undefined) U.uCoatMix.value += (this.coatMixT - U.uCoatMix.value) * Math.min(1, dt * 3);
+    // the paint's living state (v9b): the high water of the coat and of the wading band (they slip down after the level over a couple
+    // of seconds: the runs the shader leaves above the edge reach up to them), the flow of the streaks (quicker while it drains) and
+    // how dry the skin is (the adapter's wet, uCoat.z, turned round)
+    { const c = U.uCoat.value, D2 = U.uDetail2.value, pw = this._pw === undefined ? c.w : this._pw, pc = this._pc === undefined ? c.x : this._pc, dw = c.w - pw, dc = c.x - pc; this._pw = c.w; this._pc = c.x;
+      D2.z = dw > 0 ? Math.max(D2.z, c.w) : Math.max(c.w, D2.z - dt * (D2.z - c.w) * 0.45);
+      D2.y = dc > 0 ? Math.max(D2.y, c.x) : Math.max(c.x, D2.y - dt * (D2.y - c.x) * 0.55);
+      D2.x = (D2.x + dt * (0.5 + 12 * Math.min(0.2, Math.max(0, -dw - dc) / Math.max(dt, 1e-3)))) % 1000; D2.w = 1 - c.z; }
+  }""")
+# the skin a touch more saturated under the texture (the hue turn untouched; the white belly stays white)
+rep("""  float cr = Y + ch.x, cb = Y + ch.y; col = max(vec3(cr, (Y - 0.2126 * cr - 0.0722 * cb) / 0.7152, cb), vec3(0.0));
+  float bk = smoothstep(0.1, 0.85, belly); sBelly = bk;""",
+"""  float cr = Y + ch.x, cb = Y + ch.y; col = max(vec3(cr, (Y - 0.2126 * cr - 0.0722 * cb) / 0.7152, cb), vec3(0.0));
+  col = max(mix(vec3(dot(col, vec3(0.2126, 0.7152, 0.0722))), col, 1.14), vec3(0.0));
+  float bk = smoothstep(0.1, 0.85, belly); sBelly = bk;""")
 # ---- shader globals and helpers ----
 rep("float sCoatM = 0.0, faceInk = 0.0, sEyeM = 0.0, sDrawM = 0.0, sGill = 0.0, sFin = 0.0, sBelly = 0.0, sSpot = 0.0, sAO = 0.0;",
     "float sCoatM = 0.0, faceInk = 0.0, sEyeM = 0.0, sDrawM = 0.0, sGill = 0.0, sFin = 0.0, sBelly = 0.0, sSpot = 0.0, sAO = 0.0;\n"
-    "float sFaceK = 0.0, sCoatH = 0.0, sCoatT = 0.0, sBead = 0.0, sDbgDm = 0.0, sDbgG = 0.0, sCatch = 0.0; vec3 sPaintC = vec3(0.0);   // v9: face skin, the coat's height (m) and thickness, beads, the paint colour")
+    "float sFaceK = 0.0, sCoatH = 0.0, sCoatT = 0.0, sBead = 0.0, sDbgDm = 0.0, sDbgG = 0.0, sCatch = 0.0, sWetK = 0.0; vec3 sPaintC = vec3(0.0);   // v9: face skin, the coat's height (m) and thickness, beads, the paint colour")
 rep("""float coatField(vec3 sp, float sy){ vec3 cq = sp * 5.0 + uCoat.y;
   float ch = 0.5 + 0.25 * sin(cq.x * 1.7 + sin(cq.y * 2.3)) * sin(cq.z * 1.9 + sin(cq.x * 1.3)) + 0.25 * sin(cq.y * 3.1 + cq.z * 1.1 + cq.x * 0.7);
   return clamp(0.55 * ch + 0.45 * sy, 0.0, 1.0); }`;""",
@@ -34,7 +62,7 @@ rep("""float coatField(vec3 sp, float sy){ vec3 cq = sp * 5.0 + uCoat.y;
   return clamp(0.55 * ch + 0.45 * sy, 0.0, 1.0); }
 // v9: the thick paint's own lumps (finer than the fill's), 0..1, and the beads splashed past its edge: a jittered grid of little domes
 // (x their cover, y their height in metres)
-float coatLump(vec3 sp){ vec3 w = sp * 55.0 + uCoat.y * 0.7;
+float coatLump(vec3 sp){ vec3 w = sp * 26.0 + uCoat.y * 0.7;
   float a = sin(w.x + 1.4 * sin(w.z * 0.8)) * sin(w.y + 1.2 * sin(w.x * 0.7)) * sin(w.z * 0.9 + 1.1 * sin(w.y * 0.6));
   float k = 1.0 - smoothstep(0.25, 0.8, length(fwidth(w)) / 6.2832); return 0.5 + 0.5 * a * k; }
 float coatLumpLo(vec3 sp){ vec3 w = sp * 17.0 + uCoat.y * 0.4; return 0.5 + 0.5 * sin(w.x + 1.5 * sin(w.z * 0.7 + 0.4)) * sin(w.y * 1.1 + 1.3 * sin(w.x * 0.8)) * sin(w.z + 1.2 * sin(w.y * 0.9)); }
@@ -94,33 +122,54 @@ rep("""  faceInk *= 1.0 - sCoatM; sDrawM = faceInk;
 }`;""",
 """  faceInk *= 1.0 - sCoatM; sDrawM = faceInk;
 }
-// v9: the paint as thick wet paint. One signed distance to the paint's edge in metres (the fill's field and the wading line, whichever
-// reaches further, each turned into metres by how fast it runs across the pixel), so the edge is crisp and anti-aliased at any distance
-// and the lip's rounded profile is the same width on the body wherever it is. The coat: a deeper, saturated paint, lumpy where thick,
-// its skin relief hidden; a rounded lip along the edge; beads splashed just past it; a soft shadow on the skin under the edge.
+// v9b: the paint as living paint, after the old slime's (the game's v207 coat): one signed distance to the paint's edge in metres
+// (the fill's field and the wading line, whichever reaches further, each turned into metres by how fast it runs across the pixel),
+// so the edge is soft and anti-aliased at any distance and its lip the same width on the body wherever it is; the face never takes
+// the field's line: over the face the paint comes as a soft fade near full (the eyes stay clear). Above the edge thin runs of paint
+// are left where the level has just dropped, sliding down after it (the high water the runtime keeps); the paint carries streaks
+// flowing down and beads sliding down its surface; a rounded lip, soft lumps in the thick paint, a smooth glossy full coat; the
+// wading paint swells round the contacts like a base melting into its puddle, rippling. Out of the paint the skin dries from the top.
+// out of the paint the skin stays wet a while and dries from the top down (uCoat.z the adapter's wet, 1 soaked .. 0 dry)
+sWetK = smoothstep(-0.1, 0.1, uCoat.z - (0.1 + 0.75 * vFillO));
 if (uCoat.x > 0.001 || uCoat.w > 0.001) {
-  float gcp = max(length(fwidth(vCp)), 1e-5);
-  // (the edge's lobes: the fill's own lumps plus a rounded wobble a hand wide, all smooth in the canonical place, so the line stays clean)
-  float scallop = pow(coatLumpLo(vCp), 2.0);
-  float ch = coatField(vCp, vFillO) - 0.03 * scallop - 0.005, cv = uCoat.x * 1.08 - 0.04;
-  float dm = uCoat.x > 0.001 ? (cv - ch) * gcp / max(fwidth(ch), 1e-5) : -1e3;
-  float wv = uCoat.w - vFillO + 0.02 * sin(vCp.x * 31.0 + vCp.z * 17.0 + uCoat.y) + 0.012 * sin(vCp.z * 53.0 - vCp.x * 23.0 + uCoat.y * 0.7) + 0.022 * scallop;
-  float dw = uCoat.w > 0.001 ? wv * gcp / max(fwidth(wv), 1e-5) : -1e3;
-  dm = max(dm, dw); float aa = max(0.004, gcp * 1.1); sDbgDm = dm; sDbgG = fwidth(ch);
-  float cm = smoothstep(-aa, aa, dm), full = step(0.995, uCoat.x); cm = max(cm, full);
-  // the paint colour: the team's, deeper and more saturated; a shade darker in the creases between the lumps
-  float lump = coatLump(vCp); vec3 pc = max(mix(vec3(dot(uPaint, vec3(0.2126, 0.7152, 0.0722))), uPaint, 1.2), vec3(0.0)) * 0.78;
-  pc *= 1.0 - 0.16 * (1.0 - lump) * smoothstep(0.0, 0.03, dm) * (1.0 - full);
-  // the thickness: a quarter-round lip over the first 2.5 cm, then full, lumpy; the beads outside the edge, each its own little dome
-  float t = clamp(dm / 0.025, 0.0, 1.0), lip = sqrt(max(0.0, 1.0 - (1.0 - t) * (1.0 - t)));
-  vec2 bd = coatBeads(vCp, (1.0 - smoothstep(-0.05, -0.004, dm)) * smoothstep(-0.085, -0.045, dm) * (1.0 - full) * (1.0 - sEyeM) * step(0.001, uCoat.x + uCoat.w));
-  sBead = bd.x * (1.0 - cm); sCoatT = max(cm * lip, sBead);
-  sCoatH = (0.008 * lip + 0.003 * (lump - 0.5) * t) * cm * (1.0 - full) + bd.y * (1.0 - cm) + full * 0.0015 * (lump - 0.5);
-  sCoatM = max(cm, sBead); sPaintC = pc;
-  // the skin under the edge in the paint's shadow; the paint a shade lighter right on the lip (its thin rim lets the skin's light through)
-  vec3 skin = preCoat * (1.0 - 0.28 * (1.0 - smoothstep(-0.035, 0.0, dm)) * smoothstep(-0.07, -0.03, dm));
-  diffuseColor.rgb = mix(skin, mix(pc, mix(pc, preCoat, 0.35), 0.5 * (1.0 - t) * (1.0 - full)), sCoatM);
-  faceInk *= 1.0 - sCoatM; sDrawM = faceInk;
+  float gcp = max(length(fwidth(vCp)), 1e-5), flow = uDetail2.x;
+  // the body's own frame for the runs and beads: down the rest body (gravity in either body's rest), across it along the surface
+  vec3 rn = normalize(vRestN), acr = normalize(cross(rn, vec3(0.0, -1.0, 0.0)) + vec3(1e-3, 0.0, 0.0)); float hc = dot(vRestP, acr);
+  float run = clamp(pow(aNoise(vec3(hc * 24.0, flow * 0.04, 4.1)), 3.0) * 1.3, 0.0, 1.0) * (1.0 - smoothstep(0.25, 0.7, fwidth(hc) * 24.0));
+  float lumpLo = coatLumpLo(vCp), lump = coatLump(vCp);
+  // the fill coat: its field with a lobed edge; the runs above the edge reach toward where the level was a moment ago
+  float ch = coatField(vCp, vFillO) - 0.03 * lumpLo * lumpLo - 0.005, cv = uCoat.x * 1.08 - 0.04, kch = gcp / max(fwidth(ch), 1e-5);
+  float dm = uCoat.x > 0.001 ? (cv - ch) * kch + max(0.0, uDetail2.y - uCoat.x) * 1.08 * kch * run : -1e3;
+  // the wading paint: the line from the fill order, wavy and lobed, rippling; its runs the same way
+  float wv = uCoat.w - vFillO + 0.02 * sin(vCp.x * 31.0 + vCp.z * 17.0 + uCoat.y) + 0.012 * sin(vCp.z * 53.0 - vCp.x * 23.0 + uCoat.y * 0.7) + 0.022 * lumpLo + 0.006 * sin(vCp.x * 41.0 + vCp.z * 29.0 - flow * 2.6);
+  float kwv = gcp / max(fwidth(wv), 1e-5);
+  float dw = uCoat.w > 0.001 ? wv * kwv + max(0.0, uDetail2.z - uCoat.w) * kwv * run : -1e3;
+  float wadeK = uCoat.w > 0.001 ? smoothstep(-0.02, 0.02, dw - dm) : 0.0;
+  dm = max(dm, dw);
+  float aa = max(0.012, gcp * 1.2), full = step(0.995, uCoat.x);
+  float cm = smoothstep(-aa, aa, dm); cm = max(cm, full);
+  // the face: no line across it; the paint comes over it as a soft fade near full, and never over the eyeballs
+  float cmF = smoothstep(0.8, 0.97, uCoat.x + 0.05 * (lumpLo - 0.5)) * (1.0 - sEyeM); cmF = max(cmF, full * (1.0 - sEyeM));
+  cm = mix(cm, cmF, vFace.z);
+  // the paint colour: the team's, deep and saturated; the streaks flowing down it, the creases between the lumps a shade darker
+  float flw = aNoise(vec3(hc * 35.0, vRestP.y * 2.2 + flow * 0.5, 7.7));
+  vec3 pc = max(mix(vec3(dot(uPaint, vec3(0.2126, 0.7152, 0.0722))), uPaint, 1.25), vec3(0.0)) * 0.85;
+  pc *= 1.0 + 0.1 * (flw - 0.5) * (1.0 - full) - 0.1 * (1.0 - lump) * smoothstep(0.0, 0.05, dm) * (1.0 - full);
+  // the thickness: a rounded lip over the first 4 cm, soft lumps in the thick paint, none in a fresh full coat; the beads sliding down
+  // the paint from its edge, one to a column in some columns; the wading paint swollen round the contacts (the base in its puddle)
+  float t = clamp(dm / 0.04, 0.0, 1.0), lip = sqrt(max(0.0, 1.0 - (1.0 - t) * (1.0 - t)));
+  float bc = hc * 70.0, bi = floor(bc), bfx = fract(bc) - 0.5, brn = fract(sin(bi * 91.7 + uCoat.y) * 4375.85);
+  float by = fract(flow * (0.22 + 0.2 * brn) + brn) * 0.14, bd = length(vec2(bfx / 0.42, (dm - by) / 0.011)), bAA = 1.0 - smoothstep(0.15, 0.4, fwidth(bc));
+  float bead = (1.0 - smoothstep(0.55, 1.0, bd)) * step(brn, 0.45) * bAA * smoothstep(0.01, 0.03, dm) * (1.0 - full) * (1.0 - vFace.z);
+  float swell = wadeK * smoothstep(0.1, 0.0, vFillO) * uCoat.w;
+  sBead = bead; sCoatT = cm * max(lip, bead);
+  float ripple = 0.15 * sin(vCp.x * 17.0 + vCp.z * 11.0 - flow * 3.1) * sin(vCp.z * 13.0 - vCp.x * 7.0 + flow * 2.3) * wadeK;
+  sCoatH = (0.0055 * lip + 0.0025 * (lump - 0.5) * t + 0.004 * bead * (1.0 - bd * bd) + 0.003 * ripple * t + 0.012 * swell * (0.5 + 0.5 * lump)) * cm * (1.0 - full) + full * 0.0008 * (lump - 0.5);
+  sCoatM = cm; sPaintC = pc; sWetK *= 1.0 - cm;
+  // the skin under the edge in the paint's shadow; the lip a shade lighter (its thin rim lets the skin's light through)
+  vec3 skin = preCoat * (1.0 - 0.26 * (1.0 - smoothstep(-0.035, 0.0, dm)) * smoothstep(-0.07, -0.03, dm));
+  diffuseColor.rgb = mix(skin, mix(pc, mix(pc, preCoat, 0.35), 0.45 * (1.0 - t) * (1.0 - full) * (1.0 - vFace.z)), cm);
+  faceInk *= 1.0 - cm * (1.0 - sEyeM); sDrawM = faceInk;
 }`;""")
 # the coat's height goes into the relief (the skin's own relief is hidden under the paint, as before)
 rep("""  h -= 0.5 * uDetail.x * sSpot;
@@ -145,14 +194,14 @@ rep("""const LIT_FS = `
 #endif
 }`;""",
 """const LIT_FS = `
-{ float wet = max(sCoatM, 0.45 * uCoat.z), inkM = clamp(sDrawM - sEyeM, 0.0, 1.0);
+{ float wet = max(sCoatM, 0.8 * sWetK), inkM = clamp(sDrawM - sEyeM, 0.0, 1.0);
   float rough = mix(0.52, 0.32, sBelly); rough = mix(rough, 0.52, sGill * 0.7); rough = mix(rough, 0.34, sFin * 0.6);
   rough = mix(rough, 0.4, 0.6 * sFaceK);   // (the face skin a touch smoother)
   rough = mix(rough, 0.72, inkM); rough = mix(rough, 0.1, sEyeM);   // (matte ink, a wet eye)
-  material.roughness = min(max(mix(rough, 0.07, wet), 0.0525) + geometryRoughness, 1.0);
+  material.roughness = min(max(mix(rough, 0.05, wet), 0.0525) + geometryRoughness, 1.0);
 #ifdef USE_CLEARCOAT
-  material.clearcoat = mix(0.12 + 0.28 * sBelly + 0.12 * sFin + 0.2 * sFaceK, 1.0, max(sCoatM, 0.45 * sEyeM)) * (1.0 - 0.9 * inkM);
-  material.clearcoatRoughness = min(max(mix(0.46 - 0.18 * sBelly - 0.1 * sFaceK, 0.04, max(sCoatM, sEyeM)), 0.0525) + geometryRoughness, 1.0);
+  material.clearcoat = mix(0.12 + 0.28 * sBelly + 0.12 * sFin + 0.2 * sFaceK, 1.0, max(max(sCoatM, 0.45 * sEyeM), 0.7 * sWetK)) * (1.0 - 0.9 * inkM);
+  material.clearcoatRoughness = min(max(mix(0.46 - 0.18 * sBelly - 0.1 * sFaceK, 0.03, max(max(sCoatM, sEyeM), sWetK)), 0.0525) + geometryRoughness, 1.0);
 #endif
 #ifdef USE_SHEEN
   material.sheenColor = (uBelly * (0.5 * sBelly + 0.15 * sGill) + mix(diffuseColor.rgb, vec3(1.0), 0.5) * 0.3 * sFaceK) * (1.0 - sCoatM); material.sheenRoughness = 0.42;
@@ -183,12 +232,12 @@ rep("""  // a soft rim along the body's outline, a whisper of light on the moist
   { vec3 wup = normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz), rv = reflect(-vd, normal); float ru = dot(rv, wup) * 0.5 + 0.5;
     float fr = pow(1.0 - saturate(dot(normal, vd)), 3.5), sky = mix(0.08, 0.5, smoothstep(0.35, 0.9, ru)) * (0.6 + 0.4 * fr);
     vec3 refl = mix(vec3(1.0), sPaintC * 2.0, 0.3);
-    totalEmissiveRadiance += refl * (0.1 * fr + 0.2 * sky * (0.35 + 0.65 * sCoatT)) * sCoatM; }
+    totalEmissiveRadiance += refl * (0.14 * fr + 0.22 * sky * (0.35 + 0.65 * sCoatT)) * max(sCoatM, 0.5 * sWetK); }
 }`;""")
 # the clear coat follows the bump on the paint and the eye (the lumps and the lip reflect)
 rep("""      .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\\n' + BUMP_FS)""",
     """      .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\\n' + BUMP_FS)
-      .replace('#include <clearcoat_normal_fragment_maps>', '#include <clearcoat_normal_fragment_maps>\\n#ifdef USE_CLEARCOAT\\nclearcoatNormal = normalize(mix(clearcoatNormal, normal, max(sCoatM, sEyeM)));\\n#endif')""")
+      .replace('#include <clearcoat_normal_fragment_maps>', '#include <clearcoat_normal_fragment_maps>\\n#ifdef USE_CLEARCOAT\\nclearcoatNormal = normalize(mix(clearcoatNormal, normal, max(max(sCoatM, sEyeM), sWetK)));\\n#endif')""")
 # the sheets' mouth lines: a little less ink, a soft halo under each line
 rep("""  const line = (ctx, pts, w) => { ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.strokeStyle = 'rgba(' + INK + ',0.92)'; ctx.lineWidth = w || 0.045; ctx.stroke(); };""",
 """  const line = (ctx, pts, w) => { ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.strokeStyle = 'rgba(' + INK + ',0.16)'; ctx.lineWidth = (w || 0.045) * 2.2; ctx.stroke(); ctx.strokeStyle = 'rgba(' + INK + ',0.84)'; ctx.lineWidth = w || 0.045; ctx.stroke(); };""")
