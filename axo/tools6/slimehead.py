@@ -39,8 +39,15 @@ LIZARD = False; K_BODY = 1.13; NECK_LEN = 0.02; BRIDGE = True
 # to about 1.6 times; the stand's chest forward 1.15 and its back 1.35 (mdb), the crawl keeps its height)
 # the trunk's target half extents by station (m, after the K_BODY scale; None keeps the trunk's own): wx across, the stand's zf forward
 # and zb back of the spine; the multiplier at a station is the target over the trunk's own 95th-percentile extent measured there
+# (v10e, the crawl only: the taper carried on through the hips into the tail's root (a bearded dragon's, not a step from the hips to a
+# thin tail): stations behind tail_from measure the tail's own extents too; limb_meas, the limb weight under which a vertex counts as
+# the trunk's when its extent is measured (at 0.6 the thighs' roots made the hips read wide, and the hips were pinched); tail_k, the
+# tail's own scale (1: its old length; K_BODY's longer tail curled up over the head in the front views); and the back deepest just
+# behind the front legs, sloping down to the hips: dst / dmul, the height above the belly line times dmul, by station along z, the
+# belly kept on the ground)
 LIZ = {'stand': dict(st=[0.40, 0.56, 0.667, 0.75, 0.82, 0.88, 0.94, 1.00], wx=[None, None, 0.27, 0.30, 0.33, 0.35, 0.36, None], zf=[None, None, None, 0.24, 0.25, 0.26, 0.27, None], zb=[None, None, None, 0.23, 0.24, 0.25, 0.26, None], drop=0.0, move=[0.0, 0.0, 0.07]),
-       'crawl': dict(st=[-1.6, -1.3, -1.01, -0.878, -0.72, -0.58, -0.42, -0.28, -0.14, -0.08], wx=[None, None, 0.23, 0.26, 0.29, 0.32, 0.35, 0.37, 0.37, None], zf=[None] * 10, zb=[None] * 10, drop=0.10)}
+       'crawl': dict(st=[-2.0, -1.8, -1.6, -1.45, -1.3, -1.15, -1.01, -0.878, -0.72, -0.58, -0.42, -0.28, -0.14, -0.08], wx=[None, 0.08, 0.105, 0.125, 0.155, 0.19, 0.23, 0.26, 0.29, 0.32, 0.35, 0.37, 0.37, None],
+                     zf=[None] * 14, zb=[None] * 14, tail_from=-0.95, limb_meas=0.15, tail_k=1.0, dst=[-0.75, -0.6, -0.45, -0.3, -0.14, -0.06], dmul=[1.0, 1.06, 1.12, 1.15, 1.13, 1.0], drop=0.10)}
 DJ = (0.21, 0.06, 0.10)                       # the join on the ball, this far below its centre: under the chin (front), the cheeks (side), the nape (back)
 # ---- v10e, the bridge (the user: "it needs to look more like one body: the head, neck and body"; "more smooth"): the head's underside,
 # the throat, the neck and the top of the trunk are thrown away as shapes and laid again as one surface, a loft of cubic curves (one per
@@ -50,9 +57,13 @@ DJ = (0.21, 0.06, 0.10)                       # the join on the ball, this far b
 # flat (Tutte: each vertex the mean of its neighbours, the edges held), so no triangle turns over. The arms' roots ride with the loft.
 # Per body: QB a point on the plane at the trunk's middle and nB its normal (toward the head), fwd the azimuth origin (the throat);
 # elA_max / elA_min the loop's elevation limits (deg, front / side / back, about the axis); muA the curves' tangent at the ball (times
-# the chord); limb_cut the arm weight above which a vertex is the arm's own (moved with it, not laid on the loft) ----
-BRIDGE_CFG = {'stand': dict(QB=[0.0, 0.93, 0.0], nB=[0.0, 1.0, 0.0], fwd=[0.0, 0.0, 1.0], elA_max=(-18, -12, -20), elA_min=(-18, -80, -80), muA=(0.7, 0.8, 0.8), limb_cut=0.6),
-              'crawl': dict(QB=[0.0, 0.26, -0.14], nB=[0.0, 0.0, 1.0], fwd=[0.0, -1.0, 0.3], elA_max=(14, 0, 0), elA_min=(14, 0, -80), muA=(0.7, 0.8, 0.8), limb_cut=0.6)}
+# the chord); limb_cut the arm weight above which a vertex is the arm's own (moved with it, not laid on the loft). The curves leave the
+# trunk with no bend (flatB: a straight run on past the plane meets them with no step in the curvature, which read as a line across the
+# back). The crawl's loop sits 30 degrees up at the front (it was 14): between 14 and about 35 degrees the slime's ball runs flatter, into
+# its own neck, and the loft met it there in an S, a line just under the mouth; from 30 up the chin is round and the sweep from the mouth
+# down the throat to the chest is one convex curve ----
+BRIDGE_CFG = {'stand': dict(QB=[0.0, 0.93, 0.0], nB=[0.0, 1.0, 0.0], fwd=[0.0, 0.0, 1.0], elA_max=(-18, -12, -20), elA_min=(-18, -80, -80), muA=(0.7, 0.8, 0.8), limb_cut=0.7),
+              'crawl': dict(QB=[0.0, 0.26, -0.14], nB=[0.0, 0.0, 1.0], fwd=[0.0, -1.0, 0.3], elA_max=(30, 0, 0), elA_min=(30, 0, -80), muA=(0.7, 0.8, 0.8), limb_cut=0.5)}
 def ss(t): t = np.clip(t, 0, 1); return t * t * (3 - 2 * t)
 def unit(v): v = np.asarray(v, float); return v / (np.linalg.norm(v, axis=-1, keepdims=True) + 1e-12)
 def adjacency(n, T):
@@ -175,12 +186,14 @@ def lizard_body(P, W, meta, names, bi, hw, nm, verbose=True):
     st = P[:, ax]; zs = B['spine']['pos'][2] if nm == 'stand' else 0.0
     arm_all = W[:, [i for i, q in enumerate(names) if q.startswith(('upperarm', 'forearm', 'hand', 'finger'))]].sum(1); leg_all = W[:, [i for i, q in enumerate(names) if q.startswith(('thigh', 'shin', 'foot', 'toes', 'toe'))]].sum(1)
     tail_all = W[:, [i for i, q in enumerate(names) if q.startswith('tail')]].sum(1)
-    tm = (arm_all + leg_all < 0.6) & (hw < 0.3) & (tail_all < 0.3) & (W[:, [i for i, q in enumerate(names) if q.startswith('gill')]].sum(1) < 0.02)   # (the trunk's own vertices, for its extents)
+    lm_ = L.get('limb_meas', 0.6)                                                 # (the crawl measures its trunk clear of the thighs' roots: its hips were read wide, and pinched)
+    tm = (arm_all + leg_all < lm_) & (hw < 0.3) & (tail_all < 0.3) & (W[:, [i for i, q in enumerate(names) if q.startswith('gill')]].sum(1) < 0.02)   # (the trunk's own vertices, for its extents)
+    tmx = tm | ((arm_all + leg_all < lm_) & (hw < 0.3) & (tail_all >= 0.3))                                      # (and the tail's own, for stations behind tail_from)
     def mult(key, val):
         m_ = []; e_ = []
         for s0, w0 in zip(L['st'], L[key]):
             if w0 is None: m_.append(1.0); e_.append(None); continue
-            band = tm & (np.abs(st - s0) < 0.035); e = np.percentile(val[band], 95) if band.sum() > 8 else np.nan
+            band = (tmx if s0 < L.get('tail_from', -1e9) else tm) & (np.abs(st - s0) < 0.035); e = np.percentile(val[band], 95) if band.sum() > 8 else np.nan
             if np.isfinite(e) and e > 0.02: m_.append(float(w0 / e)); e_.append(float(e))
             else: m_.append(m_[-1] if m_ else 1.0); e_.append(e_[-1] if e_ else None)   # (no trunk vertices at this station: carry the last one on)
         return np.interp(st, L['st'], m_), [round(x, 2) for x in m_], e_
@@ -192,6 +205,13 @@ def lizard_body(P, W, meta, names, bi, hw, nm, verbose=True):
     trunk = np.clip(1 - sum(lw.values()), 0, 1) * (1 - hs)
     Pn = P.copy(); Pn[:, 0] = P[:, 0] * (1 + (mw - 1) * trunk)
     if nm == 'stand': Pn[:, 2] = zs + (P[:, 2] - zs) * (1 + (np.where(P[:, 2] > zs, md, mdb) - 1) * trunk)
+    if 'dst' in L:                                                                # (the crawl's back raised over the belly line, by station)
+        yb_ = []
+        for s0 in L['dst']:
+            band = tm & (np.abs(st - s0) < 0.035); yb_.append(float(np.percentile(P[band, 1], 3)) if band.sum() > 8 else (yb_[-1] if yb_ else 0.0))
+        yb = np.interp(st, L['dst'], yb_); mdep = np.interp(st, L['dst'], L['dmul'])
+        Pn[:, 1] = yb + (P[:, 1] - yb) * (1 + (mdep - 1) * trunk)
+        if verbose: print(f'  lizard depth by station {L["dst"]}: x{L["dmul"]} over the belly line {np.round(yb_, 3).tolist()}')
     moved = {}
     for sd in 'LR':
         for kind, root, chain in (('arm', 'shoulder', ('upperarm', 'forearm', 'hand', 'finger')), ('leg', 'thigh', ('thigh', 'shin', 'foot', 'toes', 'toe'))):
@@ -203,6 +223,13 @@ def lizard_body(P, W, meta, names, bi, hw, nm, verbose=True):
             for b in bones:
                 if b['name'].startswith(chain) and f'.{sd}' in b['name']: b['pos'] = (np.array(b['pos']) + dv).tolist(); b['end'] = (np.array(b['end']) + dv).tolist()
             Pn += dv[None, :] * lw[(kind, sd)][:, None]; moved[f'{kind}.{sd}'] = round(float(dx), 4)
+    if 'tail_k' in L:                                                             # (the crawl's tail kept its own length: K_BODY's longer tail curled up over the head in front views)
+        ct = L['tail_k'] / k; r0 = np.array(B['tail1']['pos'], float); tw_ = np.clip(tail_all, 0, 1)
+        Pn[:, 1:] += tw_[:, None] * (r0[None, 1:] + (Pn[:, 1:] - r0[None, 1:]) * ct - Pn[:, 1:])
+        for b in bones:
+            if b['name'].startswith('tail'):
+                for key_ in ('pos', 'end'): q_ = np.array(b[key_], float); q_[1:] = r0[1:] + (q_[1:] - r0[1:]) * ct; b[key_] = q_.round(5).tolist()
+        if verbose: print(f'  lizard: the tail scaled x{ct:.3f} (height and length) about its root {r0.round(3).tolist()}')
     nax = unit(np.array(B['neck']['end']) - np.array(B['neck']['pos'])); drop = L['drop']; mv = np.array(L.get('move', [0.0, 0.0, 0.0])) - drop * nax; C = C0 + mv
     Pn += mv[None, :] * hs[:, None]
     hbj = np.array(B['chest']['end']) + NECK_LEN * nax; hb0 = np.array(B0['head']['pos'])
@@ -222,13 +249,17 @@ def circ_smooth(y, w=3):
 def lowpass(y, keep=8):
     """a closed loop sampled round 360 degrees, its Fourier series cut after `keep` harmonics"""
     Fy = np.fft.rfft(y, axis=0); Fy[keep + 1:] = 0; return np.fft.irfft(Fy, n=len(y), axis=0)
-def hermite(A, tA, B, tB, t, mu=1.0, mu1=None):
-    """the cubic from A (leaving along tA) to B (arriving along tB), its end tangents mu (mu1 at B) times the chord"""
+def hermite(A, tA, B, tB, t, mu=1.0, mu1=None, flatB=False):
+    """the cubic from A (leaving along tA) to B (arriving along tB), its end tangents mu (mu1 at B) times the chord. flatB: no bend left
+    at B (the quintic with the cubic's own start, its second derivative at B taken away by t^3 (1 - t)^2 / 2), so a straight run on past B
+    meets it with no step in the curvature either"""
     L = np.linalg.norm(B - A, axis=-1, keepdims=True); t = t[..., None]; m0 = np.asarray(mu, float); m1 = m0 if mu1 is None else np.asarray(mu1, float)
     if m0.ndim: m0 = m0.reshape(m0.shape + (1,) * (L.ndim - m0.ndim))
     if m1.ndim: m1 = m1.reshape(m1.shape + (1,) * (L.ndim - m1.ndim))
     h00 = 2 * t ** 3 - 3 * t ** 2 + 1; h10 = t ** 3 - 2 * t ** 2 + t; h01 = -2 * t ** 3 + 3 * t ** 2; h11 = t ** 3 - t ** 2
-    return h00 * A + h10 * L * m0 * tA + h01 * B + h11 * L * m1 * tB
+    out = h00 * A + h10 * L * m0 * tA + h01 * B + h11 * L * m1 * tB
+    if flatB: out = out - (6 * A + 2 * L * m0 * tA - 6 * B + 4 * L * m1 * tB) * (t ** 3 * (1 - t) ** 2 / 2)
+    return out
 def solve_fixed(Adj, fixed, X0):
     """each free vertex the mean of its neighbours (the graph Laplacian), the fixed ones held: X (n, k)"""
     from scipy.sparse import diags
@@ -238,17 +269,17 @@ def solve_fixed(Adj, fixed, X0):
 class Loft:
     """the bridge: a cubic per meridian (NPH round the axis) from A on the ball to B on the trunk, arc-length tables for each; at(phi, t)
     the surface at azimuths phi (deg) and arc-length fractions t, t < 0 running on up the ball's own profile and t > 1 on down the trunk"""
-    def __init__(s, PH, A, tA, B, tB, mu, mu1=1.0, ball=None, nt=97):
-        s.PH = PH; s.ts = np.linspace(0, 1, nt); s.A, s.tA, s.B, s.tB, s.ball = A, tA, B, tB, ball
+    def __init__(s, PH, A, tA, B, tB, mu, mu1=1.0, ball=None, nt=97, flatB=False):
+        s.PH = PH; s.ts = np.linspace(0, 1, nt); s.A, s.tA, s.B, s.tB, s.ball, s.flatB = A, tA, B, tB, ball, flatB
         s.mu = np.broadcast_to(np.asarray(mu, float), (len(PH),)).copy(); s.mu1 = np.broadcast_to(np.asarray(mu1, float), (len(PH),)).copy()
-        s.Cv = hermite(A[:, None], tA[:, None], B[:, None], -tB[:, None], np.broadcast_to(s.ts, (len(PH), nt)), s.mu[:, None], s.mu1[:, None])
+        s.Cv = hermite(A[:, None], tA[:, None], B[:, None], -tB[:, None], np.broadcast_to(s.ts, (len(PH), nt)), s.mu[:, None], s.mu1[:, None], flatB)
         seg = np.linalg.norm(np.diff(s.Cv, axis=1), axis=-1); cum = np.concatenate([np.zeros((len(PH), 1)), np.cumsum(seg, 1)], 1); s.len = cum[:, -1]; s.cum = cum / cum[:, -1:]
     def at(s, phi, t):
         step = 360.0 / len(s.PH); f = (phi - s.PH[0]) / step; j0 = np.floor(f).astype(int) % len(s.PH); j1 = (j0 + 1) % len(s.PH); w = (f - np.floor(f))[:, None]
         def on(j):
             out = np.zeros((len(t), 3))
             for jj in np.unique(j):
-                m = j == jj; tp = np.interp(np.clip(t[m], 0, 1), s.cum[jj], s.ts); out[m] = hermite(s.A[jj][None], s.tA[jj][None], s.B[jj][None], -s.tB[jj][None], tp, s.mu[jj], s.mu1[jj])
+                m = j == jj; tp = np.interp(np.clip(t[m], 0, 1), s.cum[jj], s.ts); out[m] = hermite(s.A[jj][None], s.tA[jj][None], s.B[jj][None], -s.tB[jj][None], tp, s.mu[jj], s.mu1[jj], s.flatB)
                 lo = m & (t < 0); hi = m & (t > 1)
                 if lo.any(): fn, elA, R = s.ball; out[lo] = fn(np.full(lo.sum(), s.PH[jj]), elA[jj] + np.degrees(-t[lo] * s.len[jj] / R))
                 if hi.any(): out[hi] = s.B[jj][None] - s.tB[jj][None] * ((t[hi] - 1) * s.len[jj])[:, None]
@@ -298,9 +329,7 @@ def bridge_join(P, T, W, names, C, nm, V, F, slhw, onball, tfield, grp, hw, cfg,
     def ball_at(e, j=None):
         j = np.arange(NPH) if j is None else j; t = np.array([np.interp(e[i], els, tbf[j[i]]) for i in range(len(e))])
         d = np.cos(np.radians(e))[:, None] * dperp[j] + np.sin(np.radians(e))[:, None] * nax; return C + d * t[:, None]
-    A = ball_at(elA); tA = unit(circ_smooth(unit(ball_at(elA - 3.0) - ball_at(elA + 3.0)), 3))
     Rb = float(np.nanmedian(tb2)); ball_pe = lambda ph, e: ball_at(e, np.round((ph - PH[0]) / (360.0 / NPH)).astype(int) % NPH)
-    L = Loft(PH, A, tA, B, tB, blend(PH, *cfg['muA']), cfg.get('muB', 1.0), ball=(ball_pe, elA, Rb))
     if verbose: print(f'  bridge: axis {np.round(nax, 3).tolist()}; loop on the ball (deg about it) hull {np.round(elA_hull[::15], 0).tolist()} -> {np.round(elA[::15], 0).tolist()} (phi {PH[::15].astype(int).tolist()}); the trunk at the plane, radius {np.round(rhoB[::15], 3).tolist()}')
     # ---- the zone: between the ball above the loop (on the ball: put onto it outright near the loop) and the trunk behind the plane ----
     elAv = np.interp(phi, PH, elA, period=360); okball = onball & np.isfinite(tfield)
@@ -308,7 +337,15 @@ def bridge_join(P, T, W, names, C, nm, V, F, slhw, onball, tfield, grp, hw, cfg,
     onb = ballkeep & okball & (el < elAv + 35); P[onb] = C + unit(P[onb] - C) * tfield[onb][:, None]
     limbx = used & (armw > cfg['limb_cut']); trunkkeep = used & (hB < 0) & ~ballkeep & ~limbx; zone = used & ~ballkeep & ~trunkkeep & ~limbx
     Adj, _ = adjacency(n, T); nbr = lambda m: (Adj @ m.astype(float)) > 0
+    # (a piece of the zone that never reaches the trunk (a few head vertices round an ear root, off the slime's ball and less than 20
+    # degrees above the loop) stays with the head: laid out on its own it had nothing to hold it and went to the loop's origin, the chin)
+    from scipy.sparse.csgraph import connected_components
+    iz0 = np.where(zone)[0]; ncz, labz = connected_components(Adj[iz0][:, iz0], directed=False); reach = np.zeros(ncz, bool)
+    np.logical_or.at(reach, labz, ((Adj @ trunkkeep.astype(float)) > 0)[iz0]); stray = iz0[~reach[labz]]; zone[stray] = False; ballkeep[stray] = True
     bball = ballkeep & nbr(zone); btrunk = trunkkeep & nbr(zone); ring = zone & nbr(limbx)
+    # ---- the loft, from the loop on the ball to the trunk's plane ----
+    A = ball_at(elA); tA = unit(circ_smooth(unit(ball_at(elA - 3.0) - ball_at(elA + 3.0)), 3)); muAv = blend(PH, *cfg['muA'])
+    L = Loft(PH, A, tA, B, tB, muAv, cfg.get('muB', 1.0), ball=(ball_pe, elA, Rb), flatB=cfg.get('flatB', True))
     Lv = np.interp(phi, PH, L.len, period=360); t0 = np.zeros(n); t0[bball] = -Rb * np.radians(np.maximum(el - elAv, 0))[bball] / Lv[bball]; t0[btrunk] = (1 + np.maximum(-hB, 0) / Lv)[btrunk]
     sub = zone | bball | btrunk; idx = np.where(sub)[0]
     tz = np.zeros(n); tz[idx] = solve_fixed(Adj[idx][:, idx], (bball | btrunk)[idx], t0[idx, None])[:, 0]   # (t alone first: the cut follows it)
@@ -364,18 +401,32 @@ def bridge_join(P, T, W, names, C, nm, V, F, slhw, onball, tfield, grp, hw, cfg,
     for sd in 'LR':
         armS = W[:, [i for i, q_ in enumerate(names) if q_.startswith(('upperarm', 'forearm', 'hand', 'finger')) and f'.{sd}' in q_]].sum(1); dx = moved[sd]
         lm = limbx & (armS > cfg['limb_cut'] * 0.5); dist_ = W[:, [i for i, q_ in enumerate(names) if q_.startswith(('forearm', 'hand', 'finger')) and f'.{sd}' in q_]].sum(1) > 0.3
-        dom = lm | (zone & nbr(lm)); fixd = (zone & nbr(lm)) | (lm & dist_); d0 = np.zeros((n, 3)); d0[zone] = disp[zone]; d0[lm & dist_] = [dx, 0.0, 0.0]
+        rim = nbr(lm) & ~lm & used; dom = lm | rim; fixd = rim | (lm & dist_); d0 = np.zeros((n, 3)); d0[zone] = disp[zone]; d0[lm & dist_] = [dx, 0.0, 0.0]   # (held at every neighbour: the zone's by its own move, the rest still)
         id_ = np.where(dom)[0]; dsol = solve_fixed(Adj[id_][:, id_], fixd[id_], d0[id_]); P[id_[~fixd[id_]]] += dsol[~fixd[id_]]
-        lm_far = lm & ~dom; P[lm_far] += [dx, 0.0, 0.0]
+        P[lm & dist_] += [dx, 0.0, 0.0]                                           # (the forearm on: the plain move)
     # ---- the trunk just behind the plane eased onto the loft's own continuation (the low-passed loop meets the trunk with no step), then
     # the zone and a band round it smoothed (Taubin: no shrinking), the ball beyond the band and the trunk held ----
     bandB = trunkkeep & (hB > -0.08) & ~limbx; ib = np.where(bandB)[0]
     if len(ib): tb_ = 1 + (-hB[ib]) / np.interp(phi[ib], PH, L.len, period=360); wb = 1 - ss(-hB[ib] / 0.08); P[ib] += wb[:, None] * (L.at(phi[ib], tb_) - P[ib])
     band = zone | bandB
     for _ in range(cfg.get('band_rings', 5)): band = band | (nbr(band) & used & ~limbx)
+    armb = ring.copy()                                                            # (and the arms' roots: two rings onto the arm, so it meets the loft in a fillet)
+    for _ in range(cfg.get('arm_rings', 2)): armb = armb | (nbr(armb) & used)
+    band = band | armb
     deg = np.asarray(Adj.sum(1)).ravel()
     for _ in range(cfg.get('taubin', 30)):
         for lam in (0.5, -0.53): avg = (Adj @ P) / np.maximum(deg, 1)[:, None]; P[band] += lam * (avg[band] - P[band])
+    # (a triangle in the band still turned over against the triangles round it (the arms' roots' creases): its corners eased toward
+    # their neighbours' mean until none is)
+    Tb_ = T[band[T].any(1)]; nflip0 = None
+    for it in range(40):
+        fn_ = np.cross(P[Tb_[:, 1]] - P[Tb_[:, 0]], P[Tb_[:, 2]] - P[Tb_[:, 0]]); vs_ = np.zeros((n, 3))
+        for c_ in range(3): np.add.at(vs_, Tb_[:, c_], fn_)
+        ring_ = vs_[Tb_].sum(1) - 3 * fn_; bad_ = (fn_ * ring_).sum(1) < 0
+        if nflip0 is None: nflip0 = int(bad_.sum())
+        if not bad_.any(): break
+        mv_ = np.zeros(n, bool); mv_[Tb_[bad_].ravel()] = True; mv_ &= band; avg = (Adj @ P) / np.maximum(deg, 1)[:, None]; P[mv_] = 0.5 * P[mv_] + 0.5 * avg[mv_]
+    if verbose: print(f'  bridge band: {nflip0} triangles turned over after the smoothing, {int(bad_.sum())} after easing their corners ({it} rounds)')
     # (t carried out over the band: the distance over the surface from the zone, a third of a metre to one unit of t, down on the ball's side
     # and up on the trunk's: the texture's blend and the masks fade out over it)
     from scipy.sparse.csgraph import dijkstra as _dj
@@ -383,14 +434,26 @@ def bridge_join(P, T, W, names, C, nm, V, F, slhw, onball, tfield, grp, hw, cfg,
     Gb = coo_matrix((np.r_[wb_, wb_], (np.r_[Eb[:, 0], Eb[:, 1]], np.r_[Eb[:, 1], Eb[:, 0]])), shape=(n, n)).tocsr(); dz = _dj(Gb, indices=np.where(zone)[0], min_only=True)
     tt = np.where(zone, tz, np.where(ballkeep, -1.0, 2.0)); bb = band & ~zone & np.isfinite(dz)
     tt[bb & ballkeep] = np.maximum(-1.0, np.minimum(tz[bb & ballkeep], 0) - dz[bb & ballkeep] / 0.3); tt[bb & ~ballkeep] = np.minimum(2.0, 1.0 + dz[bb & ~ballkeep] / 0.3)
-    if verbose: print(f'  bridge zone {int(zone.sum())} verts (ball edge {int(bball.sum())}, trunk edge {int(btrunk.sum())}, arm rings {int(ring.sum())}); cut {len(path)}; folds {nfl0} -> {nfl1}; arms out {moved}; band {int(band.sum())}')
+    if verbose: print(f'  bridge zone {int(zone.sum())} verts (ball edge {int(bball.sum())}, trunk edge {int(btrunk.sum())}, arm rings {int(ring.sum())}; {len(stray)} stray head verts left on the head); cut {len(path)}; folds {nfl0} -> {nfl1}; arms out {moved}; band {int(band.sum())}')
     return P, zone, tt, band, moved, dict(nax=nax.round(4).tolist(), QB=QB.tolist(), elA=np.round(elA[::15], 1).tolist(), rhoB=np.round(rhoB[::15], 3).tolist(), arms=moved, zone=int(zone.sum()), folds=nfl1)
 def bridge_weights(si, sw, W, names, bi, zone, tt, P, T):
     """the skin weights across the bridge by its t (0 at the ball's loop, 1 at the trunk's plane): the head's at the ball, the trunk edge's
     own (its nearest vertex behind the plane) at the plane, a share on the neck between, so a turn of the head spreads over the whole
     bridge; whatever the vertex had on the arms is kept as it was"""
-    n = len(P); A, _ = adjacency(n, T); edge = (tt > 1.5) & ((A @ zone.astype(float)) > 0); ie = np.where(edge)[0]; kd = cKDTree(P[ie])
+    n = len(P); A, _ = adjacency(n, T); edge = (tt >= 1.0) & ~zone & ((A @ zone.astype(float)) > 0); ie = np.where(edge)[0]; kd = cKDTree(P[ie])
     armset = np.array([q.startswith(('upperarm', 'forearm', 'hand', 'finger', 'shoulder')) for q in names]); si = si.copy(); sw = sw.copy()
+    # (the head above the loop turns with the head alone: whatever share it had on the neck or the trunk goes to the head, so the bridge
+    # below it is the only place a turn of the head bends; its face (headfront) and the old stalks' shares stay as they are)
+    keepset = np.array([q in ('head', 'headfront') or q.startswith('gill') for q in names]); hb = bi['head']; nmoved = 0
+    for v in np.where((tt < 0) & ~zone)[0]:
+        s_, w_ = si[v].astype(int), sw[v].astype(int); m_ = (w_ > 0) & ~keepset[s_]
+        if not m_.any(): continue
+        acc = {}
+        for b_, ww in zip(np.where(m_, hb, s_), w_):
+            if ww > 0: acc[int(b_)] = acc.get(int(b_), 0) + int(ww)
+        items = sorted(acc.items(), key=lambda kv: -kv[1])[:4]; si[v] = 0; sw[v] = 0
+        for j_, (b_, ww) in enumerate(items): si[v, j_] = b_; sw[v, j_] = ww
+        sw[v, 0] += 255 - int(sw[v].sum()); nmoved += 1
     for v in np.where(zone)[0]:
         a = float(ss(np.clip(tt[v], 0, 1))); acc = {}
         for b_, w_ in zip(si[v], sw[v]):
@@ -404,6 +467,7 @@ def bridge_weights(si, sw, W, names, bi, zone, tt, P, T):
         items = sorted(acc.items(), key=lambda kv: -kv[1])[:4]; tot = sum(w for _, w in items) or 1.0
         q = [int(round(255 * w / tot)) for _, w in items]; q[0] += 255 - sum(q); si[v] = 0; sw[v] = 0
         for j_, ((b_, _), w_) in enumerate(zip(items, q)): si[v, j_] = b_; sw[v, j_] = w_
+    print(f'  bridge weights: {int(zone.sum())} zone verts by t; {nmoved} head verts above the loop given to the head alone')
     return si, sw
 def ear_piece(sl, sgn, C, s):
     """one of the slime's ears (+x side: sgn 1), scaled and placed about the axolotl's face centre C and bent into its resting hang:
@@ -491,6 +555,10 @@ def reshape(nm, untex, tex, out, outsrc, s=SCALE, verbose=True):
         Az_, dz_ = adjacency(n, T)
         for _ in range(4): jz = np.maximum(jz, 0.6 * (Az_ @ jz) / np.maximum(dz_, 1))
         fill[:, 2] = np.clip(np.round(fill[:, 2] * (1 - jz)), 0, 255).astype(np.uint8); mat[:, 2] = np.clip(np.round(mat[:, 2] * (1 - jz)), 0, 255).astype(np.uint8)
+        # (the bridge's rigidity (jelly.w: the head rigid, the body soft) and its body channel (jelly.y: 0 on the head, 1 on the body) by t,
+        # smooth from the head's to the trunk's; as the old neck's own they came in uneven: the face skin's mask (which needs jelly.w) ended
+        # in a hard arc under the chin, and the soft body's squash had soft and rigid vertices side by side across the throat)
+        tz_ = np.clip(tbr, 0, 1); jelly[zone, 3] = np.round(255 * (1 - ss(tz_[zone] / 0.6))).astype(np.uint8); jelly[zone, 1] = np.round(255 * ss((tz_[zone] - 0.15) / 0.45)).astype(np.uint8)
     else:
         fwdv = unit(np.array([0.0, 0.0, 1.0]) - nax * nax[2]); sidev = np.cross(nax, fwdv); nw = W[:, bi['neck']]; cw = W[:, bi['chest']]; s1w = W[:, bi['spine1']]
         armw = W[:, [i for i, k in enumerate(names) if k.startswith(('upperarm', 'shoulder', 'forearm', 'hand', 'finger'))]].sum(1)
@@ -588,9 +656,14 @@ def reshape(nm, untex, tex, out, outsrc, s=SCALE, verbose=True):
     Pb = P2[keep]; cen, fanT, rep, vgroup = close_holes(Pb, T2, ring[keep], C); ncen = len(cen)
     def rep_attrs(rep, arrs): return [arr[rep].reshape(-1, arr.shape[1]) if len(rep) else np.zeros((0, arr.shape[1]), arr.dtype) for arr in arrs]
     sib, swb, jb, fb, mb = si[keep], sw[keep], jelly[keep], fill[keep], mat[keep]
+    cpw = cp[:, :3].astype(float) / 32767 * cps + (P2 - P_orig)                 # (the crawl: the canonical place moved with each vertex)
+    if LIZARD and nm == 'crawl':
+        # (v10e: the bridge's canonical place (the frame of the skin's procedural detail and of the paint coat's lumps) laid again from its
+        # edges, harmonic over the zone: as the old neck's own, moved with each vertex, it tore along the loop and across the throat)
+        Azz, _ = adjacency(n, T); ez_ = (~zone) & ((Azz @ zone.astype(float)) > 0); ii_ = np.where(zone | ez_)[0]; cpw[ii_] = solve_fixed(Azz[ii_][:, ii_], ez_[ii_], cpw[ii_])
     cpb = cp[keep].copy()
     if nm == 'stand': cpb[:, :3] = np.clip(np.round(Pb / cps * 32767), -32767, 32767)
-    else: cpb[:, :3] = np.clip(np.round((cp[keep, :3].astype(float) / 32767 * cps + (P2 - P_orig)[keep]) / cps * 32767), -32767, 32767)
+    else: cpb[:, :3] = np.clip(np.round(cpw[keep] / cps * 32767), -32767, 32767)
     si_c, sw_c, j_c, f_c, m_c, cp_c = rep_attrs(rep, [sib, swb, jb, fb, mb, cpb])
     if ncen: cp_c = cp_c.copy(); cp_c[:, :3] = np.array([cpb[vgroup == k, :3].astype(float).mean(0) for k in range(ncen)]).round().astype(np.int16)
     Pb = np.vstack([Pb, cen]); T2 = np.vstack([T2, fanT]); nb_ += ncen
@@ -659,7 +732,7 @@ def reshape(nm, untex, tex, out, outsrc, s=SCALE, verbose=True):
     sit = si[vm][keept]; swt = sw[vm][keept]; jt = jelly[vm][keept]; ft = fill[vm][keept]; mtt = mat[vm][keept]   # (the weights with the stalk share moved to the head, not the file's own copies)
     cpt = r['cp'][:n][vm].copy()
     if nm == 'stand': cpt[:, :3] = np.clip(np.round(P2[vm] / cps * 32767), -32767, 32767)
-    else: cpt[:, :3] = np.clip(np.round((cpt[:, :3].astype(float) / 32767 * cps + (P2 - P_orig)[vm]) / cps * 32767), -32767, 32767)
+    else: cpt[:, :3] = np.clip(np.round(cpw[vm] / cps * 32767), -32767, 32767)
     cpt = cpt[keept]
     si_c, sw_c, j_c, f_c, m_c, cp_c, uv_c = rep_attrs(rep_t, [sit, swt, jt, ft, mtt, cpt, uvb])
     if ncen_t:
