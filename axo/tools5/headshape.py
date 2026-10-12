@@ -22,13 +22,13 @@ import texbake as tb
 RADII = np.array([0.38, 0.34, 0.345])      # the v8 dome's half width, height, depth (headdome.py)
 # the shape (fractions of the dome radius, by direction on the unit sphere d = (dx right, dy up, dz forward))
 SHAPE = dict(
-    box_p=2.5,        # superellipsoid exponent reached toward the top (2 = the ellipsoid): a flatter, fuller-shouldered crown
+    box_p=2.3,        # superellipsoid exponent reached toward the top (2 = the ellipsoid): a flatter, fuller-shouldered crown
     box_front=0.55,   # how much the boxing is held back over the face (the front stays round)
-    top=-0.045,       # the pole itself lowered
+    top=-0.035,       # the pole itself lowered
     cheek=0.055,      # the sides fuller round the gill roots
     brow=0.017,       # a soft ridge over the eyes
     muzzle=0.035,     # the lower front brought forward (softer, under the flatter face)
-    flat=-0.07,       # the front of the face flattened, gently: the pull-in falls off as the 4th power of how far forward a direction points
+    flat=-0.055,      # the front of the face flattened, gently: the pull-in falls off as the 4th power of how far forward a direction points
     chin=-0.045,      # the underside of the chin flatter, the same way
     forehead=-0.025,  # the upper front sloped back
     neck=-0.05,       # the lower back drawn in toward the neck
@@ -281,7 +281,9 @@ def reshape(nm, untex, tex, out, outsrc, verbose=True):
         y_ = (A @ P2) / np.maximum(deg, 1)[:, None]; P2[dm_] = 0.6 * P2[dm_] + 0.4 * y_[dm_]
     if verbose: print(f'  back rounded: {moved} dorsal trunk verts in {nsl} slabs; neck band {int(bandN.sum())} verts smoothed')
     P2 = np.vstack([P2, Pl]); T = np.vstack([T, T_l]); n2 = len(P2)
-    si2 = np.vstack([r['si'], si_l]); sw2 = np.vstack([r['sw'], sw_l]); jelly2 = np.vstack([r['jelly'], jelly_l]); fill2 = np.vstack([r['fill'], fill_l]); mat2 = np.vstack([r['mat'], mat_l])
+    # the retired stalks and their base rings carry no gill mask, frill tip or thinness any more (they would tint the skin round the ears)
+    jelly_o = r['jelly'].copy(); fill_o = r['fill'].copy(); mat_o = r['mat'].copy(); ret = gw > 0.02; jelly_o[ret, 2] = 0; fill_o[ret, 3] = 0; mat_o[ret, 1] = 0
+    si2 = np.vstack([r['si'], si_l]); sw2 = np.vstack([r['sw'], sw_l]); jelly2 = np.vstack([jelly_o, jelly_l]); fill2 = np.vstack([fill_o, fill_l]); mat2 = np.vstack([mat_o, mat_l])
     # ---- normals (area weighted), the canonical place, the bones, the meta ----
     fn = np.cross(P2[T[:, 1]] - P2[T[:, 0]], P2[T[:, 2]] - P2[T[:, 0]]); vn = np.zeros((n2, 3))
     for k in range(3): np.add.at(vn, T[:, k], fn)
@@ -326,7 +328,7 @@ def reshape(nm, untex, tex, out, outsrc, verbose=True):
     for L in LOBES:
         m = len(L['P']); _, j = kd_t.query(L['root']); uv_l[o_:o_ + m] = uvt[ht[j]]; o_ += m
     Pt2 = np.vstack([P2[:n][vm], Pl]).astype(np.float32); Nt2 = np.vstack([Nq[:n][vm], Nq[n:]]); cqt = np.vstack([cq[:n][vm], cq[n:]])
-    sit = np.vstack([rd('skinIndex', np.uint8, 4), si_l]); swt = np.vstack([rd('skinWeight', np.uint8, 4), sw_l]); jt = np.vstack([rd('jelly', np.uint8, 4), jelly_l]); ft = np.vstack([rd('fill', np.uint8, 4), fill_l]); mtt = np.vstack([rd('mat', np.uint8, 4), mat_l])
+    sit = np.vstack([rd('skinIndex', np.uint8, 4), si_l]); swt = np.vstack([rd('skinWeight', np.uint8, 4), sw_l]); jt = np.vstack([jelly_o[vm], jelly_l]); ft = np.vstack([fill_o[vm], fill_l]); mtt = np.vstack([mat_o[vm], mat_l])
     uvt2 = np.vstack([uvt, uv_l]); Tt2 = np.vstack([Tt, T_l - n + nt])
     buf2, off2 = pack([('position', Pt2), ('normal', Nt2), ('skinIndex', sit), ('skinWeight', swt), ('index', Tt2.astype(np.uint16).ravel()), ('cpos', cqt), ('jelly', jt), ('fill', ft), ('mat', mtt), ('uv', uvt2), ('tex', np.frombuffer(texb, np.uint8))])
     for k in ('bones', 'bbox', 'face', 'headc', 'headr'): mt[k] = meta[k]
