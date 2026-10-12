@@ -186,6 +186,39 @@ def reshape(nm, untex, tex, out, outsrc, s=SCALE, verbose=True):
     for _ in range(8):
         y_ = (A @ P2) / np.maximum(deg, 1)[:, None]; P2[sm] = 0.5 * P2[sm] + 0.5 * y_[sm]
     neck_floor(P2)
+    # ---- the junction (v10b, the user: "the neck area is off"): the ball's underside had closed to a ledge over a neck column half its
+    # width, a crease ring under the chin and behind. Now a target radius about the neck axis per height and direction (front, side,
+    # back, blended by azimuth): the ball's own radius down to its lower third, then a concave fillet into a neck nearly that wide, which
+    # eases out into the chest and the shoulders. Applied as a floor (the ball above and the flat chin keep their own surface; only
+    # what lies inside the target comes out to it), then smoothed for a continuous surface, the floor applied once more ----
+    fwdv = unit(np.array([0.0, 0.0, 1.0]) - nax * nax[2]); sidev = np.cross(nax, fwdv); nw = W[:, bi['neck']]; cw = W[:, bi['chest']]
+    AL = np.array([-0.40, -0.36, -0.32, -0.28, -0.24, -0.20, -0.16, -0.12, -0.08, -0.04, 0.00, 0.04, 0.08, 0.12])
+    PROF = {'stand': {'front': [0.190, 0.192, 0.185, 0.182, 0.182, 0.185, 0.195, 0.212, 0.242, 0.258, 0.279, 0.321, 0.353, 0.378],
+                      'side':  [0.300, 0.300, 0.302, 0.304, 0.296, 0.284, 0.274, 0.268, 0.266, 0.270, 0.282, 0.300, 0.328, 0.348],
+                      'back':  [0.180, 0.180, 0.181, 0.181, 0.178, 0.174, 0.172, 0.172, 0.176, 0.185, 0.200, 0.209, 0.260, 0.280]},
+            'crawl': {'front': [0.106, 0.133, 0.144, 0.160, 0.173, 0.183, 0.190, 0.198, 0.215, 0.250, 0.290, 0.328, 0.344, 0.357],
+                      'side':  [0.145, 0.168, 0.178, 0.190, 0.212, 0.218, 0.226, 0.232, 0.238, 0.245, 0.255, 0.268, 0.309, 0.334],
+                      'back':  [0.150, 0.160, 0.190, 0.210, 0.217, 0.192, 0.180, 0.172, 0.170, 0.175, 0.190, 0.225, 0.254, 0.265]}}[nm]
+    def junction(PP):
+        rel = PP - hbj; al = rel @ nax; rad = rel - np.outer(al, nax); rr = np.linalg.norm(rad, axis=1); phi = np.degrees(np.abs(np.arctan2(rad @ sidev, rad @ fwdv)))
+        rf, rs, rb = (np.interp(al, AL, PROF[k]) for k in ('front', 'side', 'back'))
+        rt = np.where(phi < 90, rf + (rs - rf) * ss(phi / 90), rs + (rb - rs) * ss((phi - 90) / 90))
+        return al, rad, rr, rt
+    al_, rad_, rr_, rt_ = junction(P2)
+    zone = ((hw + nw + cw) > 0.02) & ~own & (al_ > -0.42) & (al_ < 0.10) & (gw0 < 0.02)
+    def fillet(PP, k=1.0):
+        al, rad, rr, rt = junction(PP); lift = zone & (rr < rt * k) & (rr > 1e-4); PP[lift] += (rad[lift] / rr[lift, None]) * (rt[lift] * k - rr[lift])[:, None]; return lift
+    lifted = fillet(P2)
+    chin = zone & (al_ > -0.07) & ((rad_ @ fwdv) > 0.6 * rr_)   # (the flat chin front keeps its surface; the smoothing leaves it alone)
+    smz = zone & ~chin & (al_ < 0.06)
+    for _ in range(8):
+        y_ = (A @ P2) / np.maximum(deg, 1)[:, None]; P2[smz] = 0.5 * P2[smz] + 0.5 * y_[smz]
+    fillet(P2, 0.985)
+    # no baked shadow and no wrinkle rings round the join: its shading is the surface's own
+    jz = ss((0.06 - al_) / 0.1) * ss((al_ + 0.36) / 0.1) * zone; fill[:, 2] = np.clip(np.round(fill[:, 2] * (1 - jz)), 0, 255).astype(np.uint8); mat[:, 2] = np.clip(np.round(mat[:, 2] * (1 - jz)), 0, 255).astype(np.uint8)
+    if verbose:
+        alf, radf, rrf, rtf = junction(P2)
+        print(f'  junction: {int(zone.sum())} verts in the zone, {int(lifted.sum())} brought out to the fillet (mean {np.linalg.norm((P2 - P)[lifted], axis=1).mean() * 100:.1f} cm); side radius now at al 0 / -0.08 / -0.2: ' + ' / '.join(f'{np.median(rrf[zone & (np.abs(alf - a) < 0.02) & (np.abs(radf @ sidev) > 0.9 * rrf)]):.3f}' for a in (0.0, -0.08, -0.2)))
     core = (hw > 0.95) & ~own; qq = P2[core] - C
     if verbose:
         print(f'  slime ball hits {int(onball.sum())} of {int(grp.sum())} head-group verts; blended {int((k > 0.5).sum())}; neck floor on {int(low.sum())}; smoothed {int(sm.sum())}')
@@ -307,7 +340,8 @@ def reshape(nm, untex, tex, out, outsrc, s=SCALE, verbose=True):
     mt['off7'] = off2; mt['n'] = ntb + nl; mt['ni'] = int(Tt3.size)
     open(f'{out}/axo_{nm}.bin', 'wb').write(buf2); json.dump(mt, open(f'{out}/axo_{nm}.json', 'w'))
     # (the old rings and the new centres of the textured mesh, for capfix.py: their texels get repainted skin)
-    capv = np.where(ringt)[0].tolist() + list(range(ntb - ncen_t, ntb)); json.dump({'cap_verts': capv, 'centres': list(range(ntb - ncen_t, ntb)), 'n_body': ntb}, open(f'{out}/axo_{nm}_caps.json', 'w'))
+    capv = np.where(ringt)[0].tolist() + list(range(ntb - ncen_t, ntb))
+    json.dump({'cap_verts': capv, 'centres': list(range(ntb - ncen_t, ntb)), 'n_body': ntb, 'neck_verts': np.where(zone[vmk])[0].tolist(), 'neck_axis': {'o': hbj.tolist(), 'n': nax.tolist()}}, open(f'{out}/axo_{nm}_caps.json', 'w'))
     if verbose: print(f'  {out}/axo_{nm}.bin {len(buf2)} bytes ({ntb + nl} verts: body {ntb} + ears {nl}, {len(Tt3)} tris; was {nt_all}); {outsrc}/axo_{nm}.bin ({n2} verts, {len(Tf)} tris)')
 if __name__ == '__main__':
     a = sys.argv[1:]; untex = S + '/fable2/rt3src'; tex = S + '/fable2/rt3'; out = WORK + '/rt4'; outsrc = WORK + '/rt4src'; s = SCALE

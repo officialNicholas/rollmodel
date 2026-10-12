@@ -136,6 +136,24 @@ def fix():
     for p in pg: cells.append(cam(p, f'{tag(p)}: stand, chest close, dark', [0.3, 1.2, 1.5], [0, 1.0, 0.0], pre="LAB.step(2); "))
     for p in pg: cells.append(cam(p, f'{tag(p)}: stand 3/4, light', [1.5, 1.3, 1.9], [0, 0.95, 0.0], pre=LIGHT + "LAB.step(2); "))
     run('fix_seams', pages, cells, 420, 460, 4, 'the lobby defect check: A / B')
+# the neck check (v10b): the stand from the front, 3/4, side and from under the chin; the crawl side and 3/4 looking up (the lobby
+# pose); a dark-ground close of the chin and of the nape; A and B
+def neck():
+    pg = ['A', 'B']; pages = {p: LAB(DIRS[p]) for p in pg}; cells = []
+    LIGHT = "scene.background = new THREE.Color(0xd9d2c3); floor.visible = true; "; DARK = "scene.background = new THREE.Color(0x1a1a1e); floor.visible = false; "
+    ST = RESET + LIGHT + NEUTRAL + "LAB.set('idle'); LAB.step(20); LAB.I.ax.A.set('stand'); LAB.step(150); "
+    for p in pg: cells.append(cam(p, f'{tag(p)}: stand front', [0.0, 1.2, 2.2], [0, 1.0, 0.0], pre=ST))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: stand 3/4', [1.5, 1.3, 1.7], [0, 1.0, 0.0], pre="LAB.step(2); "))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: stand side', [2.2, 1.2, 0.0], [0, 1.0, 0.0], pre="LAB.step(2); "))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: stand, from under the chin', [0.3, 0.45, 1.6], [0, 1.05, 0.0], pre="LAB.step(2); "))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: stand, chin and throat close, dark', [0.5, 0.8, 1.3], [0, 1.05, 0.0], pre=DARK + "LAB.step(2); "))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: stand, nape close, dark', [0.8, 1.35, -1.3], [0, 1.05, 0.0], pre="LAB.step(2); "))
+    CR = RESET + LIGHT + "LAB.set('idle'); LAB.I.ax.A.look.pitch = 28; LAB.step(90); "
+    for p in pg: cells.append(cam(p, f'{tag(p)}: crawl side, looking up', [2.0, 0.6, 0.3], [0, 0.42, 0.25], pre=CR))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: crawl 3/4, looking up', [1.4, 0.8, 1.5], [0, 0.42, 0.25], pre="LAB.step(2); "))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: crawl, throat close, dark', [0.6, 0.35, 1.4], [0, 0.5, 0.33], pre=DARK + "LAB.step(2); "))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: crawl, nape close, dark', [0.8, 1.2, -0.9], [0, 0.55, 0.2], pre="LAB.step(2); "))
+    run('neck', pages, cells, 420, 440, 4, 'the neck: A / B')
 if __name__ == '__main__':
     a = sys.argv[1:]
     if '--pages' in a: i = a.index('--pages'); PG = a[i + 1].split(','); del a[i:i + 2]

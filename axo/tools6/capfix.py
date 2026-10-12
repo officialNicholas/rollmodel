@@ -43,7 +43,25 @@ def fix(nm, src, texdir, out, verbose=True):
             target = colh[near].mean(0) if len(near) > 50 else colh.mean(0)
             new[m] = target[None, :] + (colc[m] - colc[m].mean(0)) * 0.1
     img2 = img.copy(); img2[ty, tx] = srgb(new).astype(np.float32)
-    cov = np.zeros((res, res), np.float32); cov[ty, tx] = 1; cov[hy, hx] = 1
+    # the join's texels (v10b): the skin there takes the colour between the head's just above and the body's just below, by height, in
+    # its own direction round the neck, with a quarter of its own detail kept: no darker band under the chin or at the nape
+    ny_ = nx_ = np.zeros(0, int)
+    if caps.get('neck_verts'):
+        zv = np.zeros(n, bool); zv[caps['neck_verts']] = True; ax = caps['neck_axis']; o_, nx = np.array(ax['o']), np.array(ax['n'])
+        fwdv = np.array([0.0, 0.0, 1.0]) - nx * nx[2]; fwdv /= np.linalg.norm(fwdv); sidev = np.cross(nx, fwdv)
+        zT = zv[T].any(1) & body[T].all(1) & small; ny_, nx_, nt_, nb2 = tb.rasterize(uv, T, res, zT); qz = (P[T[nt_]] * nb2[:, :, None]).sum(1); colz = lin(img[ny_, nx_].astype(np.float64))
+        refT = ((hw[T] > 0.3) | zv[T].any(1)) & body[T].all(1) & small & ~zT; ry, rx, rt_, rb = tb.rasterize(uv, T, res, refT); qr = (P[T[rt_]] * rb[:, :, None]).sum(1); colr = lin(img[ry, rx].astype(np.float64))
+        def frame(q): rel = q - o_; al = rel @ nx; rad = rel - np.outer(al, nx); return al, np.degrees(np.arctan2(rad @ sidev, rad @ fwdv))
+        alz, phz = frame(qz); alr, phr = frame(qr); newz = colz.copy()
+        for s0 in range(-180, 180, 45):
+            inz = (phz >= s0) & (phz < s0 + 45)
+            if not inz.any(): continue
+            sec = (phr >= s0 - 20) & (phr < s0 + 65); up = sec & (alr > 0.07) & (alr < 0.16); dn = sec & (alr > -0.46) & (alr < -0.34)
+            cu = colr[up].mean(0) if up.sum() > 40 else colr[sec].mean(0); cd = colr[dn].mean(0) if dn.sum() > 40 else cu
+            t = np.clip((0.07 - alz[inz]) / 0.41, 0, 1)[:, None]; t = t * t * (3 - 2 * t)
+            newz[inz] = cu * (1 - t) + cd * t + (colz[inz] - colz[inz].mean(0)) * 0.25
+        img2[ny_, nx_] = srgb(newz).astype(np.float32)
+    cov = np.zeros((res, res), np.float32); cov[ty, tx] = 1; cov[hy, hx] = 1; cov[ny_, nx_] = 1
     ring = binary_dilation(cov > 0, iterations=6) & (cov == 0); fill = tb.dilate(img2, cov, rounds=8); img2[ring] = fill[ring]
     os.makedirs(out, exist_ok=True); Image.fromarray(np.clip(np.round(img2 * 255), 0, 255).astype(np.uint8)).save(f'{out}/axo_{nm}_tex.png')
     tbytes = tb.encode(img2); open(f'{out}/axo_{nm}_tex.webp', 'wb').write(tbytes)
@@ -51,7 +69,7 @@ def fix(nm, src, texdir, out, verbose=True):
     b2 = bytes(b[:o['tex']]) + tbytes; b2 += b'\0' * ((-len(b2)) % 4)
     meta2 = dict(meta); meta2['texLen'] = len(tbytes)
     open(f'{out}/axo_{nm}.bin', 'wb').write(b2); json.dump(meta2, open(f'{out}/axo_{nm}.json', 'w'))
-    if verbose: print(f'{nm}: {int(capT.sum())} cap triangles, {len(ty)} texels repainted from {len(hy)} head texels; {out}/axo_{nm}.bin {len(b2)} bytes (texture {len(tbytes) // 1024} KB)')
+    if verbose: print(f'{nm}: {int(capT.sum())} cap triangles, {len(ty)} texels repainted from {len(hy)} head texels; join {len(ny_)} texels blended; {out}/axo_{nm}.bin {len(b2)} bytes (texture {len(tbytes) // 1024} KB)')
 if __name__ == '__main__':
     a = sys.argv[1:]; src = WORK + '/rt4'; texdir = S + '/fable2/rt3'; out = WORK + '/rt4'
     while a:
