@@ -176,6 +176,19 @@ def locker():
     cells.append(cam('A', 'v10 A: stand, locker camera', [0.0, 1.3, 3.0], [0, 0.9, 0.0], pre="LAB.I.ax.A.look.pitch = 0; LAB.I.ax.A.set('stand'); LAB.step(150); "))
     cells.append(cam('v239', 'v239 (shipped): stand, locker camera', [0.0, 1.3, 3.0], [0, 0.9, 0.0], pre="LAB.I.ax.A.look.pitch = 0; LAB.I.ax.A.set('stand'); LAB.step(150); "))
     run('locker', pages, cells, 420, 460, 4, 'the locker: slime recording / v10 A / v10 B / v239, toon 0 vs 0.7 vs 1')
+# the neck close (v10c): the throat and the nape at a larger size in the lab's light, to read the fillet's surface and the join's colour
+def neckzoom():
+    pg = ['A', 'B']; pages = {p: LAB(DIRS[p]) for p in pg}; cells = []
+    LIGHT = "scene.background = new THREE.Color(0xd9d2c3); floor.visible = true; "
+    ST = RESET + LIGHT + NEUTRAL + "LAB.set('idle'); LAB.step(20); LAB.I.ax.A.set('stand'); LAB.step(150); LAB.I.ax.look.blinkK = 0; "
+    for p in pg: cells.append(cam(p, f'{tag(p)}: stand, throat from the side', [1.1, 0.95, 0.15], [0, 0.98, 0.0], pre=ST))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: stand, throat from the front', [0.0, 0.9, 1.15], [0, 0.98, 0.0], pre="LAB.step(2); "))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: stand, chest 3/4', [0.8, 0.95, 0.9], [0, 0.92, 0.05], pre="LAB.step(2); "))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: stand, nape 3/4 from behind', [0.8, 1.15, -0.95], [0, 1.0, 0.0], pre="LAB.step(2); "))
+    CR = RESET + LIGHT + "LAB.set('idle'); LAB.I.ax.A.set('crawl'); LAB.I.ax.state = 'crawl'; LAB.step(120); LAB.I.ax.look.blinkK = 0; "
+    for p in pg: cells.append(cam(p, f'{tag(p)}: crawl, nape from behind', [0.7, 0.95, -0.8], [0, 0.55, 0.15], pre=CR))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: crawl, side', [1.3, 0.5, 0.25], [0, 0.45, 0.2], pre="LAB.step(2); "))
+    run('neckzoom', pages, cells, 640, 560, 2, 'the neck close: A / B')
 if __name__ == '__main__':
     a = sys.argv[1:]
     if '--pages' in a: i = a.index('--pages'); PG = a[i + 1].split(','); del a[i:i + 2]

@@ -18,7 +18,7 @@ function startIntro() { const I = VP && VP.slime; lookIntro = reduceMotion ? { t
 // the crawl-out, frame by frame: the pool, the depth and the distance still to crawl, the nose up as it comes, the settle
 function crawlFrame(I) {
   const t = I.t, pool = dipPool, U = pool.userData.U, V = VP;
-  const R = clamp(((V && V.half) || 1.2) * 0.9, 0.9, 1.5), yw = V.yawDraw || 0, fx = Math.sin(yw), fz = Math.cos(yw);
+  const R = 0.82, yw = V.yawDraw || 0, fx = Math.sin(yw), fz = Math.cos(yw);
   const open = t < CR.land ? easeBack(Math.min(1, t / CR.pool)) : 1 - dipEase((t - CR.land - 0.1) / (CR.end - CR.land - 0.1));
   const cx = P.x - fx * CR.back * 0.55, cz = P.z - fz * CR.back * 0.55; // (the pool sits where it comes up, behind its spot)
   pool.visible = pool.userData.mask.visible = open > 0.01; pool.position.set(cx, 0.006, cz); pool.scale.setScalar(Math.max(0.01, open) * R); pool.userData.mask.position.set(P.x, 0, P.z);
@@ -45,7 +45,8 @@ rep("function endIntro() { if (!lookIntro) return; lookIntro = null; strand.visi
 rep("    if (D === P && lookIntro) { const I = introPose(lookIntro.t); hop = I.y; sq = I.sq; rise = I.rise; spinY = 0; U.gDrop.value = I.drop; U.gWob.value = I.wob; V.introSc = I.sc; }",
     "    if (D === P && lookIntro) { if (lookIntro.crawl) { const q = lookIntro.pose; hop = 0; sq = q.sq; rise = q.rise; spinY = 0; U.gDrop.value = 0; U.gWob.value = 1; V.introSc = 1; } else { const I = introPose(lookIntro.t); hop = I.y; sq = I.sq; rise = I.rise; spinY = 0; U.gDrop.value = I.drop; U.gWob.value = I.wob; V.introSc = I.sc; } }")
 rep("+ (D === P && lkDip && lkDip.pose ? lkDip.pose.pitch : 0), yawD + spinY,", "+ (D === P && lkDip && lkDip.pose ? lkDip.pose.pitch : 0) + (D === P && lookIntro && lookIntro.crawl ? lookIntro.pose.pitch : 0), yawD + spinY,")
-# shown from the moment it starts up, not from a landing
+# shown from the moment it starts up, not from a landing; and no stand-in blob while it's still under
+rep("I.root.visible = on; V.oldBlob.visible = !on && !tur; if (!on) return;", "I.root.visible = on; V.oldBlob.visible = !on && !tur && !(D === P && lookIntro && lookIntro.crawl); if (!on) return;")
 rep("!(D === P && lookIntro && lookIntro.t < IN_LAND), was = I.root.visible;", "!(D === P && lookIntro && lookIntro.t < (lookIntro.vis !== undefined ? lookIntro.vis : IN_LAND)), was = I.root.visible;")
 # covered in paint while it climbs (then the usual shake-off), down in the pool by its depth and back by its distance, no see-through ghost
 rep("  else if (D.introCrawl) { if (V.coatSt !== 'climb') { V.coatSt = 'climb'; I.coatOn(0); } } // (climbing out: covered in paint, in its own shape)",

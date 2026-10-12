@@ -104,4 +104,21 @@ if B:
         "  totalEmissiveRadiance += deep * sFaceK * (1.0 - sCoatM) * (0.1 * wrap + 0.07 * back) + diffuseColor.rgb * sFaceM * sJelly * (1.0 - ink) * (1.0 - sCoatM) * 0.1;")
 s = s.replace("// Roll Model axolotl runtime v9 (v7 + the baked texture of v8 + the v9 face material and paint coat, axo/tools5/look9.py), single module:",
               "// Roll Model axolotl runtime v10" + (" B" if B else "") + " (v9b + the slime's head and ears, axo/tools6/slimehead.py and look10.py), single module:", 1)
+# ---- the idle eyes (v10c, the coordinator: the glances every 1 to 2 s "read busy in the lobby"): a glance 2.5 to 6 s after the last,
+# now and then a longer hold, and the eyes easing to the new spot on a critically damped spring (settled in about 0.12 s) instead of the
+# snap of the old per-frame lerp; blinks and the glance-plus-blink pairing as they were ----
+rep("this.look = [0, 0]; this.dart = [0, 0]; this.dartT = 0.5; this.att = { t: 1 + Math.random() * 2, eye: [0, 0] };",
+    "this.look = [0, 0]; this.lookV = [0, 0]; this.dart = [0, 0]; this.dartT = 0.5; this.att = { t: 2 + Math.random() * 3, eye: [0, 0] };")
+rep("const A = this.att; A.t -= dt; if (A.t <= 0) { A.t = 1.2 + Math.random() * 2.8;",
+    "const A = this.att; A.t -= dt; if (A.t <= 0) { A.t = Math.random() < 0.2 ? 6 + Math.random() * 4 : 2.5 + Math.random() * 3.5;")
+rep("    this.look[0] += (lx - this.look[0]) * Math.min(1, dt * 26); this.look[1] += (ly - this.look[1]) * Math.min(1, dt * 26);",
+    "    { const w = 40, e = Math.exp(-w * dt);   // v10c: a critically damped ease to the new spot, settled in about 0.12 s, no snap\n"
+    "      for (let i = 0; i < 2; i++) { const g = i ? ly : lx, x = this.look[i] - g, c = this.lookV[i] + w * x; this.look[i] = g + (x + c * dt) * e; this.lookV[i] = (this.lookV[i] - c * w * dt) * e; } }")
+rep("if (N.holdT > 0 || Math.random() < 0.35) { N.glance = [0, 0, 0]; N.holdT = 0; N.glanceT = 1.8 + Math.random() * 3.5; }",
+    "if (N.holdT > 0 || Math.random() < 0.35) { N.glance = [0, 0, 0]; N.holdT = 0; N.glanceT = Math.random() < 0.15 ? 6 + Math.random() * 4 : 2.5 + Math.random() * 3.5; }   // (v10c: rarer)")
+rep("N.holdT = 1; N.glanceT = 0.7 + Math.random() * 1.6; }", "N.holdT = 1; N.glanceT = 1.0 + Math.random() * 1.6; }")
+# the darts (the small saccades between glances, ±0.035 x ±0.02 every 0.35 to 1.25 s) were the busiest part: measured in the lab they moved
+# the eyes to a new spot every 0.8 s, more often than the glances did. A third of their size now, so they read as a live tremor, not a move
+rep("this.dart[0] = (Math.random() * 2 - 1) * 0.035; this.dart[1] = (Math.random() * 2 - 1) * 0.02; }",
+    "this.dart[0] = (Math.random() * 2 - 1) * 0.012; this.dart[1] = (Math.random() * 2 - 1) * 0.007; }   // (v10c: a third of the old size)")
 open(OUT, 'w').write(s); print('ok', OUT, len(s))
