@@ -1,0 +1,130 @@
+# The comparison sheets for the v10 pass (the slime's head and ears): the head beside the slime's recording and the present axolotl,
+# the ears in every pose, the faces, the hats, the two material variants, the paint coat. Pages are lab copies under fable3 served on
+# port 8767: A (fable3/lab, variant A), B (fable3/labB), cur (fable3/lab_cur, the present axolotl from ws/lab).
+#   python3 -I sheets10.py <head|poses|faces|hats|mats|coat|all> [--pages A,B,cur]
+import json, subprocess, sys, os
+S = '/tmp/claude-0/-home-user-rollmodel/5c52352e-692f-5301-ac55-ec4d2c708f3e/scratchpad'
+WORK = S + '/fable3'; HERE = os.path.dirname(os.path.abspath(__file__))
+U = 'http://localhost:8767/fable3/'
+DIRS = {'A': 'lab', 'B': 'labB', 'cur': 'lab_cur'}
+LAB = lambda d, dark=False: {'url': U + d + '/index.html', 'ready': 'window.LAB && LAB.ready', 'shot': 'screenshot', 'init': "LAB.set('idle'); LAB.step(120)" + ("; scene.background = new THREE.Color(0x1a1a1e); floor.visible = false" if dark else '')}
+def cam(page, label, pos, at, pre='', steps=2): return [page, pre + f"LAB.cam='fixed'; LAB.camPos={json.dumps(pos)}; LAB.camAt={json.dumps(at)}; LAB.step({steps}); LAB.render()", label]
+# a camera placed relative to the character's head (off and at as [side, up, forward] in its own frame, from the head joint's world
+# place), for the scenarios that move it about
+def rcam(page, label, off, at, pre='', steps=2):
+    js = (f"LAB.step({steps}); {{ const D = LAB.D, h = LAB.feet().head, sy = Math.sin(D.yaw), cy = Math.cos(D.yaw), o = {json.dumps(off)}, a = {json.dumps(at)}; "
+          "LAB.cam = 'fixed'; LAB.camPos = [h[0] + o[0] * cy + o[2] * sy, h[1] + o[1], h[2] - o[0] * sy + o[2] * cy]; LAB.camAt = [h[0] + a[0] * cy + a[2] * sy, h[1] + a[1], h[2] - a[0] * sy + a[2] * cy]; } LAB.render()")
+    return [page, pre + js, label]
+def img(path, label, crop=None): return [None, json.dumps({'img': path, 'crop': crop}), label]
+def run(name, pages, cells, W, H, ncol, title):
+    spec = {'out': f'{WORK}/shots/{name}.jpg', 'W': W, 'H': H, 'ncol': ncol, 'title': title, 'pages': pages, 'cells': cells}
+    os.makedirs(f'{WORK}/shots', exist_ok=True); json.dump(spec, open(f'{WORK}/shots/{name}.json', 'w')); subprocess.run(['python3', '-I', HERE + '/shoot.py', f'{WORK}/shots/{name}.json'], check=True)
+PG = ['A', 'B', 'cur']
+RESET = "if (LAB.basin) { scene.remove(LAB.basin); LAB.basin = null; } LAB.D.x = 0; LAB.D.z = 0; LAB.D.y = 0; LAB.D.air = false; LAB.D.rocket = false; LAB.D.dry = true; "
+NEUTRAL = "LAB.I.setEyeStyle(0); LAB.I.setFangs(false); LAB.I.setLashes(0,0); LAB.I.setPatch(0); LAB.I.setExpression('neutral'); LAB.I.ax.look.exprK = 1; LAB.I.ax.look.expr = 'neutral'; LAB.step(8); LAB.I.ax.look.blinkK = 0; "
+def tag(p): return {'A': 'v10 A', 'B': 'v10 B', 'cur': 'current'}[p]
+REF = S + '/ref_slime_rec'
+def head():
+    pages = {p: LAB(DIRS[p]) for p in PG}; cells = []
+    # the slime's recording: a front-ish frame, a 3/4 and a side-ish one (the sheet's frames, cropped round the character)
+    cells.append(img(REF + '/f03.png', 'slime recording', [60, 40, 300, 300])); cells.append(img(REF + '/f08.png', 'slime recording', [60, 40, 300, 300])); cells.append(img(REF + '/f12.png', 'slime recording', [60, 40, 300, 300]))
+    shots = [('lobby distance, front', [0.0, 0.55, 1.75], [0, 0.44, 0.33]), ('lobby distance, 3/4', [1.05, 0.7, 1.4], [0, 0.44, 0.33]), ('lobby distance, side', [1.75, 0.5, 0.33], [0, 0.44, 0.33]),
+             ('head front', [0.0, 0.55, 1.6], [0, 0.47, 0.33]), ('head 3/4', [1.0, 0.75, 1.25], [0, 0.47, 0.33]), ('head side', [1.5, 0.52, 0.33], [0, 0.49, 0.33]),
+             ('head from above', [0.05, 1.9, 0.5], [0, 0.45, 0.33]), ('head low 3/4', [1.0, 0.25, 1.2], [0, 0.45, 0.33]), ('from behind', [0.3, 0.9, -1.5], [0, 0.42, 0.33]),
+             ('whole, game 3/4', [2.2, 1.4, 2.6], [0, 0.3, 0.0]), ('neck and shoulders, side', [1.6, 0.45, 0.1], [0, 0.38, 0.15])]
+    for lab, pos, at in shots:
+        for p in PG: cells.append(cam(p, f'{tag(p)}: {lab}', pos, at, pre=NEUTRAL if lab.startswith('lobby distance, front') else ''))
+    for p in PG: cells.append(cam(p, f'{tag(p)}: portrait, dark ground', [0.0, 0.55, 1.35], [0, 0.47, 0.33], pre="scene.background = new THREE.Color(0x1a1a1e); floor.visible = false; LAB.I.setExpression('happy'); LAB.step(12); LAB.I.ax.look.blinkK = 0; "))
+    for p in PG: cells.append(cam(p, f'{tag(p)}: portrait 3/4, dark ground', [0.7, 0.6, 1.2], [0, 0.47, 0.33], pre="LAB.I.setExpression('neutral'); LAB.step(12); LAB.I.ax.look.blinkK = 0; "))
+    for p in PG: cells.append(cam(p, f'{tag(p)}: stand, side (amber)', [1.6, 1.2, 0.3], [0, 1.1, 0.1], pre="scene.background = new THREE.Color(0xd9d2c3); floor.visible = true; LAB.I.setColor(new THREE.Color(0xffb300)); LAB.I.ax.A.set('stand'); LAB.step(150); "))
+    for p in PG: cells.append(cam(p, f'{tag(p)}: stand, front (amber)', [0.0, 1.2, 1.9], [0, 1.0, 0.0], pre=""))
+    run('head_cmp', pages, cells, 420, 400, 3, 'the head: slime recording / v10 A / v10 B / current (lab, 8767)')
+def poses():
+    pages = {p: LAB(DIRS[p]) for p in PG}; cells = []
+    P = [('crawl gait', RESET + "LAB.set('walk', {v: 5.4}); LAB.step(90); ", [1.3, 0.5, 1.4], [0, 0.0, 0.1]),
+         ('crawl gait, side', "LAB.step(7); ", [1.9, 0.3, 0.0], [0, -0.05, -0.1]),
+         ('swim', RESET + "LAB.D.dry = false; LAB.set('walk', {v: 5.4}); LAB.step(110); ", [1.3, 0.5, 1.4], [0, 0.0, 0.1]),
+         ('swim, side', "LAB.step(9); ", [1.9, 0.3, 0.0], [0, -0.05, -0.1]),
+         ('turn (weave)', RESET + "LAB.set('weave', {v: 5.4, k: 0.9, T: 1.4}); LAB.step(75); ", [1.3, 0.6, 1.4], [0, 0.0, 0.0]),
+         ('turn, from above', "LAB.step(10); ", [0.3, 2.0, 0.3], [0, 0.0, 0.0]),
+         ('jump, rising', RESET + "LAB.set('jump', {v: 4, at: 0.3}); LAB.step(28); ", [1.5, 0.5, 1.5], [0, 0.0, 0.0]),
+         ('jump, tuck (top)', "LAB.step(14); ", [1.5, 0.5, 1.5], [0, 0.0, 0.0]),
+         ('ball (fling)', RESET + "LAB.set('fling', {at: 0.2, c: 1}); LAB.step(40); ", [1.5, 0.5, 1.5], [0, 0.0, 0.0]),
+         ('ball, later', "LAB.step(12); ", [1.5, 0.5, 1.5], [0, 0.0, 0.0]),
+         ('landing +6', RESET + "LAB.set('jump', {v: 4, at: 0.3}); LAB.step(28); while (LAB.D.air) LAB.step(1); LAB.step(6); ", [1.3, 0.5, 1.4], [0, 0.0, 0.1]),
+         ('landing +14', "LAB.step(8); ", [1.3, 0.5, 1.4], [0, 0.0, 0.1]),
+         ('stand idle', RESET + "LAB.set('idle'); LAB.step(20); LAB.I.ax.A.set('stand'); LAB.step(150); ", [1.6, 1.2, 1.7], [0, 1.0, 0.1]),
+         ('stand idle, side', "LAB.step(2); ", [2.0, 1.2, 0.1], [0, 1.0, 0.1]),
+         ('victory +150', RESET + "LAB.set('idle'); LAB.step(20); LAB.I.ax.A.set('victory'); LAB.step(150); ", [1.6, 1.2, 1.7], [0, 1.0, 0.1]),
+         ('victory +190, side', "LAB.step(40); ", [2.0, 1.2, 0.1], [0, 1.0, 0.1]),
+         ('victory, front', "LAB.step(20); ", [0.0, 1.2, 2.0], [0, 1.0, 0.1]),
+         ('jetpack', RESET + "LAB.set('idle'); LAB.D.rocket = true; LAB.step(120); ", [1.6, 1.2, 1.7], [0, 1.0, 0.1]),
+         ('jetpack, side', "LAB.step(2); ", [2.0, 1.2, 0.1], [0, 1.0, 0.1]),
+         ('pound +40', RESET + "LAB.set('idle'); LAB.step(20); LAB.I.ax.A.set('pound'); LAB.step(40); ", [1.6, 1.0, 1.7], [0, 0.8, 0.1]),
+         ('mid morph crawl->stand +18', RESET + "LAB.set('idle'); LAB.step(20); LAB.I.ax.A.set('stand'); LAB.step(18); ", [1.6, 1.0, 1.7], [0, 0.7, 0.2]),
+         ('mid morph +30', "LAB.step(12); ", [1.6, 1.0, 1.7], [0, 0.7, 0.2]),
+         ('mid morph stand->crawl +20', "LAB.step(100); LAB.I.ax.A.set('crawl'); LAB.step(20); ", [1.6, 1.0, 1.7], [0, 0.7, 0.2]),
+         ('climb out', RESET + "LAB.set('climb', {T: 2.0}); LAB.step(95); ", [1.5, 0.6, 1.3], [0.0, -0.1, 0.1])]
+    FIXED = {'stand idle', 'stand idle, side', 'victory +150', 'victory +190, side', 'victory, front', 'jetpack', 'jetpack, side', 'pound +40', 'mid morph crawl->stand +18', 'mid morph +30', 'mid morph stand->crawl +20'}
+    pg = [p for p in PG if p != 'cur'] or PG
+    for lab, pre, pos, at in P:
+        for p in pg: cells.append((cam if lab in FIXED else rcam)(p, f'{tag(p)}: {lab}', pos, at, pre=pre))
+    run('poses', {p: LAB(DIRS[p]) for p in pg}, cells, 420, 400, 2 * len(pg), 'the ears in every pose: ' + ' / '.join(tag(p) for p in pg))
+def faces():
+    pages = {p: LAB(DIRS[p]) for p in PG}; cells = []
+    EX = ['neutral', 'happy', 'angry', 'hurt', 'glee', 'scared', 'yawn', 'dizzy']; ST = [('round', 0), ('edgy', 1), ('dot', 2), ('zombie', 3), ('sly', 4)]
+    face = ([0.0, 0.55, 1.35], [0, 0.47, 0.33])
+    for e in EX:
+        for p in PG: cells.append(cam(p, f'{tag(p)}: {e}', *face, pre=f"LAB.I.setEyeStyle(0); LAB.I.setFangs(false); LAB.I.setLashes(0,0); LAB.I.setPatch(0); LAB.I.setExpression('{e}'); LAB.I.ax.look.exprK = 1; LAB.I.ax.look.expr = '{e}'; LAB.I.ax.look.blinkK = 0; LAB.step(10); LAB.I.ax.look.blinkK = 0; "))
+    for nm, k in ST:
+        for p in PG: cells.append(cam(p, f'{tag(p)}: eyes {nm} + fangs', *face, pre=f"LAB.I.setEyeStyle({k}); LAB.I.setFangs(true); LAB.I.setExpression('happy'); LAB.I.ax.look.exprK = 1; LAB.I.ax.look.expr = 'happy'; LAB.I.ax.look.blinkK = 0; LAB.step(10); LAB.I.ax.look.blinkK = 0; "))
+    for p in PG: cells.append(cam(p, f'{tag(p)}: lashes + patch', *face, pre="LAB.I.setEyeStyle(0); LAB.I.setFangs(false); LAB.I.setLashes(1,1); LAB.I.setPatch(1); LAB.I.setExpression('neutral'); LAB.I.ax.look.exprK = 1; LAB.I.ax.look.expr = 'neutral'; LAB.I.ax.look.blinkK = 0; LAB.step(10); LAB.I.ax.look.blinkK = 0; "))
+    for p in PG: cells.append(cam(p, f'{tag(p)}: blink', *face, pre="LAB.I.setLashes(0,0); LAB.I.setPatch(0); LAB.step(2); LAB.I.ax.look.blinkK = 0.1; LAB.I.ax.look.U.fMix.value.y = 1; "))
+    for p in PG: cells.append(cam(p, f'{tag(p)}: eye close-up', [0.3, 0.6, 1.0], [0.1, 0.52, 0.33], pre="LAB.I.ax.look.blinkK = 0; LAB.step(10); LAB.I.ax.look.blinkK = 0; "))
+    run('faces', pages, cells, 400, 400, len(PG) * 2, 'the face: ' + ' / '.join(tag(p) for p in PG))
+# the hat anchor (green) with a brim at the head's size, and the game's own hat fits as plain stand-ins (a brim ring at the hat's own y and
+# tilt, its scale from HAT_FIT), so the fit of each can be read against the crown
+HAT = """{ const I = LAB.I; I.root.updateWorldMatrix(true, true); const W = I.root.parent.matrixWorld, q0 = I.root.parent.getWorldQuaternion(new THREE.Quaternion());
+  const t = AXOC.headTop(I, new THREE.Vector3()).applyMatrix4(W), hq = new THREE.Quaternion(); AXOC.headTop(I, new THREE.Vector3(), hq); hq.premultiply(q0);
+  const hs = AXOC.headSize(I) * 1.3 * I.root.parent.scale.x;
+  const G = window.__hatG || (window.__hatG = new THREE.Group()); scene.add(G); G.clear();
+  const dot = new THREE.Mesh(new THREE.SphereGeometry(0.025, 12, 8), new THREE.MeshBasicMaterial({ color: 0x20c020 })); dot.position.copy(t); G.add(dot);
+  const FIT = { skull: { s: 0.58, y: -0.34, rx: 0.12, rz: 0.55, c: 0xeeeeee }, bunny: { s: 0.92, y: -0.42, rx: -0.06, rz: 0.03, c: 0xff80c0 }, witch: { s: 1.3, y: -0.27, rx: -0.14, rz: -0.16, c: 0x303030 }, pirate: { s: 0.92, y: -0.2, rx: -0.1, rz: 0.06, c: 0x804020 }, top: { s: 0.86, y: -0.13, rx: -0.12, rz: -0.24, c: 0x202060 }, tiara: { s: 0.6, y: -0.13, rx: -0.22, rz: 0.05, c: 0xe0c040 } };
+  const F = FIT[window.__hatName || 'top'];
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.5 * F.s, 0.012, 8, 48), new THREE.MeshBasicMaterial({ color: F.c })); ring.rotateX(Math.PI / 2);
+  const hat = new THREE.Group(); hat.add(ring); if (window.__hatName === 'top') { const cyl = new THREE.Mesh(new THREE.CylinderGeometry(0.33 * F.s, 0.33 * F.s, 0.6 * F.s, 24, 1, true), new THREE.MeshBasicMaterial({ color: F.c, wireframe: true })); cyl.position.y = 0.3 * F.s; hat.add(cyl); }
+  hat.position.copy(t).add(new THREE.Vector3(0, F.y * hs, 0).applyQuaternion(hq)); hat.quaternion.copy(hq).multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(F.rx, 0, F.rz))); hat.scale.setScalar(hs); G.add(hat); } """
+def hats():
+    pages = {p: LAB(DIRS[p]) for p in PG}; cells = []
+    for nm in ['top', 'witch', 'pirate', 'tiara', 'bunny', 'skull']:
+        for p in PG: cells.append(cam(p, f'{tag(p)}: {nm} fit (ring at its brim), front 3/4', [1.1, 0.8, 1.3], [0, 0.5, 0.33], pre=f"window.__hatName = '{nm}'; " + HAT))
+        for p in PG: cells.append(cam(p, f'{tag(p)}: {nm} fit, side', [1.7, 0.6, 0.33], [0, 0.52, 0.33], pre=HAT))
+    for p in PG: cells.append(cam(p, f'{tag(p)}: anchor, stand', [1.3, 1.5, 1.3], [0, 1.2, 0.1], pre="window.__hatName = 'top'; LAB.I.ax.A.set('stand'); LAB.step(150); " + HAT))
+    for p in PG: cells.append(cam(p, f'{tag(p)}: anchor, jetpack', [1.3, 1.5, 1.3], [0, 1.2, 0.1], pre="LAB.D.rocket = true; LAB.step(120); " + HAT))
+    run('hats', pages, cells, 420, 400, len(PG) * 2, 'the hat anchor and the fits (stand-in rings at each hat\'s brim): ' + ' / '.join(tag(p) for p in PG))
+def mats():
+    pg = ['A', 'B']; pages = {p: LAB(DIRS[p]) for p in pg}; cells = []
+    TEAM = [('red', '0xe3122f'), ('blue', '0x2f8cff'), ('amber', '0xffb300'), ('green', '0x3cc43c'), ('violet', '0x9b4de0')]
+    for nm, hx in TEAM:
+        for p in pg: cells.append(cam(p, f'{tag(p)}: {nm}, lobby front', [0.0, 0.55, 1.75], [0, 0.44, 0.33], pre=RESET + f"LAB.set('idle'); LAB.I.setColor(new THREE.Color({hx})); LAB.step(20); "))
+        for p in pg: cells.append(cam(p, f'{tag(p)}: {nm}, 3/4', [1.05, 0.7, 1.4], [0, 0.44, 0.33]))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: red, head close 3/4', [0.7, 0.6, 1.0], [0, 0.47, 0.33], pre="LAB.I.setColor(new THREE.Color(0xe3122f)); LAB.step(5); "))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: red, ears close side', [1.2, 0.5, 0.3], [0, 0.42, 0.33]))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: red, dark ground portrait', [0.0, 0.55, 1.35], [0, 0.47, 0.33], pre="scene.background = new THREE.Color(0x1a1a1e); floor.visible = false; LAB.I.setExpression('happy'); LAB.step(12); LAB.I.ax.look.blinkK = 0; "))
+    run('mats', pages, cells, 420, 400, 4, 'the two material variants: A (skin) / B (jelly)')
+def coat():
+    pg = ['A', 'B']; pages = {p: LAB(DIRS[p]) for p in pg}; cells = []
+    for nm, hx in [('red', '0xe3122f'), ('blue', '0x2f8cff')]:
+        for lv in (0.5, 0.8, 1.0):
+            for p in pg: cells.append(cam(p, f'{tag(p)}: {nm} crawl coat {lv}', [1.4, 0.8, 1.6], [0, 0.35, 0.2], pre=RESET + f"LAB.set('idle'); LAB.I.setColor(new THREE.Color({hx})); LAB.step(20); LAB.I.ax.coat = {lv}; LAB.I.ax.wet = 1; LAB.I.ax.rise = 0; LAB.I.ax.burstT = -1; LAB.I.ax.fadeT = 0; "))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: blue, head coat edge close', [0.8, 0.6, 1.1], [0, 0.45, 0.33], pre="LAB.I.ax.coat = 0.85; LAB.step(3); "))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: blue, wading', [1.4, 0.8, 1.6], [0, 0.35, 0.2], pre="LAB.I.ax.coat = 0; LAB.I.setWade(1); LAB.step(5); "))
+    for p in pg: cells.append(cam(p, f'{tag(p)}: blue, drying (wet 0.6)', [1.4, 0.8, 1.6], [0, 0.35, 0.2], pre="LAB.I.setWade(0); LAB.I.ax.coat = 0; LAB.step(3); LAB.I.ax.wet = 0.6; LAB.step(2); "))
+    run('coat', pages, cells, 420, 400, 4, 'the paint coat: A / B')
+if __name__ == '__main__':
+    a = sys.argv[1:]
+    if '--pages' in a: i = a.index('--pages'); PG = a[i + 1].split(','); del a[i:i + 2]
+    which = a or ['head']
+    for w in which:
+        if w == 'all': [f() for f in (head, poses, faces, hats, mats, coat)]
+        else: globals()[w]()
