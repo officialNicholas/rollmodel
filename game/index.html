@@ -3034,6 +3034,51 @@ html.touchnav :focus-visible{outline:none!important}
 /* (v255) the fight card's labels along the top edge keep clear of the notch or the app's bar over it */
 .vsx .vsrow:not(.rows) .vhead{padding-top:calc(8px + env(safe-area-inset-top,0px))}
 .vsrow.rows .vcol:first-child .vhead{padding-top:calc(9px + env(safe-area-inset-top,0px))}
+/* (v256) frozen: each tap cracks the frost */
+.frost.held.crk{animation:frcrk .2s ease-out}
+@keyframes frcrk{40%{opacity:.72}}
+/* (v256) an orb in your slot: a little clock beside it runs down over its 10 seconds (none with Deep Pockets) */
+.orbBtn .oclk{position:absolute;right:-5px;top:-5px;z-index:2;width:22px;height:22px;border-radius:50%;background:conic-gradient(#FFF6D8 calc(var(--of,1) * 360deg),rgba(23,19,32,.6) 0);box-shadow:0 0 0 2.5px var(--line),0 2px 0 2.5px var(--line);transform:scaleX(-1)}
+.orbBtn.low .oclk{background:conic-gradient(#FF3B5C calc(var(--of,1) * 360deg),rgba(23,19,32,.6) 0);animation:oclk .45s ease-in-out infinite alternate}
+@keyframes oclk{to{transform:scaleX(-1) scale(1.16)}}
+.orbBtn.keep .oclk{display:none}
+/* (v256) the score numbers and pause card follow each rival's colour for the match (they were fixed blue and violet) */
+.vsn.cpu,.pscore .cpu{color:var(--holy)}
+.vsn.cpu2{color:var(--wolf)}
+.dot.holy{background:var(--holy)}
+/* (v256) the closing canvas: a countdown under the hearts, and red at the edges while you're out past the line */
+.zchip{display:flex;align-items:center;gap:6px;margin:3px auto 0;padding:4px 10px 4px 8px;width:max-content;border-radius:99px;background:#E3122F;box-shadow:0 0 0 2.5px var(--line),0 3px 0 var(--line);color:#fff;font:900 12px/1 var(--font-ui);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.zchip[hidden]{display:none}
+.zchip svg{width:14px;height:14px;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.zchip b{font:900 15px/1 var(--font-head);font-style:italic;letter-spacing:0;min-width:1.1em;text-align:right}
+.zchip.now{animation:zchip .5s ease-in-out infinite alternate}
+@keyframes zchip{to{transform:scale(1.08)}}
+.zvig{position:absolute;inset:0;z-index:3;pointer-events:none;opacity:0;transition:opacity .35s;background:radial-gradient(ellipse 85% 80% at 50% 50%,transparent 52%,rgba(227,18,47,.38) 82%,rgba(160,8,30,.7) 100%)}
+.zvig.on{opacity:1;animation:zvig .6s ease-in-out infinite alternate}
+@keyframes zvig{to{opacity:.6}}
+/* (v256) the Showdown's top bar: the faces and their hearts straight over the canvas, the time in the middle (sized by the screen's width
+   so four faces and the time fit between the pause and sound buttons on a 320-wide phone) */
+.hud.sdmode{--sdb:clamp(25px,8.2vw,34px)}
+.hud.sdmode .score{display:grid;width:auto;max-width:100%;padding:0;gap:5px;background:none;border:0;border-radius:0;box-shadow:none;transform:none}
+.hud.sdmode .score::before,.hud.sdmode .score::after{content:none;display:none}
+.hud.sdmode .score>.vsrow,.hud.sdmode .score>.sdbar{grid-area:1/1}
+.hud.sdmode .score>.zchip{grid-row:2}
+.hud.sdmode .score>.vsrow{z-index:1;justify-self:center;align-self:start;height:var(--sdb);pointer-events:none}
+.hud.sdmode .clock{min-width:0;padding:0 2px;border-radius:0;background:none;transform:none;font:900 clamp(17px,5.6vw,22px)/1 var(--font-head);font-style:italic;font-variant-numeric:tabular-nums;letter-spacing:.01em;color:#fff;text-shadow:0 2px 0 #171320,2px 0 0 #171320,-2px 0 0 #171320,0 -2px 0 #171320,1.5px 1.5px 0 #171320,-1.5px 1.5px 0 #171320,1.5px -1.5px 0 #171320,-1.5px -1.5px 0 #171320,0 3.5px 0 #171320}
+.hud.sdmode .clock.hurry{background:none;color:#FF4D6A}
+.hud.sdmode .sdbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:0;margin:0}
+.hud.sdmode .sdbar[hidden]{display:none}
+.sdside{display:flex;align-items:flex-start;gap:clamp(4px,1.8vw,8px)}
+.sdside.l{justify-content:flex-end}
+.sdside.r{justify-content:flex-start}
+.sdmid{display:block;width:clamp(46px,15.5vw,64px)}
+.hud.sdmode .sdc{width:calc(var(--sdb) + 4px);gap:0;filter:drop-shadow(0 2px 0 rgba(23,19,32,.45))}
+.hud.sdmode .sdc .bico{width:var(--sdb);height:var(--sdb)}
+.hud.sdmode .sdn{display:none}
+.hud.sdmode .sdh{position:relative;z-index:1;margin-top:-6px}
+.hud.sdmode .sdh svg{fill:rgba(255,255,255,.42);stroke:#171320;stroke-width:2.6}
+.hud.sdmode .sdh svg.on{fill:#FF3B5C}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.hud.sdmode{--sdb:28px}.hud.sdmode .clock{font-size:18px}.sdside{gap:6px}.sdmid{width:54px}}
 </style>
 
 <div id="stage">
@@ -3048,6 +3093,7 @@ html.touchnav :focus-visible{outline:none!important}
   <div class="foeptr three" id="foePtr3"><i></i><u><b></b></u></div>
   <div class="flash" id="flash"></div>
   <div class="frost" id="frost" aria-hidden="true"></div>
+  <div class="zvig" id="zVig" aria-hidden="true"></div>
   <div class="reveal" id="reveal" hidden aria-live="polite"><b class="rvn" id="rvName"></b><span class="rvs" id="rvSub"></span></div>
   <div class="count" id="count" aria-live="assertive"><b id="countN"></b></div>
   <div class="kof" id="kof" hidden aria-live="polite"><canvas id="kofC" aria-hidden="true"></canvas><div class="kofb"><small id="kofSmall">Splatted by</small><b id="kofBy"></b><span class="kofn" id="kofN">3</span><i id="kofL">Respawn</i></div></div>
@@ -3059,6 +3105,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="vsrow"><span class="vsn you" id="pct" aria-label="Your coverage">0%</span><span class="clock" id="clock" aria-label="Time left">1:00</span><span class="vsr"><span class="vsn cpu" id="pctC" aria-label="Rival coverage">0%</span><span class="vsn cpu2" id="pctC2" aria-label="Second rival coverage">0%</span></span></div>
         <div class="tug" id="meter"><i class="tYou" id="tugYou"></i><i class="tCpu" id="tugCpu"></i><i class="tCpu2" id="tugCpu2"></i></div>
         <div class="sdbar" id="sdBar" hidden role="img" aria-label="Hearts"></div>
+        <div class="zchip" id="zChip" hidden role="status"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5M9 9l-4-4M15 9l4-4M9 15l-4 4M15 15l4 4"/></svg><span>Closing in</span><b id="zChipN">15</b></div>
       </div>
     </div>
     <div class="chips"><span class="chip wx" id="wx" hidden></span><span class="chip pw" id="pw" hidden><i id="pwRing"></i><span id="pwText"></span></span></div>
@@ -3119,7 +3166,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="evcard" data-ev="vs" style="--ec:#E3122F"><button class="evmain" id="evVs" type="button" aria-expanded="false" aria-controls="evVsPick"><span class="evbar"><i>Most paint wins</i></span><span class="evtop"><span class="evic" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M32 3l7 12 13-4-3 13 12 7-12 7 3 13-13-4-7 12-7-12-13 4 3-13L3 31l12-7-3-13 13 4z" fill="#fff" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M17 24l5 16 5-16M45 25.5c-1.6-1.6-6-2.2-8 .4-2.4 3 1 5 4 6.4 3.4 1.6 4.4 4.2 1.8 6.6-2.4 2-6.6 1-8.6-.8" fill="none" stroke="#171320" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 24l5 16 5-16M45 25.5c-1.6-1.6-6-2.2-8 .4-2.4 3 1 5 4 6.4 3.4 1.6 4.4 4.2 1.8 6.6-2.4 2-6.6 1-8.6-.8" fill="none" stroke="#E3122F" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="evtx"><b>Versus CPU</b><small>1v1 or a 3-way</small></span></span><span class="evart" aria-hidden="true"><img id="evVsArt" alt=""></span></button><div class="evdrop" id="evVsPick" hidden role="group" aria-label="How many rivals"><button type="button" data-m="duel"><b>1 v 1</b><small>You and one rival</small></button><button type="button" data-m="trio"><b>3-way</b><small>You and two rivals</small></button></div></div>
         <div class="evcard soon" data-ev="match" style="--ec:#19B7A5"><button class="evmain" id="evMatch" type="button" aria-disabled="true"><span class="evbar"><i>Coming soon</i></span><span class="evtop"><span class="evic" aria-hidden="true"><svg viewBox="0 0 64 64"><circle cx="32" cy="28" r="22" fill="#8FDCF3" stroke="#171320" stroke-width="3.2"/><path d="M10 28h44M32 6c-8 7-8 37 0 44M32 6c8 7 8 37 0 44M14 16h36M14 40h36" fill="none" stroke="#171320" stroke-width="2.4"/><circle cx="15" cy="49" r="9" fill="#E3122F" stroke="#171320" stroke-width="3"/><circle cx="49" cy="49" r="9" fill="#2E9BFF" stroke="#171320" stroke-width="3"/><circle cx="12.5" cy="47.5" r="1.6" fill="#171320"/><circle cx="17.5" cy="47.5" r="1.6" fill="#171320"/><circle cx="46.5" cy="47.5" r="1.6" fill="#171320"/><circle cx="51.5" cy="47.5" r="1.6" fill="#171320"/></svg></span><span class="evtx"><b>Matchmaking</b><small>Play people online</small></span></span><span class="evart" aria-hidden="true"><img id="evMatchArt" alt=""></span></button><i class="evsoon">Coming soon</i></div>
         <div class="evcard" data-ev="showdown" style="--ec:#8E5CFF"><button class="evmain" id="evShow" type="button" aria-expanded="false" aria-controls="evShowPick"><span class="evbar"><i>Last one standing</i></span><span class="evtop"><span class="evic" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M32 6C18 6 9 15.5 9 28c0 7 3 12 8 15v7c0 2.5 2 4 4.5 4h21c2.5 0 4.5-1.5 4.5-4v-7c5-3 8-8 8-15C55 15.5 46 6 32 6z" fill="#fff" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M18.5 25l8 8M26.5 25l-8 8M37.5 25l8 8M45.5 25l-8 8" stroke="#171320" stroke-width="4.2" stroke-linecap="round"/><path d="M29 41l3-4 3 4z" fill="#171320" stroke="#171320" stroke-width="2" stroke-linejoin="round"/><path d="M25 54v-5M32 54v-5M39 54v-5" stroke="#171320" stroke-width="2.8" stroke-linecap="round"/><path d="M16 18a17 17 0 0 1 10-7" fill="none" stroke="#D9D2F0" stroke-width="3" stroke-linecap="round"/></svg></span><span class="evtx"><b>Showdown</b><small>Two hearts each</small></span></span><span class="evart" aria-hidden="true"><img id="evShowArt" alt=""></span></button><div class="evdrop" id="evShowPick" hidden role="group" aria-label="Which Showdown"><button type="button" data-m="ffa"><b>Free-for-all</b><small>Four of you, one left</small></button><button type="button" data-m="duo"><b>2 v 2</b><small>You and a teammate</small></button></div></div>
-        <div class="evcard" data-ev="solo" style="--ec:#F29A3A"><button class="evmain" id="evSolo" type="button"><span class="evbar"><i>Beat your best</i></span><span class="evtop"><span class="evic" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M40 34v8c0 2-1.5 3-3.5 3H33v13" fill="none" stroke="#171320" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M40 34v8c0 2-1.5 3-3.5 3H33v13" fill="none" stroke="#C9C2E4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><rect x="27.5" y="48" width="11" height="13" rx="4" fill="#5B5580" stroke="#171320" stroke-width="3"/><rect x="6" y="14" width="40" height="20" rx="8" fill="#FFD84A" stroke="#171320" stroke-width="3.2"/><path d="M11 19h30" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"/><path d="M46 24h4c2 0 3 1 3 3v7h-13" fill="none" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M12 34v5a3 3 0 0 0 6 0v-5M26 34v8a3 3 0 0 0 6 0v-8" fill="#FFD84A" stroke="#171320" stroke-width="2.6"/></svg></span><span class="evtx"><b>Solo</b><small>Just you, 60 seconds</small></span></span><span class="evart" aria-hidden="true"><img id="evSoloArt" alt=""></span></button></div>
+        <div class="evcard" data-ev="solo" style="--ec:#F29A3A"><button class="evmain" id="evSolo" type="button"><span class="evbar"><i>Beat your best</i></span><span class="evtop"><span class="evic" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M40 34v8c0 2-1.5 3-3.5 3H33v13" fill="none" stroke="#171320" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M40 34v8c0 2-1.5 3-3.5 3H33v13" fill="none" stroke="#C9C2E4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><rect x="27.5" y="48" width="11" height="13" rx="4" fill="#5B5580" stroke="#171320" stroke-width="3"/><rect x="6" y="14" width="40" height="20" rx="8" fill="#FFD84A" stroke="#171320" stroke-width="3.2"/><path d="M11 19h30" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"/><path d="M46 24h4c2 0 3 1 3 3v7h-13" fill="none" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M12 34v5a3 3 0 0 0 6 0v-5M26 34v8a3 3 0 0 0 6 0v-8" fill="#FFD84A" stroke="#171320" stroke-width="2.6"/></svg></span><span class="evtx"><b>Time trial</b><small>Just you, 60 seconds</small></span></span><span class="evart" aria-hidden="true"><img id="evSoloArt" alt=""></span></button></div>
         <div class="evcard" data-ev="tut" style="--ec:#2E9BFF"><button class="evmain" id="evTut" type="button"><span class="evbar"><i>With your coach</i></span><span class="evtop"><span class="evic" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M32 10 4 22l28 12 28-12z" fill="#2A2437" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M14 27v12c0 5 8 9 18 9s18-4 18-9V27l-18 7z" fill="#3C3859" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M32 22l20 6v14" fill="none" stroke="#171320" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M32 22l20 6v14" fill="none" stroke="#FFD84A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M48 42h8l-2 9h-4z" fill="#FFD84A" stroke="#171320" stroke-width="2.6" stroke-linejoin="round"/><path d="M14 20 32 13l18 7" fill="none" stroke="#7C76A0" stroke-width="2.4" stroke-linecap="round"/></svg></span><span class="evtx"><b>Tutorial</b><small>Learn the moves</small></span></span><span class="evart" aria-hidden="true"><img id="evTutArt" alt=""></span></button></div>
       </div>
     </div>
@@ -3159,7 +3206,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 255</p>
+      <p class="ver">Version 256</p>
     </div>
   </div>
 
@@ -3357,6 +3404,8 @@ html.touchnav :focus-visible{outline:none!important}
 <script>
 // the menu song is the biggest thing the first screen needs, so it starts downloading now, alongside everything else
 window.__menuSong = (() => { try { if (location.protocol === 'file:' || typeof fetch !== 'function') return null; return fetch((window.MUSIC_BASE || 'music/') + 'menu.mp3').then(r => r.ok ? r.arrayBuffer() : null).catch(() => null); } catch (e) { return null; } })();
+// (v256) and the character pack, the last thing the loading screen waits for: asked for now too, not once the game's code has run
+window.__axoPre = (() => { try { if (location.protocol === 'file:' || typeof fetch !== 'function' || window.AXO_PACK_BUF) return null; const u = window.AXO_PACK || 'axo-pack-250.txt'; return { u, p: fetch(u).then(r => r.ok ? r.text() : null).catch(() => null) }; } catch (e) { return null; } })();
 // and the two sheets of sound effects
 window.__sfxSheets = (() => { try { if (location.protocol === 'file:' || typeof fetch !== 'function') return null; const b = window.SFX_BASE || 'sfx/', f = n => fetch(b + n + '.mp3').then(r => r.ok ? r.arrayBuffer() : null).catch(() => null); return { m: f('m'), s: f('s') }; } catch (e) { return null; } })();
 </script>
@@ -10131,7 +10180,7 @@ const AXOC = (() => {
   // the pack: 'RMA1', the header's length, the header (each body's metadata and where its data sits), the data
   async function load(url) {
     let buf; if (window.AXO_PACK_BUF) buf = window.AXO_PACK_BUF.buffer.slice(window.AXO_PACK_BUF.byteOffset, window.AXO_PACK_BUF.byteOffset + window.AXO_PACK_BUF.byteLength);
-    else { const r = await fetch(url); if (!r.ok) throw new Error('axolotl pack ' + r.status); buf = fromB64(await r.text()); }
+    else { const pre = window.__axoPre; window.__axoPre = null; const t = pre && pre.u === url ? await pre.p : null; if (t) buf = fromB64(t); else { const r = await fetch(url); if (!r.ok) throw new Error('axolotl pack ' + r.status); buf = fromB64(await r.text()); } } // (v256: the copy asked for at the top of the page)
     const dv = new DataView(buf);
     if (String.fromCharCode(dv.getUint8(0), dv.getUint8(1), dv.getUint8(2), dv.getUint8(3)) !== 'RMA1') throw new Error('not an axolotl pack');
     const hl = dv.getUint32(4, true), head = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 8, hl))), base = 8 + hl;
@@ -11753,21 +11802,24 @@ function pocketHud() {
   const b2 = $('itemBtn2'), h2 = state === 'play' && P.st === 'play' ? P.held2 : null; if (b2.hidden === !!h2) b2.hidden = !h2;
   if (h2 && b2.dataset.k !== h2) { b2.dataset.k = h2; b2.innerHTML = '<i class="sdisc" aria-hidden="true"></i>' + ITEM_ICON[h2] + '<span class="ilbl">' + PU[h2].name + '</span>'; b2.setAttribute('aria-label', 'Use the ' + PU[h2].name.toLowerCase()); restartCls(b2, 'in'); } else if (!h2) b2.dataset.k = '';
   const ob = $('orbBtn'), os = state === 'play' && P.st === 'play' ? P.orbSaved : null; if (ob.hidden === !!os) ob.hidden = !os; if (ob.classList.contains('up') !== !!h2) ob.classList.toggle('up', !!h2);
-  if (os && ob.dataset.k !== os) { ob.dataset.k = os; ob.innerHTML = '<i class="sdisc" aria-hidden="true"></i>' + (STROKE_ICON[os] || '') + '<span class="ilbl">' + (ORB_LBL[os] || 'Orb') + '</span>'; ob.setAttribute('aria-label', 'Use your saved ' + (ORB_LBL[os] || 'orb').toLowerCase()); restartCls(ob, 'in'); } else if (!os) ob.dataset.k = '';
+  if (os && ob.dataset.k !== os) { ob.dataset.k = os; ob.innerHTML = '<i class="sdisc" aria-hidden="true"></i>' + (STROKE_ICON[os] || '') + '<span class="ilbl">' + (ORB_LBL[os] || 'Orb') + '</span><i class="oclk" aria-hidden="true"></i>'; ob.setAttribute('aria-label', 'Use the ' + (ORB_LBL[os] || 'orb').toLowerCase()); restartCls(ob, 'in'); } else if (!os) ob.dataset.k = '';
+  if (os) { const keep = !(P.orbT < Infinity), f = keep ? 1 : clamp(P.orbT / ORB_HOLD, 0, 1); if (ob._keep !== keep) { ob._keep = keep; ob.classList.toggle('keep', keep); } if (!keep && Math.abs((ob._f === undefined ? 2 : ob._f) - f) > 0.003) { ob._f = f; ob.style.setProperty('--of', f.toFixed(3)); ob.classList.toggle('low', f < 0.3); } } else ob._f = undefined; // (v256: the orb's clock)
 }
 // ---------- v251: the Paint Trap. Dropped where you stand, it arms in a beat; the next rival over it sets it off: a burst of your paint, and
 // they're stunned and popped up. A dodge roll through it sets it off harmlessly (a CPU heading for one sometimes knows to); your own can't
 // catch you, and a jump clears it. Two down at most each (a third pops the oldest); left alone it fizzles out after TRAP_LIFE seconds ----------
-const TRAP_R = 0.75, TRAP_ARM = 0.6, TRAP_LIFE = 45, TRAP_MAX = 2, TRAP_STUN = 1.5, TRAP_SPLAT = SPLAT_R * 1.7;
+const TRAP_R = 0.92, TRAP_ARM = 0.6, TRAP_LIFE = 45, TRAP_MAX = 2, TRAP_STUN = 1.5, TRAP_SPLAT = SPLAT_R * 1.7;
 const trapMatC = new Map(), trapMat = col => { let o = trapMatC.get(col); if (!o) { o = { m: toon(col), ring: new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.55, depthWrite: false }) }; trapMatC.set(col, o); } return o; };
 function makeTrapMesh(D) {
-  const g = new THREE.Group(), M = trapMat(TEAMS[D.team].wet);
+  const g = new THREE.Group(), M = trapMat(trapDark(TEAMS[D.team].wet));
   const dome = new THREE.Mesh(TRAP_G.dome, M.m), hull = new THREE.Mesh(TRAP_G.dome, outlineMat); dome.scale.set(1, 0.62, 1); dome.castShadow = true; hull.scale.set(1.09, 0.7, 1.09); g.add(hull, dome);
   for (let i = 0; i < 5; i++) { const a = i / 5 * 6.283 + 0.4, d = new THREE.Mesh(TRAP_G.drip, M.m); d.position.set(Math.sin(a) * 0.31, 0.012, Math.cos(a) * 0.31); d.scale.set(1.3, 0.32, 1.3); g.add(d); }
   const cap = new THREE.Mesh(TRAP_G.cap, trapCapM), light = new THREE.Mesh(TRAP_G.light, trapLightOff); cap.position.y = 0.23; light.position.y = 0.3; g.add(cap, light);
   const ring = new THREE.Mesh(TRAP_G.ring, M.ring); ring.position.y = 0.03; ring.renderOrder = 3; g.add(ring);
-  g.userData.light = light; g.userData.ring = ring; return g;
+  g.userData.light = light; g.userData.ring = ring; g.scale.setScalar(TRAP_SCALE); return g;
 }
+// (v256) a trap is a much darker shade of its owner's paint, and bigger, so it stands out on a painted floor
+const TRAP_SCALE = 1.3, trapDark = h => (Math.round(((h >> 16) & 255) * 0.4) << 16) | (Math.round(((h >> 8) & 255) * 0.4) << 8) | Math.round((h & 255) * 0.4);
 function dropTrap(D) {
   const gy = surfaceUnder(D.x, D.z, D.y + 0.4, true), y = gy > -Infinity ? gy : D.y, mine = trapList.filter(T => T.owner === D);
   if (mine.length >= TRAP_MAX) trapPop(mine[0], null, true);
@@ -11814,7 +11866,7 @@ function clearTraps() { for (const T of trapList) scene.remove(T.g); trapList.le
 // ---------- v251: Flash Freeze. A beat to wind up (frost creeps in at the edges, a shimmer rises round whoever cast it), then a flash over
 // the whole canvas and everyone else is frozen solid for FREEZE_T seconds. Safe: anyone down in a basin, anyone up in a rocket, and anyone
 // whose dodge roll starts in the last FREEZE_SWEET seconds before the flash (a timing that's hard to master) ----------
-const FREEZE_WIND = 0.9, FREEZE_T = 3, FREEZE_SWEET = 0.12, COL_ICE = new THREE.Color(0xCFEFFF), frzList = [];
+const FREEZE_WIND = 0.9, FREEZE_T = 5, FREEZE_SWEET = 0.12, COL_ICE = new THREE.Color(0xCFEFFF), frzList = [];
 const ICE_G = new THREE.IcosahedronGeometry(0.6, 1), iceShellM = toon(0xE2F6FF, { transparent: true, opacity: 0.6, depthWrite: false });
 let frostHeld = false;
 function startFreeze(D) {
@@ -11846,8 +11898,9 @@ function freezeFlash(F) {
     if (B.rollT > ROLL_T - FREEZE_SWEET) { if (B === P) { popText('Perfect dodge!'); buzz([8, 20, 8]); AU.ready && AU.ready(); } else if (D === P) popText(nameOf(B) + ' dodged it!'); continue; }
     if (B.charging) clearCharge(B); if (B === P) { holdCharge = false; slingOff(); }
     B.frozenT = FREEZE_T; B.stunT = Math.max(B.stunT || 0, FREEZE_T); B.spd = 0; B.turn = 0; B.kx = B.kz = 0; B.slam = false; B.missile = false; B.rollT = 0; B.wob = 1; n++;
+    B.iceTap = 0; B.iceShk = 0; B.iceMash = B.ai && (diff === 'hard' || (diff === 'medium' && Math.random() < 0.5)) ? 1 : 0; B.iceMashT = 0.45 + Math.random() * 0.4; // (v256: a CPU taps its way out on hard, half the time on medium, never on easy)
     for (let k = 0; k < 10; k++) { const a = Math.random() * 6.283; spawnPart(B.x, B.y + 0.4, B.z, Math.cos(a) * 2, 1 + Math.random() * 2, Math.sin(a) * 2, 0.22, k % 2 ? boilPartMat : puHaloMat, 0.6); }
-    if (B === P) { shake = Math.max(shake, 0.3); buzz([30, 30, 30]); popText('Frozen!'); fr.classList.add('held'); frostHeld = true; }
+    if (B === P) { shake = Math.max(shake, 0.3); buzz([30, 30, 30]); popText('Frozen! Tap fast to break out'); fr.classList.add('held'); frostHeld = true; }
   }
   if (D === P) banner('Flash freeze!', n ? 'They’re frozen. Go get them' : 'Nobody caught');
   else if (P.st === 'hide') popText('Safe in the ' + potWord());
@@ -11864,7 +11917,8 @@ function iceFrame(rdt) {
     if (!D.iceG) { const m = new THREE.Mesh(ICE_G, iceShellM); m.renderOrder = 9; m.visible = false; scene.add(m); D.iceG = m; D.iceK = 0; }
     D.iceK += ((on ? 1 : 0) - D.iceK) * Math.min(1, rdt * (on ? 16 : 22)); const m = D.iceG; m.visible = D.iceK > 0.02; if (!m.visible) continue;
     const gk = D === P ? (VP.gk || 1) : (D.look && D.look.V ? D.look.V.gk || 1 : 1), k = gk * (0.6 + 0.4 * D.iceK);
-    m.position.set(D.x, D.y + 0.28 * gk, D.z); m.rotation.set(0.15, D.yaw + 0.4, 0.1); m.scale.set(k, 0.66 * k, 1.35 * k);
+    const sh = D.iceShk || 0; if (sh > 0) D.iceShk = Math.max(0, sh - rdt * 5); const jx = sh * 0.07 * Math.sin(clock * 97), jz = sh * 0.07 * Math.cos(clock * 83);
+    m.position.set(D.x + jx, D.y + 0.28 * gk, D.z + jz); m.rotation.set(0.15 + sh * 0.14 * Math.sin(clock * 71), D.yaw + 0.4, 0.1 + sh * 0.14 * Math.cos(clock * 89)); m.scale.set(k * (1 + 0.05 * sh), 0.66 * k, 1.35 * k);
   }
   if (frostHeld && !(P.frozenT > 0 && state === 'play')) { frostHeld = false; $('frost').classList.remove('held'); }
 }
@@ -11874,7 +11928,7 @@ const GIANT_T = 5, GIANT_K = 3, GIANT_SPD = 1.75, GIANT_SLAM = 1.5, ORB_R = 0.42
 // the orb's other gift, the rocket: how long the lift-off takes, how high over the canvas it goes, how long it can hang up there,
 // its speed across up there, its boost straight down (and the slower drift down if you leave it), and its blast: a giant's pound
 // and the third, the turret: how long it lasts, its rate of fire, the paint shot's speed, size and fall, the stun and shove a hit gives
-const TURRET_T = 7, TURRET_RATE = 0.12, TURRET_NEAR = 4, TURRET_FAR = 19, SHOT_V = 16.5, SHOT_R = 0.2, SHOT_G = 18, SHOT_STUN = 1.1, SHOT_PUSH = 4.6;
+const TURRET_T = 7, TURRET_RATE = 0.12, TURRET_NEAR = 4, TURRET_FAR = 19, SHOT_V = 16.5, SHOT_R = 0.2, SHOT_G = 18, SHOT_STUN = 1.1, SHOT_PUSH = 4.6, SHOT_DMG = 0.07; // (v256: SHOT_DMG, the paint a hit takes; no more stun)
 const ROCKET_UP = 0.9, ROCKET_ALT = 22, ROCKET_HOVER = 4.5, ROCKET_SPD = 12.5, ROCKET_DIVE = 34, ROCKET_FALL = 9, ROCKET_R = SLAM_R * GIANT_SLAM; // ORB_PULL_R: how close you roll before it's drawn in; // splat sizes climb: hop 1.35 < fling < giant hop ~ pound 3 < missile 4 < giant pound 4.5 < giant missile 6
 const COV_K = (SLAM_R * 0.84 / 4.2) ** 2; // the CPU's coverage-pound thresholds were tuned for the old, bigger pound
 const slamRadius = D => (D.missile ? MISSILE_R : SLAM_R) * (D.giantT > 0 ? GIANT_SLAM : 1); // 3x the size, 1.75x the speed (rain or not)
@@ -11986,7 +12040,7 @@ function orbPickTarget() {
   let best = null;
   for (let tries = 0; tries < 24 && !best; tries++) {
     const c = COF_SPOTS[(Math.random() * COF_SPOTS.length) | 0]; if (!c) break;
-    const d = Math.hypot(c[0] - orb.x, c[2] - orb.z); if (d < 3 || d > 11 || Math.max(Math.abs(c[0]), Math.abs(c[2])) > ARENA - 3) continue;
+    const d = Math.hypot(c[0] - orb.x, c[2] - orb.z); if (d < 3 || d > 11 || Math.max(Math.abs(c[0]), Math.abs(c[2])) > zoneEdge() - 3) continue;
     let ok = true; for (let t = 0.1; t <= 1.001 && ok; t += 0.1) { const x = orb.x + (c[0] - orb.x) * t, z = orb.z + (c[2] - orb.z) * t; if (blockedAt(x, z, Math.max(orb.base, c[1]) + 0.9)) ok = false; }
     if (ok) best = c;
   }
@@ -12033,8 +12087,11 @@ function takeOrb(D) {
   for (let i = 0; i < 26; i++) { const a = Math.random() * 6.283; spawnPart(orb.x, orb.y, orb.z, Math.cos(a) * 4, 1 + Math.random() * 4, Math.sin(a) * 4, 0.55, orbPartMats[i % orbPartMats.length], 0.6); }
   shockwave(orb.x, D.y, orb.z, 2.6, 0xFFFFFF);
   const gift = tut ? 'rocket' : D === P && tut3Orb() ? 'giant' : window.__orbKind || (D === P ? strokeSpecial() : cpuGift()); /* (yours: the special stroke you equipped) */
-  // Deep Pockets: the first orb goes in your pocket for later; with one already saved, the next goes off at once
-  if (D.skill === 'pockets' && !D.orbSaved && !tut && !tut2 && !tut3) { D.orbSaved = gift; emote(D, 'glee', 0.8); if (D === P) { AU.pop(); buzz([10, 20, 10]); const w = (ORB_LBL[gift] || 'orb').toLowerCase(); banner('Orb saved!', say('Tap it when you want the ' + w, 'Press C for the ' + w)); } for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0; return; }
+  // (v256) the orb goes in your slot, to use when you like: it fades after ORB_HOLD seconds, and Deep Pockets keeps it till you use it;
+  // with one already in the slot, the next goes off at once (the lessons have theirs go off at once too)
+  if (!D.orbSaved && !tut && !tut2 && !tut3) { const keep = D.skill === 'pockets'; D.orbSaved = gift; D.orbT = keep ? Infinity : ORB_HOLD; if (D.ai) D.ai.orbWait = 0.5 + Math.random() * 2.2; emote(D, 'glee', 0.8);
+    if (D === P) { AU.pop(); buzz([10, 20, 10]); const w = ORB_LBL[gift] || 'Orb'; banner(keep ? 'Orb saved!' : w + ' ready!', keep ? say('Keep it as long as you like. Tap it to use it', 'Keep it as long as you like. Press C to use it') : say('Tap it to use it', 'Press C to use it')); }
+    for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0; return; }
   orbGift(D, gift);
 }
 function orbGift(D, gift) {
@@ -12195,13 +12252,14 @@ function shotHit(B, s) {
   const A = s.by, v = Math.hypot(s.vx, s.vz) || 1, nx = s.vx / v, nz = s.vz / v;
   if (B.giantT > 0 || B.immuneT > 0 || safe(B)) { B.wob = 1; return; } // a giant just shrugs it off
   if (B.charging) clearCharge(B); if (B === P) { holdCharge = false; slingOff(); }
-  const stunNow = !(B.tGuard > 0); // one stun at a time: shots right after only shove
-  if (stunNow) { B.stunT = Math.max(B.stunT || 0, SHOT_STUN); B.tGuard = SHOT_STUN + 0.9; B.spd = 0; B.turn = 0; }
-  B.kx = nx * SHOT_PUSH * (stunNow ? 1 : 0.6); B.kz = nz * SHOT_PUSH * (stunNow ? 1 : 0.6); B.slam = false; B.missile = false; B.squash = 0.8; B.wob = 1; fxKnock(B, nx, nz, stunNow ? 0.65 : 0.4);
-  if (!B.air) { B.air = true; B.stroke++; B.vy = 2.2; } B.lastHit = { by: A, t: runT };
+  // (v256) no stun: the paint tank is the health bar. A hit takes SHOT_DMG of it; a hit with nothing left knocks you out there and then
+  if (B.dry || (B.paint || 0) <= 0.01) { B.lastHit = { by: A, t: runT }; shockwave(B.x, B.y + 0.1, B.z, 1.6, TEAMS[A.team].wet); hitStop(0.06, A, B); return knockOut(B, 'shot', A); }
+  B.paint = Math.max(0, B.paint - SHOT_DMG); if (B.paint <= 0.001 && !B.dry) { B.paint = 0; goDry(B); }
+  const stunNow = false;
+  B.kx = nx * SHOT_PUSH * 0.45; B.kz = nz * SHOT_PUSH * 0.45; B.squash = 0.85; B.wob = 1; fxKnock(B, nx, nz, 0.35); B.lastHit = { by: A, t: runT };
   emote(B, 'ouch', 0.7); emote(A, 'glee', 0.7); shockwave(B.x, B.y + 0.1, B.z, 1.1, TEAMS[A.team].wet);
   if (hearable(B)) AU.bonk(0.7); hitStop(0.04, A, B);
-  if (B === P) { shake = Math.max(shake, 0.22); buzz([15, 20, 15]); if (stunNow) popText('Splatted!'); } else if (A === P) { buzz(10); if (stunNow) popText('Hit!'); }
+  if (B === P) { shake = Math.max(shake, 0.22); buzz([15, 20, 15]); pingTank(1.2); } else if (A === P) buzz(10);
 }
 // a CPU turret: turns toward the nearest foe it can see (where it's heading); nobody about, it swings round painting the ground
 function aiTurret(D, dt) {
@@ -13330,7 +13388,7 @@ function newBlob(team, cpu) {
 }
 const P = newBlob(0, false), H = newBlob(1, true), H2 = newBlob(2, true), H3 = newBlob(3, true); // you, the holy water, and in a 3-way, wolfsbane
 // modes: solo (just you against the clock), duel (you vs the holy water), trio (all three, everyone for themselves, on a bigger canvas)
-const MODES = [['solo', 'Solo', 'Just you, 60 seconds'], ['duel', '1v1', 'You and one rival'], ['trio', '3-way', 'You and two rivals'], ['ffa', 'Showdown', 'Four of you, two hearts each'], ['duo', 'Showdown 2v2', 'You and a teammate, two hearts each']];
+const MODES = [['solo', 'Time trial', 'Just you, 60 seconds'], ['duel', '1v1', 'You and one rival'], ['trio', '3-way', 'You and two rivals'], ['ffa', 'Showdown', 'Four of you, two hearts each'], ['duo', 'Showdown 2v2', 'You and a teammate, two hearts each']];
 let mode = MODES.some(m => m[0] === store.mode) ? store.mode : 'duel', ACTIVE = [P, H], SIDE = [0, 1, 2, 3]; // (SIDE: who's with whom, by team; in 2v2 you and your teammate are one side)
 function isShow() { return mode === 'ffa' || mode === 'duo'; }
 const sideOf = D => SIDE[D.team], ally = (A, B) => !!A && !!B && A !== B && SIDE[A.team] === SIDE[B.team];
@@ -13366,7 +13424,7 @@ function resetBlob(D, x, z, yaw) { const ai = D.ai, lk = D.look, pe = D.potEyes,
 function resetRun() {
   abortVictory(); kofEnd(); abortReveal(); outK = 0; outroFrac = 1; runId++; cfg = VS_CFG; clearTrail(); placeObjects(level);
   resetBlob(P, START.x, START.z, START.yaw); resetBlob(H, CSTART.x, CSTART.z, CSTART.yaw); aiReset(H); resetBlob(H2, CSTART2.x, CSTART2.z, CSTART2.yaw); aiReset(H2); resetBlob(H3, CSTART3.x, CSTART3.z, CSTART3.yaw); aiReset(H3);
-  if (mode === 'solo') H.st = 'out'; if (mode !== 'trio' && !isShow()) H2.st = 'out'; if (!isShow()) H3.st = 'out'; for (const D of ACTIVE) D.hearts = isShow() ? SD_HEARTS : 0; sdEndT = 0; sdSpecEnd(); { const el = $('sdBar'); if (el) { el._built = false; el._sig = ''; } }
+  if (mode === 'solo') H.st = 'out'; if (mode !== 'trio' && !isShow()) H2.st = 'out'; if (!isShow()) H3.st = 'out'; for (const D of ACTIVE) D.hearts = isShow() ? SD_HEARTS : 0; sdEndT = 0; sdSpecEnd(); zoneClear(); { const el = $('sdBar'); if (el) { el._built = false; el._sig = ''; } }
   kcamEnd(); kcamUsed = false; for (const D of [P, H, H2, H3]) { D.rag = null; D.slamCD = D.slamMax = SLAM_FIRST; D.wearOff = false; D.wearPop = 1; D.held = null; D.heldT = 0; D.held2 = null; D.orbSaved = null; D.frozenT = 0; } // the pound builds up before the first one
   wasReady = false; holdCharge = false; pullTgt = 0; slingOff();
   camYaw = P.yaw; camYawV = 0; look.spd = 0; look.lean = 0; look.drop = 0; look.flat = 1; look.roll = 0; Object.assign(lookC, { spd: 0, lean: 0, drop: 0, flat: 1, roll: 0, flatK: 0 }); lookFlatP = 0; aimRing.visible = false; arrow.visible = false;
@@ -14196,8 +14254,8 @@ function collectPower(D, pw) {
 }
 const deathColor = (D, r) => r === 'sun' ? (D.cpu ? 0xDDEEFF : 0x4A4052) : r === 'dry' ? 0x5E4F5C : TEAMS[D.team].wet;
 const deathRing = r => r === 'sun' ? 0xFFC46B : r === 'pound' || r === 'coffin' ? 0xFFD86B : 0xFFFFFF;
-const KO_MSG = { pound: 'Pounded!', coffin: 'Nailed!', fall: 'Fell off', sun: 'Baked!', crush: 'Crushed!', dry: 'Dried up!' };
-const CPU_KO_MSG = { pound: n => 'Got ' + n + '!', coffin: n => 'Nailed ' + n + '!', fall: n => n + ' fell off', sun: n => 'Baked ' + n + '!', crush: n => 'Crushed ' + n + '!', dry: n => n + ' dried up!' };
+const KO_MSG = { zone: 'Caught outside!', shot: 'Shot down!', pound: 'Pounded!', coffin: 'Nailed!', fall: 'Fell off', sun: 'Baked!', crush: 'Crushed!', dry: 'Dried up!' };
+const CPU_KO_MSG = { zone: n => n + ' got caught outside', shot: n => 'Shot down ' + n + '!', pound: n => 'Got ' + n + '!', coffin: n => 'Nailed ' + n + '!', fall: n => n + ' fell off', sun: n => 'Baked ' + n + '!', crush: n => 'Crushed ' + n + '!', dry: n => n + ' dried up!' };
 const koLine = (reason, mine, n) => reason === 'coffin' && TH.pot === 'can' ? (mine ? 'Canned!' : 'Canned ' + n + '!') : reason === 'coffin' && (TH.pot === 'tiki' || TH.pot === 'tank' || TH.pot === 'drum' || TH.pot === 'barrel') ? (mine ? 'Dunked!' : 'Dunked ' + n + '!') : mine ? KO_MSG[reason] : CPU_KO_MSG[reason] && CPU_KO_MSG[reason](n);
 // out for 5 seconds, then back in a coffin
 // a pound knockout: the one pounded is blasted away limp, tumbling and bouncing, for about a second, and only then pops and is gone
@@ -14265,6 +14323,7 @@ function potRun(p, L) { let yaw = 0, run = -1; for (let k = 0; k < 24; k++) { co
 function respawnBlob(D) {
   const O = other(D); let best = null, bs = -1e9;
   let cands = pots.filter(p => potUp(p) && !p.occ); if (!cands.length) cands = pots.filter(p => p.st === 'down');
+  { const inz = cands.filter(p => !zoneLost(p.x, p.z)); if (inz.length) cands = inz; } // (v256: inside the line)
   for (const p of cands) {
     const px = p.st === 'down' && p.next ? p.next[0] : p.x, pz = p.st === 'down' && p.next ? p.next[2] : p.z;
     const full = potUp(p) && p.ink > 0.3, dO = Math.hypot(px - O.x, pz - O.z), dS = Math.hypot(px - D.x, pz - D.z), R = potUp(p) ? startRoom(p, true) : null, run = R ? R.run : 6;
@@ -14528,6 +14587,7 @@ function updateWeather(dt) {
 }
 function stepBlob(D, dt) {
   if (D.st === 'out') return;
+  if (D.orbSaved && state === 'play') { if (D.orbT < Infinity) { D.orbT -= dt; if (D.orbT <= 0) orbFade(D); } if (D.orbSaved && D.ai && (D.ai.orbWait = (D.ai.orbWait || 0) - dt) <= 0 && !useOrb(D)) D.ai.orbWait = 0.3; } // (v256: the orb in the slot; a CPU holds its own a moment, then uses it)
   if (D.dry && (D.paint >= DRY_OUT || D.giantT > 0 || D.st === 'ko')) { D.dry = false;  }
   // the clock runs while you're out on the canvas dry (a coffin pauses it while it fills you)
   if (D.dry && D.st === 'play' && state === 'play') { D.dryT = (D.dryT || 0) + dt; if (D.dryT >= DRY_KO && D.giantT <= 0) { D.dryT = 0; return knockOut(D, 'dry'); } } else if (!D.dry) D.dryT = 0; // (dried out at zero: out, with a short respawn and no flood screen)
@@ -14563,6 +14623,7 @@ function stepBlob(D, dt) {
   if (D.passT > 0) D.passT -= dt;
   if (D.assistQ > 0) { D.assistQ -= dt; if (D.assistQ <= 0) { D.assistQ = 0; poundAssist(D); } }
   if (D.assistT > 0) { D.assistT -= dt; if (!D.air || D.slam || D.st !== 'play') D.assistT = 0; }
+  if (D.frozenT > 0 && D.iceMash) { D.iceMashT -= dt; if (D.iceMashT <= 0) { D.iceMashT = 0.17 + Math.random() * 0.13; iceTap(D); } }
   if (D.frozenT > 0) { D.frozenT -= dt; if (D.frozenT <= 0) { D.frozenT = 0; thawFx(D); } }
   if (D.stunT > 0) { D.stunT -= dt; D.spd = 0; D.turn = 0; D.wob = Math.max(D.wob, 0.5); if (D.stunT <= 0) { D.stunT = 0; D.stunGuard = 1.5; D.squash = 0.6; D.fxShk = Math.max(D.fxShk, 0.8); fxLaunch(D, 0.5); if (hearable(D)) AU.pop(); } }
   else if (D.flatT > 0) { D.flatT -= dt; D.spd = 0; D.turn = 0; if (D.flatT <= 0) { D.immuneT = 1.0; D.squash = 0.9; D.wob = 1; D.fxShk = Math.max(D.fxShk, 1); fxLaunch(D, 0.6); if (hearable(D)) AU.pop(); } }
@@ -14696,7 +14757,7 @@ function step(dt) {
     if (r.target === 1 && !r.on && r.k > 0.7) { r.on = true; r.life = PUD_LIFE + Math.random() * 8; }
     r.g.visible = r.k > 0.02; r.g.scale.setScalar(Math.max(0.02, r.k));
   }
-  itemTick(dt); trapTick(dt); freezeTick(dt);
+  itemTick(dt); trapTick(dt); freezeTick(dt); zoneTick(dt);
   stepCoffins(dt);
   updateTrail(dryClock + outroAge);
   if (hintTimer > 0) { hintTimer -= dt; if (hintTimer <= 0 && P.st !== 'ko') hintEl.classList.remove('on'); }
@@ -15275,11 +15336,12 @@ function aiThink(D) {
   if (tut && tut.keepAway) NAV.near(O.x, O.z, O.y, 12, n => { nMult[n.id] += 9; }); // (the lesson: it stays out of your way)
   if (O.giantT > 0.2 && oKnown && D.giantT <= 0 && !slamReady(D)) NAV.near(o.x, o.z, o.y, PR * GIANT_K + 3, n => { nMult[n.id] += 6; });
   if (oThreat && AI.evade > 0 && ai.mode !== 'hunt' && !(slamReady(D) && D.paint > 0.45)) NAV.near(o.x, o.z, o.y, KO_R, n => { nMult[n.id] += 2.5 * AI.evade * (1 + AI.model * hunterP * 1.5); });
+  { const zc = zoneCut(); if (zc) { const nodes = NAV.nodes; for (let k = 0; k < nodes.length; k++) { const n = nodes[k]; if (zoneOutside(n.x, n.z, zc - 0.6)) nMult[n.id] += 10; } } } // (v256: out past the line)
   dijkstra(src.id, sunny || wxPhase === 'warn' || AI.sunLead > 0 && timeToSun() < 12 ? 0 : 64);
   // coffins we could use
   let coffin = null, cd = Infinity;
   let coffinP = null;
-  for (const p of pots) { if (!potUp(p) || p.ink < 0.25 || p.occ) continue; const n = potNode(p); if (!n) continue; const c = nDist[n.id] * (p.ink < 0.55 ? 1.6 : 1) * (p === ai.goPot ? 0.7 : 1); if (c < cd) { cd = c; coffin = n; coffinP = p; } }
+  for (const p of pots) { if (!potUp(p) || p.ink < 0.25 || p.occ || zoneLost(p.x, p.z)) continue; const n = potNode(p); if (!n) continue; const c = nDist[n.id] * (p.ink < 0.55 ? 1.6 : 1) * (p === ai.goPot ? 0.7 : 1); if (c < cd) { cd = c; coffin = n; coffinP = p; } }
   const speed = cfg.speed * AI.speed * spdK(D);
   // the real cost of getting to a coffin: the route, turning around to face it, and the splat every drop off a ledge costs
   let cl = 0, drops = 0, first = null; if (coffin) { let i = coffin.id, g = 0; while (nPrev[i] >= 0 && g++ < 3000) { const a = NAV.nodes[i], b = NAV.nodes[nPrev[i]]; cl += Math.hypot(a.x - b.x, a.z - b.z); if (b.h - a.h > 0.4) drops++; first = a; i = nPrev[i]; } }
@@ -15288,6 +15350,7 @@ function aiThink(D) {
   // enough blood to last the match: no more trips to a coffin
   if (AI.econ && D.paint > matchLeft * cfg.drain * 1.1 + 0.05) need = -1;
   ai.need = need;
+  { const zc = zoneCut(); if (zc && zoneOutside(D.x, D.z, zc - 0.9)) { let best = null, bd = Infinity; for (const n of NAV.nodes) { if (zoneOutside(n.x, n.z, zc - 2.2) || !(nDist[n.id] < bd)) continue; bd = nDist[n.id]; best = n; } if (best) { aiGo(D, best, 'zone'); return; } } } // (v256: get inside the line)
   // 1) sunrise: get under cover (hard sees it coming and leaves early)
   let shelter = null, sd = Infinity;
   if (sunny || (AI.sunLead > 0 && wxPhase !== 'dusk' && wxPhase !== 'rain')) {
@@ -15377,7 +15440,7 @@ function aiThink(D) {
     if (stuck && !slamReady(D) && od < 7 && Math.random() < AI.ram * 0.6 && pn) return aiGo(D, pn, 'hunt');
   }
   // (v254) Showdown: paint is only fuel; with enough in the tank it goes looking for its rival
-  if (isShow() && AI.seek && !sunNow && D.paint > Math.max(0.4, need + 0.12) && O.st === 'play' && O.immuneT <= 0.5 && Math.random() < AI.seek) { const sn = NAV.at(O.x, O.z, O.y); if (sn && nDist[sn.id] < Infinity && nDist[sn.id] > 3) return aiGo(D, sn, 'seek'); }
+  if (isShow() && AI.seek && !sunNow && D.paint > Math.max(0.4, need + 0.12) && O.st === 'play' && O.immuneT <= 0.5 && !zoneLost(O.x, O.z) && Math.random() < AI.seek) { const sn = NAV.at(O.x, O.z, O.y); if (sn && nDist[sn.id] < Infinity && nDist[sn.id] > 3) return aiGo(D, sn, 'seek'); }
   // 5) a roller nearby is free paint
   if (!D.held && Math.random() < AI.grab) { let best = null, bd = 8; for (const pw of powers) { if (!pw.g || (pw.grace > 0 && pw.owner === D)) continue; const n = NAV.at(pw.x, pw.z, pw.y); if (n && nDist[n.id] < bd) { bd = nDist[n.id]; best = n; } } if (best) return aiGo(D, best, 'grab'); }
   // 6) paint: the route that sweeps through the most fresh and stolen ground for its length.
@@ -15414,7 +15477,7 @@ function aiThink(D) {
   // slingshot around when the splats beat rolling there
   if (AI.flingPaint && !sunNow) { const fp = aiFlingPaint(D, rollBest * speed, need, sunNow); if (fp) { ai.plan = fp; ai.mode = 'paint'; ai.poundAt = -1; return; } }
   const tn = NAV.nodes[pick[1]];
-  const poundAt = pick[2] > 0 && pick[2] > 0.35 * (pick[0] * (nDist[tn.id] + 2.5)) ? tn.id : -1;
+  const poundAt = !isShow() && pick[2] > 0 && pick[2] > 0.35 * (pick[0] * (nDist[tn.id] + 2.5)) ? tn.id : -1; // (v256: never in a Showdown)
   // a fling can skip a long way round (across a hole, say)
   if (AI.flingNav && D.paint > need + 0.15 && Math.random() < AI.flingNav) {
     const sd2 = Math.hypot(tn.x - D.x, tn.z - D.z);
@@ -15628,7 +15691,7 @@ function aiCoffin(D, dt) {
   if (ep.flee ? safeNow && (Math.abs(err) < 1.3 || ep.t > 0.3) || Math.abs(err) < 0.25 : Math.abs(err) < 0.25 || ep.t > 1.2 && (safeNow || ep.t > 2.4)) {
     ai.exitPlan = null; ai.campT = 0; ai.thinkT = ep.flee ? 0 : 0.15; ai.fleeRolled = false;
     // a big way out: burst if there's a lot of fresh canvas around the coffin
-    if (AI.plan > 0.8 && slamReady(D) && !sunny && D.paint - SLAM_COST > 0.45 && localGain(D, SLAM_R * 0.84) > AI.covPound * COV_K * 0.75) useSlam(D); else jump(D);
+    if (AI.plan > 0.8 && slamReady(D) && !sunny && D.paint - SLAM_COST > 0.45 && (isShow() ? foes(D).some(F => F.st === 'play' && Math.hypot(F.x - D.x, F.z - D.z) < SLAM_R * 1.05 && Math.abs(F.y - D.y) < 1.2) : localGain(D, SLAM_R * 0.84) > AI.covPound * COV_K * 0.75)) useSlam(D); else jump(D); // (v256: in a Showdown, a burst out only to catch someone)
   }
 }
 // one brain thinks per drawn frame (a think is the heavy part of a CPU's work: two in one frame is a hitch), and with nothing drawn (a
@@ -16135,7 +16198,7 @@ function makeCpuLook(D, color) {
 const L2 = makeCpuLook(H2, TEAMS[2].wet), L3 = makeCpuLook(H3, TEAMS[3].wet);
 H.look = LH; H2.look = L2; H3.look = L3; L3.wear = makeWear(L3.body); L3.wearing = { head: null, back: null, mouth: null, eye: null, side: null, neck: null, lash: null, iris: 'brown' };
 LH.wear = makeWear(LH.body); L2.wear = makeWear(L2.body); LH.wearing = { head: null, back: null, mouth: null, eye: null, side: null, neck: null, lash: null, iris: 'brown' }; L2.wearing = { head: null, back: null, mouth: null, eye: null, side: null, neck: null, lash: null, iris: 'brown' };
-function rollRivalLooks() { const heads = [null, null, 'halo', 'hat', 'pirate', 'tophat', 'tiara', 'bunny', 'skull']; for (const L of [LH, L2, L3]) { const head = heads[Math.random() * heads.length | 0]; L.wearing = { head, back: null, mouth: Math.random() < 0.3 ? 'fangs' : null, eye: Math.random() < (head === 'pirate' ? 0.6 : 0.12) ? 'patch' : Math.random() < 0.14 ? 'glasses' : Math.random() < 0.1 ? 'hockey' : null, side: !head && Math.random() < 0.3 ? 'flower' : null, neck: Math.random() < (head === 'tophat' ? 0.6 : 0.15) ? 'bowtie' : Math.random() < 0.14 ? 'pearls' : null, lash: Math.random() < (head === 'tiara' ? 0.65 : 0.18) ? 'lashes' : null, iris: Math.random() < 0.45 ? 'brown' : EYE_KEYS[1 + (Math.random() * 4 | 0)], eyes: ['round', 'round', 'edgy', 'dot', 'sly'][(Math.random() * 5) | 0] }; } }
+function rollRivalLooks() { rollRivalCols(); teamTint = true; teamHues(); const heads = [null, null, 'halo', 'hat', 'pirate', 'tophat', 'tiara', 'bunny', 'skull']; for (const L of [LH, L2, L3]) { const head = heads[Math.random() * heads.length | 0]; L.wearing = { head, back: null, mouth: Math.random() < 0.3 ? 'fangs' : null, eye: Math.random() < (head === 'pirate' ? 0.6 : 0.12) ? 'patch' : Math.random() < 0.14 ? 'glasses' : Math.random() < 0.1 ? 'hockey' : null, side: !head && Math.random() < 0.3 ? 'flower' : null, neck: Math.random() < (head === 'tophat' ? 0.6 : 0.15) ? 'bowtie' : Math.random() < 0.14 ? 'pearls' : null, lash: Math.random() < (head === 'tiara' ? 0.65 : 0.18) ? 'lashes' : null, iris: Math.random() < 0.45 ? 'brown' : EYE_KEYS[1 + (Math.random() * 4 | 0)], eyes: ['round', 'round', 'edgy', 'dot', 'sly'][(Math.random() * 5) | 0] }; } }
 // ---------- the slime in the game: one per blob, riding its body group. The old jelly ball stays underneath as the bead of paint you drip
 // in as on the customize screen, and is the whole look if the slime's models never arrive ----------
 const vOf = D => D === P ? VP : D.look && D.look.V;
@@ -17102,7 +17165,7 @@ function startVictory() {
   else if (feat.length > 1 || !info.winner) { pl.className = 'vplace word'; pl.textContent = 'Draw'; vicTag('Dead even', false); vicName(feat.length > 1 ? playerName() + ' & ' + nameOf(feat[1]) : playerName()); $('vSub').innerHTML = '<b>' + me.pct + '%</b> each'; }
   else { pl.className = 'vplace'; pl.innerHTML = '1<small>st</small>'; vicTag(lead === P ? 'Sold' : me.place === 2 ? 'You came 2nd' : 'You came ' + me.place + (me.place === 3 ? 'rd' : 'th'), lead === P); vicName(nameOf(lead)); $('vSub').innerHTML = '<b>' + board[0].pct + '%</b>' + (info.kos[lead.team] ? ' with ' + info.kos[lead.team] + (info.kos[lead.team] === 1 ? ' elimination' : ' eliminations') : ' of the canvas'); }
   $('vCards').innerHTML = solo ? '' : board.filter(e => !feat.includes(e.D)).map((e, i) => '<div class="vcard' + (e.D === P ? ' me' : '') + '" style="--cc:' + colVars(e.D)[1] + ';animation-delay:' + (1.15 + i * 0.12).toFixed(2) + 's"><b class="vrank">' + e.place + '</b>' + faceIcon(e.D, false) + '<span><span class="vcn">' + nameOf(e.D) + '</span><b class="vcp">' + (info.show ? sdCardStat(e.D) : e.pct + '%') + '</b></span></div>').join('');
-  $('vTap').textContent = 'Tap to see the canvas'; $('vStage').textContent = TH.label + ' \u00b7 ' + (solo ? 'Solo' : (MODES.find(m => m[0] === mode) || MODES[0])[1]);
+  $('vTap').textContent = 'Tap to see the canvas'; $('vStage').textContent = TH.label + ' \u00b7 ' + (solo ? 'Time trial' : (MODES.find(m => m[0] === mode) || MODES[0])[1]);
   vicEl.classList.remove('out'); vicEl.hidden = false; reAdd.delete(bannerEl); bannerEl.classList.remove('on'); vicFit(); flashScreen();
   hud.classList.add('off'); hintEl.classList.remove('on'); bannerEl.classList.remove('on'); $('vig').className = 'vig'; edgeReset();
   const id = runId;
@@ -17570,7 +17633,7 @@ const REP_NAMES = ['Unknown', 'Local talent', 'Rising star', 'Crowd pleaser', 'H
 const xpNeed = lv => 100 + 45 * (lv - 1);
 function repOf(xp) { let lv = 1, x = Math.max(0, xp | 0); while (x >= xpNeed(lv) && lv < 99) { x -= xpNeed(lv); lv++; } return { lv, x, need: xpNeed(lv), name: REP_NAMES[Math.min(REP_NAMES.length - 1, Math.floor((lv - 1) / 3))] }; }
 // commissions: three jobs at a time
-const COMMS = [{ id: 'play3', t: 'Three exhibitions', d: 'Play 3 matches, any mode', n: 3, k: 'play' }, { id: 'win1', t: 'Beat a rival', d: 'Win a 1v1', n: 1, k: 'win1' }, { id: 'cov35', t: 'Cover 35%', d: 'Paint 35% of a canvas in one match', n: 1, k: 'cov', v: 35 }, { id: 'trio', t: 'Three-way', d: 'Enter a 3-way exhibition', n: 1, k: 'trio' }, { id: 'solo30', t: 'Solo show', d: 'Cover 30% in a solo match', n: 1, k: 'solo', v: 30 }, { id: 'win3', t: 'On a roll', d: 'Win 3 matches', n: 3, k: 'win' }, { id: 'play5', t: 'Regular', d: 'Play 5 matches', n: 5, k: 'play' }, { id: 'cov25', t: 'Quarter canvas', d: 'Paint 25% of a canvas in one match', n: 1, k: 'cov', v: 25 }, { id: 'hard1', t: 'Harsh critics', d: 'Win with the critics on harsh', n: 1, k: 'hard' }];
+const COMMS = [{ id: 'play3', t: 'Three exhibitions', d: 'Play 3 matches, any mode', n: 3, k: 'play' }, { id: 'win1', t: 'Beat a rival', d: 'Win a 1v1', n: 1, k: 'win1' }, { id: 'cov35', t: 'Cover 35%', d: 'Paint 35% of a canvas in one match', n: 1, k: 'cov', v: 35 }, { id: 'trio', t: 'Three-way', d: 'Enter a 3-way exhibition', n: 1, k: 'trio' }, { id: 'solo30', t: 'Beat the clock', d: 'Cover 30% in a Time trial', n: 1, k: 'solo', v: 30 }, { id: 'win3', t: 'On a roll', d: 'Win 3 matches', n: 3, k: 'win' }, { id: 'play5', t: 'Regular', d: 'Play 5 matches', n: 5, k: 'play' }, { id: 'cov25', t: 'Quarter canvas', d: 'Paint 25% of a canvas in one match', n: 1, k: 'cov', v: 25 }, { id: 'hard1', t: 'Harsh critics', d: 'Win with the critics on harsh', n: 1, k: 'hard' }];
 const COMM_XP = 60, COMM_DABS = 20;
 function commState() { if (!store.comm || !store.comm.active) store.comm = { active: [], prog: {}, done: [] }; const c = store.comm; { const day = new Date().toDateString(); if (c.day !== day) { if (c.day) { c.active = []; c.prog = {}; c.done = []; store.commSeen = 0; } c.day = day; save(); } } /* (a fresh set every day) */ c.active = c.active.filter(id => COMMS.some(x => x.id === id)); while (c.active.length < 3) { const pool = COMMS.filter(x => !c.active.includes(x.id) && !c.done.includes(x.id)); if (!pool.length) break; c.active.push(pool[(Math.random() * pool.length) | 0].id); } return c; }
 function commProgress(info) {
@@ -17690,7 +17753,7 @@ function renderLobbyUI() {
   paintAbil(); const r = repOf(store.xp || 0); $('repName').textContent = r.name; $('repLvl').textContent = r.lv; $('repFill').style.width = Math.round(100 * r.x / r.need) + '%';
   $('lobbyStage').textContent = TH.label; $('lobbyPickLbl').textContent = mode === 'solo' ? 'Canvases \u00b7 your canvas' : 'Canvases \u00b7 your vote'; const art = stageArt(); if (art && $('stageThumb').src !== art) $('stageThumb').src = art;
   const md = MODES.find(m => m[0] === mode) || MODES[0];
-  $('lobbyMode').textContent = mode === 'solo' ? 'Solo \u00b7 60 seconds' : md[1] + ' \u00b7 CPU ' + (CRITICS[diff] || 'fair').toLowerCase();
+  $('lobbyMode').textContent = mode === 'solo' ? 'Time trial \u00b7 60 seconds' : md[1] + ' \u00b7 CPU ' + (CRITICS[diff] || 'fair').toLowerCase();
   showDrops(); paintPBar();
   try { $('nameFace').innerHTML = faceIcon(P, false); } catch (e) {}
   const c = commState(), fresh = c.done.length - (store.commSeen || 0); $('commBadge').hidden = fresh <= 0; $('commBadge').textContent = fresh;
@@ -17705,7 +17768,7 @@ function renderStages() {
   if (!el.children.length) { let h = ''; for (const [k, name, tag] of DIFFS) h += '<button type="button" data-d="' + k + '" title="' + tag + '">' + name + '</button>'; el.innerHTML = h; }
   for (const b of el.children) b.setAttribute('aria-pressed', String(b.dataset.d === diff));
   $('cvName').textContent = (mode === 'solo' ? '' : 'Your vote \u00b7 ') + pickLabel(); $('shuffleBtn').setAttribute('aria-label', (mode === 'solo' ? 'Shuffle the canvas. Now: ' : 'Shuffle your vote. Now: ') + pickLabel());
-  { const sn = $('soloNote'); sn.innerHTML = mode === 'solo' ? '<b>Your canvas:</b> ' + escAttr(pickLabel()) + '. Solo plays the canvas you choose.' : 'Your rivals vote too. <b>Most votes wins</b>, and a tie is drawn.'; sn.hidden = false; }
+  { const sn = $('soloNote'); sn.innerHTML = mode === 'solo' ? '<b>Your canvas:</b> ' + escAttr(pickLabel()) + '. A Time trial plays the canvas you choose.' : 'Your rivals vote too. <b>Most votes wins</b>, and a tie is drawn.'; sn.hidden = false; }
   for (const b of el.children) b.textContent = CRITICS[b.dataset.d] || b.textContent;
   renderWorlds(); if (typeof renderLobbyUI === 'function' && $('lobbyStage') && menuPage !== 'worlds') renderLobbyUI(); // (the lobby's card catches up when you leave the paintings)
 }
@@ -18330,7 +18393,7 @@ function irisOpen(at) {
 const toMenu = () => irisClose(() => { showMenu(); camSnap = true; irisOpen(); });
 // (v255) Rematch, new canvas: the canvas vote for the same event first (another canvas, the CPUs easier or harder), then Play as
 // always; its back button goes to the events. The onboarding's own matches go straight on, as before.
-function rematchVote() { if (building || irisBusy) return; if (tutPh() !== 'done') return start(); irisClose(() => { showMenu(); camSnap = true; openWorlds(); evFrom = true; irisOpen(); }); }
+function rematchVote() { if (building || irisBusy) return; if (end.classList.contains('gate')) return toMenu(); if (tutPh() !== 'done') return start(); irisClose(() => { showMenu(); camSnap = true; openWorlds(); evFrom = true; irisOpen(); }); }
 // ---------- the start of a match: 3, 2, 1, each blob gathering itself into a drop in the air over its spot, and at Go they fall and splat down ----------
 const REVEAL_T = 2.7; let revealT = 0, revealA0 = 0; // the sweep over the canvas before the count
 const INTRO_AT = [0.6, 1.6, 2.6, 3.6], INTRO_H = 1.9, INTRO_LK = 0.4, BASIN_DEEP = 2.4; // when each count lands (a second apart: room for the crawl out), how high the drop forms, how far above it the camera looks (so it sits under the numbers)
@@ -18716,7 +18779,7 @@ function goTime() {
   hint('steer', say('Drag to steer', 'A D or arrows to steer'), 3);
 }
 function showMenu() {
-  tutLeave(); clearShot(); $('gframe').hidden = true; $('gwall').hidden = true; pickRivalNames(); state = 'menu'; menuPage = 'home'; menu.dataset.page = 'home'; $('mHome').hidden = false; $('mWorld').hidden = true; applyMode(); renderModes(); menu.hidden = false; end.hidden = true; pauseEl.hidden = true; howModal.hidden = true; setModal.hidden = true; hud.classList.add('off'); hintEl.classList.remove('on'); $('vig').className = 'vig'; edgeReset();
+  teamTint = false; tutLeave(); clearShot(); $('gframe').hidden = true; $('gwall').hidden = true; pickRivalNames(); state = 'menu'; menuPage = 'home'; menu.dataset.page = 'home'; $('mHome').hidden = false; $('mWorld').hidden = true; applyMode(); renderModes(); menu.hidden = false; end.hidden = true; pauseEl.hidden = true; howModal.hidden = true; setModal.hidden = true; hud.classList.add('off'); hintEl.classList.remove('on'); $('vig').className = 'vig'; edgeReset();
   if (mapUsed) freshMap();
   resetRun(); decorate(); renderStages(); AU.music('menu'); menuPose(); heroT = 0; renderLobbyUI(); sayT = 1.4; camSnap = true;
   for (const D of [P, H, H2, H3]) if (D) { D.ip = null; D.introAct = null; D.introCrawl = null; D.introShake = null; D.introOut = false; D.eyeSink = D.eyeShut = D.eyeWide = 0; D.rollOutT = 0; }
@@ -18793,7 +18856,7 @@ function showVS(cb) {
   const list = [[P, $('vbox0'), VS_POSE.me]]; if (mode !== 'solo') list.push([H, $('vbox1'), VS_POSE.foe]); if (mode === 'trio' || isShow()) list.push([H2, $('vbox2'), VS_POSE.foe2]); if (isShow()) list.push([H3, $('vbox3'), mode === 'duo' ? VS_POSE.ally : VS_POSE.foe3]);
   for (const [D, , pose] of list) { D.wearPop = 1; D.wearOff = false; D.wearHid = false; if (D !== P) { D.look.drop.visible = true; D.yaw = P.yaw; D.flatT = 0; D.stunT = 0; D.dry = false; D.vsSt = D.st; D.st = 'play'; }
     D.vsIp = D.ip; D.ip = Object.assign({ hop: 0, spin: 0, pitch: 0, roll: 0, sq: null, rise: null, sink: null, coat: null, watch: null, expr: null, shut: false, stars: false }, pose.ip); }
-  vsSnap = { t: 2, list, id: runId }; $('vsTitle').innerHTML = '<b>' + escAttr(TH.label) + '</b> \u00b7 ' + (mode === 'solo' ? 'Solo, 60 seconds' : md[1] + ', CPU ' + (CRITICS[diff] || 'fair').toLowerCase());
+  vsSnap = { t: 2, list, id: runId }; $('vsTitle').innerHTML = '<b>' + escAttr(TH.label) + '</b> \u00b7 ' + (mode === 'solo' ? 'Time trial, 60 seconds' : md[1] + ', CPU ' + (CRITICS[diff] || 'fair').toLowerCase());
   el.hidden = false; AU.whoosh(); for (const k of ['ready', 'go']) AU.say(k, 0); buzz([15, 30, 15]);
   const id = runId, wipe = win => { AU.music('end'); slashWipe({ dur: 1.0, onPeak: () => { el.hidden = true; el.classList.remove('voting'); $('vvote').hidden = true;
     if (win && TH.id !== win) { building = true; genWorld((Math.random() * 4294967296) >>> 0, { avoid: TH.id, themes: [win] }); mapUsed = false; clearTimeout(warmQ); warmRender(); building = false; }
@@ -18860,7 +18923,7 @@ function revealCam() {
   const w = u < 0.7 ? 0 : (u - 0.7) / 0.3, ww = w * w * (3 - 2 * w); introCam(false);
   dPos.set(px + (dPos.x - px) * ww, py + (dPos.y - py) * ww, pz + (dPos.z - pz) * ww); dLook.set(lx + (dLook.x - lx) * ww, ly + (dLook.y - ly) * ww, lz + (dLook.z - lz) * ww);
 }
-function revealShow() { const el = $('reveal'); $('rvName').textContent = TH.label; $('rvSub').textContent = tutMatchDue() ? 'Tutorial \u00b7 learn the ropes' : (MODES.find(m => m[0] === mode) || MODES[0])[1] + ' \u00b7 ' + (mode === 'solo' ? 'Solo' : 'CPU ' + (DIFFS.find(d => d[0] === diff) || DIFFS[0])[1]); el.hidden = false; el.className = 'reveal'; void el.offsetWidth; el.className = 'reveal on'; }
+function revealShow() { const el = $('reveal'); $('rvName').textContent = TH.label; $('rvSub').textContent = tutMatchDue() ? 'Tutorial \u00b7 learn the ropes' : (MODES.find(m => m[0] === mode) || MODES[0])[1] + ' \u00b7 ' + (mode === 'solo' ? '60 seconds' : 'CPU ' + (DIFFS.find(d => d[0] === diff) || DIFFS[0])[1]); el.hidden = false; el.className = 'reveal'; void el.offsetWidth; el.className = 'reveal on'; }
 function revealStep(rdt) { revealT += rdt; const el = $('reveal'); if (revealT >= REVEAL_T - 0.4 && el.className !== 'reveal out') el.className = 'reveal out'; if (revealT >= REVEAL_T) { state = 'intro'; introT = 0; setTimeout(() => { if (state !== 'reveal') el.hidden = true; }, 400); } }
 const fmtClock = s => { const t = Math.max(0, Math.ceil(s)); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); };
 function pause() {
@@ -18988,7 +19051,7 @@ function showEnd(img) {
   }
   $('jBar').innerHTML = jb; $('jNums').innerHTML = jn; $('jLab').innerHTML = jl; $('judge').classList.remove('go'); jLiq = makeLiquid($('jBar')); jLiq.set(jLiqFinal.map(f => ({ x0: f.anchor === 'right' ? 1 : f.anchor === 'left' ? 0 : (f.x0 + f.x1) / 2, x1: f.anchor === 'right' ? 1 : f.anchor === 'left' ? 0 : (f.x0 + f.x1) / 2, col: f.col }))); jLiq.tick(performance.now());
   // the board: who painted the most first; the crown on the winner; most eliminations (only if it's one player's alone)
-  if (info.show) { const sb = sdBoard(info), bd = $('board'); bd.className = 'board sd'; bd.innerHTML = sb.h; bd.hidden = false; $('judge').setAttribute('aria-label', sb.says.join('. ')); end.classList.add('sd'); end.dataset.next = ''; $('replayBtn').hidden = false; $('endBtn').querySelector('small').textContent = 'New canvas'; end.hidden = false; measureOutro(); setTimeout(() => $('endBtn').focus({ preventScroll: true }), 30); return; }
+  if (info.show) { const sb = sdBoard(info), bd = $('board'); bd.className = 'board sd'; bd.innerHTML = sb.h; bd.hidden = false; $('judge').setAttribute('aria-label', sb.says.join('. ')); end.classList.add('sd'); end.dataset.next = ''; $('replayBtn').hidden = false; $('endBtn').querySelector('small').textContent = 'New canvas'; end.hidden = false; measureOutro(); endGate(); return; }
   end.classList.remove('sd');
   const ppl = (solo ? [P] : trio ? [P, H, H2] : [P, H]).map(D => ({ D, pct: solo ? Math.round(covOf(D)) : info.tot[D.team], kos: info.kos ? info.kos[D.team] : D.kos || 0 }));
   for (const e of ppl) e.place = 1 + ppl.filter(o => o.pct > e.pct).length;
@@ -19010,7 +19073,7 @@ function showEnd(img) {
   const bd = $('board'); bd.className = 'board' + (solo ? ' solo' : ''); bd.innerHTML = ''; bd.hidden = true; $('judge').setAttribute('aria-label', says.join('. ') + (solo && (info.newBest ? info.prevBest : info.best) ? '. ' + (info.newBest ? 'Old best ' : 'Your best ') + (info.newBest ? info.prevBest : info.best) + '%' : ''));
   end.dataset.next = ''; $('replayBtn').hidden = false; $('endBtn').querySelector('small').textContent = 'New canvas';
   end.hidden = false; measureOutro(); judgeGo();
-  setTimeout(() => $('endBtn').focus({ preventScroll: true }), 30);
+  endGate();
 }
 // the numbers over the bar: the first at its left end, the last at its right, one in the middle over its own color (kept clear of the
 // others), all counting up as the colors pour in
@@ -19409,9 +19472,9 @@ function sdHud(force) {
   const order = sdOrder(), sig = order.map(D => D.team + (D.st === 'out' || D.elimNow ? 'o' : D.st === 'ko' ? 'k' : '') + Math.max(0, D.hearts | 0)).join(',') + (spec && spec.D ? spec.D.team : '');
   if (sig === el._sig && !force) return;
   if (!el._built || el._mode !== mode) { el._built = true; el._mode = mode; el._h = new Map();
-    let h = ''; order.forEach((D, i) => { if (mode === 'duo' && i === 2) h += '<b class="sdvs" aria-hidden="true">VS</b>';
+    const half = Math.ceil(order.length / 2); let h = '<span class="sdside l">'; order.forEach((D, i) => { if (i === half) h += '</span><i class="sdmid" aria-hidden="true"></i><span class="sdside r">'; // (v256: the time sits over the gap)
       h += '<span class="sdc' + (D === P ? ' me' : ally(D, P) ? ' ally' : '') + '" data-t="' + D.team + '" style="--c:' + TEAMS[D.team].css + '">' + faceIcon(D, false) + '<span class="sdh">' + HEART_SVG.repeat(SD_HEARTS) + '</span><span class="sdn">' + escAttr(sdName(D)) + '</span></span>'; });
-    el.innerHTML = h; }
+    el.innerHTML = h + '</span>'; }
   for (const D of order) {
     const c = el.querySelector('.sdc[data-t="' + D.team + '"]'); if (!c) continue;
     const hp = Math.max(0, D.hearts | 0), was = el._h.get(D), out = D.st === 'out' || !!D.elimNow;
@@ -19423,7 +19486,8 @@ function sdHud(force) {
   el._sig = sig;
 }
 // the CPUs in a Showdown come for you more: knock-outs are the whole game (their paint is just to keep them going)
-const SD_AI = { easy: { hunt: 0.09, attack: 0.3, ram: 0.3, sense: 12, seek: 0.25 }, medium: { hunt: 0.42, attack: 0.7, ram: 0.7, flingAtk: 0.45, sense: 24, seek: 0.55 }, hard: { hunt: 0.7, attack: 0.9, ram: 1, sense: 34, seek: 0.85 } };
+const SD_NOPAINT = { covPound: 0, missileCov: 0, flingPaint: 0 }; // (v256: in a Showdown paint is only fuel)
+const SD_AI = { easy: Object.assign({ hunt: 0.09, attack: 0.3, ram: 0.3, sense: 12, seek: 0.25 }, SD_NOPAINT), medium: Object.assign({ hunt: 0.42, attack: 0.7, ram: 0.7, flingAtk: 0.45, sense: 24, seek: 0.55 }, SD_NOPAINT), hard: Object.assign({ hunt: 0.7, attack: 0.9, ram: 1, sense: 34, seek: 0.85 }, SD_NOPAINT) };
 // (they hear a fight: a rival within this radius is known, wall or no wall)
 const sdSense = (D, O) => isShow() && AI.sense > 0 && O.st === 'play' && Math.abs(O.y - D.y) < 4 && Math.hypot(O.x - D.x, O.z - D.z) < AI.sense;
 // the results: no paint tally, the fighters by where they finished, with their knock-outs and the times they took themselves out
@@ -19473,21 +19537,143 @@ function specCam(rdt) {
 // a painted cell's worth to a blob, and how much it counts as its own: its side's paint (its own or a teammate's) is nothing to gain
 function sdGain(v, D, steal) { if (!v) return 1; const t = (v - 1) % 4, dil = v > 4; return SIDE[t] === SIDE[D.team] ? (dil ? 0.5 : 0) : dil ? (1 + steal) * 0.5 : steal; }
 function sdOwn(v, D) { if (!v) return 0; return SIDE[(v - 1) % 4] === SIDE[D.team] ? (v > 4 ? 0.5 : 1) : 0; }
-// the rivals' colours: the third always stands apart from yours; in 2v2 your teammate wears your colour and both rivals the blue
-const FOX = { wet: 0x19C9A6, dry: 0x0E6B58, css: '#19C9A6', hi: '#7FE8D3' }, FOX2 = { wet: 0xFFB21A, dry: 0x8E6200, css: '#FFB21A', hi: '#FFD27A' };
+// ---------- (v256) colours: your own, the rivals' own, and what this screen shows of them (see v256_colors) ----------
+const s2l = c => c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4), l2s = c => c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
+function hexLab(h) { const r = s2l(((h >> 16) & 255) / 255), g = s2l(((h >> 8) & 255) / 255), b = s2l((h & 255) / 255);
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b), m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b), s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return [0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s, 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s, 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s]; }
+function labHex(L, a, b) { const l = Math.pow(L + 0.3963377774 * a + 0.2158037573 * b, 3), m = Math.pow(L - 0.1055613458 * a - 0.0638541728 * b, 3), s = Math.pow(L - 0.0894841775 * a - 1.2914855480 * b, 3);
+  const q = v => Math.round(clamp(l2s(clamp(v, 0, 1)), 0, 1) * 255);
+  return (q(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s) << 16) | (q(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s) << 8) | q(-0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s); }
+const hexLch = h => { const [L, a, b] = hexLab(h); return [L, Math.hypot(a, b), Math.atan2(b, a)]; }, lchHex = (L, C, H) => labHex(L, C * Math.cos(H), C * Math.sin(H));
+const colDist = (p, q) => { const a = hexLab(p), b = hexLab(q); return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]); };
+const hexCss6 = h => '#' + h.toString(16).padStart(6, '0').toUpperCase();
+function mkCol(hex) { const [L, C, H] = hexLch(hex); return { id: 'mix', hex, dry: lchHex(L * 0.6, C * 0.62, H), hi: hexCss6(lchHex(Math.min(0.94, L + 0.17), C * 0.72, H)), lo: hexCss6(lchHex(L * 0.68, C * 0.95, H)) }; }
+// (how far apart two colours have to be: a rival against you or another rival, and one 2v2 team against the other)
+const COL_SEP = 0.16, TEAM_SEP = 0.22;
+const RIVAL_COLS = [...PALETTE.map(p => ({ id: p.id, hex: p.hex, dry: p.dry, hi: p.hi, lo: p.lo })),
+  { id: 'blue', hex: 0x2E9BFF, dry: 0x1C5592, hi: '#7CC4FF', lo: '#1C5592', classic: 1 }, { id: 'violet', hex: 0x8E5CFF, dry: 0x46297F, hi: '#C4A8FF', lo: '#46297F', classic: 1 }, { id: 'teal', hex: 0x19C9A6, dry: 0x0E6B58, hi: '#7FE8D3', lo: '#0E6B58', classic: 1 }];
+const rivalColOf = id => RIVAL_COLS.find(c => c.id === id);
+let rivalCol = [null, rivalColOf('blue'), rivalColOf('violet'), rivalColOf('teal')], teamTint = false; // (each rival's own colour; teamTint: a match is on, so 2v2's team colours apply)
+function rollRivalCols() { const pool = RIVAL_COLS.slice(); for (const i of [1, 2, 3]) rivalCol[i] = pool.splice((Math.random() * pool.length) | 0, 1)[0]; }
+// a rival in your colour (or one too like it, or too like another rival's): the colour that stands furthest from all the others
+function standApart(c, taken, sep = COL_SEP) { if (taken.every(t => colDist(t, c.hex) >= sep)) return c; let best = c, bd = -1; for (const o of RIVAL_COLS) { const d = Math.min(...taken.map(t => colDist(t, o.hex))) + (o.classic ? 0.015 : 0); if (d > bd) { bd = d; best = o; } } return best; }
+// two colours mixed the way paint looks mixed: halfway round the colour wheel, as rich as the richer of the two
+function mixCol(a, b) { if (a.hex === b.hex) return a; const [L1, C1, H1] = hexLch(a.hex), [L2, C2, H2] = hexLch(b.hex), d = Math.atan2(Math.sin(H2 - H1), Math.cos(H2 - H1)); return mkCol(lchHex(clamp((L1 + L2) / 2, 0.56, 0.8), Math.max(C1, C2) * 0.96, H1 + d / 2)); }
+// a 2v2 team's colour. Two people on one team (online, later) mix theirs; a team with a CPU on it wears its person's colour, and a team
+// of CPUs wears its leader's own. Only you count as a person for now.
+const slotHuman = i => i === 0, slotCol = (i, mine) => i === 0 ? mine : rivalCol[i];
+function teamCol(a, b, mine) { const ha = slotHuman(a), hb = slotHuman(b); return ha && hb ? mixCol(slotCol(a, mine), slotCol(b, mine)) : hb && !ha ? slotCol(b, mine) : slotCol(a, mine); }
+// the second team's colour turned round the wheel until it's clearly not the first's
+function teamApart(B, A) { if (colDist(B.hex, A.hex) >= TEAM_SEP) return B; const [L, C, H] = hexLch(B.hex); let best = B, bd = colDist(B.hex, A.hex); for (let k = 1; k <= 7; k++) for (const sg of [1, -1]) { const h = lchHex(L, Math.max(C, 0.16), H + sg * k * 0.42), d = colDist(h, A.hex); if (d > bd) { bd = d; best = mkCol(h); } if (bd >= TEAM_SEP) return best; } return best; }
+// your colour on the canvas, the HUD and you: what setColor does, without changing your pick
+function inkApply(c) {
+  const css = hexCss6(c.hex);
+  TEAMS[0].wet = c.hex; TEAMS[0].dry = c.dry; TEAMS[0].css = css; C.ink = c.hex;
+  COL_INK.setHex(c.hex); TEAM_COLS[0].setHex(c.hex);
+  paintUniforms.uWetA.value[0].setHex(c.hex); paintUniforms.uDryA.value[0].setHex(c.dry);
+  teamMats[0].color.setHex(c.hex); splashMat.color.setHex(c.hex); xrayMat.color.setHex(c.hex); dropMat.color.setHex(c.hex);
+  crownMats[0].color.setHex(c.hex); crownMats[0].emissive.setHex(c.hex).multiplyScalar(0.18);
+  arrowMat.color.setHex(c.hex); puIconMat.color.setHex(c.hex); confMats[0].color.setHex(c.hex);
+  CAN_INK_TOP.setHex(c.hex).multiplyScalar(0.86); CAN_EMPTY_TOP.setHex(c.hex).multiplyScalar(0.25);
+  partPool(colMat(c.hex));
+  const r = document.documentElement.style;
+  r.setProperty('--ink', css); edgeRGB(css, EDGE.ink); r.setProperty('--ink-hi', c.hi); r.setProperty('--ink-lo', c.lo); r.setProperty('--ink-rgb', [(c.hex >> 16) & 255, (c.hex >> 8) & 255, c.hex & 255].join(','));
+}
 function teamHues() {
-  const c = colorOf(), wolf = c.id === 'purple' ? { wet: 0x19C9A6, dry: 0x0E6B58, css: '#19C9A6', hi: '#7FE8D3' } : { wet: 0x8E5CFF, dry: 0x46297F, css: '#8E5CFF', hi: '#C4A8FF' };
-  const fox = c.id === 'purple' || c.id === 'green' ? FOX2 : FOX, duo = mode === 'duo';
-  const t2 = duo ? { wet: 0x2E9BFF, dry: 0x1C5592, css: '#2E9BFF', hi: '#7CC4FF' } : wolf, t3 = duo ? { wet: TEAMS[0].wet, dry: TEAMS[0].dry, css: TEAMS[0].css, hi: c.hi } : fox;
-  for (const [i, t, L] of [[2, t2, L2], [3, t3, L3]]) {
-    TEAMS[i].wet = t.wet; TEAMS[i].dry = t.dry; TEAMS[i].css = t.css; TEAM_COLS[i].setHex(t.wet); paintUniforms.uWetA.value[i].setHex(t.wet); paintUniforms.uDryA.value[i].setHex(t.dry);
-    teamMats[i].color.setHex(t.wet); crownMats[i].color.setHex(t.wet); crownMats[i].emissive.setHex(t.wet).multiplyScalar(0.18); L.col.setHex(t.wet); L.xrayMat.color.setHex(t.wet);
-    const wc = new THREE.Color(t.wet).lerp(COL_WHITE, 0.5); L.warn.material.color.copy(wc); L.warnFill.material.color.copy(wc); if (L.warnBase) L.warnBase.copy(wc); partPool(colMat(t.wet));
-  }
-  const r = document.documentElement.style; r.setProperty('--wolf', t2.css); r.setProperty('--wolf-hi', t2.hi); r.setProperty('--fox', t3.css); r.setProperty('--fox-hi', t3.hi);
+  const mine = colorOf(), show = [mine];
+  if (mode === 'duo' && teamTint) { const A = teamCol(0, 3, mine), B = teamApart(standApart(teamCol(1, 2, mine), [A.hex], TEAM_SEP), A); show[0] = A; show[1] = B; show[2] = B; show[3] = A; }
+  else { const taken = [mine.hex]; for (const i of [1, 2, 3]) { const c = standApart(rivalCol[i], taken); taken.push(c.hex); show[i] = c; } }
+  if (TEAMS[0].wet !== show[0].hex) inkApply(show[0]);
+  const Ls = [null, LH, L2, L3];
+  for (const i of [1, 2, 3]) { const t = show[i], L = Ls[i];
+    TEAMS[i].wet = t.hex; TEAMS[i].dry = t.dry; TEAMS[i].css = hexCss6(t.hex); TEAM_COLS[i].setHex(t.hex); paintUniforms.uWetA.value[i].setHex(t.hex); paintUniforms.uDryA.value[i].setHex(t.dry);
+    teamMats[i].color.setHex(t.hex); crownMats[i].color.setHex(t.hex); crownMats[i].emissive.setHex(t.hex).multiplyScalar(0.18); L.col.setHex(t.hex); L.xrayMat.color.setHex(t.hex);
+    const wc = new THREE.Color(t.hex).lerp(COL_WHITE, 0.5); L.warn.material.color.copy(wc); L.warnFill.material.color.copy(wc); if (L.warnBase) L.warnBase.copy(wc); partPool(colMat(t.hex)); }
+  const r = document.documentElement.style; for (const [i, k] of [[1, 'holy'], [2, 'wolf'], [3, 'fox']]) { r.setProperty('--' + k, hexCss6(show[i].hex)); r.setProperty('--' + k + '-hi', show[i].hi); }
   recolorSplashes();
 }
 $('sdSkip').addEventListener('click', () => { AU.init(); AU.ui(); if (state === 'play' && isShow() && P.st === 'out') sdSkipOn(); });
+// ---------- (v256) frozen: tap fast (or mash keys) to crack the ice and get out up to a second sooner ----------
+const ICE_TAP = 0.1, ICE_TAP_MAX = 1;
+function iceTap(D) {
+  if (!(D.frozenT > 0) || D.st !== 'play') return;
+  D.iceShk = 1; const got = D.iceTap || 0, k = Math.min(ICE_TAP, ICE_TAP_MAX - got);
+  if (k > 0.001) { D.iceTap = got + k; D.frozenT = Math.max(0.02, D.frozenT - k); D.stunT = Math.max(0.02, (D.stunT || 0) - k); }
+  for (let i = 0; i < 3; i++) { const a = Math.random() * 6.283, v = 1.2 + Math.random() * 1.6; spawnPart(D.x + Math.cos(a) * 0.4, D.y + 0.45, D.z + Math.sin(a) * 0.4, Math.cos(a) * v, 1.4 + Math.random() * 1.6, Math.sin(a) * v, 0.12 + Math.random() * 0.08, i % 2 ? boilPartMat : puHaloMat, 0.45); }
+  if (D === P) { buzz(6); if (AU.tick) AU.tick(); restartCls($('frost'), 'crk'); } else if (hearable(D) && Math.random() < 0.35) { AU.at(D.x, D.z); if (AU.tick) AU.tick(); }
+}
+addEventListener('pointerdown', e => { if (state === 'play' && P.frozenT > 0 && P.st === 'play' && !(e.target && e.target.closest && e.target.closest('#pauseBtn, .corner'))) iceTap(P); }, true);
+addEventListener('keydown', e => { if (state === 'play' && P.frozenT > 0 && P.st === 'play' && !e.repeat && e.key !== 'Escape' && e.key !== 'p' && e.key !== 'P') iceTap(P); }, true);
+// ---------- (v256) an orb waits in your slot for ORB_HOLD seconds, then fades (Deep Pockets: as long as you like) ----------
+const ORB_HOLD = 10;
+function orbFade(D) {
+  D.orbSaved = null; D.orbT = 0;
+  for (let i = 0; i < 12; i++) { const a = Math.random() * 6.283; spawnPart(D.x, D.y + 0.6, D.z, Math.cos(a) * 1.2, 0.8 + Math.random(), Math.sin(a) * 1.2, 0.22, orbPartMats[i % orbPartMats.length], 0.5); }
+  if (D === P) { popText('Your orb faded'); if (AU.nope) AU.nope(); }
+}
+// ---------- (v256) a lesson waiting in the lobby (the Strokes page, commissions): the results lead only back to the lobby ----------
+function endGate() {
+  const due = tutPh() === 'done' && ((!store.tut.strokes && strokesDue()) || (!store.tut.comms && commsDue())), eb = $('endBtn');
+  end.classList.toggle('gate', due); eb.innerHTML = due ? '<span>Main menu</span><small>Something new in the lobby</small>' : '<span>Rematch</span><small>New canvas</small>';
+  $('replayBtn').closest('.row').hidden = due;
+  setTimeout(() => eb.focus({ preventScroll: true }), 30);
+}
+// ---------- (v256) Showdown: the canvas closes in ----------
+const ZONE_AT = [60, 120], ZONE_SZ = [26.4, 20], ZONE_WARN = 15, ZONE_BURN = 0.32, ZONE_KO = 1.1;
+let zone = null;
+const zoneOutside = (x, z, s) => s > 0 && Math.max(Math.abs(x), Math.abs(z)) > s;
+// how far in it's safe: the line that's closing if one is (from its warning on), else the one that has closed
+function zoneCut() { if (!zone || !isShow()) return 0; return zone.warn ? zone.next : zone.cur < ARENA - 0.01 ? zone.cur : 0; }
+const zoneLost = (x, z) => zoneOutside(x, z, zoneCut());
+const zoneEdge = () => zoneCut() || ARENA;
+const ZONE_VS = 'attribute float aK; attribute float aV; varying float vK; varying float vV; varying vec3 vW; void main(){ vK = aK; vV = aV; vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }';
+const ZONE_FS = 'uniform float uT; uniform float uK; uniform float uWarn; varying float vK; varying float vV; varying vec3 vW;\n'
+  + 'void main(){ float s = fract((vW.x + vW.z) * 0.16 - uT * 0.55); float st = smoothstep(0.0, 0.06, s) * (1.0 - smoothstep(0.4, 0.46, s)); float pulse = 0.62 + 0.38 * sin(uT * 6.2);\n'
+  + '  vec3 hot = vec3(1.0, 0.16, 0.3), dark = vec3(0.3, 0.015, 0.07);\n'
+  + '  if (vK < 0.5) { float a = (uWarn > 0.5 ? 0.09 * pulse : 0.4) * uK; gl_FragColor = vec4(mix(dark, hot, 0.22 * st), a + 0.06 * st * uK); }\n'
+  + '  else { float v = clamp(vV, 0.0, 1.0), fade = pow(1.0 - v, 1.1), base = exp(-v * 9.0), a = clamp(fade * (0.5 + 0.45 * st) + 0.85 * base, 0.0, 1.0) * uK * (uWarn > 0.5 ? 0.6 + 0.4 * pulse : 1.0); gl_FragColor = vec4(mix(hot, vec3(1.0, 0.9, 0.93), 0.45 * st + 0.55 * base), a); } }';
+function zoneMat(warn) { return new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uK: { value: 0 }, uWarn: { value: warn ? 1 : 0 } }, vertexShader: ZONE_VS, fragmentShader: ZONE_FS, transparent: true, depthWrite: false, side: THREE.DoubleSide }); }
+// the haze over the ground out past the line (a lid above the tallest thing on the canvas, so it tints everything under it) and the
+// glowing curtain along the line itself: one mesh
+function zoneMesh(s, warn) {
+  let top = 0; for (const b of BOXES) top = Math.max(top, b[5] || 0); const H = clamp(top + 0.9, 2.4, 6.5), A = ARENA + 0.02, y0 = -0.15;
+  const P3 = [], K = [], V = [], quad = (a, b, c, d, k, va, vb, vc, vd) => { P3.push(...a, ...b, ...c, ...a, ...c, ...d); K.push(k, k, k, k, k, k); V.push(va, vb, vc, va, vc, vd); };
+  quad([-A, H, s], [A, H, s], [A, H, A], [-A, H, A], 0, 0, 0, 0, 0); quad([-A, H, -A], [A, H, -A], [A, H, -s], [-A, H, -s], 0, 0, 0, 0, 0);
+  quad([-A, H, -s], [-s, H, -s], [-s, H, s], [-A, H, s], 0, 0, 0, 0, 0); quad([s, H, -s], [A, H, -s], [A, H, s], [s, H, s], 0, 0, 0, 0, 0);
+  for (const [ax, az, bx, bz] of [[-s, s, s, s], [s, -s, -s, -s], [s, s, s, -s], [-s, -s, -s, s]]) quad([ax, y0, az], [bx, y0, bz], [bx, H, bz], [ax, H, az], 1, 0, 0, 1, 1);
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P3, 3)); g.setAttribute('aK', new THREE.Float32BufferAttribute(K, 1)); g.setAttribute('aV', new THREE.Float32BufferAttribute(V, 1));
+  const m = new THREE.Mesh(g, zoneMat(warn)); m.frustumCulled = false; m.renderOrder = 40; scene.add(m); return m;
+}
+function zoneDrop(m) { if (!m) return; scene.remove(m); m.geometry.dispose(); m.material.dispose(); }
+function zoneClear() { if (zone) { zoneDrop(zone.mNow); zoneDrop(zone.mNext); } zone = isShow() ? { cur: ARENA, step: 0, warn: false, next: 0, mNow: null, mNext: null, shown: -1 } : null; const c = $('zChip'); if (c) c.hidden = true; const v = $('zVig'); if (v) v.classList.remove('on'); }
+function zoneTick(dt) {
+  if (!zone || !isShow() || state !== 'play') return;
+  const i = zone.step;
+  if (i < ZONE_AT.length) {
+    const t = ZONE_AT[i] - runT;
+    if (t <= ZONE_WARN && !zone.warn) { zone.warn = true; zone.next = ZONE_SZ[i]; zone.mNext = zoneMesh(zone.next, true); banner('The canvas is closing in!', 'Get inside the red line'); if (AU.spot) AU.spot(); buzz([15, 40, 15]); for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0; }
+    if (zone.warn) { const n = Math.max(0, Math.ceil(t)); if (n !== zone.shown) { zone.shown = n; const c = $('zChip'); c.hidden = false; $('zChipN').textContent = n; c.classList.toggle('now', n <= 5); if (n <= 3 && n > 0 && AU.tick) AU.tick(); } }
+    if (t <= 0) {
+      zone.cur = ZONE_SZ[i]; zone.step++; zone.warn = false; zone.next = 0; zone.shown = -1; zoneDrop(zone.mNow); zoneDrop(zone.mNext); zone.mNext = null; zone.mNow = zoneMesh(zone.cur, false); $('zChip').hidden = true;
+      shake = Math.max(shake, 0.25); if (AU.quake) AU.quake(); banner('Closed in!', zoneLost(P.x, P.z) && P.st === 'play' ? 'Get back inside!' : 'Stay inside the line');
+      for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0;
+    }
+  }
+  for (const m of [zone.mNow, zone.mNext]) if (m) { const u = m.material.uniforms; u.uT.value += dt; u.uK.value = Math.min(1, u.uK.value + dt * 1.6); }
+  // out past a closed line: the paint burns off, and with none left you're out (in a basin out there, you're thrown out of it)
+  let pOut = false;
+  for (const D of ACTIVE) {
+    if (!zoneOutside(D.x, D.z, zone.cur < ARENA - 0.01 ? zone.cur : 0) || D.rocket) { D.zoneT = 0; continue; }
+    if (D.st === 'hide' && D.pot) { exitPot(D, false); if (D === P) popText('This basin is out past the line'); continue; }
+    if (D.st !== 'play') continue;
+    if (D === P) pOut = true;
+    D.paint = Math.max(0, D.paint - ZONE_BURN * dt); burnFx(D, dt);
+    if (D.paint <= 0) { if (!D.dry) goDry(D); D.zoneT = (D.zoneT || 0) + dt; if (D.zoneT > ZONE_KO) { D.zoneT = 0; knockOut(D, 'zone'); } }
+    if (D.ai && D.ai.mode !== 'zone') D.ai.thinkT = 0;
+  }
+  const v = $('zVig'); if (v.classList.contains('on') !== pOut) { v.classList.toggle('on', pOut); if (pOut) popText('Get back inside the line!'); }
+}
 // ---------- Choose Event (v209): Play opens it. Solo and Versus CPU (a 1v1 or a 3-way) go on to the canvas vote; Showdown is coming;
 // the tutorial plays the lesson again ----------
 const evEl = $('mEvents');
@@ -19763,6 +19949,17 @@ function frame(t) { try { frameBody(t); } catch (e) { frameErr(e); } requestAnim
 window.addEventListener('error', ev => { if (ev && (ev.error || ev.message)) frameErr(ev.error || ev.message); });
 // draw one hidden frame with everything visible (and the floaters see-through), so every shader the match can need is compiled
 // now, through the same passes (shadow, mirror, the HDR target) as in play; then a normal frame, in the same task, so nothing shows
+// (v256) the shaders compiled ahead of the warm-up render, without blocking the page where the browser can (the loading bar keeps
+// moving meanwhile); the warm-up render after finds them ready
+async function warmCompile() {
+  if (typeof renderer.compileAsync !== 'function') return;
+  const hid = []; scene.traverse(o => { if (!o.visible) { hid.push(o); o.visible = true; } });
+  let p = null; try { p = renderer.compileAsync(scene, camera); } catch (e) {} // (every program asked for now; the browser builds them in the background)
+  for (const o of hid) o.visible = false;
+  const t0 = performance.now(), par = renderer.extensions.has('KHR_parallel_shader_compile');
+  try { if (p) await Promise.race([p, new Promise(r => setTimeout(r, 8000))]); } catch (e) {}
+  if (!par) while (performance.now() - t0 < 700) await new Promise(r => requestAnimationFrame(() => r())); // (no way to ask if they're done: a moment's head start)
+}
 function warmRender() {
   if (vic) return; const hid = [], fc = [], fm = [];
   scene.traverse(o => { if (!o.visible) { hid.push(o); o.visible = true; } if (o.frustumCulled) { fc.push(o); o.frustumCulled = false; } });
@@ -19781,7 +19978,7 @@ function warmRender() {
   if (!post) try { edgeOverlay(true); } catch (e) {}
   warming = false; if (lobbyOn()) try { renderFrame(); } catch (e) {}
 }
-let warmQ = 0; const queueWarm = () => { clearTimeout(warmQ); warmQ = setTimeout(warmRender, 30); };
+let warmQ = 0, bootWarm = false; const queueWarm = () => { clearTimeout(warmQ); if (bootWarm) warmQ = setTimeout(warmRender, 30); }; // (v256: not while loading: loading warms up once, at its end)
 // compile every shader up front (including the ones only a giant slam, the orb or a burst uses) so nothing hitches mid-game
 (function warmUp() {
   [...teamMats, splashMat, boilPartMat, puHaloMat, ...orbPartMats, steamMat, smokeMat, dustMat, emberMat, sandGrainMat, sandGrainMat2, sandDustMat, ...TEAMS.map(t => colMat(t.wet)), colMat(0xDDEEFF), colMat(0x4A4052), potDrop()].forEach(m => partPool(m));
@@ -20413,9 +20610,10 @@ function showTutWin() {
 }
 $('twNext').addEventListener('click', () => { AU.init(); AU.ui(); const el = $('tutWin'); el.classList.remove('on'); setTimeout(() => { el.hidden = true; }, 300); if (state === 'dead') startTally(); });
 applyOrient(); showMenu();
-await bootStep(0.82, 0.97, 'Hanging the show');
+await bootStep(0.82, 0.93, 'Hanging the show');
 await Promise.race([slimeLoad, new Promise(r => setTimeout(r, 12000))]); attachSlimes();
-warmRender();
+bootTo(0.93, 0.99, 3500, 'Lighting the gallery'); await warmCompile(); // (v256)
+warmRender(); bootWarm = true;
 bootTo(1, 1, 0, 'Ready');
 setTimeout(() => AU.pre(), 1200);
 // sound: in the app it can start straight away; in a browser it starts on the first touch. Any touch also brings it back after the app
