@@ -16,6 +16,6 @@ def rep(old, new, count=1):
     s = s.replace(old, new)
 rep("const axoLoad = AXOC.load(window.AXO_PACK || 'axo-pack-246.txt')", "const axoLoad = AXOC.load(window.AXO_PACK || 'axo-pack-250.txt')")
 rep('<p class="ver">Version 249</p>', '<p class="ver">Version 250</p>')
-import sys as _sys; _sys.path.insert(0, S + '/tools'); import v250_play, v250_ui, v250_abil, v250_art
-s = v250_play.apply(s); s = v250_ui.apply(s); s = v250_abil.apply(s); s = v250_art.apply(s)
+import sys as _sys; _sys.path.insert(0, S + '/tools'); import v250_play, v250_ui, v250_abil, v250_art, v250_axo
+s = v250_play.apply(s); s = v250_ui.apply(s); s = v250_abil.apply(s); s = v250_art.apply(s); s = v250_axo.apply(s)
 open(DST, 'w').write(s); print('ui190 ok', n0, '->', len(s))
