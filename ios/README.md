@@ -1,6 +1,6 @@
 # Roll Model for iOS
 
-A thin native shell around the game: a full-screen web view that loads the bundled copy of `game/`, with two bridges the page already speaks.
+A thin native shell around the game: a full-screen web view that loads the bundled copy of `game/` (served to it as `rollmodel://localhost/`, so the page's `fetch()` calls for music, sounds and the character pack work; WebKit's fetch can't read `file://` URLs), with two bridges the page already speaks.
 
 - `orient`: the page posts `port`, `land` or `` when the player picks an orientation at launch or in Settings. `OrientBridge` locks the app to it.
 - `device`: `{ keepAwake: true }` during a match keeps the screen on.
