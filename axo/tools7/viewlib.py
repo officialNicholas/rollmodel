@@ -21,8 +21,12 @@ def shoot(base, out, cells, W=520, H=520, ncol=4, title=None, tex=None):
 def ortho(view, c, h, mode='grey', axes=False, lines=True): return f"V.mode('{mode}'); V.show({str(axes).lower()}, {str(lines).lower()}); V.ortho('{view}', {json.dumps(list(c))}, {h})"
 def persp(pos, at, mode='tex', axes=False, lines=True): return f"V.mode('{mode}'); V.show({str(axes).lower()}, {str(lines).lower()}); V.cam({json.dumps(list(pos))}, {json.dumps(list(at))})"
 def ortho_axes(view):
-    """(screen-right axis, screen-up axis) as (index, sign) pairs for an orthographic view"""
-    return {'top': ((0, 1), (2, -1)), 'bottom': ((0, 1), (2, 1)), 'side': ((2, -1), (1, 1)), 'sidel': ((2, 1), (1, 1)), 'front': ((0, 1), (1, 1)), 'back': ((0, -1), (1, 1))}[view]
+    """(screen-right axis, screen-up axis) as (index, sign) pairs for an orthographic view of index.html's V.ortho"""
+    return {'top': ((0, 1), (2, -1)), 'bottom': ((0, -1), (2, -1)), 'side': ((2, -1), (1, 1)), 'sidel': ((2, 1), (1, 1)), 'front': ((0, 1), (1, 1)), 'back': ((0, -1), (1, 1))}[view]
+def ortho_centre(view, c):
+    """V.ortho's centre c is in world coordinates of the view plane's two axes (top: x, z; side: z, y; front: x, y): as screen (a, b)"""
+    (ia, sa), (ib, sb) = ortho_axes(view); w = {'top': (0, 2), 'bottom': (0, 2), 'side': (2, 1), 'sidel': (2, 1), 'front': (0, 1), 'back': (0, 1)}[view]
+    p = [0.0, 0.0, 0.0]; p[w[0]] = c[0]; p[w[1]] = c[1]; return sa * p[ia], sb * p[ib]
 def measure_sheet(base, out, views, W=1000, H=1000, mode='grey', tex=None, marks=None):
     """orthographic views with the grid labelled (every 0.1; numbers every 0.2) and optional marked points {name: xyz} drawn as dots"""
     from PIL import Image, ImageDraw, ImageFont
@@ -32,10 +36,10 @@ def measure_sheet(base, out, views, W=1000, H=1000, mode='grey', tex=None, marks
     try: font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 12)
     except Exception: font = None
     for k, (v, c, h) in enumerate(views):
-        ox, oy = k * W, 22; s = H / (2 * h); (ia, sa), (ib, sb) = ortho_axes(v)
-        def px(p): return ox + W / 2 + (sa * p[ia] - c[0]) * s, oy + H / 2 - (sb * p[ib] - c[1]) * s
+        ox, oy = k * W, 22; s = H / (2 * h); (ia, sa), (ib, sb) = ortho_axes(v); ca, cb = ortho_centre(v, c)
+        def px(p): return ox + W / 2 + (sa * p[ia] - ca) * s, oy + H / 2 - (sb * p[ib] - cb) * s
         for g in np.arange(-4, 4.001, 0.2):
-            X = ox + W / 2 + (g - c[0]) * s; Y = oy + H / 2 - (g - c[1]) * s
+            X = ox + W / 2 + (g - ca) * s; Y = oy + H / 2 - (g - cb) * s
             if ox < X < ox + W: dr.text((X + 2, oy + H - 16), f'{sa * g:+.1f}', fill=(120, 0, 0), font=font)
             if oy < Y < oy + H: dr.text((ox + 3, Y - 14), f'{sb * g:+.1f}', fill=(0, 0, 140), font=font)
         dr.text((ox + 6, oy + 20), f'right: {"xyz"[ia]}{"+" if sa > 0 else "-"}  up: {"xyz"[ib]}{"+" if sb > 0 else "-"}', fill=(0, 0, 0), font=font)

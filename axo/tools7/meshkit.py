@@ -78,3 +78,39 @@ def levelset_skeleton(P, G, E, src, step=0.03):
         na, nb = node_of[a], node_of[b_]
         if na != nb and abs(nodes[na][1] - nodes[nb][1]) == 1: links.add((min(na, nb), max(na, nb)))
     return d, nodes, sorted(links), node_of
+def peaks(d, A, verts, min_persist=0.03):
+    """maxima of the scalar d over the vertex subset verts (A: adjacency), by persistence: vertices are added from the highest d down; a
+    vertex touching no component yet starts one (a peak); when two components meet, the lower peak dies there. returns
+    [(peak vertex, peak d, merge d, member vertices)] for peaks persisting more than min_persist, highest first"""
+    order = verts[np.argsort(-d[verts])]; inset = np.zeros(len(d), bool); parent = {}; peak = {}; members = {}
+    def find(a):
+        while parent[a] != a: parent[a] = parent[parent[a]]; a = parent[a]
+        return a
+    out = []
+    for v in order:
+        inset[v] = True; nb = [u for u in A[v].indices if inset[u] and u != v]; roots = list({find(u) for u in nb})
+        if not roots: parent[v] = v; peak[v] = v; members[v] = [v]; continue
+        roots.sort(key=lambda r: -d[peak[r]]); r0 = roots[0]; parent[v] = r0; members[r0].append(v)
+        for r in roots[1:]:
+            if d[peak[r]] - d[v] > min_persist: out.append((peak[r], d[peak[r]], d[v], members[r]))
+            parent[r] = r0; members[r0] += members[r]
+    rs = {find(v) for v in order}
+    for r in rs: out.append((peak[r], d[peak[r]], -np.inf, members[r]))
+    return sorted(out, key=lambda t: -t[1])
+def untangle(P, T, ref_fn=None, rounds=12, verbose=True, fixed=None):
+    """triangles turned over (against the reference orientation, or against their vertices' normals): their vertices and one ring
+    round them eased toward their neighbours' average until none is turned over"""
+    E = edges(T); A = adjacency(len(P), E); deg = np.maximum(np.asarray(A.sum(1)).ravel(), 1); P = P.copy()
+    def bad_tris():
+        fn = np.cross(P[T[:, 1]] - P[T[:, 0]], P[T[:, 2]] - P[T[:, 0]]); fn /= np.maximum(np.linalg.norm(fn, axis=1, keepdims=True), 1e-15)
+        ref = ref_fn if ref_fn is not None else vertex_normals(P, T)[T].mean(1)
+        return np.where((fn * ref).sum(1) < -0.05)[0]
+    b0 = len(bad_tris())
+    for r in range(rounds):
+        bt = bad_tris()
+        if len(bt) == 0: break
+        m = np.zeros(len(P), bool); m[T[bt].ravel()] = True; m = m | (A @ m.astype(float) > 0)
+        if fixed is not None: m &= ~fixed
+        for _ in range(4): avg = (A @ P) / deg[:, None]; P[m] = 0.5 * P[m] + 0.5 * avg[m]
+    if verbose: print(f'  untangle: {b0} turned-over triangles -> {len(bad_tris())}')
+    return P
