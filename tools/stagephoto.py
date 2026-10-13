@@ -17,8 +17,9 @@ async def main():
         await pg.goto('http://localhost:8765/' + PAGE, timeout=300000); await pg.wait_for_function('typeof __T === "object"', timeout=300000, polling=100); await pg.wait_for_timeout(1000)
         await ev("__T.start()"); await pg.wait_for_function("__T.state === 'play'", timeout=600000, polling=100); await pg.wait_for_timeout(1500)
         print('stage', await ev("[__T.TH.id, __T.ARENA]"))
-        await ev("""(() => { __T.state = 'paused'; document.getElementById('hud').classList.add('off'); for (const id of ['banner', 'pop', 'hint']) { const e = document.getElementById(id); if (e) e.style.display = 'none'; }
+        await ev("""(() => { __T.state = 'paused'; document.getElementById('hud').classList.add('off'); for (const id of ['banner', 'pop', 'hint']) { const e = document.getElementById(id); if (e) e.style.display = 'none'; } for (const e of document.querySelectorAll('.corner, #soundBtn, .tut, .tutgest, .coach')) e.style.display = 'none';
           __T.ev(`for (const D of [P, H, H2]) { try { koHide(D); lookRoot(D).visible = false; } catch (e) {} } try { orb.g.visible = false; orb.ring.visible = false; } catch (e) {} try { potCue.visible = false; } catch (e) {} try { for (const q of powers) if (q.g) q.g.visible = false; } catch (e) {}`); })()""")
+        if os.environ.get('DECO'): await ev("__T.decorate(); __T.flushTrail()")  # (a few strokes and splats in both colours, like the menu's canvas)
         az, el, fov = math.radians(AZ), math.radians(EL), FOV
         await ev("""(() => { const A = __T.ARENA, d = A * %f, az = %f, el = %f; __T.camera.fov = %f; __T.camera.updateProjectionMatrix();
           __T.dPos.set(Math.sin(az) * Math.cos(el) * d, Math.sin(el) * d, Math.cos(az) * Math.cos(el) * d); __T.dLook.set(0, 0, 0); __T.camSnap = true; })()""" % (DIST, az, el, fov))
