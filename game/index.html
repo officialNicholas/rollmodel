@@ -3283,7 +3283,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 257</p>
+      <p class="ver">Version 258</p>
     </div>
   </div>
 
@@ -13341,6 +13341,37 @@ function makeAudio() {
     pend = { p: cl(Math.round(side * 2 + 2), 0, 4), g: cl(1.15 - dd / 22, 0.45, 1) };
     Promise.resolve().then(() => { pend = null; });
   }
+  // (v258) a fresh start for the sound: a new audio context in place of one the phone has left stuck (suspended, "interrupted", or
+  // running with no sound, as an iPhone can after the app has been in the background). The decoded songs and sound sheets carry over;
+  // the song that was playing picks up where it was, muffled again if the game is paused. awayHid: the sound has been away (hidden or
+  // interrupted) and hasn't been heard to run since; stuck: a wake didn't get the clock moving, so the next touch starts afresh
+  let awayHid = false, stuck = false, retry = 0, renewAt = -1e9, checkId = 0, renews = 0;
+  function watch(c) { c.onstatechange = () => { if (c === ctx && c.state === 'interrupted') awayHid = true; }; }
+  function renew() {
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
+    if (!stuck && ctx && ctx.state === 'running' && performance.now() - renewAt < 1500) { check(); return true; } // (two signals for one return)
+    const old = ctx, key = trk && trk.key, pos = trk ? trkPos() : 0, mode = lastMode;
+    let c; try { c = new AC({ latencyHint: 'interactive' }); } catch (e) { return false; }
+    if (timer) { clearInterval(timer); timer = 0; }
+    if (old) { old.onstatechange = null; try { const p = old.close(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
+    trk = null; chA = null; LP = null; stuck = false; renewAt = performance.now(); renews++;
+    build(c, true); watch(c);
+    const rain = mood.rain, siz = mood.sizzle; mood.sizzle = 0; if (rain) api.rain(rain); if (siz) api.sizzle(siz);
+    if (key && TRK[key] && TRK[key].buf) { trkGo(key, 0, 0.5, true, pos); if (mode === 'pause' || mode === 'vs') api.music(mode); }
+    else if (mode !== 'none') { lastMode = 'none'; api.music(mode); }
+    if (c.state !== 'running') { try { const p = c.resume(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
+    check();
+    try { window.dispatchEvent(new Event('aurenew')); } catch (e) {}
+    return true;
+  }
+  // is the sound really going? Its clock has to move. If it hasn't within a moment: in the app, try a fresh start again by itself;
+  // anywhere, the next touch starts it afresh
+  function check() {
+    const c = ctx, id = ++checkId; if (!c) return; const t0 = c.currentTime;
+    setTimeout(() => { if (id !== checkId || c !== ctx || document.hidden) return;
+      if (c.state === 'running' && c.currentTime - t0 > 0.2) { stuck = false; awayHid = false; retry = 0; return; }
+      stuck = true; if (retry > 0) { retry--; renew(); } }, 800);
+  }
   const api = {
     // synthesize the kit and the reverbs now, while the menu is up, so the first tap (often Play) doesn't pay for it
     pre() {
@@ -13356,26 +13387,29 @@ function makeAudio() {
       if (ctx) { if (ctx.state !== 'running') ctx.resume().catch(() => {}); return; }
       const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
       let c; try { c = new AC({ latencyHint: 'interactive' }); } catch (e) { return; }
-      build(c, true); sbLoad(); for (const ch of ['m', 's']) if (SB.bytes[ch]) sbDecode(ch); trkDecode('menu'); { const sk = stageTrk(); if (sk) trkDecode(sk); } if (lastMode !== 'none') { const m = lastMode; lastMode = 'none'; api.music(m); }
+      build(c, true); watch(c); sbLoad(); for (const ch of ['m', 's']) if (SB.bytes[ch]) sbDecode(ch); trkDecode('menu'); { const sk = stageTrk(); if (sk) trkDecode(sk); } if (lastMode !== 'none') { const m = lastMode; lastMode = 'none'; api.music(m); }
     },
     muted(m) { if (ctx) out.gain.setTargetAtTime(m ? 0 : 1, T(), 0.04); },
     // the music and the effects apart (the effects' reverb and echo sends with them)
     mix(mOn, sOn) { if (!ctx) return; const t = T(); musGate.gain.setTargetAtTime(mOn ? 1 : 0, t, 0.05); sfx.gain.setTargetAtTime(sOn ? 0.95 : 0, t, 0.04); verb.gain.setTargetAtTime(sOn ? 1 : 0, t, 0.04); echo.gain.setTargetAtTime(sOn ? 1 : 0, t, 0.04); out.gain.setTargetAtTime(mOn || sOn ? 1 : 0, t, 0.04); },
-    suspend(h) { if (!ctx) return; if (h) ctx.suspend().catch(() => {}); else api.wake(); },
+    suspend(h) { if (!ctx) return; if (h) { awayHid = true; ctx.suspend().catch(() => {}); } else api.wake(); },
     // back from the background, a call or the app switcher: the sound can come back suspended or "interrupted", and a resume that
     // isn't from a tap may be refused. So try now (a full stop-and-start when the app says it's back, which also re-joins the phone's
     // audio), and again on the next touch. The song picks up where it was, or starts if it never got going
-    wake(kick) {
+    wake(kick, away) {
       if (!ctx) return;
-      if (ctx.state === 'closed') { ctx = null; trk = null; api.init(); return; }
+      if (ctx.state === 'closed') { renew(); return; }
+      if (kick && (away || awayHid)) { retry = 2; renew(); return; }
+      if (kick) retry = 1;
       const after = () => { if (!ctx || ctx.state !== 'running') return;
         if (trkWant && TRK[trkWant] && TRK[trkWant].buf && (!trk || trk.key !== trkWant) && lastMode !== 'pause') return trkGo(trkWant, 0.3, 0.8);
         // the phone may have stopped the song's player while the app was away: start a fresh one at the same spot (seamless if the old one was fine)
         if (kick && trk && TRK[trk.key] && trk.t0 !== undefined) { const R = TRK[trk.key], el = T() - trk.t0, b = Math.min(R.b, R.buf.duration), L = Math.max(0.5, b - R.a); trkGo(trk.key, 0.15, 0.15, true, el < b ? el : R.a + ((el - R.a) % L)); } };
       const go = () => { if (!ctx || ctx.state === 'running') return after(); ctx.resume().then(after, () => {}); };
       if (kick && ctx.state === 'running') ctx.suspend().then(go, go); else go();
-      wakeArm = true;
+      wakeArm = true; check();
     },
+    get renews() { return renews; },
     get state() { return ctx ? ctx.state : 'none'; },
     // start the sound now if it's allowed to without a tap (in the app it is; a browser may want one first). True once it's really playing
     tryStart() {
@@ -13383,7 +13417,7 @@ function makeAudio() {
       return new Promise(res => { let done = false; const fin = v => { if (!done) { done = true; res(v); } }; ctx.resume().then(() => fin(!!ctx && ctx.state === 'running'), () => fin(false)); setTimeout(() => fin(!!ctx && ctx.state === 'running'), 450); });
     },
     // any touch or key: makes sure sound is on (the first one starts it; after a trip to the background it brings it back)
-    touch() { if (!ctx) api.init(); else if (ctx.state !== 'running' || wakeArm) { wakeArm = false; api.wake(); } },
+    touch() { if (!ctx) api.init(); else if (stuck || (awayHid && ctx.state !== 'running')) { wakeArm = false; renew(); } else if (ctx.state !== 'running' || wakeArm) { wakeArm = false; api.wake(); } },
     // the tally and the knock-out flood (their recordings, or the nearest synthesized sound while those load)
     tpour() { P_('tpour', { vary: 0.02, v: 0.9 }); },
     // slow motion: the music sinks under a low-pass (as on pause, not as far) and dips; a whoosh going in, a rising one coming out
@@ -20779,7 +20813,7 @@ if (!soundOk) {
 }
 if (!store.orient) { if (bootHold) { const w = setInterval(() => { if (!bootHold) { clearInterval(w); openOrient(); } }, 100); } else openOrient(); }
 for (const ev of ['pointerdown', 'keydown', 'touchend']) window.addEventListener(ev, () => AU.touch(), { capture: true, passive: true });
-window.addEventListener('nativeresume', () => AU.wake(true)); window.addEventListener('pageshow', () => AU.wake()); window.addEventListener('focus', () => AU.wake());
+window.addEventListener('nativeresume', e => AU.wake(true, !!(e && e.detail && e.detail.away))); window.addEventListener('pageshow', () => AU.wake()); window.addEventListener('focus', () => AU.wake());
 requestAnimationFrame(frame);
 };
 // the game is built once the loading screen has been drawn, so its bar is up from the very first moment

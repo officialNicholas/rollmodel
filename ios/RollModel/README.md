@@ -19,13 +19,14 @@ Plug in your iPhone, pick it as the run destination and press **Run**. The first
 
 ## Good to know
 
-- The game inside is version 257. Settings shows it as "Version 1.1 (257)".
+- The game inside is version 258. Settings shows it as "Version 1.1 (258)".
 - Saved names, looks and progress carry over from the earlier builds: the game keeps the same save and the same private address inside the app.
 - The app icon is the paint roller. To change it later, drop a new 1024 x 1024 image into **Assets > AppIcon**.
 - The whole game is bundled inside the app, fonts included, so it runs offline.
 - Players pick upright or wide play when the game first opens, and can change it in Settings. On iPhone the app turns to match. iPad turns freely.
 - To test every accessory at once, tap **Unlock all items** at the bottom of Customize and enter **1234**.
 - Game sound follows the ring/silent switch and plays alongside your music. In-game buzzes use the Taptic Engine.
+- Sound comes back on its own after the app has been in the background, and after a call, Siri or an alarm. If iOS closed the game while it was away, it starts again when you open the app.
 - The app tells the game which iPhone it's on, plus Low Power Mode and heat, and the game sets its graphics from that. The screen stays awake during a match.
 - The game itself lives in the **Game** folder and doesn't depend on anything iPhone-specific.
 - To ship a new version of the game, swap in the updated **Game** folder, raise the **Version** in the General tab and archive again.

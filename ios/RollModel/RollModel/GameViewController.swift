@@ -11,6 +11,7 @@ final class GameViewController: UIViewController {
     private let orient = OrientBridge()
     private var webView: WKWebView!
     private var lastReload = Date.distantPast
+    private var reloadWhenActive = false
 
     override func loadView() {
         let contentController = WKUserContentController()
@@ -71,8 +72,25 @@ final class GameViewController: UIViewController {
     }
 
     /// The app is in front again: the game's sound may have been cut off while it was away, so it gets a nudge to bring it back.
-    func resumeGame() {
-        webView?.evaluateJavaScript("window.dispatchEvent(new Event('nativeresume'));", completionHandler: nil)
+    /// After the background it starts its sound afresh. If iOS closed the page while the app was away, the game starts again now.
+    func resumeGame(afterBackground: Bool) {
+        if reloadWhenActive {
+            reloadWhenActive = false
+            reloadGame()
+            return
+        }
+        sendResume(away: afterBackground)
+    }
+
+    /// A call, Siri or an alarm has ended while the app is in front: the game starts its sound afresh.
+    func restartSound() {
+        sendResume(away: true)
+    }
+
+    private func sendResume(away: Bool) {
+        let flag = away ? "true" : "false"
+        let script = "window.dispatchEvent(new CustomEvent('nativeresume', { detail: { away: \(flag) } }));"
+        webView?.evaluateJavaScript(script, completionHandler: nil)
     }
 
     override var prefersStatusBarHidden: Bool {
@@ -110,8 +128,17 @@ extension GameViewController: WKNavigationDelegate {
     }
 
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
-        // iOS can reclaim the page's memory while the app sits in the background. Start the game again,
-        // after a short pause if it only just happened, so a struggling device isn't stuck reloading.
+        // iOS can reclaim the page's memory while the app sits in the background. Start the game again once the app is in front
+        // (a page that loads out of sight can't start its sound), after a short pause if it only just happened, so a struggling
+        // device isn't stuck reloading.
+        guard UIApplication.shared.applicationState == .active else {
+            reloadWhenActive = true
+            return
+        }
+        reloadGame()
+    }
+
+    private func reloadGame() {
         let wait = Date().timeIntervalSince(lastReload) < 10 ? 3.0 : 0.0
         lastReload = Date()
         DispatchQueue.main.asyncAfter(deadline: .now() + wait) { [weak self] in
