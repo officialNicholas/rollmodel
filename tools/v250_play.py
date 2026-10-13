@@ -54,7 +54,7 @@ def apply(s):
     rep("kcam = { t: 0, x0: P.x, z0: P.z, gy, fx, fz, side: best.side, dist: best.dist, rev: best.rev, V, endAt: 1e9 };",
         "kcam = { t: 0, x0: P.x, z0: P.z, gy, fx, fz, side: best.side, dist: best.dist, rev: best.rev, V, endAt: 1e9, ...kcamTurn() };")
     rep("function kcamEnd() { if (!kcam) return; kcam = null; camSnap = true;",
-        "function kcamEnd() { if (!kcam) return; kcam = null; camSnap = true; camYaw = P.yaw; camYawV = 0; if (P.st === 'play') P.spawnGuard = Math.max(P.spawnGuard, 1.6); /* (back behind you the way you're now facing, and steered clear of drops a moment longer) */")
+        "function kcamEnd() { if (!kcam) return; kcam = null; camSnap = true; camYaw = P.yaw; camYawV = 0; if (P.st === 'play') P.spawnGuard = Math.max(P.spawnGuard, 2.5); /* (back behind you the way you're now facing, and steered clear of drops a moment longer) */")
     rep("function knockOut(D, reason, by) {\n",
         "// while the kill cam plays you can't see where you're going, so it steers for you: round the other way, onto the floor with the most room,\n"
         "// eased off for the turn (yaw: where to; dir: which way round when that's right behind you)\n"

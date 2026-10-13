@@ -25,14 +25,19 @@ async def main():
         await pg.wait_for_function("__T.wxPhase !== 'rain'", timeout=240000, polling=50); t0 = await ev("__T.runT"); print('rain over: dilT', await ev("+__T.P.dilT.toFixed(2)"))
         await pg.wait_for_function("__T.P.dilT <= 0", timeout=240000, polling=50); print('  watered down for', round(await ev("__T.runT") - t0, 2), 's after the rain')
         await ev("__T.wxLeft = 999; __T.ev('setWx(\"clear\", 999)')")
+        PLACE = """(() => { const T = __T, P = T.P, A = T.ARENA - 3; if (P.st === 'hide') T.exitPot(P); P.st = 'play'; P.pot = null;
+          for (let gx = -A; gx <= A; gx += 1.5) for (let gz = -A; gz <= A; gz += 1.5) { if (Math.abs(T.surfaceUnder(gx, gz, 0.4, true)) > 0.01 || T.blockedAt(gx, gz, 0) || T.pots.some(q => Math.hypot(q.x - gx, q.z - gz) < 6)) continue;
+            P.x = gx; P.z = gz; P.y = 0; P.air = false; P.vy = 0; P.stroke++; return [gx, gz]; } return null; })()"""
         # ---- the basin pointer
-        await ev("__T.P.paint = 0.05"); await pg.wait_for_timeout(1200)
+        print('placed for the pointer', await ev(PLACE))
+        await ev("__T.P.paint = 0.05; __T.P.turf = 0"); await pg.wait_for_timeout(1200)
         print('low paint: cue', await ev("__T.ev('[potCue.visible, +potCueK.toFixed(2), potCueTo && +Math.hypot(potCueTo.x - P.x, potCueTo.z - P.z).toFixed(1), +potCueYaw.toFixed(2)]')"))
         await shot('cue')
         await ev("__T.P.paint = 1"); await pg.wait_for_timeout(900); print('full: cue', await ev("__T.ev('[potCue.visible, +potCueK.toFixed(2)]')"))
         await ev("__T.ev('setWx(\"warn\", 999)')"); await pg.wait_for_timeout(900); print('heat warning: cue', await ev("__T.ev('[potCue.visible, +potCueK.toFixed(2)]')")); await shot('cuewarn')
         await ev("__T.ev('setWx(\"clear\", 999)')"); await pg.wait_for_timeout(600)
         # ---- caught in the air at the buzzer
+        print('placed for the buzzer', await ev(PLACE))
         await ev("(() => { const P = __T.P; P.air = true; P.y += 2.4; P.vy = 3; P.slam = false; __T.matchLeft = 0.03; })()")
         await pg.wait_for_function("__T.state === 'dead'", timeout=240000, polling=30)
         for i in range(8):

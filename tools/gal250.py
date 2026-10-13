@@ -17,10 +17,11 @@ async def main():
         print('header', await ev("(() => { const h = document.getElementById('worldTitle'), r = h.getBoundingClientRect(), a = getComputedStyle(h, '::after'); return [h.textContent, Math.round(r.top), Math.round(r.bottom), a.content, a.display, h.getAttribute('data-sub')]; })()"))
         print('start', await ev("[__T.stageSelV, document.getElementById('cvName').textContent]"))
         # a swipe: the gallery moved across a frame at a time, each step what one frame of a finger drag would do
-        log = await ev("""new Promise(res => { const g = document.getElementById('stagePick'), out = [], t0 = performance.now(); let n = 0;
-          const step = () => { g.scrollLeft += 26; n++; const sel = __T.stageSelV, mid = [...g.querySelectorAll('.world')].find(b => b.getAttribute('aria-pressed') === 'true');
-            out.push([Math.round(performance.now() - t0), Math.round(g.scrollLeft), sel, mid && mid.dataset.s]); if (n < 40) requestAnimationFrame(step); else setTimeout(() => res(out), 400); };
-          requestAnimationFrame(step); })""")
+        # a swipe: the gallery glides on two paintings (smooth scroll, as a fling does), logged every frame: where it is, what's picked
+        log = await ev("""new Promise(res => { const g = document.getElementById('stagePick'), ws = [...g.querySelectorAll('.world')], out = [], t0 = performance.now();
+          const tgt = ws[2], fr = tgt.querySelector('.frame'), left = tgt.offsetLeft + fr.offsetLeft + fr.offsetWidth / 2 - g.clientWidth / 2; g.scrollTo({ left, behavior: 'smooth' });
+          const step = () => { const sel = __T.stageSelV, mid = ws.find(b => b.getAttribute('aria-pressed') === 'true'); out.push([Math.round(performance.now() - t0), Math.round(g.scrollLeft), sel, mid && mid.dataset.s]);
+            if (performance.now() - t0 < 1600) requestAnimationFrame(step); else res(out); }; requestAnimationFrame(step); })""")
         prev = None
         for r in log:
             if r[2] != prev: print('  ', r); prev = r[2]
