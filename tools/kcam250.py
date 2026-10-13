@@ -29,8 +29,8 @@ async def main():
         print('kcam on', await ev("!!__T.kcam"), await ev("__T.kcam && [+__T.kcam.yaw.toFixed(2), __T.kcam.dir]"))
         rows = []; t0 = await ev("performance.now()"); shots = 0
         for i in range(400):
-            r = await ev("""(() => { const T = __T, P = T.P, a0 = %f, ex = %f, ez = %f; let lip = 0; const sx = Math.sin(P.yaw), sz = Math.cos(P.yaw); for (let d = 0.2; d < 12; d += 0.2) { if (T.surfaceUnder(P.x + sx * d, P.z + sz * d, P.y + 0.4, true) === -Infinity) { lip = +d.toFixed(1); break; } }
-              return [Math.round(performance.now()), !!T.kcam, P.st, +P.spd.toFixed(2), +(((P.yaw - a0) % 6.2832 + 9.4248) % 6.2832 - 3.1416).toFixed(2), lip, +Math.hypot(P.x - ex, P.z - ez).toFixed(2), +T.camYaw.toFixed(2), +P.yaw.toFixed(2), P.air]; })()""" % (sp['a'], sp['ex'], sp['ez']))
+            r = await ev("""(() => { const T = __T, P = T.P, a0 = A0V, ex = EXV, ez = EZV; let lip = 0; const sx = Math.sin(P.yaw), sz = Math.cos(P.yaw); for (let d = 0.2; d < 12; d += 0.2) { if (T.surfaceUnder(P.x + sx * d, P.z + sz * d, P.y + 0.4, true) === -Infinity) { lip = +d.toFixed(1); break; } }
+              return [Math.round(performance.now()), !!T.kcam, P.st, +P.spd.toFixed(2), +(((P.yaw - a0) % 6.2832 + 9.4248) % 6.2832 - 3.1416).toFixed(2), lip, +Math.hypot(P.x - ex, P.z - ez).toFixed(2), +T.camYaw.toFixed(2), +P.yaw.toFixed(2), P.air]; })()""".replace('A0V', repr(sp['a'])).replace('EXV', repr(sp['ex'])).replace('EZV', repr(sp['ez'])))
             rows.append(r)
             if shots < 4 and (i in (15, 45) or (not r[1] and rows[-2][1])): shots += 1; await pg.screenshot(path=f'{WS}/ui/kc250_{SID}_{i}.png')
             if r[2] != 'play' or (not r[1] and r[0] - t0 > 6500): break
