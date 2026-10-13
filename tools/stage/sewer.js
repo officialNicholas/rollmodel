@@ -64,8 +64,8 @@ function sewerDress(K) {
   const rails = (pts, y, col, mat) => { // a railing along a polyline at height y over its posts
     for (let i = 0; i < pts.length; i++) { const p = pts[i]; vc(mat || M.vcMetal, SG.cyl(0.028, 0.028, y, 8, p.x, p.y + y / 2, p.z), col); vc(mat || M.vcMetal, SG.cyl(0.05, 0.05, 0.03, 10, p.x, p.y + 0.015, p.z), col); }
     for (let i = 0; i + 1 < pts.length; i++) { const a = pts[i], b = pts[i + 1]; vc(mat || M.vcMetal, SG.tube(V(a.x, a.y + y, a.z), V(b.x, b.y + y, b.z), 0.032, 8), col); vc(mat || M.vcMetal, SG.tube(V(a.x, a.y + y * 0.5, a.z), V(b.x, b.y + y * 0.5, b.z), 0.022, 6), col); } };
-  const barrel = (x, y, z, col, tilt, ry) => { const g = []; g.push([SG.cyl(0.25, 0.25, 0.64, 18, 0, 0.32, 0), col]); for (const yy of [0.04, 0.22, 0.42, 0.6]) g.push([SG.torus(0.252, 0.018, 0, yy, 0, Math.PI / 2, 0, 20), SG.shade(col, 0.7)]); g.push([SG.cyl(0.24, 0.24, 0.012, 18, 0, 0.646, 0), SG.shade(col, 0.82)]); g.push([SG.cyl(0.035, 0.035, 0.03, 8, 0.12, 0.66, 0.05), STD]);
-    for (const [gg, cc] of g) { if (tilt) gg.rotateZ(tilt); if (ry) gg.rotateY(ry); gg.translate(x, y, z); vc(M.vcMetal, gg, cc); } };
+  const barrel = (x, y, z, col, tilt, ry) => { const lid = SG.shade(col, 0.82), g = [SG.paint(SG.cyl(0.25, 0.25, 0.64, 18, 0, 0.32, 0), (px, py, pz, o, nx, ny) => ny > 0.5 ? lid : col)]; for (const yy of [0.04, 0.22, 0.42, 0.6]) g.push(SG.paint(SG.band(0.256, 0.036, 18).translate(0, yy, 0), SG.shade(col, 0.7))); g.push(SG.paint(SG.cyl(0.035, 0.035, 0.03, 8, 0.12, 0.655, 0.05), STD));
+    for (const gg of g) { if (tilt) gg.rotateZ(tilt); if (ry) gg.rotateY(ry); gg.translate(x, y, z); vc(M.vcMetal, gg, null); } };
   const valve = (x, y, z, nx, ny, nz, s) => { s = s || 1; const q = V(nx, ny, nz).normalize(); const w = SG.torus(0.17 * s, 0.026 * s, 0, 0, 0, 0, 0, 20); alignZ(w, q, V(x, y, z)); vc(M.vcMetal, w, RD); for (let k = 0; k < 3; k++) { const a = k * 2.0944, sp = new THREE.BoxGeometry(0.34 * s, 0.028 * s, 0.028 * s).rotateZ(a); alignZ(sp, q, V(x, y, z)); vc(M.vcMetal, sp, RD); } vc(M.vcMetal, alignZ(SG.cyl(0.04 * s, 0.04 * s, 0.12 * s, 10, 0, 0, 0).rotateX(Math.PI / 2), q, V(x - q.x * 0.04, y - q.y * 0.04, z - q.z * 0.04)), STD); };
   const lamp = (x, y, z, k) => { k = k || 1; vc(M.vcMetal, SG.cyl(0.07 * k, 0.09 * k, 0.07 * k, 12, x, y + 0.2 * k, z), STD); vc(M.glowVC, SG.ball(0.1 * k, x, y + 0.06 * k, z, 1, 1.25, 1), C(0xFFB246).multiplyScalar(HI ? 2.6 : 1.3));
     for (let a = 0; a < 6.28; a += 1.5708) vc(M.vcMetal, SG.tube(V(x + Math.cos(a) * 0.12 * k, y + 0.18 * k, z + Math.sin(a) * 0.12 * k), V(x + Math.cos(a) * 0.12 * k, y - 0.08 * k, z + Math.sin(a) * 0.12 * k), 0.012 * k, 5), STD);
@@ -194,7 +194,8 @@ function sewerDress(K) {
         barrel(x, 0.1, z, Y, 0, R() * 6); barrel(x + 0.3, 0.75, z - 0.2, GR, 0.25, 1); K.glow(x, 0.1, z, 2.2, 0x6CE030);
       }
     },
-    outer() {
+    outer() { SG.lod(0.65, () => this.walls()); },
+    walls() {
       const W = A + 15.5, TH = 2, H = 19, TY = 5.4, TR = 2.9, nT = 2;
       // the walls: concrete at the slime line, brick above, a ledge between; square pillars in the corners
       for (const [ax, az] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const px = ax * (W + TH / 2), pz = az * (W + TH / 2), len = 2 * W + 2 * TH, lx = ax ? TH : len, lz = az ? TH : len;

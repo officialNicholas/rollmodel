@@ -49,9 +49,10 @@ function raftDress(K) {
   const wood = (g, col) => vc(M.vcWood, uvXY(g, (x, y, z) => [x * 1.3 + z * 0.7, y * 1.3 + z * 0.3]), col);
   const rope = (a, b, s, r) => vc(M.vc, SG.sag(a, b, s, r || 0.025), RO);
   // a fishing float: white over orange (or red), a little eye on top
-  const buoy = (x, y, z, s, col) => { s = s || 1; vc(M.vc, SG.ball(0.13 * s, x, y, z, 1, 1.35, 1), (px, py) => py > y + 0.01 * s ? WH : (col || OR)); vc(M.vc, SG.cyl(0.02 * s, 0.02 * s, 0.06 * s, 6, x, y + 0.19 * s, z), RO); };
-  const barrel = (x, y, z, col, lay, ry) => { const parts = [[SG.cyl(0.26, 0.26, 0.66, 20, 0, 0, 0), (px, py, pz) => { const a = Math.atan2(pz, px), f = ((a / 6.2832 * 14) % 1 + 1) % 1; return SG.shade(col, f < 0.06 ? 0.72 : 0.9 + 0.12 * Math.sin(a * 7)); }], [SG.torus(0.268, 0.02, 0, 0.22, 0, Math.PI / 2, 0, 22), MT], [SG.torus(0.268, 0.02, 0, -0.22, 0, Math.PI / 2, 0, 22), MT], [SG.cyl(0.25, 0.25, 0.01, 20, 0, 0.332, 0), SG.shade(col, 0.75)]];
-    for (const [g, c] of parts) { if (lay) g.rotateZ(Math.PI / 2); if (ry) g.rotateY(ry); g.translate(x, y, z); vc(M.vc, g, c); } };
+  const buoy = (x, y, z, s, col) => { s = s || 1; vc(M.vc, new THREE.SphereGeometry(0.13 * s, 8, 5).scale(1, 1.35, 1).translate(x, y, z), (px, py) => py > y + 0.01 * s ? WH : (col || OR)); if (s >= 1.2) vc(M.vc, SG.cyl(0.02 * s, 0.02 * s, 0.06 * s, 6, x, y + 0.19 * s, z), RO); };
+  const barrel = (x, y, z, col, lay, ry) => { const lid = SG.shade(col, 0.75), parts = [SG.paint(SG.cyl(0.26, 0.26, 0.66, 20, 0, 0, 0), (px, py, pz, o, nx, ny) => { if (Math.abs(ny) > 0.5) return lid; const a = Math.atan2(pz, px), f = ((a / 6.2832 * 14) % 1 + 1) % 1; return SG.shade(col, f < 0.06 ? 0.72 : 0.9 + 0.12 * Math.sin(a * 7)); }),
+      SG.paint(SG.band(0.272, 0.045, 20).translate(0, 0.22, 0), MT), SG.paint(SG.band(0.272, 0.045, 20).translate(0, -0.22, 0), MT)];
+    for (const g of parts) { if (lay) g.rotateZ(Math.PI / 2); if (ry) g.rotateY(ry); g.translate(x, y, z); vc(M.vc, g, null); } };
   const tire = (x, y, z, nx, nz, s) => { s = s || 1; const g = SG.torus(0.36 * s, 0.13 * s, 0, 0, 0, 0, 0, 26); alignZ(g, V(nx, 0, nz), V(x, y, z)); vc(M.vc, g, (px, py, pz) => SG.shade(RB, 0.85 + 0.3 * (Math.sin(Math.atan2(py - y, (pz - z) * nx - (px - x) * nz) * 30) > 0.6 ? 1 : 0))); };
   const ring = (x, y, z, nx, nz) => { const g = SG.torus(0.3, 0.075, 0, 0, 0, 0, 0, 28); alignZ(g, V(nx, 0, nz), V(x, y, z)); vc(M.vc, g, (px, py, pz) => { const a = Math.atan2(py - y, (px - x) * nz - (pz - z) * nx); return ((a / 1.5708 + 4.5) | 0) % 2 ? RD : WH; }); };
   const lantern = (x, y, z) => { vc(M.vcMetal, SG.cyl(0.07, 0.09, 0.05, 10, x, y + 0.16, z), WD); vc(M.vcMetal, SG.torus(0.05, 0.008, x, y + 0.24, z, 0, 0, 10), WD); vc(M.glowVC, SG.cyl(0.07, 0.07, 0.2, 10, x, y + 0.03, z), C(0xFFD08A).multiplyScalar(HI ? 2 : 1.2)); for (let a = 0; a < 6.28; a += 1.5708) vc(M.vcMetal, SG.box(0.014, 0.22, 0.014, x + Math.cos(a) * 0.075, y + 0.03, z + Math.sin(a) * 0.075), WD); vc(M.vcMetal, SG.cyl(0.09, 0.07, 0.04, 10, x, y - 0.09, z), WD); K.glow(x, y + 0.03, z, 0.7, 0xFFC070); };
@@ -66,7 +67,7 @@ function raftDress(K) {
     for (let k = 0; k < n; k++) { const a = k / n * 6.2832 + 0.4, bx = cx + Math.cos(a) * 0.28, bz = cz + Math.sin(a) * 0.28, by = y0 + 2.25 + (k % 2) * 0.22; parts.push([SG.ball(0.3, bx, by, bz, 1, 1.32, 1), (px, py) => py > by + 0.02 ? WH : cols[k % cols.length]]); parts.push([SG.tube(V(bx, by - 0.38, bz), top, 0.012, 5), RO]); }
     for (const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) parts.push([SG.tube(V(cx + sx * spread[0], y0 + 0.02, cz + sz * spread[1]), top, 0.018, 5), RO]);
     parts.push([SG.torus(0.07, 0.015, top.x, top.y, top.z, Math.PI / 2, 0, 12), MT]);
-    const m = new THREE.Mesh(vcGeo(parts), M.vc); m.castShadow = false; m.receiveShadow = true; K.add(m); const ph = R() * 6.28; K.anim({ tick(dt, t) { m.position.y = 0.035 * Math.sin(t * 1.4 + ph); m.rotation.y = 0.012 * Math.sin(t * 0.9 + ph); } }); };
+    const m = new THREE.Mesh(vcGeoIdx(parts), M.vc); m.castShadow = false; m.receiveShadow = true; K.add(m); const ph = R() * 6.28; K.anim({ tick(dt, t) { m.position.y = 0.035 * Math.sin(t * 1.4 + ph); m.rotation.y = 0.012 * Math.sin(t * 0.9 + ph); } }); };
   const tops = [];
   const crateS = (x, y, z, s, ry, mark) => { const hs = s / 2, parts = [[SG.box(s, s, s, 0, hs, 0), SG.shade(WL, 0.9 + 0.15 * R())]];
     for (const [ex, ez] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) parts.push([SG.box(0.07, s, 0.07, ex * (hs - 0.02), hs, ez * (hs - 0.02)), WD]);
@@ -263,7 +264,7 @@ function raftDress(K) {
         for (let u = -A - 0.6, k = 0; u < A + 0.6; k++) { const len = Math.min(3.6 + R() * 1.4, A + 0.62 - u); if (len < 0.4) break; const c = at(u + len / 2, LO - A, LY), col = SG.shade(WM, 0.86 + 0.18 * R());
           const g = SG.cyl(LR - 0.01 * (k % 2), LR, len - 0.04, 14, 0, 0, 0).rotateZ(Math.PI / 2); SG.rotY(g, Math.atan2(-tz, tx), 0, 0); g.translate(c.x, c.y, c.z);
           vc(M.vcWood, uvXY(g, (x, y, z) => [(x * tx + z * tz) * 0.6, y * 2.4 + (x * ax + z * az) * 2.4]), (px, py, pz, cc, nx, ny, nz) => Math.abs(nx * tx + nz * tz) > 0.8 ? C(0xE2BE84) : col);
-          for (let q = 0.5; q < len - 0.3; q += 1.25) { const lp = at(u + q, LO - A, LY), rg = SG.torus(LR + 0.012, 0.022, 0, 0, 0, 0, 0, 16); alignZ(rg, V(tx, 0, tz), lp); vc(M.vc, rg, RO); }
+          for (let q = 0.5; q < len - 0.3; q += 1.25) { const lp = at(u + q, LO - A, LY), rg = SG.band(LR + 0.014, 0.05, 16).rotateX(Math.PI / 2); alignZ(rg, V(tx, 0, tz), lp); vc(M.vc, rg, RO); }
           u += len; }
         const tires = []; for (let u = -A + 1.8; u < A - 1.6; u += 3.4) { if (Math.abs(u) < 1.6) continue; const p = at(u + (R() - 0.5) * 0.4, LO - A + LR + 0.1, -0.14); tire(p.x, p.y, p.z, ax, az); rope(at(u, LO - A, 0.02), V(p.x, p.y + 0.36, p.z), 0.02, 0.016); tires.push(p); }
         for (let u = -A + 1.2; u < A - 1; u += 2.6) barrel(...at(u + (R() - 0.5) * 0.4, LO - A - 0.1, -0.62).toArray(), [BL, WH, RD, YL][(R() * 4) | 0], true, Math.atan2(-tz, tx));
@@ -279,7 +280,7 @@ function raftDress(K) {
         for (let k = 0; k + 1 < posts.length; k++) { const a = posts[k], e = posts[k + 1]; rope(a, e, 0.22, 0.022); for (const t of [0.3, 0.5, 0.7]) { const p = V(a.x + (e.x - a.x) * t, a.y - 0.22 * 4 * t * (1 - t), a.z + (e.z - a.z) * t); vc(M.vc, SG.cyl(0.007, 0.007, 0.1, 4, p.x, p.y - 0.05, p.z), RO); buoy(p.x, p.y - 0.22, p.z, 0.8, t === 0.5 ? RD : OR); } }
       }
       for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const x = sx * (A + 0.05), z = sz * (A + 0.05); wood(SG.cyl(0.28, 0.3, 1.6, 16, x, 0.1, z), WD); wood(SG.cyl(0.31, 0.31, 0.06, 16, x, 0.92, z), WM); for (const y of [0.35, 0.5, 0.65]) vc(M.vc, SG.torus(0.3, 0.035, x, y, z, Math.PI / 2, 0, 20), RO); K.hull(SG.cyl(0.34, 0.36, 1.7, 16, x, 0.1, z)); }
-      for (const [ax, az] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) for (const sg of [-1, 1]) { const u = sg * A * 0.52 + (R() - 0.5) * 2, off = A + 2.4; pontoon2(ax * off + az * u, az * off - ax * u, Math.atan2(ax, az) + (R() - 0.5) * 0.3); }
+      SG.lod(0.7, () => { for (const [ax, az] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) for (const sg of [-1, 1]) { const u = sg * A * 0.52 + (R() - 0.5) * 2, off = A + 2.4; pontoon2(ax * off + az * u, az * off - ax * u, Math.atan2(ax, az) + (R() - 0.5) * 0.3); } });
       // bunting: little flags strung on lines between the tall landmarks round the raft, the next one round each time
       { const cols = [RD, YL, TL, WH, OR, BL], ord = tops.slice().sort((p, q) => Math.atan2(p.x, p.z) - Math.atan2(q.x, q.z));
         for (let k = 0; k < ord.length; k++) { const a = ord[k], e = ord[(k + 1) % ord.length], D = Math.hypot(e.x - a.x, e.z - a.z); if (D > 46 || D < 3) continue;
@@ -298,17 +299,17 @@ function raftDress(K) {
             for (const wx of [0.14, 0.34]) glow.push([SG.box(0.36, 0.34, 0.04, hx + w * (wx - 0.5) + 0.5, y0 + hh * 0.62, hz + dd / 2 + 0.03), C(0xFFD890).multiplyScalar(HI ? 1.8 : 1.2)]); }
           for (let k = 0; k < 6; k++) parts.push([SG.box(1.0, 0.08, 0.5, 0, WATER_Y + 0.7, 1.5 + k * 0.52), C(0x9A7048)], [SG.cyl(0.06, 0.06, 1.2, 5, 0.42, WATER_Y + 0.2, 1.5 + k * 0.52), C(0x6A4A30)], [SG.cyl(0.06, 0.06, 1.2, 5, -0.42, WATER_Y + 0.2, 1.5 + k * 0.52), C(0x6A4A30)]);
           for (const [bx, bc] of [[1.8, RD], [-1.9, TL]]) parts.push([new THREE.SphereGeometry(1, 12, 6, 0, 6.2832, Math.PI / 2, Math.PI / 2).scale(0.5, 0.35, 1.3).translate(bx, WATER_Y + 0.25, 3.4), (px, py) => py > WATER_Y + 0.12 ? WH : bc]);
-          const m = new THREE.Mesh(vcGeo(parts), M.vc), mg = new THREE.Mesh(vcGeo(glow), M.glowVC);
+          const m = new THREE.Mesh(vcGeoIdx(parts), M.vc), mg = new THREE.Mesh(vcGeoIdx(glow), M.glowVC);
           for (const o of [m, mg]) { o.position.set(Math.cos(a) * d, 0, Math.sin(a) * d); o.rotation.y = -a - Math.PI / 2; K.add(o); } };
-        town(1.55, 108, 6, 801); town(3.35, 122, 5, 802); town(5.95, 98, 4, 803); }
+        SG.lod(0.5, () => { town(1.55, 108, 6, 801); town(3.35, 122, 5, 802); town(5.95, 98, 4, 803); }); }
       // out on the water: two sailboats far off, rocking, and a lighthouse on an islet
       const sails = [[0.6, 92], [2.4, 120], [4.1, 84]];
       for (const [a, d] of sails) { const parts = [[new THREE.SphereGeometry(1, 16, 8, 0, 6.2832, Math.PI / 2, Math.PI / 2).scale(3.2, 1.0, 1.1), (px, py) => py > -0.25 ? WH : C(0x2A4E8A)], [SG.cyl(0.07, 0.06, 6.5, 8, 0.3, 3.2, 0), WD]];
         const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.lineTo(0, 5.8); sh.lineTo(2.6, 0.2); sh.closePath(); parts.push([new THREE.ShapeGeometry(sh).translate(0.4, 0.4, 0), WH]); const sh2 = new THREE.Shape(); sh2.moveTo(0, 0); sh2.lineTo(0, 4.6); sh2.lineTo(-2.2, 0.2); sh2.closePath(); parts.push([new THREE.ShapeGeometry(sh2).translate(0.2, 0.4, 0), C(0xF2E6C8)]);
-        const m = new THREE.Mesh(vcGeo(parts), toon(0xFFFFFF, { vertexColors: true, side: THREE.DoubleSide }, { roughness: 0.6 })); m.userData.own = true; const g = m; m.position.set(Math.cos(a) * d, WATER_Y + 0.4, Math.sin(a) * d); m.rotation.y = a + 1.2; K.add(m); const ph = a * 3;
+        const m = new THREE.Mesh(vcGeoIdx(parts), toon(0xFFFFFF, { vertexColors: true, side: THREE.DoubleSide }, { roughness: 0.6 })); m.userData.own = true; const g = m; m.position.set(Math.cos(a) * d, WATER_Y + 0.4, Math.sin(a) * d); m.rotation.y = a + 1.2; K.add(m); const ph = a * 3;
         K.anim({ tick(dt, t) { g.rotation.z = 0.06 * Math.sin(t * 0.7 + ph); g.position.y = WATER_Y + 0.4 + 0.25 * Math.sin(t * 0.6 + ph); } }); }
       { const a = 5.2, d = 140, x = Math.cos(a) * d, z = Math.sin(a) * d, parts = [[new THREE.SphereGeometry(1, 20, 8, 0, 6.2832, 0, Math.PI / 2).scale(14, 3, 10).translate(0, WATER_Y - 0.5, 0), C(0x8A8278)], [SG.cyl(1.6, 1.1, 13, 18, 2, 7, 0), (px, py) => (Math.floor(py / 2.2) % 2) ? WH : RD], [SG.cyl(1.0, 1.0, 1.6, 14, 2, 14.3, 0), C(0xFFE6A0)], [SG.cone(1.4, 1.6, 2, 15.9, 0, 14), RD]];
-        const m = new THREE.Mesh(vcGeo(parts), toon(0xFFFFFF, { vertexColors: true }, { roughness: 0.8 })); m.userData.own = true; m.position.set(x, 0, z); K.add(m); K.glow(x + 2, 14.3, z, 6, 0xFFE0A0); }
+        const m = new THREE.Mesh(vcGeoIdx(parts), toon(0xFFFFFF, { vertexColors: true }, { roughness: 0.8 })); m.userData.own = true; m.position.set(x, 0, z); K.add(m); K.glow(x + 2, 14.3, z, 6, 0xFFE0A0); }
     },
   };
 }
