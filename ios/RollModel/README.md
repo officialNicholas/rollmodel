@@ -19,7 +19,7 @@ Plug in your iPhone, pick it as the run destination and press **Run**. The first
 
 ## Good to know
 
-- The game inside is version 256. Settings shows it as "Version 1.1 (256)".
+- The game inside is version 257. Settings shows it as "Version 1.1 (257)".
 - Saved names, looks and progress carry over from the earlier builds: the game keeps the same save and the same private address inside the app.
 - The app icon is the paint roller. To change it later, drop a new 1024 x 1024 image into **Assets > AppIcon**.
 - The whole game is bundled inside the app, fonts included, so it runs offline.
