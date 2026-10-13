@@ -20,6 +20,7 @@ async def main():
         pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)[:300])); ev = pg.evaluate
         await pg.goto('http://localhost:8765/' + PAGE, timeout=300000); await pg.wait_for_function('typeof __T === "object"', timeout=300000, polling=100)
         print('rank', await ev("__T.ev('repOf(store.xp || 0).lv')"), 'strokes due', await ev("__T.ev('[strokesDue(), store.tut.strokes, tutPh()]')"))
+        if os.environ.get('FAST'): await ev("(() => { const r = __T.renderer; r.render = () => {}; })(); 0")
         await pg.wait_for_function("!document.getElementById('tutGo').hidden", timeout=120000, polling=100); await pg.wait_for_timeout(1500)
         print('card 1', await ev("document.getElementById('tutGo').dataset.mode")); await pg.screenshot(path=f'{WS}/ui/abil_{W}x{H}_card1.png')
         r = await ev(SAMPLE, 2500); print('  card 1 moving:', json.dumps(r)[:3000])
@@ -30,5 +31,9 @@ async def main():
         print('page', await ev("[__T.ev('menuPage'), __T.tutTip && __T.tutTip.key]"))
         r = await ev(SAMPLE, 3000); print('  strokes page moving:', json.dumps(r)[:4000])
         await pg.screenshot(path=f'{WS}/ui/abil_{W}x{H}_open2.png')
+        for step, js in [('craft', "document.querySelector('.stopt[data-st=\"giant\"]').click()"), ('skip', "document.getElementById('stSkip').click()"), ('equip', "document.querySelector('.stopt[data-st=\"giant\"]').click()")]:
+            await ev(js); await pg.wait_for_timeout(700); print(step, await ev("[__T.tutTip && __T.tutTip.key, __T.ev('JSON.stringify(strokesOf())')]"))
+            r = await ev(SAMPLE, 2500); print('  ' + step + ' moving:', json.dumps(r)[:3000]); await pg.screenshot(path=f'{WS}/ui/abil_{W}x{H}_{step}.png')
+        await pg.wait_for_timeout(6000); print('after', await ev("[__T.tutTip && __T.tutTip.key, __T.ev('tutPh()'), document.querySelector('.menu').className]"))
         print('errors', errs[:4]); await b.close()
 asyncio.run(main())

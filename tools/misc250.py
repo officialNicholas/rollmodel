@@ -12,6 +12,7 @@ async def main():
         await ctx.add_init_script("window.__noVote = true; try { localStorage.setItem('paint-world-red.v1', JSON.stringify({ orient:'port', name:'Dusk', seen:{ jump: 1, hold: 1, steer: 1, item: 1, orb: 1, roll: 1, pound: 1, missile: 1, burst: 1 }, drops: 0, runs: 5, stage: '" + SID + "', mode: 'duel', tut: { ph: 'done', strokes: 1, comms: 1 } })); } catch (e) {}")
         pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)[:300])); ev = pg.evaluate
         await pg.goto('http://localhost:8765/' + PAGE, timeout=240000); await pg.wait_for_function('typeof __T === "object"', timeout=240000, polling=100); await pg.wait_for_timeout(1000)
+        if os.environ.get('FAST'): await ev("(() => { const r = __T.renderer; window.__rr = r.render.bind(r); r.render = () => {}; })(); 0")  # (logic only: 3D drawing off, so the game runs at full speed)
         await ev("__T.start()"); await pg.wait_for_function("__T.state === 'play'", timeout=400000, polling=100); await pg.wait_for_timeout(2500)
         await ev("__T.wxLeft = 999")  # (no weather of its own while we look)
         # ---- the rain

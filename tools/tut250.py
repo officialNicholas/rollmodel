@@ -14,6 +14,7 @@ async def main():
         async def wait(js, t=400000): await pg.wait_for_function(js, timeout=t, polling=60)
         async def shot(n): await pg.screenshot(path=f'{WS}/ui/t250_{HOW}_{n}.png')
         await pg.goto('http://localhost:8765/' + PAGE, timeout=240000); await wait('typeof __T === "object"'); await pg.wait_for_timeout(800)
+        if os.environ.get('FAST'): await ev("(() => { const r = __T.renderer; window.__rr = r.render.bind(r); r.render = () => {}; })(); 0")  # (logic only: 3D drawing off, so the game runs at full speed)
         await ev("document.getElementById('homePlay').click()"); await wait("__T.state === 'play'"); await wait("__T.tut && __T.tut.step === 0"); await wait("__T.H.st === 'play' && !__T.H.air")
         await ev("(() => { __T.tut.gap = 0; let n = 0; while (__T.TUT_STEPS[__T.tut.step].id !== 'rest' && n++ < 20) __T.tutNext(); })()")
         await ev("if (__T.P.st === 'hide') __T.useSlam(__T.P)"); await wait("__T.P.st === 'play' && !__T.P.air")
