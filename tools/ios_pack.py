@@ -4,7 +4,9 @@
 The app is the original Roll Model project (bundle ID studio.primeshots.rollmodel, the paint roller icon), so a build of it goes to App
 Store Connect as an update of the app already there. The game goes in ios/RollModel/RollModel/Game: the page, three.js, the character
 pack the page loads, art, music and sounds, plus the bundled fonts and licenses from ios/shared. The page is pointed at those fonts in
-place of Google Fonts (the app runs offline), and its version line shows the app's version with the game's build number."""
+place of Google Fonts (the app runs offline), and its version line shows the app's version with the game's build number. The build
+fails if anything in the page points outside the app or names a file the app doesn't have. The page also gets a fixed zoom and the
+app's copy of the save (native/save.js, served by the app) ahead of the game."""
 import os, re, shutil, zipfile
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 game, app, shared = os.path.join(root, 'game'), os.path.join(root, 'ios', 'RollModel'), os.path.join(root, 'ios', 'shared')
@@ -30,8 +32,26 @@ pbx = open(os.path.join(app, 'RollModel.xcodeproj', 'project.pbxproj'), encoding
 mv = set(re.findall(r'MARKETING_VERSION = ([\d.]+);', pbx)); assert len(mv) == 1, mv; mv = mv.pop()
 ver = re.findall(r'<p class="ver">Version (\d+)</p>', html); assert len(ver) == 1, ver
 html = html.replace('<p class="ver">Version %s</p>' % ver[0], '<p class="ver">Version %s (%s)</p>' % (mv, ver[0]))
+# a fixed screen: no zoom (a pinch or a double tap must never scale the game)
+vp = '<meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover">'; assert html.count(vp) == 1, 'viewport'
+html = html.replace(vp, '<meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">')
+# the app's own copy of the save goes back in before the game reads its save (the app serves native/save.js; see SaveBridge.swift)
+k = html.find('<script'); assert k > 0
+html = html[:k] + '<script src="native/save.js"></script>\n' + html[k:]
+# fully offline: nothing may point outside the app, and every file the game names must be in it
+ext = [u for u in re.findall(r'(?:https?:)?//[\w.-]+\.[a-z]{2,}[^\s"\'<>)]*', html) if 'www.w3.org/' not in u]
+assert not ext, ('points outside the app', ext[:5])
+names = set(re.findall(r"['\"(]((?:music|sfx|voice|art|fonts)/[\w.-]+\.(?:mp3|webp|png|jpg|woff2))", html))
+for n in names: assert os.path.isfile(os.path.join(dst, n)), ('missing in the app', n)
+TRKS = re.search(r"const TRK = \{([\s\S]*?)\n  \};", html).group(1)
+for key, body in re.findall(r"\n    (\w+): \{([^}]*)\}", TRKS):
+    f = re.search(r"file: '(\w+)'", body); n = 'music/%s.mp3' % (f.group(1) if f else key)
+    assert os.path.isfile(os.path.join(dst, n)), ('song missing in the app', n)
+for n in set(re.findall(r"\.say\('(\w+)'", html)): assert os.path.isfile(os.path.join(dst, 'voice', 'say_%s.mp3' % n)), ('line missing', n)
+for n in ('sfx/m.mp3', 'sfx/s.mp3'): assert os.path.isfile(os.path.join(dst, n)), n
+print('offline check:', len(names), 'named files, every song, line and sheet in the app; nothing outside')
 open(os.path.join(dst, 'index.html'), 'w', encoding='utf8').write(html)
-for ref in re.findall(r'<script src="([^"]+)"', html): assert os.path.isfile(os.path.join(dst, ref)), ref
+for ref in re.findall(r'<script src="([^"]+)"', html): assert ref.startswith('native/') or os.path.isfile(os.path.join(dst, ref)), ref
 # the zip: the project folder as RollModel/, the way the app first went out
 out = os.path.join(root, 'RollModel-iOS.zip')
 with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as z:

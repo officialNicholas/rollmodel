@@ -3283,7 +3283,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 258</p>
+      <p class="ver">Version 259</p>
     </div>
   </div>
 
@@ -3631,7 +3631,15 @@ const store = (() => {
   for (const k of ['daily', 'lastDay', 'dayStreak', 'streak', 'bestStreak']) delete d[k]; // (xp is the rank's now, and is kept)
   return d;
 })();
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
+// (v259) in the iPhone app the save is also kept by the app itself, outside the web view's storage (which iOS can clear), with the time
+// it was made, so the newer copy wins at the next start (see the app's save script). A burst of saves goes over once, and at once when
+// the app is put away
+const NSAVE = (() => { try { return (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.save) || null; } catch (e) { return null; } })();
+let saveQ = 0, saveJ = '', saveT = 0;
+const saveSend = () => { if (saveQ) { clearTimeout(saveQ); saveQ = 0; } if (!NSAVE || !saveJ) return; try { NSAVE.postMessage({ t: saveT, save: saveJ }); } catch (e) {} saveJ = ''; };
+const save = () => { let j = ''; try { j = JSON.stringify(store); saveT = Date.now(); localStorage.setItem(KEY, j); localStorage.setItem(KEY + '.t', String(saveT)); } catch (e) {}
+  if (NSAVE && j) { saveJ = j; if (!saveQ) saveQ = setTimeout(saveSend, 400); } };
+if (NSAVE) { document.addEventListener('visibilitychange', () => { if (document.hidden) saveSend(); }); window.addEventListener('pagehide', saveSend); }
 
 // ---------- renderer ----------
 const stage = $('stage'), canvas = $('cv');
@@ -3650,7 +3658,15 @@ const GFX = store.gfx === 'perf' || store.gfx === 'hi' ? store.gfx : DEV_TIER >=
 // how sharp to render: Graphics mode on a newer phone gets more pixels; Low Power Mode trims it back
 const PR_CAP = (HI ? [1.25, 1.35, 1.6, 2][DEV_TIER] : [1, 1.2, 1.4, 1.6][DEV_TIER]) * (NATIVE && NATIVE.lowPower ? 0.8 : 1);
 const SEG = n => HI ? Math.round(n * 1.6) : n; // how round round things are
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' }); renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.NeutralToneMapping;
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+// (v259) the phone can take the graphics away from the page (most often while the app is in the background). three.js asks for them
+// back and carries on when they return (the paint is kept by the game, so nothing is lost). If they haven't come back a few seconds
+// after the game is in view again, it starts over, progress saved, rather than sit on a frozen screen
+{ let lostAt = 0;
+  canvas.addEventListener('webglcontextlost', () => { lostAt = performance.now(); });
+  canvas.addEventListener('webglcontextrestored', () => { lostAt = 0; });
+  document.addEventListener('visibilitychange', () => { if (lostAt && !document.hidden) lostAt = performance.now(); });
+  setInterval(() => { if (!lostAt || document.hidden || performance.now() - lostAt < 4000) return; lostAt = 0; try { save(); saveSend(); } catch (e) {} location.reload(); }, 1000); } renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.NeutralToneMapping;
 renderer.setPixelRatio(Math.min(PR_CAP, window.devicePixelRatio || 1));
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
 renderer.setClearColor(0x120A24);
@@ -13410,6 +13426,9 @@ function makeAudio() {
       wakeArm = true; check();
     },
     get renews() { return renews; },
+    // (v259) the phone is short of memory: let go of the songs that aren't playing or wanted next, decoded and file both (they load
+    // again from the app when needed), and the curator's lines
+    trim() { const keep = [trk && trk.key, trkWant]; for (const k in TRK) if (!keep.includes(k)) { trkDrop(k); if (!TRK[k].decoding && !TRK[k].fetching) TRK[k].bytes = null; } for (const k in SAY) delete SAY[k]; },
     get state() { return ctx ? ctx.state : 'none'; },
     // start the sound now if it's allowed to without a tap (in the app it is; a browser may want one first). True once it's really playing
     tryStart() {
@@ -20813,7 +20832,7 @@ if (!soundOk) {
 }
 if (!store.orient) { if (bootHold) { const w = setInterval(() => { if (!bootHold) { clearInterval(w); openOrient(); } }, 100); } else openOrient(); }
 for (const ev of ['pointerdown', 'keydown', 'touchend']) window.addEventListener(ev, () => AU.touch(), { capture: true, passive: true });
-window.addEventListener('nativeresume', e => AU.wake(true, !!(e && e.detail && e.detail.away))); window.addEventListener('pageshow', () => AU.wake()); window.addEventListener('focus', () => AU.wake());
+window.addEventListener('nativeresume', e => AU.wake(true, !!(e && e.detail && e.detail.away))); window.addEventListener('nativememory', () => AU.trim()); window.addEventListener('pageshow', () => AU.wake()); window.addEventListener('focus', () => AU.wake());
 requestAnimationFrame(frame);
 };
 // the game is built once the loading screen has been drawn, so its bar is up from the very first moment

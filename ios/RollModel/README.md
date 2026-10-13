@@ -19,10 +19,13 @@ Plug in your iPhone, pick it as the run destination and press **Run**. The first
 
 ## Good to know
 
-- The game inside is version 258. Settings shows it as "Version 1.1 (258)".
+- The game inside is version 259. Settings shows it as "Version 1.1 (259)".
 - Saved names, looks and progress carry over from the earlier builds: the game keeps the same save and the same private address inside the app.
 - The app icon is the paint roller. To change it later, drop a new 1024 x 1024 image into **Assets > AppIcon**.
-- The whole game is bundled inside the app, fonts included, so it runs offline.
+- The whole game is bundled inside the app, fonts included, so it runs fully offline: nothing is ever fetched from the internet. Building the zip checks this and fails if anything in the game points outside the app or names a file the app doesn't have.
+- Progress is kept twice: in the game's own storage and in a copy the app keeps in its own files (it goes into phone backups). If iOS clears website data, or the app is closed a moment after a save, the newer copy comes back at the next start.
+- If iOS takes the game's graphics away while it's in the background, they come back when you return; if they can't, the game starts again with progress kept. When the phone is short of memory, the game lets go of songs it isn't playing.
+- Pinch and double tap never zoom the game, the page settles back after the keyboard closes, and the home bar fades out while you play.
 - Players pick upright or wide play when the game first opens, and can change it in Settings. On iPhone the app turns to match. iPad turns freely.
 - To test every accessory at once, tap **Unlock all items** at the bottom of Customize and enter **1234**.
 - Game sound follows the ring/silent switch and plays alongside your music. In-game buzzes use the Taptic Engine.

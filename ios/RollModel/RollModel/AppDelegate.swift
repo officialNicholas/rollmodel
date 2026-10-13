@@ -25,20 +25,21 @@ enum GameAudio {
     /// Called when the game's sound needs a fresh start while the app is in front: a call, Siri or an alarm has ended,
     /// or the phone's audio system restarted.
     static var onRestart: (() -> Void)?
+    private static var observers: [NSObjectProtocol] = []
 
     static func configure() {
         apply()
         let center = NotificationCenter.default
-        center.addObserver(forName: AVAudioSession.interruptionNotification, object: nil, queue: .main) { note in
+        observers.append(center.addObserver(forName: AVAudioSession.interruptionNotification, object: nil, queue: .main) { note in
             guard let raw = note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
                   AVAudioSession.InterruptionType(rawValue: raw) == .ended else { return }
             GameAudio.reactivate()
             GameAudio.restartIfInFront()
-        }
-        center.addObserver(forName: AVAudioSession.mediaServicesWereResetNotification, object: nil, queue: .main) { _ in
+        })
+        observers.append(center.addObserver(forName: AVAudioSession.mediaServicesWereResetNotification, object: nil, queue: .main) { _ in
             GameAudio.apply()
             GameAudio.restartIfInFront()
-        }
+        })
     }
 
     static func reactivate() {

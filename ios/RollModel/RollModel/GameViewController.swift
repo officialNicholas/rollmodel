@@ -9,6 +9,7 @@ final class GameViewController: UIViewController {
     private let haptics = HapticsBridge()
     private let device = DeviceBridge()
     private let orient = OrientBridge()
+    private let saves = SaveBridge()
     private var webView: WKWebView!
     private var lastReload = Date.distantPast
     private var reloadWhenActive = false
@@ -26,6 +27,8 @@ final class GameViewController: UIViewController {
         contentController.add(device, name: DeviceBridge.messageName)
         // Upright or wide: the player's choice (asked when the game first opens, changed in Settings) turns the iPhone to match.
         contentController.add(orient, name: OrientBridge.messageName)
+        // A copy of the save in the app's own files, put back if the web view's storage loses it.
+        contentController.add(saves, name: SaveBridge.messageName)
 
         let configuration = WKWebViewConfiguration()
         configuration.userContentController = contentController
@@ -41,6 +44,7 @@ final class GameViewController: UIViewController {
         webView.scrollView.isScrollEnabled = false
         webView.scrollView.bounces = false
         webView.scrollView.contentInsetAdjustmentBehavior = .never
+        webView.underPageBackgroundColor = GameViewController.backgroundColor
         webView.allowsLinkPreview = false
         webView.allowsBackForwardNavigationGestures = false
         webView.navigationDelegate = self
@@ -59,7 +63,20 @@ final class GameViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        // Typing a name can leave the page pushed up once the keyboard has gone: put it back.
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardDidHide),
+                                               name: UIResponder.keyboardDidHideNotification, object: nil)
         loadGame()
+    }
+
+    @objc private func keyboardDidHide() {
+        webView?.scrollView.setContentOffset(.zero, animated: false)
+    }
+
+    /// The phone is short of memory: the game lets go of the songs it isn't playing, so iOS is less likely to close it.
+    override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+        webView?.evaluateJavaScript("window.dispatchEvent(new Event('nativememory'));", completionHandler: nil)
     }
 
     private func loadGame() {
@@ -97,6 +114,11 @@ final class GameViewController: UIViewController {
         return true
     }
 
+    // The home bar fades out while playing; it comes back with a touch near it.
+    override var prefersHomeIndicatorAutoHidden: Bool {
+        return true
+    }
+
     // Swipes are part of the controls, so a swipe from the screen edge goes to the game first (a second swipe goes home).
     override var preferredScreenEdgesDeferringSystemGestures: UIRectEdge {
         return [.top, .bottom]
@@ -125,6 +147,11 @@ extension GameViewController: WKNavigationDelegate {
             UIApplication.shared.open(url)
         }
         decisionHandler(.cancel)
+    }
+
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        // The game is a fixed screen: no pinch zoom.
+        webView.scrollView.pinchGestureRecognizer?.isEnabled = false
     }
 
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
