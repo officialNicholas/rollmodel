@@ -1,0 +1,78 @@
+/* ===== (v254) Showdown ===== */
+:root{--fox:#19C9A6;--fox-hi:#7FE8D3}
+/* the hearts across the top in place of the paint score: a face for each fighter, its hearts beneath */
+.hud.sdmode .vsrow{grid-template-columns:1fr}
+.hud.sdmode .vsrow .vsn,.hud.sdmode .vsrow .vsr,.hud.sdmode .tug{display:none}
+.hud.sdmode .vsrow .clock{justify-self:center}
+.sdbar{display:flex;align-items:flex-start;justify-content:center;gap:6px;margin:-1px -4px 0}
+.sdbar[hidden]{display:none}
+.sdc{position:relative;display:grid;justify-items:center;gap:2px;width:50px;min-width:0}
+.sdc .bico{width:34px;height:34px;border-width:2.5px;transition:filter .3s,opacity .3s,transform .3s}
+.sdc.me .bico{box-shadow:0 0 0 2.5px var(--c),0 0 0 4.5px var(--black)}
+.sdc.ally .bico{box-shadow:0 0 0 2px var(--c)}
+.sdh{display:flex;gap:1px;height:13px}
+.sdh svg{width:14px;height:13px;fill:rgba(42,36,55,.25);stroke:#2A2437;stroke-width:2.2;stroke-linejoin:round;overflow:visible}
+.sdh svg.on{fill:#FF3B5C}
+.sdh svg.lose{animation:sdlose .7s cubic-bezier(.3,1.6,.5,1)}
+@keyframes sdlose{0%{transform:scale(1.9);fill:#fff}40%{transform:scale(.6) rotate(-14deg)}100%{transform:none}}
+.sdn{max-width:100%;font:800 9.5px/1 var(--font-ui);color:#2A2437;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sdc.me .sdn{color:var(--black)}
+.sdc.ko .bico{opacity:.55;transform:scale(.88)}
+.sdc.out .bico{filter:grayscale(1) brightness(.75);opacity:.6}
+.sdc.out .bico::after{content:"";position:absolute;inset:-3px;background:linear-gradient(45deg,transparent 44%,#E3122F 44% 56%,transparent 56%),linear-gradient(-45deg,transparent 44%,#E3122F 44% 56%,transparent 56%);filter:drop-shadow(0 0 1px #171320) drop-shadow(0 0 1px #171320)}
+.sdc.out .sdh,.sdc.out .sdn{opacity:.45}
+.sdc.watch .bico{animation:sdwatch 1s ease-in-out infinite alternate}
+@keyframes sdwatch{to{transform:scale(1.1)}}
+.sdvs{align-self:center;margin:-10px 1px 0;font:900 15px/1 var(--font-head);font-style:italic;color:#E3122F;text-shadow:.06em .06em 0 var(--black)}
+.hud.sdmode .score{width:min(100%,300px)}
+@media (max-width:374px){.sdc{width:44px}.sdc .bico{width:30px;height:30px}.sdh svg{width:12px;height:11px}}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.sdc .bico{width:28px;height:28px}.sdn{display:none}.sdbar{gap:4px}}
+/* out of it: watching someone still in it; the controls are put away */
+.hud.spec .slamBtn,.hud.spec .itemBtn,.hud.spec .tank,.hud.spec .chip.pw{display:none!important}
+.sdspec{position:absolute;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));z-index:7;transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:7px 8px 7px 16px;border:3px solid var(--line);border-radius:99px;background:rgba(23,19,32,.92);box-shadow:0 4px 0 var(--line);color:#fff;white-space:nowrap;pointer-events:auto}
+.sdspec[hidden]{display:none}
+.sdspec>span{display:grid;gap:2px;font:800 10px/1 var(--font-ui);letter-spacing:.12em;text-transform:uppercase;color:#D9D2F0}
+.sdspec b{font:900 18px/1 var(--font-head);font-style:italic;letter-spacing:0;text-transform:none;color:#fff}
+.sdspec button{appearance:none;margin:0;padding:9px 14px;border:0;border-radius:99px;background:var(--gold);box-shadow:0 0 0 2.5px var(--line),0 3px 0 var(--line);color:var(--black);font:900 14px/1 var(--font-head);font-style:italic;text-transform:uppercase;cursor:pointer}
+.sdspec button:active{transform:translateY(2px);box-shadow:0 0 0 2.5px var(--line),0 1px 0 var(--line)}
+.sdspec button{display:flex;align-items:center;gap:6px}
+.sdspec button svg{width:17px;height:12px;fill:currentColor}
+.sdspec.ff button,.sdspec button:disabled{opacity:1;background:#fff;cursor:default;transform:none}
+.sdspec.ff button svg{animation:sdff .6s steps(2,jump-none) infinite}
+@keyframes sdff{from{opacity:1}to{opacity:.3}}
+/* a third rival off screen */
+.foeptr.three i{background:var(--fox)}
+/* the knock-out flood when that was your last heart */
+.kof.elim .kofn{font-size:.62em;letter-spacing:-.02em}
+/* tags: each fighter's hearts hang under its name; a teammate's tag says so above it */
+.ntag .nth{position:absolute;left:50%;bottom:-9px;z-index:2;display:flex;gap:1px;transform:translateX(-50%)}
+.ntag .nth svg{width:11px;height:10px;fill:#FF3B5C;stroke:#171320;stroke-width:2.6;stroke-linejoin:round;overflow:visible}
+.ntag .nth svg.off{fill:rgba(255,255,255,.3)}
+.ntag .nth:empty{display:none}
+.ntag.ally::before{content:"Teammate";position:absolute;left:14px;top:-9px;z-index:2;font:900 8.5px/1 var(--font-ui);letter-spacing:.12em;text-transform:uppercase;color:var(--tc);text-shadow:0 1px 0 #171320,1px 0 0 #171320,-1px 0 0 #171320,0 -1px 0 #171320}
+/* the fight card for four: four columns wide, four rows upright */
+.vsx .vsrow.quad .vhead b{font-size:clamp(12px,3.6vw,22px)}
+.vsx .vsrow.quad .vcol .vbox{width:200%}
+@media (min-aspect-ratio:1/1){.vsx .vsrow.quad .vcol .vbox{width:84%;top:16%}}
+.vsrow.rows.quad .vhead b{font-size:clamp(15px,5vw,24px)}
+.vsrow.rows .vcol.foe3 .vhead{left:auto;right:0;justify-items:end;text-align:right;border-radius:0 0 0 14px;padding:9px 14px 8px 18px}
+.vsrow.rows .vcol.foe3{animation-name:rowinr}
+.vcol.foe3{animation-delay:.24s}
+.vcol.ally{animation-delay:.08s}
+.vsrow.duo .vcol.ally+.vcol.foe{box-shadow:-6px 0 0 #E3122F,-12px 0 14px rgba(0,0,0,.45)}
+.vsrow.rows.duo .vcol.ally+.vcol.foe{box-shadow:0 -6px 0 #E3122F,0 -12px 14px rgba(0,0,0,.45)}
+/* the results for a Showdown: where each finished, knock-outs, self-eliminations, hearts left */
+.board.sd{--cols:24px 40px minmax(0,1fr) 54px 54px}
+.sheet .board.sd{--cols:22px 30px minmax(0,1fr) 50px 54px}
+#end.sd .board .bhead{display:grid;margin:0 0 -3px;color:#B8B0C8;font-size:10px}
+#end.sd .board .bhead span:last-child{text-align:center}
+#end.sd .board .bhead span,.board.sd .medal{text-transform:none;letter-spacing:.03em}
+.board.sd .bhp{display:flex;align-items:center;gap:4px;min-height:12px}
+.board.sd .bhp svg{width:13px;height:12px;fill:#FF3B5C;stroke:var(--line);stroke-width:2.4;stroke-linejoin:round;overflow:visible}
+.board.sd .bhp em{font:800 10px/1 var(--font-ui);font-style:normal;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.board.sd .bhp .medal{margin-left:2px}
+.bko.bself svg{fill:#CFC6E8}
+#end.sd .judge{display:none}
+#end.sd .board[hidden]{display:grid}
+/* the event card: Showdown's two ways to play */
+#evShowPick button b{font-size:18px}
