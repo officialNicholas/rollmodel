@@ -56,7 +56,7 @@ var FL = (() => {
     const g = new THREE.Group(); g.add(body, lid); return { g, body, lid };
   }
   // the floor, the puddle and every splat on it, and the soft shadows: one surface, one draw
-  const FLOOR_FS = `uniform vec3 uCol; uniform float uPearl, uT, uR, uMR; uniform vec2 uC, uM, uSpot; uniform vec3 uSpl[24]; uniform vec4 uRip[4]; uniform vec4 uHole; uniform vec3 uKey; uniform vec4 uShB; uniform vec2 uShD; uniform vec4 uShC;
+  const FLOOR_FS = `uniform vec3 uCol; uniform float uPearl, uT, uR, uMR; uniform vec2 uC, uM, uSpot; uniform vec3 uSpl[24]; uniform vec4 uRip[4]; uniform vec4 uHole; uniform vec3 uKey; uniform vec4 uShB; uniform vec2 uShD; uniform vec4 uShC; uniform int uN;
 varying vec3 vW;
 float hs(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(hs(i), hs(i + vec2(1.0, 0.0)), f.x), mix(hs(i + vec2(0.0, 1.0)), hs(i + vec2(1.0, 1.0)), f.x), f.y); }
@@ -65,7 +65,7 @@ float field(vec2 p){
   float f = 9.0;
   if (uR > 0.001) { vec2 q = p - uC; float a = atan(q.y, q.x); float w = 0.05 * sin(a * 5.0 + uT * 0.9) + 0.03 * sin(a * 9.0 - uT * 1.3) + 0.05 * (vn(q * 2.6 + uT * 0.15) - 0.5); f = length(q) - uR * (1.0 + w); }
   if (uMR > 0.001) f = smin(f, length(p - uM) - uMR, 0.3);
-  for (int i = 0; i < 24; i++) { vec3 s = uSpl[i]; if (s.z > 0.0) { vec2 q = p - s.xy; float d = length(q) * (1.0 + 0.22 * sin(atan(q.y, q.x) * 5.0 + float(i) * 2.1)) - s.z; f = smin(f, d, 0.035); } }
+  for (int i = 0; i < 24; i++) { if (i >= uN) break; vec3 s = uSpl[i]; if (s.z > 0.0) { vec2 q = p - s.xy; float d = length(q) * (1.0 + 0.22 * sin(atan(q.y, q.x) * 5.0 + float(i) * 2.1)) - s.z; f = smin(f, d, 0.035); } }
   return f;
 }
 float height(vec2 p, float f){
@@ -75,7 +75,8 @@ float height(vec2 p, float f){
   return h;
 }
 void main(){
-  vec2 p = vW.xz;
+  vec2 p = vW.xz; float f = field(p), dS = length((p - uSpot) * vec2(1.0, 1.15)), spot = smoothstep(3.4, 0.15, dS); spot *= spot; vec3 col = vec3(0.0);
+  if (f > -0.03) {
   // dark old boards
   float bw = 0.26, row = floor(p.y / bw), off = hs(vec2(row, 3.0)) * 4.0, seg = floor((p.x + off) / 1.7), id = hs(vec2(row, seg));
   vec2 lp = vec2(fract((p.x + off) / 1.7), fract(p.y / bw));
@@ -84,18 +85,15 @@ void main(){
   wood *= 0.4 + 0.6 * smoothstep(0.0, 0.04, lp.y) * smoothstep(1.0, 0.96, lp.y) * smoothstep(0.0, 0.006, lp.x) * smoothstep(1.0, 0.994, lp.x);
   // old paint, long dried
   { vec2 sc = floor(p * 2.2); float hh = hs(sc + 7.0); if (hh > 0.9) { vec2 o = (vec2(hs(sc + 1.0), hs(sc + 2.0)) - 0.5) * 0.3; float d = length(fract(p * 2.2) - 0.5 - o) * (1.0 + 0.3 * sin(atan(p.y, p.x) * 7.0 + hh * 40.0)); vec3 pc = 0.5 + 0.5 * cos(6.2832 * (hh * 3.0 + vec3(0.0, 0.33, 0.67))); wood = mix(wood, pc * wood * 2.2, smoothstep(0.09, 0.07, d) * 0.55); } }
-  float dS = length((p - uSpot) * vec2(1.0, 1.15)), spot = smoothstep(3.4, 0.15, dS); spot *= spot;
-  vec3 col = wood * (0.035 + 1.15 * spot);
+  col = wood * (0.035 + 1.15 * spot);
   // shadows: the barrel (a soft capsule along its length) and the character
   { vec2 a = uShB.xy, b = uShB.xy + uShD * uShB.z, pa = p - a, ba = b - a; float hh = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-4), 0.0, 1.0); float d = length(pa - ba * hh); col *= 1.0 - 0.72 * smoothstep(uShB.w + 0.22, uShB.w - 0.12, d); }
   if (uShC.w > 0.0) { float d = length(p - uShC.xy); col *= 1.0 - 0.6 * uShC.w * smoothstep(uShC.z * 1.5, uShC.z * 0.3, d); }
+  }
   // the paint
-  float f = field(p);
   if (f < 0.03) {
-    float h = height(p, f), e = 0.006;
-    float hx = height(p + vec2(e, 0.0), field(p + vec2(e, 0.0))) - height(p - vec2(e, 0.0), field(p - vec2(e, 0.0)));
-    float hz = height(p + vec2(0.0, e), field(p + vec2(0.0, e))) - height(p - vec2(0.0, e), field(p - vec2(0.0, e)));
-    vec3 n = normalize(vec3(-hx / (2.0 * e) * 0.09, 1.0, -hz / (2.0 * e) * 0.09));
+    // (the paint's surface: its height once, its slope from the screen-space change across the pixel, so one evaluation of the field)
+    float h = height(p, f); vec3 S = vec3(vW.x, h * 0.09, vW.z); vec3 n = normalize(cross(dFdx(S), dFdy(S))); if (n.y < 0.0) n = -n;
     vec3 v = normalize(cameraPosition - vW), L = normalize(uKey), hv = normalize(L + v);
     vec3 ir = 0.5 + 0.5 * cos(6.2832 * (vec3(0.0, 0.33, 0.67) + dot(n.xz, vec2(2.2, 1.4)) + p.x * 0.5 + uT * 0.04));
     vec3 base = mix(uCol, mix(vec3(0.78, 0.74, 0.86), ir * 0.85 + 0.15, 0.32), uPearl);
@@ -107,14 +105,14 @@ void main(){
     float aa = fwidth(f) * 1.2 + 0.002; col = mix(col, pc, smoothstep(aa, -aa, f));
     col = mix(col, col * 0.5, smoothstep(0.03, 0.0, f) * smoothstep(-0.02, 0.005, f) * 0.6);
   }
-  col = mix(vec3(0.02, 0.012, 0.034), col, smoothstep(5.0, 2.6, length(p - uSpot)));
+  col = mix(vec3(0.038, 0.026, 0.058), col, smoothstep(4.6, 2.4, length(p - uSpot)));
   gl_FragColor = vec4(col, 1.0);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
 }`;
   function makeFloor() {
     const U = { uCol: { value: PEARL.clone() }, uPearl: { value: 1 }, uT: { value: 0 }, uR: { value: 0 }, uMR: { value: 0 }, uC: { value: new THREE.Vector2(C0.x, C0.z) }, uM: { value: new THREE.Vector2() }, uSpot: { value: new THREE.Vector2(0.15, 0.25) },
-      uSpl: { value: Array.from({ length: 24 }, () => new V3()) }, uRip: { value: Array.from({ length: 4 }, () => new THREE.Vector4()) }, uHole: { value: new THREE.Vector4() }, uKey: { value: new V3(-0.4, 0.8, 0.45) },
+      uSpl: { value: Array.from({ length: 24 }, () => new V3()) }, uN: { value: 0 }, uRip: { value: Array.from({ length: 4 }, () => new THREE.Vector4()) }, uHole: { value: new THREE.Vector4() }, uKey: { value: new V3(-0.4, 0.8, 0.45) },
       uShB: { value: new THREE.Vector4(BR.base.x, BR.base.z, 0, 0.36) }, uShD: { value: new THREE.Vector2(1, 0) }, uShC: { value: new THREE.Vector4() } };
     const m = new THREE.Mesh(new THREE.PlaneGeometry(40, 40).rotateX(-Math.PI / 2), new THREE.ShaderMaterial({ uniforms: U, extensions: { derivatives: true },
       vertexShader: 'varying vec3 vW; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }', fragmentShader: FLOOR_FS }));
@@ -163,13 +161,14 @@ void main(){ if (vS < uCut) discard; vec3 n = normalize(vN), v = normalize(camer
   }
   const BG_FS = `uniform float uT; uniform vec2 uRes; varying vec2 vUv;
 float hs(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
-void main(){ vec2 p = vUv; vec3 c = mix(vec3(0.008, 0.005, 0.016), vec3(0.035, 0.02, 0.06), smoothstep(0.3, 1.0, p.y));
+void main(){ vec2 p = vUv; vec3 c = mix(vec3(0.038, 0.026, 0.058), vec3(0.058, 0.038, 0.088), smoothstep(0.8, 1.05, p.y));
   c += vec3(0.22, 0.17, 0.3) * exp(-dot((p - vec2(0.5, 1.08)) * vec2(1.5, 1.0), (p - vec2(0.5, 1.08)) * vec2(1.5, 1.0)) * 3.5) * 0.12;
-  for (int i = 0; i < 8; i++) { float fi = float(i); vec2 o = vec2(fract(hs(vec2(fi, 1.0)) + uT * 0.003 * (1.0 + fi * 0.2)), 0.4 + 0.55 * hs(vec2(fi, 2.0))); vec2 d = (p - o) * vec2(uRes.x / uRes.y, 1.0); float r = 0.025 + 0.035 * hs(vec2(fi, 3.0));
+  for (int i = 0; i < 4; i++) { float fi = float(i) * 2.0; vec2 o = vec2(fract(hs(vec2(fi, 1.0)) + uT * 0.003 * (1.0 + fi * 0.2)), 0.4 + 0.55 * hs(vec2(fi, 2.0))); vec2 d = (p - o) * vec2(uRes.x / uRes.y, 1.0); float r = 0.025 + 0.035 * hs(vec2(fi, 3.0));
     vec3 bc = 0.5 + 0.5 * cos(6.2832 * (fi * 0.17 + vec3(0.0, 0.33, 0.67))); c += bc * smoothstep(r, r * 0.55, length(d)) * 0.012 * (0.6 + 0.4 * sin(uT * 0.5 + fi)); }
   c *= 0.55 + 0.45 * smoothstep(1.25, 0.35, length((p - 0.5) * vec2(1.1, 1.0)));
   c += (hs(p * uRes + fract(uT)) - 0.5) * 0.01;
   gl_FragColor = vec4(c, 1.0);
+  #include <tonemapping_fragment>
   #include <colorspace_fragment>
 }`;
   function build() {
@@ -213,7 +212,7 @@ void main(){ vec2 p = vUv; vec3 c = mix(vec3(0.008, 0.005, 0.016), vec3(0.035, 0
     paint: () => ({ t: new V3(X.ch.x - 0.05, 0.08, X.ch.z), r: 0.72, yaw: 0.06, p: 0.44, k: 1.6 }),
     form: () => ({ t: new V3((C0.x + LAND.x) / 2, 0.32, (C0.z + LAND.z) / 2), r: 0.95, yaw: 0.05, p: 0.36, k: 2.2 }),
     name: () => ({ t: new V3(LAND.x, 0.3, LAND.z), r: 0.5, yaw: -0.12, p: 0.2, k: 1.8 }),
-    exit: () => ({ t: new V3(LAND.x + 0.4, 0.35, LAND.z), r: 0.8, yaw: -0.08, p: 0.2, k: 1.4 }),
+    exit: () => ({ t: new V3(LAND.x + 0.5, 0.3, LAND.z - 0.4), r: 1.05, yaw: -0.05, p: 0.22, k: 1.2 }),
   };
   function shot(k, snap) { X.shot = SHOTS[k](); X.shotK = k; if (snap) { const c = X.cs, s = X.shot; c.t.copy(s.t); c.r = s.r; c.yaw = s.yaw; c.p = s.p; } }
   let freeAt = 0, free = null;
@@ -238,7 +237,7 @@ void main(){ vec2 p = vUv; vec3 c = mix(vec3(0.008, 0.005, 0.016), vec3(0.035, 0
   }
   // ---- drops and splats ----
   function spawn(p, v, r, col) { const D = X.drop; if (D.length >= DROPS) D.shift(); D.push({ p: p.clone(), v: v.clone(), r, c: (col || X.paint).clone(), life: 3 }); }
-  function splat(x, z, r) { const S = X.floor.U.uSpl.value, i = X.spl++ % S.length; S[i].set(x, z, r); }
+  function splat(x, z, r) { const S = X.floor.U.uSpl.value, i = X.spl++ % S.length; S[i].set(x, z, r); X.floor.U.uN.value = Math.min(S.length, X.spl); }
   function ripple(x, z, amp) { const R = X.floor.U.uRip.value, i = X.rip++ % R.length; R[i].set(x, z, X.t, amp); }
   const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new V3(), _up = new V3(0, 1, 0), _d = new V3();
   function dropsTick(dt) {
@@ -338,7 +337,7 @@ void main(){ vec2 p = vUv; vec3 c = mix(vec3(0.008, 0.005, 0.016), vec3(0.035, 0
     if (X.ph === 'wait') { tiltAt(0); return; }
     if (X.ph === 'barrel') {
       // it rocks one way, the other, harder, and over it goes
-      const W = [[0.5, 1.12, -0.11], [1.12, 1.74, 0.13], [1.74, 2.36, -0.17]]; let a = 0;
+      const W = [[0.5, 1.12, -0.14], [1.12, 1.74, 0.17], [1.74, 2.36, -0.22]]; let a = 0;
       for (const [s, e, m] of W) if (t >= s && t < e) a = m * Math.sin(Math.PI * (t - s) / (e - s));
       if (t >= 2.5 && t < 3.12) a = (Math.PI / 2) * eIn((t - 2.5) / 0.62);
       if (t >= 3.12) { const u = t - 3.12; a = Math.PI / 2 - 0.16 * Math.abs(Math.sin(u * 9)) * Math.exp(-u * 5.5); }
@@ -389,7 +388,7 @@ void main(){ vec2 p = vUv; vec3 c = mix(vec3(0.008, 0.005, 0.016), vec3(0.035, 0
       if (once('w')) { I.face && I.face('smirk', Math.max(1.4, jumpAt - 0.1)); }
       if (t >= 0.2 && once('tw')) { snd('sparkle', 0.9); twinkle(); }
       if (t < jumpAt) { c.x = LAND.x; c.z = LAND.z; c.y = PR; wy = 0; wp = 0.1; if (t > jumpAt - 0.22) c.sq = 0.35 * Math.sin((t - jumpAt + 0.22) / 0.22 * Math.PI); }
-      else { const u = (t - jumpAt) / 0.7, H = 1.1; c.yaw += (Math.PI / 2 - c.yaw) * Math.min(1, dt * 12); c.x = LAND.x + u * 3.4; c.z = LAND.z - u * 0.4; c.h = 4 * H * u * (1 - u) + Math.max(0, u - 1) * 0.0; c.y = PR + Math.max(0, c.h); c.vy = 4 * H * (1 - 2 * u) / 0.7; c.air = true; c.rise = 0.5;
+      else { const u = (t - jumpAt) / 0.75, H = 0.95; c.yaw += (2.2 - c.yaw) * Math.min(1, dt * 10); c.x = LAND.x + u * 2.9; c.z = LAND.z - u * 2.2; c.h = 4 * H * u * (1 - u); c.y = PR + Math.max(-0.6, c.h); c.vy = 4 * H * (1 - 2 * u) / 0.75; c.air = true; c.rise = 0.5;
         if (once('j')) { AU.jump && AU.jump(); AU.vox && AU.vox('whee', 0.8); } }
       if (t >= irisAt && once('iris')) handoff();
     }
@@ -397,7 +396,7 @@ void main(){ vec2 p = vUv; vec3 c = mix(vec3(0.008, 0.005, 0.016), vec3(0.035, 0
     // the paint's colour, easing to the one picked
     if (X.paintTo) { X.paint.lerp(X.paintTo, Math.min(1, dt * 5)); X.pearl += (X.pearlTo - X.pearl) * Math.min(1, dt * 4); }
   }
-  const eyeY = () => -0.17; // (sunk to its eyes: the top of its head, its eyes and its ears out of the paint)
+  const eyeY = () => -0.3; // (sunk to its eyes: the top of its head, its eyes and its ears out of the paint)
   function tiltAt(a) {
     // the barrel rocks on the edge of its base it leans toward (lying down, it rests on its widest part)
     const B = X.barrel.g, sg = a >= 0 ? 1 : -1, piv = BR.base.clone().addScaledVector(TIP, sg * BR.Rb);
@@ -489,6 +488,6 @@ void main(){ vec2 p = vUv; vec3 c = mix(vec3(0.008, 0.005, 0.016), vec3(0.035, 0
   api.after = after;
   api.busy = () => api.live || !!api.jin;
   api.go = ph => go(ph); // (for tests: straight to a phase)
-  api.peek = () => X ? { ph: X.ph, pt: X.pt, t: X.t, drops: X.drop.length, calls: renderer.info.render.calls, tris: renderer.info.render.triangles } : null; // (for tests: where it's got to)
+  api.peek = () => X ? { ph: X.ph, pt: X.pt, t: X.t, hit: X.hitIn || 0, lay: AU.flm ? AU.flm.lay : 0, drops: X.drop.length, calls: renderer.info.render.calls, tris: renderer.info.render.triangles } : null; // (for tests: where it's got to)
   return api;
 })();
