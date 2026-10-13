@@ -3075,7 +3075,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 251</p>
+      <p class="ver">Version 252</p>
     </div>
   </div>
 
@@ -8943,7 +8943,7 @@ class Animator {
         _q2.setFromUnitVectors(this.gillDownRest[j], _v); if (k < 0.999) _q2.slerp(_q.identity(), 1 - k); pose.q[i1].multiply(_q2); } }
     const cm = hold, lo = 0.4;   // (one head in both states: the same gills, the same motion)
     const stalkAmp = [cm, 0.9 * cm, lo * cm, cm, 0.9 * cm, lo * cm];
-    for (let j = 0; j < 6; j++) { const a = gs[j * 2] * stalkAmp[j], b = gs[j * 2 + 1] * stalkAmp[j]; rot(pose, g[j * 2], a * 0.55, 0, b * 0.55); rot(pose, g[j * 2 + 1], a * 0.7, 0, b * 0.7); }
+    const gt = this.gsTip || gs; for (let j = 0; j < 6; j++) { const m = stalkAmp[j], a = gs[j * 2] * m, b = gs[j * 2 + 1] * m, a2 = gt[j * 2] * m, b2 = gt[j * 2 + 1] * m; rot(pose, g[j * 2], a * 0.5, 0, b * 0.42); rot(pose, g[j * 2 + 1], a2 * 0.8, 0, b2 * 0.98); } // (v252: the tips trail the roots on a slower spring of their own, so a stalk curves through a swing instead of turning stiff)
   }
   kickGills(x, y) { const r = 0.85 + 0.15 * Math.random(); for (let j = 0; j < 6; j++) { const k = j % 3 === 2 ? 0.8 : 1; this.gillPush[j * 2] += y * 170 * r * k; this.gillPush[j * 2 + 1] += x * 170 * k; } }
   // the soft-body jelly layer and the swap's dissolve, written into the look's uniforms (both meshes share them)
@@ -8997,14 +8997,14 @@ const LIMB = [{ en: 'hand.L', off: 0, m: 1, arm: true }, { en: 'foot.R', off: 0.
 // spend less of each step on the ground, so at speed they kick through quickly while the hands take long reaching strides)
 const GAIT = { handX: 0.4, handZ: 0.035, footX: 0.29, footZ: -0.8, reachH: 0.27, reachF: 0.15, sweepF: 0.28, sMax: 0.64, fMax: 4.7, fMin: 1.6 };
 const frac = x => x - Math.floor(x);
-const SLITHER = { on: 3.8, off: 2.8, after: 0.35, T0: 1.75, T1: 1.4 }; // (T0 / T1: a stroke cycle's length in seconds, just up to speed / at full tilt)
+const SLITHER = { on: 3.5, off: 2.6, after: 0.14, T0: 1.6, T1: 1.3 }; // (v252: into the swim sooner once up to speed, the scurry before it short) // (T0 / T1: a stroke cycle's length in seconds, just up to speed / at full tilt)
 // one stroke cycle, u from 0 to 1: both hands pull it forward (0 to 0.25: the hands sweep back along the ground, the feet kick back), it
 // glides with everything along its sides (to 0.55), slows a touch and crawls two steps (a hand and the opposite foot, then the other
 // pair, each reaching forward and taking hold), and pulls again. Each limb's marks through the cycle: [u, mark, swing (lifted over)]
-const SWK = { arm: { F: [0.26, 0, 0.18, 0], G: [0.27, 0, 0.09, 0], M: [0.28, 0, 0.0, 0], B: [0.2, 0.012, -0.16, 0], T: [0.05, 0.045, -0.25, 1] }, // [out, up, along, tucked]
-  leg: { F: [0.17, 0, 0.06, 0], M: [0.18, 0, -0.06, 0], B: [0.1, 0.02, -0.24, 0], T: [0.035, 0.035, -0.28, 1] } };
-const SWT = { 'hand.R': [[0, 'M', 0, 1], [0.15, 'B', 0, 1], [0.25, 'T'], [0.55, 'T'], [0.68, 'F', 1], [1, 'M', 0, 1]], 'hand.L': [[0, 'G', 0, 1], [0.17, 'B', 0, 1], [0.27, 'T'], [0.7, 'T'], [0.83, 'F', 1], [1, 'G', 0, 1]],
-  'foot.L': [[0, 'M', 0, 1], [0.14, 'B', 0, 1], [0.25, 'T'], [0.56, 'T'], [0.69, 'F', 1], [1, 'M', 0, 1]], 'foot.R': [[0, 'M', 0, 1], [0.14, 'B', 0, 1], [0.25, 'T'], [0.71, 'T'], [0.84, 'F', 1], [1, 'M', 0, 1]] };
+const SWK = { arm: { R: [0.25, 0, 0.17, 0], P: [0.31, 0, -0.01, 0], B: [0.18, 0.012, -0.17, 0], T: [0.05, 0.045, -0.25, 1], C: [0.09, 0.03, 0.03, 0.45] }, // [out, up, along, tucked] (v252: reach, pull, back, tucked, coming forward)
+  leg: { R: [0.17, 0, 0.05, 0], P: [0.2, 0, -0.1, 0], B: [0.1, 0.02, -0.24, 0], T: [0.035, 0.035, -0.28, 1], C: [0.08, 0.03, -0.07, 0.45] } };
+const SWT = { 'hand.R': [[0, 'R', 0, 1], [0.12, 'P', 0, 1], [0.22, 'B', 0, 1], [0.3, 'T'], [0.64, 'T'], [0.84, 'C', 1, 1], [1, 'R', 0, 1]], 'hand.L': [[0, 'R', 0, 1], [0.13, 'P', 0, 1], [0.23, 'B', 0, 1], [0.31, 'T'], [0.65, 'T'], [0.85, 'C', 1, 1], [1, 'R', 0, 1]],
+  'foot.L': [[0, 'R', 0, 1], [0.1, 'P', 0, 1], [0.2, 'B', 0, 1], [0.29, 'T'], [0.68, 'T'], [0.87, 'C', 1, 1], [1, 'R', 0, 1]], 'foot.R': [[0, 'R', 0, 1], [0.11, 'P', 0, 1], [0.21, 'B', 0, 1], [0.3, 'T'], [0.69, 'T'], [0.88, 'C', 1, 1], [1, 'R', 0, 1]] };
 // the stroke's pace, for the game to move the blob by: a short slow beat as the limbs come out to reach, a surge through the pull, a touch
 // fast through the glide, a touch slow through the steps; scaled to average exactly 1 over the cycle, so the distance covered is unchanged
 const SWP = (() => { const k = [[0, 0.8], [0.12, 1.38], [0.26, 1.15], [0.45, 1.03], [0.6, 0.95], [0.82, 0.93], [0.92, 0.72]], n = k.length;
@@ -9027,16 +9027,19 @@ const spr = (s, target, k, c, dt) => { const h = Math.min(dt, 1 / 30); s.v += (k
 const AXX = new THREE.Vector3(1, 0, 0), LQ2 = new THREE.Quaternion(), LQ3 = new THREE.Quaternion();
 const AXY = new THREE.Vector3(0, 1, 0);
 Animator.prototype.rollTurn = function (pose, i, a) { if (!a) return; const F = LQ2.copy(this.P.frames(pose)[i]).normalize(); LQ.setFromAxisAngle(AXY, a); LQ3.copy(F).invert().multiply(LQ).multiply(F); pose.q[i].multiply(LQ3).normalize(); }; // (a twist about the bone's own length)
-Animator.prototype.shake = function (k) { const L = this.loco || this.initLoco(); L.shk = { t: 0, k: k === undefined ? 1 : k }; };
+Animator.prototype.shake = function (k) { const L = this.loco || this.initLoco(); L.shk = { t: 0, k: k === undefined ? 1 : k }; if (this.look2 && this.look2.face) this.look2.face('shake', 0.92); };
 // the shake: a fast twist about its length, a wave from the head back to the tail tip, over most of a second
 Animator.prototype.stepShake = function (out, dt) {
-  const L = this.loco, K = L && L.shk; if (!K) return; K.t += dt; const T = 0.9; if (K.t >= T) { L.shk = null; return; }
+  const L = this.loco, K = L && L.shk; if (!K) return; K.t += dt; const T = 0.9; if (K.t >= T) { L.shk = null; this.kickGills(0, -0.45); if (this.look2 && this.look2.face) this.look2.face('content', 0.75); return; }
   const u = K.t / T, env = Math.sin(Math.min(1, u * 4) * Math.PI / 2) * Math.pow(1 - u, 1.3) * K.k, w = 2 * Math.PI * 9.5 * K.t, I = this.I, sp = this.chain.spine, tl = this.chain.tail;
   const tw = (i, A, lag) => this.rollTurn(out, i, A * env * Math.sin(w - lag) * Math.PI / 180);
   tw(I.head, 17, 0); tw(sp[4], 11, 0.35); tw(sp[3], 8, 0.7); tw(sp[2], 5, 1.05); tw(sp[1], 3.5, 1.4); tw(sp[0], 2, 1.75);
   for (let k = 0; k < 6; k++) tw(tl[k], 6 + 1.6 * k, 2.1 + 0.5 * k);
   this.worldTurn(out, I.head, 7 * env * Math.sin(w - 0.2), 0); this.worldTurn(out, sp[4], 4 * env * Math.sin(w - 0.55), 0); // (and the head wags, so it reads from above)
   out.root.y -= 0.03 * env; // (it drops a touch into it)
+  // (v252) the ears flop about with it: whipped round after the head, the tips furthest and latest, flapping up and back twice as fast
+  { const g = this.chain.gills; for (let j = 0; j < 6; j++) { const sd = j < 3 ? -1 : 1, m = j % 3 === 2 ? 0.55 : 1, s1 = Math.sin(w - 1.3), s2 = Math.sin(w - 2.1), f2 = Math.sin(2 * w - 0.9);
+      rot(out, g[j * 2], (16 + 14 * f2) * env * m, 0, (30 * s1 + sd * 12 * Math.abs(s1)) * env * m); rot(out, g[j * 2 + 1], (12 + 22 * f2) * env * m, 0, (44 * s2) * env * m); } }
 };
 Animator.prototype.pitchTurn = function (pose, i, a) { if (!a) return; const F = LQ2.copy(this.P.frames(pose)[i]).normalize(); LQ.setFromAxisAngle(AXX, a); LQ3.copy(F).invert().multiply(LQ).multiply(F); pose.q[i].multiply(LQ3).normalize(); };
 Animator.prototype.initLoco = function () {
@@ -9078,7 +9081,7 @@ Animator.prototype.crawl = function (t, out, dt) {
     const want = ok && (SL.on ? vc > SLITHER.off : SL.hold > SLITHER.after);
     if (want && !SL.on) { SL.on = true; if (SL.k < 0.05) { SL.u = 0.86; SL.first = 1; } } // (in from the crawl: it reaches forward and takes hold, then the first pull)
     else if (!want && SL.on && (!ok || vc < 1.5 || (SL.u > 0.58 && SL.u < 0.9))) SL.on = false; // (slowing: it swims on into its crawl steps, and the crawl takes over from there)
-    SL.k += ((SL.on ? 1 : 0) - SL.k) * Math.min(1, dt * (SL.on ? 3.6 : 4.2)); }
+    SL.k += ((SL.on ? 1 : 0) - SL.k) * Math.min(1, dt * (SL.on ? 4.6 : 4.2)); }
   const sl = L.slK = smooth(SL.k);
   const pv = L.pv = clamp01(Math.abs(L.yr) / 1.6) * (1 - clamp01(L.vc / 2.5)) * on; // (a pivot: turning fast while hardly moving forward)
   // ---- the body's line (worked out before the limbs: they step from where it carries the shoulders and hips). A salamander's standing
@@ -9088,7 +9091,7 @@ Animator.prototype.crawl = function (t, out, dt) {
   const sp = this.chain.spine, c1 = Math.cos(2 * Math.PI * L.ph);
   const kap = L.yr / Math.max(L.vc, 1.3), spun = M.spin !== undefined, bend = L.bend = spr(L.bd, (spun ? 66 * Math.tanh(M.spin / 1.9) : Math.max(-78, Math.min(78, kap * 118))) * on, spun ? 48 : 55, spun ? 10 : 11, dt); /* (a deeper C round a turn) */
   L.tlg = spr(L.tg || (L.tg = { x: 0, v: 0 }), bend, 24, 4, dt);   // (the tail's own lag round a turn: it trails, then swings back past)
-  const amp = (12 + 28 * clamp01(v / 6.5)) * act * (1 - sl) * (1 - 0.7 * Math.min(1, Math.abs(bend) / 64)), Ap = 0.4 * amp, As = 0.6 * amp, hs = As * c1 * (1 - Math.min(1, Math.abs(bend) / 64));
+  const amp = (12 + 18 * clamp01(v / 6.5)) * act * (1 - sl) * (1 - 0.7 * Math.min(1, Math.abs(bend) / 64)), Ap = 0.4 * amp, As = 0.6 * amp, hs = As * c1 * (1 - Math.min(1, Math.abs(bend) / 64));
   const HT = spr(L.ht, (L.steer * 10 + Math.max(-8, Math.min(8, L.yr * 3))) * on, 75, 10, dt);
   const bU = bend * (1 - 0.6 * sl) * (1 + 0.3 * pv), Tc = 50 + 18 * pv, T = Tc * Math.tanh((-amp * c1 + bU * 0.92 + HT * 0.45 * (1 - 0.5 * sl)) / Tc); /* (pivoting, the trunk takes a deeper C) */
   this.worldTurn(out, I.hips, Ap * c1, 0);
@@ -9134,7 +9137,7 @@ Animator.prototype.crawl = function (t, out, dt) {
   { const pk = P.fk('crawl', out); for (const l of L.limbs) l.hb.set(l.home.x + pk[l.root].x - l.rr.x, l.home.y, l.home.z + pk[l.root].z - l.rr.z); }
   // ---- in the air: the push-off, the tuck, the reach for the ground
   if (air) {
-    if (!L.air) { L.air = true; L.airT = 0; L.lead = (L.steer > 0.2 ? 1 : L.steer < -0.2 ? -1 : -L.lead); for (const l of L.limbs) { l.held = l.st === 'stance'; l.st = 'air'; } L.arch.v += 60; }
+    if (!L.air) { L.air = true; L.airT = 0; L.lead = (L.steer > 0.2 ? 1 : L.steer < -0.2 ? -1 : -L.lead); for (const l of L.limbs) { l.held = l.st === 'stance'; l.st = 'air'; } L.arch.v += 60; if (!(this.ballOn > 0.2)) this.kickGills(0, 0.55); }
     L.airT += dt;
     const tl = M.tl === undefined ? 1 : M.tl, reachA = 1 - smooth(clamp01((tl - 0.03) / 0.21)), reachL = 1 - smooth(clamp01((tl - 0.02) / 0.15)), hgt = Math.max(0, M.h || 0), rising = (M.vy || 0) > 0.5;
     const pos = P.fk('crawl', out);
@@ -9161,7 +9164,7 @@ Animator.prototype.crawl = function (t, out, dt) {
     L.land = { t: 0, list: [[pick(true, true), 0], [pick(true, false), 0.075], [pick(false, false), 0.13], [pick(false, true), 0.18]].map(([l, d]) => ({ l, d: d * sc })) };
     for (const z of L.land.list) { const l = z.l; l.st = 'land'; l.p0.copy(l.p); }
     L.ph = frac(-L.land.list[0].l.off + 0.12 * L.D);
-    L.dip.v -= 44 * k; L.dipR.v += 40 * k * L.lead; L.landK = k; this.kickGills(0, 0.6 * k); /* (the ears slap down on landing) */
+    L.dip.v -= 44 * k; L.dipR.v += 40 * k * L.lead; L.landK = k; this.kickGills(0, -0.55 * k); /* (the ears slap down on landing) */
   }
   if (!air && L.land) {
     const Z = L.land; Z.t += dt; let done = true;
@@ -9223,6 +9226,9 @@ Animator.prototype.crawl = function (t, out, dt) {
   this.worldTurn(out, sp[3], 0, dipR * 0.12);
   if (air) { rot(out, sp[1], -7 - 3 * riseK + 9 * fallK, 0, 0); rot(out, sp[2], -6 - 2 * riseK + 7 * fallK, 0, 0); } /* (a touch more arch in the air) */
   // ---- the limbs on their marks (in the air the same marks steer them, with no ground under them)
+  // (v252) a wave: the right hand up off the floor beside the head, waving; the body leaning back off it onto the other three
+  const wv = L.wv = spr(L.wvS || (L.wvS = { x: 0, v: 0 }), air || sl > 0.1 ? 0 : clamp01(M.wave || 0), 120, 20, dt);
+  if (wv > 0.002) { out.root.x += 0.025 * wv; out.root.z -= 0.02 * wv; out.root.y += 0.012 * wv; this.pitchTurn(out, sp[3], -0.1 * wv); this.worldTurn(out, sp[2], 0, 4 * wv); }
   for (const l of L.limbs) {
     const LB = this.limbBind[l.arm ? 'arm' : 'leg'];
     let tp = l.p, lift = l.lift;
@@ -9234,14 +9240,16 @@ Animator.prototype.crawl = function (t, out, dt) {
       const ox = mk[0] + (l.arm ? 0.07 * inn * (1 - mk[3] * 0.5) + 0.06 * outr * (1 - mk[3]) : 0.03 * outr), oz = mk[2] + (l.arm ? 0.08 * inn : 0);
       q.set(pr.x + ox * l.m, l.home.y + mk[1] * (1 - (l.arm ? 0.75 * inn : 0)), pr.z + oz);
       q.lerpVectors(l.p, q, sl); tp = q; lift = lift * (1 - sl) + Math.max(tk, mk[4]) * sl; tk *= sl; }
-    { const r = Math.hypot(LB.fwd.x, LB.fwd.z), a0 = Math.atan2(LB.fwd.x, LB.fwd.z), a = a0 + (Math.PI - 0.08 - a0) * tk; out.contact(l.en, tp, LV2.set(l.m * Math.sin(a) * r, -0.35 * lift * (1 - tk), Math.cos(a) * r), LV3.set(LB.pole.x * l.m, LB.pole.y, LB.pole.z), 1); }
+    const wvk = l.en === 'hand.R' ? wv : 0; if (wvk > 0.002) { const pk = P.fk('crawl', out), sh = pk[l.root], q = l.wq || (l.wq = new THREE.Vector3()), sw = Math.sin(this.t * 2 * Math.PI * 2.4);
+      q.set(sh.x + l.m * (0.1 + 0.07 * sw), sh.y + 0.17 + 0.02 * Math.abs(sw), sh.z + 0.2); q.lerpVectors(tp, q, wvk); tp = q; lift = Math.max(lift, wvk); }
+    { const r = Math.hypot(LB.fwd.x, LB.fwd.z), a0 = Math.atan2(LB.fwd.x, LB.fwd.z), a = a0 + (Math.PI - 0.08 - a0) * tk; out.contact(l.en, tp, LV2.set(l.m * Math.sin(a) * r * (1 - wvk) + l.m * 0.2 * wvk, -0.35 * lift * (1 - tk) * (1 - wvk) + 0.85 * wvk, Math.cos(a) * r * (1 - wvk) + 0.5 * wvk), LV3.set(LB.pole.x * l.m, LB.pole.y, LB.pole.z), 1); }
     const dig = this.chain[l.arm ? 'fingers' : 'toes'][l.m > 0 ? 0 : 1], ns = 1 - tk; const sl0 = sl; { const sl = tk; // (along its sides: the fingers and toes closed together, nearly straight)
-    dig.forEach((g, k) => { rot(out, g[0], (4 + lift * 16 - (air ? 8 : 0)) * ns + 3 * sl, 0, (k - 1.5) * (5 + (air ? 5 : 0)) * l.m * ns - (k - 1.5) * 2 * l.m * sl); rot(out, g[1], (3 + l.lift * 12) * ns + 2 * sl, 0, 0); }); }
+    dig.forEach((g, k) => { rot(out, g[0], (4 + lift * 16 - (air ? 8 : 0)) * ns * (1 - wvk) + 3 * sl, 0, (k - 1.5) * (5 + (air ? 5 : 0) + 12 * wvk) * l.m * ns - (k - 1.5) * 2 * l.m * sl); rot(out, g[1], (3 + l.lift * 12) * ns * (1 - wvk) + 2 * sl, 0, 0); }); } // (v252: waving, the fingers spread and straight)
   }
   // the tail carries the wave on behind the hips
   this.tailWave(2 * Math.PI * L.ph + Math.PI * 0.85, ((4 + 15 * clamp01(v / 6.5)) * act + 1.5), 0.75, air ? -11 * riseK + 4 * (1 - riseK) + 5 * fallK : 0); // (the tail whipped down with the push-off, lifting through the flight, trailing up on the way down)
   if (sl > 0.001) { const tt = this.tailTarget, th = 4 * Math.PI * SL.u, env = 0.6 + 0.4 * SL.g; let up = 14 * env * Math.sin(th - 5 * 0.55); // (from the hips' own heading on)
-    for (let k = 0; k < 6; k++) { const a = (18 + 7 * k) * env * Math.sin(th - (6 + k) * 0.55); tt[k * 2] = tt[k * 2] * (1 - sl) + (a - up) * sl; tt[k * 2 + 1] *= 1 - sl; up = a; } }
+    for (let k = 0; k < 6; k++) { const a = (15 + 4.5 * k) * env * Math.sin(th - (6 + k) * 0.55); tt[k * 2] = tt[k * 2] * (1 - sl) + (a - up) * sl; tt[k * 2 + 1] *= 1 - sl; up = a; } }
   { const cc = L.tcurl = (L.tcurl || 0) + ((M.climbCurl || 0) - (L.tcurl || 0)) * Math.min(1, dt * 8), up = (L.tailUp || 0) - 0.4 * cc, tl = this.chain.tail; // (a positive pitch lifts a tail joint)
     if (Math.abs(up) > 0.005) { this.pitchTurn(out, tl[0], up * 0.85); this.pitchTurn(out, tl[1], up * 0.25); if (up > 0) { this.pitchTurn(out, tl[2], -up * 0.35); this.pitchTurn(out, tl[3], -up * 0.2); } } // (up over the rim, the far end draped back down)
     if (cc > 0.01) for (let k = 0; k < tl.length; k++) this.worldTurn(out, tl[k], (k ? 26 : 14) * cc, 0); } // (still in the tub: its tail curled round inside it, down in the paint) this.tailFree = 1; this.neck.amt = 0.7 - 0.3 * act;
@@ -9277,13 +9285,22 @@ Animator.prototype.crawl = function (t, out, dt) {
 { const ss0 = Animator.prototype.stepSecondary;
   Animator.prototype.stepSecondary = function (dt) {
     const L = this.loco; if (!this.gillSpring2) { this.gillSpring2 = 1; this.gillSpring.k = 75; this.gillSpring.c = 5; }
-    if (L) { const swing = Math.max(-1, Math.min(1, -(L.yr * Math.max(1.5, L.v) * 0.12 + L.ht.v * 0.012))), fl = (this.breath - 0.5) * 2;
+    if (L) { const swing = Math.max(-1.25, Math.min(1.25, -(L.yr * Math.max(1.5, L.v) * 0.14 + L.ht.v * 0.014))), fl = (this.breath - 0.5) * 2, M = this.motion;
+      // (v252) a hop: the ears lift back and out like wings from the push-off on, highest as it comes down; let go on landing, they slap down
+      const air = !!(M && M.air) && !(this.ballOn > 0.2), lift = (this.earUpF || (this.earUpF = new Follow(13))).step(air ? (M.vy || 0) < 0 ? 1.2 : 0.8 : 0, dt);
+      // (v252) shy: both ears swung forward and in over the eyes
+      const cov = (this.earCovF || (this.earCovF = new Follow(9))).step(clamp01(this.earCover || 0), dt);
       const add = this.gillAdd || (this.gillAdd = new Float32Array(12));
-      for (let j = 0; j < 6; j++) { add[j * 2] = -fl * 1.0 * (1 - L.act) + Math.min(1, L.v / 4) * 9; add[j * 2 + 1] = -swing * 24 + fl * 2 * (1 - L.act); } this.gillAddOn = true; } /* (the ears: hang back a little at a run and swing forward on a stop; both thrown to the outside of a turn) */
+      for (let j = 0; j < 6; j++) { const sd = j < 3 ? -1 : 1; add[j * 2] = -fl * 1.0 * (1 - L.act) + Math.min(1, L.v / 4) * 9 + 34 * lift - 62 * cov; add[j * 2 + 1] = -swing * 34 + fl * 2 * (1 - L.act) + sd * 24 * lift - sd * 30 * cov; } this.gillAddOn = true;
+      // (v252) now and then, still or strolling, one ear twitches: a quick flick up and out, and back
+      this.twT = (this.twT === undefined ? 2 + Math.random() * 4 : this.twT) - dt * (L.v < 2.5 ? 1 : 0.25);
+      if (this.twT <= 0) { this.twT = 2.2 + Math.random() * 5; const o = Math.random() < 0.5 ? 0 : 3, k = 0.55 + 0.45 * Math.random(); for (let j = o; j < o + 3; j++) { this.gillPush[j * 2] += 70 * k; this.gillPush[j * 2 + 1] += (o ? 1 : -1) * 80 * k; } } } /* (the ears: hang back a little at a run and swing forward on a stop; both thrown to the outside of a turn) */
     // the original computes the targets and steps the spring: the turn's swing goes in through the push the spring is given
     ss0.call(this, dt);
+    // (v252) the tips' own spring, slower than the roots': they trail a swing and run on past it
+    if (dt > 0) { const T = this.gsTip || (this.gsTip = Float32Array.from(this.gs)), V = this.gsTipV || (this.gsTipV = new Float32Array(12)), h = Math.min(dt, 1 / 30); for (let i = 0; i < 12; i++) { V[i] += (46 * (this.gs[i] - T[i]) - 4.6 * V[i]) * h; T[i] += V[i] * h; } }
     // the tail follows the body's bend round a turn (its spring lags it in and swings it back after)
-    if (L && this.state === 'crawl') this.tailLat += L.bend * (this.motion.spin !== undefined ? 0 : 0.22 + 0.2 * (L.slK || 0)) + (this.motion.spin !== undefined ? L.tlg * 0.27 : 0);
+    if (L && this.state === 'crawl') this.tailLat += L.bend * (this.motion.spin !== undefined ? 0 : 0.22 + 0.2 * (L.slK || 0)) + (this.motion.spin !== undefined ? L.tlg * 0.27 : 0) + this.rootVel.x * 40 * 0.8 * (L.slK || 0);
   };
   // the targets: wrapped so the added swing lands in the spring's target before it is stepped
   const SpringStep = Spring.prototype.step;
@@ -9293,6 +9310,12 @@ Animator.prototype.crawl = function (t, out, dt) {
 }
 }
 
+// (v252) standing still now and then it sniffs: three quick little nods of the nose
+{ const an0 = Animator.prototype.applyNeck;
+  Animator.prototype.applyNeck = function (pose) { an0.call(this, pose); const N = this.neck, dt = this.dt || 0;
+    N.snT = (N.snT === undefined ? 4 + Math.random() * 6 : N.snT) - (this.speedS < 0.2 && this.state === 'crawl' ? dt : 0); if (N.snT <= 0) { N.snT = 6 + Math.random() * 9; N.snU = 0; }
+    if (N.snU !== undefined && N.snU < 1) { N.snU += dt / 0.55; const u = Math.min(1, N.snU), a = 3.2 * Math.sin(u * Math.PI) * Math.sin(u * 3 * 2 * Math.PI); rot(pose, this.I.head, a, 0, 0); } };
+}
 // the shake, laid over the crawl's finished pose
 { const crawl0 = Animator.prototype.crawl;
   Animator.prototype.crawl = function (t, out, dt) { const r = crawl0.call(this, t, out, dt); this.stepShake(out, dt); return r; }; }
@@ -9322,9 +9345,10 @@ const EYE_COLS = { brown: { name: 'Brown', lin: [0.16, 0.06, 0.035], css: '#8A56
 const EYE_STYLES = { round: 'Round', edgy: 'Squid', dot: 'Dot', zombie: 'Zombie' };
 const EYE_STYLE_K = { round: 0, edgy: 1, dot: 2, zombie: 3 };
 // each expression is an eye cell and a mouth cell (yawn and dizzy borrow parts of the others), as in the game
-const EXPR = { neutral: [0, 8], happy: [1, 9], angry: [2, 10], hurt: [3, 11], glee: [4, 12], scared: [5, 13], yawn: [6, 13], dizzy: [7, 11], peek: [5, 13], leap: [5, 9], brace: [7, 11] };
-const PUPILS = { peek: { pu: 1.08, py: 0 }, leap: { pu: 1.12, py: 0 } };
-const NO_SHUT = { glee: 1, hurt: 1, yawn: 1, dizzy: 1, brace: 1 };
+const EXPR = { neutral: [0, 8], happy: [1, 9], angry: [2, 10], hurt: [3, 11], glee: [4, 12], scared: [5, 13], yawn: [6, 13], dizzy: [7, 11], peek: [5, 13], leap: [5, 9], brace: [7, 11],
+  shake: [7, 11], content: [4, 24], sleepy: [20, 8], doze: [6, 24], smirk: [21, 24], blep: [1, 25], sad: [22, 26], focus: [23, 8], cute: [1, 27], curious: [5, 27], sneeze: [7, 13], pout: [22, 27], startle: [5, 13] }; // (v252: new eyes in cells 20-23, new mouths in 24-27, those with fangs in 28-31)
+const PUPILS = { peek: { pu: 1.08, py: 0 }, leap: { pu: 1.12, py: 0 }, curious: { pu: 1.14, py: 0.04 }, startle: { pu: 0.7, py: 0 }, smirk: { pu: 1, py: -0.06 } };
+const NO_SHUT = { glee: 1, hurt: 1, yawn: 1, dizzy: 1, brace: 1, shake: 1, content: 1, doze: 1, smirk: 1, sneeze: 1 };
 function pupilOf(name) { const F = PUPILS[name] || FACE_LIDS[name]; if (!F) return { pu: 1, py: 0 }; const L = F.L || F; return { pu: L.pu || 1, py: (L.py || 0) * FACE_EYE.ry }; }
 // ---------- the slime's face, drawn once into two sheets (4 across, 5 down) ----------
 // cells 0-5 eyes: neutral, happy, angry, hurt, glee, scared; 6 eyes closed (a blink); 7 eyes squeezed shut
@@ -9343,9 +9367,15 @@ const FACE_LIDS = {
   hurt: { L: { h: -0.12, k: 0.3, c: 0.0, ch: -0.42, chc: 0.2, pu: 0.85, py: -0.05 }, R: { shut: 'squeeze' }, sweat: 1 },
   glee: { shut: 'arc', blush: 1.2 },
   scared: { h: 0.86, k: 0.08, c: 0.06, ch: -0.97, pu: 0.62, py: -0.02 },
+  // (v252) heavy lids; a wink (one eye a happy arc); worried, the outer corners drooping, big pupils; a determined squint
+  sleepy: { h: -0.4, k: 0.06, c: 0.1, ch: -0.78, chc: 0.16, pu: 0.96, py: -0.16 },
+  wink: { L: { h: 0.4, k: 0.04, c: 0.16, ch: -0.46, chc: 0.32, pu: 1.0, py: -0.04 }, R: { shut: 'arc' }, blush: 0.7 },
+  sad: { h: 0.22, k: 0.44, c: 0.02, ch: -0.82, chc: 0.08, pu: 1.14, py: 0.02 },
+  focus: { h: 0.06, k: -0.1, c: 0.08, ch: -0.58, chc: 0.24, pu: 0.94, py: -0.04 },
 };
+const FACE_X = [['sleepy', 20], ['wink', 21], ['sad', 22], ['focus', 23]], FACE_MX = [['smile', 24], ['blep', 25], ['frown', 26], ['cat', 27]];
 function makeFaceSheets(C) {
-  const W = C * 4, H = C * 5, col = document.createElement('canvas'), msk = document.createElement('canvas'); col.width = msk.width = W; col.height = msk.height = H;
+  const W = C * 4, H = C * 8, col = document.createElement('canvas'), msk = document.createElement('canvas'); col.width = msk.width = W; col.height = msk.height = H;
   const g = col.getContext('2d'), m = msk.getContext('2d'); m.fillStyle = '#000'; m.fillRect(0, 0, W, H);
   const at = (ctx, cell, fn) => { ctx.save(); ctx.translate((cell % 4) * C + C / 2, Math.floor(cell / 4) * C + C / 2); ctx.scale(C / 2, -C / 2); ctx.lineJoin = 'round'; ctx.lineCap = 'round'; fn(ctx); ctx.restore(); };
   const E = FACE_EYE, INK = '40,6,18';
@@ -9399,6 +9429,7 @@ function makeFaceSheets(C) {
     for (const sd of [-1, 1]) { const L = F.L ? (sd < 0 ? F.L : F.R) : F; if (L.shut || F.shut) shutEye(i, sd, L.shut || F.shut); else openEye(i, L, sd); }
     if (F.blush) blush(i, F.blush); if (F.sweat) sweat(i); });
   for (const sd of [-1, 1]) { shutEye(6, sd, 'closed'); shutEye(7, sd, 'squeeze'); }
+  for (const [k, cell] of FACE_X) { const F = FACE_LIDS[k]; for (const sd of [-1, 1]) { const L = F.L ? (sd < 0 ? F.L : F.R) : F; if (L.shut || F.shut) shutEye(cell, sd, L.shut || F.shut); else openEye(cell, L, sd); } if (F.blush) blush(cell, F.blush); }
   // ---- the lashes (worn as an accessory): drawn into the mask sheet's blue over every eye cell, so they follow each expression and blink;
   // the shader inks them only when they're worn. A liner along the top of the eye flicking up past its outer corner, and three long
   // lashes sweeping up and out from its outer half, curling at the tips (shut eyes: they hang from the lid and curl up). Drawn for the
@@ -9443,6 +9474,7 @@ function makeFaceSheets(C) {
   FACE_KINDS.forEach((k, i) => { const F = FACE_LIDS[k];
     for (const sd of [-1, 1]) { const L = F.L ? (sd < 0 ? F.L : F.R) : F; lashCell(i, sd, ctx => L.shut || F.shut ? lashShut(ctx, L.shut || F.shut) : lashOpen(ctx, L)); } });
   for (const sd of [-1, 1]) { lashCell(6, sd, ctx => lashShut(ctx, 'closed')); lashCell(7, sd, ctx => lashShut(ctx, 'squeeze')); }
+  for (const [k, cell] of FACE_X) { const F = FACE_LIDS[k]; for (const sd of [-1, 1]) { const L = F.L ? (sd < 0 ? F.L : F.R) : F; lashCell(cell, sd, ctx => L.shut || F.shut ? lashShut(ctx, L.shut || F.shut) : lashOpen(ctx, L)); } }
   // ---- mouths ----
   const MY = -0.5;
   const cavity = (ctx, path, top, bot, tongue) => {
@@ -9466,6 +9498,19 @@ function makeFaceSheets(C) {
   };
   const big = (ctx, fn) => { ctx.translate(0, MY); ctx.scale(1.35, 1.35); ctx.translate(0, -MY); fn(); };
   FACE_KINDS.forEach((k, i) => { at(g, 8 + i, ctx => big(ctx, () => MOUTHS[k](ctx, false))); at(g, 14 + i, ctx => big(ctx, () => MOUTHS[k](ctx, true))); });
+  // (v252) a closed smile with dimples, the same with the tip of a tongue poking out, a frown, a :3
+  const curveAt = (w, d, x) => { const u = x / w; return d * Math.cos(u * Math.PI / 2); };
+  const MOUTHS2 = {
+    smile: (ctx, f) => { line(ctx, Array.from({ length: 25 }, (_, i) => { const x = (i / 24 - 0.5) * 0.3; return [x, MY + 0.035 - curveAt(0.15, 0.065, x)]; }), 0.038);
+      for (const sd of [-1, 1]) line(ctx, [[sd * 0.16, MY + 0.05], [sd * 0.145, MY + 0.03]], 0.026); if (f) { fang(ctx, -0.07, MY - 0.005, 0.8); fang(ctx, 0.07, MY - 0.005, 0.8); } },
+    blep: (ctx, f) => { ctx.save(); const tx = 0.025, ty = MY - 0.07, tg = ctx.createRadialGradient(tx - 0.012, ty + 0.01, 0, tx, ty, 0.075); tg.addColorStop(0, '#FF9DB0'); tg.addColorStop(0.65, '#F0607E'); tg.addColorStop(1, '#C23A58');
+      ctx.fillStyle = tg; ctx.beginPath(); ctx.moveTo(tx - 0.058, MY - 0.02); ctx.lineTo(tx - 0.058, ty); ctx.arc(tx, ty, 0.058, Math.PI, 0, false); ctx.lineTo(tx + 0.058, MY - 0.02); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = 'rgba(40,6,18,0.8)'; ctx.lineWidth = 0.022; ctx.stroke(); ctx.strokeStyle = 'rgba(150,30,60,0.55)'; ctx.lineWidth = 0.012; ctx.beginPath(); ctx.moveTo(tx, MY - 0.03); ctx.lineTo(tx, ty - 0.012); ctx.stroke(); ctx.restore();
+      line(ctx, Array.from({ length: 25 }, (_, i) => { const x = (i / 24 - 0.5) * 0.26; return [x, MY + 0.03 - curveAt(0.13, 0.05, x)]; }), 0.036); if (f) { fang(ctx, -0.075, MY + 0.0, 0.75); fang(ctx, 0.085, MY + 0.0, 0.75); } },
+    frown: (ctx, f) => { line(ctx, Array.from({ length: 25 }, (_, i) => { const x = (i / 24 - 0.5) * 0.22; return [x, MY - 0.035 + curveAt(0.11, 0.05, x)]; }), 0.036); if (f) { fang(ctx, -0.05, MY + 0.005, 0.7); fang(ctx, 0.05, MY + 0.005, 0.7); } },
+    cat: (ctx, f) => { line(ctx, Array.from({ length: 33 }, (_, i) => { const x = (i / 32 - 0.5) * 0.24, u = Math.abs(x) / 0.12; return [x, MY + 0.025 - 0.05 * Math.sin(Math.PI * u)]; }), 0.034); if (f) { fang(ctx, -0.06, MY - 0.02, 0.7); fang(ctx, 0.06, MY - 0.02, 0.7); } },
+  };
+  FACE_MX.forEach(([k, cell]) => { at(g, cell, ctx => big(ctx, () => MOUTHS2[k](ctx, false))); at(g, cell + 4, ctx => big(ctx, () => MOUTHS2[k](ctx, true))); });
   return { col, msk };
 }
 // ---------------- shader pieces ----------------
@@ -9526,7 +9571,7 @@ float aSpots(vec3 p, float scale, float dens, float rmin, float rmax) {
 // bump from a height in metres, with the exact slope (unnormalized derivatives, as the game's skin bump): the same relief at any distance
 vec3 aBump(vec3 sp, vec3 sn, float h) { vec3 dpx = dFdx(sp), dpy = dFdy(sp), r1 = cross(dpy, sn), r2 = cross(sn, dpx); float det = dot(dpx, r1);
   if (abs(det) < 1e-14) return sn; vec3 g = (dFdx(h) * r1 + dFdy(h) * r2) / det; float gl = length(g); if (gl > 0.9) g *= 0.9 / gl; return normalize(sn - g); }
-vec2 fCell(float c, vec2 uv){ float col = mod(c, 4.0), row = floor(c * 0.25 + 0.01); return vec2((col + uv.x) * 0.25, 1.0 - (row + 1.0 - uv.y) * 0.2); }
+vec2 fCell(float c, vec2 uv){ float col = mod(c, 4.0), row = floor(c * 0.25 + 0.01); return vec2((col + uv.x) * 0.25, 1.0 - (row + 1.0 - uv.y) * 0.125); }
 float fCone(vec2 p, vec2 a, vec2 b, float w0, float w1) { vec2 ab = b - a; float t = clamp(dot(p - a, ab) / dot(ab, ab), 0.0, 1.0); float d = length(p - a - ab * t) - mix(w0, w1, t); return 1.0 - smoothstep(-0.004, 0.012, d); }
 float coatField(vec3 sp, float sy){ vec3 cq = sp * 5.0 + uCoat.y;
   float ch = 0.5 + 0.25 * sin(cq.x * 1.7 + sin(cq.y * 2.3)) * sin(cq.z * 1.9 + sin(cq.x * 1.3)) + 0.25 * sin(cq.y * 3.1 + cq.z * 1.1 + cq.x * 0.7);
@@ -9911,7 +9956,10 @@ class Look {
   setPaint(level) { this.U.uCoat.value.x = level; return this; }
   setFangs(on) { this.fangs = !!on; return this; }
   setLashes(l, r = l) { this.U.fLash.value.x = l; this.U.fLash.value.y = r; return this; }
-  setExpression(name) { if (!(name in EXPR)) name = 'neutral'; if (name === this.exprB) return this; if (this.exprK < 1) this.expr = this.exprK > 0.5 ? this.exprB : this.expr; this.exprB = name; this.exprK = 0; return this; }
+  setExpression(name) { if (!(name in EXPR)) name = 'neutral'; this.want = name; return this.ovr ? this : this.setExpr0(name); }
+  setExpr0(name) { if (name === this.exprB) return this; if (this.exprK < 1) this.expr = this.exprK > 0.5 ? this.exprB : this.expr; this.exprB = name; this.exprK = 0; return this; }
+  // (v252) a face held for a while over whatever the game asks for each frame (a shake's screwed-up face, an idle's mood), then back to that
+  face(name, dur = 0.8) { if (!(name in EXPR)) return this; this.ovr = { t: dur, name }; return this.setExpr0(name); }
   // a short-lived expression (a reaction) that falls back to the current one
   emoteFor(name, dur = 0.8) { if (!this.emote) this.emote = { back: this.exprB }; this.emote.t = dur; this.setExpression(name); return this; }
   blink() { this.blinkK = 0.13; return this; }
@@ -9929,6 +9977,7 @@ class Look {
   // pupils easing toward the look target (x right, y up, in face units), head squash compensation
   update(dt, look, squash = 0) {
     this.t += dt; const U = this.U;
+    if (this.ovr) { this.ovr.t -= dt; if (this.ovr.t <= 0) { this.ovr = null; this.setExpr0(this.want || 'neutral'); } }
     if (this.emote) { this.emote.t -= dt; if (this.emote.t <= 0) { const b = this.emote.back; this.emote = null; this.setExpression(b); } }
     if (this.exprK < 1) { this.exprK = Math.min(1, this.exprK + dt / 0.12); if (this.exprK >= 1) this.expr = this.exprB; }
     if (this.flut > 0) { this.flutT -= dt; if (this.flutT <= 0) { this.blinkK = 0.075; this.flut--; this.flutT = 0.15; this.blinkT = Math.max(this.blinkT, 1.4); } }
@@ -9941,7 +9990,7 @@ class Look {
       for (let i = 0; i < 2; i++) { const g = i ? ly : lx, x = this.look[i] - g, c = this.lookV[i] + w * x; this.look[i] = g + (x + c * dt) * e; this.lookV[i] = (this.lookV[i] - c * w * dt) * e; } }
     const shut = this.blinkK > 0 && !NO_SHUT[this.exprB];
     const pa = pupilOf(this.expr), pb = pupilOf(this.exprB), k = this.exprK, fang = this.fangs ? 6 : 0, ea = EXPR[this.expr], eb = EXPR[this.exprB];
-    U.fCells.value.set(ea[0], ea[1] + fang, eb[0], eb[1] + fang); U.fMix.value.set(k, shut ? 1 : 0, 1, 6);
+    const fm = c => fang ? c + (c >= 24 ? 4 : 6) : c; U.fCells.value.set(ea[0], fm(ea[1]), eb[0], fm(eb[1])); U.fMix.value.set(k, shut ? 1 : 0, 1, 6);
     U.fPupil.value.set(this.look[0], this.look[1], pa.pu + (pb.pu - pa.pu) * k, pa.py + (pb.py - pa.py) * k);
     U.fComp.value.set(1, 1, 0, 0); U.uLag.value.w = this.t;
     if (this.coatMixT !== undefined) U.uCoatMix.value += (this.coatMixT - U.uCoatMix.value) * Math.min(1, dt * 3);
@@ -9980,7 +10029,7 @@ function axoMaterial(tex, look, meta) {
   return mat;
 }
 
-return { FACE, EYE_COLS, EYE_STYLES, EYE_STYLE_K, EXPR, pupilOf, FACE_EYE, FACE_KINDS, FACE_LIDS, makeFaceSheets, palette, Look, axoMaterial };
+return { FACE, EYE_COLS, EYE_STYLES, EYE_STYLE_K, EXPR, FACE_X, FACE_MX, pupilOf, FACE_EYE, FACE_KINDS, FACE_LIDS, makeFaceSheets, palette, Look, axoMaterial };
 })();
 const { FACE, EYE_COLS, EYE_STYLES, EYE_STYLE_K, EXPR, pupilOf, FACE_EYE, FACE_KINDS, FACE_LIDS, makeFaceSheets, palette, Look, axoMaterial } = __look;
 return { DEG, loadMesh, texFromBytes, DQS_PARS, DQS_BASE, DQS_NORMAL, DQS_POS, dqsShader, dqsMaterial, Pose, LIMITS, limitsFor, Puppet, mirrorQ, rot, setRot, ease, Spring, Animator, FACE, EYE_COLS, EYE_STYLES, EYE_STYLE_K, EXPR, pupilOf, FACE_EYE, FACE_KINDS, FACE_LIDS, makeFaceSheets, palette, Look, axoMaterial, meshFrom };
@@ -10053,6 +10102,7 @@ const AXOC = (() => {
     I.setIris = c => { look.U.fIris.value.set(c[0], c[1], c[2]); };
     I.setEyeStyle = k => look.setEyeStyle(k);
     I.setExpression = name => look.setExpression(name);
+    I.face = (name, dur) => look.face(name, dur); // (v252: a face held over the game's own for a while)
     I.blink = () => look.blink();
     I.flutter = n => look.flutter(n || 3);
     I.shut = () => { look.blinkK = Math.max(look.blinkK, 0.06); };
@@ -10100,7 +10150,7 @@ const AXOC = (() => {
       // and how deep it still is under it, the floor outside): the ground's height under a point of the body's own space
       if (o.climb && par && X.mw) { const T = X.trn || (X.trn = { mw: new THREE.Matrix4(), sy: 1, c: null, v: new THREE.Vector3() });
         T.mw.copy(X.mw); const e = X.mw.elements; T.sy = Math.hypot(e[4], e[5], e[6]); T.c = o.climb;
-        A.motion.terrain = X.trnF || (X.trnF = (x, z) => { const c = T.c, v = T.v.set(x, 0, z).applyMatrix4(T.mw), wy = v.y; v.applyMatrix4(c.inv);
+        A.motion.terrain = X.trnF || (X.trnF = (x, z) => { const c = T.c, v = T.v.set(x, 0, z).applyMatrix4(T.mw), wy = v.y; v.applyMatrix4(c.inv); if (c.fn) return (c.floor + c.fn(v.x, v.z) - wy) / T.sy; // (v252: a climb with its own ground, the locker's hole)
           const lx = v.x - (c.ox || 0), lz = v.z - (c.oz || 0), ro = Math.hypot(lx / c.ao, lz / c.bo), ri = Math.hypot(lx / c.ai, lz / c.bi), sm = (a, b, x) => { const u = Math.max(0, Math.min(1, (x - a) / (b - a))); return u * u * (3 - 2 * u); };
           const liq = c.liq - (c.sink || 0) - (c.deep || 0), y = ri < 1 ? liq + (c.top - liq) * sm(0.9, 1, ri) : ro <= 1 ? c.top : c.top + (c.floor - c.top) * sm(1, 1.08, ro);
           return (y - wy) / T.sy; }); }
@@ -10118,7 +10168,7 @@ const AXOC = (() => {
       const want = Math.max(o.blob || 0, o.curl || 0), ph = (((X.spin || 0) % 6.2832) + 6.2832) % 6.2832;
       if (air && Math.abs(X.spinV || 0) > 3 && want < 0.6 && (X.ballHold || (X.lastWant || 0) >= 0.6)) X.ballHold = !(ph > 5.6 || ph < 0.25); else X.ballHold = false;
       X.lastWant = want; A.motion.ball = X.ballHold ? Math.max(want, 0.8) : want; }
-    A.motion.turn = clamp(-(o.lean || 0) * 1.2, -1, 1);
+    A.motion.turn = clamp(-(o.lean || 0) * 1.2, -1, 1); A.earCover = o.earCover || 0; A.motion.wave = o.wave || 0; // (v252: shy, its ears over its eyes; a wave of one hand)
     A.motion.exert = Math.max(o.tired ? 1 : 0, charging ? 0.4 + 0.6 * (D.charge || 0) : 0, busy && D.spd > 4 ? 0.3 : 0);
     // where it looks: at a rival close by, or wherever the game has it watching
     const W = o.watch; A.look.yaw = W ? W.yaw * 57.3 : (o.glance || 0) * 57.3 * 0.7; A.look.pitch = W ? (W.pitch - 0.85) * 57.3 : 0;
@@ -10130,8 +10180,8 @@ const AXOC = (() => {
     // the menu's dance: its head tips side to side and nods to the beat, it sways its head with the shimmy; its little hops kick up its gills
     // going up and squash it landing
     A.look.roll = (o.headRoll || 0) * 57.3 * 1.4; A.look.pitch += (o.headPitch || 0) * 57.3 * 1.2; A.look.yaw += (o.shove || 0) * 22;
-    if (state === 'menu') { const up = !!o.inAir; if (up && !X.hopUp) { A.sqPush[0] -= 2; A.kickGills(0, -0.5); X.hopT = 0; } if (up) X.hopT += dt;
-      else if (X.hopUp && X.hopT > 0.1) { A.sqPush[0] += 4; A.kickGills(0, 0.9); for (let i = 0; i < 6; i++) A.tailPush[i * 2 + 1] -= 40; } X.hopUp = up; }
+    if (state === 'menu') { const up = !!o.inAir; if (up && !X.hopUp) { A.sqPush[0] -= 2; X.hopT = 0; } if (up) X.hopT += dt;
+      else if (X.hopUp && X.hopT > 0.1) { A.sqPush[0] += 4; A.kickGills(0, -0.3); for (let i = 0; i < 6; i++) A.tailPush[i * 2 + 1] -= 40; } X.hopUp = up; }
     // squashed: flattened by a pound (a pancake), or the game's own squash and stretch (landing, winding up a fling)
     X.flat += ((D && D.flatT > 0 ? 1 : 0) - X.flat) * Math.min(1, dt * (D && D.flatT > 0 ? 22 : 7));
     X.sq += (clamp(o.squash || 0, -0.3, 0.6) - X.sq) * Math.min(1, dt * 18);
@@ -15664,15 +15714,20 @@ function shimStep(S, dt) {
   const k = clamp(Math.abs(S.vel) / 1.1, 0, 1), sg = S.vel >= 0 ? 1 : -1;
   S.push = clamp((Math.sin(S.ph) * 0.8 + 0.3 * sg) * k, -1, 1); S.shove = Math.sin(S.ph - 0.9) * k * 0.7;
 }
-const IDLE_ACTS = [['listen', 3.4, 3], ['bounce', 2.1, 2], ['still', 2.6, 3], ['hands', 2.6, 2], ['wag', 1.6, 2], ['peek', 2.6, 1], ['face', 2.0, 2], ['look', 1.7, 2], ['yawn', 1.9, 1], ['shimmy', 1.2, 2], ['wiggle', 1.3, 1]];
+// (v252) moods with a face and a body to go with them: dozing off and jolting awake, a sneeze, a wet-dog shake, a proud chin up and a wink, a
+// blep, a wave; and the old ones with faces (the slime's fallback keeps its own list)
+const IDLE_ACTS0 = [['listen', 3.4, 3], ['bounce', 2.1, 2], ['still', 2.6, 3], ['hands', 2.6, 2], ['wag', 1.6, 2], ['peek', 2.6, 1], ['face', 2.0, 2], ['look', 1.7, 2], ['yawn', 1.9, 1], ['shimmy', 1.2, 2], ['wiggle', 1.3, 1]];
+const IDLE_AXO = [['listen', 3.4, 3], ['bounce', 2.1, 2], ['still', 2.6, 2], ['wag', 1.6, 2], ['peek', 2.8, 1], ['look', 2.0, 2], ['yawn', 2.3, 1], ['shimmy', 1.2, 2], ['wiggle', 1.3, 1], ['doze', 4.6, 2], ['sneeze', 2.3, 1], ['shake', 1.4, 2], ['proud', 2.2, 2], ['blep', 2.3, 2], ['wave', 2.5, 2]];
+const ACT_FACE = { listen: 'content', bounce: 'glee', wag: 'happy', wiggle: 'cute', look: 'curious', tilt: 'curious', still: null };
+let IDLE_ACTS = IDLE_ACTS0;
 let idleLast = '';
-function pickIdle() { if (window.__idleForce) { const f = IDLE_ACTS.find(a => a[0] === window.__idleForce); if (f) return f; } const pool = []; for (const a of IDLE_ACTS) if (a[0] !== idleLast) for (let i = 0; i < a[2]; i++) pool.push(a); const a = pool[(Math.random() * pool.length) | 0]; idleLast = a[0]; return a; }
+function pickIdle() { IDLE_ACTS = AXOC.S.ready ? IDLE_AXO : IDLE_ACTS0; if (window.__idleForce) { const f = IDLE_ACTS.find(a => a[0] === window.__idleForce); if (f) return f; } const pool = []; for (const a of IDLE_ACTS) if (a[0] !== idleLast) for (let i = 0; i < a[2]; i++) pool.push(a); const a = pool[(Math.random() * pool.length) | 0]; idleLast = a[0]; return a; }
 const beatNow = () => { const B = AU.beat ? AU.beat() : null; return B ? B.t * B.bpm / 60 : clock * 2.47; };
 function idleStep(rdt) {
-  idle.sway = idle.push = idle.hop = idle.spin = idle.sq = idle.rise = idle.roll = idle.pitch = idle.bank = idle.hand = idle.earCover = 0;
+  idle.sway = idle.push = idle.hop = idle.spin = idle.sq = idle.rise = idle.roll = idle.pitch = idle.bank = idle.hand = idle.earCover = idle.wave = 0; idle.face = null;
   let lxT = 0, lyT = 0;
   if (state === 'menu' && (lookOpen || menuPage === 'home') && !lookIntro && !vic && menuReact <= 0 && !lkDip) {
-    if (!idle.act) { idle.t -= rdt; if (window.__idleForce && idle.t > 0.15) idle.t = 0.15; if (idle.t <= 0) { const a = pickIdle(); idle.act = a[0]; idle.dur = a[1]; idle.u = 0; idle.b0 = beatNow(); if (idle.act === 'yawn') emote(P, 'yawn', a[1]); if (idle.act === 'face') emote(P, ['glee', 'smug', 'ouch', 'bonk'][(Math.random() * 4) | 0], a[1] * 0.8); if (idle.act === 'listen' || idle.act === 'bounce') idle.dur = Math.max(a[1], (idle.act === 'listen' ? 8 : 4) * 60 / (AU.beat && AU.beat() ? AU.beat().bpm : 148)); if (idle.act === 'shimmy') { const home = Math.round(shim.tgt / 6.2832) * 6.2832, off = shim.tgt - home; shim.tgt = Math.abs(off) > 0.8 ? shim.tgt - Math.sign(off) * (0.55 + Math.random() * 0.25) : home + clamp(off + (Math.random() < 0.5 ? -1 : 1) * (0.35 + Math.random() * 0.25), -0.7, 0.7); } } }
+    if (!idle.act) { idle.t -= rdt; if (window.__idleForce && idle.t > 0.15) idle.t = 0.15; if (idle.t <= 0) { const a = pickIdle(); idle.act = a[0]; idle.dur = a[1]; idle.u = 0; idle.b0 = beatNow(); idle.f1 = idle.f2 = false; idle.side = Math.random() < 0.5 ? -1 : 1; if (idle.act === 'yawn') emote(P, 'yawn', a[1] * 0.8); if (idle.act === 'face') emote(P, ['glee', 'smug', 'ouch', 'bonk'][(Math.random() * 4) | 0], a[1] * 0.8); if (idle.act === 'listen' || idle.act === 'bounce') idle.dur = Math.max(a[1], (idle.act === 'listen' ? 8 : 4) * 60 / (AU.beat && AU.beat() ? AU.beat().bpm : 148)); if (idle.act === 'shimmy') { const home = Math.round(shim.tgt / 6.2832) * 6.2832, off = shim.tgt - home; shim.tgt = Math.abs(off) > 0.8 ? shim.tgt - Math.sign(off) * (0.55 + Math.random() * 0.25) : home + clamp(off + (Math.random() < 0.5 ? -1 : 1) * (0.35 + Math.random() * 0.25), -0.7, 0.7); } } }
     if (idle.act) { idle.u += rdt / idle.dur; const u = Math.min(1, idle.u);
       const env = Math.sin(Math.min(1, u * 4) * Math.PI / 2) * (1 - smoothstep(0.82, 1, u)), bt = beatNow() - idle.b0;
       if (idle.act === 'bounce') { const k = (bt / 2) % 1, p = Math.sin(k * Math.PI); idle.hop = p * 0.3 * env; idle.rise = p * 0.32 * env; idle.sq = (k < 0.08 || k > 0.9 ? 0.3 : 0) * env; }
@@ -15680,11 +15735,36 @@ function idleStep(rdt) {
       else if (idle.act === 'still') { lyT = 0.01; }
       else if (idle.act === 'hands') { const h = u < 0.5 ? smoothstep(0.08, 0.22, u) * (1 - smoothstep(0.4, 0.5, u)) : smoothstep(0.55, 0.68, u) * (1 - smoothstep(0.88, 1, u)); idle.hand = (u < 0.5 ? 1 : -1) * h; idle.pitch = 0.13 * h; idle.roll = (u < 0.5 ? -0.05 : 0.05) * h; lxT = (u < 0.5 ? -0.07 : 0.07) * h; lyT = -0.07 * h; }
       else if (idle.act === 'wag') { const ph = u * Math.PI * 9; idle.spin = Math.sin(ph) * 0.2 * env; idle.bank = Math.sin(ph) * 0.11 * env; idle.sway = Math.sin(ph + 0.4) * 0.55 * env; idle.sq = 0.05 * env; idle.rise = 0.04 * env * Math.abs(Math.sin(ph)); }
-      else if (idle.act === 'peek') { const k = smoothstep(0.08, 0.3, u) * (1 - smoothstep(0.7, 0.92, u)); idle.earCover = k; idle.pitch = 0.07 * k; idle.sq = 0.06 * k; }
+      else if (idle.act === 'peek') { const k = smoothstep(0.08, 0.3, u) * (1 - smoothstep(0.7, 0.92, u)); idle.earCover = k; idle.pitch = 0.07 * k; idle.sq = 0.06 * k; idle.face = k > 0.45 ? 'doze' : u > 0.7 ? 'glee' : null; // (v252: peekaboo, eyes shut behind its ears, then a grin)
+        if (u > 0.74 && !idle.f1) { idle.f1 = true; if (AXOC.S.ready) AU.vox('giggle', 0.55); } }
       else if (idle.act === 'face') { idle.roll = 0.12 * Math.sin(u * Math.PI * 2) * env; lxT = 0.09 * Math.sin(u * Math.PI * 3); lyT = 0.03 * Math.sin(u * Math.PI * 5); idle.sq = 0.08 * Math.abs(Math.sin(u * Math.PI * 4)) * env; }
-      else if (idle.act === 'look') { lxT = u < 0.42 ? -0.085 : u < 0.88 ? 0.085 : 0; lyT = 0.025; }
+      else if (idle.act === 'look') { lxT = u < 0.42 ? -0.085 : u < 0.88 ? 0.085 : 0; lyT = 0.025; idle.roll = (u < 0.42 ? 0.1 : u < 0.88 ? -0.1 : 0) * env; // (v252: a tilt of the head with each look, an ear twitching at the first)
+        if (u > 0.1 && !idle.f1) { idle.f1 = true; const A = VP.slime && VP.slime.ax && VP.slime.ax.A; if (A) A.twT = 0; } }
       else if (idle.act === 'wiggle') { const env = Math.sin(Math.min(1, u * 4) * Math.PI / 2) * Math.pow(1 - u, 0.8), ph = u * Math.PI * 5; idle.sway = Math.sin(ph) * env; idle.push = Math.sin(ph + 0.9) * env; }
-      else if (idle.act === 'yawn') { idle.rise = 0.32 * Math.sin(u * Math.PI); lyT = 0.045; }
+      else if (idle.act === 'yawn') { idle.rise = 0.32 * Math.sin(u * Math.PI); lyT = 0.045; idle.pitch = 0.17 * Math.sin(Math.min(1, u * 1.15) * Math.PI); if (u > 0.86) idle.face = 'content'; } // (v252: its head tipping back with it, a contented smile after)
+      // (v252) dozing off: the eyes go heavy and shut, the head sinks, catches itself once, sinks again; then it jolts awake (ears up, a hop, a
+      // squeak), looks about, and smiles it off
+      else if (idle.act === 'doze') { const fall = u < 0.68 ? smoothstep(0.04, 0.42, u) - 0.5 * Math.sin(clamp((u - 0.44) / 0.1, 0, 1) * Math.PI) * smoothstep(0.4, 0.44, u) : 0, up = u >= 0.68 ? Math.sin(clamp((u - 0.68) / 0.08, 0, 1) * Math.PI / 2) * (1 - smoothstep(0.84, 1, u)) : 0;
+        idle.pitch = -0.34 * fall + 0.1 * up; idle.sq = 0.1 * fall; idle.earCover = 0.3 * fall; idle.roll = 0.06 * fall * idle.side; lyT = -0.05 * fall; idle.face = u < 0.2 ? 'sleepy' : u < 0.68 ? 'doze' : u < 0.84 ? 'startle' : 'cute';
+        if (u >= 0.68) { idle.hop = 0.2 * Math.sin(clamp((u - 0.68) / 0.07, 0, 1) * Math.PI); lxT = u < 0.75 ? -0.08 : u < 0.83 ? 0.08 : 0; }
+        if (u >= 0.68 && !idle.f1) { idle.f1 = true; AU.vox('eep', 0.6); const A = VP.slime && VP.slime.ax && VP.slime.ax.A; if (A) A.kickGills(0, 1.0); } }
+      // (v252) a sneeze: ah.. ah.. the head lifting in two hitches, eyes screwing up; CHOO, the head snapping down, ears flung forward, a puff of
+      // paint; a dazed moment, then a sheepish smile
+      else if (idle.act === 'sneeze') { const pre = (0.55 * smoothstep(0.08, 0.2, u) + 0.45 * smoothstep(0.27, 0.4, u)) * (u < 0.45 ? 1 : 0), hit = u >= 0.45 ? Math.exp(-(u - 0.45) * 12) : 0;
+        idle.pitch = 0.2 * pre - 0.32 * hit; idle.rise = 0.16 * pre; idle.sq = 0.42 * hit; lyT = 0.06 * pre; idle.face = u < 0.08 ? null : u < 0.45 ? 'sneeze' : u < 0.62 ? 'dizzy' : 'cute';
+        if (u >= 0.45 && !idle.f1) { idle.f1 = true; AU.pop(); const A = VP.slime && VP.slime.ax && VP.slime.ax.A; if (A) { A.kickGills(0, -1.3); A.sqPush[0] += 3; }
+          const S = VP.slime, yw = VP.yawDraw || 0, fx = Math.sin(yw), fz = Math.cos(yw), h = new THREE.Vector3(); if (S && S.ax) S.ax.P.jointWorld('crawl', 'head', h); else h.set(P.x, 0.4, P.z);
+          const sc = S && S.root.parent ? new THREE.Vector3().setFromMatrixScale(S.root.parent.matrixWorld).x / PR : 1; AU.splat(0.3);
+          for (let i = 0; i < 9; i++) spawnPart(h.x + fx * 0.3 * sc, h.y - 0.06 * sc, h.z + fz * 0.3 * sc, (fx * (1.6 + Math.random()) + (Math.random() - 0.5)) * sc, (0.5 + Math.random() * 0.8) * sc, (fz * (1.6 + Math.random()) + (Math.random() - 0.5)) * sc, 0.32, teamMats[0], (0.12 + Math.random() * 0.1) * sc); } } // (a puff of paint from its nose)
+      // (v252) a wet-dog shake, for no reason at all (its ears flop, its face screws up; the animator does those)
+      else if (idle.act === 'shake') { if (!idle.f1) { idle.f1 = true; if (VP.slime && VP.slime.shake) VP.slime.shake(0.9); AU.vox('brr', 0.55); } }
+      // (v252) pleased with itself: chin up, a wink and a smile, a little sway
+      else if (idle.act === 'proud') { const k = smoothstep(0.05, 0.25, u) * (1 - smoothstep(0.8, 1, u)); idle.pitch = 0.2 * k; idle.rise = 0.1 * k; idle.roll = 0.05 * Math.sin(u * Math.PI * 4) * k; idle.face = k > 0.3 ? 'smirk' : null; lyT = 0.04 * k; }
+      // (v252) a blep: the head tipped to one side, the tip of its tongue out, an ear twitching
+      else if (idle.act === 'blep') { const k = smoothstep(0.06, 0.22, u) * (1 - smoothstep(0.78, 0.95, u)); idle.roll = 0.2 * idle.side * k; idle.pitch = 0.05 * k; idle.face = k > 0.25 ? 'blep' : null;
+        if (u > 0.12 && !idle.f1) { idle.f1 = true; const A = VP.slime && VP.slime.ax && VP.slime.ax.A; if (A) A.twT = 0; } }
+      // (v252) a wave: one hand up off the floor, waving at you, a happy face
+      else if (idle.act === 'wave') { const k = smoothstep(0.04, 0.2, u) * (1 - smoothstep(0.78, 0.96, u)); idle.wave = k; idle.face = k > 0.2 ? 'happy' : null; idle.roll = -0.06 * k; lyT = 0.03 * k; }
       // a new hat: a little dip, then the head tilts over to one side (overshooting a touch and settling, with a tiny bob) and the chin lifts,
       // the eyes rolling up to look at it; the body leans the other way to balance; then it all eases back
       else if (idle.act === 'tilt') { const sd = idle.side, a = smoothstep(0.06, 0.3, u), over = Math.sin(clamp((u - 0.12) / 0.3, 0, 1) * Math.PI) * 0.22, back = smoothstep(0.76, 1, u), k = (a + over * a) * (1 - back);
@@ -15694,9 +15774,11 @@ function idleStep(rdt) {
       else if (idle.act === 'show') { const env = Math.sin(Math.min(1, u * 6) * Math.PI / 2) * Math.pow(1 - u, 0.7), ph = u * Math.PI * 8, s1 = Math.sin(ph);
         idle.sway = s1 * env; idle.push = Math.sin(ph + 0.9) * env; idle.spin = Math.sin(ph + 0.5) * 0.26 * env; idle.bank = s1 * 0.13 * env; idle.roll = -s1 * 0.1 * env;
         idle.sq = 0.05 + 0.1 * Math.abs(s1) * env; idle.rise = 0.24 * env * Math.max(0, Math.sin(ph * 2 - 0.6)); lyT = -0.07 * env; }
+      if (!idle.face && ACT_FACE[idle.act] && env > 0.3) idle.face = ACT_FACE[idle.act]; // (v252: a face to go with it)
       if (u >= 1) { idle.act = null; idle.t = 1.4 + Math.random() * 2.6; } }
   } else { idle.act = null; idle.t = 2.2; }
   idleLook.x += (lxT - idleLook.x) * Math.min(1, rdt * 10); idleLook.y += (lyT - idleLook.y) * Math.min(1, rdt * 10);
+  if (idle.face && VP.slime && VP.slime.face) VP.slime.face(idle.face, 0.15); // (v252: the mood's face, held over the usual one while it lasts)
 }
 const EMO_PRI = { yawn: 0, bonk: 1, smug: 2, glee: 3, ouch: 4 };
 function emote(D, kind, t) { if (!D || D.st === 'ko' || D.st === 'out') return; if (D.emoT > 0 && (EMO_PRI[D.emo] || 0) > (EMO_PRI[kind] || 0)) return; D.emo = kind; D.emoT = t; D.emoT0 = t; }
@@ -15976,12 +16058,13 @@ function slimeMood(D, F, happy, scared, strain, smug) {
   const V = vOf(D); if (V && V.braceT > 0) return 'brace'; // (screwing its eyes shut: about to hit hard)
   if ((V ? V.vAir : D.air) && D.st === 'play' && !D.slam && !D.missile && !D.rocket && !D.turret && !(D.giantT > 0) && !(D.knockT > 0)) return 'leap'; // (wide-eyed, mouth open: up it goes)
   if (F === MOOD.glee || F === MOOD.rkUp) return 'glee';
-  if (F === MOOD.smug) return 'happy';
+  if (F === MOOD.smug) return 'smirk'; // (v252: a wink and a smile)
   if (F === MOOD.rkDive || F === MOOD.turret) return 'angry';
   if (happy) return vic || celebrating ? 'glee' : 'happy';
   if (scared) return 'scared';
   if (strain) return 'angry';
-  if (smug) return 'happy';
+  if (smug) return 'smirk';
+  { const V = vOf(D), A = V && V.slime && V.slime.ax && V.slime.ax.A; if (D.st === 'play' && state === 'play' && A && A.loco && (A.loco.slK || 0) > 0.6) return 'focus'; } // (v252: swimming flat out, a determined squint)
   return 'neutral';
 }
 // the paint coming off a slime: drops flung out all round from its body as the sheets fly, and a wet pop
@@ -16080,7 +16163,7 @@ function slimeVisual(D, V, dt, sq, rise, rad, gy, hop, fxK, fxL) {
   else V.sink = (V.sink || 0) + (0 - (V.sink || 0)) * Math.min(1, dt * 18);
   { const RM = I.U.sRim.value; if (D.introCrawl) RM.fromArray(D.introCrawl.rim); else if (RM.w !== 0) RM.set(0, 0, 0, 0); I.noGhost = !!D.introCrawl || inPot || !!(D.ip && D.ip.sink > 0.05) || !!(D === P && lookIntro && lookIntro.crawl); }
   I.root.position.y = -V.sink;
-  { const bk = D === P && lookIntro && lookIntro.crawl ? lookIntro.back : 0, yw = V.yawDraw || 0; I.root.position.x = -Math.sin(yw) * bk; I.root.position.z = -Math.cos(yw) * bk; } // (the locker's crawl-out: still back in the pool by this much)
+  { const bk = D === P && lookIntro && lookIntro.crawl ? lookIntro.back : 0, ps = I.root.parent ? I.root.parent.scale.z || 1 : 1; I.root.position.x = 0; I.root.position.z = -bk / ps; } // (the locker's crawl-out: still back in the pool by this much, in metres; its parent is already turned its way and scaled)
   V.slimeWatchT = D.ip && D.ip.watch ? D.ip.watch : basin ? introWatch(D) : inPot ? slimeWatch(D, V) : null;
   // the menu's little hops are jumps to the slime: it tucks and curls a little, its ears float and slap down, its tail swings with a spin
   const mHop = state === 'menu' || (vic && D.vicPose) ? Math.max(0, hop || 0) : 0, hv = dt > 0 ? (mHop - (V.pHop || 0)) / dt : 0; V.pHop = mHop;
@@ -16133,7 +16216,7 @@ function slimeVisual(D, V, dt, sq, rise, rad, gy, hop, fxK, fxL) {
   const VJ = vic && D.vicPose ? D.vicPose : null; // (a victory jump: sprung off its tail and hands, stretched out through the air, reaching down to land)
   o.coil = VJ ? VJ.coil : 0; o.kick = VJ ? VJ.kick : 0; o.coilSide = VJ ? VJ.side : 1; o.leapTip = VJ ? 0.1 : 1; if (VJ && hopAir && hv < 0) brace = Math.max(brace, 1 - smoothstep(0.03, 0.24, mHop * 2.6));
   o.leap = (vAir && D.st === 'play' && !hopAir && !D.slam && !D.missile && !D.rocket && !D.turret && !(D.giantT > 0) && !TM) || !!(VJ && VJ.leap && hopAir); o.hover = state === 'intro' && !D.pot && !D.introLeap && !D.introOut && !D.introCrawl && !D.introAct; o.maxBall = hopAir ? 0.3 : 1; o.hang = D.rocket && D.st === 'play' ? (D.rocket.ph === 'dive' && !D.rocket.slow ? 0.35 : 1) : 0;
-  o.climb = I.kind === 'axo' && D.introCrawl && D.introCrawl.path ? climbOf(D) : null;
+  o.climb = I.kind === 'axo' && D.introCrawl && D.introCrawl.path ? climbOf(D) : I.kind === 'axo' && D === P && lookIntro && lookIntro.cl && state === 'menu' ? lookIntro.cl : null; // (v252: the locker's crawl-out climbs its own hole)
   o.lizard = D.introCrawl ? D.introCrawl.liz : 0; o.tailCurl = D.introCrawl ? D.introCrawl.curl : 0;
   // slingshot: a long pull and it pulls itself into a ball for the quick part of the flight (drawn out along it), opening back out into its
   // usual flight pose, ears flapping, as it slows toward the top of the arc; a short pull keeps the plain jump. Smooth both ways
@@ -16144,7 +16227,7 @@ function slimeVisual(D, V, dt, sq, rise, rad, gy, hop, fxK, fxL) {
   const IPo = D.ip; // (an intro's moves)
   o.brace = brace; o.wall = wall; o.flail = flail; o.grip = D.charging && D.st === 'play' && !D.air ? 0.35 + 0.65 * D.charge : 0; o.dizzy = D.st === 'play' && D.stunT > 0 ? 1 : 0; o.tired = D.st === 'play' && D.dry ? 1 : 0; o.curl = D.st === 'play' && ((D.rollT > ROLL_T - ROLL_DASH + 0.05 && !D.air) || D.rollOutT > 0.12 || (D.slam && !D.missile && D.vy < 2.5 && D.giantT <= 0)) ? 1 : 0; // (a pound tucks up into a cannonball as it tops out)
   if (W) { o.wt.yaw = W.yaw; o.wt.pitch = W.pitch; o.watch = o.wt; } else o.watch = null;
-  o.ballK = IPo ? IPo.ballK : null; const showK = D === P && state === 'menu' && (lookOpen || menuPage === 'home'); o.headRoll = showK ? idle.roll : 0; o.headPitch = showK ? idle.pitch : 0; o.earCover = showK ? idle.earCover : 0; o.hand = IPo ? IPo.hand : showK ? idle.hand : 0; o.wave = IPo ? IPo.wave : 0; o.earUp = IPo ? IPo.earUp : 0; o.bendK = IPo ? IPo.bendK : null;
+  o.ballK = IPo ? IPo.ballK : null; const showK = D === P && state === 'menu' && (lookOpen || menuPage === 'home'); o.headRoll = showK ? idle.roll : 0; o.headPitch = showK ? idle.pitch : 0; o.earCover = showK ? idle.earCover : 0; o.hand = IPo ? IPo.hand : showK ? idle.hand : 0; o.wave = IPo ? IPo.wave : showK ? idle.wave || 0 : 0; o.earUp = IPo ? IPo.earUp : 0; o.bendK = IPo ? IPo.bendK : null;
   if (IPo) { if (IPo.curl !== null) o.curl = IPo.curl; if (IPo.leap !== null) o.leap = IPo.leap; if (IPo.leapTip !== null) o.leapTip = IPo.leapTip; if (IPo.coil) { o.coil = IPo.coil; o.coilSide = IPo.side || 1; } if (IPo.kick) o.kick = IPo.kick;
     if (IPo.push !== null) o.push = IPo.push; if (IPo.shove !== null) o.shove = IPo.shove; if (IPo.brace !== null) o.brace = IPo.brace; if (IPo.flail !== null) o.flail = IPo.flail; if (IPo.dizzy !== null) o.dizzy = IPo.dizzy; }
   o.D = D; (I.kind === 'axo' ? AXOC : SLIME).update(I, o);
@@ -17778,27 +17861,42 @@ function introFrame() {
   for (const a of pArcs) if (a.visible) a.scale.y *= eo;
   if (t >= IN_END) endIntro();
 }
-const CR = { pool: 0.42, rise0: 0.6, rise1: 1.9, land: 1.9, end: 2.85, back: 0.8, deep: 1.25 }; // (crawl-out: when the pool opens, when it starts up, when it's out, when it's done; how far back it starts, how deep)
-function startIntro() { const I = VP && VP.slime; lookIntro = reduceMotion ? { t: IN_LAND, landed: true } : I && I.kind === 'axo' ? { t: 0, crawl: true, land: CR.land, vis: CR.rise0, sink: CR.deep, back: CR.back, pose: { pitch: 0, sq: 0, rise: 0 } } : { t: 0 }; }
-// the crawl-out, frame by frame: the pool, the depth and the distance still to crawl, the nose up as it comes, the settle
+// (v252) the locker's crawl-out: it climbs out of a hole in the paint. The pool opens behind its spot; its eyes come up out of the paint
+// first and look about; then it hauls itself up the bank and out over the lip on all fours, hands reaching up onto the floor, its body
+// pitched up the slope, its hips and tail out last; out, it shakes itself off. The hole is ground for its hands and feet (the basin's
+// crawl-out does the same with its tub): deep under the pool and on back under the floor, out of sight
+const CR = { pool: 0.42, rise0: 0.5, rise1: 0.95, go: 0.8, land: 2.55, end: 3.45, back: 1.6, poolBack: 1.12, lip: 0.64, ramp: 0.34, deep: 0.4, sink: 0.55, side: 0.62 };
+// how far along its way out it is (0 to 1) by the share of the climb's time gone: slow to start, slowest as its chest goes over the lip,
+// easing to a stop on the floor
+const crPath = (() => { const N = 96, xs = [], ts = [0], sm = smoothstep, v = x => (0.32 + 0.68 * sm(0, 0.22, x)) * (0.14 + 0.86 * (1 - sm(0.72, 1, x))) * (1 - 0.5 * Math.exp(-Math.pow((x - 0.62) / 0.16, 2)));
+  for (let i = 0; i <= N; i++) xs.push(i / N); let tt = 0; for (let i = 1; i <= N; i++) { tt += (xs[i] - xs[i - 1]) / v((xs[i] + xs[i - 1]) / 2); ts.push(tt); } for (let i = 0; i <= N; i++) ts[i] /= tt;
+  return u => { if (u <= 0) return 0; if (u >= 1) return 1; let lo = 0, hi = N; while (hi - lo > 1) { const k = (lo + hi) >> 1; if (ts[k] <= u) lo = k; else hi = k; } return xs[lo] + (xs[hi] - xs[lo]) * (u - ts[lo]) / (ts[hi] - ts[lo]); }; })();
+function startIntro() { const I = VP && VP.slime; lookIntro = reduceMotion ? { t: IN_LAND, landed: true } : I && I.kind === 'axo' ? { t: 0, crawl: true, land: CR.land, vis: CR.rise0 - 0.08, sink: 0, back: CR.back, cl: null, pose: { pitch: 0, sq: 0, rise: 0 } } : { t: 0 }; }
+// the crawl-out, frame by frame: the pool, how far it still has to go, the ground the hole makes under it, its face, the splashes
 function crawlFrame(I) {
-  const t = I.t, pool = dipPool, U = pool.userData.U, V = VP;
+  const t = I.t, pool = dipPool, U = pool.userData.U, V = VP, S = V && V.slime;
   const R = 0.82, yw = V.yawDraw || 0, fx = Math.sin(yw), fz = Math.cos(yw);
-  const open = t < CR.land ? easeBack(Math.min(1, t / CR.pool)) : 1 - dipEase((t - CR.land - 0.1) / (CR.end - CR.land - 0.1));
-  const cx = P.x - fx * CR.back * 0.55, cz = P.z - fz * CR.back * 0.55; // (the pool sits where it comes up, behind its spot)
+  const open = t < CR.land ? easeBack(Math.min(1, t / CR.pool)) : 1 - dipEase((t - CR.land - 0.3) / (CR.end - CR.land - 0.3));
+  const cx = P.x - fx * CR.poolBack, cz = P.z - fz * CR.poolBack; // (the pool sits behind its spot: it comes up out of it and onto the floor)
   pool.visible = pool.userData.mask.visible = open > 0.01; pool.position.set(cx, 0.006, cz); pool.scale.setScalar(Math.max(0.01, open) * R); pool.userData.mask.position.set(P.x, 0, P.z);
-  U.uT.value = t; U.uCol.value.setHex(TEAMS[0].wet); U.uRip.value = Math.max(0, (I.rip || 0) - 0.016); I.rip = U.uRip.value;
-  const u = clamp((t - CR.rise0) / (CR.rise1 - CR.rise0), 0, 1), e = dipEase(u);
-  U.uHole.value = u > 0 && u < 1 ? Math.sin(u * Math.PI) : 0;
-  I.sink = CR.deep * (1 - Math.min(1, e * 1.15)); I.back = CR.back * (1 - e); // (up and forward together: the head breaks the surface first, the tail last)
-  I.pose.pitch = -0.6 * Math.sin(Math.min(1, u * 1.1) * Math.PI) * (1 - 0.5 * e); // (nose up as it climbs, level as it lands)
-  if (t >= CR.rise0 && !I.rose) { I.rose = true; AU.pop(); AU.vox('hup', 0.7); I.rip = 1; dipCrown(10, R * 0.45, 2.0, 1.1, 0.5); }
-  if (u > 0.45 && !I.mid) { I.mid = true; I.rip = 0.8; dipCrown(8, R * 0.6, 1.4, 1.4, 0.45); }
-  if (t >= CR.land && !I.landed) { I.landed = true; I.rip = 0.6; buzz(10); shake = Math.max(shake, 0.03); if (V && V.slime && V.slime.shake) V.slime.shake(1); }
-  { const k = Math.max(0, t - CR.land), osc = 0.5 * Math.exp(-k * 6) * Math.cos(k * 15); I.pose.sq = Math.max(0, osc); I.pose.rise = Math.max(0, -osc) * 0.8; }
-  const kf = easeOut((t - CR.land - 0.1) / 0.32), kw = clamp((t - CR.land - 0.3) / 0.34, 0, 1);
+  U.uT.value = t; U.uCol.value.setHex(TEAMS[0].wet); U.uRip.value = Math.max(0, (I.rip || 0) - 0.016); I.rip = U.uRip.value; U.uHole.value = 0;
+  // its eyes come up out of the paint (the bottom of the hole rising under it), then it sets off up the bank
+  const ur = clamp((t - CR.rise0) / (CR.rise1 - CR.rise0), 0, 1), sk = CR.sink * Math.pow(1 - ur, 3), u = crPath((t - CR.go) / (CR.land - CR.go));
+  I.back = CR.back * (1 - u); I.sink = 0; I.pose.pitch = 0;
+  const cl = I.cl || (I.cl = { inv: new THREE.Matrix4(), floor: 0, tailK: 0.6, curl: 0, fn: null, D: 0 });
+  cl.inv.makeRotationY(yw).setPosition(cx, P.y, cz).invert(); cl.floor = P.y; cl.D = (CR.deep + sk) * clamp(open * 1.4, 0, 1);
+  cl.fn = cl.fn || ((x, z) => { if (z >= CR.lip) return 0; const a = Math.abs(x), k = smoothstep(CR.lip, CR.lip - CR.ramp, z) * (a < CR.side ? 1 : Math.max(0, 1 - (a - CR.side) / 0.12)); return -cl.D * k; });
+  // its face: eyes shut down in the paint, opening as they come out for a look round, then set on the climb (the shake does its own)
+  if (S && S.face) S.face(t < CR.rise1 - 0.12 ? 'doze' : t < CR.go + 0.4 ? 'curious' : t < CR.land ? 'focus' : null, 0.12);
+  if (t >= CR.rise0 && !I.rose) { I.rose = true; AU.pop(); I.rip = 1; dipCrown(8, 0.25, 1.6, 0.9, 0.45, cx + fx * 0.15, cz + fz * 0.15); }
+  if (t >= CR.go && !I.set) { I.set = true; AU.vox('hup', 0.7); I.rip = Math.max(I.rip, 0.7); }
+  if (u > 0.55 && !I.mid) { I.mid = true; I.rip = 0.8; dipCrown(10, 0.3, 1.5, 1.2, 0.45, cx + fx * CR.lip, cz + fz * CR.lip); }
+  if (t >= CR.land && !I.landed) { I.landed = true; I.rip = 0.6; buzz(10); }
+  if (t >= CR.land + 0.18 && !I.shook) { I.shook = true; shake = Math.max(shake, 0.03); if (S && S.shake) S.shake(1); }
+  { const k = Math.max(0, t - CR.land), osc = 0.32 * Math.exp(-k * 6) * Math.cos(k * 15); I.pose.sq = Math.max(0, osc); I.pose.rise = Math.max(0, -osc) * 0.6; }
+  const kf = easeOut((t - CR.rise1) / 0.32), kw = clamp((t - CR.land + 0.1) / 0.34, 0, 1);
   introFade(kf, kw);
-  const eo = Math.max(0.02, easeOut((t - CR.land - 0.1) / 0.26));
+  const eo = Math.max(0.02, easeOut((t - CR.rise1) / 0.26));
   for (const it of eyes) { it.e.scale.y *= eo; it.pu.scale.multiplyScalar(eo); }
   for (const a of pArcs) if (a.visible) a.scale.y *= eo;
   if (t >= CR.end) endIntro();
@@ -17842,8 +17940,8 @@ function dipPose(t) {
   const k = t - T.land, osc = 0.55 * Math.exp(-k * 7) * Math.cos(k * 17);
   return { y: 0, pitch: 0, spin: 0, sq: Math.max(0, osc), rise: Math.max(0, -osc) * 0.8 };
 }
-function dipCrown(n, r, up, out, life) { for (let i = 0; i < n; i++) { const a = i / n * 6.2832 + Math.random() * 0.3, c = Math.cos(a), sn = Math.sin(a), sp = out * (0.7 + 0.6 * Math.random());
-  spawnPart(P.x + c * r, 0.06, P.z + sn * r, c * sp, up * (0.75 + 0.5 * Math.random()), sn * sp, life, teamMats[0], 0.55 + 0.45 * Math.random()); } }
+function dipCrown(n, r, up, out, life, x0, z0) { const X0 = x0 === undefined ? P.x : x0, Z0 = z0 === undefined ? P.z : z0; for (let i = 0; i < n; i++) { const a = i / n * 6.2832 + Math.random() * 0.3, c = Math.cos(a), sn = Math.sin(a), sp = out * (0.7 + 0.6 * Math.random());
+  spawnPart(X0 + c * r, 0.06, Z0 + sn * r, c * sp, up * (0.75 + 0.5 * Math.random()), sn * sp, life, teamMats[0], 0.55 + 0.45 * Math.random()); } }
 function dipStart(oldHex) {
   if (lkDip) { if (!lkDip.swapped) lkDip.nu = TEAMS[0].wet; return; }
   const I = VP && VP.slime, bb = I ? new THREE.Box3().setFromObject(I.root) : null, half = bb && !bb.isEmpty() ? Math.max(bb.max.x - bb.min.x, bb.max.z - bb.min.z) / 2 : 1.2;
