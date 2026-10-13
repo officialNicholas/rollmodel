@@ -14,8 +14,8 @@ async def main():
         ctx = await b.new_context(viewport={'width': W, 'height': H}, device_scale_factor=1)
         await ctx.add_init_script("window.__noVote = true; try { localStorage.setItem('paint-world-red.v1', JSON.stringify({ orient:'land', name:'Dusk', seen:{ jump: 1, hold: 1, steer: 1, item: 1, orb: 1, roll: 1, pound: 1, missile: 1, burst: 1 }, drops: 0, runs: 5, stage: '" + SID + "', mode: 'duel', tut: { ph: 'done', strokes: 1, comms: 1 } })); } catch (e) {}")
         pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)[:300])); ev = pg.evaluate
-        await pg.goto('http://localhost:8765/' + PAGE, timeout=300000); await pg.wait_for_function('typeof __T === "object"', timeout=300000, polling=100); await pg.wait_for_timeout(1000)
-        await ev("__T.start()"); await pg.wait_for_function("__T.state === 'play'", timeout=600000, polling=100); await pg.wait_for_timeout(1500)
+        await pg.goto('http://localhost:8765/' + PAGE, timeout=900000); await pg.wait_for_function('typeof __T === "object"', timeout=900000, polling=100); await pg.wait_for_timeout(1000)
+        await ev("__T.start()"); await pg.wait_for_function("__T.state === 'play'", timeout=900000, polling=100); await pg.wait_for_timeout(1500)
         print('stage', await ev("[__T.TH.id, __T.ARENA]"))
         await ev("""(() => { __T.state = 'paused'; document.getElementById('hud').classList.add('off'); for (const id of ['banner', 'pop', 'hint']) { const e = document.getElementById(id); if (e) e.style.display = 'none'; } for (const e of document.querySelectorAll('.corner, #soundBtn, .tut, .tutgest, .coach')) e.style.display = 'none';
           __T.ev(`for (const D of [P, H, H2]) { try { koHide(D); lookRoot(D).visible = false; } catch (e) {} } try { orb.g.visible = false; orb.ring.visible = false; } catch (e) {} try { potCue.visible = false; } catch (e) {} try { for (const q of powers) if (q.g) q.g.visible = false; } catch (e) {}`); })()""")
