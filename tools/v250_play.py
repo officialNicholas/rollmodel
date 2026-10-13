@@ -103,16 +103,17 @@ def apply(s):
     rep("  const k = kind && !keysUI ? kind : ''; if (!tutGestEl.parentNode) stage.appendChild(tutGestEl);",
         "  const k = kind && (!keysUI || kind === 'spin') ? kind : ''; if (!tutGestEl.parentNode) stage.appendChild(tutGestEl);")
     rep("  if (tutGestEl.dataset.g !== k) { tutGestEl.dataset.g = k; tutGestEl.hidden = !k; }",
-        "  if (tutGestEl.dataset.g !== k) { tutGestEl.dataset.g = k; tutGestEl.hidden = !k; tutGestEl.style.left = tutGestEl.style.top = ''; if (k === 'spin') { tutSpin0 = shim.tgt; tutSpinTick(); } }")
+        "  if (tutGestEl.dataset.g !== k) { tutGestEl.dataset.g = k; tutGestEl.hidden = !k; tutGestEl.style.left = tutGestEl.style.top = ''; if (k === 'spin') { tutSpin0 = lookSwiped; tutSpinTick(); } }")
     rep("function tutFrame(rdt) {\n",
         "// the locker's swipe finger sits on you (wherever the camera has you), and goes once you've had a turn yourself\n"
-        "let tutSpin0 = 0;\n"
+        "let tutSpin0 = 0, lookSwiped = 0; // (lookSwiped: how far fingers have dragged the character round in the locker, in px)\n"
         "function tutSpinTick() {\n"
-        "  if (!lookOpen || Math.abs(shim.tgt - tutSpin0) > 0.6) return tutGest(null);\n"
+        "  if (!lookOpen || lookSwiped - tutSpin0 > 40) return tutGest(null);\n"
         "  tutGV.set(P.x, P.y + 0.2, P.z).project(camera); tutGestEl.style.left = ((tutGV.x + 1) / 2 * viewW).toFixed(0) + 'px'; tutGestEl.style.top = ((1 - tutGV.y) / 2 * viewH).toFixed(0) + 'px';\n"
         "}\n"
         "function tutFrame(rdt) {\n"
         "  if (tutGestEl.dataset.g === 'spin') tutSpinTick();\n")
+    rep("shim.tgt += (e.clientX - lookDrag.x) * 0.012; lookDrag.x = e.clientX;", "lookSwiped += Math.abs(e.clientX - lookDrag.x); shim.tgt += (e.clientX - lookDrag.x) * 0.012; lookDrag.x = e.clientX;")
     rep("@media (prefers-reduced-motion:reduce){.tutgest .ghand,.tutgest .gring,.tutgest .gtrail{animation:none!important}.tutgest .gtrail{opacity:.6}}",
         ".tutgest[data-g=\"spin\"] .ghand{animation:gspin 2s ease-in-out infinite}\n"
         ".tutgest[data-g=\"spin\"] .gtrail{left:-62px;top:-4px;width:124px;transform-origin:0 50%;animation:gspintrail 2s ease-in-out infinite}\n"

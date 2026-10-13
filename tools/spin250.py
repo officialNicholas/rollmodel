@@ -13,10 +13,13 @@ async def main():
             pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)[:300])); ev = pg.evaluate
             await pg.goto('http://localhost:8765/' + PAGE, timeout=240000); await pg.wait_for_function('typeof __T === "object"', timeout=240000, polling=100); await pg.wait_for_timeout(1500)
             await ev("__T.openLook()"); await pg.wait_for_timeout(3500)
-            await ev("__T.ev(\"tutShow('Take a look around, squirt. Express yourself!', null, 'browse', false, true, null, true)\")"); await pg.wait_for_timeout(500)
+            await ev("__T.ev(\"tutBrowseAt = performance.now(); tutShow('Take a look around, squirt. Express yourself!', null, 'browse', false, true, null, true)\")"); await pg.wait_for_timeout(500)
             g = "(() => { const g = document.querySelector('.tutgest'); return g ? [g.dataset.g, g.hidden, g.style.left, g.style.top] : null; })()"
             print(w, h, 'gesture', await ev(g)); await pg.screenshot(path=f'{WS}/ui/spin250_{w}x{h}_a.png'); await pg.wait_for_timeout(700); await pg.screenshot(path=f'{WS}/ui/spin250_{w}x{h}_b.png')
-            await ev("__T.ev('shim.tgt += 1.2')"); await pg.wait_for_timeout(300); print('  after a turn', await ev(g))
+            await pg.wait_for_timeout(2500); print('  after 3 s of the idle turning on its own', await ev(g))
+            gx = await ev("parseFloat(document.querySelector('.tutgest').style.left) || innerWidth / 2"); gy = await ev("parseFloat(document.querySelector('.tutgest').style.top) || innerHeight / 2")
+            await pg.mouse.move(gx - 40, gy); await pg.mouse.down(); await pg.mouse.move(gx + 60, gy, steps=8); await pg.mouse.up(); await pg.wait_for_timeout(300)
+            print('  after a drag', await ev(g), 'swiped', await ev("__T.ev('lookSwiped')"))
             print('  errors', errs[:3]); await ctx.close()
         await b.close()
 asyncio.run(main())
