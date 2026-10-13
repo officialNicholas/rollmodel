@@ -12,13 +12,13 @@ var FL = (() => {
   const BR = { base: new V3(-0.66, 0, -0.3), Rb: 0.3, Rm: 0.355, H: 0.92 }, TIP = new V3(0.93, 0, 0.36).normalize(), TIPAX = new V3(TIP.z, 0, -TIP.x);
   let X = null; // everything the scene is made of, while it runs
   // ---- the scene ----
-  function canvasTex(w, h, draw, srgb) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); if (srgb !== false) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; }
-  const rnd = (a, b) => a + Math.random() * (b - a);
+  function canvasTex(w, h, draw, srgb) { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); draw(g, w, h); const t = new THREE.CanvasTexture(c); if (srgb !== false) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; t.userData.redraw = () => { g.clearRect(0, 0, w, h); draw(g, w, h); t.needsUpdate = true; }; return t; }
+  let seed = 257; const rand = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }, rnd = (a, b) => a + rand() * (b - a);
   function barrelTex() {
     // the staves, the hoops, the label, and the paint that has run down it over the years
     const hoops = [0.1, 0.32, 0.68, 0.9];
-    const map = canvasTex(512, 512, (g, W, H) => {
-      const n = 18; for (let i = 0; i < n; i++) { const x0 = i / n * W, w = W / n, l = 22 + Math.random() * 9; g.fillStyle = 'hsl(' + rnd(22, 30) + ',' + rnd(38, 50) + '%,' + l + '%)'; g.fillRect(x0, 0, w + 1, H);
+    const map = canvasTex(512, 512, (g, W, H) => { seed = 257;
+      const n = 18; for (let i = 0; i < n; i++) { const x0 = i / n * W, w = W / n, l = rnd(22, 31); g.fillStyle = 'hsl(' + rnd(22, 30) + ',' + rnd(38, 50) + '%,' + l + '%)'; g.fillRect(x0, 0, w + 1, H);
         g.strokeStyle = 'rgba(40,20,10,.35)'; g.lineWidth = 1; for (let k = 0; k < 5; k++) { g.beginPath(); const gx = x0 + rnd(3, w - 3); g.moveTo(gx, 0); for (let y = 0; y <= H; y += 16) g.lineTo(gx + Math.sin(y * 0.02 + k * 3 + i) * 2.2, y); g.stroke(); }
         g.fillStyle = 'rgba(20,10,6,.75)'; g.fillRect(x0, 0, 2, H); g.fillStyle = 'rgba(255,220,180,.08)'; g.fillRect(x0 + 2, 0, 2, H); }
       // old paint, dried on: a few colours the barrel has held
@@ -39,7 +39,10 @@ var FL = (() => {
     });
     // roughness (green) and metalness (blue): the hoops are iron, the paint is glossy
     const rm = canvasTex(128, 128, (g, W, H) => { g.fillStyle = 'rgb(0,215,0)'; g.fillRect(0, 0, W, H); for (const v of hoops) { g.fillStyle = 'rgb(0,120,190)'; g.fillRect(0, (1 - v) * H - 3, W, 6); } g.fillStyle = 'rgb(0,60,0)'; g.fillRect(0, 0, W, 4); g.fillRect(W * 0.36, H * 0.38, W * 0.28, H * 0.24); }, false);
-    rm.colorSpace = THREE.NoColorSpace; return { map, rm };
+    rm.colorSpace = THREE.NoColorSpace;
+    // (the label's lettering in the game's own face: drawn again once the web fonts are in, if they weren't yet)
+    try { if (document.fonts && document.fonts.status !== 'loaded') document.fonts.ready.then(() => { if (X) map.userData.redraw(); }); } catch (e) {}
+    return { map, rm };
   }
   function makeBarrel() {
     const { Rb, Rm, H } = BR, pts = [new THREE.Vector2(0.001, 0), new THREE.Vector2(Rb, 0)];
@@ -479,7 +482,9 @@ void main(){ vec2 p = vUv; vec3 c = mix(vec3(0.038, 0.026, 0.058), vec3(0.058, 0
   function keyStop(e) { if (api.live) e.stopPropagation(); }
   api.boot = () => {
     document.body.classList.add('flon'); api.live = true; window.addEventListener('keydown', keyStop, true);
-    build(); buildUi(); AU.flm.load(); AU.music('intro');
+    try { build(); buildUi(); }
+    catch (e) { console.warn('intro:', e && e.message); try { if (UI) UI.el.remove(); } catch (x) {} UI = null; X = null; api.live = false; api.hush = false; document.body.classList.remove('flon'); window.removeEventListener('keydown', keyStop, true); AU.music('menu'); const ask = () => { if (!store.orient) openOrient(); }; if (bootHold) { const w = setInterval(() => { if (!bootHold) { clearInterval(w); ask(); } }, 100); } else ask(); return; }
+    AU.flm.load(); AU.music('intro');
     const start = () => { X.ready = true; AU.flm.play(); };
     const orient = () => { if (store.orient) return start(); openOrient(); const w = setInterval(() => { if ($('orient').hidden) { clearInterval(w); start(); } }, 120); };
     if (bootHold) { const w = setInterval(() => { if (!bootHold) { clearInterval(w); orient(); } }, 100); } else orient();

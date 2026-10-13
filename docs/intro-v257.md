@@ -29,7 +29,7 @@ The music is new and is written on the theme (`music/menu.mp3`). It builds a lay
 | wink | It winks (a sparkle and a star by its eye), then jumps off screen to the right | riser, one bar |
 | hand-over | The iris closes as the sting hits and opens on the lobby; it jumps in from the left and lands on its spot | sting; one bar later the menu song comes in at its 8th bar |
 
-The free stems were judged enough to give away. Sly eyes are a 545-dab Paint Shop item, so they are not offered, which keeps the economy as it was.
+Only the free eye styles are offered (Round, Squid, Dot). Sly eyes are a 545-dab Paint Shop item, so leaving them out keeps the economy as it was.
 
 ## The music
 
@@ -84,15 +84,26 @@ While the intro is live it draws instead of the lobby. `frameBody` returns befor
 - The pour is one deformed tube, drops are one instanced mesh (up to 96), the beam and dust are one cone and one point cloud, and there are 3 directional lights and a hemisphere light.
 - The character is the game's own `AXOC.make()` axolotl, driven through `AXOC.update` with the game's animator. Eye colour and style, colour, paint coat, `shake()`, `coatBurst()` and the `smirk` wink face are all its own.
 
-Measured (Chromium, SwiftShader, 390x780):
+Measured with `tools/perf257_intro.py` (Chromium with SwiftShader, 390x780, averaged per stage, the lobby in the same browser right after).
+- *Main-thread ms* is the game's own `lastCpu`: the whole frame's JS and GL calls.
+- *Frame ms* is the wall time between frames under SwiftShader. Since rendering there is in software, it mostly measures pixel cost.
 
-| Stage | Draw calls (3D pass) | Triangles |
-|---|---|---|
-| Barrel alone | 8 | 17.6k |
-| Pour | 9 | 18.3k |
-| With the character | 10 | 46.8k |
+| Stage | Main-thread ms | Frame ms (SwiftShader) | Draw calls (3D pass) | Triangles |
+|---|---|---|---|---|
+| Barrel, pour, eyes popping | 2.1 | 118 | 8 to 11 | 17.6k to 47.5k |
+| Eyes card (close-up) | 2.1 | 251 | 7 | 46.7k |
+| Paint card | 2.1 | 242 | 10 | 46.8k |
+| Forming, jumping, shaking | 2.0 | 207 | 10 | 46.8k |
+| Name card (close-up) | 2.2 | 251 | 10 | 46.8k |
+| Wink and leap | 1.9 | 212 | 10 | 46.8k |
+| Jump-in (lobby) | 5.3 | 139 | 4 | 43.8k |
+| Lobby | 4.6 | 186 | 4 | 43.8k |
 
-Add 1 draw for the backdrop. There is no shadow map, no post pass and no render target. FRAME_TIME_PLACEHOLDER
+Add 1 draw for the backdrop. There is no shadow map, no post pass and no render target.
+
+On the main thread the intro costs less than half of what the lobby does. On pixels, the wide shots cost less than the lobby. The close-ups (eyes, name) cost about 1.35x the lobby under SwiftShader, mostly the game's own character shader drawn large: the same cost the locker's close-up already pays.
+
+The floor shader was cut down for this. It evaluates the paint field once (normals from screen-space derivatives), loops only over live splats, and skips the boards under solid paint. That brought the eyes close-up from 364 to 251 ms and the barrel stage from 182 to 118 ms. The game's own quality ladder (`tunePerf`) keeps running during the intro, so a slow phone drops resolution as it would anywhere else.
 
 ## Anchors replaced in `game/index.html` (`tools/v257_intro.py`)
 
@@ -110,10 +121,15 @@ Each anchor must match exactly once:
 
 `FL` is a `var`, so the hooks are safe before it is assigned. For a returning player `FL` is a stub: `due` is false and every hook is a no-op.
 
+If the scene can't be built (for instance neither character pack loaded), the intro stands down: the lobby's song plays and the orientation chooser opens exactly as before. This was tested with both packs pointed at missing files.
+
 ## Files
 
 - `tools/v257_intro.py`: the patch module, `apply(s)`. It reads `v257_intro.js`, `v257_intro.css` and `v257_intro_au.js` from beside itself.
 - `tools/q257_intro.py`: the quick builder. It writes `game/_intro_test.html`; `--test` adds `window.__T`.
+- `tools/c257_intro.py`: makes the screenshot composites from a probe run.
+- `tools/r257_intro.py` and `tools/r257_mix.py`: the video (`intro-v257.mp4`). The recorder steps the page at a fixed 30 frames a second of game time (`requestAnimationFrame`, `performance.now` and the CSS animations together) and logs when each stage begins. The mixer lays in the music as the game plays it (the layers on the beat, the sting on a bar line, the menu song from its bar 8) and the intro's effects. The game's own synthesized effects (pops, splats, jumps) aren't in the video's sound.
+- `tools/perf257_intro.py`: the cost per stage, against the lobby.
 - `tools/p257_intro.py`: the Playwright probe. It plays the whole intro through its cards (portrait, landscape, app insets) and captures every stage. `SAVE=<json>` checks a returning player instead.
 - `tools/intro_score.py`: composes and renders the music. `tools/intro_music_build.py`, `tools/intro_audio_an.py` and `tools/intro_music_gen.py` are the analysis and generation helpers. `tools/assets/intro257/` holds the Ludo.ai one-shots the score uses.
 - Assets: `game/music/intro_{air,keys,low,tops,drive,sting}.mp3` and `game/sfx/intro_fx.mp3`. The page reaches them through the game's own `MUSIC_BASE` and `SFX_BASE`.
@@ -132,4 +148,13 @@ In the test build, `FL.peek()` reports the phase, draw calls and triangles, and 
 
 ## Not done or worth a look
 
-UNFINISHED_PLACEHOLDER
+- **Only tested in SwiftShader.** Worth a run on a real iPhone and a mid-range Android, in particular:
+  - the close-up frame time;
+  - the one-off shader compile when the character first appears. It's precompiled with `compileAsync` while the barrel stands, but a phone without parallel compile may still hitch once.
+- **The music was judged by analysis, not by ear.** The key, the melody re-tracked from the rendered stems, the seams, the levels and the hand-over were all checked numerically. A listen to `docs/intro-v257-music-preview.mp3` and `intro-v257.mp4` should decide:
+  - the mix balance;
+  - the sting;
+  - the menu song's entry point: offset 17.605 s, its bar 8, measured from the kick onsets. If it lands a hair early or late, change `MENU_AT` in `tools/v257_intro_au.js`.
+- **The wink is subtle on the Squid and Dot eyes**, since those styles darken the eye. The sparkle and star sell it.
+- **No skip button.** The intro is about 30 to 40 seconds, with three choices in it. Quitting halfway shows it again next launch.
+- **Fallback fonts:** if the web fonts haven't arrived when the barrel's label is drawn, it is drawn again once they have.
