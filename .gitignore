@@ -1,5 +1,5 @@
 *.pyc
 RollModel-iOS.zip
 __pycache__/
-ios/RollModel/RollModel/www/
+ios/RollModel/RollModel/Game/
 tools/ios/build/

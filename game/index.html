@@ -2922,17 +2922,50 @@ html.touchnav :focus-visible{outline:none!important}
 .mworld .whead{margin-top:clamp(10px,2.6vh,24px)}
 .mworld .world{transition:transform .2s var(--eo),opacity .18s,filter .18s;will-change:transform}
 .mworld .world::after{transition:opacity .2s}
+/* v251: skills open up when tapped (what each one does, then Equip); the second item and the saved orb sit by the item button; Flash Freeze */
+.stopt .stn{text-align:center;line-height:1.05}
+.stopt.sel{box-shadow:0 0 0 3px #7CC8FF,0 0 0 5.5px #171320,3px 3px 0 rgba(23,19,32,.25)}
+.stopt.sel .sts{background:#7CC8FF;color:#171320}
+.stnow .stperks{grid-column:1/-1;display:grid;gap:7px;margin:0;padding:11px 12px;list-style:none;border-radius:12px;background:#fff;box-shadow:inset 0 0 0 2px rgba(23,19,32,.14)}
+.stnow .stperks li{position:relative;padding-left:26px;font:700 13px/1.3 var(--font-ui);color:#2E2840}
+.stnow .stperks li::before{content:"+";position:absolute;left:0;top:-1px;display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#46E07A;color:#0B2A14;font:900 14px/1 var(--font-head);box-shadow:0 0 0 2px #171320}
+.stnow .stperks li.dn::before{content:"\2212";background:#FF6B7D;color:#3A0710}
+.stnow .stequip{appearance:none;display:inline-block;margin-top:8px;padding:8px 16px 7px;border:0;border-radius:999px;background:var(--gold);color:#171320;font:900 12px/1 var(--font-head);letter-spacing:.1em;text-transform:uppercase;box-shadow:0 0 0 2px #171320,0 3px 0 #171320;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.stnow .stequip:active{transform:translateY(2px);box-shadow:0 0 0 2px #171320,0 1px 0 #171320}
+.itemBtn.ib2,.itemBtn.orbBtn{left:max(30px,calc(env(safe-area-inset-left) + 22px));width:64px;height:64px;bottom:calc(max(24px,calc(env(safe-area-inset-bottom) + 16px)) + 92px)}
+.itemBtn.orbBtn.up{bottom:calc(max(24px,calc(env(safe-area-inset-bottom) + 16px)) + 166px)}
+.itemBtn.ib2 svg,.itemBtn.orbBtn svg{width:30px;height:30px;margin-top:-10px}
+.itemBtn.ib2 .ilbl,.itemBtn.orbBtn .ilbl{bottom:10px;font-size:8.5px}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.itemBtn.ib2,.itemBtn.orbBtn{left:auto;right:calc(max(156px,calc(env(safe-area-inset-right) + 148px)) + 80px);bottom:calc(max(22px,calc(env(safe-area-inset-bottom) + 14px)) + 3px);width:64px;height:64px}.itemBtn.orbBtn.up{right:calc(max(156px,calc(env(safe-area-inset-right) + 148px)) + 154px)}}
+.flash.ice{background:radial-gradient(circle at 50% 45%,#FFFFFF 0,#DDF3FF 45%,#9ED8FF 100%)}
+.flash.ice.on{animation:flashice .9s ease-out}
+@keyframes flashice{0%{opacity:.95}35%{opacity:.7}100%{opacity:0}}
+.frost{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .35s;background:radial-gradient(ellipse 80% 75% at 50% 50%,transparent 46%,rgba(190,235,255,.6) 78%,rgba(240,252,255,.95) 100%)}
+.frost.wind{opacity:1;transition:opacity .9s ease-in}
+.frost.held{opacity:1;transition:opacity .15s}
+@media (prefers-reduced-motion:reduce){.flash.ice.on{animation:none}}
+/* v251: a rival's name tag: its rank on a shield in its colour, its name on a dark plate, a small point down at it */
+.ntags{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.ntag{position:absolute;left:0;top:0;display:flex;align-items:center;padding-bottom:6px;transform-origin:50% 100%;will-change:transform,opacity;--tc:#2E9BFF}
+.ntag::after{content:"";position:absolute;left:50%;bottom:1px;margin-left:-4.5px;border-style:solid;border-width:5px 4.5px 0;border-color:rgba(23,19,32,.84) transparent transparent}
+.ntr{position:relative;z-index:1;flex:none;width:21px;height:25px;margin-right:-8px;filter:drop-shadow(0 1.5px 0 rgba(23,19,32,.35))}
+.ntr svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.ntsh{fill:var(--tc);stroke:#171320;stroke-width:4.5;stroke-linejoin:round}
+.ntr b{position:absolute;left:0;right:0;top:7px;text-align:center;font:400 10.5px/1 var(--font-display);color:#fff;font-variant-numeric:tabular-nums;text-shadow:0 1px 0 #171320,1px 0 0 #171320,-1px 0 0 #171320,0 -1px 0 #171320}
+.ntn{max-width:112px;height:18px;box-sizing:border-box;padding:0 9px 0 13px;border-radius:0 9px 9px 0;background:rgba(23,19,32,.84);box-shadow:inset 0 -2px 0 var(--tc);font:900 11px/18px var(--font-head);letter-spacing:.05em;text-transform:uppercase;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style>
 
 <div id="stage">
   <canvas id="cv" aria-label="Roll Model game view"></canvas>
   <div class="vig" id="vig"></div>
+  <div class="ntags" id="ntags" aria-hidden="true"></div>
   <div class="orbflash" id="orbFlash"><i></i><i></i><i></i><i></i><i></i></div>
   <div class="orbptr" id="orbPtr"><i></i><u><b></b></u></div>
   <div class="orbptr giftptr" id="giftPtr"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 11h15v9.2a1.6 1.6 0 0 1-1.6 1.6H6.1a1.6 1.6 0 0 1-1.6-1.6z" fill="#FFC61A" stroke="#1A1030" stroke-width="1.7"/><rect x="3" y="7.4" width="18" height="4.4" rx="1.4" fill="#FFD54F" stroke="#1A1030" stroke-width="1.7"/><path d="M10.4 7.6h3.2v14.1h-3.2z" fill="#FF3FA4"/><path d="M12 7.4C10.6 4 7.4 3.4 6.9 5.3c-.4 1.6 2 2.1 5.1 2.1zM12 7.4c1.4-3.4 4.6-4 5.1-2.1.4 1.6-2 2.1-5.1 2.1z" fill="#FF3FA4" stroke="#1A1030" stroke-width="1.4" stroke-linejoin="round"/></svg></i><u><b></b></u></div>
   <div class="foeptr" id="foePtr"><i></i><u><b></b></u></div>
   <div class="foeptr two" id="foePtr2"><i></i><u><b></b></u></div>
   <div class="flash" id="flash"></div>
+  <div class="frost" id="frost" aria-hidden="true"></div>
   <div class="reveal" id="reveal" hidden aria-live="polite"><b class="rvn" id="rvName"></b><span class="rvs" id="rvSub"></span></div>
   <div class="count" id="count" aria-live="assertive"><b id="countN"></b></div>
   <div class="kof" id="kof" hidden aria-live="polite"><canvas id="kofC" aria-hidden="true"></canvas><div class="kofb"><small id="kofSmall">Splatted by</small><b id="kofBy"></b><span class="kofn" id="kofN">3</span><i>Respawn</i></div></div>
@@ -2947,7 +2980,7 @@ html.touchnav :focus-visible{outline:none!important}
     </div>
     <div class="chips"><span class="chip wx" id="wx" hidden></span><span class="chip pw" id="pw" hidden><i id="pwRing"></i><span id="pwText"></span></span></div>
     <div class="spacer"></div>
-    <button class="itemBtn" id="itemBtn" type="button" aria-label="Use item" hidden></button><button class="slamBtn" id="slamBtn" type="button" aria-label="Ground pound" hidden><i class="sdisc" aria-hidden="true"></i><i class="sbdial" id="sbDial" aria-hidden="true" hidden><i id="sbRing"></i><b id="sbN"></b></i><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M14 3h12v13h7.5L20 30.5 6.5 16H14z"/><path class="gnd" d="M6 36h28M7 30l-3.5-3M33 30l3.5-3" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/><path class="trail" d="M14 31v6M20 32.5v6M26 31v6" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/></svg></button>
+    <button class="itemBtn" id="itemBtn" type="button" aria-label="Use item" hidden></button><button class="itemBtn ib2" id="itemBtn2" type="button" aria-label="Use your second item" hidden></button><button class="itemBtn orbBtn" id="orbBtn" type="button" aria-label="Use your saved orb" hidden></button><button class="slamBtn" id="slamBtn" type="button" aria-label="Ground pound" hidden><i class="sdisc" aria-hidden="true"></i><i class="sbdial" id="sbDial" aria-hidden="true" hidden><i id="sbRing"></i><b id="sbN"></b></i><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M14 3h12v13h7.5L20 30.5 6.5 16H14z"/><path class="gnd" d="M6 36h28M7 30l-3.5-3M33 30l3.5-3" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/><path class="trail" d="M14 31v6M20 32.5v6M26 31v6" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/></svg></button>
     <div class="tank gone hide" id="bar"><div class="ttrack" id="ttrack" role="meter" aria-label="Paint" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><span><i></i></span><span><i></i></span><span><i></i></span><span><i></i></span></div><em class="tdry" aria-live="assertive"><span id="tdryW">Find a refill</span> <b id="tdryN">4</b></em></div>
   </div>
   <div class="orbs" id="orbs"></div>
@@ -3042,7 +3075,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 250</p>
+      <p class="ver">Version 251</p>
     </div>
   </div>
 
@@ -10113,7 +10146,7 @@ const AXOC = (() => {
     look.U.uCoat.value.z = Math.max(X.wet, X.coat > 0.5 ? 1 : 0);
     // the light it's lit by, in the camera's space (its fin glows from behind, its rim catches it)
     SUN_DIR.copy(sun.position).sub(sun.target.position).normalize().transformDirection(camera.matrixWorldInverse); look.U.uKeyDir.value.copy(SUN_DIR);
-    A.update(dt); if (D) D.strokeK = (A.strokeMul ? A.strokeMul() : 1) * (D.swimBoost > 1 ? 1 + (D.swimBoost - 1) * (A.loco ? A.loco.slK || 0 : 0) : 1); /* (the Swim faster skill: a touch more pace while it swims) */ // (swimming: the blob's pace follows the stroke; the game moves it by this)
+    A.update(D && D.frozenT > 0 ? 0 : dt); if (D) D.strokeK = (A.strokeMul ? A.strokeMul() : 1) * (D.swimBoost > 1 ? 1 + (D.swimBoost - 1) * (A.loco ? A.loco.slK || 0 : 0) : 1); /* (the Swim faster skill: a touch more pace while it swims) */ // (swimming: the blob's pace follows the stroke; the game moves it by this)
     // curled into a ball in flight it rolls over and over the way it's flying, faster the faster it goes; opening out it comes round upright
     { const bk = A.ballOn || 0, fly = (o.blob || 0) > 0.05 && !!o.inAir, sp = D ? Math.hypot(D.spd || 0, D.vy || 0) : 0, wsc = SC * (I.root.parent ? I.root.parent.scale.x : 1) || 1;
       X.spin = X.spin || 0; X.spinV = X.spinV || 0;
@@ -10492,7 +10525,7 @@ const lookC = { spd: 0, lean: 0, drop: 0, flat: 1, roll: 0, flatK: 0 };
 const starG = (() => { const sh = new THREE.Shape(); for (let i = 0; i < 10; i++) { const a = i / 10 * 6.2832 - Math.PI / 2, r = i % 2 ? 0.045 : 0.11; i ? sh.lineTo(Math.cos(a) * r, Math.sin(a) * r) : sh.moveTo(Math.cos(a) * r, Math.sin(a) * r); } return new THREE.ExtrudeGeometry(sh, { depth: 0.03, bevelEnabled: false }); })(), starM = new THREE.MeshBasicMaterial({ color: 0xFFD86B });
 function makeStars() { const g = new THREE.Group(); for (let i = 0; i < 3; i++) g.add(new THREE.Mesh(starG, starM)); g.visible = false; scene.add(g); return g; }
 const starsP = makeStars(), starsC = makeStars();
-function placeStars(g, D, V) { const on = (D.stunT > 0 && D.st === 'play') || !!(D.ip && D.ip.stars); g.visible = on; if (!on) return; g.position.set(D.x, D.y + PR * 2.2 * V.gk + 0.15, D.z); g.children.forEach((m, i) => { const a = clock * 5 + i / 3 * 6.2832; m.position.set(Math.cos(a) * 0.36, Math.sin(clock * 9 + i) * 0.04, Math.sin(a) * 0.36); m.rotation.set(0, -a, clock * 4); }); }
+function placeStars(g, D, V) { const on = (D.stunT > 0 && D.st === 'play' && !(D.frozenT > 0)) || !!(D.ip && D.ip.stars); g.visible = on; if (!on) return; g.position.set(D.x, D.y + PR * 2.2 * V.gk + 0.15, D.z); g.children.forEach((m, i) => { const a = clock * 5 + i / 3 * 6.2832; m.position.set(Math.cos(a) * 0.36, Math.sin(clock * 9 + i) * 0.04, Math.sin(a) * 0.36); m.rotation.set(0, -a, clock * 4); }); }
 let blinkTC = 1.3, blinkKC = 0;
 const aimRing = new THREE.Group();
 const aimOut = new THREE.Mesh(new THREE.RingGeometry(0.62, 0.9, 48), new THREE.MeshBasicMaterial({ color: C.outline, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -8, polygonOffsetUnits: -8 })); aimOut.renderOrder = 900000; aimRing.add(aimOut);
@@ -11324,6 +11357,7 @@ const PU = {
   roller: { name: 'Roller', dur: 9, tip: 'Roller! Wide stripes for 9 seconds. Paint refilled.' },
   turret: { name: 'Turret', dur: 7, tip: 'Turret! Plant and fire paint for 7 seconds.' },
   slam: { name: 'Slam', dur: 0, tip: 'Slam saved! Tap the slam button to smash down a huge circle.' },
+  trap: { name: 'Paint Trap', dur: 0, tip: 'Paint Trap! Drop it, and the next rival over it gets splatted.' },
 };
 const puIconMat = toon(0xE3122F), puHaloMat = toon(0xFFFFFF);
 const BUB_T = { value: 0 }, bubbleMat = new THREE.ShaderMaterial({
@@ -11333,7 +11367,7 @@ const BUB_T = { value: 0 }, bubbleMat = new THREE.ShaderMaterial({
   fragmentShader: 'uniform float uTime; varying vec3 vN; varying vec3 vV; void main(){ vec3 n = normalize(vN), v = normalize(vV); float d = clamp(dot(n, v), 0.0, 1.0), f = pow(max(1.0 - d, 1e-5), 2.2); float hl = smoothstep(0.92, 0.97, dot(n, normalize(vec3(-0.45, 0.6, 0.66)))); vec3 film = 0.55 + 0.45 * cos(6.2832 * (vec3(0.0, 0.33, 0.67) + d * 1.7 + n.y * 0.4 + uTime * 0.06)); vec3 c = mix(mix(vec3(0.82, 0.94, 1.0), film, 0.75 * smoothstep(0.05, 0.75, 1.0 - d)), vec3(1.0), hl); gl_FragColor = vec4(c, clamp(0.1 + 0.72 * f + hl * 0.85, 0.0, 1.0));\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}'
 });
 const bubbleG = new THREE.SphereGeometry(0.66, 28, 18);
-let powers = [];
+let powers = [], trapList = []; const TRAP_G = { ball: new THREE.SphereGeometry(0.24, 20, 14), cap: new THREE.CylinderGeometry(0.07, 0.08, 0.08, 12), fuse: new THREE.CylinderGeometry(0.02, 0.02, 0.16, 6), spark: new THREE.SphereGeometry(0.05, 8, 6), drip: new THREE.SphereGeometry(0.1, 10, 6), dome: new THREE.SphereGeometry(0.34, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), light: new THREE.SphereGeometry(0.055, 10, 8), ring: new THREE.RingGeometry(0.52, 0.66, 40).rotateX(-Math.PI / 2) }, trapSparkM = new THREE.MeshBasicMaterial({ color: 0xFFD54F }), trapCapM = toon(0x2A2436), trapLightOn = new THREE.MeshBasicMaterial({ color: 0xFFFFFF }), trapLightOff = new THREE.MeshBasicMaterial({ color: 0x5A1428 });
 const PU_G = { roll: new THREE.CylinderGeometry(0.2, 0.2, 0.7, 24), stick: new THREE.CylinderGeometry(0.04, 0.04, 0.34, 8), tip: new THREE.ConeGeometry(0.27, 0.36, 20), neck: new THREE.CylinderGeometry(0.1, 0.1, 0.27, 14) };
 // the roller: built once and shared. The paint wraps round it in wavy bands (u goes round the roller, v along it), drips running off their edges
 const ROLLER = (() => {
@@ -11527,6 +11561,7 @@ function makePowerMesh(type) {
   if (type === 'roller') { const K = ROLLER, rl = new THREE.Group(); rl.position.y = 0.05; spin.add(rl); for (const [geo, m] of [[K.roll, K.rollM], [K.solid, stGlossM], [K.wire, K.chromeM], [K.hull, outlineMat]]) { const o = new THREE.Mesh(geo, m); o.castShadow = m !== outlineMat; rl.add(o); } const fe = new THREE.Mesh(K.eyes, K.faceM); fe.position.y = 0.035; fe.renderOrder = 34; rl.add(fe); const fm = new THREE.Mesh(K.mouth, K.faceM); fm.renderOrder = 34; rl.add(fm); eyes = rl; }
   else if (type === 'turret') { const R = TURRET_RIG, t = new THREE.Group(); t.position.y = -0.2; t.scale.setScalar(0.4); spin.add(t); for (const [geo, m] of [[R.baseG, turMetalM], [R.barrelG, turMetalM], [R.podG, turMetalM], [R.tankMetalG, turMetalM], [R.bandG, puIconMat]]) { const o = new THREE.Mesh(geo, m); o.castShadow = true; t.add(o); } for (const geo of [R.baseG, R.barrelG, R.hullG]) { const h = new THREE.Mesh(geo, outlineMat); h.scale.setScalar(1.08); t.add(h); }
     const ink = new THREE.Mesh(R.tankInkG, puIconMat); ink.position.y = R.tankInkY; t.add(ink); const gl = new THREE.Mesh(R.tankGlassG, turDomeM); gl.renderOrder = 44; t.add(gl); const ey = new THREE.Mesh(R.eyesG, turFaceM); ey.position.y = R.eyeY; ey.renderOrder = 34; t.add(ey); eyes = t; }
+  else if (type === 'trap') { add(TRAP_G.ball, puIconMat, V(0, -0.04, 0)); add(TRAP_G.cap, trapCapM, V(0, 0.22, 0)); add(TRAP_G.fuse, trapCapM, V(0.05, 0.31, 0), [0, 0, -0.5]); add(TRAP_G.drip, puIconMat, V(-0.13, -0.24, 0.06)); add(TRAP_G.drip, puIconMat, V(0.12, -0.23, -0.05)); const sp = new THREE.Mesh(TRAP_G.spark, trapSparkM); sp.position.set(0.1, 0.39, 0); spin.add(sp); }
   else { add(PU_G.tip, puIconMat, V(0, -0.13, 0), [Math.PI, 0, 0]); add(PU_G.neck, puIconMat, V(0, 0.18, 0)); }
   const bub = new THREE.Mesh(bubbleG, bubbleMat); bub.renderOrder = 8; g.add(bub);
   scene.add(g); return { g, spin, bub, eyes };
@@ -11534,7 +11569,7 @@ function makePowerMesh(type) {
 function placePower(pw, type, spot) { if (pw.g) scene.remove(pw.g); const m = makePowerMesh(type); Object.assign(pw, { type, x: spot[0], y: spot[1], z: spot[2], g: m.g, spin: m.spin, bub: m.bub, eyes: m.eyes, gone: 0, pop: 0 }); }
 const itemSpawn = { t: 7, last: null };
 function placePowers() {
-  powers.forEach(pw => pw.g && scene.remove(pw.g)); powers = []; itemSpawn.t = 6 + Math.random() * 3; itemSpawn.last = null;
+  clearTraps(); powers.forEach(pw => pw.g && scene.remove(pw.g)); powers = []; itemSpawn.t = 6 + Math.random() * 3; itemSpawn.last = null;
 }
 function spawnItem() {
   const alive = ACTIVE.filter(D => D.st !== 'out');
@@ -11542,7 +11577,7 @@ function spawnItem() {
   if (!spots.length) { itemSpawn.t = 2; return; }
   let trail = alive[0]; for (const D of alive) if (teamCov(D.team) < teamCov(trail.team)) trail = D;
   let best = null, bs = 1e9; for (const sp of spots) { const sc = Math.hypot(trail.x - sp[0], trail.z - sp[2]) + Math.random() * 9; if (sc < bs) { bs = sc; best = sp; } }
-  const type = tut && tut.noTurret ? 'roller' : itemSpawn.last === 'roller' ? (Math.random() < 0.65 ? 'turret' : 'roller') : (Math.random() < 0.65 ? 'roller' : 'turret'); // (the lesson: rollers only until the flower is found)
+  const type = tut && tut.noTurret ? 'roller' : (tut || tut2 || tut3) ? (itemSpawn.last === 'roller' ? (Math.random() < 0.65 ? 'turret' : 'roller') : (Math.random() < 0.65 ? 'roller' : 'turret')) : (() => { const w = { roller: 0.42, turret: 0.3, trap: 0.28 }; if (w[itemSpawn.last]) w[itemSpawn.last] *= 0.45; let r = Math.random() * (w.roller + w.turret + w.trap); for (const k of ['roller', 'turret', 'trap']) if ((r -= w[k]) <= 0) return k; return 'roller'; })(); // (the lessons keep to rollers and turrets) // (the lesson: rollers only until the flower is found)
   const pw = { phase: Math.random() * 6, pop: 0, grace: 0, owner: null }; placePower(pw, type, best); powers.push(pw); itemSpawn.last = type; itemSpawn.t = 9 + Math.random() * 4;
   if (state === 'play' && Math.hypot(P.x - best[0], P.z - best[2]) < 16) AU.spot(); /* (the menu's backdrop spawns them too, silently) */
 }
@@ -11562,11 +11597,139 @@ function useHeld(D) {
   if (!D.held || D.st !== 'play' || D.flatT > 0 || D.stunT > 0 || D.rocket || D.turret || D.giantT > 0 || D.knockT > 0) return false;
   const type = D.held; if (type === 'turret' && D.air) return false;
   D.held = null; D.heldT = 0;
+  if (type === 'trap') { dropTrap(D); for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0; return true; }
   if (type === 'turret') { startTurret(D); for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0; return true; }
   D.paint = 1; burst2(D, 16); D.power = { type, t: PU[type].dur }; emote(D, 'glee', 0.9);
   if (D === P) { shake = Math.max(shake, 0.08); AU.power(); buzz(15); banner('Roller!', 'Wide stripes. Paint refilled'); setTimeout(() => { if (state === 'play' && P.power && P.power.type === 'roller') hint('rroll', say('Swipe up to roll over rivals', 'Shift to roll over rivals'), 2.8); }, 2300); } else if (hearable(D)) AU.power();
   for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0;
   return true;
+}
+
+// ---------- v251: Deep Pockets: the second pocket and the saved orb ----------
+function useHeld2(D) { if (!D.held2) return false; const a = D.held; D.held = D.held2; D.held2 = null; if (useHeld(D)) { D.held = a; return true; } D.held2 = D.held; D.held = a; return false; }
+function useOrb(D) {
+  if (!D.orbSaved || D.st !== 'play' || D.flatT > 0 || D.stunT > 0 || D.rocket || D.turret || D.giantT > 0 || D.knockT > 0) return false;
+  const g = D.orbSaved; D.orbSaved = null; shockwave(D.x, D.y + 0.1, D.z, 2.2, 0xFFFFFF); orbGift(D, g); return true;
+}
+function cpuGift() { return !tut && !tut2 && !tut3 && Math.random() < 0.2 ? 'freeze' : ['giant', 'rocket'][(Math.random() * 2) | 0]; }
+function pocketHud() {
+  const b2 = $('itemBtn2'), h2 = state === 'play' && P.st === 'play' ? P.held2 : null; if (b2.hidden === !!h2) b2.hidden = !h2;
+  if (h2 && b2.dataset.k !== h2) { b2.dataset.k = h2; b2.innerHTML = '<i class="sdisc" aria-hidden="true"></i>' + ITEM_ICON[h2] + '<span class="ilbl">' + PU[h2].name + '</span>'; b2.setAttribute('aria-label', 'Use the ' + PU[h2].name.toLowerCase()); restartCls(b2, 'in'); } else if (!h2) b2.dataset.k = '';
+  const ob = $('orbBtn'), os = state === 'play' && P.st === 'play' ? P.orbSaved : null; if (ob.hidden === !!os) ob.hidden = !os; if (ob.classList.contains('up') !== !!h2) ob.classList.toggle('up', !!h2);
+  if (os && ob.dataset.k !== os) { ob.dataset.k = os; ob.innerHTML = '<i class="sdisc" aria-hidden="true"></i>' + (STROKE_ICON[os] || '') + '<span class="ilbl">' + (ORB_LBL[os] || 'Orb') + '</span>'; ob.setAttribute('aria-label', 'Use your saved ' + (ORB_LBL[os] || 'orb').toLowerCase()); restartCls(ob, 'in'); } else if (!os) ob.dataset.k = '';
+}
+// ---------- v251: the Paint Trap. Dropped where you stand, it arms in a beat; the next rival over it sets it off: a burst of your paint, and
+// they're stunned and popped up. A dodge roll through it sets it off harmlessly (a CPU heading for one sometimes knows to); your own can't
+// catch you, and a jump clears it. Two down at most each (a third pops the oldest); left alone it fizzles out after TRAP_LIFE seconds ----------
+const TRAP_R = 0.75, TRAP_ARM = 0.6, TRAP_LIFE = 45, TRAP_MAX = 2, TRAP_STUN = 1.5, TRAP_SPLAT = SPLAT_R * 1.7;
+const trapMatC = new Map(), trapMat = col => { let o = trapMatC.get(col); if (!o) { o = { m: toon(col), ring: new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.55, depthWrite: false }) }; trapMatC.set(col, o); } return o; };
+function makeTrapMesh(D) {
+  const g = new THREE.Group(), M = trapMat(TEAMS[D.team].wet);
+  const dome = new THREE.Mesh(TRAP_G.dome, M.m), hull = new THREE.Mesh(TRAP_G.dome, outlineMat); dome.scale.set(1, 0.62, 1); dome.castShadow = true; hull.scale.set(1.09, 0.7, 1.09); g.add(hull, dome);
+  for (let i = 0; i < 5; i++) { const a = i / 5 * 6.283 + 0.4, d = new THREE.Mesh(TRAP_G.drip, M.m); d.position.set(Math.sin(a) * 0.31, 0.012, Math.cos(a) * 0.31); d.scale.set(1.3, 0.32, 1.3); g.add(d); }
+  const cap = new THREE.Mesh(TRAP_G.cap, trapCapM), light = new THREE.Mesh(TRAP_G.light, trapLightOff); cap.position.y = 0.23; light.position.y = 0.3; g.add(cap, light);
+  const ring = new THREE.Mesh(TRAP_G.ring, M.ring); ring.position.y = 0.03; ring.renderOrder = 3; g.add(ring);
+  g.userData.light = light; g.userData.ring = ring; return g;
+}
+function dropTrap(D) {
+  const gy = surfaceUnder(D.x, D.z, D.y + 0.4, true), y = gy > -Infinity ? gy : D.y, mine = trapList.filter(T => T.owner === D);
+  if (mine.length >= TRAP_MAX) trapPop(mine[0], null, true);
+  const T = { owner: D, x: D.x, y, z: D.z, arm: TRAP_ARM, t: 0, code: tcode(D), dec: {}, seen: false, g: makeTrapMesh(D) }; T.g.position.set(T.x, y, T.z); scene.add(T.g); trapList.push(T);
+  shockwave(T.x, y + 0.05, T.z, 0.9, TEAMS[D.team].wet); D.squash = Math.max(D.squash, 0.4); emote(D, 'glee', 0.6);
+  if (hearable(D)) { AU.at(T.x, T.z); AU.plop(); }
+  if (D === P) { buzz(10); popText('Trap set!'); }
+}
+function trapTick(dt) {
+  for (let i = trapList.length - 1; i >= 0; i--) {
+    const T = trapList[i]; T.t += dt; if (T.arm > 0) T.arm -= dt;
+    const u = T.g.userData; u.light.material = (T.arm > 0 ? (T.t * 10) % 1 < 0.5 : (T.t * 1.4) % 1 < 0.2) ? trapLightOn : trapLightOff; u.ring.scale.setScalar(1 + 0.07 * Math.sin(T.t * 5));
+    if (T.t > TRAP_LIFE) { trapPop(T, null, true); continue; }
+    if (T.arm > 0 || state !== 'play') continue;
+    if (T.owner !== P && !T.seen && P.st === 'play' && Math.hypot(P.x - T.x, P.z - T.z) < 9) { T.seen = true; hint('trapdodge', say('A trap! Swipe up to roll through it safely', 'A trap! Shift to roll through it safely'), 3.2); }
+    for (const D of ACTIVE) {
+      if (D === T.owner || D.st !== 'play' || D.rocket || D.turret || D.immuneT > 0 || D.dashT > 0) continue; // (a roll still sets it off: harmlessly, below)
+      const dx = D.x - T.x, dz = D.z - T.z, d = Math.hypot(dx, dz);
+      // a CPU heading straight for it may roll through (more often the harsher the critics)
+      if (D.ai && !D.air && !(D.rollT > 0) && d < 1.7 && d > TRAP_R && D.spd > 1.2 && Math.abs(wrapA(Math.atan2(-dx, -dz) - D.yaw)) < 0.6) { const k = 'r' + D.team; if (T.dec[k] === undefined) T.dec[k] = Math.random() < (diff === 'easy' ? 0.3 : diff === 'hard' ? 0.8 : 0.55); if (T.dec[k]) dodgeRoll(D); }
+      if (d > TRAP_R || Math.abs(D.y - T.y) > 0.8 || (D.air && D.y - T.y > 0.3)) continue;
+      trapPop(T, D, D.rollT > 0 || D.giantT > 0); break;
+    }
+  }
+}
+function trapPop(T, B, harmless) {
+  const i = trapList.indexOf(T); if (i >= 0) trapList.splice(i, 1); scene.remove(T.g);
+  if (!B && harmless) { for (let k = 0; k < 8; k++) { const a = Math.random() * 6.283; spawnPart(T.x, T.y + 0.2, T.z, Math.cos(a) * 0.7, 0.8 + Math.random() * 0.8, Math.sin(a) * 0.7, 0.3, steamMat, 0.7); } return; } // (fizzled out)
+  const col = TEAMS[T.owner.team].wet;
+  addSplat(T.x, T.y, T.z, Math.random() * 6.283, TRAP_SPLAT, dryClock, false, false, T.code);
+  shockwave(T.x, T.y + 0.1, T.z, 2.8, col); shockwave(T.x, T.y + 0.1, T.z, 1.5, 0xFFFFFF);
+  for (let k = 0; k < 22; k++) { const a = Math.random() * 6.283, v = 2.5 + Math.random() * 4.5; spawnPart(T.x, T.y + 0.3, T.z, Math.cos(a) * v, 2 + Math.random() * 4, Math.sin(a) * v, 0.35 + Math.random() * 0.3, tmat(T.owner), 0.55 + Math.random() * 0.4); }
+  if (Math.hypot(T.x - P.x, T.z - P.z) < 20) { AU.at(T.x, T.z); AU.burst(0.8); AU.splat(0.9); }
+  if (!B) return;
+  if (harmless) { B.wob = Math.max(B.wob, 0.7); if (B === P) { popText('Dodged the trap!'); buzz(8); } else if (T.owner === P) popText(nameOf(B) + ' rolled right through'); return; }
+  if (B.charging) clearCharge(B); if (B === P) { holdCharge = false; slingOff(); }
+  const l = Math.hypot(B.x - T.x, B.z - T.z), nx = l > 0.05 ? (B.x - T.x) / l : Math.sin(B.yaw), nz = l > 0.05 ? (B.z - T.z) / l : Math.cos(B.yaw);
+  B.stunT = Math.max(B.stunT || 0, TRAP_STUN); B.tGuard = TRAP_STUN + 0.9; B.spd = 0; B.turn = 0; B.kx = nx * 3.4; B.kz = nz * 3.4; B.slam = false; B.missile = false; B.rollT = 0;
+  B.squash = 0.9; B.wob = 1; fxKnock(B, nx, nz, 0.8); if (!B.air) { B.air = true; B.stroke++; } B.vy = Math.max(B.vy || 0, 5.5); B.lastHit = { by: T.owner, t: runT };
+  emote(B, 'ouch', 1); emote(T.owner, 'glee', 0.9); hitStop(0.06, T.owner, B);
+  if (B === P) { shake = Math.max(shake, 0.35); buzz([20, 25, 20]); popText('Trapped!'); } else if (T.owner === P) { buzz(12); popText('Trapped ' + nameOf(B) + '!'); }
+}
+function clearTraps() { for (const T of trapList) scene.remove(T.g); trapList.length = 0; }
+// ---------- v251: Flash Freeze. A beat to wind up (frost creeps in at the edges, a shimmer rises round whoever cast it), then a flash over
+// the whole canvas and everyone else is frozen solid for FREEZE_T seconds. Safe: anyone down in a basin, anyone up in a rocket, and anyone
+// whose dodge roll starts in the last FREEZE_SWEET seconds before the flash (a timing that's hard to master) ----------
+const FREEZE_WIND = 0.9, FREEZE_T = 3, FREEZE_SWEET = 0.12, COL_ICE = new THREE.Color(0xCFEFFF), frzList = [];
+const ICE_G = new THREE.IcosahedronGeometry(0.6, 1), iceShellM = toon(0xE2F6FF, { transparent: true, opacity: 0.6, depthWrite: false });
+let frostHeld = false;
+function startFreeze(D) {
+  const F = { by: D, t: 0, fx: 0, roll: new Map() };
+  for (const B of ACTIVE) if (B !== D && B.ai) F.roll.set(B, Math.random() < (diff === 'easy' ? 0.1 : diff === 'hard' ? 0.45 : 0.25)); // (a CPU sometimes nails the roll)
+  frzList.push(F); D.wob = 1; D.squash = 0.7; emote(D, 'glee', 1.2); AU.whoosh();
+  $('frost').classList.add('wind');
+  if (D === P) { shake = Math.max(shake, 0.15); buzz([10, 40, 10]); banner('Flash freeze!', 'Here it comes'); }
+  else { banner(nameOf(D) + '’s flash freeze!', say('Roll right at the flash, or hide in a ' + potWord(), 'Shift right at the flash, or hide in a ' + potWord())); AU.spot(); }
+  for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0;
+}
+function freezeTick(dt) {
+  for (let i = frzList.length - 1; i >= 0; i--) {
+    const F = frzList[i], D = F.by; F.t += dt;
+    if (state !== 'play') { frzList.splice(i, 1); $('frost').classList.remove('wind'); continue; }
+    F.fx -= dt; if (F.fx <= 0) { F.fx = 0.14; shockwave(D.x, D.y + 0.1, D.z, 0.8 + 2.2 * F.t / FREEZE_WIND, 0xBFE9FF); for (let k = 0; k < 4; k++) { const a = Math.random() * 6.283; spawnPart(D.x + Math.cos(a) * 0.5, D.y + 0.3, D.z + Math.sin(a) * 0.5, Math.cos(a) * 0.6, 1.6 + Math.random(), Math.sin(a) * 0.6, 0.18, boilPartMat, 0.7); } }
+    for (const [B, ok] of F.roll) if (ok && F.t >= FREEZE_WIND - 0.06 && B.st === 'play' && !(B.rollT > 0)) { F.roll.set(B, false); dodgeRoll(B); }
+    if (F.t < FREEZE_WIND) continue;
+    frzList.splice(i, 1); freezeFlash(F);
+  }
+}
+function freezeFlash(F) {
+  const D = F.by, fl = $('flash'), fr = $('frost'); let n = 0;
+  if (!frzList.length) fr.classList.remove('wind');
+  if (!reduceMotion) { fl.classList.add('ice'); restartCls(fl, 'on'); clearTimeout(freezeFlash.t); freezeFlash.t = setTimeout(() => fl.classList.remove('ice'), 950); }
+  shockwave(D.x, D.y + 0.2, D.z, ARENA * 1.6, 0xDDF3FF); shockwave(D.x, D.y + 0.2, D.z, ARENA * 0.8, 0xFFFFFF); AU.burst(1); hitStop(0.06, D);
+  for (const B of ACTIVE) {
+    if (B === D || B.st !== 'play' || B.rocket) continue; // (down in a basin, knocked out, or up in a rocket: untouched)
+    if (B.rollT > ROLL_T - FREEZE_SWEET) { if (B === P) { popText('Perfect dodge!'); buzz([8, 20, 8]); AU.ready && AU.ready(); } else if (D === P) popText(nameOf(B) + ' dodged it!'); continue; }
+    if (B.charging) clearCharge(B); if (B === P) { holdCharge = false; slingOff(); }
+    B.frozenT = FREEZE_T; B.stunT = Math.max(B.stunT || 0, FREEZE_T); B.spd = 0; B.turn = 0; B.kx = B.kz = 0; B.slam = false; B.missile = false; B.rollT = 0; B.wob = 1; n++;
+    for (let k = 0; k < 10; k++) { const a = Math.random() * 6.283; spawnPart(B.x, B.y + 0.4, B.z, Math.cos(a) * 2, 1 + Math.random() * 2, Math.sin(a) * 2, 0.22, k % 2 ? boilPartMat : puHaloMat, 0.6); }
+    if (B === P) { shake = Math.max(shake, 0.3); buzz([30, 30, 30]); popText('Frozen!'); fr.classList.add('held'); frostHeld = true; }
+  }
+  if (D === P) banner('Flash freeze!', n ? 'They’re frozen. Go get them' : 'Nobody caught');
+  else if (P.st === 'hide') popText('Safe in the ' + potWord());
+  for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0;
+}
+function thawFx(D) {
+  for (let k = 0; k < 14; k++) { const a = Math.random() * 6.283, v = 1.5 + Math.random() * 2.5; spawnPart(D.x, D.y + 0.4, D.z, Math.cos(a) * v, 1.5 + Math.random() * 2.5, Math.sin(a) * v, 0.2 + Math.random() * 0.15, k % 2 ? boilPartMat : puHaloMat, 0.5 + Math.random() * 0.3); }
+  if (hearable(D)) AU.pop();
+}
+function iceFrame(rdt) {
+  for (const D of ACTIVE) {
+    const on = D.frozenT > 0 && D.st === 'play';
+    if (!on && !D.iceG) continue;
+    if (!D.iceG) { const m = new THREE.Mesh(ICE_G, iceShellM); m.renderOrder = 9; m.visible = false; scene.add(m); D.iceG = m; D.iceK = 0; }
+    D.iceK += ((on ? 1 : 0) - D.iceK) * Math.min(1, rdt * (on ? 16 : 22)); const m = D.iceG; m.visible = D.iceK > 0.02; if (!m.visible) continue;
+    const gk = D === P ? (VP.gk || 1) : (D.look && D.look.V ? D.look.V.gk || 1 : 1), k = gk * (0.6 + 0.4 * D.iceK);
+    m.position.set(D.x, D.y + 0.28 * gk, D.z); m.rotation.set(0.15, D.yaw + 0.4, 0.1); m.scale.set(k, 0.66 * k, 1.35 * k);
+  }
+  if (frostHeld && !(P.frozenT > 0 && state === 'play')) { frostHeld = false; $('frost').classList.remove('held'); }
 }
 
 // ---------- the giant orb: a glowing, color-shifting orb that drifts around the canvas. Touch it any way you can to grow three times your size for 4 seconds ----------
@@ -11732,7 +11895,13 @@ function takeOrb(D) {
   orb.on = false; orb.pull = 0; orb.stay = false; orb.g.visible = false; orb.ring.visible = false; orb.spawnT = 16 + Math.random() * 6;
   for (let i = 0; i < 26; i++) { const a = Math.random() * 6.283; spawnPart(orb.x, orb.y, orb.z, Math.cos(a) * 4, 1 + Math.random() * 4, Math.sin(a) * 4, 0.55, orbPartMats[i % orbPartMats.length], 0.6); }
   shockwave(orb.x, D.y, orb.z, 2.6, 0xFFFFFF);
-  const gift = tut ? 'rocket' : D === P && tut3Orb() ? 'giant' : window.__orbKind || (D === P ? strokeSpecial() : ['giant', 'rocket'][(Math.random() * 2) | 0]); /* (yours: the special stroke you equipped) */
+  const gift = tut ? 'rocket' : D === P && tut3Orb() ? 'giant' : window.__orbKind || (D === P ? strokeSpecial() : cpuGift()); /* (yours: the special stroke you equipped) */
+  // Deep Pockets: the first orb goes in your pocket for later; with one already saved, the next goes off at once
+  if (D.skill === 'pockets' && !D.orbSaved && !tut && !tut2 && !tut3) { D.orbSaved = gift; emote(D, 'glee', 0.8); if (D === P) { AU.pop(); buzz([10, 20, 10]); const w = (ORB_LBL[gift] || 'orb').toLowerCase(); banner('Orb saved!', say('Tap it when you want the ' + w, 'Press C for the ' + w)); } for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0; return; }
+  orbGift(D, gift);
+}
+function orbGift(D, gift) {
+  if (gift === 'freeze') { startFreeze(D); return; }
   if (gift === 'rocket') { startRocket(D); for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0; return; }
   if (gift === 'turret') { startTurret(D); for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0; return; }
   D.giantT = GIANT_T; D.wob = 1; D.squash = 0.8; D.inkRush = true; emote(D, 'glee', 1.1); AU.grow(); if (D === P) AU.vox('hoh'); // a full tank that doesn't drain while it lasts
@@ -13029,7 +13198,7 @@ let mode = MODES.some(m => m[0] === store.mode) ? store.mode : 'duel', ACTIVE = 
 const NAMES = ['You', 'Smudge', 'Doodle'], nameOf = D => D === P ? playerName() : NAMES[D.team];
 const KO_PCT = 2; // each elimination counts for this much of the canvas at the tally
 const RIVAL_NAMES = ['Smudge', 'Blot', 'Splodge', 'Dribble', 'Doodle', 'Squiggle', 'Speckle', 'Glop', 'Drizzle', 'Swirl', 'Dabs', 'Gloop', 'Sploosh', 'Tinty', 'Smear', 'Daub'];
-function pickRivalNames() { const me = playerName().toLowerCase(), pool = RIVAL_NAMES.filter(n => n.toLowerCase() !== me); const a = pool.splice(Math.floor(Math.random() * pool.length), 1)[0]; NAMES[1] = a; NAMES[2] = pool[Math.floor(Math.random() * pool.length)]; }
+function pickRivalNames() { const me = playerName().toLowerCase(), pool = RIVAL_NAMES.filter(n => n.toLowerCase() !== me); const a = pool.splice(Math.floor(Math.random() * pool.length), 1)[0]; NAMES[1] = a; NAMES[2] = pool[Math.floor(Math.random() * pool.length)]; rollRivalRanks(); }
 // your name: asked for before your first match, changed any time from the nameplate on the menu
 const NAME_MAX = 12, NAME_IDEAS = ['Rollo', 'Spatter', 'Brushy', 'Glossy', 'Pixel', 'Dabble', 'Swatch', 'Sprinkle', 'Mosaic', 'Primer', 'Inky', 'Neon', 'Jelly', 'Marble', 'Gumdrop', 'Picasso Jr'];
 const cleanName = t => String(t || '').replace(/[\u0000-\u001f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, NAME_MAX);
@@ -13059,7 +13228,7 @@ function resetRun() {
   abortVictory(); kofEnd(); abortReveal(); outK = 0; outroFrac = 1; runId++; cfg = VS_CFG; clearTrail(); placeObjects(level);
   resetBlob(P, START.x, START.z, START.yaw); resetBlob(H, CSTART.x, CSTART.z, CSTART.yaw); aiReset(H); resetBlob(H2, CSTART2.x, CSTART2.z, CSTART2.yaw); aiReset(H2);
   if (mode === 'solo') H.st = 'out'; if (mode !== 'trio') H2.st = 'out';
-  kcamEnd(); kcamUsed = false; for (const D of [P, H, H2]) { D.rag = null; D.slamCD = D.slamMax = SLAM_FIRST; D.wearOff = false; D.wearPop = 1; D.held = null; D.heldT = 0; } // the pound builds up before the first one
+  kcamEnd(); kcamUsed = false; for (const D of [P, H, H2]) { D.rag = null; D.slamCD = D.slamMax = SLAM_FIRST; D.wearOff = false; D.wearPop = 1; D.held = null; D.heldT = 0; D.held2 = null; D.orbSaved = null; D.frozenT = 0; } // the pound builds up before the first one
   wasReady = false; holdCharge = false; pullTgt = 0; slingOff();
   camYaw = P.yaw; camYawV = 0; look.spd = 0; look.lean = 0; look.drop = 0; look.flat = 1; look.roll = 0; Object.assign(lookC, { spd: 0, lean: 0, drop: 0, flat: 1, roll: 0, flatK: 0 }); lookFlatP = 0; aimRing.visible = false; arrow.visible = false;
   drop.visible = true; shadowBlob.visible = true; LH.drop.visible = LH.shadow.visible = mode !== 'solo'; L2.drop.visible = L2.shadow.visible = mode === 'trio'; Object.assign(L2.look, { spd: 0, lean: 0, drop: 0, flat: 1, roll: 0, flatK: 0 }); hud.classList.toggle('trio', mode === 'trio'); hud.classList.toggle('solo', mode === 'solo');
@@ -13640,7 +13809,7 @@ function dodgeRoll(D) {
   if (D.air) { D.rollBuf = 0.18; return false; } // pressed just before landing: roll as you touch down
   if (D.rollCD > 0) { if (D.rollCD < 0.25) D.rollBuf = D.rollCD + 0.03; return false; } // a hair early: roll the moment it's back
   if (D.charging) clearCharge(D);
-  const base = cfg.speed * speedMul * (D.cpu ? AI.speed : 1) * (D.dry ? 0.7 : 1); // out of blood you can still roll, just not as far
+  const base = cfg.speed * spdK(D) * (D.cpu ? AI.speed : 1) * (D.dry ? 0.7 : 1); // out of blood you can still roll, just not as far
   D.rollT = ROLL_T; D.rollCD = ROLL_CD; D.rollBuf = 0; D.rollV = (Math.max(D.spd, base) + base * 1.15) * 1.08;
   D.spd = D.rollV; D.turn *= 0.3; D.squash = Math.max(D.squash, 0.35); D.wob = Math.max(D.wob, 0.5);
   if (D.giantT <= 0 && !D.dry) D.paint = Math.max(0.001, D.paint - ROLL_COST);
@@ -13690,7 +13859,7 @@ function clearCharge(D) { D.charging = false; D.charge = 0; D.pullTgt = 0; if (D
 function cancelCharge(D) {
   if (!D.charging) return;
   clearCharge(D);
-  if (D.st === 'play' && !D.air) { D.spd = Math.max(D.spd, cfg.speed * speedMul * 0.5); D.grace = 0.35; D.squash = Math.max(D.squash, 0.3); if (D === P) AU.release(); }
+  if (D.st === 'play' && !D.air) { D.spd = Math.max(D.spd, cfg.speed * spdK(D) * 0.5); D.grace = 0.35; D.squash = Math.max(D.squash, 0.3); if (D === P) AU.release(); }
 }
 function fling(D, cIn) {
   if (!D.charging) return;
@@ -13880,8 +14049,9 @@ function slamLand(D) {
 function collectPower(D, pw) {
   const type = pw.type; shockwave(pw.x, pw.y + 1.05, pw.z, 1.2); for (let i = 0; i < 12; i++) { const a = i / 12 * 6.283; spawnPart(pw.x, pw.y + 1.05, pw.z, Math.cos(a) * 4, 1 + Math.random() * 2, Math.sin(a) * 4, 0.35, puHaloMat, 0.6); }
   scene.remove(pw.g); pw.g = null; const ix = powers.indexOf(pw); if (ix >= 0) powers.splice(ix, 1);
-  if (D.held) dropHeld(D);
-  D.held = type; D.heldT = 0; emote(D, 'glee', 0.6); itemSpawn.t = Math.max(itemSpawn.t, 8 + Math.random() * 4);
+  if (D.skill === 'pockets' && D.held) { if (D.held2) { dropHeld(D); D.held = D.held2; } D.held2 = type; } // (Deep Pockets: a second one goes in the other pocket; a third drops the oldest)
+  else { if (D.held) dropHeld(D); D.held = type; }
+  D.heldT = 0; emote(D, 'glee', 0.6); itemSpawn.t = Math.max(itemSpawn.t, 8 + Math.random() * 4);
   if (D === P) { shake = Math.max(shake, 0.06); AU.pop(); buzz(12); hint('item', say('Got the ' + PU[type].name.toLowerCase() + '. Tap its button to use it', 'Got the ' + PU[type].name.toLowerCase() + '. Press F to use it'), 3.5); }
 }
 const deathColor = (D, r) => r === 'sun' ? (D.cpu ? 0xDDEEFF : 0x4A4052) : r === 'dry' ? 0x5E4F5C : TEAMS[D.team].wet;
@@ -13934,7 +14104,7 @@ function knockOut(D, reason, by) {
   if (D.st === 'ko' || state !== 'play') return;
   const pot = D.pot; if (pot) { pot.occ = null; D.pot = null; }
   if (D.charging) clearCharge(D);
-  D.st = 'ko'; D.fxK = D.fxL = D.fxT = D.fxShk = 0; D.rocket = null; D.turret = null; D.dashT = 0; D.dashDir = 0; D.rollT = 0; D.stunT = 0; D.dilT = 0; D.giantT = 0; D.lastHit = null; D.kx = D.kz = 0; D.airSling = false; D.freeLand = false; D.missile = false; D.flung = false; D.flingC = 0; D.koT = by ? RESPAWN_T : SELF_RESPAWN_T; D.reason = reason; D.slam = false; D.flatT = 0; D.exposed = false; D.spd = 0; D.vy = 0; D.slowed = false; D.inBoil = false;
+  D.st = 'ko'; D.fxK = D.fxL = D.fxT = D.fxShk = 0; D.rocket = null; D.turret = null; D.dashT = 0; D.dashDir = 0; D.rollT = 0; D.stunT = 0; D.dilT = 0; D.giantT = 0; D.lastHit = null; D.kx = D.kz = 0; D.airSling = false; D.freeLand = false; D.missile = false; D.flung = false; D.flingC = 0; D.koT = by ? RESPAWN_T : SELF_RESPAWN_T; D.reason = reason; D.slam = false; D.flatT = 0; D.exposed = false; D.spd = 0; D.vy = 0; D.slowed = false; D.inBoil = false; D.frozenT = 0;
   if (by) { by.kos++; D.kod++; emote(by, 'glee', 1.4); if (D === P) hitEdge(by); } D.outs++; D.outWhy[reason] = (D.outWhy[reason] || 0) + 1;
   const loud = hearable(D), rag = reason === 'pound' && !!by && state === 'play';
   if (reason === 'fall') { if (loud) AU.fall(); if (D === P) AU.vox('waah', 0.8); }
@@ -14048,7 +14218,7 @@ function pairContact(P, H) {
   if (d > PR * 2 + 0.15 || Math.abs(dy) > 1.0) return;
   for (let s = 0, A = P, B = H; s < 2; s++, A = H, B = P) if (A.rollT > 0 && (A.giantT > 0 || (A.power && A.power.type === 'roller')) && B.immuneT <= 0 && !safe(B)) return knockOut(B, 'crush', A);
   for (let s = 0, A = P, B = H; s < 2; s++, A = H, B = P) if (A.rollT > 0 && B.giantT <= 0 && B.immuneT <= 0 && !safe(B) && !(B.stunT > 0) && !(B.stunGuard > 0) && B.flatT <= 0) return stun(B, A);
-  for (let s = 0, A = P, B = H; s < 2; s++, A = H, B = P) if (A.flung && !A.slam && A.spd > cfg.speed * speedMul * 1.15 && B.immuneT <= 0 && !safe(B) && !(A.air && A.vy < -0.5 && A.y > B.y + 0.25)) return shove(A, B);
+  for (let s = 0, A = P, B = H; s < 2; s++, A = H, B = P) if (A.flung && !A.slam && A.spd > cfg.speed * spdK(A) * 1.15 && B.immuneT <= 0 && !safe(B) && !(A.air && A.vy < -0.5 && A.y > B.y + 0.25)) return shove(A, B);
   if (d > PR * 2 || Math.abs(dy) > 0.95) return;
   for (let s = 0, A = P, B = H; s < 2; s++, A = H, B = P) if (A.air && A.vy < -0.5 && A.y > B.y + 0.25 && !A.slam && !(A.assistT > 0) && B.flatT <= 0 && B.immuneT <= 0 && !safe(B)) { flatten(B, A, 'stomp'); A.vy = 6.5; A.air = true; A.y = Math.max(A.y, B.y + 0.3); fxLaunch(A, 0.8); return; }
   if (P.air || H.air) return;
@@ -14203,8 +14373,8 @@ function updateWeather(dt) {
   // a quiet stretch ends: now and then the sun comes up (at most once a match, and only with time left to matter), sometimes it rains, often it just stays dark
   if (wxPhase === 'clear') {
     const roll = Math.random();
-    if (!sunsSeen && matchLeft > SUN_WARN + SUN_TIME + 6 && roll < SUN_CHANCE) { setWx('warn', SUN_WARN); AU.heatWarn(); wxBanner('Heat wave in ' + SUN_WARN, sunsSeen ? '' : 'Hide in a ' + potWord() + ' or the shade', true); }
-    else if (roll < SUN_CHANCE + 0.32) { setWx('rain', RAIN_TIME); AU.thunder(); wxBanner('Rain!', rainsSeen++ ? '' : 'Faster, but your paint thins'); rainPuddles(); }
+    if (!sunsSeen && matchLeft > SUN_WARN + SUN_TIME + 6 && roll < SUN_CHANCE) { setWx('warn', SUN_WARN); AU.heatWarn(); wxBanner('Heat wave in ' + SUN_WARN, P.skill === 'repel' ? 'Weather Repel: the heat can\u2019t touch you' : sunsSeen ? '' : 'Hide in a ' + potWord() + ' or the shade', true); }
+    else if (roll < SUN_CHANCE + 0.32) { setWx('rain', RAIN_TIME); AU.thunder(); { const n = rainsSeen++; wxBanner('Rain!', P.skill === 'repel' ? 'Weather Repel: it rolls right off you' : n ? '' : rainFast(P) ? 'Faster, but your paint thins' : 'Your paint thins'); } rainPuddles(); }
     else setWx('clear', 14 + Math.random() * 8);
   }
   else if (wxPhase === 'warn') { setWx('sun', SUN_TIME); dryPuddles(); sunsSeen++; hardPhase = true; hardStart = dryClock; AU.heatOn(); flashScreen(); }
@@ -14242,13 +14412,14 @@ function stepBlob(D, dt) {
     return;
   }
   // sunrise: out in the open the sun burns you away; coffins and shadows keep you safe
-  D.exposed = wxPhase === 'sun' && D.giantT <= 0 && !D.turret && !(D.sunGrace > 0) && !inShadow(D.x, D.z, D.y);
+  D.exposed = wxPhase === 'sun' && D.skill !== 'repel' && D.giantT <= 0 && !D.turret && !(D.sunGrace > 0) && !inShadow(D.x, D.z, D.y);
   if (D.exposed) { D.paint -= BURN_RATE * 2.4 * dt; burnFx(D, dt); if (D.paint <= 0) { D.paint = 0; if (!D.dry && D.st === 'play') goDry(D); } } // (the sun dries you out; it no longer knocks you out)
-  if (wxPhase === 'rain' && !roofOver(D)) { if (D.dilT <= 0) dilute(D, true); D.dilT = Math.max(D.dilT, RAIN_DIL); } // (out in the rain: watered down till a moment after it stops)
+  if (wxPhase === 'rain' && D.skill !== 'repel' && !roofOver(D)) { if (D.dilT <= 0) dilute(D, true); D.dilT = Math.max(D.dilT, RAIN_DIL); } // (out in the rain: watered down till a moment after it stops)
   if (D.stunGuard > 0) D.stunGuard -= dt;
   if (D.passT > 0) D.passT -= dt;
   if (D.assistQ > 0) { D.assistQ -= dt; if (D.assistQ <= 0) { D.assistQ = 0; poundAssist(D); } }
   if (D.assistT > 0) { D.assistT -= dt; if (!D.air || D.slam || D.st !== 'play') D.assistT = 0; }
+  if (D.frozenT > 0) { D.frozenT -= dt; if (D.frozenT <= 0) { D.frozenT = 0; thawFx(D); } }
   if (D.stunT > 0) { D.stunT -= dt; D.spd = 0; D.turn = 0; D.wob = Math.max(D.wob, 0.5); if (D.stunT <= 0) { D.stunT = 0; D.stunGuard = 1.5; D.squash = 0.6; D.fxShk = Math.max(D.fxShk, 0.8); fxLaunch(D, 0.5); if (hearable(D)) AU.pop(); } }
   else if (D.flatT > 0) { D.flatT -= dt; D.spd = 0; D.turn = 0; if (D.flatT <= 0) { D.immuneT = 1.0; D.squash = 0.9; D.wob = 1; D.fxShk = Math.max(D.fxShk, 1); fxLaunch(D, 0.6); if (hearable(D)) AU.pop(); } }
   else steerAndTurn(D, dt, D.slam ? 0 : D.air ? (D.knockT > 0 ? 0.12 : D.charging ? 0.85 : 0.65) : D.charging ? 0.75 : D.rollT > ROLL_T - ROLL_DASH ? 0.4 : 1);
@@ -14260,7 +14431,7 @@ function stepBlob(D, dt) {
   else if ((D.slam && !D.missile) || D.flatT > 0 || D.stunT > 0) D.spd = 0;
   else if (!D.air && D.rollT > ROLL_T - ROLL_DASH) D.spd = D.rollV * (0.62 + 0.38 * (D.rollT - ROLL_T + ROLL_DASH) / ROLL_DASH);
   else if (!D.air && D.turret) D.spd += (0 - D.spd) * Math.min(1, dt * 12); // planted
-  else if (!D.air) { const giant = D.giantT > 0; let tgt = cfg.speed * (giant ? 1 : speedMul) * slopeK(D) * D.slowK * (D.cpu ? AI.speed : 1) * (D.dry ? (D.turf > 0 ? DRY_OWN : DRY_SPD) : 1) * D.turfK; if (giant) tgt = Math.min(tgt * GIANT_SPD, cfg.speed * 1.9); /* a giant's pace is its own: rain doesn't speed it up */ D.spd += (tgt - D.spd) * Math.min(1, dt * (D.spd > tgt ? (D.slowed ? 9 : D.dry ? 5 : 2.6) : 9)); }
+  else if (!D.air) { const giant = D.giantT > 0; let tgt = cfg.speed * (giant ? MOVE_K : spdK(D)) * slopeK(D) * D.slowK * (D.cpu ? AI.speed : 1) * (D.dry ? (D.turf > 0 ? DRY_OWN : DRY_SPD) : 1) * D.turfK; if (giant) tgt = Math.min(tgt * GIANT_SPD, cfg.speed * 1.9 * MOVE_K); /* a giant's pace is its own: rain doesn't speed it up */ D.spd += (tgt - D.spd) * Math.min(1, dt * (D.spd > tgt ? (D.slowed ? 9 : D.dry ? 5 : 2.6) : 9)); }
   if (!D.ai && D.flung && D.air) ledgeNudge(D, dt);
   moveFlat(D, dt);
   if (D.buf > 0) D.buf -= dt; if (D.preJ > 0) D.preJ -= dt;
@@ -14306,7 +14477,7 @@ function stepBlob(D, dt) {
       if (D.flatT <= 0 && !D.dry) { if (D.flowT > 0) { D.flowT -= dt; D.dist = 0; if (D.flowT <= 0) D.stroke++; } /* (a second of crawling clean first) */ else { D.flowK = Math.min(1, (D.flowK === undefined ? 1 : D.flowK) + dt / 0.5); const fk = 0.3 + 0.7 * D.flowK * D.flowK * (3 - 2 * D.flowK); /* (then the stream swells in) */ D.dist += D.spd * dt * (D.strokeK || 1); const fx = D.x + Math.sin(D.yaw) * TRAIL_FWD, fz = D.z + Math.cos(D.yaw) * TRAIL_FWD, fy = hugY(fx, fz, D.y); while (D.dist >= SPACING) { D.dist -= SPACING; addPoint(fx, fy, fz, D.yaw, dryClock, D.stroke, (D.giantT > 0 ? GIANT_K : D.power && D.power.type === 'roller' ? 2.6 : 1) * (D.rollT > ROLL_T - ROLL_DASH ? 0.45 : 1) * fk, tcode(D), D.rb, [D.x, D.y, D.z]); } } }
       // rain puddles water your blood down; hard paint of either color slows you
       D.inBoil = boilNear(D.x, D.z, D.y, 0);
-      if (D.inBoil) { if (D.dilT <= 0) dilute(D); D.dilT = DIL_T; }
+      if (D.inBoil && D.skill !== 'repel') { if (D.dilT <= 0) dilute(D); D.dilT = DIL_T; }
       D.slowed = hardPhase && dryAt(D.x, D.z, D.y, 0, -1);
       if (D.slowed && D.spd > 0.3) slowFx(D, dt);
       if (D === P) {
@@ -14319,7 +14490,7 @@ function stepBlob(D, dt) {
     }
   }
   D.slowK += ((D.slowed ? SLOW_K : 1) - D.slowK) * Math.min(1, dt * (D.slowed ? 12 : 2.5));
-  if (D.flung && !D.air && D.spd < cfg.speed * speedMul * 1.15) D.flung = false;
+  if (D.flung && !D.air && D.spd < cfg.speed * spdK(D) * 1.15) D.flung = false;
   // slingshot into a coffin someone's hiding in and you knock them right out of it
   if (D.rollT > 0 && D.st === 'play' && !D.air && D.giantT <= 0) for (const p of pots) if (p.occ && p.occ !== D && !(p.occ.spawnImm && p.occ.immuneT > 0) && potUp(p) && Math.abs(D.y - p.y) < 0.9 && Math.hypot(D.x - p.x, D.z - p.z) < 0.6 + PR) { rollIntoCoffin(D, p); break; }
   if (D.flung && D.st === 'play') for (const p of pots) if (p.occ && p.occ !== D && !(p.occ.spawnImm && p.occ.immuneT > 0) && potUp(p) && Math.abs(D.y - p.y) < 1.1 && Math.hypot(D.x - p.x, D.z - p.z) < 0.62 + PR) { bumpFromCoffin(p.occ, D); break; }
@@ -14380,7 +14551,7 @@ function step(dt) {
     if (r.target === 1 && !r.on && r.k > 0.7) { r.on = true; r.life = PUD_LIFE + Math.random() * 8; }
     r.g.visible = r.k > 0.02; r.g.scale.setScalar(Math.max(0.02, r.k));
   }
-  itemTick(dt);
+  itemTick(dt); trapTick(dt); freezeTick(dt);
   stepCoffins(dt);
   updateTrail(dryClock + outroAge);
   if (hintTimer > 0) { hintTimer -= dt; if (hintTimer <= 0 && P.st !== 'ko') hintEl.classList.remove('on'); }
@@ -14963,7 +15134,7 @@ function aiThink(D) {
   let coffin = null, cd = Infinity;
   let coffinP = null;
   for (const p of pots) { if (!potUp(p) || p.ink < 0.25 || p.occ) continue; const n = potNode(p); if (!n) continue; const c = nDist[n.id] * (p.ink < 0.55 ? 1.6 : 1) * (p === ai.goPot ? 0.7 : 1); if (c < cd) { cd = c; coffin = n; coffinP = p; } }
-  const speed = cfg.speed * AI.speed * speedMul;
+  const speed = cfg.speed * AI.speed * spdK(D);
   // the real cost of getting to a coffin: the route, turning around to face it, and the splat every drop off a ledge costs
   let cl = 0, drops = 0, first = null; if (coffin) { let i = coffin.id, g = 0; while (nPrev[i] >= 0 && g++ < 3000) { const a = NAV.nodes[i], b = NAV.nodes[nPrev[i]]; cl += Math.hypot(a.x - b.x, a.z - b.z); if (b.h - a.h > 0.4) drops++; first = a; i = nPrev[i]; } }
   if (first) cl += Math.abs(wrapA(Math.atan2(first.x - D.x, first.z - D.z) - D.yaw)) * 1.7;
@@ -15322,7 +15493,7 @@ function aiStep(D, dt) {
   if (D.st === 'ko') { ai.path = null; ai.plan = null; ai.flight = null; ai.evadeT = 0; ai.attackT = 0; ai.wasRdy = false; return; }
   if (tut && tut.keepAway) ai.attackT = 0; if (tut && tut.drive === D && D.st === 'play' && !D.rocket && !D.turret) return tutDrive(D); // (the lesson: kept away, or driven at you for the dodge)
   if (D.held && D.st === 'play') { D.heldT = (D.heldT || 0) + dt; const O = other(D), near = O && O.st === 'play' && Math.hypot(O.x - D.x, O.z - D.z) < TURRET_FAR * 0.75;
-    if (!D.air && !D.charging && (D.held === 'turret' ? (near && D.heldT > 0.6) || D.heldT > 6 : D.heldT > 1 + Math.random() * 1.5)) useHeld(D); }
+    if (!D.air && !D.charging && (D.held === 'turret' ? (near && D.heldT > 0.6) || D.heldT > 6 : D.held === 'trap' ? (O && O.st === 'play' && Math.hypot(O.x - D.x, O.z - D.z) < 7 && D.heldT > 0.8) || D.heldT > 6 : D.heldT > 1 + Math.random() * 1.5)) useHeld(D); }
   // the pound just came back and it knows roughly where you are: sometimes it saves it for you and comes over
   const rdy = slamReady(D);
   if (rdy && !ai.wasRdy) { const o = ai.o; if (o && o.st === 'play' && runT - o.t < AI.memory && Math.hypot(o.x - D.x, o.z - D.z) < 24 && D.paint > 0.45 && wxPhase !== 'sun' && wxPhase !== 'warn' && Math.random() < AI.attack) { ai.attackT = 4 + Math.random() * 1.5; ai.attackRoll = 2.5; ai.thinkT = 0; } }
@@ -15373,6 +15544,56 @@ function aiStep(D, dt) {
 }
 
 // a rival off screen: an edge marker, red when its pound is coming down near you or it's lining up a fling at you
+// v251: rivals' name tags. Each rides just over its rival's head, in screen space so it stays crisp and the same size to read: full up
+// close, fading out between NTAG_NEAR and NTAG_FAR metres from the camera and shrinking a touch on the way. It's gone while its rival
+// hides in a basin, is knocked out or is behind a wall (no reading positions through walls), and outside of play
+const rankOf = D => D === P ? repOf(store.xp || 0).lv : Math.max(1, D.rank | 0);
+function rollRivalRanks() { const me = repOf(store.xp || 0).lv, [a, b] = diff === 'easy' ? [-2, 0] : diff === 'hard' ? [1, 3] : [-1, 1];
+  for (const D of [H, H2]) D.rank = clamp(me + a + Math.floor(Math.random() * (b - a + 1)), 1, 99); }
+const NTAG_NEAR = 17, NTAG_FAR = 25, NTAG_SH = 'M23 2.6 43 8.6V29c0 11.4-9 18.6-20 22.6C12 47.6 3 40.4 3 29V8.6z', ntagsEl = $('ntags'), ntags = new Map(), ntagV = new THREE.Vector3();
+function ntagFor(D) {
+  let t = ntags.get(D); if (t) return t;
+  const el = document.createElement('div'); el.className = 'ntag'; el.hidden = true;
+  el.innerHTML = '<span class="ntr"><svg viewBox="0 0 46 54"><path class="ntsh" d="' + NTAG_SH + '"/><path d="M9.5 12.4 23 8.3l13.5 4.1" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".75"/></svg><b></b></span><span class="ntn"></span>';
+  ntagsEl.appendChild(el); t = { el, rk: el.querySelector('b'), nm: el.querySelector('.ntn'), k: 0, see: 1, seeAt: -9, name: null, rank: -1, col: '', z: -1, x: 0, y: 0, d: 0, w: 0, h: 30, sc: 1, oy: 0, oyT: 0 }; ntags.set(D, t); return t;
+}
+function ntagTick(rdt) {
+  const playing = state === 'play', fs = playing ? foes(P) : [], cp = camera.position, vis = [];
+  if (playing) { camera.updateMatrixWorld(); for (const D of fs) { ntagFor(D); if (!D.rank) rollRivalRanks(); } }
+  for (const [D, t] of ntags) {
+    const L = D.look, mine = playing && fs.includes(D) && !!L; let want = 0, at = false;
+    if (mine) {
+      const top = D.y + charTall(L.wearing) * (L.V ? L.V.gk : 1) + NTAG_UP; ntagV.set(D.x, top, D.z).project(camera);
+      if (ntagV.z < 1 && Math.abs(ntagV.x) < 1.2 && Math.abs(ntagV.y) < 1.2 && Number.isFinite(ntagV.x + ntagV.y)) { at = true; t.x = (ntagV.x * 0.5 + 0.5) * viewW; t.y = (0.5 - ntagV.y * 0.5) * viewH; t.d = Math.hypot(D.x - cp.x, top - cp.y, D.z - cp.z); }
+      if (at && D.st === 'play' && !kcam && !kof && L.drop.visible) {
+        if (clock - t.seeAt > 0.15 || t.k <= 0) { t.seeAt = clock; t.see = losClear(cp.x, cp.y, cp.z, D.x, D.y + 0.35, D.z) ? 1 : 0; }
+        want = t.see * (1 - smoothstep(NTAG_NEAR, NTAG_FAR, t.d));
+      }
+    }
+    if (!at) t.k = 0; else t.k += (want - t.k) * Math.min(1, rdt * (want > t.k ? 7 : 12)); if (want <= 0 && t.k < 0.02) t.k = 0;
+    D.tagK = t.k;
+    if (t.k <= 0) { if (!t.el.hidden) t.el.hidden = true; t.oy = t.oyT = 0; continue; }
+    if (t.el.hidden) t.el.hidden = false;
+    const nm = nameOf(D), rk = rankOf(D), col = TEAMS[D.team].css;
+    if (t.name !== nm || t.rank !== rk) { t.name = nm; t.rank = rk; t.nm.textContent = nm; t.rk.textContent = rk; t.w = 0; }
+    if (t.col !== col) { t.col = col; t.el.style.setProperty('--tc', col); }
+    if (!t.w) { t.w = t.el.offsetWidth || 90; t.h = t.el.offsetHeight || 30; } // (measured once per name)
+    t.sc = 1 - 0.16 * smoothstep(10, NTAG_FAR, t.d); vis.push(t);
+  }
+  // two tags crossing: the farther one steps up over the nearer, so both read
+  vis.sort((a, b) => a.d - b.d);
+  for (let i = 0; i < vis.length; i++) { const a = vis[i], aw = a.w * a.sc, ah = (a.h - 5) * a.sc; let lift = 0;
+    for (let n = 0; n < 3; n++) { let moved = false; for (let j = 0; j < i; j++) { const b = vis[j], bb = b.y - b.oyT, bt = bb - (b.h - 5) * b.sc;
+      if (Math.abs(a.x - b.x) < (aw + b.w * b.sc) / 2 + 4 && a.y - lift > bt - 2 && a.y - lift - ah < bb && a.y - bt + 3 > lift) { lift = a.y - bt + 3; moved = true; } } if (!moved) break; }
+    a.oyT = lift; }
+  for (const t of vis) {
+    t.oy += (t.oyT - t.oy) * Math.min(1, rdt * 14);
+    const z = 1000 - Math.min(999, Math.round(t.d * 10)); if (t.z !== z) { t.z = z; t.el.style.zIndex = z; } // (the nearer one on top)
+    t.el.style.opacity = t.k.toFixed(3);
+    t.el.style.transform = 'translate3d(' + t.x.toFixed(1) + 'px,' + (t.y - t.oy).toFixed(1) + 'px,0) translate(-50%,-100%) scale(' + t.sc.toFixed(3) + ')';
+  }
+}
+const NTAG_UP = 0.1, NTAG_LIFT = 0.55; // (how far over the head the tag's point sits; how far the '!' rises while a tag shows)
 function foePointer(fpEl, H, on) {
   if (on && H.st === 'play' && P.st !== 'ko') {
     tv1.set(H.x, H.y + 0.4, H.z).project(camera);
@@ -15966,6 +16187,7 @@ function cpuLook(L, dt, rdt, ke, kf, playing) {
     if (D.dilT > 0) tmpCol2.lerp(COL_WHITE, 0.5 * Math.min(1, D.dilT * 2));
     if (D.dry && D.st === 'play') tmpCol2.lerp(COL_DULL, D.turf > 0 ? 0.32 : 0.74);
     if (safe(D) && D.st === 'play') tmpCol2.lerp(COL_WHITE, 0.32 + 0.14 * Math.sin(clock * 40));
+    if (D.frozenT > 0) tmpCol2.lerp(COL_ICE, 0.8);
     L.mat.color.copy(tmpCol2); L.mat.emissive.copy(tmpCol2).multiplyScalar(0.22);
     if (!L.warnBase) L.warnBase = L.warn.material.color.clone();
     L.warn.material.color.copy(threat && threat.F === D && threat.k === 'missile' ? (Math.sin(clock * 30) > 0 ? COL_DANGER : COL_WHITE) : L.warnBase);
@@ -15978,7 +16200,7 @@ function cpuLook(L, dt, rdt, ke, kf, playing) {
     if (!al.shown) { al.shown = true; if (al.k === '!' && Math.hypot(D.x - P.x, D.z - P.z) < 24) AU.spot(); }
     al.t -= rdt; if (L.mark.material.map !== markTexs[al.k]) { L.mark.material.map = markTexs[al.k]; L.mark.material.needsUpdate = true; }
     const pop = Math.min(1, (1.1 - al.t) * 7), fade = Math.min(1, al.t * 3);
-    L.mark.visible = true; L.mark.position.set(D.x, D.y + 1.6 - (1 - pop) * 0.35, D.z); L.mark.scale.setScalar(0.95 * (0.6 + 0.4 * pop)); L.mark.material.opacity = fade;
+    L.mark.visible = true; L.mark.position.set(D.x, D.y + 1.6 + (D.tagK || 0) * NTAG_LIFT - (1 - pop) * 0.35, D.z); L.mark.scale.setScalar(0.95 * (0.6 + 0.4 * pop)); L.mark.material.opacity = fade;
   } else L.mark.visible = false;
 }
 let wxShown = '', koShown = '';
@@ -15993,7 +16215,7 @@ const potCue = (() => { const sh = new THREE.Shape(); sh.moveTo(-0.24, -0.15); s
   scene.add(g); return g; })();
 let potCueK = 0, potCueT = 0, potCueYaw = 0, potCueTo = null, potCueAt = -9;
 function potCueTick(dt) {
-  const sunny = wxPhase === 'warn' || wxPhase === 'sun', want = state === 'play' && P.st === 'play' && !tut && !P.rocket && !P.turret && P.giantT <= 0 && !kcam && tutArrowEl.hidden && (P.dry || P.paint < 0.1 || wxPhase === 'warn' || (wxPhase === 'sun' && P.exposed));
+  const sunny = wxPhase === 'warn' || wxPhase === 'sun', want = state === 'play' && P.st === 'play' && !tut && !P.rocket && !P.turret && P.giantT <= 0 && !kcam && tutArrowEl.hidden && (P.dry || P.paint < 0.1 || (wxPhase === 'warn' && P.skill !== 'repel') || (wxPhase === 'sun' && P.exposed));
   if (want && clock - potCueAt > 0.25) { potCueAt = clock; let bd = 1e9; potCueTo = null; for (const p of pots) { if (!potUp(p) || p.occ || p.cool > 0 || (!sunny && p.ink <= 0.05)) continue; const d = Math.hypot(p.x - P.x, p.z - P.z) + Math.abs(p.y - P.y) * 1.5; if (d < bd) { bd = d; potCueTo = p; } } }
   const p = potCueTo, on = want && !!p && Math.hypot(p.x - P.x, p.z - P.z) > 2.6, was = potCueK;
   potCueK += ((on ? 1 : 0) - potCueK) * Math.min(1, dt * (on ? 3 : 6));
@@ -16028,6 +16250,7 @@ function visuals(dt, rdt) {
     if (P.dilT > 0) tmpCol.lerp(COL_WHITE, 0.5 * Math.min(1, P.dilT * 2));
     if (P.dry && P.st === 'play') tmpCol.lerp(COL_DULL, P.turf > 0 ? 0.32 : 0.74);
     if (safe(P) && P.st === 'play') tmpCol.lerp(COL_WHITE, 0.32 + 0.14 * Math.sin(clock * 40));
+    if (P.frozenT > 0) tmpCol.lerp(COL_ICE, 0.8);
     if (playing && P.st === 'play' && P.paint < LOW_FLASH && !P.dry) { const u = 1 - P.paint / LOW_FLASH; flashPh += dt * (2 + u * u * 12); if (flashPh % 1 < 0.5) tmpCol.copy(COL_WHITE); const fi = Math.floor(flashPh); if (fi !== lastFlashI) { lastFlashI = fi; AU.low(); } } else flashPh = 0;
     dropMat.color.copy(tmpCol); dropMat.emissive.copy(tmpCol).multiplyScalar(0.16); xrayMat.color.copy(teamCol); splashMat.color.copy(teamCol);
     // aim ring: slingshot landing spot or slam circle
@@ -16055,7 +16278,7 @@ function visuals(dt, rdt) {
     if (!aiming && P.slam) { aimIn.material.color.setHex(P.missile ? 0xFFB14A : 0xFFFFFF); const mh = P.missile ? missileHit(P) : null; if (mh) aimRing.position.set(mh.x, mh.y + 0.11, mh.z); else aimRing.position.set(P.x, (gy > -Infinity ? gy : 0) + 0.11, P.z); aimRing.scale.setScalar(slamRadius(P) / 0.84 * (0.94 + 0.06 * Math.sin(clock * 14))); aimRing.visible = !P.missile || !!mh; }
     else if (!aiming) aimRing.visible = false;
   }
-  cpuLook(LH, dt, rdt, ke, kf, playing); cpuLook(L2, dt, rdt, ke, kf, playing);
+  cpuLook(LH, dt, rdt, ke, kf, playing); cpuLook(L2, dt, rdt, ke, kf, playing); iceFrame(rdt);
   if (vsSnap) vsSnapTick();
   // coffins: blood level, a bounce when someone hops in, a glow when you need one
   let near = null, nd = 1e9;
@@ -16139,7 +16362,7 @@ function visuals(dt, rdt) {
   // paint shots in flight: a glob stretched along its path, wobbling
   drawShots();
   for (const pw of powers) if (pw.g) { const k = pw.pop < 1 ? 1 - Math.pow(1 - pw.pop, 3) : 1; pw.g.scale.setScalar(Math.max(0.01, k)); pw.g.position.set(pw.x, pw.y + 1.05 + Math.sin(clock * 2.2 + pw.phase) * 0.14, pw.z); if (pw.eyes) { const yaw = Math.atan2(camera.position.x - pw.x, camera.position.z - pw.z); pw.spin.rotation.set(Math.sin(clock * 2.6 + pw.phase) * 0.1, yaw + Math.sin(clock * 1.5 + pw.phase) * 0.5, Math.sin(clock * 2.1 + pw.phase) * 0.16); } else pw.spin.rotation.y = clock * 2.1 + pw.phase; let nr = 0; for (const D of ACTIVE) if (D.st === 'play') nr = Math.max(nr, 1 - Math.hypot(D.x - pw.x, D.z - pw.z) / 3.2); nr = Math.max(0, nr); const jw = Math.sin(clock * (3.1 + 9 * nr) + pw.phase) * (0.03 + 0.07 * nr); pw.bub.scale.set(1 + jw, 1 - jw, 1 + jw * 0.5); } // the bubble gets jittery as someone rolls up to it
-  { const ib = $('itemBtn'), held = state === 'play' && P.st === 'play' ? P.held : null; if (ib.hidden === !!held) ib.hidden = !held;
+  pocketHud(); { const ib = $('itemBtn'), held = state === 'play' && P.st === 'play' ? P.held : null; if (ib.hidden === !!held) ib.hidden = !held;
     if (held && ib.dataset.k !== held) { ib.dataset.k = held; ib.innerHTML = '<i class="sdisc" aria-hidden="true"></i>' + ITEM_ICON[held] + '<span class="ilbl">' + PU[held].name + '</span>'; ib.setAttribute('aria-label', 'Use the ' + PU[held].name.toLowerCase()); restartCls(ib, 'in'); } else if (!held) ib.dataset.k = ''; }
   { const pt = $('ptimer'); let frac = -1, n = 0, kind = '';
     if (state === 'play' && P.st === 'play' && drop.visible) {
@@ -16245,7 +16468,7 @@ function visuals(dt, rdt) {
   if (shake > 0.001 && !reduceMotion) { const s2 = shake * shake * 2.2; camera.position.addScaledVector(tv2.set(Math.random() - 0.5, Math.random() - 0.5, 0).applyQuaternion(camera.quaternion), s2); }
   if (quake.amp > 0) { quake.t += rdt; const q = quake.amp * Math.exp(-quake.t * 3.2); if (!reduceMotion) { camera.position.y += Math.sin(quake.t * 24) * q * 0.85; camera.position.x += Math.sin(quake.t * 17 + 1.3) * q * 0.4; camera.position.z += Math.cos(quake.t * 21) * q * 0.4; camera.rotateZ(Math.sin(quake.t * 13) * q * 0.035); } if (quake.t > 1.8) quake.amp = 0; }
   shake *= Math.exp(-rdt * 9); fovKick *= Math.exp(-rdt * 4);
-  const fovT = state === 'menu' ? heroFov() : (playing ? playFov : baseFov) + (playing ? (speedMul - 1) * 12 + fovKick + (P.rocket ? (P.rocket.ph === 'dive' && !P.rocket.slow ? 14 : 7) : 0) + (P.st === 'play' && !P.air ? clamp((P.spd / (cfg.speed * speedMul) - 1) * 14, 0, 5) : 0) : 0);
+  const fovT = state === 'menu' ? heroFov() : (playing ? playFov : baseFov) + (playing ? ((rainFast(P) ? speedMul : 1) - 1) * 12 + fovKick + (P.rocket ? (P.rocket.ph === 'dive' && !P.rocket.slow ? 14 : 7) : 0) + (P.st === 'play' && !P.air ? clamp((P.spd / (cfg.speed * spdK(P)) - 1) * 14, 0, 5) : 0) : 0);
   if (Math.abs(camera.fov - fovT) > 0.05) { camera.fov += (fovT - camera.fov) * Math.min(1, rdt * 6); camera.updateProjectionMatrix(); }
   sky.position.copy(camera.position);
   // in the menu the shot is framed into the space the logo and the controls leave
@@ -16271,7 +16494,7 @@ function visuals(dt, rdt) {
   updateRain(dt, rainK); updateRipples(dt, rainK); AU.rain(rainK);
   const spK = playing && P.st === 'play' ? (P.rocket ? (P.rocket.ph === 'up' ? 0.8 : P.rocket.ph === 'dive' && !P.rocket.slow ? 1 : 0) : clamp((P.air ? Math.max(0, P.spd - cfg.speed * 1.2) : P.spd - cfg.speed * 1.08) / (cfg.speed * 0.8), 0, 1)) : 0;
   updateRocketMark(rdt); if (!(P.turret && P.st === 'play' && state === 'play')) turretMark.g.visible = false;
-  updateSpeedLines(dt, spK); updateSlamBtn(); threatUI();
+  updateSpeedLines(dt, spK); updateSlamBtn(); threatUI(); ntagTick(rdt);
   AU.roll(playing && P.st === 'play' && !P.air ? P.spd : 0, look.roll);
   if (playing) {
     setScore();
@@ -17185,39 +17408,56 @@ $('commModal').addEventListener('click', e => { if (e.target === $('commModal'))
 
 // ---------- strokes: your special stroke (what the orb gives you) and your skill; the Giant crafted free at rank 3 ----------
 const STROKE_ICON = { rocket: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4c9 6 14 18 14 32v6H18v-6C18 22 23 10 32 4z" fill="#F4EEE3" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M18 30l-9 10 9 4zM46 30l9 10-9 4z" fill="#E3122F" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><circle cx="32" cy="26" r="6" fill="#7CC8FF" stroke="#171320" stroke-width="3.2"/><path d="M25 44h14l-7 16z" fill="#F2C14E" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/></svg>', giant: '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="34" cy="30" r="24" fill="#E3122F" stroke="#171320" stroke-width="3.2"/><circle cx="26" cy="27" r="4.2" fill="#fff" stroke="#171320" stroke-width="2.4"/><circle cx="42" cy="27" r="4.2" fill="#fff" stroke="#171320" stroke-width="2.4"/><circle cx="27" cy="28" r="1.8" fill="#171320"/><circle cx="43" cy="28" r="1.8" fill="#171320"/><path d="M27 38q7 5 14 0" fill="none" stroke="#171320" stroke-width="2.6" stroke-linecap="round"/><circle cx="9" cy="54" r="6" fill="#F2C14E" stroke="#171320" stroke-width="2.6"/><path d="M14 46l6-4M12 60l6 2" fill="none" stroke="#171320" stroke-width="2.4" stroke-linecap="round"/></svg>', swim: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M6 40c6-6 12-6 18 0s12 6 18 0 12-6 18 0" fill="none" stroke="#7CC8FF" stroke-width="5" stroke-linecap="round"/><path d="M6 52c6-6 12-6 18 0s12 6 18 0 12-6 18 0" fill="none" stroke="#7CC8FF" stroke-width="5" stroke-linecap="round"/><path d="M12 22h26M30 12l12 10-12 10" fill="none" stroke="#171320" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>' };
-const SPECIALS = [{ id: 'rocket', name: 'Rocket', desc: 'Blast up over the canvas, then dive down in a splash.' }, { id: 'giant', name: 'Giant', desc: 'Grow huge, paint wide, stomp rivals flat.', craft: 20 }];
-const SKILLS = [{ id: 'swim', name: 'Swim faster', desc: 'A touch more pace every time you glide.' }];
+const SPECIALS = [{ id: 'rocket', name: 'Rocket', desc: 'Blast up over the canvas, then dive down in a splash.' }, { id: 'giant', name: 'Giant', desc: 'Grow huge, paint wide, stomp rivals flat.', craft: 20 }, { id: 'freeze', name: 'Flash Freeze', desc: 'A flash over the canvas: every rival frozen solid for 3 seconds.', craft: 25 }];
+// v251: three skills, one on at a time; tap one on the Strokes page to see what it does
+const SKILLS = [
+  { id: 'swim', name: 'Swim faster', desc: 'Built for speed, wet or dry.', up: ['8% more pace every time you glide', 'Twice as fast when the rain comes'], down: ['Rain still waters your paint down'] },
+  { id: 'repel', name: 'Weather Repel', desc: 'Rain and heat roll right off you.', up: ['Rain and its puddles never water your paint down', 'The sun’s heat can’t burn you'], down: ['20% slower, all match long', 'No speed-up in the rain'] },
+  { id: 'pockets', name: 'Deep Pockets', desc: 'Carry more, use it when you like.', up: ['Hold two power-ups and use either one', 'Save an orb for later: tap it when you want it', 'With one saved, the next orb goes off right away'], down: ['No speed-up in the rain'] }];
+const FZ_ARM = 'M32 32V7M32 15l-6.5-5.5M32 15l6.5-5.5M32 24l-5-4.2M32 24l5-4.2';
+Object.assign(STROKE_ICON, { repel: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 33v15a5.5 5.5 0 0 1-11 0" fill="none" stroke="#171320" stroke-width="3.6" stroke-linecap="round"/><path d="M7 33a25 23 0 0 1 50 0q-6.25-5-12.5 0-6.25-5-12.5 0-6.25-5-12.5 0Q13.25 28 7 33z" fill="#7CC8FF" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M32 10.5q-9 9-8 22M32 10.5q9 9 8 22" fill="none" stroke="#171320" stroke-width="2.2" opacity=".5"/><path d="M14 22q5-8 13-10" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".85"/><path d="M32 10.5V6" stroke="#171320" stroke-width="3.2" stroke-linecap="round"/><path d="M11 44l-2.5 5M53 41l-2.5 5M47 52l-2 4.4" stroke="#3E9BE0" stroke-width="3" stroke-linecap="round"/></svg>', pockets: '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="23" cy="19" r="9" fill="#B98CFF" stroke="#171320" stroke-width="3.2"/><circle cx="20" cy="16" r="2.6" fill="#fff" opacity=".85"/><rect x="33" y="7" width="20" height="10" rx="5" fill="#F4EEE3" stroke="#171320" stroke-width="3.2"/><path d="M43 17v10" stroke="#171320" stroke-width="3.2" stroke-linecap="round"/><path d="M11 27h42l-4 25a5 5 0 0 1-5 4.4H20a5 5 0 0 1-5-4.4z" fill="#C98B4E" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M11 27h42v6.5H11z" fill="#A86B34" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M20 43h24" stroke="#F4EEE3" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="3 4" opacity=".85"/></svg>',
+  freeze: '<svg viewBox="0 0 64 64" aria-hidden="true"><g fill="none" stroke-linecap="round" stroke-linejoin="round">' + [['#171320', 9], ['#7CC8FF', 5], ['#EAF7FF', 1.8]].map(([c, w]) => [0, 60, 120, 180, 240, 300].map(a => '<path d="' + FZ_ARM + '" stroke="' + c + '" stroke-width="' + w + '" transform="rotate(' + a + ' 32 32)"/>').join('')).join('') + '</g><circle cx="32" cy="32" r="6" fill="#EAF7FF" stroke="#171320" stroke-width="3"/></svg>' });
+// everyone's pace: 6% quicker than before; the rain's speed-up only with Swim faster (CPUs swim); Weather Repel a fifth slower
+const MOVE_K = 1.06, REPEL_SPD = 0.8, rainFast = D => !D.skill || D.skill === 'swim', spdK = D => MOVE_K * (rainFast(D) ? speedMul : 1) * (D.skill === 'repel' ? REPEL_SPD : 1);
+const spName = id => (SPECIALS.find(x => x.id === id) || { name: id }).name, ORB_LBL = { rocket: 'Rocket', giant: 'Giant', freeze: 'Freeze' };
 const SWIM_BOOST = 1.08, STROKE_LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 10.5V7.8a4.5 4.5 0 0 1 9 0v2.7" fill="none" stroke="currentColor" stroke-width="3"/><rect x="4.5" y="10" width="15" height="12" rx="2.6" fill="currentColor"/></svg>';
-function strokesOf() { const d = store.strokes || (store.strokes = {}); if (!d.special) d.special = 'rocket'; if (!d.skill) d.skill = 'swim'; if (!Array.isArray(d.own)) d.own = ['rocket', 'swim']; for (const k of ['rocket', 'swim']) if (!d.own.includes(k)) d.own.push(k); return d; }
+function strokesOf() { const d = store.strokes || (store.strokes = {}); if (!d.special) d.special = 'rocket'; if (!d.skill) d.skill = 'swim'; if (!Array.isArray(d.own)) d.own = ['rocket', 'swim']; for (const k of ['rocket', 'swim', 'repel', 'pockets']) if (!d.own.includes(k)) d.own.push(k); if (!SKILLS.some(x => x.id === d.skill)) d.skill = 'swim'; return d; }
 const strokeOwned = id => strokesOf().own.includes(id), strokeSpecial = () => { const d = strokesOf(); return strokeOwned(d.special) ? d.special : 'rocket'; }, strokeSkill = () => strokesOf().skill;
 const strokesOpen = () => menuPage === 'strokes', strokesDue = () => repOf(store.xp || 0).lv >= ABIL_RANK; // (the page opens at rank 3)
 let stTick = 0, stToastT = 0;
 function craftLeft() { const c = strokesOf().craft; return c ? Math.max(0, c.end - Date.now()) : 0; }
 function craftTick() { const d = strokesOf(), c = d.craft; if (!c) return false; if (craftLeft() > 0) return true; d.craft = null; if (!d.own.includes(c.id)) d.own.push(c.id); d.fresh = c.id; save(); AU.fanfare && AU.fanfare(); return false; }
 function craftStart(id) { const d = strokesOf(), sp = SPECIALS.find(x => x.id === id); if (!sp || d.craft || d.own.includes(id)) return; d.craft = { id, end: Date.now() + sp.craft * 60000 }; save(); AU.pop(); buzz(10); renderStrokes(); }
-function craftSkip() { const d = strokesOf(); if (!d.craft) return; d.craft.end = Date.now(); craftTick(); AU.ui(); buzz([10, 30, 10]); renderStrokes(); stToast('The Giant is ready!'); }
+function craftSkip() { const d = strokesOf(); if (!d.craft) return; const cn = spName(d.craft.id); d.craft.end = Date.now(); craftTick(); AU.ui(); buzz([10, 30, 10]); renderStrokes(); stToast('The ' + cn + ' is ready!'); }
 function equipSpecial(id) { const d = strokesOf(); if (!d.own.includes(id) || d.special === id) return; d.special = id; if (d.fresh === id) d.fresh = null; save(); AU.ready && AU.ready(); buzz(8); renderStrokes(); stToast(SPECIALS.find(x => x.id === id).name + ' is your special stroke'); }
 function stToast(msg) { const w = $('mStrokes'), old = w.querySelector('.sttoast'); if (old) old.remove(); const t = document.createElement('span'); t.className = 'sttoast'; t.setAttribute('role', 'status'); t.textContent = msg; w.appendChild(t); clearTimeout(stToastT); stToastT = setTimeout(() => t.remove(), 2300); }
 const mmss = ms => { const t = Math.ceil(ms / 1000), m = Math.floor(t / 60), sc = t % 60; return m + ':' + (sc < 10 ? '0' : '') + sc; };
+let stSkillSel = null; // (the skill whose breakdown shows: the equipped one when the page opens)
+function skillCard() {
+  const eq = strokeSkill(), o = SKILLS.find(x => x.id === (stSkillSel || eq)) || SKILLS[0], on = o.id === eq;
+  $('stSkillNow').innerHTML = '<span class="stic">' + STROKE_ICON[o.id] + '</span><span><span class="stname">' + o.name + '</span><span class="stdesc">' + o.desc + '</span>' + (on ? '<span class="ststamp">Equipped</span>' : '<button class="stequip" type="button" data-eq="' + o.id + '">Equip</button>') + '</span>'
+    + '<ul class="stperks" aria-label="' + escAttr('What ' + o.name + ' does') + '">' + o.up.map(t => '<li class="up">' + t + '</li>').join('') + o.down.map(t => '<li class="dn">' + t + '</li>').join('') + '</ul>';
+}
+function equipSkill(id) { const d = strokesOf(); if (!d.own.includes(id) || d.skill === id) return; d.skill = id; stSkillSel = id; save(); AU.ready && AU.ready(); buzz(8); renderStrokes(); stToast(SKILLS.find(x => x.id === id).name + ' is your skill'); }
 function renderStrokes() {
   const d = strokesOf(); craftTick();
   const now = (id, list, el) => { const o = list.find(x => x.id === id) || list[0]; el.innerHTML = '<span class="stic">' + STROKE_ICON[o.id] + '</span><span><span class="stname">' + o.name + '</span><span class="stdesc">' + o.desc + '</span><span class="ststamp">Equipped</span></span>'; };
-  now(strokeSpecial(), SPECIALS, $('stSpecialNow')); now(strokeSkill(), SKILLS, $('stSkillNow'));
+  now(strokeSpecial(), SPECIALS, $('stSpecialNow')); skillCard();
   const crafting = d.craft, left = craftLeft();
   $('stSpecialRail').innerHTML = SPECIALS.map(o => { const own = d.own.includes(o.id), on = own && strokeSpecial() === o.id, cr = crafting && crafting.id === o.id, free = !own && !cr && strokesDue(), ready = own && !on && d.fresh === o.id;
     const st = on ? 'Equipped' : cr ? 'Crafting' : ready ? 'Ready!' : own ? 'Tap to equip' : free ? 'Free to craft' : STROKE_LOCK + 'Rank ' + ABIL_RANK;
     return '<button class="stopt' + (on ? ' on' : '') + (cr ? ' crafting' : '') + (ready ? ' ready' : '') + (free ? ' free' : '') + (!own && !cr && !free ? ' lock' : '') + '" type="button" data-st="' + o.id + '" aria-pressed="' + on + '" aria-label="' + escAttr(o.name + ', ' + st) + '">' + STROKE_ICON[o.id] + '<span class="stn">' + o.name + '</span><span class="sts">' + st + '</span></button>'; }).join('')
     + '<span class="stopt soon" aria-hidden="true"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="20" fill="none" stroke="#8A8396" stroke-width="4" stroke-dasharray="7 7"/></svg><span class="stn">More soon</span><span class="sts">Rank up</span></span>';
-  $('stSkillRail').innerHTML = SKILLS.map(o => '<button class="stopt on" type="button" data-sk="' + o.id + '" aria-pressed="true" aria-label="' + escAttr(o.name + ', equipped') + '">' + STROKE_ICON[o.id] + '<span class="stn">' + o.name + '</span><span class="sts">Equipped</span></button>').join('')
+  $('stSkillRail').innerHTML = SKILLS.map(o => { const on = strokeSkill() === o.id, sel = (stSkillSel || strokeSkill()) === o.id; return '<button class="stopt' + (on ? ' on' : '') + (sel && !on ? ' sel' : '') + '" type="button" data-sk="' + o.id + '" aria-pressed="' + sel + '" aria-label="' + escAttr(o.name + (on ? ', equipped' : ', see what it does')) + '">' + STROKE_ICON[o.id] + '<span class="stn">' + o.name + '</span><span class="sts">' + (on ? 'Equipped' : sel ? 'Showing' : 'Tap to see') + '</span></button>'; }).join('')
     + '<span class="stopt soon" aria-hidden="true"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="20" fill="none" stroke="#8A8396" stroke-width="4" stroke-dasharray="7 7"/></svg><span class="stn">More soon</span><span class="sts">Rank up</span></span>';
-  const cEl = $('stCraft'); cEl.hidden = !crafting; if (crafting) { const sp = SPECIALS.find(x => x.id === crafting.id), tot = sp.craft * 60000; $('stCraftT').textContent = mmss(left); $('stCraftBar').style.setProperty('--p', (100 * (1 - left / tot)).toFixed(1) + '%'); }
+  const cEl = $('stCraft'); cEl.hidden = !crafting; if (crafting) { const sp = SPECIALS.find(x => x.id === crafting.id), tot = sp.craft * 60000; $('stCraftT').textContent = mmss(left); { const ct = cEl.querySelector('.stct'); if (ct && ct.firstChild && ct.firstChild.nodeType === 3) ct.firstChild.nodeValue = 'Crafting the ' + sp.name; } $('stCraftBar').style.setProperty('--p', (100 * (1 - left / tot)).toFixed(1) + '%'); }
   paintAbil();
 }
-function strokesFrame() { if (!strokesOpen()) return; const d = strokesOf(); if (d.craft) { if (!craftTick()) { renderStrokes(); stToast('The Giant is ready!'); } else { $('stCraftT').textContent = mmss(craftLeft()); const sp = SPECIALS.find(x => x.id === d.craft.id); $('stCraftBar').style.setProperty('--p', (100 * (1 - craftLeft() / (sp.craft * 60000))).toFixed(1) + '%'); } } }
+function strokesFrame() { if (!strokesOpen()) return; const d = strokesOf(); if (d.craft) { const cn = spName(d.craft.id); if (!craftTick()) { renderStrokes(); stToast('The ' + cn + ' is ready!'); } else { $('stCraftT').textContent = mmss(craftLeft()); const sp = SPECIALS.find(x => x.id === d.craft.id); $('stCraftBar').style.setProperty('--p', (100 * (1 - craftLeft() / (sp.craft * 60000))).toFixed(1) + '%'); } } }
 function openStrokes() {
   if (state !== 'menu' || building || lookOpen || shopOpen || strokesOpen()) return;
   if (menuPage === 'worlds') { closeSeason(); $('mWorld').hidden = true; } if (menuPage === 'events') closeEvents();
-  menuPage = 'strokes'; menu.dataset.page = 'strokes'; $('mHome').hidden = true; $('mStrokes').hidden = false; document.body.classList.add('evon'); closeSide(true); renderStrokes();
+  stSkillSel = null; menuPage = 'strokes'; menu.dataset.page = 'strokes'; $('mHome').hidden = true; $('mStrokes').hidden = false; document.body.classList.add('evon'); closeSide(true); renderStrokes();
   for (const c of $('mStrokes').querySelectorAll('.stslot')) { c.style.animation = 'none'; void c.offsetWidth; c.style.animation = ''; }
   clearInterval(stTick); stTick = setInterval(strokesFrame, 500); setTimeout(() => $('stBack').focus({ preventScroll: true }), 40);
 }
@@ -17227,8 +17467,11 @@ $('stSkip').addEventListener('click', () => { AU.init(); craftSkip(); });
 $('stSpecialRail').addEventListener('click', e => { const b = e.target.closest('.stopt[data-st]'); if (!b) return; AU.init(); const id = b.dataset.st, d = strokesOf();
   if (d.own.includes(id)) { if (strokeSpecial() !== id) equipSpecial(id); else AU.ui(); return; }
   if (d.craft) { AU.nope(); stToast('One craft at a time'); return; }
-  if (strokesDue()) craftStart(id); else { AU.nope(); stToast('Reach rank ' + ABIL_RANK + ' to craft the ' + id); } });
-$('stSkillRail').addEventListener('click', e => { if (e.target.closest('.stopt[data-sk]')) { AU.init(); AU.ui(); } });
+  if (strokesDue()) craftStart(id); else { AU.nope(); stToast('Reach rank ' + ABIL_RANK + ' to craft the ' + spName(id)); } });
+$('stSkillRail').addEventListener('click', e => { const b = e.target.closest('.stopt[data-sk]'); if (!b) return; AU.init(); const id = b.dataset.sk;
+  if ((stSkillSel || strokeSkill()) === id) { if (strokeSkill() !== id) equipSkill(id); else AU.ui(); return; } // (a second tap on the one showing equips it)
+  stSkillSel = id; AU.ui(); buzz(6); renderStrokes(); });
+$('stSkillNow').addEventListener('click', e => { const b = e.target.closest('.stequip'); if (!b) return; AU.init(); equipSkill(b.dataset.eq); });
 
 // abilities: on the rail, locked until rank 3; past that, the Strokes page
 const ABIL_RANK = 2, COMM_RANK = 3, ABIL_LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 10.5V7.8a4.5 4.5 0 0 1 9 0v2.7" fill="none" stroke="currentColor" stroke-width="3"/><rect x="4.5" y="10" width="15" height="12" rx="2.6" fill="currentColor"/></svg>';
@@ -18250,7 +18493,7 @@ function introFly(D, dt) {
 }
 function goTime() {
   showCount('Go!', true); state = 'play'; introOut = 1; hud.classList.remove('off');
-  for (const D of ACTIVE) { D.eyeSink = D.eyeShut = D.eyeWide = 0; D.flowT = 1; D.flowK = 0; D.swimBoost = D === P && strokeSkill() === 'swim' ? SWIM_BOOST : 1; } // (whatever an intro was doing with the peeking eyes; and a second of crawling before the paint flows)
+  for (const D of ACTIVE) { D.eyeSink = D.eyeShut = D.eyeWide = 0; D.flowT = 1; D.flowK = 0; D.skill = D === P ? (tut ? 'swim' : strokeSkill()) : 'swim'; D.swimBoost = D === P && D.skill === 'swim' ? SWIM_BOOST : 1; D.frozenT = 0; } // (whatever an intro was doing with the peeking eyes; and a second of crawling before the paint flows)
   for (const D of ACTIVE) { if (D.st === 'out') continue;
     if (D.introAct) { introActEnd(D); D.introOut = false; D.spawnGuard = 2.4; continue; } // (an intro's moves still playing: finished at once)
     if (D.introOut) { D.introOut = false; D.ip = null; D.introShake = null; D.spawnGuard = 2.4; continue; } // already out and on the floor (steered clear of drops for a moment)
@@ -18358,9 +18601,9 @@ const themeLabel = sid => (THEMES.find(t => t.id === sid) || {}).label || sid;
 let voteState = null;
 function openVote(id, done) {
   const box = $('vvote'), who = [P, H]; if (mode === 'trio') who.push(H2);
-  // your vote is the canvas you picked; the rivals' are their own (the lesson: the rival's is a Halloween canvas, and it's the one drawn)
+  // your vote is the canvas you picked; the rivals' are their own (the lesson: the rival's is Sludge Sewer, and it's the one drawn)
   const votes = new Map(); votes.set(P, VOTE_STAGES.includes(stageSel) ? stageSel : VOTE_STAGES[(Math.random() * VOTE_STAGES.length) | 0]);
-  const tutV = tutPh() === 'vote' ? TUT_HALLO[(Math.random() * TUT_HALLO.length) | 0] : null;
+  const tutV = tutPh() === 'vote' ? TUT_M2 : null;
   for (const D of who.slice(1)) votes.set(D, tutV && D === H ? tutV : VOTE_STAGES[(Math.random() * VOTE_STAGES.length) | 0]);
   const tally = {}; for (const v of votes.values()) tally[v] = (tally[v] || 0) + 1; const top = Math.max(...Object.values(tally)), lead = Object.keys(tally).filter(k => tally[k] === top);
   const win = tutV || (lead.length === 1 ? lead[0] : lead[(Math.random() * lead.length) | 0]);
@@ -18703,8 +18946,13 @@ $('menuBtn').addEventListener('click', uiClick(toMenu));
 $('pauseBtn').addEventListener('click', uiClick(pause));
 $('slamBtn').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); AU.init(); if (state === 'play') useSlam(P); });
 const ITEM_ICON = { roller: '<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="5" y="9" width="30" height="13" rx="6.5"/><path d="M20 22v7h7" fill="none" stroke-width="3.2" stroke-linecap="round"/><rect x="25" y="27" width="7" height="9" rx="2"/></svg>', turret: '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M7 30a13 13 0 0 1 26 0z"/><path d="M20 20L33 9" fill="none" stroke-width="5" stroke-linecap="round"/><circle cx="20" cy="21" r="4.5"/></svg>' };
+ITEM_ICON.trap = '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 25a11 11 0 1 1 22 0c0 2.6-.8 4.8-2.1 6.5l.7 3.3a1.6 1.6 0 0 1-3 .7l-1.1-2.7a11 11 0 0 1-9.8.1l-1.2 2.8a1.6 1.6 0 0 1-3-.7l.8-3.6A11 11 0 0 1 8 25z"/><path d="M24.5 14.5c1.6-3 4-4.4 7-4" fill="none" stroke-width="2.6" stroke-linecap="round"/><path d="M33 3.5l1.2 2.8 3 .3-2.3 2 .7 3-2.6-1.6-2.6 1.6.7-3-2.3-2 3-.3z" fill="#F2C14E" stroke-width="1.4"/><circle cx="15" cy="20.5" r="2.6" fill="#fff" stroke="none" opacity=".75"/></svg>';
 $('itemBtn').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); AU.init(); if (state === 'play' && !useHeld(P)) { AU.nope(); kick($('itemBtn'), 'nope'); } });
 $('itemBtn').addEventListener('click', e => { e.preventDefault(); if (state === 'play' && e.detail === 0) useHeld(P); });
+$('itemBtn2').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); AU.init(); if (state === 'play' && !useHeld2(P)) { AU.nope(); kick($('itemBtn2'), 'nope'); } });
+$('itemBtn2').addEventListener('click', e => { e.preventDefault(); if (state === 'play' && e.detail === 0) useHeld2(P); });
+$('orbBtn').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); AU.init(); if (state === 'play' && !useOrb(P)) { AU.nope(); kick($('orbBtn'), 'nope'); } });
+$('orbBtn').addEventListener('click', e => { e.preventDefault(); if (state === 'play' && e.detail === 0) useOrb(P); });
 $('slamBtn').addEventListener('click', e => { e.preventDefault(); if (state === 'play' && e.detail === 0) useSlam(P); });
 $('resumeBtn').addEventListener('click', uiClick(resume));
 $('restartBtn').addEventListener('click', uiClick(replay));
@@ -19001,6 +19249,8 @@ window.addEventListener('keydown', e => {
   if (k === 'm' || k === 'M') { toggleSound(); return; }
   if ((k === 'e' || k === 'E') && !e.repeat) { e.preventDefault(); if (state === 'play') useSlam(P); return; }
   if ((k === 'f' || k === 'F') && !e.repeat) { e.preventDefault(); if (state === 'play' && !useHeld(P)) AU.nope(); return; }
+  if ((k === 'g' || k === 'G') && !e.repeat) { e.preventDefault(); if (state === 'play' && !useHeld2(P)) AU.nope(); return; }
+  if ((k === 'c' || k === 'C') && !e.repeat) { e.preventDefault(); if (state === 'play' && !useOrb(P)) AU.nope(); return; }
   if ((k === 'Shift' || k === 'q' || k === 'Q') && !e.repeat) { e.preventDefault(); if (state === 'play') dodgeRoll(P); return; }
   if (P.turret && state === 'play' && (k === 'ArrowUp' || k === 'w' || k === 'W' || k === 'ArrowDown' || k === 's' || k === 'S')) { e.preventDefault(); aimKey = k === 'ArrowUp' || k === 'w' || k === 'W' ? 1 : -1; return; }
   if (k === 'ArrowLeft' || k === 'a' || k === 'A') { keyL = true; e.preventDefault(); }
@@ -19166,7 +19416,7 @@ const tutArrowEl = $('tutArrow'), tutGV = new THREE.Vector3(), tutHandEl = $('tu
 let tut2 = null, tut = null, tutPrev = null, tutTip = null, tutWinDue = false, tutNiAt = 0, tutFirstAt = 0, tutBrowseAt = 0; // tutBrowseAt: when the free look round the shop began // tutFirstAt: when the lobby first stood clear for the onboarding's first word (it waits a second) // tutNiAt: when the new item card came up (the coach waits for the item to land) // tutWinDue: the lesson's finish screen is owed, before the tally // tut: the scripted match; tutPrev: the mode, level and canvas to put back after it; tutTip: the tip up now
 const tutPh = () => store.tut.ph, tutSet = ph => { if (store.tut.ph === ph) return; store.tut.ph = ph; save(); };
 const tutMatchDue = () => tutPh() === 'match';
-const TUT_SLOW = 0.35, TUT_HALLO = ['crypt', 'cathedral', 'manor'];
+const TUT_SLOW = 0.35, TUT_M2 = 'sewer'; // (the canvas the lesson's vote lands on: the second match is on Sludge Sewer)
 const TUT_AI = Object.assign({}, AI_LV.easy, { pound: 0, attack: 0, dodge: 0, evade: 0, orb: 0, grab: 0, hunt: 0, ram: 0, speed: 0.8, steal: 0.7, trap: 0, airSling: 0, coffinHunt: 0, covPound: 0 });
 const TUT_AI_FIGHT = { speed: 1.08, dodge: 0, evade: 0 }; // (the dodge lesson: driven straight at you, a touch quicker)
 // the dodge lesson's rival: steered at you, and a jump pound once it is close enough and you are on the floor
