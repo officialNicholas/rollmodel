@@ -14,8 +14,11 @@ async def main():
         await ev("__T.start()"); await pg.wait_for_function("__T.state === 'play'", timeout=300000, polling=100); await pg.wait_for_timeout(2000)
         await ev("__T.wxLeft = 999")
         C = "__T.ev(`[state, P.st, !!tut, !!P.rocket, !!P.turret, P.giantT, !!kcam, tutArrowEl.hidden, P.dry, +P.paint.toFixed(3), wxPhase, P.exposed, typeof potCueTick, potCueTo ? +Math.hypot(potCueTo.x - P.x, potCueTo.z - P.z).toFixed(1) : null, +potCueK.toFixed(2), potCue.visible, pots.filter(p => potUp(p) && !p.occ && p.cool <= 0 && p.ink > 0.05).length, +clock.toFixed(2), +potCueAt.toFixed(2), P.turf]`)"
-        for i in range(6):
-            await ev("__T.P.paint = 0.05; __T.P.turf = 0"); await pg.wait_for_timeout(300); print('low', await ev(C))
+        print('placed', await ev("""(() => { const T = __T, P = T.P; if (P.st === 'hide') T.exitPot(P); P.st = 'play'; P.pot = null; let best = null, bd = 1e9;
+          for (let gx = -12; gx <= 12; gx += 1.5) for (let gz = -12; gz <= 12; gz += 1.5) { if (Math.abs(T.surfaceUnder(gx, gz, 0.4, true)) > 0.01 || T.blockedAt(gx, gz, 0)) continue; const dp = Math.min(...T.pots.map(q => Math.hypot(q.x - gx, q.z - gz))); if (dp > 6 && Math.hypot(gx, gz) < bd) { bd = Math.hypot(gx, gz); best = [gx, gz]; } }
+          if (!best) return null; P.x = best[0]; P.z = best[1]; P.y = 0; P.air = false; P.yaw = Math.atan2(-best[0], -best[1]); P.paint = 1; P.stroke++; return best; })()"""))
+        await ev("__T.ev('setWx(\"warn\", 999)')")
+        for i in range(5): await pg.wait_for_timeout(250); print('warn', await ev(C))
         # caught in the air at the buzzer
         await ev("(() => { const P = __T.P; P.air = true; P.y += 2.4; P.vy = 3; P.slam = false; __T.matchLeft = 0.03; })()")
         await pg.wait_for_function("__T.state === 'dead'", timeout=60000, polling=20)
