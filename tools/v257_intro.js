@@ -107,7 +107,7 @@ void main(){
     float aa = fwidth(f) * 1.2 + 0.002; col = mix(col, pc, smoothstep(aa, -aa, f));
     col = mix(col, col * 0.5, smoothstep(0.03, 0.0, f) * smoothstep(-0.02, 0.005, f) * 0.6);
   }
-  col = mix(vec3(0.008, 0.005, 0.016), col, smoothstep(5.0, 2.6, length(p - uSpot)));
+  col = mix(vec3(0.02, 0.012, 0.034), col, smoothstep(5.0, 2.6, length(p - uSpot)));
   gl_FragColor = vec4(col, 1.0);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
@@ -397,7 +397,7 @@ void main(){ vec2 p = vUv; vec3 c = mix(vec3(0.008, 0.005, 0.016), vec3(0.035, 0
     // the paint's colour, easing to the one picked
     if (X.paintTo) { X.paint.lerp(X.paintTo, Math.min(1, dt * 5)); X.pearl += (X.pearlTo - X.pearl) * Math.min(1, dt * 4); }
   }
-  const eyeY = () => -0.1; // (sunk to its eyes: the top of its head, its eyes and its ears out of the paint)
+  const eyeY = () => -0.17; // (sunk to its eyes: the top of its head, its eyes and its ears out of the paint)
   function tiltAt(a) {
     // the barrel rocks on the edge of its base it leans toward (lying down, it rests on its widest part)
     const B = X.barrel.g, sg = a >= 0 ? 1 : -1, piv = BR.base.clone().addScaledVector(TIP, sg * BR.Rb);
@@ -469,8 +469,10 @@ void main(){ vec2 p = vUv; vec3 c = mix(vec3(0.008, 0.005, 0.016), vec3(0.035, 0
   function after(rdt) {
     const J = api.jin; if (!J) return;
     J.t += Math.min(0.05, rdt); const u = (J.t - JIN_AT) / JIN_T;
-    if (!J.x0) { const e = camera.matrixWorld.elements, d = camera.position.distanceTo(drop.position), half = Math.tan(camera.fov * Math.PI / 360) * d * camera.aspect; J.x0 = -(half + 0.9); J.r = new V3(e[0], e[1], e[2]).normalize(); }
-    if (u < 1) { const k = Math.max(0, u); J.hop = 4 * 1.1 * k * (1 - k); J.sq = 0; J.rise = k < 0.5 ? 0.6 : 0.2; drop.position.addScaledVector(J.r, J.x0 * (1 - k)); } // (across at an even pace, as a leap goes)
+    // (from the camera as it is now, every frame: off the left edge of what's in view, and a leap a good part of the view's height)
+    camera.updateMatrixWorld(); const e = camera.matrixWorld.elements, d = camera.position.distanceTo(drop.position), hh = Math.tan(camera.fov * Math.PI / 360) * d;
+    J.r = (J.r || new V3()).set(e[0], e[1], e[2]).normalize(); J.x0 = -(hh * camera.aspect + 0.9);
+    if (u < 1) { const k = Math.max(0, u); J.hop = 4 * Math.min(1.1, hh * 0.5) * k * (1 - k); J.sq = 0; J.rise = k < 0.5 ? 0.6 : 0.2; drop.position.addScaledVector(J.r, J.x0 * (1 - k)); } // (across at an even pace, as a leap goes)
     else { if (!J.landed) { J.landed = true; AU.land && AU.land(0.8); AU.splat(0.9); buzz(16); try { addSplat(P.x, P.y, P.z, P.yaw, 0.9, -8, false, false, 0); for (let i = 0; i < 14; i++) { const a = i / 14 * 6.283; spawnPart(P.x, P.y + 0.3, P.z, Math.cos(a) * 2.2, 2 + Math.random() * 1.6, Math.sin(a) * 2.2, 0.5, teamMats[0], 0.7); } } catch (e) {} }
       const k = J.t - JIN_AT - JIN_T; J.hop = 0; J.rise = 0; J.sq = Math.max(0, 0.5 * Math.exp(-k * 7) * Math.cos(k * 16)); if (k > 0.9) api.jin = null; }
   }
