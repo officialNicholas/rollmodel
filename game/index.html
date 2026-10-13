@@ -3031,6 +3031,9 @@ html.touchnav :focus-visible{outline:none!important}
 #end.sd .board[hidden]{display:grid}
 /* the event card: Showdown's two ways to play */
 #evShowPick button b{font-size:18px}
+/* (v255) the fight card's labels along the top edge keep clear of the notch or the app's bar over it */
+.vsx .vsrow:not(.rows) .vhead{padding-top:calc(8px + env(safe-area-inset-top,0px))}
+.vsrow.rows .vcol:first-child .vhead{padding-top:calc(9px + env(safe-area-inset-top,0px))}
 </style>
 
 <div id="stage">
@@ -3156,7 +3159,7 @@ html.touchnav :focus-visible{outline:none!important}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 254</p>
+      <p class="ver">Version 255</p>
     </div>
   </div>
 
@@ -18325,6 +18328,9 @@ function irisOpen(at) {
   irisEl.classList.remove('txt'); if (reduceMotion || window.__instant) { fin(); return; } irisRun(0, irisR(cx, cy), 0.6, u => 1 - Math.pow(1 - u, 3), cx, cy, fin);
 }
 const toMenu = () => irisClose(() => { showMenu(); camSnap = true; irisOpen(); });
+// (v255) Rematch, new canvas: the canvas vote for the same event first (another canvas, the CPUs easier or harder), then Play as
+// always; its back button goes to the events. The onboarding's own matches go straight on, as before.
+function rematchVote() { if (building || irisBusy) return; if (tutPh() !== 'done') return start(); irisClose(() => { showMenu(); camSnap = true; openWorlds(); evFrom = true; irisOpen(); }); }
 // ---------- the start of a match: 3, 2, 1, each blob gathering itself into a drop in the air over its spot, and at Go they fall and splat down ----------
 const REVEAL_T = 2.7; let revealT = 0, revealA0 = 0; // the sweep over the canvas before the count
 const INTRO_AT = [0.6, 1.6, 2.6, 3.6], INTRO_H = 1.9, INTRO_LK = 0.4, BASIN_DEEP = 2.4; // when each count lands (a second apart: room for the crawl out), how high the drop forms, how far above it the camera looks (so it sits under the numbers)
@@ -19144,7 +19150,7 @@ if (window.ResizeObserver) new ResizeObserver(() => { if (!end.hidden) measureOu
 const uiClick = fn => () => { AU.init(); AU.ui(); fn(); };
 $('startBtn').addEventListener('click', uiClick(() => { if (!store.name) openName(true); else start(); }));
 $('shuffleBtn').addEventListener('click', uiClick(shuffleCanvas));
-$('endBtn').addEventListener('click', uiClick(start));
+$('endBtn').addEventListener('click', uiClick(rematchVote));
 $('replayBtn').addEventListener('click', uiClick(replay));
 $('menuBtn').addEventListener('click', uiClick(toMenu));
 $('pauseBtn').addEventListener('click', uiClick(pause));
