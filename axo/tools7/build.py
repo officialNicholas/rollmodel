@@ -17,7 +17,10 @@ def face_meta(P, N, head_w, rig, r, D=None):
     """the face sphere (centre c, radius r) for the look shader's face projection, the hats (anchor 0.94 r above c) and the face
     accessories (glasses ~1.05 r in front of c): c sits r behind the flat face, so the drawn face lies on it, and 0.94 r under the crown"""
     hv = head_w > 0.95
-    fv = hv & (N[:, 2] > 0.92) & (np.abs(P[:, 0]) < 0.25); zf = float(np.percentile(P[fv, 2], 60))
+    crown_ = hv & (np.abs(P[:, 0]) < 0.08); top_ = float(P[crown_, 1].max())
+    # (the flat face: forward-facing skin over the head's middle, the band below the crown where the face sits; by shape alone, so the
+    # skin weights near the chin do not move it)
+    fv = (N[:, 2] > 0.92) & (np.abs(P[:, 0]) < 0.25) & (P[:, 1] > top_ - 0.47) & (P[:, 1] < top_ - 0.12) & (P[:, 2] > 0.3); zf = float(np.percentile(P[fv, 2], 60))
     nf = N[fv].mean(0); nf /= np.linalg.norm(nf)
     crown = hv & (np.abs(P[:, 0]) < 0.08); top = float(P[crown, 1].max())
     k = r / 0.3697; c = np.array([0.0, top - 0.013 * k - 0.94 * r, zf + 0.018 * k - r])
@@ -44,6 +47,13 @@ def main():
     head_w = W[:, names.index('head')]
     c, finfo = face_meta(Pw, Nw, head_w, rig, r_face, arg('--face-d', 0.29))
     rig.set_headfront(c, finfo['face_z']); B = rig.B
+    # (the hands' and feet's headings, from their own meshes: the wrist / ankle to the middle of the hand's / foot's vertices)
+    rig.flat = {}
+    for end, dig in (('hand', 'finger'), ('foot', 'toe')):
+        for s in 'LR':
+            hb = [i for i, n in enumerate(names) if n == f'{end}.{s}' or (n.startswith(dig) and f'.{s}.' in n) or n == f'toes.{s}' and end == 'foot']
+            sel = W[:, hb].sum(1) > 0.6; v = Pw[sel].mean(0) - B[f'{end}.{s}'][0]; rig.flat[f'{end}.{s}'] = v
+            print(f'  {end}.{s}: level frame, heading {np.degrees(np.arctan2(v[0] * (1 if s == "L" else -1), v[2])):+.1f} deg out from ahead ({int(sel.sum())} vertices)')
     bones = rig.meta_bones()
     hb = [b for b in bones if b['name'] == 'head'][0]
     meta = {'bones': bones, 'headc': np.round(c - np.array(hb['pos']), 4).tolist(), 'headr': round(r_face, 4), 'face': {'c': np.round(c, 4).tolist(), 'r': round(r_face, 4)}}

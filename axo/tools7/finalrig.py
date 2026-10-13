@@ -87,6 +87,11 @@ class Rig:
                 X = np.cross(n, pp); X /= np.linalg.norm(X)
                 for b, sg in ((up, sU), (lo, -1)):
                     y = self.B[b][1] - self.B[b][0]; y /= np.linalg.norm(y); z = np.cross(sg * X, y); z /= np.linalg.norm(z); F[b] = np.stack([np.cross(y, z), y, z], 1)
+        # the hands and feet level (Y along the ground, Z straight down), Y along the heading of the hand's / foot's own mesh (build.py:
+        # flat): planted, the runtime aims each one level along the gait's direction (the left hand's digits' direction, mirrored for the
+        # right), so a frame tied to its own mesh lays both hands (feet) the same way, flat on the ground, however Meshy splayed them
+        for nm, h in getattr(self, 'flat', {}).items():
+            y = np.array([h[0], 0.0, h[2]]); y /= np.linalg.norm(y); z = np.array([0.0, -1.0, 0.0]); F[nm] = np.stack([np.cross(y, z), y, z], 1)
         # digits and toes take their parent's frame (v246: a digit's frame is its hand's / foot's)
         for nm, par in self.order:
             if nm.startswith(('finger', 'toe')) and not nm.startswith('toes'):

@@ -34,7 +34,25 @@ def compute(rig, Pw, Tw, ears=None, verbose=True):
     W = limb_cut(W, names_all, Pw, Tw, rig)
     W = chain_window(W, names_all, Pw, rig)
     W = root_fade(W, names_all, Pw, rig)
+    W = axial_partition(W, names_all, Pw, rig)
+    W = head_cut(W, names_all, Pw, rig)
     return W, names_all, near
+def head_cut(W, names, P, rig, verbose=True):
+    """above the neck only the neck, the head and the ears: the big head overhangs the shoulders, and over the back and sides of the skull
+    (far from the head bone, near the shoulders') bone heat let the shoulders' and the chest's weight climb up, so a turn of the head left
+    them behind (spikes). Past the plane square to the neck through its root, over a band, the trunk's and limbs' share goes to the neck and
+    the head (more to the head the further up)"""
+    ia = {n: i for i, n in enumerate(names)}; W = W.copy()
+    j, e = rig.B['neck']; ax = (e - j) / np.linalg.norm(e - j); t = (P - j) @ ax
+    k = ss((t - 0.03) / 0.10); kh = ss((t - 0.05) / 0.15)
+    keep = [i for n, i in ia.items() if n in ('neck', 'head', 'headfront') or n.startswith('gill')]
+    other = np.ones(len(names), bool); other[keep] = False
+    lost = (W[:, other] * k[:, None]).sum(1); W[:, other] *= (1 - k)[:, None]
+    h, nk = ia['head'], ia['neck']; hn = W[:, [h, nk]]; s_ = hn.sum(1)
+    fh = np.where(s_ > 1e-6, (hn[:, 0] / np.maximum(s_, 1e-12)) * 0.5 + 0.5 * kh, kh)
+    W[:, h] += lost * fh; W[:, nk] += lost * (1 - fh)
+    if verbose: print(f'  head cut: {int((lost > 0.02).sum())} vertices above the neck gave their trunk / limb share to the neck and head')
+    return W
 def chain_window(W, names, P, rig, verbose=True):
     """each limb bone's share kept near its own segment: bone heat spreads a bone's weight a long way down a thin limb (the upper arm's
     reached the fingers), so in a deep bend (the air tuck) the hand smears with the shoulder's turn. Along the limb (the arclength of a
@@ -80,6 +98,14 @@ def limb_cut(W, names, P, T, rig, verbose=True):
             lost = (W[:, lb] * (1 - m)[:, None]).sum(1); W[:, lb] *= m[:, None]
             gi = [ia[x] for x in give]; gw = W[:, gi]; gs = gw.sum(1, keepdims=True)
             share = np.where(gs > 1e-6, gw / np.maximum(gs, 1e-12), np.eye(len(gi))[0]); W[:, gi] += share * lost[:, None]; moved += int((lost > 0.02).sum())
+            # (and the other way: well inside the limb, short of its root band, only the limb's own bones: the knee sits by the tail's
+            # root and took some of the tail's weight)
+            m2 = 1 - ss((g - (g0 - 3 * band)) / (2 * band)); m2[~np.isfinite(g)] = 0
+            nl = np.ones(len(names), bool); nl[lb] = False
+            lost2 = (W[:, nl] * m2[:, None]).sum(1); W[:, nl] *= (1 - m2)[:, None]
+            lw = W[:, lb]; ls = lw.sum(1, keepdims=True); near_b = np.argmax(lw, 1)
+            share2 = np.where(ls > 1e-6, lw / np.maximum(ls, 1e-12), 0); share2[ls[:, 0] <= 1e-6, 0] = 1.0
+            W[:, lb] += share2 * lost2[:, None]
             if verbose: print(f'  limb cut {up}.{s}: radius {rad:.3f}, root ring {int(ring.sum())} verts at {g0:.3f} from the {mid} / {en}; {int((lost > 0.02).sum())} vertices gave up their limb share')
     return W
 def root_fade(W, names, P, rig, verbose=True):
@@ -105,3 +131,32 @@ def rigid_head(W, names, P, rig, lo=0.35, hi=0.7):
 def top4(W, thresh=0.01):
     idx = np.argsort(-W, 1)[:, :4]; w = np.take_along_axis(W, idx, 1); w[w < thresh] = 0; w /= np.maximum(w.sum(1, keepdims=True), 1e-12)
     Wo = np.zeros_like(W); np.put_along_axis(Wo, idx, w, 1); return Wo
+
+AXIAL = ['tail6', 'tail5', 'tail4', 'tail3', 'tail2', 'tail1', 'hips', 'spine', 'spine1', 'chest']
+def axial_partition(W, names, P, rig, k=0.4, verbose=True):
+    """the trunk's and the tail's share split along the body as a clean chain: bone heat over this wide body and thick tail blurred each
+    vertex over three or four of them (in the ball curl that folded the pelvis and the tail's root); each vertex's axial share now goes
+    to the one or two bones its place along the body (the nearest point on the chain of joints from the tail tip to the neck) lies
+    between, blended over k of the shorter bone's length either side of each joint"""
+    ia = {n: i for i, n in enumerate(names)}; W = W.copy(); B = rig.B
+    pts = [B['tail6'][1]] + [B[f'tail{i}'][0] for i in range(6, 0, -1)] + [B['hips'][0], B['spine'][0], B['spine1'][0], B['chest'][0], B['chest'][1]]
+    pts = [np.asarray(p, float) for p in pts]; L = [np.linalg.norm(pts[i + 1] - pts[i]) for i in range(len(pts) - 1)]; U = np.r_[0, np.cumsum(L)]
+    # (bone spans along u: tail6 .. tail1 one segment each, hips two (the pelvis behind the hips joint and the back ahead of it), then one each)
+    span = {'tail6': (U[0], U[1]), 'tail5': (U[1], U[2]), 'tail4': (U[2], U[3]), 'tail3': (U[3], U[4]), 'tail2': (U[4], U[5]), 'tail1': (U[5], U[6]),
+            'hips': (U[6], U[8]), 'spine': (U[8], U[9]), 'spine1': (U[9], U[10]), 'chest': (U[10], U[11])}
+    best = np.full(len(P), np.inf); u = np.zeros(len(P))
+    for i in range(len(pts) - 1):
+        a, b = pts[i], pts[i + 1]; ab = b - a; t = np.clip(((P - a) @ ab) / (ab @ ab), 0, 1); d = np.linalg.norm(P - (a + t[:, None] * ab), axis=1)
+        better = d < best; best[better] = d[better]; u[better] = U[i] + t[better] * L[i]
+    A = np.zeros((len(P), len(AXIAL)))
+    for j, b in enumerate(AXIAL):
+        lo, hi = span[b]; f = np.ones(len(P))
+        if j > 0:
+            h = k * min(hi - lo, span[AXIAL[j - 1]][1] - span[AXIAL[j - 1]][0]); f *= ss((u - (lo - h)) / (2 * h))
+        if j < len(AXIAL) - 1:
+            h = k * min(hi - lo, span[AXIAL[j + 1]][1] - span[AXIAL[j + 1]][0]); f *= 1 - ss((u - (hi - h)) / (2 * h))
+        A[:, j] = f
+    A /= np.maximum(A.sum(1, keepdims=True), 1e-12)
+    ax = [ia[b] for b in AXIAL]; share = W[:, ax].sum(1, keepdims=True); W[:, ax] = share * A
+    if verbose: print(f'  axial partition: {int((share[:, 0] > 0.01).sum())} vertices, chain length {U[-1]:.2f}')
+    return W

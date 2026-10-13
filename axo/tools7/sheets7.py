@@ -21,7 +21,7 @@ def run(name, pages, cells, W, H, ncol, title):
     im = Image.open(out); Wt, Ht = im.size; nrow = (len(cells) + ncol - 1) // ncol; rh = (Ht - 22) / nrow
     for i in range(0, nrow, 3): im.crop((0, int(22 + i * rh), Wt, int(22 + min(nrow, i + 3) * rh))).save(out.replace('.jpg', f'_p{i // 3 + 1}.jpg'), quality=90)
 PG = ['new', 'old']
-RESET = "state = 'play'; if (LAB.basin) { scene.remove(LAB.basin); LAB.basin = null; } LAB.D.x = 0; LAB.D.z = 0; LAB.D.y = 0; LAB.D.yaw = 0; LAB.D.spd = 0; LAB.D.turn = 0; LAB.D.air = false; LAB.D.rocket = false; LAB.D.dry = true; LAB.D.vy = 0; LAB.I.ax.coat = 0; LAB.I.ax.wade = 0; LAB.I.ax.wet = 0; LAB.I.ax.A.look.yaw = 0; LAB.I.ax.A.look.pitch = 0; LAB.I.ax.spin = 0; LAB.I.ax.spinV = 0; LAB.I.ax.A.loco = null; LAB.I.setExpression('neutral'); "
+RESET = "state = 'play'; if (LAB.basin) { scene.remove(LAB.basin); LAB.basin = null; } LAB.D.x = 0; LAB.D.z = 0; LAB.D.y = 0; LAB.D.yaw = 0; LAB.D.spd = 0; LAB.D.turn = 0; LAB.D.air = false; LAB.D.rocket = false; LAB.D.dry = true; LAB.D.vy = 0; LAB.I.ax.coat = 0; LAB.I.ax.wade = 0; LAB.I.ax.wet = 0; LAB.D.watch = null; LAB.D.glance = 0; LAB.I.ax.spin = 0; LAB.I.ax.spinV = 0; LAB.I.ax.A.loco = null; LAB.I.setExpression('neutral'); "
 NEUTRAL = "LAB.I.setEyeStyle(0); LAB.I.setFangs(false); LAB.I.setLashes(0,0); LAB.I.setPatch(0); LAB.I.setExpression('neutral'); LAB.I.ax.look.exprK = 1; LAB.I.ax.look.expr = 'neutral'; LAB.step(8); LAB.I.ax.look.blinkK = 0; LAB.I.ax.look.blinkT = 9; "
 LIGHT = "scene.background = new THREE.Color(0xd9d2c3); floor.visible = true; "
 CARPET = ("if (!window.__carpet) { const rc = new THREE.Mesh(new THREE.PlaneGeometry(8, 2.4), new THREE.MeshStandardMaterial({ color: 0xc81428, roughness: 0.35 })); rc.rotation.x = -Math.PI / 2; rc.position.set(0, 0.003, 0.3); rc.receiveShadow = true; scene.add(rc); window.__carpet = rc; } "
@@ -59,10 +59,10 @@ def body():
     for p in pg: cells.append(cam(p, f'{TAG[p]}: win screen, low front (glee)', [0.0, 0.22, 2.0], [0, 0.42, 0.2], pre=WIN))
     for p in pg: cells.append([p, "LAB.step(2); " + FACE(4.4, -0.8, -0.3), f'{TAG[p]}: win screen close, a little below the face'])
     for p in pg: cells.append([p, "LAB.step(2); scene.background = new THREE.Color(0x1a1a1e); floor.visible = false; " + FACE(3.4, -1.7, -0.6) + "; scene.background = new THREE.Color(0xd9d2c3); floor.visible = true;", f'{TAG[p]}: under the chin (dark)'])
-    UP = "LAB.I.ax.A.look.pitch = 25; LAB.step(40); LAB.I.ax.look.blinkK = 0; LAB.I.ax.look.blinkT = 9; "
+    UP = "LAB.D.watch = { yaw: 0, pitch: 0.85 + 25 / 57.3 }; LAB.step(40); LAB.I.ax.look.blinkK = 0; LAB.I.ax.look.blinkT = 9; "
     for p in pg: cells.append(cam(p, f'{TAG[p]}: win screen, low front, head up 25', [0.0, 0.22, 2.0], [0, 0.45, 0.2], pre=UP))
     for p in pg: cells.append(cam(p, f'{TAG[p]}: low 3/4 close, head up', [0.9, 0.2, 1.2], [0, 0.42, 0.15], pre="LAB.step(2); "))
-    LK = RESET + CARPET + CLEARMK + NEUTRAL + CRAWL + "LAB.I.ax.A.look.pitch = 28; LAB.step(60); LAB.I.ax.look.blinkK = 0; LAB.I.ax.look.blinkT = 9; "
+    LK = RESET + CARPET + CLEARMK + NEUTRAL + CRAWL + "LAB.D.watch = { yaw: 0, pitch: 0.85 + 28 / 57.3 }; LAB.step(60); LAB.I.ax.look.blinkK = 0; LAB.I.ax.look.blinkT = 9; "
     for p in pg: cells.append(cam(p, f'{TAG[p]}: locker camera, red carpet', [0.0, 1.0, 2.7], [0, 0.4, 0.25], pre=LK))
     for p in pg: cells.append(cam(p, f'{TAG[p]}: locker 3/4', [1.6, 1.0, 2.2], [0, 0.4, 0.25], pre="LAB.step(2); "))
     run('body', pages(pg), cells, 520, 440, 2, 'the crawl body: ' + ' / '.join(TAG[p] for p in pg))
@@ -78,9 +78,9 @@ def motion():
     for p in pg: cells.append([p, "LAB.step(7); " + FOLLOW([2.6, 0.2, -0.4], [0, -0.2, -0.5]), f'{TAG[p]}: crawl gait, side'])
     SLOW = RESET + NOCARPET + CLEARMK + LIGHT + "LAB.set('walk', {v: 1.6}); LAB.step(120); "
     for p in pg: cells.append([p, SLOW + FOLLOW([1.8, 0.9, 1.2], [0, -0.3, -0.5]), f'{TAG[p]}: slow crawl (feet planted)'])
-    CL = RESET + NOCARPET + CLEARMK + LIGHT + CRAWL + "LAB.I.ax.A.look.yaw = 45; LAB.I.ax.A.look.pitch = 25; LAB.step(60); LAB.I.ax.look.blinkK = 0; LAB.I.ax.look.blinkT = 9; "
+    CL = RESET + NOCARPET + CLEARMK + LIGHT + CRAWL + "LAB.D.watch = { yaw: 45 / 57.3, pitch: 0.85 + 25 / 57.3 }; LAB.step(60); LAB.I.ax.look.blinkK = 0; LAB.I.ax.look.blinkT = 9; "
     for p in pg: cells.append(cam(p, f'{TAG[p]}: head look yaw 45 pitch 25', [1.2, 0.8, 1.5], [0, 0.4, 0.0], pre=CL))
-    for p in pg: cells.append(cam(p, f'{TAG[p]}: head look yaw -45 pitch -20, low', [-1.0, 0.25, 1.5], [0, 0.4, 0.0], pre="LAB.I.ax.A.look.yaw = -45; LAB.I.ax.A.look.pitch = -20; LAB.step(40); LAB.I.ax.look.blinkK = 0; LAB.I.ax.look.blinkT = 9; "))
+    for p in pg: cells.append(cam(p, f'{TAG[p]}: head look yaw -45 pitch -20, low', [-1.0, 0.25, 1.5], [0, 0.4, 0.0], pre="LAB.D.watch = { yaw: -45 / 57.3, pitch: 0.85 + -20 / 57.3 }; LAB.step(40); LAB.I.ax.look.blinkK = 0; LAB.I.ax.look.blinkT = 9; "))
     for p in pg: cells.append(cam(p, f'{TAG[p]}: head look yaw -45 pitch -20, from behind', [0.9, 1.2, -1.6], [0, 0.45, 0.0], pre="LAB.step(2); "))
     GL = RESET + NOCARPET + CLEARMK + LIGHT + CRAWL + "{ const N = LAB.I.ax.A.neck; N.glance = [30, -4, 0]; N.holdT = 1; N.glanceT = 3; } LAB.step(30); LAB.I.ax.look.blinkK = 0; LAB.I.ax.look.blinkT = 9; "
     for p in pg: cells.append(cam(p, f'{TAG[p]}: idle glance 30 deg', [0.3, 0.7, 1.9], [0, 0.4, 0.0], pre=GL))
@@ -100,7 +100,8 @@ def motion():
     for p in pg: cells.append([p, CB + FOLLOW([1.5, 0.6, 1.3], [0, -0.2, -0.3]), f'{TAG[p]}: climbing out of a basin'])
     for p in pg: cells.append([p, "LAB.step(15); " + FOLLOW([1.5, 0.6, 1.3], [0, -0.2, -0.3]), f'{TAG[p]}: climbing out, later'])
     HOP = RESET + NOCARPET + CLEARMK + LIGHT + CRAWL + "state = 'menu'; LAB.I.setExpression('glee'); LAB.set('jump', {v: 0, at: 0.2, every: 0.9}); LAB.step(40); "
-    for p in pg: cells.append(cam(p, f'{TAG[p]}: win hops (menu), in the air', [0.0, 0.5, 2.3], [0, 0.55, 0.2], pre=HOP))
+    for p in pg: cells.append([p, HOP + FOLLOW([0.0, -0.1, 2.2], [0, -0.3, 0.0]), f'{TAG[p]}: win hops (menu), in the air (camera following)'])
+    for p in pg: cells.append([p, "LAB.step(3); " + FOLLOW([1.2, -0.5, 1.4], [0, -0.35, -0.2]), f'{TAG[p]}: win hops, in the air, 3/4 from below'])
     for p in pg: cells.append(cam(p, f'{TAG[p]}: win hops, landing', [0.0, 0.5, 2.3], [0, 0.45, 0.2], pre="while (LAB.D.air) LAB.step(1); LAB.step(4); "))
     CT = RESET + NOCARPET + CLEARMK + LIGHT + CRAWL + "LAB.I.setPaint(new THREE.Color(0x2a7fff)); LAB.I.coatOn(); LAB.step(90); LAB.I.ax.look.blinkK = 0; LAB.I.ax.look.blinkT = 9; "
     for p in pg: cells.append(cam(p, f'{TAG[p]}: coated in paint, low front', [0.0, 0.25, 2.0], [0, 0.42, 0.2], pre=CT))
@@ -113,7 +114,7 @@ def face():
     EX = ['neutral', 'happy', 'angry', 'hurt', 'glee', 'scared']
     F0 = RESET + NOCARPET + CLEARMK + LIGHT + CRAWL
     for i, e in enumerate(EX):
-        for p in pg: cells.append([p, (F0 if i == 0 else '') + f"LAB.I.setEyeStyle(0); LAB.I.setFangs(false); LAB.I.setExpression('{e}'); LAB.I.ax.look.exprK = 1; LAB.I.ax.look.expr = '{e}'; LAB.I.ax.look.blinkK = 0; LAB.step(10); LAB.I.ax.look.blinkK = 0; " + FACE(4.0, 0.0, 0.0), f'{TAG[p]}: {e}'])
+        for p in pg: cells.append([p, (F0 if i == 0 else '') + f"LAB.I.setEyeStyle(0); LAB.I.setFangs(false); LAB.I.setExpression('{e}'); LAB.I.ax.look.exprK = 1; LAB.I.ax.look.expr = '{e}'; LAB.I.ax.look.blinkK = 0; LAB.I.ax.look.blinkT = 9; LAB.step(10); LAB.I.ax.look.blinkK = 0; LAB.I.ax.look.blinkT = 9; LAB.step(1); " + FACE(4.0, 0.0, 0.0), f'{TAG[p]}: {e}'])
     for nm, k in [('round', 0), ('squid', 1), ('dot', 2), ('zombie', 3)]:
         for p in pg: cells.append([p, f"LAB.I.setEyeStyle({k}); LAB.I.setFangs(true); LAB.I.setExpression('happy'); LAB.I.ax.look.exprK = 1; LAB.I.ax.look.expr = 'happy'; LAB.I.ax.look.blinkK = 0; LAB.step(10); LAB.I.ax.look.blinkK = 0; " + FACE(4.0, 0.0, 0.0), f'{TAG[p]}: eyes {nm} + fangs'])
     for p in pg: cells.append([p, "LAB.I.setEyeStyle(0); LAB.I.setFangs(false); LAB.I.setLashes(1,1); LAB.I.setPatch(1); LAB.I.setExpression('neutral'); LAB.I.ax.look.exprK = 1; LAB.I.ax.look.expr = 'neutral'; LAB.step(10); LAB.I.ax.look.blinkK = 0; " + FACE(4.0, 0.0, 0.0), f'{TAG[p]}: lashes + patch'])
@@ -128,8 +129,8 @@ def wear():
         for p in pg: cells.append(cam(p, f'{TAG[p]}: {nm} fit, side', [1.8, 0.7, 0.2], [0, 0.6, 0.1], pre=MARKS))
     for p in pg: cells.append(cam(p, f'{TAG[p]}: anchors (green hat, blue neck, yellow face), front', [0.0, 0.7, 1.9], [0, 0.5, 0.2], pre="window.__hatName = null; LAB.step(2); " + MARKS))
     for p in pg: cells.append(cam(p, f'{TAG[p]}: anchors, side', [1.8, 0.6, 0.3], [0, 0.5, 0.1], pre=MARKS))
-    for p in pg: cells.append(cam(p, f'{TAG[p]}: anchors, head look yaw 40 pitch 20', [0.8, 0.8, 1.7], [0, 0.55, 0.2], pre="LAB.I.ax.A.look.yaw = 40; LAB.I.ax.A.look.pitch = 20; LAB.step(40); " + MARKS))
-    for p in pg: cells.append([p, "LAB.I.ax.A.look.yaw = 0; LAB.I.ax.A.look.pitch = 0; window.__hatName = 'top'; LAB.set('walk', {v: 5.4}); LAB.step(60); " + FOLLOW([1.5, 0.3, 1.0], [0, -0.25, -0.2]) + "; " + MARKS + "; LAB.render()", f'{TAG[p]}: anchors in the gait (top hat ring)'])
+    for p in pg: cells.append(cam(p, f'{TAG[p]}: anchors, head look yaw 40 pitch 20', [0.8, 0.8, 1.7], [0, 0.55, 0.2], pre="LAB.D.watch = { yaw: 40 / 57.3, pitch: 0.85 + 20 / 57.3 }; LAB.step(40); " + MARKS))
+    for p in pg: cells.append([p, "LAB.D.watch = { yaw: 0 / 57.3, pitch: 0.85 + 0 / 57.3 }; window.__hatName = 'top'; LAB.set('walk', {v: 5.4}); LAB.step(60); " + FOLLOW([1.5, 0.3, 1.0], [0, -0.25, -0.2]) + "; " + MARKS + "; LAB.render()", f'{TAG[p]}: anchors in the gait (top hat ring)'])
     for p in pg: cells.append([p, "LAB.step(9); " + FOLLOW([0.2, 0.1, 1.8], [0, -0.2, 0.0]) + "; " + MARKS + "; LAB.render()", f'{TAG[p]}: anchors in the gait, low front'])
     run('wear', pages(pg), cells, 420, 400, 4, 'the wearing anchors and hat fits: ' + ' / '.join(TAG[p] for p in pg))
 def teams():
