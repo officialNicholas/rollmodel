@@ -735,7 +735,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
   }
   // the title over the sky: in, and later out
   function title(on) { const el = $('flTitle'); if (!el) return;
-    if (on) { el.hidden = false; el.classList.remove('off'); void el.offsetWidth; el.classList.add('on'); snd('sparkle', 0.45); }
+    if (on) { el.hidden = false; el.classList.remove('off'); void el.offsetWidth; el.classList.add('on'); } // (no sound of its own: just the music)
     else { el.classList.add('off'); setTimeout(() => { if (UI && el.classList.contains('off')) el.hidden = true; }, 1000); } }
   // something thumps about inside the drum: it bulges, and its lid jumps and rattles down
   function thump(v) { X.th = { t: 0, v, clk: false }; AU.land && AU.land(0.3 * v); AU.bonk && AU.bonk(0.2 * v); X.cs.shake = Math.max(X.cs.shake, 0.32 * v); buzz(8); const p = X.drum.g.position; burst(p.x + 0.15, p.z + 0.1, 3, 0.45 * v); }

@@ -36,8 +36,7 @@ fx = load(os.path.join(ROOT, 'game', 'sfx', 'intro_fx.mp3'), SR, 2)
 def sfx(k, at, v=1.0):
     s, l = FX[k]; x = fx[int(s * SR):int((s + l) * SR)] * v * 0.5; i = int(at * SR); n = min(len(x), N - i)
     if n > 0 and i >= 0: mix[i:i + n] += x[:n]
-SKY_TITLE, BAR0 = 1.8, 1.05  # (v257_intro.js: when the title comes up over the sky; the drum's thumps before it rocks)
-sfx('sparkle', ph['sky'] + SKY_TITLE, 0.45)
+BAR0 = 1.05  # (v257_intro.js: the drum's thumps before it rocks)
 for at, v in [(0.12, 0.7), (0.62, 1.0)]: sfx('tip', ph['barrel'] + at, 0.3 * v)
 b = ph['barrel'] + BAR0
 for at, v in [(0.5, 0.75), (1.12, 0.85), (1.74, 1.0)]: sfx('wobble', b + at, v)

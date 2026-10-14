@@ -36,7 +36,7 @@ The music is new and is written on the theme (`music/menu.mp3`). It builds a lay
 |---|---|---|
 | wait | The scene is ready behind the orientation chooser (if it's needed) | |
 | sky 0–1.8 | Held on the sky over the canyon rim: the stars twinkle (now and then one flares), the windmill turns, two buzzards circle | air (starts as soon as it decodes) |
-| sky 1.8–5.9 | "A Marcelin Game" comes up in the middle of the sky with a soft chime: one small line in the regular weight, its words coming up one after another out of a blur while the spacing slowly closes in. At 5.0 it fades away | air |
+| sky 1.8–5.9 | "A Marcelin Game" comes up in the middle of the sky, with only the music under it: one small line in the regular weight, its words coming up one after another out of a blur while the spacing slowly closes in. At 5.0 it fades away | air |
 | sky 5.3–9.2 | The camera pans slowly down onto the drum (4 s) as the stars fade, and a tumbleweed rolls past behind it on the wind | air |
 | barrel 0.1–1 | Something thumps inside the drum, twice: it bulges, the lid jumps and rattles down, a little puff of sand | air |
 | barrel 1.5–3.4 | The drum rocks left, right, harder left (a creak and slosh each time) | air |
