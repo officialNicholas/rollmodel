@@ -75,7 +75,7 @@ var FL = (() => {
     const set = new THREE.Group(), mats = [];
     // rocks: chunky faceted sandstone, banded light and dark
     { const gs = []; seed = 31;
-      for (const [x, z, sx, sy, sz] of ROCKS) { const g = new THREE.IcosahedronGeometry(1, 1).toNonIndexed(), P = g.attributes.position;
+      for (const [x, z, sx, sy, sz] of ROCKS) { const g = new THREE.IcosahedronGeometry(1, 1), P = g.attributes.position; // (already one triangle to three vertices: faceted)
         for (let i = 0; i < P.count; i++) { const vx = P.getX(i), vy = P.getY(i), vz = P.getZ(i), k = 1 + 0.18 * Math.sin(vx * 3.1 + x * 7) * Math.cos(vz * 2.7 + z * 5) + 0.08 * Math.sin(vy * 5 + x); P.setXYZ(i, vx * sx * k, Math.max(-0.2, vy) * sy * k + sy * 0.15, vz * sz * k); }
         g.rotateY(rnd(0, 6.28)); g.translate(x, 0, z); g.computeVertexNormals();
         paintVerts(g, (c, px, py) => { const b = 0.5 + 0.5 * Math.sin(py * 34 + px * 3); c.setHSL(0.045 + 0.01 * b, 0.62, 0.36 + 0.12 * b + 0.06 * Math.min(1, py / 0.4), THREE.SRGBColorSpace); }); gs.push(g); }
