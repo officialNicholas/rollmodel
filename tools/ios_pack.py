@@ -20,8 +20,9 @@ skip = lambda d, names: [n for n in names if n == '.DS_Store' or (d == game and 
 shutil.copytree(game, dst, ignore=skip)
 for sub in ('fonts', 'licenses'): shutil.copytree(os.path.join(shared, sub), os.path.join(dst, sub))
 # the fonts from the app itself, not Google
-FACES = [('Bowlby One', 400, 'bowlby-one-latin-400-normal.woff2')] + [('Figtree', w, 'figtree-latin-%d-normal.woff2' % w) for w in (400, 600, 700, 800, 900)]
-css = '<style>' + ''.join("@font-face{font-family:'%s';font-style:normal;font-weight:%d;font-display:swap;src:url(fonts/%s) format('woff2')}" % f for f in FACES) + '</style>'
+FACES = [('Bowlby One', 400, 'bowlby-one-latin-400-normal.woff2', 'normal')] + [('Figtree', w, 'figtree-latin-%d-normal.woff2' % w, 'normal') for w in (400, 600, 700, 800, 900)]
+FACES += [('Barlow Condensed', 600, 'barlow-condensed-latin-600-normal.woff2', 'normal')] + [('Barlow Condensed', w, 'barlow-condensed-latin-%d-italic.woff2' % w, 'italic') for w in (700, 800, 900)]  # (v274: the victory screen's words)
+css = '<style>' + ''.join("@font-face{font-family:'%s';font-style:%s;font-weight:%d;font-display:swap;src:url(fonts/%s) format('woff2')}" % (f[0], f[3], f[1], f[2]) for f in FACES) + '</style>'
 link = re.findall(r'<link rel="stylesheet" href="https://fonts\.googleapis\.com/css2[^"]*">', html); assert len(link) == 1, link
 html = html.replace(link[0], css)
 for pc in ('<link rel="preconnect" href="https://fonts.googleapis.com">', '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'):
