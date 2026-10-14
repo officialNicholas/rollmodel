@@ -3387,7 +3387,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 266</p>
+      <p class="ver">Version 268</p>
     </div>
   </div>
 
@@ -13518,7 +13518,12 @@ function makeAudio() {
       const FX = { wobble: [0, 0.524], tip: [0.824, 0.55], pour: [1.673, 3.919], eyes: [5.893, 0.393], form: [6.585, 1.255], sparkle: [8.14, 0.8], tumble: [9.24, 2.326] };
       // each layer: how loud each stem is (the air steps back a little as the rest come in)
       const LAY = [[1, 0, 0, 0, 0], [0.9, 1, 0, 0, 0], [0.8, 1, 1, 0, 0], [0.7, 1, 1, 1, 0], [0.55, 1, 1, 1, 1]];
-      const B = {}, M = { on: false, lay: 0, S: null, gone: false };
+      // (v267) the desert's own air under it all: a low wind over the sand, sand grains hissing, a soft gust now and then (Ludo.ai takes,
+      // stitched into an 18.3 s loop that wraps seamlessly, held to an even level; tools/desert_wind.py). On the effects bus, so the
+      // sound-effects switch silences it; in with the intro, out as the iris closes on the desert. The file is the loop with 0.4 s of
+      // itself either side, so the loop points hold whatever the decoder's start offset
+      const WIND = { a: 0.4, b: 18.7, lv: 0.13 };
+      const B = {}, M = { on: false, lay: 0, S: null, W: null, gone: false };
       const dec = (bytes, done) => { let dc = ctx; if (!dc) { const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext; if (!OAC) return; try { dc = new OAC(2, 1, 44100); } catch (e) { return; } }
         try { const p = dc.decodeAudioData(bytes.slice(0), b => { if (!M.gone) done(b); }, () => {}); if (p && p.catch) p.catch(() => {}); } catch (e) {} };
       const get = (url, done) => fetch(url).then(r => r.ok ? r.arrayBuffer() : null).then(b => { if (b) dec(b, done); }).catch(() => {});
@@ -13532,6 +13537,12 @@ function makeAudio() {
         if (v > 0) { g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + (k === 'air' ? 2.4 : BEAT)); }
         src.start(t, off); S.n[k] = { src, g };
       }
+      function wind() {
+        if (!M.on || M.W || M.gone || !ctx || !B.wind || !sfx) return;
+        const src = ctx.createBufferSource(), g = ctx.createGain(), t = T() + 0.05; src.buffer = B.wind; src.loop = true; src.loopStart = WIND.a; src.loopEnd = Math.min(WIND.b, B.wind.duration);
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(WIND.lv, t + 3); src.connect(g); g.connect(sfx); src.start(t, WIND.a); M.W = { src, g };
+      }
+      const windOut = (at, tc) => { const W = M.W; if (!W || !ctx) return; M.W = null; const g = W.g.gain, t = Math.max(T(), at); g.cancelScheduledValues(T()); g.setValueAtTime(g.value, T()); g.setTargetAtTime(0, t, tc); try { W.src.stop(t + tc * 7); } catch (e) {} };
       function begin() {
         if (M.S || !M.on || !ctx || !B.air || !trkBus) return;
         const bus = ctx.createGain(); bus.connect(trkBus); M.S = { t0: T() + 0.1, bus, n: {} };
@@ -13555,16 +13566,18 @@ function makeAudio() {
       return {
         // fetch and decode (the air first: the music can begin as soon as it's in); nothing here is asked for unless the intro runs
         load() { if (M.loaded || typeof fetch !== 'function' || location.protocol === 'file:') return; M.loaded = true; trkDecode('menu');
+          get(SFX_BASE + 'intro_wind.mp3', b => { B.wind = b; wind(); });
           get(MUSIC_BASE + 'intro_air.mp3', b => { B.air = b; begin();
             for (const k of STEMS.slice(1)) get(MUSIC_BASE + 'intro_' + k + '.mp3', b2 => { B[k] = b2; node(k); });
             get(MUSIC_BASE + 'intro_sting.mp3', b2 => { B.sting = b2; }); get(SFX_BASE + 'intro_fx.mp3', b2 => { B.fx = b2; }); }); },
-        play() { M.on = true; if (ctx) begin(); },
-        wake() { if (M.on && !M.S) begin(); },
+        play() { M.on = true; if (ctx) { begin(); wind(); } },
+        wake() { if (M.on && !M.S) begin(); if (M.on && !M.W) wind(); },
         // (v260) the sound started afresh on a new context: the stems come back on it, with the layers that were in
-        renew() { M.S = null; if (M.on) begin(); },
+        renew() { M.S = null; M.W = null; if (M.on) { begin(); wind(); } },
         layer(n) { n = Math.max(0, Math.min(LAY.length - 1, n | 0)); if (n <= M.lay) return; M.lay = n; apply(); },
         get lay() { return M.lay; },
         get hand() { return M.hand || null; }, // (v263, for tests: the bar it handed over on and the song's offset)
+        get wind() { return M.W ? M.W.g.gain.value : 0; }, // (v267, for tests: the wind's level now, 0 when it isn't playing)
         // how many beats into the loop's clock it is (null when it isn't playing): the character nods along to it
         beat() { const S = M.S; return S && ctx ? (T() - S.t0) / BEAT : null; },
         // one of the intro's own effects (false if it isn't in yet, so the caller can use one of the game's)
@@ -13573,8 +13586,9 @@ function makeAudio() {
         // the reveal: the hit on the first bar line at least lead seconds away (its riser a bar before, its chord that bar's), the loop let
         // go on it, and on it the menu song from the same bar. How long until the hit, in seconds
         sting(lead) {
-          M.on = false; if (!ctx || ctx.state !== 'running') return lead;
+          M.on = false; if (!ctx || ctx.state !== 'running') { windOut(T(), 0.1); return lead; }
           const S = M.S, hit = S ? next(BAR, lead) : T() + lead, e = S ? ((Math.round((hit - S.t0) / BAR) % 8) + 8) % 8 : 0;
+          windOut(hit - 0.45, 0.3); // (the wind goes as the iris closes on the desert)
           // (one part of the sprite, from `at` seconds: started partway in if that's already gone by)
           const part = (k, at) => { const sg = HIT[k]; if (!sg) return; const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = B.sting; g.gain.value = LV * 1.2; src.connect(g); g.connect(trkBus);
             const late = Math.max(0, T() - at); if (late < sg[1]) src.start(at + late, sg[0] + late, sg[1] - late); };
@@ -13582,7 +13596,7 @@ function makeAudio() {
           if (S) { for (const k in S.n) { const n = S.n[k]; n.g.gain.cancelScheduledValues(T()); n.g.gain.setTargetAtTime(n.g.gain.value * 1.08, hit - BAR, BEAT); n.g.gain.setTargetAtTime(0, hit - 0.01, 0.04); try { n.src.stop(hit + 0.5); } catch (e) {} } M.S = null; }
           menuAt(hit, e); return Math.max(0, hit - T());
         },
-        end() { M.on = false; M.gone = true; const S = M.S; if (S && ctx) for (const k in S.n) { const n = S.n[k]; n.g.gain.cancelScheduledValues(T()); n.g.gain.setTargetAtTime(0, T(), 0.15); try { n.src.stop(T() + 0.8); } catch (e) {} }
+        end() { M.on = false; M.gone = true; windOut(T(), 0.15); const S = M.S; if (S && ctx) for (const k in S.n) { const n = S.n[k]; n.g.gain.cancelScheduledValues(T()); n.g.gain.setTargetAtTime(0, T(), 0.15); try { n.src.stop(T() + 0.8); } catch (e) {} }
           M.S = null; setTimeout(() => { for (const k in B) delete B[k]; }, 3000); },
       };
     })(),
@@ -21737,7 +21751,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
   }
   // the title over the sky: in, and later out
   function title(on) { const el = $('flTitle'); if (!el) return;
-    if (on) { el.hidden = false; el.classList.remove('off'); void el.offsetWidth; el.classList.add('on'); snd('sparkle', 0.45); }
+    if (on) { el.hidden = false; el.classList.remove('off'); void el.offsetWidth; el.classList.add('on'); } // (no sound of its own: just the music)
     else { el.classList.add('off'); setTimeout(() => { if (UI && el.classList.contains('off')) el.hidden = true; }, 1000); } }
   // something thumps about inside the drum: it bulges, and its lid jumps and rattles down
   function thump(v) { X.th = { t: 0, v, clk: false }; AU.land && AU.land(0.3 * v); AU.bonk && AU.bonk(0.2 * v); X.cs.shake = Math.max(X.cs.shake, 0.32 * v); buzz(8); const p = X.drum.g.position; burst(p.x + 0.15, p.z + 0.1, 3, 0.45 * v); }
@@ -21829,7 +21843,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
       const hit = X.hitIn || 2.4, relAt = Math.max(1.75, hit - 0.62), aimAt = Math.max(0.95, relAt - 0.95), irisAt = Math.max(relAt + 0.22, hit - 0.42);
       const LY = 1.3, lx = Math.sin(LY), lz = Math.cos(LY), PULL = 0.42; // (side on to the camera, a little toward it: the crouch and the draw read in profile)
       if (once('w')) { I.face && I.face('smirk', aimAt - 0.05); }
-      if (t >= 0.2 && once('tw')) { snd('sparkle', 0.9); twinkle(); twitch(); }
+      if (t >= 0.2 && once('tw')) { snd('sparkle', 0.225); twinkle(); twitch(); } // (the wink's sparkle, soft)
       if (t < aimAt) { const k = smoothstep(0.05, 0.35, t) * (1 - smoothstep(aimAt - 0.3, aimAt - 0.1, t)); hr = 0.16 * k; hp = 0.12 * k; c.x = LAND.x; c.z = LAND.z; c.y = PR; wy = 0; wp = 0.1; c.grip = 0; c.curl = 0; }
       else if (t < relAt) {
         const u = clamp((t - aimAt) / (relAt - aimAt), 0, 1), pull = u * u * (3 - 2 * u), tr = u > 0.75 ? Math.sin(X.t * 70) * 0.05 * (u - 0.75) : 0;
