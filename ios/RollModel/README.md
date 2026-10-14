@@ -19,7 +19,8 @@ Plug in your iPhone, pick it as the run destination and press **Run**. The first
 
 ## Good to know
 
-- The game inside is version 259. Settings shows it as "Version 1.1 (259)".
+- The game inside is version 260. Settings shows it as "Version 1.1 (260)".
+- A brand-new player first gets the intro: a paint barrel in a desert scrapyard, then picking eye colour, eye style, paint colour and a name, before the lobby and the lesson. Existing players go straight to the lobby. To see it again, delete and reinstall the app.
 - Saved names, looks and progress carry over from the earlier builds: the game keeps the same save and the same private address inside the app.
 - The app icon is the paint roller. To change it later, drop a new 1024 x 1024 image into **Assets > AppIcon**.
 - The whole game is bundled inside the app, fonts included, so it runs fully offline: nothing is ever fetched from the internet. Building the zip checks this and fails if anything in the game points outside the app or names a file the app doesn't have.
