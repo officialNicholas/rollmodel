@@ -3389,7 +3389,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 271</p>
+      <p class="ver">Version 272</p>
     </div>
   </div>
 
@@ -20666,6 +20666,8 @@ function tutWindow(x, y, w, h) { const x0 = Math.round(x), y0 = Math.round(y), x
   tutDim.classList.toggle('nowin', none); if (!none) { tutDim.style.setProperty('--wx', x0 + 'px'); tutDim.style.setProperty('--wy', y0 + 'px'); tutDim.style.setProperty('--ww', (x1 - x0) + 'px'); tutDim.style.setProperty('--wh', (y1 - y0) + 'px'); } }
 const tutAt = () => !tutTip || !tutTip.at ? null : typeof tutTip.at === 'string' ? $(tutTip.at) : typeof tutTip.at === 'function' ? tutTip.at() : tutTip.at;
 // the plate sits over what it is about, pointing down at it (or under it, pointing up, when there is no room above); with nothing to point at it sits up top
+// (v272) the bottom of the open page's header (its back button and title), from the stage's top: the tips keep below it
+function tutHeadBottom(r0) { let b = 0; for (const e of document.querySelectorAll('.evhead, .sback')) { if (e.offsetParent === null) continue; const r = e.getBoundingClientRect(); if (r.height > 0) b = Math.max(b, r.bottom - r0.top); } return b; }
 function tutPlace() {
   if (!tutTip) return; if (window.scrollY || window.scrollX) try { window.scrollTo(0, 0); } catch (e) {} // (a phone's page scroll would put the hand off its mark)
   const el = tutAt(), r0 = stage.getBoundingClientRect(), block = state !== 'play' && !tutTip.loose;
@@ -20685,9 +20687,9 @@ function tutPlace() {
     // (where: upright, the page's foot (clear of its own notes at the very bottom); on a wide short screen, its right side, halfway down. Never over
     // what the hand points at: the first place clear of it, and the same place step after step while that stays clear)
     const tw = tutEl.offsetWidth, th = tutEl.offsetHeight + over, pb = Math.max(14, parseFloat(getComputedStyle(stage).paddingBottom) || 0), wide = viewW > viewH;
-    const spots = { c: [(viewW - tw) / 2, viewH - th - pb - 58], r: [viewW - tw - 16, (viewH - th) / 2], rb: [viewW - tw - 16, viewH - th - pb - 8], l: [16, (viewH - th) / 2], ct: [(viewW - tw) / 2, Math.max(8, parseFloat(getComputedStyle(stage).paddingTop) || 0) + 64] };
+    const spots = { c: [(viewW - tw) / 2, viewH - th - pb - 58], r: [viewW - tw - 16, (viewH - th) / 2], rb: [viewW - tw - 16, viewH - th - pb - 8], l: [16, (viewH - th) / 2], ct: [(viewW - tw) / 2, Math.max(Math.max(8, parseFloat(getComputedStyle(stage).paddingTop) || 0) + 64, tutHeadBottom(r0) + over + 10)] }; // (v272: below the page's own header, his head and all)
     const tr = el && !el.closest('[hidden]') && el.getClientRects().length > 0 ? el.getBoundingClientRect() : null, clear = k => { if (!tr) return true; const [x, y] = spots[k]; return x > tr.right - r0.left + 10 || x + tw < tr.left - r0.left - 10 || y - over > tr.bottom - r0.top + 10 || y + th < tr.top - r0.top - 76; };
-    const order = wide ? ['r', 'l', 'rb', 'c'] : ['c', 'ct'], was = tutEl.dataset.lowc, pick = was && order.includes(was) && clear(was) ? was : order.find(clear) || order[0];
+    const order = wide ? ['r', 'l', 'rb', 'c'] : ['c', 'ct'], was = tutEl.dataset.lowc, pick = tr && was && order.includes(was) && clear(was) ? was : order.find(clear) || order[0]; // (v272: nothing pointed at, the page's foot)
     if (tutEl.dataset.lowc !== pick) tutEl.dataset.lowc = pick; const L = pick === 'c' || pick === 'ct' ? '' : spots[pick][0].toFixed(0) + 'px', t = spots[pick][1].toFixed(0) + 'px';
     if (tutEl.style.left !== L) tutEl.style.left = L; if (tutEl.style.top !== t) tutEl.style.top = t;
     const blk = block && !tutTip.nodim; if (tutDim.classList.contains('block') !== blk) tutDim.classList.toggle('block', blk); for (const k of ['noblur', 'clear']) if (!tutDim.classList.contains(k)) tutDim.classList.add(k);
