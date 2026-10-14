@@ -127,7 +127,7 @@ function itemSpot(R) {
     if (pots.some(p => Math.hypot(p.x - x, p.z - z) < 2) || rivals.some(r => r.on && Math.hypot(r.x - x, r.z - z) < r.rad + 1.2)) return;
     let dr = 30; for (const O of F) dr = Math.min(dr, Math.hypot(O.x - x, O.z - z));
     const ahead = Math.cos(wrapA(Math.atan2(x - R.x, z - R.z) - R.yaw));
-    const sc = -Math.abs(d - 8) * 0.55 + clamp(dr - d, -6, 6) * 0.6 + ahead * 1.5 - Math.abs(y - R.y) * 1.2 + bonus + Math.random();
+    const dy = Math.abs(y - R.y); if (dy > 2.2) return; const sc = -Math.abs(d - 8) * 0.55 + clamp(dr - d, -6, 6) * 0.6 + ahead * 1.5 - dy * 2.5 + (dy < 0.4 ? bonus : 0) + Math.random(); // (on their level: a ledge or a pad only when nothing level will do)
     if (sc > bs) { bs = sc; best = [x, y, z]; } };
   for (const sp of POWER_SPOTS) at(sp[0], sp[1], sp[2], 1);
   const ns = NAV.nodes; for (let k = 0; k < ns.length; k += 2) { const n = ns[k]; if (n.edge > 0 || onRampAt(n.x, n.z, 0.3) || overheadAt(n.x, n.z, n.h, 2.3, 0.4)) continue; at(n.x, n.h, n.z, 0); }
