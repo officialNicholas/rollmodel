@@ -72,10 +72,10 @@ var FL = (() => {
     g.fillStyle = '#2A0E0A'; g.fillRect(0, H - 4, W, 4); // (the inside: dark)
   }
   // ---- the set: sandstone rocks, agaves, a sheet of corrugated iron, caution tape on posts (the wrecks are in the canyon's painting) ----
-  function merge(geos) { // (non-indexed geometries with position, normal and color, into one)
-    let n = 0; for (const g of geos) n += g.attributes.position.count; const P = new Float32Array(n * 3), N = new Float32Array(n * 3), C = new Float32Array(n * 3); let o = 0;
-    for (const g of geos) { P.set(g.attributes.position.array, o * 3); N.set(g.attributes.normal.array, o * 3); C.set(g.attributes.color.array, o * 3); o += g.attributes.position.count; g.dispose(); }
-    const m = new THREE.BufferGeometry(); m.setAttribute('position', new THREE.BufferAttribute(P, 3)); m.setAttribute('normal', new THREE.BufferAttribute(N, 3)); m.setAttribute('color', new THREE.BufferAttribute(C, 3)); return m;
+  function merge(geos) { // (non-indexed geometries with position, normal and color, into one; their uvs too, if they all have them)
+    let n = 0; for (const g of geos) n += g.attributes.position.count; const uv = geos.every(g => g.attributes.uv), P = new Float32Array(n * 3), N = new Float32Array(n * 3), C = new Float32Array(n * 3), T = uv ? new Float32Array(n * 2) : null; let o = 0;
+    for (const g of geos) { P.set(g.attributes.position.array, o * 3); N.set(g.attributes.normal.array, o * 3); C.set(g.attributes.color.array, o * 3); if (T) T.set(g.attributes.uv.array, o * 2); o += g.attributes.position.count; g.dispose(); }
+    const m = new THREE.BufferGeometry(); m.setAttribute('position', new THREE.BufferAttribute(P, 3)); m.setAttribute('normal', new THREE.BufferAttribute(N, 3)); m.setAttribute('color', new THREE.BufferAttribute(C, 3)); if (T) m.setAttribute('uv', new THREE.BufferAttribute(T, 2)); return m;
   }
   function paintVerts(g, fn) { const P = g.attributes.position, c = new Float32Array(P.count * 3), col = new THREE.Color(); for (let i = 0; i < P.count; i++) { fn(col, P.getX(i), P.getY(i), P.getZ(i)); c[i * 3] = col.r; c[i * 3 + 1] = col.g; c[i * 3 + 2] = col.b; } g.setAttribute('color', new THREE.BufferAttribute(c, 3)); return g; }
   const ROCKS = [[-1.55, -0.55, 0.42, 0.3, 0.36], [-1.12, -0.95, 0.22, 0.16, 0.2], [2.05, -0.9, 0.5, 0.38, 0.42], [2.5, -0.35, 0.24, 0.18, 0.22], [-1.25, 1.15, 0.16, 0.11, 0.14], [1.55, 1.55, 0.12, 0.08, 0.1], [0.05, -1.9, 0.3, 0.2, 0.26]];
@@ -315,37 +315,71 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.92, side: THREE.DoubleSide })); m.visible = false;
     return { m, on: false, wait: 0, x: 0, y: TW_R, z: 0, vx: 0, vy: 0, vz: 0, n: 0, heard: false };
   }
-  // ---- an old windmill out at the back, its wheel turning in the wind (faster in a gust): a lattice tower, the wheel, its tail. Far off
-  // and out of focus it goes into the haze ----
-  const WM = { x: 3.4, z: -6.4, h: 4.6, face: -0.6 };
+  // ---- an old windmill far out at the back on the right, its wheel turning in the wind (faster in a gust): a lattice tower of galvanized
+  // steel streaked with rust, the wheel's sails in old cream paint (every other one red at the tip), its tail vane. Far off it goes into
+  // the haze (the sky's colour up high, the sand's down low), and softer still out of focus ----
+  const WM = { x: 3.7, z: -20.5, s: 1.25, face: -0.47 }; // (about 24 m from where the opening looks up from, left of the painting's derrick)
+  // galvanized steel, weathered: blotchy greys, the zinc's spangle, rust running down from the joints in streaks; it tiles up and down
+  function steelPaint(g, W, H, x0) {
+    seed = 1717; g.fillStyle = '#A3A09A'; g.fillRect(x0, 0, W, H);
+    const wrap = (y, h, f) => { f(y); if (y + h > H) f(y - H); if (y < 0) f(y + H); };
+    for (let i = 0; i < 160; i++) { const x = x0 + rnd(0, W), y = rnd(0, H), w = rnd(8, 46), h = rnd(10, 70), l = rnd(52, 74) | 0; g.fillStyle = 'hsla(36,' + (rnd(3, 12) | 0) + '%,' + l + '%,' + rnd(0.18, 0.42).toFixed(2) + ')'; wrap(y, h, yy => g.fillRect(x, yy, w, h)); }
+    for (let i = 0; i < 420; i++) { g.fillStyle = 'rgba(' + (rand() < 0.5 ? '235,238,240' : '92,90,88') + ',' + rnd(0.2, 0.5).toFixed(2) + ')'; g.fillRect(x0 + rnd(0, W), rnd(0, H), rnd(1, 3), rnd(1, 3)); }
+    for (let i = 0; i < 26; i++) { const x = x0 + rnd(0, W), y = rnd(0, H), len = rnd(60, 260), w = rnd(3, 11);
+      wrap(y, len, yy => { const gr = g.createLinearGradient(0, yy, 0, yy + len); gr.addColorStop(0, 'rgba(120,58,26,.85)'); gr.addColorStop(0.25, 'rgba(150,78,36,.55)'); gr.addColorStop(1, 'rgba(150,78,36,0)'); g.fillStyle = gr;
+        g.beginPath(); g.moveTo(x - w, yy); g.quadraticCurveTo(x - w * 0.4, yy + len * 0.6, x, yy + len); g.quadraticCurveTo(x + w * 0.4, yy + len * 0.6, x + w, yy); g.fill(); }); }
+    for (let i = 0; i < 40; i++) { const x = x0 + rnd(0, W), y = rnd(0, H), r = rnd(3, 14); g.fillStyle = 'rgba(' + (rnd(110, 160) | 0) + ',' + (rnd(52, 80) | 0) + ',30,' + rnd(0.35, 0.75).toFixed(2) + ')'; wrap(y, r, yy => { g.beginPath(); g.ellipse(x, yy, r, r * rnd(0.5, 1.4), rnd(0, 3), 0, 7); g.fill(); }); }
+  }
+  // a sail: old cream paint, worn through to the steel and rusting along its edges, scratched; the tip end at the top
+  function sailPaint(g, x0, W, H) {
+    seed = 2323; g.fillStyle = '#E6DCC6'; g.fillRect(x0, 0, W, H);
+    for (let i = 0; i < 90; i++) { g.fillStyle = 'hsla(40,' + (rnd(10, 30) | 0) + '%,' + (rnd(70, 92) | 0) + '%,' + rnd(0.2, 0.5).toFixed(2) + ')'; g.fillRect(x0 + rnd(0, W), rnd(0, H), rnd(10, 50), rnd(6, 30)); }
+    for (let i = 0; i < 22; i++) { const x = x0 + rnd(0, W), y = rnd(0, H), r = rnd(4, 16); g.fillStyle = 'rgba(150,146,140,.85)'; g.beginPath(); g.ellipse(x, y, r, r * rnd(0.4, 1), rnd(0, 3), 0, 7); g.fill(); g.fillStyle = 'rgba(140,70,32,.55)'; g.beginPath(); g.ellipse(x, y + r * 0.3, r * 0.6, r * 0.5, 0, 0, 7); g.fill(); }
+    for (const e of [0, 1]) for (let y = 0; y < H; y += 6) { const w = rnd(4, 18) * (0.5 + 0.5 * Math.sin(y * 0.05 + e * 3)); g.fillStyle = 'rgba(' + (rnd(110, 150) | 0) + ',' + (rnd(55, 75) | 0) + ',28,' + rnd(0.55, 0.9).toFixed(2) + ')'; g.fillRect(e ? x0 + W - w : x0, y, w, 7); }
+    g.strokeStyle = 'rgba(120,110,100,.45)'; g.lineWidth = 1; for (let i = 0; i < 30; i++) { const x = x0 + rnd(0, W), y = rnd(0, H); g.beginPath(); g.moveTo(x, y); g.lineTo(x + rnd(-14, 14), y + rnd(-30, 30)); g.stroke(); }
+    const gr = g.createLinearGradient(0, H, 0, 0); gr.addColorStop(0, 'rgba(60,40,25,.45)'); gr.addColorStop(0.18, 'rgba(60,40,25,0)'); g.fillStyle = gr; g.fillRect(x0, 0, W, H); // (grimier at the hub end)
+  }
+  // its material: the picture soft with the depth of field, and the haze it stands in (by how far off, and the sky's colour up high)
+  function wmMat(map) {
+    const m = new THREE.MeshStandardMaterial({ map, vertexColors: true, roughness: 0.62, metalness: 0.3, flatShading: true });
+    m.onBeforeCompile = sh => { sh.uniforms.uDof = X.dofU; sh.uniforms.uHz = X.floor.U.uHaze; sh.uniforms.uSkyH = X.sky.U.uHor;
+      sh.vertexShader = 'varying float vWy;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vWy = (modelMatrix * vec4(transformed, 1.0)).y;');
+      sh.fragmentShader = 'uniform float uDof; uniform vec3 uHz, uSkyH; varying float vWy;\n' + sh.fragmentShader.replace('#include <map_fragment>', '#ifdef USE_MAP\n vec4 sampledDiffuseColor = texture2D( map, vMapUv, uDof );\n diffuseColor *= sampledDiffuseColor;\n#endif')
+        .replace('#include <tonemapping_fragment>', 'gl_FragColor.rgb = mix(gl_FragColor.rgb, mix(uHz * 1.05, uSkyH * 1.1, smoothstep(0.5, 8.0, vWy)), clamp(smoothstep(8.0, 45.0, length(vViewPosition)) * 0.42 + uDof * 0.1, 0.0, 0.6));\n#include <tonemapping_fragment>'); };
+    m.customProgramCacheKey = () => 'fl-wm'; return m;
+  }
   function makeWindmill() {
     seed = 99; const gs = [], ws = [], up = new V3(0, 1, 0), qq = new THREE.Quaternion(), M = new THREE.Matrix4();
-    const beam = (out, a, b, w, col, d) => { const v = new V3().subVectors(b, a), L = v.length(), g = new THREE.BoxGeometry(w, L, d || w).toNonIndexed(); g.translate(0, L / 2, 0); g.applyQuaternion(qq.setFromUnitVectors(up, v.normalize())); g.translate(a.x, a.y, a.z); paintVerts(g, c => c.copy(col)); out.push(g); return g; };
-    const steel = new THREE.Color(0x96918B), dark = new THREE.Color(0x5F5751), red = new THREE.Color(0xA4442F), cream = new THREE.Color(0xD9CDB8);
-    const H = WM.h, at = (y, sx, sz) => { const h = 0.66 + (0.15 - 0.66) * y / H; return new V3(WM.x + sx * h, y, WM.z + sz * h); }, C = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+    // a steel member from a to b: its picture runs along it, a fresh stretch of it for each one (uv: across, and along a metre at a time)
+    const beam = (out, a, b, w, col, d) => { const v = new V3().subVectors(b, a), L = v.length(), g = new THREE.BoxGeometry(w, L, d || w).toNonIndexed(), P = g.attributes.position, U = g.attributes.uv, u0 = rand();
+      for (let i = 0; i < P.count; i++) U.setXY(i, u0 + (P.getX(i) + P.getZ(i)) / w * 0.06, (P.getY(i) + L / 2) / 1.1 + u0 * 7);
+      g.translate(0, L / 2, 0); g.applyQuaternion(qq.setFromUnitVectors(up, v.normalize())); g.translate(a.x, a.y, a.z); paintVerts(g, c => c.copy(col)); out.push(g); return g; };
+    const steel = new THREE.Color(0xFFFFFF), dark = new THREE.Color(0xB4ADA6), red = new THREE.Color(0xC9573E), cream = new THREE.Color(0xF2E8D6);
+    const H = 4.6, at = (y, sx, sz) => { const h = 0.66 + (0.15 - 0.66) * y / H; return new V3(sx * h, y, sz * h); }, C = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
     for (const [sx, sz] of C) beam(gs, at(0, sx, sz), at(H, sx, sz), 0.06, dark);
     const lv = [0.06, 1.3, 2.4, 3.35, 4.1, H];
     for (let i = 0; i < lv.length - 1; i++) for (let k = 0; k < 4; k++) { const [ax, az] = C[k], [bx, bz] = C[(k + 1) % 4]; beam(gs, at(lv[i], ax, az), at(lv[i], bx, bz), 0.032, steel);
       beam(gs, at(lv[i], ax, az), at(lv[i + 1], bx, bz), 0.018, steel); beam(gs, at(lv[i], bx, bz), at(lv[i + 1], ax, az), 0.018, steel); }
-    // the head on its turntable: a gearbox, the tail's arm and its vane, all turned to face the wind
-    M.makeRotationY(WM.face).setPosition(WM.x, H + 0.1, WM.z);
-    const head = []; { const b = new THREE.BoxGeometry(0.2, 0.18, 0.4).toNonIndexed(); paintVerts(b, c => c.copy(dark)); head.push(b); }
+    // the head on its turntable: a gearbox, the tail's arm and its vane (old red with a cream band), all turned to face the wind
+    M.makeRotationY(WM.face).setPosition(0, H + 0.1, 0);
+    const head = []; beam(head, new V3(0, -0.09, 0), new V3(0, 0.09, 0), 0.2, dark, 0.4);
     beam(head, new V3(0, 0.02, -0.15), new V3(0, 0.08, -1.35), 0.04, steel);
-    { const v = new THREE.BoxGeometry(0.02, 0.5, 0.9).toNonIndexed(); v.translate(0, 0.1, -1.7); paintVerts(v, (c, x, y, z) => c.copy(Math.abs(y - 0.1) < 0.07 ? cream : red).multiplyScalar(0.8 + 0.2 * Math.sin(z * 9))); head.push(v); }
+    { const v = beam(head, new V3(0, -0.15, -1.7), new V3(0, 0.35, -1.7), 0.02, red, 0.9); paintVerts(v, (c, x, y) => c.copy(Math.abs(y - 0.1) < 0.07 ? cream : red)); }
     beam(head, new V3(0, -0.16, 0), new V3(0, 0.02, 0), 0.1, dark);
     for (const g of head) { g.applyMatrix4(M); gs.push(g); }
-    // the wheel: eighteen sails, pitched, on two rings, round a hub (its own mesh, so it can turn)
-    for (let i = 0; i < 18; i++) { const b = new THREE.BoxGeometry(0.15, 0.6, 0.008).toNonIndexed(); b.rotateY(0.5); b.translate(0, 0.56, 0); b.rotateZ(i / 18 * 6.2832); paintVerts(b, (c, x, y) => c.copy(Math.hypot(x, y) > 0.72 && i % 2 ? red : steel).multiplyScalar(rnd(0.85, 1.05))); ws.push(b); }
-    for (const [r, t] of [[0.86, 0.013], [0.42, 0.011]]) { const g = new THREE.TorusGeometry(r, t, 4, 44).toNonIndexed(); paintVerts(g, c => c.copy(dark)); ws.push(g); }
-    for (let i = 0; i < 6; i++) { const a = i / 6 * 6.2832; beam(ws, new V3(0, 0, 0), new V3(Math.cos(a) * 0.86, Math.sin(a) * 0.86, 0), 0.016, dark); }
-    { const g = new THREE.CylinderGeometry(0.08, 0.1, 0.14, 10).toNonIndexed(); g.rotateX(Math.PI / 2); paintVerts(g, c => c.copy(red)); ws.push(g); }
-    for (const g of [...gs, ...ws]) if (!g.attributes.normal) g.computeVertexNormals();
-    const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.55, metalness: 0.4, flatShading: true });
-    mat.onBeforeCompile = sh => { sh.uniforms.uDof = X.dofU; sh.uniforms.uHz = X.floor.U.uHaze; sh.fragmentShader = 'uniform float uDof; uniform vec3 uHz;\n' + sh.fragmentShader.replace('#include <tonemapping_fragment>', 'gl_FragColor.rgb = mix(gl_FragColor.rgb, uHz * 1.1, clamp(smoothstep(5.0, 26.0, length(vViewPosition)) * 0.55 + uDof * 0.12, 0.0, 0.75));\n#include <tonemapping_fragment>'); };
-    mat.customProgramCacheKey = () => 'fl-wm';
-    const tower = new THREE.Mesh(merge(gs), mat), wheel = new THREE.Mesh(merge(ws), mat);
+    // the wheel: eighteen sails, pitched, on two rings, round a hub (its own mesh, so it can turn). Its picture: steel on the left half,
+    // a sail on the right
+    const half = (g, right) => { const U = g.attributes.uv; for (let i = 0; i < U.count; i++) U.setX(i, (right ? 0.5 : 0) + 0.5 * (U.getX(i) % 1)); return g; };
+    for (let i = 0; i < 18; i++) { const b = new THREE.BoxGeometry(0.15, 0.6, 0.008).toNonIndexed(); b.rotateY(0.5); b.translate(0, 0.56, 0); b.rotateZ(i / 18 * 6.2832); half(b, true);
+      const k = rnd(0.88, 1.04); paintVerts(b, (c, x, y) => c.copy(Math.hypot(x, y) > 0.7 && i % 2 ? red : cream).multiplyScalar(k)); ws.push(b); }
+    for (const [r, t] of [[0.86, 0.013], [0.42, 0.011]]) { const g = new THREE.TorusGeometry(r, t, 4, 44).toNonIndexed(); half(g, false); paintVerts(g, c => c.copy(dark)); ws.push(g); }
+    for (let i = 0; i < 6; i++) { const a = i / 6 * 6.2832; half(beam(ws, new V3(0, 0, 0), new V3(Math.cos(a) * 0.86, Math.sin(a) * 0.86, 0), 0.016, dark), false); }
+    { const g = new THREE.CylinderGeometry(0.08, 0.1, 0.14, 10).toNonIndexed(); g.rotateX(Math.PI / 2); half(g, false); paintVerts(g, c => c.copy(red)); ws.push(g); }
+    const tt = canvasTex(256, 512, (g, W, Hh) => steelPaint(g, W, Hh, 0)); tt.wrapS = tt.wrapT = THREE.RepeatWrapping;
+    const wt = canvasTex(512, 256, (g, W, Hh) => { steelPaint(g, W / 2, Hh, 0); sailPaint(g, W / 2, W / 2, Hh); });
+    const tower = new THREE.Mesh(merge(gs), wmMat(tt)), wheel = new THREE.Mesh(merge(ws), wmMat(wt));
     wheel.position.set(0, 0, 0.3).applyMatrix4(M); wheel.rotation.y = WM.face;
-    const g = new THREE.Group(); g.add(tower, wheel); return { g, wheel, spin: 0 };
+    const g = new THREE.Group(); g.add(tower, wheel); g.position.set(WM.x, 0, WM.z); g.scale.setScalar(WM.s); return { g, wheel, spin: 0 };
   }
   // ---- two buzzards circling high over the canyon: gliding, wings held up in a shallow V, now and then a few slow beats ----
   function makeBirds() {
@@ -383,7 +417,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     const o = { pos: [0, 0, 0], wt: { yaw: 0, pitch: 0 }, watch: null, dt: 0 };
     X = Object.assign(X, { sc, pc: cam, sun, floor, drum, stream, drops, grit, sky, set, dust, tw, wm, birds, dustT: 0, gustT: 5, gust: false, gk: 0, CH, I, hold, o, drop: [], spl: 0, rip: 0,
       t: 0, ph: 'wait', pt: 0, paint: PEARL.clone(), paintTo: null, pearl: 1, pearlTo: 1, R: 0, MR: 0, mouth: new V3(), lid: { on: true, p: new V3(), v: new V3(), w: new V3(), rest: false },
-      ch: { x: C0.x, z: C0.z, y: -1.2, yaw: 0, air: false, vy: 0, h: 0, sq: 0, rise: 0, wy: 0, wp: 0.05, hr: 0, hp: 0, wade: 1, pop: 0 }, mv: null, mvs: { roll: 0, pitch: 0, sway: 0, push: 0, spin: 0, bank: 0, hop: 0, sq: 0, rise: 0, wave: 0, earCover: 0, lx: 0, ly: 0 }, th: null, stood: false,
+      ch: { x: C0.x, z: C0.z, y: -1.2, yaw: 0, air: false, vy: 0, h: 0, sq: 0, rise: 0, wy: 0, wp: 0.05, hr: 0, hp: 0, wade: 1, pop: 0 }, mv: null, mvs: { roll: 0, pitch: 0, sway: 0, sq: 0, rise: 0, lx: 0, ly: 0, dx: 0 }, th: null, stood: false,
       cs: { p: new V3(), l: new V3(), vp: new V3(), vl: new V3(), ox: 0, oy: 0, vox: 0, voy: 0, shake: 0, dof: 0, vd: 0, b: view(), w: view(), tr: null }, fr: { x0: 0, y0: 0, x1: viewW, y1: viewH }, frv: {}, shotK: 'sky', flags: {} });
     shot('sky', true);
     // (everything compiled now, while the orientation's asked for or the camera's still up in the sky)
@@ -510,7 +544,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     // rolling: about the axis across its path, as far round as it has rolled, with a little wobble on the other axes
     _tax.set(-T.vz, 0, -T.vx).normalize(); _tq.setFromAxisAngle(_tax, -Math.hypot(T.vx, T.vz) * dt / TW_R * 1.15); m.quaternion.premultiply(_tq); m.rotateY(Math.sin(X.t * 3.1) * dt * 0.6);
     m.position.set(T.x, T.y, T.z);
-    if (!T.heard && T.x > -2.4) { T.heard = true; snd('tumble', 0.75); }
+    if (!T.heard && T.x > -2.4) { T.heard = true; snd('tumble', 0.375); }
     if (T.x > 6.5) { T.on = false; m.visible = false; T.wait = rnd(7, 12); }
   }
   // the paint coming off it: drops flung out all round from its body and ears as it shakes
@@ -541,7 +575,8 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     if (!X.lid.on) { const m = X.drum.lid.position; proj(_a.copy(m), _pa); add(_pa.x, _pa.y, _pa.x + 0.001, _pa.y, BR.R * 0.9 * Math.min(1, 0.4 + m.y * 0), 0.03); }
     // the character: its body, low and high, where the sun throws them (out in the paint, only once it's up out of it)
     if (X.tw.on) { proj(_a.set(X.tw.x, X.tw.y, X.tw.z), _pa); add(_pa.x, _pa.y, _pa.x + 0.001, _pa.y, TW_R * 0.8, 0.06); }
-    const c = X.ch; if (X.hold.visible && c.y > 0.02) { _a.set(c.x, Math.max(0, c.y - PR) + 0.05, c.z); _b.set(c.x, Math.max(0, c.y - PR) + 0.3, c.z); proj(_a, _pa); proj(_b, _pb); add(_pa.x, _pa.y, _pb.x, _pb.y, 0.15, 0.03 + c.h * 0.05); }
+    const c = X.ch, hp = X.hold.position; if (X.hold.visible && c.y > 0.02) { _a.set(hp.x, Math.max(0, c.y - PR) + 0.05, hp.z); _b.set(hp.x, Math.max(0, c.y - PR) + 0.3, hp.z); // (where it is now, a step to the side and all)
+      proj(_a, _pa); proj(_b, _pb); add(_pa.x, _pa.y, _pb.x, _pb.y, 0.15, 0.03 + c.h * 0.05); }
     X.floor.U.uNC.value = n;
   }
   // ---- sound: the intro's own effects where they've loaded, the game's otherwise ----
@@ -593,7 +628,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
       + '<section class="flpanel flask" id="flAsk" hidden aria-labelledby="flAskT"><h2 class="flbanner" id="flAskT">All set?</h2><div class="flfoot"><button class="flgo alt" type="button" id="flNo"><span>Not yet</span></button><button class="flgo" type="button" id="flYes"><span>Let’s roll</span></button></div></section>'
       + '<div class="flsend" id="flSend" hidden aria-hidden="true"><b>Fresh out of the barrel?</b><b>Now go paint the town!</b></div>'
       + '<div class="flwink" id="flWink" hidden>' + STAR + '</div>'
-      + '<div class="fltitle" id="flTitle" hidden role="img" aria-label="A Marcelin Game"><span class="flt-a" aria-hidden="true">A</span><span class="flt-n" aria-hidden="true">' + [...'Marcelin'].map((ch, i) => '<i style="--i:' + i + '">' + ch + '</i>').join('') + '</span><span class="flt-g" aria-hidden="true">Game</span></div>';
+      + '<p class="fltitle" id="flTitle" hidden>' + ['A', 'Marcelin', 'Game'].map((w, i) => '<span style="--i:' + i + '">' + w + '</span>').join(' ') + '</p>';
     stage.appendChild(el); UI = { el, cur: null };
     seed = 4242; for (const b of el.querySelectorAll('.flboard')) torn(b, 7, 14); for (const b of el.querySelectorAll('.flbanner, .flsend b')) torn(b, 5, 9);
     $('flIrisO').addEventListener('click', e => { const b = e.target.closest('.flopt'); if (!b) return; AU.init(); pickIris(b.dataset.i); });
@@ -602,7 +637,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     $('flIrisGo').addEventListener('click', () => { AU.init(); AU.ui(); go('style'); });
     $('flStyleGo').addEventListener('click', () => { AU.init(); AU.ui(); go('paint'); });
     $('flPaintGo').addEventListener('click', () => { AU.init(); AU.ui(); go(X.stood ? 'name' : 'form'); });
-    $('flDice').addEventListener('click', () => { AU.init(); AU.pop(); $('flNameIn').value = randomName(); kick($('flDice'), 'bump'); if (X) move('bounce'); });
+    $('flDice').addEventListener('click', () => { AU.init(); AU.pop(); $('flNameIn').value = randomName(); kick($('flDice'), 'bump'); if (X) move('ears'); });
     $('flName').addEventListener('submit', e => { e.preventDefault(); AU.init(); AU.ui(); try { $('flNameIn').blur(); } catch (x) {} setTimeout(() => window.scrollTo(0, 0), 60); store.name = cleanName($('flNameIn').value) || randomName(); go('confirm'); });
     $('flNo').addEventListener('click', () => { AU.init(); AU.ui(); X.stood = true; go('iris'); });
     $('flYes').addEventListener('click', () => { AU.init(); AU.ui(); go('wink'); });
@@ -629,41 +664,60 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     // a splash of it: the puddle heaves and throws up a few drops
     const cx = X.stood ? C0.x : X.ch.x, cz = X.stood ? C0.z : X.ch.z;
     for (let i = 0; i < 12; i++) { const a = rand() * 6.283, s = rnd(0.5, 1.4); spawn(new V3(cx + Math.cos(a) * 0.25, 0.03, cz + Math.sin(a) * 0.25), new V3(Math.cos(a) * s, rnd(1.5, 2.8), Math.sin(a) * s), rnd(0.012, 0.024), new THREE.Color(c.hex)); }
-    ripple(cx, cz, 0.8); snd('splat', 0.7); X.ch.pop = 1.2; X.I.blink && X.I.blink(); buzz(10); if (X.ph === 'paint') move(X.stood ? 'show' : 'wiggle');
+    ripple(cx, cz, 0.8); snd('splat', 0.7); X.ch.pop = 1.2; X.I.blink && X.I.blink(); buzz(10); if (X.ph === 'paint') move(X.stood ? 'admire' : 'ears');
     if (X.stood && X.I.popIn) X.I.popIn(); // (standing: the new paint washes up over it and bursts off, the game's own way)
   }
-  // ---- the game's own moves (the lobby's idle bits, on the intro's beat): nodding along, a bounce, a wag, a proud chin-up, a blep, a
-  // wave, a look about, a wiggle, a head tilt, a shimmy, a shake. One now and then while a card's up (only the head ones while it's still
-  // down in the paint), and one to go with each pick ----
-  const MOVES_SUNK = [['listen', 3.2, 3], ['look', 2.0, 2], ['blep', 2.2, 1], ['proud', 2.0, 1]];
-  const MOVES_UP = [['listen', 3.2, 3], ['bounce', 2.2, 2], ['wag', 1.6, 2], ['look', 2.0, 2], ['proud', 2.2, 1], ['blep', 2.3, 1], ['wave', 2.5, 2], ['wiggle', 1.3, 1]];
-  const MOVE_T = { tilt: 1.9, show: 1.5, shake: 1.4 };
-  const MV = { act: null, u: 0, dur: 1, t: 0.8, b0: 0, side: 1, f1: false, last: '', o: { roll: 0, pitch: 0, sway: 0, push: 0, spin: 0, bank: 0, hop: 0, sq: 0, rise: 0, wave: 0, earCover: 0, lx: 0, ly: 0, face: null } };
+  // ---- its little moves while a card's up: small and unhurried, each eased in and out with no kick at either end. A look one way and
+  // the other (a blink as it turns, the head tipping with it), a glance to one side, its ears wagging, a step to the side and a look that
+  // way, nodding along to the beat; standing, a step's in the mix too. One now and then (only the head and ears while it's still down in
+  // the paint), and one to go with each pick ----
+  const MOVES_SUNK = [['look', 2.8, 3], ['ears', 1.6, 2], ['glance', 2.4, 2], ['listen', 3.2, 1]];
+  const MOVES_UP = [['look', 2.8, 3], ['ears', 1.6, 2], ['step', 3.6, 3], ['glance', 2.4, 2], ['listen', 3.2, 1]];
+  const MOVE_T = { tilt: 1.9, proud: 2.0, admire: 2.6, perk: 1.7 };
+  const MV = { act: null, u: 0, dur: 1, t: 0.8, b0: 0, side: 1, f: {}, last: '', o: { roll: 0, pitch: 0, sway: 0, sq: 0, rise: 0, lx: 0, ly: 0, dx: 0, face: null } };
   const beat = () => { const b = AU.flm && AU.flm.beat ? AU.flm.beat() : null; return b == null ? X.t * 110.89 / 60 : b; };
-  function move(k) { const L = MOVES_UP.find(a => a[0] === k); MV.act = k; MV.dur = MOVE_T[k] || (L ? L[1] : 1.6); MV.u = 0; MV.b0 = beat(); MV.f1 = false; MV.side = rand() < 0.5 ? -1 : 1; MV.last = k; }
-  const twitch = () => { const A = X.I.ax && X.I.ax.A; if (A) A.twT = 0; }; // (an ear flicks)
+  function move(k, side) { const L = MOVES_UP.find(a => a[0] === k); MV.act = k; MV.dur = MOVE_T[k] || (L ? L[1] : 1.6); MV.u = 0; MV.b0 = beat(); MV.f = {}; MV.side = side || (rand() < 0.5 ? -1 : 1); MV.last = k; }
+  const anim = () => X.I.ax && X.I.ax.A;
+  const twitch = () => { const A = anim(); if (A) A.twT = 0; }; // (an ear flicks, the animator's own way)
+  // one ear flicked up and out (sd: -1 the left, 1 the right, 0 both), k how hard
+  const flick = (sd, k) => { const A = anim(); if (!A || !A.gillPush) return; for (let j = 0; j < 6; j++) { const s2 = j < 3 ? -1 : 1; if (sd && s2 !== sd) continue; A.gillPush[j * 2] += 64 * k; A.gillPush[j * 2 + 1] += s2 * 74 * k; } };
+  const seg = (u, a, b) => ease5((u - a) / (b - a)), at = (k, u, v) => u >= v && !MV.f[k] && (MV.f[k] = true);
+  const LOOK = -1; // (which way a positive look turns it, against which way a positive step takes it: so it looks where it steps)
   function movesTick(dt, on, up) {
-    const o = MV.o; o.roll = o.pitch = o.sway = o.push = o.spin = o.bank = o.hop = o.sq = o.rise = o.wave = o.earCover = o.lx = o.ly = 0; o.face = null;
+    const o = MV.o; o.roll = o.pitch = o.sway = o.sq = o.rise = o.lx = o.ly = o.dx = 0; o.face = null;
     if (!on) { MV.act = null; MV.t = 0.7; return o; }
     if (!MV.act) { MV.t -= dt; if (MV.t <= 0) { const pool = []; for (const a of (up ? MOVES_UP : MOVES_SUNK)) if (a[0] !== MV.last) for (let i = 0; i < a[2]; i++) pool.push(a); move(pool[(rand() * pool.length) | 0][0]); } }
     if (!MV.act) return o;
-    MV.u += dt / MV.dur; const u = Math.min(1, MV.u), env = Math.sin(Math.min(1, u * 4) * Math.PI / 2) * (1 - smoothstep(0.82, 1, u)), bt = beat() - MV.b0, k = MV.act;
-    if (k === 'listen') { const p = Math.pow(Math.max(0, Math.cos((bt % 1) * 6.2832)), 3); o.pitch = -0.11 * p * env; o.roll = (Math.floor(bt) % 2 ? 0.06 : -0.06) * p * env; o.sq = 0.07 * p * env; o.rise = 0.05 * p * env; o.ly = 0.02 * env; o.face = env > 0.3 ? 'content' : null; }
-    else if (k === 'bounce') { const kk = (bt / 2) % 1, p = Math.sin(kk * Math.PI); o.hop = p * 0.3 * env; o.rise = p * 0.32 * env; o.sq = (kk < 0.08 || kk > 0.9 ? 0.3 : 0) * env; o.face = env > 0.3 ? 'glee' : null; }
-    else if (k === 'wag') { const ph = u * Math.PI * 9; o.spin = Math.sin(ph) * 0.2 * env; o.bank = Math.sin(ph) * 0.11 * env; o.sway = Math.sin(ph + 0.4) * 0.55 * env; o.sq = 0.05 * env; o.rise = 0.04 * env * Math.abs(Math.sin(ph)); o.face = env > 0.3 ? 'happy' : null; }
-    else if (k === 'look') { o.lx = u < 0.42 ? -0.085 : u < 0.88 ? 0.085 : 0; o.ly = 0.025; o.roll = (u < 0.42 ? 0.1 : u < 0.88 ? -0.1 : 0) * env; o.face = env > 0.3 ? 'curious' : null; if (u > 0.1 && !MV.f1) { MV.f1 = true; twitch(); } }
-    else if (k === 'proud') { const kk = smoothstep(0.05, 0.25, u) * (1 - smoothstep(0.8, 1, u)); o.pitch = 0.2 * kk; o.rise = 0.1 * kk; o.roll = 0.05 * Math.sin(u * Math.PI * 4) * kk; o.face = kk > 0.3 ? 'smirk' : null; o.ly = 0.04 * kk; }
-    else if (k === 'blep') { const kk = smoothstep(0.06, 0.22, u) * (1 - smoothstep(0.78, 0.95, u)); o.roll = 0.2 * MV.side * kk; o.pitch = 0.05 * kk; o.face = kk > 0.25 ? 'blep' : null; if (u > 0.12 && !MV.f1) { MV.f1 = true; twitch(); } }
-    else if (k === 'wave') { const kk = smoothstep(0.04, 0.2, u) * (1 - smoothstep(0.78, 0.96, u)); o.wave = kk; o.face = kk > 0.2 ? 'happy' : null; o.roll = -0.06 * kk; o.ly = 0.03 * kk; }
-    else if (k === 'wiggle') { const e2 = Math.sin(Math.min(1, u * 4) * Math.PI / 2) * Math.pow(1 - u, 0.8), ph = u * Math.PI * 5; o.sway = Math.sin(ph) * e2; o.push = Math.sin(ph + 0.9) * e2; o.face = e2 > 0.3 ? 'cute' : null; }
-    // (a new look: a little dip, the head tipping over to one side (overshooting a touch and settling) with the chin up, eyes rolled up to it)
-    else if (k === 'tilt') { const sd = MV.side, a = smoothstep(0.06, 0.3, u), over = Math.sin(clamp((u - 0.12) / 0.3, 0, 1) * Math.PI) * 0.22, back = smoothstep(0.76, 1, u), kk = (a + over * a) * (1 - back);
-      o.roll = sd * 0.36 * kk + sd * 0.025 * Math.sin(u * 19) * a * (1 - back); o.pitch = 0.15 * kk; o.sway = -sd * 0.22 * kk; o.sq = 0.1 * Math.sin(clamp(u / 0.12, 0, 1) * Math.PI) + 0.03 * kk; o.rise = 0.12 * kk; o.lx = 0.03 * sd * kk; o.ly = 0.17 * kk; o.face = kk > 0.3 ? 'curious' : null; }
-    // (a new coat of paint: a shimmy, swaying and twisting at the hips, a bounce in it, looking down at itself)
-    else if (k === 'show') { const e2 = Math.sin(Math.min(1, u * 6) * Math.PI / 2) * Math.pow(1 - u, 0.7), ph = u * Math.PI * 8, s1 = Math.sin(ph);
-      o.sway = s1 * e2; o.push = Math.sin(ph + 0.9) * e2; o.spin = Math.sin(ph + 0.5) * 0.26 * e2; o.bank = s1 * 0.13 * e2; o.roll = -s1 * 0.1 * e2; o.sq = 0.05 + 0.1 * Math.abs(s1) * e2; o.rise = 0.24 * e2 * Math.max(0, Math.sin(ph * 2 - 0.6)); o.ly = -0.07 * e2; o.face = e2 > 0.3 ? 'glee' : null; }
-    else if (k === 'shake') { if (!MV.f1) { MV.f1 = true; X.I.shake && X.I.shake(0.9); AU.vox && AU.vox('brr', 0.55); } }
-    if (MV.u >= 1) { MV.act = null; MV.t = 0.9 + rand() * 1.4; }
+    MV.u += dt / MV.dur; const u = Math.min(1, MV.u), sd = MV.side, k = MV.act, I = X.I;
+    // (a look one way, a hold, across to the other, a hold, and back: blinking as it sets off each time, the head tipping into the look)
+    if (k === 'look') { const x = sd * (seg(u, 0.03, 0.2) - 2 * seg(u, 0.42, 0.62) + seg(u, 0.82, 0.98)); o.lx = 0.085 * x; o.roll = -0.09 * x; o.ly = 0.02 * Math.abs(x);
+      if (at('b1', u, 0.03)) I.blink && I.blink(); if (at('b2', u, 0.42)) I.blink && I.blink(); if (at('t', u, 0.1)) twitch(); o.face = Math.abs(x) > 0.5 ? 'curious' : null; }
+    // (just the one way, longer, chin up a touch, an ear flicking that side)
+    else if (k === 'glance') { const x = sd * (seg(u, 0.04, 0.24) - seg(u, 0.72, 0.94)); o.lx = 0.1 * x; o.roll = -0.12 * x; o.ly = 0.035 * Math.abs(x); o.pitch = 0.05 * Math.abs(x);
+      if (at('b', u, 0.04)) I.blink && I.blink(); if (at('e', u, 0.2)) flick(sd, 0.55); o.face = Math.abs(x) > 0.5 ? 'curious' : null; }
+    // (its ears wag: one, the other, one, the other, each a little softer; the head rocking with them)
+    else if (k === 'ears') { for (let i = 0; i < 4; i++) if (at('w' + i, u, 0.06 + i * 0.16)) flick(i % 2 ? -sd : sd, 0.62 - i * 0.1);
+      o.roll = 0.035 * Math.sin(seg(u, 0.04, 0.72) * Math.PI * 4) * (1 - seg(u, 0.6, 0.9)) * sd; o.face = u > 0.05 && u < 0.85 ? 'happy' : null; }
+    // (standing: it shifts its weight, steps to one side, looks off over there, then steps back to its spot. Its body isn't turned: the
+    // animator takes any turn on the spot for a pivot and swings right round)
+    else if (k === 'step') { const out = seg(u, 0.05, 0.3), back = seg(u, 0.68, 0.92), lk = seg(u, 0.26, 0.4) - seg(u, 0.58, 0.7);
+      o.dx = 0.14 * sd * (out - back);
+      o.lx = 0.1 * LOOK * sd * lk; o.roll = -0.1 * LOOK * sd * lk; o.ly = 0.03 * lk; o.sway = 0.25 * sd * (Math.sin(clamp((u - 0.02) / 0.3, 0, 1) * Math.PI) - Math.sin(clamp((u - 0.66) / 0.3, 0, 1) * Math.PI));
+      if (at('b', u, 0.27)) I.blink && I.blink(); if (at('e', u, 0.34)) flick(LOOK * sd, 0.5); o.face = lk > 0.5 ? 'curious' : null; }
+    // (nodding along to the beat, gently, the head tipping side to side bar by bar)
+    else if (k === 'listen') { const env = seg(u, 0, 0.18) * (1 - seg(u, 0.82, 1)), p = Math.pow(Math.max(0, Math.cos((((beat() - MV.b0) % 1) + 1) % 1 * 6.2832)), 3);
+      o.pitch = -0.07 * p * env; o.roll = (Math.floor(beat() - MV.b0) % 2 ? 0.04 : -0.04) * p * env; o.sq = 0.04 * p * env; o.ly = 0.015 * env; }
+    // (a new eye colour: the head tipping over to one side, overshooting a touch and settling, chin up, eyes rolled up to see)
+    else if (k === 'tilt') { const a = seg(u, 0.04, 0.3), over = Math.sin(clamp((u - 0.12) / 0.3, 0, 1) * Math.PI) * 0.18, back = seg(u, 0.74, 1), kk = (a + over * a) * (1 - back);
+      o.roll = sd * 0.26 * kk; o.pitch = 0.12 * kk; o.sway = -sd * 0.12 * kk; o.rise = 0.06 * kk; o.lx = 0.03 * sd * kk; o.ly = 0.14 * kk; o.face = kk > 0.3 ? 'curious' : null; if (at('e', u, 0.15)) flick(-sd, 0.4); }
+    // (a new eye style: chin up, a smirk)
+    else if (k === 'proud') { const kk = seg(u, 0.04, 0.25) * (1 - seg(u, 0.78, 1)); o.pitch = 0.16 * kk; o.rise = 0.06 * kk; o.ly = 0.04 * kk; o.face = kk > 0.3 ? 'smirk' : null; if (at('e', u, 0.08)) flick(0, 0.4); }
+    // (standing, a new coat: a look down over one shoulder at itself, then the other, its ears wagging, pleased)
+    else if (k === 'admire') { const x = seg(u, 0.04, 0.22) - 2 * seg(u, 0.4, 0.58) + seg(u, 0.76, 0.94), dn = seg(u, 0.02, 0.18) * (1 - seg(u, 0.78, 0.96));
+      o.lx = 0.07 * sd * x; o.ly = -0.06 * dn; o.pitch = -0.08 * dn; o.roll = -0.08 * sd * x; o.face = dn > 0.3 ? 'glee' : null; if (at('w1', u, 0.3)) flick(sd, 0.5); if (at('w2', u, 0.62)) flick(-sd, 0.45); }
+    // (all set: both ears up, chin up to you, a happy look and a blink)
+    else if (k === 'perk') { const kk = seg(u, 0.03, 0.2) * (1 - seg(u, 0.7, 1)); o.pitch = 0.1 * kk; o.rise = 0.05 * kk; o.ly = 0.03 * kk; o.face = kk > 0.2 ? 'happy' : null; if (at('e', u, 0.04)) flick(0, 0.7); if (at('b', u, 0.55)) I.blink && I.blink(); }
+    if (MV.u >= 1) { MV.act = null; MV.t = 1.0 + rand() * 1.5; }
     return o;
   }
   // ---- the story ----
@@ -676,7 +730,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     else if (ph === 'paint') { shot(look || 'paint'); card('flPaint'); AU.flm.layer(3); }
     else if (ph === 'form') { if (!X.paintId) pickPaint(colorId); card(null); AU.flm.layer(3); shot('form'); }
     else if (ph === 'name') { X.stood = true; shot('name'); card('flName'); const i = $('flNameIn'); if (!i.value) i.value = cleanName(store.name) || randomName(); AU.flm.layer(4); }
-    else if (ph === 'confirm') { shot('stood'); card('flAsk'); move('wave'); }
+    else if (ph === 'confirm') { shot('stood'); card('flAsk'); move('perk'); }
     else if (ph === 'wink') { card(null); shot('exit'); X.hitIn = AU.flm.sting(2.4); const s = $('flSend'); s.hidden = false; void s.offsetWidth; s.classList.add('on'); }
   }
   // the title over the sky: in, and later out
@@ -830,14 +884,13 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
   }
   // the character: its place, its pose (the game's own animator does the rest)
   function charTick(dt) {
-    const c = X.ch, I = X.I, o = X.o, h = X.hold, m = X.mvs, mv = X.mv || MV.o, k = Math.min(1, dt * 14);
+    const c = X.ch, I = X.I, o = X.o, h = X.hold, m = X.mvs, mv = X.mv || MV.o, k = Math.min(1, dt * 9);
     for (const q in m) m[q] += ((mv[q] || 0) - m[q]) * k; // (the move's pose, eased so one cut short never jumps)
-    const hop = Math.max(0, m.hop) * 0.8, vy = dt > 0 ? (hop - (X.hop0 || 0)) / dt : 0; X.hop0 = hop;
-    c.pop = Math.max(0, (c.pop || 0) - dt * 3); const bob = c.pop > 0 ? Math.sin((1 - c.pop / 1.4) * Math.PI) * 0.03 * c.pop : 0, yw = c.yaw + m.spin, sc = m.sway * 0.035;
-    h.position.set(c.x - Math.cos(yw) * sc, c.y + bob + hop, c.z + Math.sin(yw) * sc); h.rotation.set(0, yw, m.sway * 0.06 + m.bank); h.updateMatrixWorld(true);
-    const up = !c.air && hop > 0.012;
-    o.dt = dt; o.inAir = c.air || up; o.vy = c.air ? c.vy : vy; o.height = c.air ? c.h : up ? hop : 0; o.lean = 0; o.spd = 0; o.speed = 0; o.squash = c.sq + m.sq; o.rise = c.rise + m.rise; o.leap = c.air && !c.curl; o.curl = c.curl || 0; o.blob = 0; o.grip = c.grip || 0;
-    o.wt.yaw = c.wy + m.lx * 8; o.wt.pitch = c.wp + 0.85 + m.ly * 3; o.watch = o.wt; o.headRoll = c.hr + m.roll; o.headPitch = c.hp + m.pitch; o.shove = clamp(m.sway, -1, 1); o.push = clamp(m.push, -1, 1); o.earCover = m.earCover; o.wave = m.wave; o.climb = null; o.D = null; o.maxBall = 1;
+    // (a step to the side: across its own left and right; the animator walks its feet there from how the ground moves under it)
+    c.pop = Math.max(0, (c.pop || 0) - dt * 3); const bob = c.pop > 0 ? Math.sin((1 - c.pop / 1.4) * Math.PI) * 0.03 * c.pop : 0, yw = c.yaw, sc = m.sway * 0.035 + m.dx, cy = Math.cos(c.yaw), sy = Math.sin(c.yaw);
+    h.position.set(c.x + cy * sc, c.y + bob, c.z - sy * sc); h.rotation.set(0, yw, m.sway * 0.05); h.updateMatrixWorld(true);
+    o.dt = dt; o.inAir = c.air; o.vy = c.vy; o.height = c.air ? c.h : 0; o.lean = 0; o.spd = 0; o.speed = 0; o.squash = c.sq + m.sq; o.rise = c.rise + m.rise; o.leap = c.air && !c.curl; o.curl = c.curl || 0; o.blob = 0; o.grip = c.grip || 0;
+    o.wt.yaw = c.wy + m.lx * 5; o.wt.pitch = c.wp + 0.85 + m.ly * 3; o.watch = o.wt; o.headRoll = c.hr + m.roll; o.headPitch = c.hp + m.pitch; o.shove = clamp(m.sway, -1, 1); o.push = 0; o.earCover = 0; o.wave = 0; o.climb = null; o.D = null; o.maxBall = 1;
     if (mv.face && I.face) I.face(mv.face, 0.15); // (the move's face, held over its own while it lasts)
     if (I.setPaint) I.setPaint(X.paint); if (I.setWade) I.setWade(c.wade);
     X.CH.update(I, o);
@@ -912,6 +965,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
   // keys go to the cards while it runs (Enter mustn't start a match from the lobby behind it)
   function keyStop(e) { if (api.live) e.stopPropagation(); }
   api.boot = () => {
+    try { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Figtree:wght@400&display=swap'; document.head.appendChild(l); } catch (e) {} // (the title's regular weight: the page only asks for the heavier ones)
     document.body.classList.add('flon'); api.live = true; window.addEventListener('keydown', keyStop, true);
     try { build(); buildUi(); shadowsInit(); }
     catch (e) { console.warn('intro:', e && e.message); try { if (UI) UI.el.remove(); } catch (x) {} UI = null; X = null; api.live = false; api.hush = false; document.body.classList.remove('flon'); window.removeEventListener('keydown', keyStop, true); AU.music('menu'); const ask = () => { if (!store.orient) openOrient(); }; if (bootHold) { const w = setInterval(() => { if (!bootHold) { clearInterval(w); ask(); } }, 100); } else ask(); return; }
@@ -924,6 +978,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
   api.after = after;
   api.busy = () => api.live || !!api.jin;
   api.go = ph => go(ph); // (for tests: straight to a phase)
+  api.move = (k, side) => { if (X) move(k, side); }; // (for tests: one of its moves, now)
   api._x = () => X; // (for tests: the scene itself)
   api.peek = () => X ? { ph: X.ph, pt: X.pt, t: X.t, hit: X.hitIn || 0, lay: AU.flm ? AU.flm.lay : 0, drops: X.drop.length, tw: X.tw.n, twx: X.tw.on ? X.tw.x : null, dust: X.dust.P.length, calls: renderer.info.render.calls, tris: renderer.info.render.triangles } : null; // (for tests: where it's got to)
   return api;
