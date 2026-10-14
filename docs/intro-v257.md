@@ -1,6 +1,22 @@
 # v257 first-launch intro
 
-A brand-new player's first minute: a barrel of paint in the dark rocks left, rocks right, tips over and pours. Two eyes come up out of the puddle and look around, the camera moves in, and the player picks the eye colour and style (live on the character). The camera eases back, and the player picks the paint colour (puddle, character and buttons update live). The character hauls itself out, jumps clear and shakes the paint off its body and ears. The player names it. It winks and jumps off screen, the iris closes, and it opens on the lobby with the character jumping in from the side. The lesson then starts exactly as before (Ol' Bloop: "Hey, rookie! Ready to roll?...").
+A brand-new player's first minute, out in the sun: a sandstone canyon scrapyard at midday. The camera looks up at the deep blue sky over the canyon rim, then comes down on an old oil drum. It rocks left, rocks right, tips over, its lid flies off, and pearly paint pours onto the sand. Two eyes come up out of the puddle and look around, and the camera moves in.
+
+The player then picks, each live on the character:
+- the eye colour;
+- the eye style;
+- the paint colour (puddle, character and buttons all change).
+
+The character hauls itself out, jumps clear and shakes the paint off its body and ears. The player names it and confirms ("All set?": *Not yet* goes back to change things, *Let's roll* goes on). Two strips of tape slap across the screen ("Fresh out of the barrel?" / "Now go paint the town!"). It winks and leaps away, the iris closes, and it opens on the lobby with the character jumping in from the side. The lesson then starts exactly as before (Ol' Bloop: "Hey, rookie! Ready to roll?...").
+
+The look follows the references the player sent:
+- a sunlit desert scrapyard, warm sand, hard shadows;
+- soft out-of-focus backgrounds in the close-ups;
+- black torn-tape headlines in big white letters over a ragged black board;
+- the pick marked by a paint splat and a little cursor;
+- splat-shaped buttons and slanted send-off banners.
+
+The wording and art are our own.
 
 The music is new and is written on the theme (`music/menu.mp3`). It builds a layer per stage, and a sting hands over to the menu song in time.
 
@@ -10,24 +26,29 @@ The music is new and is written on the theme (`music/menu.mp3`). It builds a lay
   - Existing players (a saved name, or any match played, or the lesson done) never see it.
   - Verified: a save with a name and the lesson done boots straight to the lobby.
 - To force it for testing, set `window.__introNow = true` before the page loads.
-- The orientation chooser (`openOrient`, shown when `!store.orient`) still comes first. It appears over the intro's dark scene at the end of loading, and the barrel starts once a choice is made. With the "Tap to start" gate, the intro waits for that tap, so it starts with sound.
+- The orientation chooser (`openOrient`, shown when `!store.orient`) still comes first. It appears at the end of loading, and the intro starts once a choice is made. With the "Tap to start" gate, the intro waits for that tap, so it starts with sound.
 - At the end, `store.name`, `store.color`, `store.look.iris`, `store.look.eyes` and `store.introDone = 1` are saved. Quitting halfway means the intro runs again next launch.
 
 ## Flow as built (seconds are the intro's own clock)
 
 | Stage | What happens | Music layer |
 |---|---|---|
-| wait | Barrel in a spotlight in the dark, dust in the beam; orientation chooser if needed | air (starts as soon as it decodes) |
-| barrel 0.5–2.4 | Rocks left, right, harder left (a wooden creak and slosh each time) | air |
-| barrel 2.5–3.2 | Tips over (thud, camera shake, lid flies off and clatters) | air |
-| barrel 3.2–6.2 | A rope of glossy pearl paint pours from the mouth into a spreading puddle | air |
-| barrel 6.2–9 | The character's eyes and ears pop up out of the puddle (a bloop and ripples), look left and right, blink; the camera moves in | air |
-| eyes (card 1) | Eye colour (5 iris colours) and style (Round, Squid, Dot), live on the character | keys come in on the card; low comes in on the first style pick or on Next |
-| paint (card 2) | Camera eases back; 6 paints; the puddle, the character, its coat and the game's own colour (buttons) change live, with a splash | low |
+| wait | The scene is ready behind the orientation chooser (if it's needed) | |
+| sky 0–2.3 | Looking up at the sky over the canyon rim, then the camera cranes down onto the drum | air (starts as soon as it decodes) |
+| barrel 0.5–2.4 | The drum rocks left, right, harder left (a creak and slosh each time) | air |
+| barrel 2.5–3.2 | Tips over (thud, camera shake, a puff of sand, the lid flies off and clatters) | air |
+| barrel 3.2–6.2 | A rope of glossy pearl paint pours from the mouth into a spreading puddle on the sand | air |
+| barrel 6.2–9 | The character's eyes pop up out of the puddle (a bloop and ripples), look left and right, blink; the camera moves in | air |
+| iris (card) | "Those eyes need a color." 5 iris colours, live on the face | keys |
+| style (card) | "Now give them some style." Round, Squid, Dot | low |
+| paint (card) | "Pick your paint." The camera eases back; 6 paints; the puddle, the character, its coat and the game's own colour change live, with a splash | tops |
 | form | It rises out of the paint, crouches, jumps clear (drops trailing), lands with a splash, shakes the paint off (the coat bursts into flying drops) | tops |
-| name (card 3) | "Name your star", prefilled with a random name, dice for another | drive (everything) |
-| wink | It winks (a sparkle and a star by its eye), then jumps off screen to the right | riser, one bar |
+| name (card) | "What do we call you?" Prefilled with a random name, dice for another | drive (everything) |
+| confirm (card) | "All set?" *Not yet* (back to the eye colour, standing now, every pick still live) or *Let's roll* | drive |
+| wink | Two tape strips slap in, it winks (a sparkle and a star by its eye), then leaps away into the scrapyard | riser, one bar |
 | hand-over | The iris closes as the sting hits and opens on the lobby; it jumps in from the left and lands on its spot | sting; one bar later the menu song comes in at its 8th bar |
+
+Every card after the first has a *Back*.
 
 Only the free eye styles are offered (Round, Squid, Dot). Sly eyes are a 545-dab Paint Shop item, so leaving them out keeps the economy as it was.
 
@@ -72,38 +93,65 @@ A listenable preview of the whole arc is in `docs/intro-v257-music-preview.mp3`.
 ## The scene and what it costs
 
 Everything is built only when the intro runs and disposed at the hand-over (`dispose()`):
-- geometries, materials and canvas textures;
+- geometries, materials and textures (canvas and image);
+- the baked shadow texture;
 - the character's own materials (its geometry and face sheets are shared with the game's characters, so they are left alone);
 - its entry in `AXOC.S.list`.
 
-While the intro is live it draws instead of the lobby. `frameBody` returns before `step`, `visuals` and `renderFrame`, so the lobby and canvas cost nothing during it.
+While the intro is live it draws instead of the lobby. `frameBody` returns before `step`, `visuals` and `renderFrame`, so the lobby and canvas cost nothing during it. It's one render pass straight to the screen.
 
-- The backdrop is one full-screen quad: dark gradient, faint far bokeh, grain.
-- The floor is one shader on one plane. It holds the old boards, the spotlight pool, the soft shadows of the barrel and the character, and the puddle as a metaball field: the pool, the mouth's spill, and up to 24 splats from landing drops. It is lit with a glossy rim, a fake reflection and a specular highlight, with ripples and the meniscus around the character. The puddle, splats and shadows add no draw calls.
-- The barrel is a lathe with a 512 px canvas texture (staves, hoops and rivets, a taped WET PAINT label, pearl drips) and a 128 px roughness and metalness map. The lid is a separate piece and flies off.
-- The pour is one deformed tube, drops are one instanced mesh (up to 96), the beam and dust are one cone and one point cloud, and there are 3 directional lights and a hemisphere light.
-- The character is the game's own `AXOC.make()` axolotl, driven through `AXOC.update` with the game's animator. Eye colour and style, colour, paint coat, `shake()`, `coatBurst()` and the `smirk` wink face are all its own.
+- **The sky** is a dome shaded from deep blue overhead to a paler blue low down. Its colours are taken off the painting so the two meet without a seam.
+- **The canyon** is a painted panorama (`art/intro_canyon.webp`, Ludo.ai, 2048x972, 106 KB) on a cylinder 26 m out. It shows sandstone mesas, the old train car, wrecked cars, fences with caution tape and a distant radio tower. Its ends are mirrored out to cover wide screens, and its sky fades into the dome.
+- **The ground** is one shader on one plane. It holds:
+  - the sand (`art/intro_sand.webp`, a seamless 512 px Ludo.ai texture, with large light and dark patches);
+  - the hard sun shadows (the drum, its lid and the character as capsules laid along the sun, live; the rocks, agaves, sheet and posts baked once into a 384 px texture);
+  - the paint as a metaball field (the pool, the mouth's spill and up to 24 splats from landing drops), with damp sand round its edge. The paint has a sky reflection, sun glint, ripples and the meniscus round the character.
+  - Far off, it goes into the canyon's haze, its colour also taken off the painting.
+- **The depth of field** is faked without a post pass. Each shot sets a focus amount, and away from what the camera's on:
+  - the sand texture, the canyon painting and the props' textures are sampled from smaller mipmaps (a texture bias);
+  - the shadow edges soften.
+
+  The close-ups get a soft background like the references.
+- **The drum** is a lathe (rims and two ribs, hollow inside) with a 1024x512 canvas texture: the riveted red-paint panels of `art/intro_drum.webp`, darker bands at the rims and ribs, scuffs, a sprayed PAINT stencil and pearl drips. The lid is a separate piece and flies off.
+- **The set** is 4 draws:
+  - sandstone rocks (faceted, banded);
+  - agaves;
+  - a sheet of corrugated iron (`art/intro_rust.webp`);
+  - caution tape on three posts ("CAUTION WET PAINT").
+- **The rest:** the pour is one deformed tube, drops are one instanced mesh (up to 96), and wind-blown sand is one point cloud. The lighting is a sun, a rim light, a warm bounce off the sand and a sky/sand hemisphere.
+- **The character** is the game's own `AXOC.make()` axolotl, driven through `AXOC.update` with the game's animator. Eye colour and style, colour, paint coat, `shake()`, `coatBurst()` and the `smirk` wink face are all its own.
+
+The art adds about 160 KB, fetched by first-timers only.
 
 Measured with `tools/perf257_intro.py` (Chromium with SwiftShader, 390x780, averaged per stage, the lobby in the same browser right after).
 - *Main-thread ms* is the game's own `lastCpu`: the whole frame's JS and GL calls.
 - *Frame ms* is the wall time between frames under SwiftShader. Since rendering there is in software, it mostly measures pixel cost.
 
-| Stage | Main-thread ms | Frame ms (SwiftShader) | Draw calls (3D pass) | Triangles |
+| Stage | Main-thread ms | Frame ms (SwiftShader) | Draw calls | Triangles |
 |---|---|---|---|---|
-| Barrel, pour, eyes popping | 2.1 | 118 | 8 to 11 | 17.6k to 47.5k |
-| Eyes card (close-up) | 2.1 | 251 | 7 | 46.7k |
-| Paint card | 2.1 | 242 | 10 | 46.8k |
-| Forming, jumping, shaking | 2.0 | 207 | 10 | 46.8k |
-| Name card (close-up) | 2.2 | 251 | 10 | 46.8k |
-| Wink and leap | 1.9 | 212 | 10 | 46.8k |
-| Jump-in (lobby) | 5.3 | 139 | 4 | 43.8k |
-| Lobby | 4.6 | 186 | 4 | 43.8k |
+| Sky (opening) | 2.0 | 81 | 14 | 22k |
+| Drum rocks, tips, pours; eyes pop up | 2.1 | 180 | 17 | 52k |
+| Eye colour card (close-up) | 2.5 | 349 | 13 | 51k |
+| Eye style card (close-up) | 2.3 | 379 | 13 | 51k |
+| Paint card | 2.2 | 318 | 16 | 52k |
+| Forming, jumping, shaking | 2.5 | 279 | 16 | 52k |
+| Name card | 2.4 | 310 | 16 | 52k |
+| All set? | 2.2 | 352 | 13 | 51k |
+| Wink, send-off, leap | 2.1 | 271 | 16 | 52k |
+| Jump-in (lobby) | 5.6 | 140 | 4 | 44k |
+| Lobby | 4.6 | 184 | 4 | 44k |
 
-Add 1 draw for the backdrop. There is no shadow map, no post pass and no render target.
+There is no shadow map, no post pass and no render target.
 
-On the main thread the intro costs less than half of what the lobby does. On pixels, the wide shots cost less than the lobby. The close-ups (eyes, name) cost about 1.35x the lobby under SwiftShader, mostly the game's own character shader drawn large: the same cost the locker's close-up already pays.
+On the main thread the intro costs about half of what the lobby does. On pixels, the wide shots cost about what the lobby does and the close-ups about 1.7 to 2 times as much under SwiftShader. Timing each layer of the eyes close-up off in turn:
 
-The floor shader was cut down for this. It evaluates the paint field once (normals from screen-space derivatives), loops only over live splats, and skips the boards under solid paint. That brought the eyes close-up from 364 to 251 ms and the barrel stage from 182 to 118 ms. The game's own quality ladder (`tunePerf`) keeps running during the intro, so a slow phone drops resolution as it would anywhere else.
+| Layer | Share of the close-up's pixel cost |
+|---|---|
+| The game's character drawn large | about 60% |
+| The ground (sand, paint, shadows) | about 25% |
+| The sky, the canyon and the props | about 10% |
+
+The character's share is the same cost the locker's close-up already pays. Baking the still shadows took the ground's share from about 110 ms to 87 ms. The game's own quality ladder (`tunePerf`) keeps running during the intro, so a slow phone drops resolution as it would anywhere else.
 
 ## Anchors replaced in `game/index.html` (`tools/v257_intro.py`)
 
@@ -132,7 +180,11 @@ If the scene can't be built (for instance neither character pack loaded), the in
 - `tools/perf257_intro.py`: the cost per stage, against the lobby.
 - `tools/p257_intro.py`: the Playwright probe. It plays the whole intro through its cards (portrait, landscape, app insets) and captures every stage. `SAVE=<json>` checks a returning player instead.
 - `tools/intro_score.py`: composes and renders the music. `tools/intro_music_build.py`, `tools/intro_audio_an.py` and `tools/intro_music_gen.py` are the analysis and generation helpers. `tools/assets/intro257/` holds the Ludo.ai one-shots the score uses.
-- Assets: `game/music/intro_{air,keys,low,tops,drive,sting}.mp3` and `game/sfx/intro_fx.mp3`. The page reaches them through the game's own `MUSIC_BASE` and `SFX_BASE`.
+- Assets:
+  - `game/music/intro_{air,keys,low,tops,drive,sting}.mp3` and `game/sfx/intro_fx.mp3`, reached through the game's own `MUSIC_BASE` and `SFX_BASE`;
+  - `game/art/intro_{canyon,sand,drum,rust}.webp`, reached as `art/<name>.webp` like the game's other art.
+
+  The intro's splats are the game's own `art/splat2.webp` and `art/m_splat2.webp`, used as CSS masks filled with your paint.
 
 ## Testing
 
@@ -144,17 +196,19 @@ PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers python3 tools/p257_intro.py out land i
 SAVE='{"name":"Dusk","runs":9,"orient":"port","tut":{"ph":"done"}}' PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers python3 tools/p257_intro.py out port
 ```
 
-In the test build, `FL.peek()` reports the phase, draw calls and triangles, and `FL.go(phase)` jumps to a phase.
+In the test build, `FL.peek()` reports the phase, draw calls and triangles, `FL.go(phase)` jumps to a phase (`sky`, `barrel`, `iris`, `style`, `paint`, `form`, `name`, `confirm`, `wink`), and `FL._x()` is the scene.
 
 ## Not done or worth a look
 
 - **Only tested in SwiftShader.** Worth a run on a real iPhone and a mid-range Android, in particular:
   - the close-up frame time;
-  - the one-off shader compile when the character first appears. It's precompiled with `compileAsync` while the barrel stands, but a phone without parallel compile may still hitch once.
+  - the one-off shader compile when the character first appears. It's precompiled with `compileAsync` while the camera's still up in the sky, but a phone without parallel compile may still hitch once.
+- **The backdrop is a painting.** Its perspective is fixed, so the camera's moves are kept small. Tall or very wide screens see the mirrored ends of it.
+- **The fonts in the screenshots are fallbacks.** The sandbox can't load Google Fonts, so the banners show a substitute for Bowlby One; on a device they're Bowlby One like the rest of the game.
 - **The music was judged by analysis, not by ear.** The key, the melody re-tracked from the rendered stems, the seams, the levels and the hand-over were all checked numerically. A listen to `docs/intro-v257-music-preview.mp3` and `intro-v257.mp4` should decide:
   - the mix balance;
   - the sting;
   - the menu song's entry point: offset 17.605 s, its bar 8, measured from the kick onsets. If it lands a hair early or late, change `MENU_AT` in `tools/v257_intro_au.js`.
 - **The wink is subtle on the Squid and Dot eyes**, since those styles darken the eye. The sparkle and star sell it.
-- **No skip button.** The intro is about 30 to 40 seconds, with three choices in it. Quitting halfway shows it again next launch.
+- **No skip button.** The intro is about 40 seconds, with four choices and a check in it. Quitting halfway shows it again next launch.
 - **Fallback fonts:** if the web fonts haven't arrived when the barrel's label is drawn, it is drawn again once they have.

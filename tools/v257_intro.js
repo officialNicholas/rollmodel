@@ -109,7 +109,7 @@ var FL = (() => {
   }
   // ---- the ground: warm sand with the wind's ripples, the paint on it (pool, spill and every splat, a metaball field), the hard
   // shadows the sun throws (each caster a capsule laid along the light), going soft away from what the camera's on; one draw ----
-  const FLOOR_FS = `uniform sampler2D uSand; uniform vec3 uCol, uSun, uSunCol, uAmb, uHaze, uFocus; uniform float uPearl, uT, uR, uMR, uDof; uniform vec2 uC, uM; uniform vec3 uSpl[24]; uniform int uN, uNC; uniform vec4 uRip[4]; uniform vec4 uHole; uniform vec4 uCapA[14]; uniform vec2 uCapR[14];
+  const FLOOR_FS = `uniform sampler2D uSand; uniform vec3 uCol, uSun, uSunCol, uAmb, uHaze, uFocus; uniform float uPearl, uT, uR, uMR, uDof; uniform vec2 uC, uM; uniform vec3 uSpl[24]; uniform int uN, uNC; uniform vec4 uRip[4]; uniform vec4 uHole; uniform vec4 uCapA[4]; uniform vec2 uCapR[4]; uniform sampler2D uShTex;
 varying vec3 vW;
 float hs(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(hs(i), hs(i + vec2(1.0, 0.0)), f.x), mix(hs(i + vec2(0.0, 1.0)), hs(i + vec2(1.0, 1.0)), f.x), f.y); }
@@ -129,14 +129,15 @@ float height(vec2 p, float f){
 }
 float capsule(vec2 p, vec2 a, vec2 b){ vec2 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-5), 0.0, 1.0); return length(pa - ba * h); }
 void main(){
-  vec2 p = vW.xz; float df = length(p - uFocus.xz), blur = clamp((df - 0.35) * uDof * 0.55, 0.0, 1.0);
-  float f = field(p);
+  vec2 p = vW.xz; float df = length(p - uFocus.xz), blur = clamp((df - 0.35) * uDof * 0.55, 0.0, 1.0), far = length(p - vec2(0.3, -0.3));
+  float f = far < 4.5 ? field(p) : 9.0; // (the paint never gets further out than this)
   // the sand: the texture (soft where it's out of focus), large patches of lighter and darker, the light in the ripples
-  vec3 sand = texture2D(uSand, p * 0.62, blur * 4.5).rgb; float lo = vn(p * 0.32) * 0.65 + vn(p * 1.1 + 7.0) * 0.35;
+  vec3 sand = texture2D(uSand, p * 0.62, blur * 4.5 + smoothstep(6.0, 20.0, far) * 3.0).rgb; float lo = vn(p * 0.32);
   vec3 alb = sand * mix(0.82, 1.12, lo);
   // shadows: every caster, its shadow laid along the sun, crisp near where it stands and softer out of focus
   float sh = 1.0;
-  for (int i = 0; i < 14; i++) { if (i >= uNC) break; vec4 c = uCapA[i]; vec2 r = uCapR[i]; float d = capsule(p, c.xy, c.zw), w = r.y + blur * 0.12; sh = min(sh, smoothstep(r.x - w, r.x + w, d)); }
+  if (far < 6.0) { vec2 st = (p + 5.0) / 10.0; if (st.x > 0.0 && st.x < 1.0 && st.y > 0.0 && st.y < 1.0) sh = texture2D(uShTex, st, blur * 2.5).r; // (the still things' shadows, laid down once)
+    for (int i = 0; i < 4; i++) { if (i >= uNC) break; vec4 c = uCapA[i]; vec2 r = uCapR[i]; float d = capsule(p, c.xy, c.zw), w = r.y + blur * 0.12; sh = min(sh, smoothstep(r.x - w, r.x + w, d)); } }
   vec3 col = alb * (uSunCol * sh + uAmb);
   col *= 1.0 - 0.32 * smoothstep(0.09, 0.0, f) * smoothstep(-0.03, 0.0, f); // (damp sand right round the paint)
   if (f < 0.03) {
@@ -161,7 +162,7 @@ void main(){
     const U = { uSand: { value: sand }, uCol: { value: PEARL.clone() }, uPearl: { value: 1 }, uT: { value: 0 }, uR: { value: 0 }, uMR: { value: 0 }, uC: { value: new THREE.Vector2(C0.x, C0.z) }, uM: { value: new THREE.Vector2() },
       uSpl: { value: Array.from({ length: 24 }, () => new V3()) }, uN: { value: 0 }, uRip: { value: Array.from({ length: 4 }, () => new THREE.Vector4()) }, uHole: { value: new THREE.Vector4() },
       uSun: { value: SUN.clone() }, uSunCol: { value: new V3(1.25, 1.08, 0.86) }, uAmb: { value: new V3(0.2, 0.26, 0.48) }, uHaze: { value: new V3(0.85, 0.55, 0.36) }, uFocus: { value: new V3() }, uDof: { value: 0 },
-      uCapA: { value: Array.from({ length: 14 }, () => new THREE.Vector4()) }, uCapR: { value: Array.from({ length: 14 }, () => new THREE.Vector2()) }, uNC: { value: 0 } };
+      uCapA: { value: Array.from({ length: 4 }, () => new THREE.Vector4()) }, uCapR: { value: Array.from({ length: 4 }, () => new THREE.Vector2()) }, uNC: { value: 0 }, uShTex: { value: null } };
     const m = new THREE.Mesh(new THREE.PlaneGeometry(90, 90).rotateX(-Math.PI / 2), new THREE.ShaderMaterial({ uniforms: U, extensions: { derivatives: true },
       vertexShader: 'varying vec3 vW; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }', fragmentShader: FLOOR_FS }));
     m.renderOrder = -2; return { m, U };
@@ -176,16 +177,16 @@ vec3 sky(vec3 d){ float y = clamp(d.y, -0.2, 1.0); vec3 c = mix(uHor, uTop, pow(
     const dome = new THREE.Mesh(new THREE.SphereGeometry(45, 32, 16), new THREE.ShaderMaterial({ uniforms: U, side: THREE.BackSide, depthWrite: false,
       vertexShader: 'varying vec3 vW; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }',
       fragmentShader: SKY + '\nvoid main(){ gl_FragColor = vec4(sky(normalize(vW - cameraPosition)), 1.0);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}' }));
-    dome.renderOrder = -10; dome.frustumCulled = false;
+    dome.renderOrder = 11; dome.frustumCulled = false; // (drawn last: only the sky nothing's in front of gets shaded)
     const H = PANO.r * PANO.img * 972 / 2048, g = new THREE.CylinderGeometry(PANO.r, PANO.r, H, 64, 1, true, Math.PI - PANO.len / 2, PANO.len);
     const pano = new THREE.Mesh(g, new THREE.ShaderMaterial({ uniforms: U, side: THREE.BackSide,
       vertexShader: 'varying vec2 vUv; varying vec3 vW; void main(){ vUv = uv; vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }',
       fragmentShader: SKY + '\nuniform sampler2D uPano; uniform float uBias; varying vec2 vUv;\nvoid main(){ float ux = 0.5 + (0.5 - vUv.x) * ' + (PANO.len / PANO.img).toFixed(4) + '; vec2 uv = vec2(ux, vUv.y); vec4 t = texture2D(uPano, uv, uBias); float k = smoothstep(0.97, 0.78, uv.y) * smoothstep(0.0, 0.05, vUv.x) * smoothstep(1.0, 0.95, vUv.x);\n gl_FragColor = vec4(mix(sky(normalize(vW - cameraPosition)), t.rgb * 1.08, k), 1.0);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}' }));
-    pano.position.y = H / 2 - PANO.hv * H; pano.renderOrder = -9; pano.frustumCulled = false;
+    pano.position.y = H / 2 - PANO.hv * H; pano.renderOrder = 10; pano.frustumCulled = false;
     // (the sky and the far sand's colours taken off the painting itself, so the dome and the near sand meet it without a seam)
     art('intro_canyon', im => { try { const c = document.createElement('canvas'); c.width = 64; c.height = 32; const g2 = c.getContext('2d'); g2.drawImage(im, 0, 0, 64, 32); const d = g2.getImageData(0, 0, 64, 32).data;
       const row = (y, x0, x1) => { const s = [0, 0, 0]; let n = 0; for (let x = x0; x < x1; x++) { const i = (y * 64 + x) * 4; s[0] += d[i]; s[1] += d[i + 1]; s[2] += d[i + 2]; n++; } return new THREE.Color(s[0] / n / 255, s[1] / n / 255, s[2] / n / 255).convertSRGBToLinear(); };
-      const top = row(0, 20, 44), hor = row(Math.round(32 * (1 - PANO.hv)) - 4, 26, 38), gr = row(Math.round(32 * (1 - PANO.hv)) + 2, 20, 44);
+      const top = row(1, 20, 44), hor = row(13, 20, 44), gr = row(Math.round(32 * (1 - PANO.hv)) + 2, 20, 44); // (the clear sky's top and its paler blue low down, above the canyon's haze; the sand at the painting's ground line)
       U.uTop.value.set(top.r, top.g, top.b); U.uHor.value.set(hor.r, hor.g, hor.b); if (X) X.floor.U.uHaze.value.set(gr.r, gr.g, gr.b); } catch (e) {} });
     return { dome, pano, U };
   }
@@ -325,6 +326,11 @@ void main(){ if (vS < uCut) discard; vec3 n = normalize(vN), v = normalize(camer
     for (const [x, z, s] of AGAVES) { proj(_a.set(x, s * 0.6, z), _pb); STATIC.push([x, z, _pb.x, _pb.y, s * 0.45, 0.09]); }
     proj(_a.set(1.62, 0.95, -1.25), _pb); STATIC.push([1.5, -1.05, _pb.x, _pb.y, 0.36, 0.03]);
     for (const [x, z] of [[2.55, -1.9], [1.05, -2.55], [-0.45, -2.85]]) { proj(_a.set(x, 0.95, z), _pb); STATIC.push([x, z, _pb.x, _pb.y, 0.035, 0.012]); }
+    const N = 384, data = new Uint8Array(N * N * 4), sm = (a, b, x) => { const u = Math.max(0, Math.min(1, (x - a) / (b - a))); return u * u * (3 - 2 * u); };
+    for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const px = (i + 0.5) / N * 10 - 5, pz = (j + 0.5) / N * 10 - 5; let sh = 1;
+      for (const [ax, az, bx, bz, r, w] of STATIC) { if (Math.abs(px - ax) > 2 && Math.abs(px - bx) > 2) continue; const pax = px - ax, paz = pz - az, bax = bx - ax, baz = bz - az, h = Math.max(0, Math.min(1, (pax * bax + paz * baz) / Math.max(bax * bax + baz * baz, 1e-5))), d = Math.hypot(pax - bax * h, paz - baz * h); sh = Math.min(sh, sm(r - w, r + w, d)); }
+      const k = (j * N + i) * 4; data[k] = data[k + 1] = data[k + 2] = Math.round(sh * 255); data[k + 3] = 255; }
+    const t = new THREE.DataTexture(data, N, N, THREE.RGBAFormat); t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter; t.needsUpdate = true; X.floor.U.uShTex.value = t;
   }
   function shadowsTick() {
     const A = X.floor.U.uCapA.value, Rr = X.floor.U.uCapR.value; let n = 0; const add = (ax, az, bx, bz, r, s) => { if (n >= A.length) return; A[n].set(ax, az, bx, bz); Rr[n].set(r, s); n++; };
@@ -333,7 +339,6 @@ void main(){ if (vS < uCut) discard; vec3 n = normalize(vN), v = normalize(camer
     if (!X.lid.on) { const m = X.drum.lid.position; proj(_a.copy(m), _pa); add(_pa.x, _pa.y, _pa.x + 0.001, _pa.y, BR.R * 0.9 * Math.min(1, 0.4 + m.y * 0), 0.03); }
     // the character: its body, low and high, where the sun throws them (out in the paint, only once it's up out of it)
     const c = X.ch; if (X.hold.visible && c.y > 0.02) { _a.set(c.x, Math.max(0, c.y - PR) + 0.05, c.z); _b.set(c.x, Math.max(0, c.y - PR) + 0.3, c.z); proj(_a, _pa); proj(_b, _pb); add(_pa.x, _pa.y, _pb.x, _pb.y, 0.15, 0.03 + c.h * 0.05); }
-    for (const s of STATIC) add(s[0], s[1], s[2], s[3], s[4], s[5]);
     X.floor.U.uNC.value = n;
   }
   // ---- sound: the intro's own effects where they've loaded, the game's otherwise ----
@@ -593,6 +598,7 @@ void main(){ if (vS < uCut) discard; vec3 n = normalize(vN), v = normalize(camer
   api.after = after;
   api.busy = () => api.live || !!api.jin;
   api.go = ph => go(ph); // (for tests: straight to a phase)
+  api._x = () => X; // (for tests: the scene itself)
   api.peek = () => X ? { ph: X.ph, pt: X.pt, t: X.t, hit: X.hitIn || 0, lay: AU.flm ? AU.flm.lay : 0, drops: X.drop.length, calls: renderer.info.render.calls, tris: renderer.info.render.triangles } : null; // (for tests: where it's got to)
   return api;
 })();
