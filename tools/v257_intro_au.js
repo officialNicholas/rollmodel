@@ -49,6 +49,8 @@
             get(MUSIC_BASE + 'intro_sting.mp3', b2 => { B.sting = b2; }); get(SFX_BASE + 'intro_fx.mp3', b2 => { B.fx = b2; }); }); },
         play() { M.on = true; if (ctx) begin(); },
         wake() { if (M.on && !M.S) begin(); },
+        // (v260) the sound started afresh on a new context: the stems come back on it, with the layers that were in
+        renew() { M.S = null; if (M.on) begin(); },
         layer(n) { n = Math.max(0, Math.min(LAY.length - 1, n | 0)); if (n <= M.lay) return; M.lay = n; apply(); },
         get lay() { return M.lay; },
         // how many beats into the loop's clock it is (null when it isn't playing): the character nods along to it

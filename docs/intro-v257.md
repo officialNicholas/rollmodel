@@ -118,6 +118,8 @@ The engine is `AU.flm`, inside `makeAudio`:
 - `AU.flm.sting(lead)` schedules the hit on the first bar line at least `lead` seconds away. The riser starts a bar before it, the stems stop on the hit, and the intro's timeline (wink, jump, iris) is timed from it.
 - The menu song is started one bar after the hit at offset 17.605 s (its bar 8, the melody's pickup bar). This skips its intro and lead-in build and carries on in tempo. It is set up as the game's own current track, so the rest of `AU.music` behaves as usual afterwards.
 - If sound never started (no tap, muted), the menu song starts the usual way.
+- `AU.flm.renew()` (added on the main branch in v260, and kept here) brings the stems back, with the layers that were in, when the sound starts afresh on a new audio context.
+- `AU.flm.beat()` is how many beats into the loop's clock it is; the character nods along to it.
 
 Nothing intro-related is fetched for anyone but a first-timer. For them, the fetch starts at the end of loading (the air stem first), so loading time is unchanged for everyone.
 
@@ -217,6 +219,8 @@ Each anchor must match exactly once:
 9. `  if (bootHold || !booted || !tutBootEl.classList.contains('gone')` (in `tutMenuTick`): the coach waits while `FL.busy()`.
 
 All nine were checked against the main branch's page as it is at v259 (`claude/roll-model-handoff-a8a8gx`, commit 9317a2a). Each matches once, the built page passes `node --check`, and the whole intro plays through on it, from the sky to Bloop's first line, with no page errors. To build on that copy, use `python3 tools/q257_intro.py game/_intro_main.html --test --src=<its index.html>`.
+
+On the main branch's page at v261 (commit 311461d), which already carries an earlier copy of the intro, the update is a swap of its three blocks (the stylesheet, `flm`, `var FL`) for the files here; with that done the whole intro plays through to Bloop's first line with no page errors. The anchors don't change.
 
 `FL` is a `var`, so the hooks are safe before it is assigned. For a returning player `FL` is a stub: `due` is false and every hook is a no-op.
 
