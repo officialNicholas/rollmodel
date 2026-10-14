@@ -217,13 +217,50 @@ void main(){ if (vS < uCut) discard; vec3 n = normalize(vN), v = normalize(camer
   }
   // sand on the wind: fine grains drifting past low over the ground
   function makeGrit() {
-    const U = { uT: { value: 0 }, uPx: { value: 1 } }, n = 80, pos = new Float32Array(n * 3), sd = new Float32Array(n);
-    for (let i = 0; i < n; i++) { pos[i * 3] = rnd(-4, 4); pos[i * 3 + 1] = rnd(0, 0.9); pos[i * 3 + 2] = rnd(-3, 2.5); sd[i] = rand(); }
+    const U = { uT: { value: 0 }, uPx: { value: 1 } }, n = 150, pos = new Float32Array(n * 3), sd = new Float32Array(n);
+    for (let i = 0; i < n; i++) { pos[i * 3] = rnd(-4, 4); pos[i * 3 + 1] = i % 3 === 0 ? rnd(0.6, 2.2) : rnd(0, 0.7); pos[i * 3 + 2] = rnd(-3, 2.5); sd[i] = rand(); }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('aS', new THREE.BufferAttribute(sd, 1));
     const m = new THREE.Points(g, new THREE.ShaderMaterial({ uniforms: U, transparent: true, depthWrite: false,
-      vertexShader: 'uniform float uT, uPx; attribute float aS; varying float vA; void main(){ vec3 p = position; p.x = mod(p.x + uT * (0.6 + 0.8 * aS) + 4.0, 8.0) - 4.0; p.y += sin(uT * 2.0 + aS * 30.0) * 0.05; vec4 mv = modelViewMatrix * vec4(p, 1.0); gl_Position = projectionMatrix * mv; gl_PointSize = (1.0 + 1.6 * aS) * 6.0 / -mv.z * uPx; vA = smoothstep(4.0, 3.0, abs(p.x)) * (0.35 + 0.4 * aS); }',
+      vertexShader: 'uniform float uT, uPx; attribute float aS; varying float vA; void main(){ vec3 p = position; p.x = mod(p.x + uT * (0.6 + 0.8 * aS) + 4.0, 8.0) - 4.0; p.y += sin(uT * 2.0 + aS * 30.0) * 0.05; vec4 mv = modelViewMatrix * vec4(p, 1.0); gl_Position = projectionMatrix * mv; gl_PointSize = (1.2 + 2.0 * aS) * 8.0 / -mv.z * uPx; vA = smoothstep(4.0, 3.0, abs(p.x)) * (0.5 + 0.45 * aS) * (0.75 + 0.25 * sin(uT * 7.0 + aS * 50.0)); }',
       fragmentShader: 'varying float vA; void main(){ float d = length(gl_PointCoord - 0.5); gl_FragColor = vec4(vec3(1.0, 0.86, 0.66), smoothstep(0.5, 0.15, d) * vA); }' }));
     m.frustumCulled = false; return { m, U };
+  }
+  // dust: soft puffs that face the camera (one instanced quad), drifting low on the wind, and kicked up by whatever hits the sand
+  const DUSTN = 96;
+  function makeDust() {
+    const base = new THREE.PlaneGeometry(1, 1), g = new THREE.InstancedBufferGeometry(); g.index = base.index; g.setAttribute('position', base.attributes.position); g.setAttribute('uv', base.attributes.uv);
+    const aP = new THREE.InstancedBufferAttribute(new Float32Array(DUSTN * 4), 4), aD = new THREE.InstancedBufferAttribute(new Float32Array(DUSTN * 4), 4); aP.setUsage(THREE.DynamicDrawUsage); aD.setUsage(THREE.DynamicDrawUsage);
+    g.setAttribute('aP', aP); g.setAttribute('aD', aD); g.instanceCount = 0;
+    const m = new THREE.Mesh(g, new THREE.ShaderMaterial({ transparent: true, depthWrite: false,
+      vertexShader: 'attribute vec4 aP, aD; varying vec2 vUv; varying vec4 vD; void main(){ vUv = uv; vD = aD; float c = cos(aD.z), s = sin(aD.z); vec2 o = mat2(c, -s, s, c) * position.xy * aP.w; vec4 mv = viewMatrix * vec4(aP.xyz, 1.0); mv.xy += o; gl_Position = projectionMatrix * mv; }',
+      fragmentShader: `varying vec2 vUv; varying vec4 vD;
+float hs(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(hs(i), hs(i + vec2(1.0, 0.0)), f.x), mix(hs(i + vec2(0.0, 1.0)), hs(i + vec2(1.0, 1.0)), f.x), f.y); }
+void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(q * 9.0 - vD.y * 7.0) * 0.4;
+  float a = smoothstep(1.0, 0.15, length(q) * 2.0 + (n - 0.5) * 0.8) * vD.x; if (a < 0.004) discard;
+  vec3 c = mix(vec3(0.6, 0.38, 0.22), vec3(1.0, 0.84, 0.62), clamp(0.5 + q.y * 1.1 + (n - 0.5) * 0.5, 0.0, 1.0)) * (0.92 + 0.2 * vD.w);
+  gl_FragColor = vec4(c, a);
+  #include <tonemapping_fragment>
+  #include <colorspace_fragment>
+}` }));
+    m.frustumCulled = false; m.renderOrder = 20; return { m, aP, aD, P: [] };
+  }
+  // the tumbleweed: a ball of dry twigs, each a bent chord through it, made of thin three-sided tubes; one draw
+  const TW_R = 0.3;
+  function makeTumble() {
+    seed = 555; const pos = [], col = [], c = new THREE.Color(), up = new V3(0, 1, 0), side = new V3(1, 0, 0);
+    const unit = () => { const z = rnd(-1, 1), a = rnd(0, 6.2832), r = Math.sqrt(1 - z * z); return new V3(Math.cos(a) * r, z, Math.sin(a) * r); };
+    const tube = (a, b, r0, r1) => { const d = new V3().subVectors(b, a).normalize(), u = Math.abs(d.y) > 0.9 ? side : up, s1 = new V3().crossVectors(d, u).normalize(), s2 = new V3().crossVectors(d, s1);
+      const ring = (p, r) => [0, 1, 2].map(k => { const t = k / 3 * 6.2832; return p.clone().addScaledVector(s1, Math.cos(t) * r).addScaledVector(s2, Math.sin(t) * r); }), A = ring(a, r0), B = ring(b, r1);
+      for (let k = 0; k < 3; k++) { const k2 = (k + 1) % 3; pos.push(...A[k].toArray(), ...B[k].toArray(), ...B[k2].toArray(), ...A[k].toArray(), ...B[k2].toArray(), ...A[k2].toArray()); } };
+    for (let i = 0; i < 170; i++) {
+      const a = unit().multiplyScalar(TW_R * rnd(0.78, 1.05)), b = unit().multiplyScalar(TW_R * rnd(0.78, 1.05)), m = a.clone().add(b).multiplyScalar(0.5); m.setLength(Math.max(m.length(), TW_R * rnd(0.62, 0.95)));
+      const r = rnd(0.005, 0.012); tube(a, m, r, r * 0.85); tube(m, b, r * 0.85, r * 0.55);
+      c.setHSL(rnd(0.065, 0.11), rnd(0.22, 0.42), rnd(0.26, 0.52), THREE.SRGBColorSpace); for (let k = 0; k < 36; k++) col.push(c.r, c.g, c.b);
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.computeVertexNormals();
+    const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.92, side: THREE.DoubleSide })); m.visible = false;
+    return { m, on: false, wait: 0.5, x: 0, y: TW_R, z: 0, vx: 0, vy: 0, vz: 0, n: 0, heard: false };
   }
   function build() {
     const sc = new THREE.Scene(), cam = new THREE.PerspectiveCamera(34, viewW / viewH, 0.05, 120);
@@ -232,13 +269,13 @@ void main(){ if (vS < uCut) discard; vec3 n = normalize(vN), v = normalize(camer
     sun.position.copy(SUN).multiplyScalar(10).add(new V3(0.2, 0, 0.1)); sun.target.position.set(0.2, 0, 0.1); rim.position.set(2.6, 2.4, -4); rim.target.position.set(0.2, 0.3, 0); bounce.position.set(0.3, -1, 1.5); bounce.target.position.set(0, 0, 0);
     sc.add(hemi, sun, sun.target, rim, rim.target, bounce, bounce.target);
     X = { dofU: { value: 0 } }; // (the materials made below read the focus from here)
-    const floor = makeFloor(), drum = makeDrum(), stream = makeStream(), drops = makeDrops(), grit = makeGrit(), sky = makeSky(), set = makeSet();
-    sc.add(sky.dome, sky.pano, floor.m, set, drum.g, stream.m, drops, grit.m);
+    const floor = makeFloor(), drum = makeDrum(), stream = makeStream(), drops = makeDrops(), grit = makeGrit(), sky = makeSky(), set = makeSet(), dust = makeDust(), tw = makeTumble();
+    sc.add(sky.dome, sky.pano, floor.m, set, drum.g, stream.m, drops, grit.m, dust.m, tw.m);
     // the character: made with the game's own maker, so what you pick is exactly what you get
     const CH = AXOC.S.ready ? AXOC : SLIME, I = CH.make({ color: PEARL.getHex() }), hold = new THREE.Group(); hold.scale.setScalar(PR); hold.add(I.root); hold.visible = false; sc.add(hold);
     I.noGhost = true; if (I.coatOn) I.coatOn(); if (I.setPaint) I.setPaint(PEARL); if (I.setExpression) I.setExpression('happy');
     const o = { pos: [0, 0, 0], wt: { yaw: 0, pitch: 0 }, watch: null, dt: 0 };
-    X = Object.assign(X, { sc, pc: cam, sun, floor, drum, stream, drops, grit, sky, set, CH, I, hold, o, drop: [], spl: 0, rip: 0,
+    X = Object.assign(X, { sc, pc: cam, sun, floor, drum, stream, drops, grit, sky, set, dust, tw, dustT: 0, gustT: 5, CH, I, hold, o, drop: [], spl: 0, rip: 0,
       t: 0, ph: 'wait', pt: 0, paint: PEARL.clone(), paintTo: null, pearl: 1, pearlTo: 1, R: 0, MR: 0, mouth: new V3(), lid: { on: true, p: new V3(), v: new V3(), w: new V3(), rest: false },
       ch: { x: C0.x, z: C0.z, y: -1.2, yaw: 0, air: false, vy: 0, h: 0, sq: 0, rise: 0, wy: 0, wp: 0.05, wade: 1, pop: 0 }, stood: false,
       cs: { p: new V3(0.9, 0.35, 3.6), l: new V3(-1.2, 4.2, -14), ox: 0, oy: 0, shake: 0, dof: 0 }, shot: null, flags: {} });
@@ -311,6 +348,37 @@ void main(){ if (vS < uCut) discard; vec3 n = normalize(vN), v = normalize(camer
     _m.makeScale(0, 0, 0); for (; i < (M.userData.n || DROPS); i++) M.setMatrixAt(i, _m); M.userData.n = D.length;
     M.instanceMatrix.needsUpdate = true; if (M.instanceColor) M.instanceColor.needsUpdate = true;
   }
+  // ---- dust: the wind's puffs (and now and then a gust of them), and bursts where something hits the sand ----
+  function puff(x, y, z, vx, vy, vz, size, grow, life, a, drag) { const P = X.dust.P; if (P.length >= DUSTN) P.shift(); P.push({ x, y, z, vx, vy, vz, size, grow, life, max: life, a, drag: drag || 0.4, rot: rnd(0, 6.28), vr: rnd(-0.5, 0.5), seed: rand(), warm: rand() }); }
+  function burst(x, z, n, k) { for (let i = 0; i < n; i++) { const a = rand() * 6.2832, s = rnd(0.5, 1.3) * k; puff(x + Math.cos(a) * 0.1 * k, 0.05 + rnd(0, 0.08) * k, z + Math.sin(a) * 0.1 * k, Math.cos(a) * s + 0.25, rnd(0.2, 0.6) * k, Math.sin(a) * s, rnd(0.18, 0.32) * k, 0.7 * k, rnd(1.2, 2.1), rnd(0.45, 0.68), 2.4); } }
+  function dustTick(dt) {
+    const D = X.dust, P = D.P;
+    if (X.ph !== 'wait' && !X.dustWarm) { X.dustWarm = true; for (let i = 0; i < 22; i++) { const life = rnd(5, 7.5); puff(rnd(-4.5, 4), rnd(0.04, 0.3), rnd(-3, 2.6), rnd(0.7, 1.3), rnd(0.01, 0.06), rnd(-0.1, 0.1), rnd(0.5, 0.9), rnd(0.12, 0.24), life, rnd(0.15, 0.26), 0); P[P.length - 1].max = life + rnd(0.5, 3); } } // (the air's already dusty when it starts)
+    if (X.ph !== 'wait') {
+      // the wind: a puff low over the sand every so often, upwind of the scene, now and then a gust of them
+      X.dustT -= dt; X.gustT -= dt; const gust = X.gustT < 0 && X.gustT > -1.6;
+      if (X.dustT <= 0) { X.dustT = gust ? rnd(0.04, 0.08) : rnd(0.12, 0.24); puff(rnd(-5.5, -3), rnd(0.04, 0.32), rnd(-3, 2.6), rnd(0.7, 1.3) * (gust ? 1.7 : 1), rnd(0.01, 0.07), rnd(-0.12, 0.12), rnd(0.45, 0.85), rnd(0.12, 0.26), rnd(5, 7.5), rnd(0.16, 0.28) * (gust ? 1.5 : 1), 0); }
+      if (X.gustT < -1.6) X.gustT = rnd(6, 10);
+    }
+    let n = 0;
+    for (let i = P.length - 1; i >= 0; i--) { const p = P[i]; p.life -= dt; if (p.life <= 0) { P.splice(i, 1); continue; }
+      const dr = Math.exp(-p.drag * dt); p.vx = (p.vx - 0.9) * dr + 0.9; p.vz *= dr; p.vy = p.vy * dr - 0.04 * dt; p.x += p.vx * dt; p.y = Math.max(0.02, p.y + p.vy * dt); p.z += p.vz * dt; p.size += p.grow * dt; p.rot += p.vr * dt; }
+    for (const p of P) { const age = p.max - p.life, a = p.a * Math.min(1, age / 0.35) * Math.min(1, p.life / (p.max * 0.5)); D.aP.setXYZW(n, p.x, p.y + p.size * 0.3, p.z, p.size); D.aD.setXYZW(n, a, p.seed, p.rot, p.warm); n++; }
+    D.m.geometry.instanceCount = n; D.aP.needsUpdate = D.aD.needsUpdate = true;
+  }
+  // ---- the tumbleweed: rolls in on the wind from the left now and then, skipping over the sand, and rolls out to the right ----
+  const _tq = new THREE.Quaternion(), _tax = new V3();
+  function tumbleTick(dt) {
+    const T = X.tw, m = T.m; if (X.ph === 'wait') return;
+    if (!T.on) { T.wait -= dt; if (T.wait > 0) return; T.on = true; T.n++; T.heard = false; T.x = -6; T.z = T.n === 1 ? -1.45 : rnd(-2.6, -1.0); T.y = TW_R; T.vx = T.n === 1 ? 2.4 : rnd(1.7, 2.3); T.vy = 0; T.vz = rnd(-0.08, 0.08); m.visible = true; }
+    T.vy -= 9.8 * dt; T.x += T.vx * dt; T.z += T.vz * dt; T.y += T.vy * dt;
+    if (T.y < TW_R) { T.y = TW_R; T.vy = rnd(1.2, 2.3); T.vx *= rnd(0.94, 1.04); T.vx = clamp(T.vx, 1.4, 2.6); burst(T.x, T.z, 3, 0.65); }
+    // rolling: about the axis across its path, as far round as it has rolled, with a little wobble on the other axes
+    _tax.set(-T.vz, 0, -T.vx).normalize(); _tq.setFromAxisAngle(_tax, -Math.hypot(T.vx, T.vz) * dt / TW_R * 1.15); m.quaternion.premultiply(_tq); m.rotateY(Math.sin(X.t * 3.1) * dt * 0.6);
+    m.position.set(T.x, T.y, T.z);
+    if (!T.heard && T.x > -2.4) { T.heard = true; snd('tumble', 0.75); }
+    if (T.x > 6.5) { T.on = false; m.visible = false; T.wait = rnd(7, 12); }
+  }
   // the paint coming off it: drops flung out all round from its body and ears as it shakes
   function burstOff() {
     if (!X) return; const c = X.ch;
@@ -338,6 +406,7 @@ void main(){ if (vS < uCut) discard; vec3 n = normalize(vN), v = normalize(camer
     X.drum.g.updateMatrixWorld(); _a.set(0, 0.02, 0).applyMatrix4(X.drum.g.matrixWorld); _b.set(0, BR.H, 0).applyMatrix4(X.drum.g.matrixWorld); proj(_a, _pa); proj(_b, _pb); add(_pa.x, _pa.y, _pb.x, _pb.y, BR.R * 0.95, 0.02);
     if (!X.lid.on) { const m = X.drum.lid.position; proj(_a.copy(m), _pa); add(_pa.x, _pa.y, _pa.x + 0.001, _pa.y, BR.R * 0.9 * Math.min(1, 0.4 + m.y * 0), 0.03); }
     // the character: its body, low and high, where the sun throws them (out in the paint, only once it's up out of it)
+    if (X.tw.on) { proj(_a.set(X.tw.x, X.tw.y, X.tw.z), _pa); add(_pa.x, _pa.y, _pa.x + 0.001, _pa.y, TW_R * 0.8, 0.06); }
     const c = X.ch; if (X.hold.visible && c.y > 0.02) { _a.set(c.x, Math.max(0, c.y - PR) + 0.05, c.z); _b.set(c.x, Math.max(0, c.y - PR) + 0.3, c.z); proj(_a, _pa); proj(_b, _pb); add(_pa.x, _pa.y, _pb.x, _pb.y, 0.15, 0.03 + c.h * 0.05); }
     X.floor.U.uNC.value = n;
   }
@@ -353,6 +422,7 @@ void main(){ if (vS < uCut) discard; vec3 n = normalize(vN), v = normalize(camer
       case 'sparkle': if (!fx('sparkle', v)) AU.ui(); break;
       case 'splat': AU.splat(v || 0.8); break;
       case 'pop': AU.pop(); break;
+      case 'tumble': fx('tumble', v); break;
     }
   }
   // ---- the cards: a black strip of tape with the line in big white letters, under it a torn black board with the choices; the
@@ -454,7 +524,7 @@ void main(){ if (vS < uCut) discard; vec3 n = normalize(vN), v = normalize(camer
       tiltAt(a);
       if (t >= 0.5 && once('w1')) snd('wobble', 0.75); if (t >= 1.12 && once('w2')) snd('wobble', 0.85); if (t >= 1.74 && once('w3')) snd('wobble', 1);
       if (t >= 2.3 && once('s1')) shot('tip');
-      if (t >= 3.1 && once('thud')) { snd('tip', 1); X.cs.shake = 1; buzz([10, 30, 20]); popLid(); for (let i = 0; i < 16; i++) { const a2 = rand() * 6.283, s = rnd(0.4, 1.2); spawn(new V3(X.drum.g.position.x + Math.cos(a2) * 0.3, 0.05, X.drum.g.position.z + Math.sin(a2) * 0.3), new V3(Math.cos(a2) * s, rnd(0.6, 1.4), Math.sin(a2) * s), rnd(0.006, 0.012), new THREE.Color(0xC9874D)); } }
+      if (t >= 3.1 && once('thud')) { snd('tip', 1); X.cs.shake = 1; buzz([10, 30, 20]); popLid(); { const dp = X.drum.g.position; burst(dp.x + TIP.x * 0.3, dp.z + TIP.z * 0.3, 12, 1.1); burst(dp.x - TIP.x * 0.2, dp.z - TIP.z * 0.2, 6, 0.8); } for (let i = 0; i < 16; i++) { const a2 = rand() * 6.283, s = rnd(0.4, 1.2); spawn(new V3(X.drum.g.position.x + Math.cos(a2) * 0.3, 0.05, X.drum.g.position.z + Math.sin(a2) * 0.3), new V3(Math.cos(a2) * s, rnd(0.6, 1.4), Math.sin(a2) * s), rnd(0.006, 0.012), new THREE.Color(0xC9874D)); } }
       if (t >= 3.2) { const u = (t - 3.2) / 2.8; X.R = 0.95 * eOut(u); X.MR = u < 1 ? 0.2 * (1 - 0.4 * u) : Math.max(0, 0.12 - (t - 6) * 0.08); }
       if (t >= 3.22 && once('pour')) snd('pour', 0.9);
       streamAt(t);
@@ -485,7 +555,7 @@ void main(){ if (vS < uCut) discard; vec3 n = normalize(vN), v = normalize(camer
       if (t >= J0 && t < J1) { const u = (t - J0) / (J1 - J0), H = 0.85; c.x = C0.x + (LAND.x - C0.x) * u; c.z = C0.z + (LAND.z - C0.z) * u; c.h = 4 * H * u * (1 - u); c.y = PR + c.h; c.vy = 4 * H * (1 - 2 * u) / (J1 - J0); c.air = true; c.rise = u < 0.5 ? 0.6 : 0.2;
         if (rand() < dt * 25) spawn(new V3(c.x, c.y - 0.1, c.z), new V3(rnd(-0.3, 0.3), -0.5, rnd(-0.3, 0.3)), rnd(0.01, 0.018)); }
       if (t >= J1) { c.x = LAND.x; c.z = LAND.z; c.y = PR; c.h = 0; const k = t - J1; c.sq = Math.max(0, 0.5 * Math.exp(-k * 7) * Math.cos(k * 16)); }
-      if (t >= J1 && once('land')) { AU.land && AU.land(0.9); snd('splat', 1.1); X.cs.shake = 0.7; buzz(18); splat(LAND.x, LAND.z, 0.24); for (let i = 0; i < 18; i++) { const a = i / 18 * 6.283, s = rnd(1, 2); spawn(new V3(LAND.x + Math.cos(a) * 0.2, 0.04, LAND.z + Math.sin(a) * 0.2), new V3(Math.cos(a) * s, rnd(1, 2.2), Math.sin(a) * s), rnd(0.01, 0.022)); } }
+      if (t >= J1 && once('land')) { AU.land && AU.land(0.9); snd('splat', 1.1); X.cs.shake = 0.7; buzz(18); splat(LAND.x, LAND.z, 0.24); burst(LAND.x, LAND.z, 9, 0.8); for (let i = 0; i < 18; i++) { const a = i / 18 * 6.283, s = rnd(1, 2); spawn(new V3(LAND.x + Math.cos(a) * 0.2, 0.04, LAND.z + Math.sin(a) * 0.2), new V3(Math.cos(a) * s, rnd(1, 2.2), Math.sin(a) * s), rnd(0.01, 0.022)); } }
       // and shakes the paint off
       if (t >= J1 + 0.38 && once('shake')) { I.shake && I.shake(1); I.coatBurst && I.coatBurst(0.16); AU.vox && AU.vox('brr', 0.6); }
       if (t >= J1 + 0.3) c.wade = Math.max(0.25, c.wade - dt * 1.5);
@@ -500,7 +570,7 @@ void main(){ if (vS < uCut) discard; vec3 n = normalize(vN), v = normalize(camer
       if (t >= 0.2 && once('tw')) { snd('sparkle', 0.9); twinkle(); }
       if (t < jumpAt) { c.x = LAND.x; c.z = LAND.z; c.y = PR; wy = 0; wp = 0.1; if (t > jumpAt - 0.22) c.sq = 0.35 * Math.sin((t - jumpAt + 0.22) / 0.22 * Math.PI); }
       else { const u = (t - jumpAt) / 0.75, H = 0.95; c.yaw += (2.2 - c.yaw) * Math.min(1, dt * 10); c.x = LAND.x + u * 2.9; c.z = LAND.z - u * 2.2; c.h = 4 * H * u * (1 - u); c.y = PR + Math.max(-0.6, c.h); c.vy = 4 * H * (1 - 2 * u) / 0.75; c.air = true; c.rise = 0.5;
-        if (once('j')) { AU.jump && AU.jump(); AU.vox && AU.vox('whee', 0.8); } }
+        if (once('j')) { AU.jump && AU.jump(); AU.vox && AU.vox('whee', 0.8); burst(LAND.x, LAND.z, 6, 0.6); } }
       if (t >= irisAt && once('iris')) { handoff(); if (!X) return; } // (the iris can close at once, and the scene's gone with it)
     }
     c.wy += (wy - c.wy) * Math.min(1, dt * 5); c.wp += (wp - c.wp) * Math.min(1, dt * 5);
@@ -519,7 +589,7 @@ void main(){ if (vS < uCut) discard; vec3 n = normalize(vN), v = normalize(camer
   function lidTick(dt) {
     const L = X.lid; if (L.on || L.rest) return; const m = X.drum.lid;
     L.v.y -= 9 * dt; m.position.addScaledVector(L.v, dt); m.rotation.x += L.w.x * dt; m.rotation.z += L.w.z * dt;
-    if (m.position.y < 0.02) { m.position.y = 0.02; if (Math.abs(L.v.y) > 0.8) { L.v.y = -L.v.y * 0.35; L.v.x *= 0.6; L.v.z *= 0.6; L.w.multiplyScalar(0.5); AU.bonk && AU.bonk(); } else { L.rest = true; m.rotation.set(0, m.rotation.y, 0); } }
+    if (m.position.y < 0.02) { m.position.y = 0.02; if (Math.abs(L.v.y) > 0.8) { L.v.y = -L.v.y * 0.35; L.v.x *= 0.6; L.v.z *= 0.6; L.w.multiplyScalar(0.5); burst(m.position.x, m.position.z, 4, 0.55); AU.bonk && AU.bonk(); } else { L.rest = true; m.rotation.set(0, m.rotation.y, 0); } }
   }
   function streamAt(t) {
     const S = X.stream, U = S.U; if (t < 3.15 || t > 6.4) { S.m.visible = false; return; } S.m.visible = true;
@@ -553,7 +623,7 @@ void main(){ if (vS < uCut) discard; vec3 n = normalize(vN), v = normalize(camer
     if (X.ph === 'wait' && X.ready) go('sky');
     if (AU.flm) AU.flm.wake();
     story(dt); if (!X) return false; // (handed over this very frame: the lobby draws it)
-    camTick(dt); lidTick(dt); dropsTick(dt); charTick(dt); shadowsTick();
+    camTick(dt); lidTick(dt); dropsTick(dt); dustTick(dt); tumbleTick(dt); charTick(dt); shadowsTick();
     const U = X.floor.U, H = viewH; U.uT.value = X.t; U.uR.value = X.R; U.uMR.value = X.MR; U.uCol.value.copy(X.paint); U.uPearl.value = X.pearl;
     X.stream.U.uTime.value = X.t; X.stream.U.uCol.value.copy(X.paint); X.stream.U.uPearl.value = X.pearl; X.grit.U.uT.value = X.t; X.grit.U.uPx.value = renderer.getPixelRatio() * H / 780;
     renderer.setRenderTarget(null); renderer.render(X.sc, X.pc);
@@ -600,6 +670,6 @@ void main(){ if (vS < uCut) discard; vec3 n = normalize(vN), v = normalize(camer
   api.busy = () => api.live || !!api.jin;
   api.go = ph => go(ph); // (for tests: straight to a phase)
   api._x = () => X; // (for tests: the scene itself)
-  api.peek = () => X ? { ph: X.ph, pt: X.pt, t: X.t, hit: X.hitIn || 0, lay: AU.flm ? AU.flm.lay : 0, drops: X.drop.length, calls: renderer.info.render.calls, tris: renderer.info.render.triangles } : null; // (for tests: where it's got to)
+  api.peek = () => X ? { ph: X.ph, pt: X.pt, t: X.t, hit: X.hitIn || 0, lay: AU.flm ? AU.flm.lay : 0, drops: X.drop.length, tw: X.tw.n, twx: X.tw.on ? X.tw.x : null, dust: X.dust.P.length, calls: renderer.info.render.calls, tris: renderer.info.render.triangles } : null; // (for tests: where it's got to)
   return api;
 })();

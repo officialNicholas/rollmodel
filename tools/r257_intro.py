@@ -19,7 +19,7 @@ async def main():
         await pg.goto('http://localhost:8765/_intro_test.html', timeout=600000)
         await pg.wait_for_function('typeof __T === "object" && FLready()' if False else 'typeof __T === "object"', timeout=600000, polling=500)
         await pg.wait_for_timeout(800); await pg.evaluate(SHIM); await pg.wait_for_timeout(300)
-        log = []; last = None; n = 0; acts = {}; T = 0.0; after = None
+        log = []; last = None; n = 0; acts = {}; T = 0.0; after = None; twSeen = set()
         async def st(): return await pg.evaluate("__T.ev('JSON.stringify({ p: FL.peek(), live: FL.live, jin: !!FL.jin, tut: !document.getElementById(\"tut\").hidden })')")
         while True:
             await pg.evaluate(f'__step({1000 / FPS})'); T += 1 / FPS; n += 1
@@ -27,6 +27,7 @@ async def main():
             s = json.loads(await st()); ph = s['p']['ph'] if s['p'] else ('jin' if s['jin'] else 'lobby')
             if ph != last: log.append({'ph': ph, 't': round(T, 4), 'hit': s['p']['hit'] if s['p'] else 0}); last = ph; print(n, ph, flush=True); acts = {}
             pt = s['p']['pt'] if s['p'] else 0
+            if s['p'] and s['p'].get('twx') is not None and s['p']['twx'] > -2.4 and s['p']['tw'] not in twSeen: twSeen.add(s['p']['tw']); log.append({'act': 'tumble', 't': round(T, 4)})
             if s['p'] and s['p']['ph'] == 'wink' and not log[-1].get('hit'): log[-1]['hit'] = s['p']['hit']
             async def once(k, js):
                 if not acts.get(k): acts[k] = True; await pg.evaluate(js); log.append({'act': k, 't': round(T, 4)})

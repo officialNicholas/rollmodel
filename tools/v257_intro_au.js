@@ -5,7 +5,7 @@
     // and the pause muffle work on it as on any song); the intro's effects go through the effects bus
     flm: (() => {
       const LOOP = { a: 0.25, b: 17.56444 }, BEAT = 60 / 110.89, BAR = BEAT * 4, LV = 0.21, MENU_AT = 17.605, STEMS = ['air', 'keys', 'low', 'tops', 'drive'];
-      const FX = { wobble: [0, 0.524], tip: [0.824, 0.55], pour: [1.673, 3.919], eyes: [5.893, 0.393], form: [6.585, 1.255], sparkle: [8.14, 0.8] };
+      const FX = { wobble: [0, 0.524], tip: [0.824, 0.55], pour: [1.673, 3.919], eyes: [5.893, 0.393], form: [6.585, 1.255], sparkle: [8.14, 0.8], tumble: [9.24, 2.326] };
       // each layer: how loud each stem is (the air steps back a little as the rest come in)
       const LAY = [[1, 0, 0, 0, 0], [0.9, 1, 0, 0, 0], [0.8, 1, 1, 0, 0], [0.7, 1, 1, 1, 0], [0.55, 1, 1, 1, 1]];
       const B = {}, M = { on: false, lay: 0, S: null, gone: false };
