@@ -16,7 +16,7 @@ def comp(name, items, cols, scale, title):
         x, y = pad + (i % cols) * (W + pad), head + (i // cols) * (H + cap + pad)
         d.text((x, y + 4), f'{i + 1}. {lab}', fill=(242, 193, 78), font=font(15)); S.paste(im.resize((W, H), Image.LANCZOS), (x, y + cap))
     out = os.path.join(ROOT, name); S.save(out, quality=86); print(out, S.size, os.path.getsize(out))
-P = [('a0_sky', 'Stars over the canyon'), ('a1_title', 'A Marcelin Game'), ('a2_pan', 'The pan down'), ('a_barrel', 'Down on the drum'), ('a3_thump', 'A thump inside'), ('b_wobble', 'It rocks'), ('c_tip', 'Over it goes'), ('d_pour', 'It pours'), ('f_eyes', 'Eyes pop up'),
+P = [('a0_sky', 'The stars'), ('a1_title', 'A Marcelin Game'), ('a2_pan', 'The pan down'), ('a_barrel', 'Down on the drum'), ('a3_thump', 'A thump inside'), ('b_wobble', 'It rocks'), ('c_tip', 'Over it goes'), ('d_pour', 'It pours'), ('f_eyes', 'Eyes pop up'),
      ('g_look', 'A look round'), ('h_iris', 'Eye color'), ('h2_blue', 'Live on the face'), ('i_style', 'Eye style'), ('j_paintcard', 'The paint'), ('k_purple', 'Puddle and all'),
      ('l_rise', 'It rises'), ('m_jump', 'Jumps clear'), ('o_shake', 'Shakes it off'), ('p_namecard', 'Name it'), ('p2_confirm', 'All set?'), ('q_wink', 'A wink, the send-off'),
      ('s_reveal', 'The iris opens'), ('t_jumpin', 'It jumps in'), ('v_coach', 'The lesson starts')]

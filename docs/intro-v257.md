@@ -1,6 +1,6 @@
 # v257 first-launch intro
 
-A brand-new player's first minute, out in the sun: a sandstone canyon scrapyard at midday. The camera looks up at the deep blue sky over the canyon rim, then comes down on an old oil drum. It rocks left, rocks right, tips over, its lid flies off, and pearly paint pours onto the sand. Two eyes come up out of the puddle and look around, and the camera moves in.
+A brand-new player's first minute, out in the sun: a sandstone canyon scrapyard at midday. The camera holds on the deep blue sky over the canyon rim for a while: stars twinkle, an old windmill turns against it and two buzzards circle. "A Marcelin Game" comes up in the middle of it and lifts away, and the camera pans slowly down onto an old oil drum. Something thumps about inside it, it rocks left, rocks right, tips over, its lid flies off and spins out on its rim, and pearly paint pours onto the sand. Bubbles come up, then two eyes, which look around, and the camera moves in.
 
 The player then picks, each live on the character:
 - the eye colour;
@@ -34,21 +34,54 @@ The music is new and is written on the theme (`music/menu.mp3`). It builds a lay
 | Stage | What happens | Music layer |
 |---|---|---|
 | wait | The scene is ready behind the orientation chooser (if it's needed) | |
-| sky 0–2.3 | Looking up at the sky over the canyon rim, then the camera cranes down onto the drum, and a tumbleweed rolls past it on the wind | air (starts as soon as it decodes) |
-| barrel 0.5–2.4 | The drum rocks left, right, harder left (a creak and slosh each time) | air |
-| barrel 2.5–3.2 | Tips over (thud, camera shake, a puff of sand, the lid flies off and clatters) | air |
-| barrel 3.2–6.2 | A rope of glossy pearl paint pours from the mouth into a spreading puddle on the sand | air |
-| barrel 6.2–9 | The character's eyes pop up out of the puddle (a bloop and ripples), look left and right, blink; the camera moves in | air |
-| iris (card) | "Those eyes need a color." 5 iris colours, live on the face | keys |
-| style (card) | "Now give them some style." Round, Squid, Dot | low |
-| paint (card) | "Pick your paint." The camera eases back; 6 paints; the puddle, the character, its coat and the game's own colour change live, with a splash | tops |
-| form | It rises out of the paint, crouches, jumps clear (drops trailing), lands with a splash, shakes the paint off (the coat bursts into flying drops) | tops |
-| name (card) | "What do we call you?" Prefilled with a random name, dice for another | drive (everything) |
-| confirm (card) | "All set?" *Not yet* (back to the eye colour, standing now, every pick still live) or *Let's roll* | drive |
-| wink | Two tape strips slap in, it winks (a sparkle and a star by its eye), then leaps away into the scrapyard | riser, one bar |
+| sky 0–1.8 | Held on the sky over the canyon rim: the stars twinkle (now and then one flares), the windmill turns, two buzzards circle | air (starts as soon as it decodes) |
+| sky 1.8–5.8 | "A Marcelin Game" comes up in the middle of the sky with a soft chime, a letter at a time out of a blur, a glint runs across it, and at 5.0 it lifts away | air |
+| sky 5.3–9.2 | The camera pans slowly down onto the drum (4 s) as the stars fade, and a tumbleweed rolls past behind it on the wind | air |
+| barrel 0.1–1 | Something thumps inside the drum, twice: it bulges, the lid jumps and rattles down, a little puff of sand | air |
+| barrel 1.5–3.4 | The drum rocks left, right, harder left (a creak and slosh each time) | air |
+| barrel 3.5–4.2 | Tips over (thud, camera shake, a puff of sand). The lid flies off, bounces, then spins out on its rim like a dropped coin and settles with a clack | air |
+| barrel 4.2–7.2 | A rope of glossy pearl paint pours from the mouth into a spreading puddle on the sand | air |
+| barrel 6.6–10 | Two bubbles come up where it will surface; the eyes pop up (stretching up and settling, a bloop and ripples), look left and right (the head tips and an ear flicks with each look), blink; the camera moves in | air |
+| iris (card) | "Those eyes need a color." 5 iris colours, live on the face. Picking one: a curious head tilt, as if admiring them | keys |
+| style (card) | "Now give them some style." Round, Squid, Dot. Picking one: chin up, a smirk | low |
+| paint (card) | "Pick your paint." The camera eases back; 6 paints; the puddle, the character, its coat and the game's own colour change live, with a splash and a wiggle. Standing (after *Not yet*), the new paint washes up over it and bursts off, the game's own `popIn` | tops |
+| form | It rises out of the paint (stretching up as it runs off), crouches, jumps clear (drops trailing), lands with a splash, shakes the paint off (the coat bursts into flying drops), then looks up, pleased | tops |
+| name (card) | "What do we call you?" Prefilled with a random name, dice for another (it bounces) | drive (everything) |
+| confirm (card) | "All set?" It waves. *Not yet* (back to the eye colour, standing now, every pick still live) or *Let's roll* | drive |
+| wink | Two tape strips slap in, it winks with a knowing tilt of the head (a sparkle and a star by its eye), crouches and leaps away into the scrapyard | riser, one bar |
 | hand-over | The iris closes as the sting hits and opens on the lobby; it jumps in from the left and lands on its spot | sting; one bar later the menu song comes in at its 8th bar |
 
 Every card after the first has a *Back*.
+
+While a card is up the character keeps moving with the lobby's own idle moves (see below), and the camera moves between shots as described under *The camera*.
+
+## The character's moves
+
+The character is the game's own axolotl, driven by the game's own animator. On top of where the intro puts it, it does the lobby's idle moves (`idleStep` in the game), ported move for move and fed through the same inputs (`headRoll`, `headPitch`, `shove`, `push`, `wave`, squash, rise, a hop, a spin and bank of the body, where it looks, and the face for each):
+
+| Move | What it does | When |
+|---|---|---|
+| listen | Nods along to the beat, the head tipping side to side bar by bar | Any card, on the intro music's own beat (`AU.flm.beat()`) |
+| look | Looks one way then the other, the head tilting with each look, an ear flicking | Any card |
+| blep | Head to one side, the tip of its tongue out, an ear flicking | Any card |
+| proud | Chin up, a smirk, a little sway | Any card; and with each eye-style pick |
+| bounce | Little hops on the beat, gleeful | Standing; and with the dice |
+| wag, wiggle | Swaying, banking and twisting at the hips | Standing (a wiggle in the paint with each paint pick) |
+| wave | One hand up off the sand, waving | Standing; and on "All set?" |
+| tilt | The new-hat move: a dip, the head tipping over to one side (overshooting and settling), chin up, eyes rolled up | With each eye-colour pick |
+| show | The new-outfit shimmy, looking down at itself | With each paint pick, standing |
+
+Still down in the paint (the first time through the eye cards) it only does the head moves (listen, look, blep, proud). A move picked by a choice cuts in at once; the pose is eased so nothing jumps. Between moves it waits 0.9 to 2.3 seconds. Its own animator does the rest: breathing, the gills, the tail, landing squash, the shake.
+
+## The camera
+
+A shot is either a place and which way it looks (the sky), or what to look at, how much of it to fit and from which way (everything else).
+- **Between shots** it eases from wherever the last move had got to, over a set time per shot (the pan down 4 s, the others 1 to 1.7 s), with an ease that starts and stops with no kick, not even in how fast it speeds up. The turn is eased by its angles (yaw and pitch) and the distance to what it looks at by ratio, so a pan sweeps round evenly instead of swinging at the end.
+- **A soft spring** (critically damped, about 0.16 s) follows that, so a move cut short by the next one, or a subject that moves, never jolts it.
+- **Framing:** it keeps what it looks at in the middle of the part of the screen the card leaves clear. That part is itself eased (0.4 s) as the cards come and go, so a card coming up moves the shot over smoothly.
+- **Held by hand:** a slow drift, and the shake (the thumps, the drum's thud, the landing) is mostly a turn of the head that dies away rather than a jolt of position.
+
+Measured with `tools/cam257_intro.py` (the camera's path through the whole intro at a fixed 30 frames a second), the biggest change in the camera's velocity from one frame to the next went from 7.4 m/s (at the cuts between shots, before) to 0.5 m/s (during the long pull-back for the leap, a smooth ease). The only sharp turns left are the deliberate shakes.
 
 Only the free eye styles are offered (Round, Squid, Dot). Sly eyes are a 545-dab Paint Shop item, so leaving them out keeps the economy as it was.
 
@@ -101,30 +134,36 @@ Everything is built only when the intro runs and disposed at the hand-over (`dis
 While the intro is live it draws instead of the lobby. `frameBody` returns before `step`, `visuals` and `renderFrame`, so the lobby and canvas cost nothing during it. It's one render pass straight to the screen.
 
 - **The sky** is a dome shaded from deep blue overhead to a paler blue low down. Its colours are taken off the painting so the two meet without a seam.
-- **The canyon** is a painted panorama (`art/intro_canyon.webp`, Ludo.ai, 2048x972, 106 KB) on a cylinder 26 m out. It shows sandstone mesas, the old train car, wrecked cars, fences with caution tape and a distant radio tower. Its ends are mirrored out to cover wide screens, and its sky fades into the dome.
+  - **Stars** are drawn in it while it opens: two layers, a dense one of faint stars and a sparse one of brighter ones with glints, each star its own size, tint and twinkle rate, and now and then one flares. They're laid out in cells a set number of pixels across, so they stay crisp at any screen size. They also come out over the blue of the painting's own sky (not over its rocks), and fade away as the camera pans down; after that the shader skips them.
+- **The canyon** is a painted panorama (`art/intro_canyon.webp`, Ludo.ai, 2048x972, 106 KB) on a cylinder 26 m out. It shows sandstone mesas, the old train car, wrecked cars, fences with caution tape and a distant radio tower. Its ends are mirrored out to cover wide screens, and its sky fades into the dome. The heat shimmers along its ground line (its picture nudged by a fine moving wave there).
 - **The ground** is one shader on one plane. It holds:
   - the sand (`art/intro_sand.webp`, a seamless 512 px Ludo.ai texture, with large light and dark patches);
   - the hard sun shadows (the drum, its lid and the character as capsules laid along the sun, live; the rocks, agaves, sheet and posts baked once into a 384 px texture);
   - the paint as a metaball field (the pool, the mouth's spill and up to 24 splats from landing drops), with damp sand round its edge. The paint has a sky reflection, sun glint, ripples and the meniscus round the character.
   - Far off, it goes into the canyon's haze, its colour also taken off the painting.
+  - Further off (8 to 19 m from the camera) it turns into **the painting's own sand**. For each point of the ground the shader follows the eye's ray on to the canyon's cylinder and shows what the painting has there, below its ground line. At the foot of the canyon that is exactly where the painting itself starts, so the backdrop no longer has an edge where it stands on the ground: the painted fence bases, wrecks and sand run straight on into the 3D sand.
 - **The depth of field** is faked without a post pass. Each shot sets a focus amount, and away from what the camera's on:
   - the sand texture, the canyon painting and the props' textures are sampled from smaller mipmaps (a texture bias);
   - the shadow edges soften.
 
   The close-ups get a soft background like the references.
-- **The drum** is a lathe (rims and two ribs, hollow inside) with a 1024x512 canvas texture: the riveted red-paint panels of `art/intro_drum.webp`, darker bands at the rims and ribs, scuffs, a sprayed PAINT stencil and pearl drips. The lid is a separate piece and flies off.
+- **The drum** is a lathe (rims and two ribs, hollow inside) with a 1024x512 canvas texture: the riveted red-paint panels of `art/intro_drum.webp`, darker bands at the rims and ribs, scuffs, a sprayed PAINT stencil and pearl drips. It bulges when something thumps inside. The lid is a separate piece: it jumps on the thumps, flies off on the tip, and once down spins out on its rim like a dropped coin (tipping less and less, going round faster and faster) before it lies flat.
 - **The set** is 4 draws:
   - sandstone rocks (faceted, banded);
-  - agaves;
+  - agaves, which sway in the wind (their tips most, more in a gust);
   - a sheet of corrugated iron (`art/intro_rust.webp`);
-  - caution tape on three posts ("CAUTION WET PAINT").
+  - caution tape on three posts ("CAUTION WET PAINT", reading the right way round from the front). It ripples along in the wind and twists a little, pinned at the posts, harder in a gust.
+- **The windmill** stands out at the back on the right: a lattice tower 4.6 m tall, its wheel of 18 pitched sails on two rings, its tail vane. The wheel turns, faster in a gust. Out of focus and far off, it goes into the haze. About 1.6k triangles in 2 draws (the tower, the wheel). It is the silhouette against the stars at the start.
+- **Two buzzards** circle high over the canyon, banked into the turn, wings held up in a shallow V, now and then a few slow beats. One draw of 18 triangles, moved on the CPU.
+- **The wind** is one clock and one gust level shared by the dust, the tape, the agaves and the windmill, so a gust is seen everywhere at once.
 - **Dust:** soft puffs that always face the camera, 96 at most, one instanced draw.
   - On the wind, they drift low over the sand from the left, with a gust of them every 6 to 10 seconds; the air is already dusty when the intro starts.
-  - Impacts kick them up: the drum's thud, the lid's bounces, the character's landing and its leap away, and every bounce of the tumbleweed.
+  - Impacts kick them up: the drum's thumps and its thud, the lid's bounces and its settling, the character's landing and its leap away, and every bounce of the tumbleweed.
+  - A big puff is a thin one, and one right in front of the camera fades rather than fogging the shot.
   - Fine specks of sand also blow past, some low and some up in the light (one point cloud).
 - **The tumbleweed** is a ball of 170 dry twigs, each a bent chord through it made of thin three-sided tubes, about 4k triangles in one draw.
   - It rolls in from the left on the wind, skipping over the sand: it turns as far as it rolls, wobbles a little, casts its own sun shadow and puffs dust at each bounce.
-  - Its first pass rolls behind the drum during the crane down, just before the drum starts to rock. After that it comes back every 7 to 12 seconds on a path behind the action.
+  - Its first pass rolls behind the drum as the camera comes down, just before the drum starts to thump. After that it comes back every 7 to 12 seconds on a path behind the action.
   - It gets a dry rustle as it comes into view, added to the end of `sfx/intro_fx.mp3` so the other effects keep their offsets.
 - **The rest:** the pour is one deformed tube, drops are one instanced mesh (up to 96), and wind-blown sand is one point cloud. The lighting is a sun, a rim light, a warm bounce off the sand and a sky/sand hemisphere.
 - **The character** is the game's own `AXOC.make()` axolotl, driven through `AXOC.update` with the game's animator. Eye colour and style, colour, paint coat, `shake()`, `coatBurst()` and the `smirk` wink face are all its own.
@@ -190,6 +229,7 @@ If the scene can't be built (for instance neither character pack loaded), the in
 - `tools/c257_intro.py`: makes the screenshot composites from a probe run.
 - `tools/r257_intro.py` and `tools/r257_mix.py`: the video (`intro-v257.mp4`). The recorder steps the page at a fixed 30 frames a second of game time (`requestAnimationFrame`, `performance.now` and the CSS animations together) and logs when each stage begins. The mixer lays in the music as the game plays it (the layers on the beat, the sting on a bar line, the menu song from its bar 8) and the intro's effects. The game's own synthesized effects (pops, splats, jumps) aren't in the video's sound.
 - `tools/perf257_intro.py`: the cost per stage, against the lobby.
+- `tools/cam257_intro.py`: how smoothly the camera moves (the biggest frame-to-frame changes in its velocity and turn).
 - `tools/p257_intro.py`: the Playwright probe. It plays the whole intro through its cards (portrait, landscape, app insets) and captures every stage. `SAVE=<json>` checks a returning player instead.
 - `tools/intro_score.py`: composes and renders the music. `tools/intro_music_build.py`, `tools/intro_audio_an.py` and `tools/intro_music_gen.py` are the analysis and generation helpers. `tools/assets/intro257/` holds the Ludo.ai one-shots the score uses.
 - Assets:
@@ -222,5 +262,5 @@ In the test build, `FL.peek()` reports the phase, draw calls and triangles, `FL.
   - the sting;
   - the menu song's entry point: offset 17.605 s, its bar 8, measured from the kick onsets. If it lands a hair early or late, change `MENU_AT` in `tools/v257_intro_au.js`.
 - **The wink is subtle on the Squid and Dot eyes**, since those styles darken the eye. The sparkle and star sell it.
-- **No skip button.** The intro is about 40 seconds, with four choices and a check in it. Quitting halfway shows it again next launch.
+- **No skip button.** The intro is about 47 seconds (9 of them the sky and the title), with four choices and a check in it. Quitting halfway shows it again next launch.
 - **Fallback fonts:** if the web fonts haven't arrived when the barrel's label is drawn, it is drawn again once they have.
