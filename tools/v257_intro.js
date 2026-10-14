@@ -72,10 +72,10 @@ var FL = (() => {
     g.fillStyle = '#2A0E0A'; g.fillRect(0, H - 4, W, 4); // (the inside: dark)
   }
   // ---- the set: sandstone rocks, agaves, a sheet of corrugated iron, caution tape on posts (the wrecks are in the canyon's painting) ----
-  function merge(geos) { // (non-indexed geometries with position, normal and color, into one)
-    let n = 0; for (const g of geos) n += g.attributes.position.count; const P = new Float32Array(n * 3), N = new Float32Array(n * 3), C = new Float32Array(n * 3); let o = 0;
-    for (const g of geos) { P.set(g.attributes.position.array, o * 3); N.set(g.attributes.normal.array, o * 3); C.set(g.attributes.color.array, o * 3); o += g.attributes.position.count; g.dispose(); }
-    const m = new THREE.BufferGeometry(); m.setAttribute('position', new THREE.BufferAttribute(P, 3)); m.setAttribute('normal', new THREE.BufferAttribute(N, 3)); m.setAttribute('color', new THREE.BufferAttribute(C, 3)); return m;
+  function merge(geos) { // (non-indexed geometries with position, normal and color, into one; their uvs too, if they all have them)
+    let n = 0; for (const g of geos) n += g.attributes.position.count; const uv = geos.every(g => g.attributes.uv), P = new Float32Array(n * 3), N = new Float32Array(n * 3), C = new Float32Array(n * 3), T = uv ? new Float32Array(n * 2) : null; let o = 0;
+    for (const g of geos) { P.set(g.attributes.position.array, o * 3); N.set(g.attributes.normal.array, o * 3); C.set(g.attributes.color.array, o * 3); if (T) T.set(g.attributes.uv.array, o * 2); o += g.attributes.position.count; g.dispose(); }
+    const m = new THREE.BufferGeometry(); m.setAttribute('position', new THREE.BufferAttribute(P, 3)); m.setAttribute('normal', new THREE.BufferAttribute(N, 3)); m.setAttribute('color', new THREE.BufferAttribute(C, 3)); if (T) m.setAttribute('uv', new THREE.BufferAttribute(T, 2)); return m;
   }
   function paintVerts(g, fn) { const P = g.attributes.position, c = new Float32Array(P.count * 3), col = new THREE.Color(); for (let i = 0; i < P.count; i++) { fn(col, P.getX(i), P.getY(i), P.getZ(i)); c[i * 3] = col.r; c[i * 3 + 1] = col.g; c[i * 3 + 2] = col.b; } g.setAttribute('color', new THREE.BufferAttribute(c, 3)); return g; }
   const ROCKS = [[-1.55, -0.55, 0.42, 0.3, 0.36], [-1.12, -0.95, 0.22, 0.16, 0.2], [2.05, -0.9, 0.5, 0.38, 0.42], [2.5, -0.35, 0.24, 0.18, 0.22], [-1.25, 1.15, 0.16, 0.11, 0.14], [1.55, 1.55, 0.12, 0.08, 0.1], [0.05, -1.9, 0.3, 0.2, 0.26]];
@@ -315,37 +315,71 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.92, side: THREE.DoubleSide })); m.visible = false;
     return { m, on: false, wait: 0, x: 0, y: TW_R, z: 0, vx: 0, vy: 0, vz: 0, n: 0, heard: false };
   }
-  // ---- an old windmill out at the back, its wheel turning in the wind (faster in a gust): a lattice tower, the wheel, its tail. Far off
-  // and out of focus it goes into the haze ----
-  const WM = { x: 3.4, z: -6.4, h: 4.6, face: -0.6 };
+  // ---- an old windmill far out at the back on the right, its wheel turning in the wind (faster in a gust): a lattice tower of galvanized
+  // steel streaked with rust, the wheel's sails in old cream paint (every other one red at the tip), its tail vane. Far off it goes into
+  // the haze (the sky's colour up high, the sand's down low), and softer still out of focus ----
+  const WM = { x: 3.7, z: -20.5, s: 1.25, face: -0.47 }; // (about 24 m from where the opening looks up from, left of the painting's derrick)
+  // galvanized steel, weathered: blotchy greys, the zinc's spangle, rust running down from the joints in streaks; it tiles up and down
+  function steelPaint(g, W, H, x0) {
+    seed = 1717; g.fillStyle = '#A3A09A'; g.fillRect(x0, 0, W, H);
+    const wrap = (y, h, f) => { f(y); if (y + h > H) f(y - H); if (y < 0) f(y + H); };
+    for (let i = 0; i < 160; i++) { const x = x0 + rnd(0, W), y = rnd(0, H), w = rnd(8, 46), h = rnd(10, 70), l = rnd(52, 74) | 0; g.fillStyle = 'hsla(36,' + (rnd(3, 12) | 0) + '%,' + l + '%,' + rnd(0.18, 0.42).toFixed(2) + ')'; wrap(y, h, yy => g.fillRect(x, yy, w, h)); }
+    for (let i = 0; i < 420; i++) { g.fillStyle = 'rgba(' + (rand() < 0.5 ? '235,238,240' : '92,90,88') + ',' + rnd(0.2, 0.5).toFixed(2) + ')'; g.fillRect(x0 + rnd(0, W), rnd(0, H), rnd(1, 3), rnd(1, 3)); }
+    for (let i = 0; i < 26; i++) { const x = x0 + rnd(0, W), y = rnd(0, H), len = rnd(60, 260), w = rnd(3, 11);
+      wrap(y, len, yy => { const gr = g.createLinearGradient(0, yy, 0, yy + len); gr.addColorStop(0, 'rgba(120,58,26,.85)'); gr.addColorStop(0.25, 'rgba(150,78,36,.55)'); gr.addColorStop(1, 'rgba(150,78,36,0)'); g.fillStyle = gr;
+        g.beginPath(); g.moveTo(x - w, yy); g.quadraticCurveTo(x - w * 0.4, yy + len * 0.6, x, yy + len); g.quadraticCurveTo(x + w * 0.4, yy + len * 0.6, x + w, yy); g.fill(); }); }
+    for (let i = 0; i < 40; i++) { const x = x0 + rnd(0, W), y = rnd(0, H), r = rnd(3, 14); g.fillStyle = 'rgba(' + (rnd(110, 160) | 0) + ',' + (rnd(52, 80) | 0) + ',30,' + rnd(0.35, 0.75).toFixed(2) + ')'; wrap(y, r, yy => { g.beginPath(); g.ellipse(x, yy, r, r * rnd(0.5, 1.4), rnd(0, 3), 0, 7); g.fill(); }); }
+  }
+  // a sail: old cream paint, worn through to the steel and rusting along its edges, scratched; the tip end at the top
+  function sailPaint(g, x0, W, H) {
+    seed = 2323; g.fillStyle = '#E6DCC6'; g.fillRect(x0, 0, W, H);
+    for (let i = 0; i < 90; i++) { g.fillStyle = 'hsla(40,' + (rnd(10, 30) | 0) + '%,' + (rnd(70, 92) | 0) + '%,' + rnd(0.2, 0.5).toFixed(2) + ')'; g.fillRect(x0 + rnd(0, W), rnd(0, H), rnd(10, 50), rnd(6, 30)); }
+    for (let i = 0; i < 22; i++) { const x = x0 + rnd(0, W), y = rnd(0, H), r = rnd(4, 16); g.fillStyle = 'rgba(150,146,140,.85)'; g.beginPath(); g.ellipse(x, y, r, r * rnd(0.4, 1), rnd(0, 3), 0, 7); g.fill(); g.fillStyle = 'rgba(140,70,32,.55)'; g.beginPath(); g.ellipse(x, y + r * 0.3, r * 0.6, r * 0.5, 0, 0, 7); g.fill(); }
+    for (const e of [0, 1]) for (let y = 0; y < H; y += 6) { const w = rnd(4, 18) * (0.5 + 0.5 * Math.sin(y * 0.05 + e * 3)); g.fillStyle = 'rgba(' + (rnd(110, 150) | 0) + ',' + (rnd(55, 75) | 0) + ',28,' + rnd(0.55, 0.9).toFixed(2) + ')'; g.fillRect(e ? x0 + W - w : x0, y, w, 7); }
+    g.strokeStyle = 'rgba(120,110,100,.45)'; g.lineWidth = 1; for (let i = 0; i < 30; i++) { const x = x0 + rnd(0, W), y = rnd(0, H); g.beginPath(); g.moveTo(x, y); g.lineTo(x + rnd(-14, 14), y + rnd(-30, 30)); g.stroke(); }
+    const gr = g.createLinearGradient(0, H, 0, 0); gr.addColorStop(0, 'rgba(60,40,25,.45)'); gr.addColorStop(0.18, 'rgba(60,40,25,0)'); g.fillStyle = gr; g.fillRect(x0, 0, W, H); // (grimier at the hub end)
+  }
+  // its material: the picture soft with the depth of field, and the haze it stands in (by how far off, and the sky's colour up high)
+  function wmMat(map) {
+    const m = new THREE.MeshStandardMaterial({ map, vertexColors: true, roughness: 0.62, metalness: 0.3, flatShading: true });
+    m.onBeforeCompile = sh => { sh.uniforms.uDof = X.dofU; sh.uniforms.uHz = X.floor.U.uHaze; sh.uniforms.uSkyH = X.sky.U.uHor;
+      sh.vertexShader = 'varying float vWy;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vWy = (modelMatrix * vec4(transformed, 1.0)).y;');
+      sh.fragmentShader = 'uniform float uDof; uniform vec3 uHz, uSkyH; varying float vWy;\n' + sh.fragmentShader.replace('#include <map_fragment>', '#ifdef USE_MAP\n vec4 sampledDiffuseColor = texture2D( map, vMapUv, uDof );\n diffuseColor *= sampledDiffuseColor;\n#endif')
+        .replace('#include <tonemapping_fragment>', 'gl_FragColor.rgb = mix(gl_FragColor.rgb, mix(uHz * 1.05, uSkyH * 1.1, smoothstep(0.5, 8.0, vWy)), clamp(smoothstep(8.0, 45.0, length(vViewPosition)) * 0.42 + uDof * 0.1, 0.0, 0.6));\n#include <tonemapping_fragment>'); };
+    m.customProgramCacheKey = () => 'fl-wm'; return m;
+  }
   function makeWindmill() {
     seed = 99; const gs = [], ws = [], up = new V3(0, 1, 0), qq = new THREE.Quaternion(), M = new THREE.Matrix4();
-    const beam = (out, a, b, w, col, d) => { const v = new V3().subVectors(b, a), L = v.length(), g = new THREE.BoxGeometry(w, L, d || w).toNonIndexed(); g.translate(0, L / 2, 0); g.applyQuaternion(qq.setFromUnitVectors(up, v.normalize())); g.translate(a.x, a.y, a.z); paintVerts(g, c => c.copy(col)); out.push(g); return g; };
-    const steel = new THREE.Color(0x96918B), dark = new THREE.Color(0x5F5751), red = new THREE.Color(0xA4442F), cream = new THREE.Color(0xD9CDB8);
-    const H = WM.h, at = (y, sx, sz) => { const h = 0.66 + (0.15 - 0.66) * y / H; return new V3(WM.x + sx * h, y, WM.z + sz * h); }, C = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+    // a steel member from a to b: its picture runs along it, a fresh stretch of it for each one (uv: across, and along a metre at a time)
+    const beam = (out, a, b, w, col, d) => { const v = new V3().subVectors(b, a), L = v.length(), g = new THREE.BoxGeometry(w, L, d || w).toNonIndexed(), P = g.attributes.position, U = g.attributes.uv, u0 = rand();
+      for (let i = 0; i < P.count; i++) U.setXY(i, u0 + (P.getX(i) + P.getZ(i)) / w * 0.06, (P.getY(i) + L / 2) / 1.1 + u0 * 7);
+      g.translate(0, L / 2, 0); g.applyQuaternion(qq.setFromUnitVectors(up, v.normalize())); g.translate(a.x, a.y, a.z); paintVerts(g, c => c.copy(col)); out.push(g); return g; };
+    const steel = new THREE.Color(0xFFFFFF), dark = new THREE.Color(0xB4ADA6), red = new THREE.Color(0xC9573E), cream = new THREE.Color(0xF2E8D6);
+    const H = 4.6, at = (y, sx, sz) => { const h = 0.66 + (0.15 - 0.66) * y / H; return new V3(sx * h, y, sz * h); }, C = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
     for (const [sx, sz] of C) beam(gs, at(0, sx, sz), at(H, sx, sz), 0.06, dark);
     const lv = [0.06, 1.3, 2.4, 3.35, 4.1, H];
     for (let i = 0; i < lv.length - 1; i++) for (let k = 0; k < 4; k++) { const [ax, az] = C[k], [bx, bz] = C[(k + 1) % 4]; beam(gs, at(lv[i], ax, az), at(lv[i], bx, bz), 0.032, steel);
       beam(gs, at(lv[i], ax, az), at(lv[i + 1], bx, bz), 0.018, steel); beam(gs, at(lv[i], bx, bz), at(lv[i + 1], ax, az), 0.018, steel); }
-    // the head on its turntable: a gearbox, the tail's arm and its vane, all turned to face the wind
-    M.makeRotationY(WM.face).setPosition(WM.x, H + 0.1, WM.z);
-    const head = []; { const b = new THREE.BoxGeometry(0.2, 0.18, 0.4).toNonIndexed(); paintVerts(b, c => c.copy(dark)); head.push(b); }
+    // the head on its turntable: a gearbox, the tail's arm and its vane (old red with a cream band), all turned to face the wind
+    M.makeRotationY(WM.face).setPosition(0, H + 0.1, 0);
+    const head = []; beam(head, new V3(0, -0.09, 0), new V3(0, 0.09, 0), 0.2, dark, 0.4);
     beam(head, new V3(0, 0.02, -0.15), new V3(0, 0.08, -1.35), 0.04, steel);
-    { const v = new THREE.BoxGeometry(0.02, 0.5, 0.9).toNonIndexed(); v.translate(0, 0.1, -1.7); paintVerts(v, (c, x, y, z) => c.copy(Math.abs(y - 0.1) < 0.07 ? cream : red).multiplyScalar(0.8 + 0.2 * Math.sin(z * 9))); head.push(v); }
+    { const v = beam(head, new V3(0, -0.15, -1.7), new V3(0, 0.35, -1.7), 0.02, red, 0.9); paintVerts(v, (c, x, y) => c.copy(Math.abs(y - 0.1) < 0.07 ? cream : red)); }
     beam(head, new V3(0, -0.16, 0), new V3(0, 0.02, 0), 0.1, dark);
     for (const g of head) { g.applyMatrix4(M); gs.push(g); }
-    // the wheel: eighteen sails, pitched, on two rings, round a hub (its own mesh, so it can turn)
-    for (let i = 0; i < 18; i++) { const b = new THREE.BoxGeometry(0.15, 0.6, 0.008).toNonIndexed(); b.rotateY(0.5); b.translate(0, 0.56, 0); b.rotateZ(i / 18 * 6.2832); paintVerts(b, (c, x, y) => c.copy(Math.hypot(x, y) > 0.72 && i % 2 ? red : steel).multiplyScalar(rnd(0.85, 1.05))); ws.push(b); }
-    for (const [r, t] of [[0.86, 0.013], [0.42, 0.011]]) { const g = new THREE.TorusGeometry(r, t, 4, 44).toNonIndexed(); paintVerts(g, c => c.copy(dark)); ws.push(g); }
-    for (let i = 0; i < 6; i++) { const a = i / 6 * 6.2832; beam(ws, new V3(0, 0, 0), new V3(Math.cos(a) * 0.86, Math.sin(a) * 0.86, 0), 0.016, dark); }
-    { const g = new THREE.CylinderGeometry(0.08, 0.1, 0.14, 10).toNonIndexed(); g.rotateX(Math.PI / 2); paintVerts(g, c => c.copy(red)); ws.push(g); }
-    for (const g of [...gs, ...ws]) if (!g.attributes.normal) g.computeVertexNormals();
-    const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.55, metalness: 0.4, flatShading: true });
-    mat.onBeforeCompile = sh => { sh.uniforms.uDof = X.dofU; sh.uniforms.uHz = X.floor.U.uHaze; sh.fragmentShader = 'uniform float uDof; uniform vec3 uHz;\n' + sh.fragmentShader.replace('#include <tonemapping_fragment>', 'gl_FragColor.rgb = mix(gl_FragColor.rgb, uHz * 1.1, clamp(smoothstep(5.0, 26.0, length(vViewPosition)) * 0.55 + uDof * 0.12, 0.0, 0.75));\n#include <tonemapping_fragment>'); };
-    mat.customProgramCacheKey = () => 'fl-wm';
-    const tower = new THREE.Mesh(merge(gs), mat), wheel = new THREE.Mesh(merge(ws), mat);
+    // the wheel: eighteen sails, pitched, on two rings, round a hub (its own mesh, so it can turn). Its picture: steel on the left half,
+    // a sail on the right
+    const half = (g, right) => { const U = g.attributes.uv; for (let i = 0; i < U.count; i++) U.setX(i, (right ? 0.5 : 0) + 0.5 * (U.getX(i) % 1)); return g; };
+    for (let i = 0; i < 18; i++) { const b = new THREE.BoxGeometry(0.15, 0.6, 0.008).toNonIndexed(); b.rotateY(0.5); b.translate(0, 0.56, 0); b.rotateZ(i / 18 * 6.2832); half(b, true);
+      const k = rnd(0.88, 1.04); paintVerts(b, (c, x, y) => c.copy(Math.hypot(x, y) > 0.7 && i % 2 ? red : cream).multiplyScalar(k)); ws.push(b); }
+    for (const [r, t] of [[0.86, 0.013], [0.42, 0.011]]) { const g = new THREE.TorusGeometry(r, t, 4, 44).toNonIndexed(); half(g, false); paintVerts(g, c => c.copy(dark)); ws.push(g); }
+    for (let i = 0; i < 6; i++) { const a = i / 6 * 6.2832; half(beam(ws, new V3(0, 0, 0), new V3(Math.cos(a) * 0.86, Math.sin(a) * 0.86, 0), 0.016, dark), false); }
+    { const g = new THREE.CylinderGeometry(0.08, 0.1, 0.14, 10).toNonIndexed(); g.rotateX(Math.PI / 2); half(g, false); paintVerts(g, c => c.copy(red)); ws.push(g); }
+    const tt = canvasTex(256, 512, (g, W, Hh) => steelPaint(g, W, Hh, 0)); tt.wrapS = tt.wrapT = THREE.RepeatWrapping;
+    const wt = canvasTex(512, 256, (g, W, Hh) => { steelPaint(g, W / 2, Hh, 0); sailPaint(g, W / 2, W / 2, Hh); });
+    const tower = new THREE.Mesh(merge(gs), wmMat(tt)), wheel = new THREE.Mesh(merge(ws), wmMat(wt));
     wheel.position.set(0, 0, 0.3).applyMatrix4(M); wheel.rotation.y = WM.face;
-    const g = new THREE.Group(); g.add(tower, wheel); return { g, wheel, spin: 0 };
+    const g = new THREE.Group(); g.add(tower, wheel); g.position.set(WM.x, 0, WM.z); g.scale.setScalar(WM.s); return { g, wheel, spin: 0 };
   }
   // ---- two buzzards circling high over the canyon: gliding, wings held up in a shallow V, now and then a few slow beats ----
   function makeBirds() {
@@ -593,7 +627,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
       + '<section class="flpanel flask" id="flAsk" hidden aria-labelledby="flAskT"><h2 class="flbanner" id="flAskT">All set?</h2><div class="flfoot"><button class="flgo alt" type="button" id="flNo"><span>Not yet</span></button><button class="flgo" type="button" id="flYes"><span>Let’s roll</span></button></div></section>'
       + '<div class="flsend" id="flSend" hidden aria-hidden="true"><b>Fresh out of the barrel?</b><b>Now go paint the town!</b></div>'
       + '<div class="flwink" id="flWink" hidden>' + STAR + '</div>'
-      + '<div class="fltitle" id="flTitle" hidden role="img" aria-label="A Marcelin Game"><span class="flt-a" aria-hidden="true">A</span><span class="flt-n" aria-hidden="true">' + [...'Marcelin'].map((ch, i) => '<i style="--i:' + i + '">' + ch + '</i>').join('') + '</span><span class="flt-g" aria-hidden="true">Game</span></div>';
+      + '<p class="fltitle" id="flTitle" hidden>' + ['A', 'Marcelin', 'Game'].map((w, i) => '<span style="--i:' + i + '">' + w + '</span>').join(' ') + '</p>';
     stage.appendChild(el); UI = { el, cur: null };
     seed = 4242; for (const b of el.querySelectorAll('.flboard')) torn(b, 7, 14); for (const b of el.querySelectorAll('.flbanner, .flsend b')) torn(b, 5, 9);
     $('flIrisO').addEventListener('click', e => { const b = e.target.closest('.flopt'); if (!b) return; AU.init(); pickIris(b.dataset.i); });
@@ -867,6 +901,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
   // keys go to the cards while it runs (Enter mustn't start a match from the lobby behind it)
   function keyStop(e) { if (api.live) e.stopPropagation(); }
   api.boot = () => {
+    try { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Figtree:wght@400&display=swap'; document.head.appendChild(l); } catch (e) {} // (the title's regular weight: the page only asks for the heavier ones)
     document.body.classList.add('flon'); api.live = true; window.addEventListener('keydown', keyStop, true);
     try { build(); buildUi(); shadowsInit(); }
     catch (e) { console.warn('intro:', e && e.message); try { if (UI) UI.el.remove(); } catch (x) {} UI = null; X = null; api.live = false; api.hush = false; document.body.classList.remove('flon'); window.removeEventListener('keydown', keyStop, true); AU.music('menu'); const ask = () => { if (!store.orient) openOrient(); }; if (bootHold) { const w = setInterval(() => { if (!bootHold) { clearInterval(w); ask(); } }, 100); } else ask(); return; }

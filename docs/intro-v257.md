@@ -26,6 +26,7 @@ The music is new and is written on the theme (`music/menu.mp3`). It builds a lay
   - Existing players (a saved name, or any match played, or the lesson done) never see it.
   - Verified: a save with a name and the lesson done boots straight to the lobby.
 - To force it for testing, set `window.__introNow = true` before the page loads.
+- The title's regular weight of Figtree isn't on the page (it only asks for 600 to 900), so the intro asks Google Fonts for it when it starts, for first-timers only. If that request fails, the title uses the lightest Figtree the page has (600), or the system font when Figtree hasn't loaded at all (as in the sandbox screenshots).
 - The orientation chooser (`openOrient`, shown when `!store.orient`) still comes first. It appears at the end of loading, and the intro starts once a choice is made. With the "Tap to start" gate, the intro waits for that tap, so it starts with sound.
 - At the end, `store.name`, `store.color`, `store.look.iris`, `store.look.eyes` and `store.introDone = 1` are saved. Quitting halfway means the intro runs again next launch.
 
@@ -35,7 +36,7 @@ The music is new and is written on the theme (`music/menu.mp3`). It builds a lay
 |---|---|---|
 | wait | The scene is ready behind the orientation chooser (if it's needed) | |
 | sky 0–1.8 | Held on the sky over the canyon rim: the stars twinkle (now and then one flares), the windmill turns, two buzzards circle | air (starts as soon as it decodes) |
-| sky 1.8–5.8 | "A Marcelin Game" comes up in the middle of the sky with a soft chime, a letter at a time out of a blur, a glint runs across it, and at 5.0 it lifts away | air |
+| sky 1.8–5.9 | "A Marcelin Game" comes up in the middle of the sky with a soft chime: one small line in the regular weight, its words coming up one after another out of a blur while the spacing slowly closes in. At 5.0 it fades away | air |
 | sky 5.3–9.2 | The camera pans slowly down onto the drum (4 s) as the stars fade, and a tumbleweed rolls past behind it on the wind | air |
 | barrel 0.1–1 | Something thumps inside the drum, twice: it bulges, the lid jumps and rattles down, a little puff of sand | air |
 | barrel 1.5–3.4 | The drum rocks left, right, harder left (a creak and slosh each time) | air |
@@ -155,7 +156,7 @@ While the intro is live it draws instead of the lobby. `frameBody` returns befor
   - agaves, which sway in the wind (their tips most, more in a gust);
   - a sheet of corrugated iron (`art/intro_rust.webp`);
   - caution tape on three posts ("CAUTION WET PAINT", reading the right way round from the front). It ripples along in the wind and twists a little, pinned at the posts, harder in a gust.
-- **The windmill** stands out at the back on the right: a lattice tower 4.6 m tall, its wheel of 18 pitched sails on two rings, its tail vane. The wheel turns, faster in a gust. Out of focus and far off, it goes into the haze. About 1.6k triangles in 2 draws (the tower, the wheel). It is the silhouette against the stars at the start.
+- **The windmill** stands far out at the back, about 24 m from where the opening looks up from, left of the painting's derrick: a lattice tower 5.8 m tall, its wheel of 18 pitched sails on two rings, its tail vane. Its pictures are drawn when it's built (no files): galvanized steel, blotchy grey with the zinc's spangle and rust running down in streaks, tiled along each member; the sails in old cream paint worn through and rusting at the edges, every other one red at the tip; the vane red with a cream band. The wheel turns, faster in a gust. Far off it goes a little into the haze (the sky's colour up high, the sand's down low), and more out of focus, where its pictures go soft too. About 1.6k triangles in 2 draws (the tower, the wheel). It is the silhouette against the stars at the start.
 - **Two buzzards** circle high over the canyon, banked into the turn, wings held up in a shallow V, now and then a few slow beats. One draw of 18 triangles, moved on the CPU.
 - **The wind** is one clock and one gust level shared by the dust, the tape, the agaves and the windmill, so a gust is seen everywhere at once.
 - **Dust:** soft puffs that always face the camera, 96 at most, one instanced draw.
