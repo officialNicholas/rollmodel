@@ -14,7 +14,7 @@ ph = {e['ph']: e['t'] for e in log if 'ph' in e}; act = {e['act']: e['t'] for e 
 wink = ph['wink']; hit_in = next((e['hit'] for e in log if e.get('ph') == 'wink'), 2.4) or 2.4; hit = wink + hit_in
 t0 = hit - int((hit - ph['barrel']) / BAR) * BAR  # (the loop's clock, so the hit lands on one of its bar lines)
 nb = lambda t: t0 + np.ceil((t - t0) / BEAT) * BEAT
-lay_at = [t0, nb(ph['eyes']), nb(min(act.get('style', 1e9), ph['paint'])), nb(ph['form']), nb(ph['name'])]
+lay_at = [t0, nb(ph['iris']), nb(ph['style']), nb(ph['paint']), nb(ph['name'])]
 LAY = [[1, 0, 0, 0, 0], [0.9, 1, 0, 0, 0], [0.8, 1, 1, 0, 0], [0.7, 1, 1, 1, 0], [0.55, 1, 1, 1, 1]]
 mix = np.zeros((N, 2), np.float32); t = np.arange(N) / SR
 for si, k in enumerate(['air', 'keys', 'low', 'tops', 'drive']):

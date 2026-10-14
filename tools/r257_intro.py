@@ -30,16 +30,20 @@ async def main():
             if s['p'] and s['p']['ph'] == 'wink' and not log[-1].get('hit'): log[-1]['hit'] = s['p']['hit']
             async def once(k, js):
                 if not acts.get(k): acts[k] = True; await pg.evaluate(js); log.append({'act': k, 't': round(T, 4)})
-            if ph == 'eyes':
-                if pt > 1.6: await once('iris', "document.querySelector('.fliri[data-i=\"blue\"]').click()")
-                if pt > 2.6: await once('style', "document.querySelector('.flsty[data-s=\"edgy\"]').click()")
-                if pt > 3.8: await once('next1', "document.getElementById('flEyesGo').click()")
+            if ph == 'iris':
+                if pt > 1.6: await once('iris', "document.querySelector('.flopt[data-i=\"blue\"]').click()")
+                if pt > 2.8: await once('next1', "document.getElementById('flIrisGo').click()")
+            if ph == 'style':
+                if pt > 1.2: await once('style', "document.querySelector('.flopt[data-s=\"edgy\"]').click()")
+                if pt > 2.4: await once('next2', "document.getElementById('flStyleGo').click()")
             if ph == 'paint':
-                if pt > 1.6: await once('paint', "document.querySelector('.flpai[data-c=\"purple\"]').click()")
-                if pt > 3.0: await once('next2', "document.getElementById('flPaintGo').click()")
+                if pt > 1.4: await once('paint', "document.querySelector('.flopt[data-c=\"purple\"]').click()")
+                if pt > 2.8: await once('next3', "document.getElementById('flPaintGo').click()")
             if ph == 'name':
                 if pt > 1.4: await once('type', "document.getElementById('flNameIn').value = 'Pip'")
                 if pt > 2.4: await once('go', "document.getElementById('flName').requestSubmit()")
+            if ph == 'confirm':
+                if pt > 1.4: await once('yes', "document.getElementById('flYes').click()")
             if ph == 'lobby' and after is None: after = T
             if after is not None and T - after > (4.5 if s['tut'] else 6.0): break
             if n > 3000: break
