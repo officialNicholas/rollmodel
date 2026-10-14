@@ -36,7 +36,7 @@ The music is new and is written on the theme (`music/menu.mp3`). It builds a lay
 |---|---|---|
 | wait | The scene is ready behind the orientation chooser (if it's needed) | |
 | sky 0–1.8 | Held on the sky over the canyon rim: the stars twinkle (now and then one flares), the windmill turns, two buzzards circle | air (starts as soon as it decodes) |
-| sky 1.8–5.9 | "A Marcelin Game" comes up in the middle of the sky with a soft chime: one small line in the regular weight, its words coming up one after another out of a blur while the spacing slowly closes in. At 5.0 it fades away | air |
+| sky 1.8–5.9 | "A Marcelin Game" comes up in the middle of the sky, with only the music under it: one small line in the regular weight, its words coming up one after another out of a blur while the spacing slowly closes in. At 5.0 it fades away | air |
 | sky 5.3–9.2 | The camera pans slowly down onto the drum (4 s) as the stars fade, and a tumbleweed rolls past behind it on the wind | air |
 | barrel 0.1–1 | Something thumps inside the drum, twice: it bulges, the lid jumps and rattles down, a little puff of sand | air |
 | barrel 1.5–3.4 | The drum rocks left, right, harder left (a creak and slosh each time) | air |
@@ -49,7 +49,7 @@ The music is new and is written on the theme (`music/menu.mp3`). It builds a lay
 | form | It climbs out the way it climbs out of a basin in the game (v266, in place of rising and jumping clear): it hauls itself up the bank of the hole on all fours toward its spot, hands reaching up onto the sand, body pitched up the slope, slowest as its chest goes over the lip (a gloop and a ring of drops there), paint dripping off, hips and tail out last; the hole fills in behind it; it shakes the paint off (the coat bursts into flying drops), then looks up, pleased | tops |
 | name (card) | "What do we call you?" Prefilled with a random name, dice for another (its ears wag) | drive (everything) |
 | confirm (card) | "All set?" Its ears perk up and it looks up at you. *Not yet* (back to the eye colour, standing now, every pick still live) or *Let's roll* | drive |
-| wink | Two tape strips slap in, it winks with a knowing tilt of the head (a sparkle and a star by its eye). Then the game's slingshot (v264): it turns side on, digs in and draws back low (the game's grip pose, the charge sound and its three notches, trembling at full stretch), lets go and becomes a ball of jelly paint that shoots up and out of the side of the shot in about a quarter of a second, a pop of drops behind it | riser, one bar |
+| wink | Two tape strips slap in, it winks with a knowing tilt of the head (a soft sparkle, at a quarter of its first level, and a star by its eye). Then the game's slingshot (v264): it turns side on, digs in and draws back low (the game's grip pose, the charge sound and its three notches, trembling at full stretch), lets go and becomes a ball of jelly paint that shoots up and out of the side of the shot in about a quarter of a second, a pop of drops behind it | riser, one bar |
 | hand-over | The iris closes as the sting hits and opens on the lobby. Half a second on, the game's own jelly ball flies in high from off the left edge and dives, faster and faster, into the middle of the floor: a crown of paint drops, two rings, the splat and a thud, a small camera shake. The basin's pool is already open from the slam and the character crawls up out of it with the basin crawl-out (`startIntro`, from 0.32 s in), then the lesson starts | sting on that bar's chord; on the hit the menu song carries on from the same bar (v263) |
 
 Every card after the first has a *Back*.
@@ -233,7 +233,8 @@ If the scene can't be built (for instance neither character pack loaded), the in
 ## Files
 
 - `tools/v257_intro.py`: the patch module, `apply(s)`. It reads `v257_intro.js`, `v257_intro.css` and `v257_intro_au.js` from beside itself.
-- `tools/q257_intro.py`: the quick builder. It writes `game/_intro_test.html`; `--test` adds `window.__T`.
+- `tools/q257_intro.py`: the quick builder onto a page without the intro (the v256 page and earlier). It writes `game/_intro_test.html`; `--test` adds `window.__T`.
+- `tools/qswap_intro.py`: the quick builder onto the shipped page, which already carries the intro (`game/index.html` on this branch since the merge of v265): it swaps the page's three intro blocks for the files in `tools/` as they are now. `--test` adds `window.__T` and `FL.handoff`.
 - `tools/c257_intro.py`: makes the screenshot composites from a probe run.
 - `tools/r257_intro.py` and `tools/r257_mix.py`: the video (`intro-v257.mp4`). The recorder steps the page at a fixed 30 frames a second of game time (`requestAnimationFrame`, `performance.now` and the CSS animations together) and logs when each stage begins. The mixer lays in the music as the game plays it (the layers on the beat, the sting on a bar line, the menu song from its bar 8) and the intro's effects. The game's own synthesized effects (pops, splats, jumps) aren't in the video's sound.
 - `tools/perf257_intro.py`: the cost per stage, against the lobby.
@@ -249,7 +250,7 @@ If the scene can't be built (for instance neither character pack loaded), the in
 ## Testing
 
 ```
-python3 tools/q257_intro.py --test            # build game/_intro_test.html (not committed)
+python3 tools/qswap_intro.py --test           # build game/_intro_test.html from the shipped page (not committed)
 python3 -m http.server 8765 --directory game &
 PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers python3 tools/p257_intro.py out port inset
 PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers python3 tools/p257_intro.py out land inset

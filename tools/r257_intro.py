@@ -40,11 +40,12 @@ async def main():
             if ph == 'paint':
                 if pt > 1.4: await once('paint', "document.querySelector('.flopt[data-c=\"purple\"]').click()")
                 if pt > 2.8: await once('next3', "document.getElementById('flPaintGo').click()")
+            # (the name card and All set? held a while, so its little moves get seen)
             if ph == 'name':
-                if pt > 1.4: await once('type', "document.getElementById('flNameIn').value = 'Pip'")
-                if pt > 2.4: await once('go', "document.getElementById('flName').requestSubmit()")
+                if pt > 1.6: await once('type', "document.getElementById('flNameIn').value = 'Pip'")
+                if pt > 6.2: await once('go', "document.getElementById('flName').requestSubmit()")
             if ph == 'confirm':
-                if pt > 1.4: await once('yes', "document.getElementById('flYes').click()")
+                if pt > 3.6: await once('yes', "document.getElementById('flYes').click()")
             if ph == 'lobby' and after is None: after = T
             if after is not None and T - after > (4.5 if s['tut'] else 6.0): break
             if n > 3000: break

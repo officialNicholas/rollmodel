@@ -3387,7 +3387,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 267</p>
+      <p class="ver">Version 268</p>
     </div>
   </div>
 
@@ -21751,7 +21751,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
   }
   // the title over the sky: in, and later out
   function title(on) { const el = $('flTitle'); if (!el) return;
-    if (on) { el.hidden = false; el.classList.remove('off'); void el.offsetWidth; el.classList.add('on'); snd('sparkle', 0.45); }
+    if (on) { el.hidden = false; el.classList.remove('off'); void el.offsetWidth; el.classList.add('on'); } // (no sound of its own: just the music)
     else { el.classList.add('off'); setTimeout(() => { if (UI && el.classList.contains('off')) el.hidden = true; }, 1000); } }
   // something thumps about inside the drum: it bulges, and its lid jumps and rattles down
   function thump(v) { X.th = { t: 0, v, clk: false }; AU.land && AU.land(0.3 * v); AU.bonk && AU.bonk(0.2 * v); X.cs.shake = Math.max(X.cs.shake, 0.32 * v); buzz(8); const p = X.drum.g.position; burst(p.x + 0.15, p.z + 0.1, 3, 0.45 * v); }
@@ -21843,7 +21843,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
       const hit = X.hitIn || 2.4, relAt = Math.max(1.75, hit - 0.62), aimAt = Math.max(0.95, relAt - 0.95), irisAt = Math.max(relAt + 0.22, hit - 0.42);
       const LY = 1.3, lx = Math.sin(LY), lz = Math.cos(LY), PULL = 0.42; // (side on to the camera, a little toward it: the crouch and the draw read in profile)
       if (once('w')) { I.face && I.face('smirk', aimAt - 0.05); }
-      if (t >= 0.2 && once('tw')) { snd('sparkle', 0.9); twinkle(); twitch(); }
+      if (t >= 0.2 && once('tw')) { snd('sparkle', 0.225); twinkle(); twitch(); } // (the wink's sparkle, soft)
       if (t < aimAt) { const k = smoothstep(0.05, 0.35, t) * (1 - smoothstep(aimAt - 0.3, aimAt - 0.1, t)); hr = 0.16 * k; hp = 0.12 * k; c.x = LAND.x; c.z = LAND.z; c.y = PR; wy = 0; wp = 0.1; c.grip = 0; c.curl = 0; }
       else if (t < relAt) {
         const u = clamp((t - aimAt) / (relAt - aimAt), 0, 1), pull = u * u * (3 - 2 * u), tr = u > 0.75 ? Math.sin(X.t * 70) * 0.05 * (u - 0.75) : 0;
