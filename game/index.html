@@ -3614,7 +3614,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 278</p>
+      <p class="ver">Version 279</p>
     </div>
   </div>
 
@@ -9937,11 +9937,17 @@ const __look = (() => {
 const FACE = { pitch: 0.1, half: 1.1, squeeze: 1.0 };
 const EYE_COLS = { brown: { name: 'Brown', lin: [0.16, 0.06, 0.035], css: '#8A5636' }, blue: { name: 'Blue', lin: [0.03, 0.1, 0.32], css: '#3B7BE0' }, green: { name: 'Green', lin: [0.04, 0.18, 0.05], css: '#46A853' },
   violet: { name: 'Violet', lin: [0.14, 0.045, 0.28], css: '#8E52DA' }, gold: { name: 'Gold', lin: [0.34, 0.17, 0.016], css: '#D8A41F' } };
-const EYE_STYLES = { round: 'Round', edgy: 'Squid', dot: 'Dot', zombie: 'Zombie' };
+const EYE_STYLES = { round: 'Round', edgy: 'Aggressive', dot: 'Dot', zombie: 'Zombie' };
 const EYE_STYLE_K = { round: 0, edgy: 1, dot: 2, zombie: 3 };
 // each expression is an eye cell and a mouth cell (yawn and dizzy borrow parts of the others), as in the game
 const EXPR = { neutral: [0, 8], happy: [1, 9], angry: [2, 10], hurt: [3, 11], glee: [4, 12], scared: [5, 13], yawn: [6, 13], dizzy: [7, 11], peek: [5, 13], leap: [5, 9], brace: [7, 11],
   shake: [7, 11], content: [4, 24], sleepy: [20, 8], doze: [6, 24], smirk: [21, 24], blep: [1, 25], sad: [22, 26], focus: [23, 8], cute: [1, 27], curious: [5, 27], sneeze: [7, 13], pout: [22, 27], startle: [5, 13], menace: [32, 33] }; // (v252: new eyes in cells 20-23, new mouths in 24-27, those with fangs in 28-31)
+  // (v279) the aggressive eyes keep their lids down whatever the mood, and never smile: [eye cell, mouth cell, how far the lid lifts,
+  // how much steeper it slants]. 36: the flat mouth; 33: the smirk. Shut eyes lift the lid out of the way
+  const AGG = { neutral: [0, 36, 0, 0], happy: [0, 33, -0.012, 0], glee: [0, 33, -0.012, 0], content: [0, 33, 0, 0], cute: [0, 33, -0.01, 0], blep: [0, 33, 0, 0], smirk: [0, 33, -0.015, 0.02],
+    curious: [0, 36, 0.035, -0.06], focus: [0, 36, -0.02, 0.04], menace: [0, 33, -0.035, 0.05], angry: [0, 10, -0.045, 0.08], leap: [0, 33, 0.02, 0],
+    peek: [5, 36, 0.08, -0.08], startle: [5, 13, 0.13, -0.12], scared: [5, 13, 0.16, -0.15], sad: [22, 26, 0.07, -0.25], pout: [22, 36, 0.05, -0.2], hurt: [3, 11, 0.04, -0.1],
+    sleepy: [20, 36, -0.02, -0.08], doze: [6, 36, 0.5, 0], yawn: [6, 13, 0.5, 0], sneeze: [7, 13, 0.5, 0], dizzy: [7, 11, 0.5, 0], brace: [7, 11, 0.5, 0], shake: [7, 11, 0.5, 0] };
 const PUPILS = { peek: { pu: 1.08, py: 0 }, leap: { pu: 1.12, py: 0 }, curious: { pu: 1.14, py: 0.04 }, startle: { pu: 0.7, py: 0 }, smirk: { pu: 1, py: -0.06 } };
 const NO_SHUT = { glee: 1, hurt: 1, yawn: 1, dizzy: 1, brace: 1, shake: 1, content: 1, doze: 1, smirk: 1, sneeze: 1 };
 function pupilOf(name) { const F = PUPILS[name] || FACE_LIDS[name]; if (!F) return { pu: 1, py: 0 }; const L = F.L || F; return { pu: L.pu || 1, py: (L.py || 0) * FACE_EYE.ry }; }
@@ -9972,7 +9978,7 @@ const FACE_LIDS = {
 };
 const FACE_X = [['sleepy', 20], ['wink', 21], ['sad', 22], ['focus', 23], ['menace', 32]], FACE_MX = [['smile', 24], ['blep', 25], ['frown', 26], ['cat', 27]];
 function makeFaceSheets(C) {
-  const W = C * 4, H = C * 9, col = document.createElement('canvas'), msk = document.createElement('canvas'); col.width = msk.width = W; col.height = msk.height = H;
+  const W = C * 4, H = C * 10, col = document.createElement('canvas'), msk = document.createElement('canvas'); col.width = msk.width = W; col.height = msk.height = H;
   const g = col.getContext('2d'), m = msk.getContext('2d'); m.fillStyle = '#000'; m.fillRect(0, 0, W, H);
   const at = (ctx, cell, fn) => { ctx.save(); ctx.translate((cell % 4) * C + C / 2, Math.floor(cell / 4) * C + C / 2); ctx.scale(C / 2, -C / 2); ctx.lineJoin = 'round'; ctx.lineCap = 'round'; fn(ctx); ctx.restore(); };
   const E = FACE_EYE, INK = '40,6,18';
@@ -10112,6 +10118,10 @@ function makeFaceSheets(C) {
   const sneerY = u => MY - 0.014 - 0.02 * Math.sin(Math.PI * u * 0.8) + 0.064 * Math.pow(u, 2.4);
   const sneer = (ctx, f) => { if (f) fang(ctx, 0.07, sneerY(0.74) + 0.004, 0.9); line(ctx, Array.from({ length: 29 }, (_, i) => { const u = i / 28; return [-0.13 + 0.27 * u, sneerY(u)]; }), 0.038); line(ctx, [[0.128, MY + 0.074], [0.154, MY + 0.042]], 0.026); };
   at(g, 33, ctx => big(ctx, () => sneer(ctx, false))); at(g, 34, ctx => big(ctx, () => sneer(ctx, true)));
+  // (v279) the aggressive one's resting mouth: a firm flat line, the far corner set a touch higher; with fangs, one tooth under it
+  const flatY = u => MY - 0.004 - 0.008 * Math.sin(Math.PI * u) + 0.016 * u * u;
+  const flat = (ctx, f) => { if (f) fang(ctx, 0.05, flatY(0.68) + 0.002, 0.8); line(ctx, Array.from({ length: 17 }, (_, i) => { const u = i / 16; return [-0.095 + 0.19 * u, flatY(u)]; }), 0.036); };
+  at(g, 36, ctx => big(ctx, () => flat(ctx, false))); at(g, 37, ctx => big(ctx, () => flat(ctx, true)));
   return { col, msk };
 }
 // ---------------- shader pieces ----------------
@@ -10172,7 +10182,7 @@ float aSpots(vec3 p, float scale, float dens, float rmin, float rmax) {
 // bump from a height in metres, with the exact slope (unnormalized derivatives, as the game's skin bump): the same relief at any distance
 vec3 aBump(vec3 sp, vec3 sn, float h) { vec3 dpx = dFdx(sp), dpy = dFdy(sp), r1 = cross(dpy, sn), r2 = cross(sn, dpx); float det = dot(dpx, r1);
   if (abs(det) < 1e-14) return sn; vec3 g = (dFdx(h) * r1 + dFdy(h) * r2) / det; float gl = length(g); if (gl > 0.9) g *= 0.9 / gl; return normalize(sn - g); }
-vec2 fCell(float c, vec2 uv){ float col = mod(c, 4.0), row = floor(c * 0.25 + 0.01); return vec2((col + uv.x) * 0.25, 1.0 - (row + 1.0 - uv.y) / 9.0); }
+vec2 fCell(float c, vec2 uv){ float col = mod(c, 4.0), row = floor(c * 0.25 + 0.01); return vec2((col + uv.x) * 0.25, 1.0 - (row + 1.0 - uv.y) / 10.0); }
 float fCone(vec2 p, vec2 a, vec2 b, float w0, float w1) { vec2 ab = b - a; float t = clamp(dot(p - a, ab) / dot(ab, ab), 0.0, 1.0); float d = length(p - a - ab * t) - mix(w0, w1, t); return 1.0 - smoothstep(-0.004, 0.012, d); }
 float coatField(vec3 sp, float sy){ vec3 cq = sp * 5.0 + uCoat.y;
   float ch = 0.5 + 0.25 * sin(cq.x * 1.7 + sin(cq.y * 2.3)) * sin(cq.z * 1.9 + sin(cq.x * 1.3)) + 0.25 * sin(cq.y * 3.1 + cq.z * 1.1 + cq.x * 0.7);
@@ -10248,7 +10258,7 @@ const SKIN_FS = `
 const FACE_FS = `
 if (vFace.z > 0.01 && abs(vFace.x * fComp.x) < 0.985 && abs(vFace.y * fComp.y) < 0.985) {
   vec2 fq = vFace.xy * fComp.xy; vec2 cuv = fq * 0.5 + 0.5;
-  float sqd = (fStyle > 0.5 && fStyle < 1.5) ? 1.0 : 0.0, zmb = (fStyle > 2.5 && fStyle < 3.5) ? 1.0 : 0.0, sly = fStyle > 3.5 ? 1.0 : 0.0; vec2 fqe = fq; if (sqd > 0.5) { float sd0 = fq.x < 0.0 ? -1.0 : 1.0; vec2 pc0 = vec2(sd0 * 0.4, 0.16); vec2 l = fq - pc0; l.y = l.y * 1.1 + 0.01; l.x = (l.x + l.y * sd0 * 0.2) * 0.97; fqe = pc0 + l; }
+  float sqd = (fStyle > 0.5 && fStyle < 1.5) ? 1.0 : 0.0, zmb = (fStyle > 2.5 && fStyle < 3.5) ? 1.0 : 0.0, sly = fStyle > 3.5 ? 1.0 : 0.0; vec2 fqe = fq; if (sqd > 0.5) { float sd0 = fq.x < 0.0 ? -1.0 : 1.0; fqe.x = sd0 * 0.4 + (fq.x - sd0 * 0.4) * 0.87; } // (v279: the aggressive eyes a little wider)
   vec2 cuvE = fqe * 0.5 + 0.5;
   vec4 eA = texture2D(fCol, fCell(fCells.x, cuvE)), eB = texture2D(fCol, fCell(fCells.z, cuvE)), eye = mix(eA, eB, fMix.x);
   vec3 emL = mix(texture2D(fMsk, fCell(fCells.x, cuvE)).rgb, texture2D(fMsk, fCell(fCells.z, cuvE)).rgb, fMix.x); vec2 em = emL.rg;
@@ -10257,15 +10267,20 @@ if (vFace.z > 0.01 && abs(vFace.x * fComp.x) < 0.985 && abs(vFace.y * fComp.y) <
   if (zmb > 0.5) eye.rgb = eye.rgb * vec3(0.78, 0.9, 0.6) + vec3(0.05, 0.06, 0.0) * eye.a;
   float lsh = 0.0; if (fLash.x + fLash.y > 0.0) lsh = mix(emL.b, texture2D(fMsk, fCell(fMix.w, cuvE)).b, fMix.y) * (fq.x < 0.0 ? fLash.x : fLash.y);
   vec3 c = mix(diffuseColor.rgb, eye.rgb, eye.a);
-  if (sqd > 0.5) { float d1 = 0.0; for (int k = 0; k < 16; k++) { float a = float(k) * 0.3927; d1 = max(d1, texture2D(fCol, fCell(0.0, cuvE + vec2(cos(a) * 0.05, sin(a) * 0.052 + 0.026))).a); }
-    float hole = texture2D(fCol, fCell(0.0, cuvE)).a, rim = clamp(d1 - hole, 0.0, 1.0), sp = 0.0;
-    for (int i = 0; i < 2; i++) { float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16); vec2 dw = normalize(vec2(sd, 0.45)); vec2 a = pc + dw * 0.18, b = a + dw * 0.26; sp = max(sp, fCone(fqe, a, b, 0.1, 0.004)); }
-    float mk = max(rim, sp); c = mix(c, vec3(0.03, 0.012, 0.02), mk);
-    float lidLine = eye.a * step(dot(eye.rgb, vec3(0.333)), 0.3); c = mix(c, vec3(0.03, 0.012, 0.02), hole * (1.0 - eye.a) * (1.0 - mk)); c = mix(c, vec3(0.46, 0.3, 0.38), hole * lidLine * (1.0 - mk)); dotK = max(mk, hole * (1.0 - eye.a)); }
+  // (v279) aggressive: a heavy upper lid straight across each eye, slanting down toward the middle of the face; under it a dark lash line
+  // and a little shadow on the eye, above it the lid's edge catching the light. fComp.z lifts it (a fright opens the eyes up a bit),
+  // fComp.w steepens it
+  if (sqd > 0.5) { float sd = fq.x < 0.0 ? -1.0 : 1.0, ox = (fq.x - sd * 0.4) * sd, lidY = 0.205 + fComp.z + (0.13 + fComp.w) * ox, aw = fwidth(fq.y) + 0.0025, dy = fq.y - lidY;
+    float ea0 = eye.a, aggL = 1.0 - smoothstep(-aw, aw, dy);
+    c = mix(diffuseColor.rgb, c, aggL);
+    c = mix(c, c * vec3(0.6, 0.56, 0.66), ea0 * aggL * (1.0 - smoothstep(0.0, 0.075, -dy)) * 0.8);
+    float lit = ea0 * smoothstep(-aw, aw, dy) * (1.0 - smoothstep(0.012, 0.045, dy)); c = mix(c, mix(diffuseColor.rgb, vec3(1.0), 0.3), lit * 0.75);
+    float lash = ea0 * (1.0 - smoothstep(0.012, 0.012 + aw * 1.5, abs(dy + 0.004))); c = mix(c, vec3(0.03, 0.012, 0.02), lash);
+    eye.a *= aggL; em *= aggL; dotK = max(dotK, lash); }
   if (fStyle > 1.5 && fStyle < 2.5) { float bk = 1.0 - fMix.y * 0.92; for (int i = 0; i < 2; i++) { float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16 + fPupil.w) + fPupil.xy * 0.6; vec2 dd = (fq - pc) * vec2(1.0, 1.0 / max(0.08, bk)); float r = length(dd);
     float daa = fwidth(r) * 1.2 + 0.0015, dk = 1.0 - smoothstep(0.135 - daa, 0.135 + daa, r); c = mix(c, vec3(0.03, 0.012, 0.02), dk); float hl = 1.0 - smoothstep(0.03, 0.046, length((fq - pc - vec2(-0.045, 0.05)) * vec2(1.0, 1.0 / max(0.08, bk)))); c = mix(c, vec3(1.0), hl * dk); dotK = max(dotK, dk); dotG = max(dotG, dk); } }
   for (int i = 0; i < 2; i++) {
-    float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16 + fPupil.w) + fPupil.xy, dd = (fqe - pc) * vec2(1.0, 0.92); float r = length(dd), ri = mix(0.165, 0.235, sqd) * fPupil.z * mix(1.0, i == 0 ? 0.92 : 1.14, zmb), rp = mix(0.092, 0.11, sqd) * fPupil.z * mix(1.0, i == 0 ? 0.5 : 0.78, zmb) * mix(1.0, 0.66, sly);
+    float sd = i == 0 ? -1.0 : 1.0; vec2 pc = vec2(sd * 0.4, 0.16 + fPupil.w + 0.018 * sqd) + fPupil.xy, dd = (mix(fqe, fq, sqd) - pc) * vec2(1.0, 0.92); float r = length(dd), ri = mix(0.165, 0.205, sqd) * fPupil.z * mix(1.0, i == 0 ? 0.92 : 1.14, zmb), rp = mix(0.092, 0.11, sqd) * fPupil.z * mix(1.0, i == 0 ? 0.5 : 0.78, zmb) * mix(1.0, 0.66, sly);
     vec3 irC = mix(fIris, vec3(0.42, 0.6, 0.3), zmb); irC = mix(irC, mix(fIris, vec3(0.86, 0.85, 0.9), 0.74), sly);
     float faa = fwidth(r) * 1.2 + 0.0015, ia = (1.0 - smoothstep(ri - faa, ri + faa, r)) * em.r;
     // the iris: lighter round the pupil, deeper toward a dark limbal ring, fine radial fibres (fading where a pixel would blur them), a
@@ -10276,7 +10291,7 @@ if (vFace.z > 0.01 && abs(vFace.x * fComp.x) < 0.985 && abs(vFace.y * fComp.y) <
     ic = mix(ic, irC * 0.3, (1.0 - smoothstep(rp, rp + 0.03, r)) * 0.6); ic = mix(ic, vec3(0.004, 0.002, 0.003), 1.0 - smoothstep(rp - faa, rp + faa * 0.5, r));
     ic += irC * 1.25 * smoothstep(ri * 0.3, ri * 0.92, r) * smoothstep(0.25, -0.65, dd.y / ri) * (1.0 - smoothstep(ri * 0.9, ri, r));
     ic = mix(ic, vec3(0.72, 0.78, 0.62), zmb * 0.42 * smoothstep(rp, ri * 0.9, r) * (0.6 + 0.4 * sin(atan(dd.y, dd.x) * 11.0 + r * 60.0)));
-    ic = mix(ic, vec3(0.02, 0.008, 0.014), sqd * smoothstep(ri - 0.032, ri - 0.012, r));
+    ic = mix(ic, vec3(0.02, 0.008, 0.014), 0.7 * sqd * smoothstep(ri - 0.03, ri - 0.012, r));
     ic = mix(ic, vec3(0.3, 0.17, 0.2), sly * (1.0 - smoothstep(0.006, 0.02, abs(r - ri * 0.93))) * smoothstep(0.3, -0.4, dd.y / ri)); ic = mix(ic, vec3(0.42, 0.19, 0.2), sly * (1.0 - smoothstep(rp - 0.012, rp, r)));
     c = mix(c, ic * (1.0 - 0.55 * em.g), ia);
     // the catchlights: a soft main one up and to the left with a faint glow round it, a small sharp one low and right, and a faint wet
@@ -10590,10 +10605,10 @@ class Look {
     { const w = 40, e = Math.exp(-w * dt);   // v10c: a critically damped ease to the new spot, settled in about 0.12 s, no snap
       for (let i = 0; i < 2; i++) { const g = i ? ly : lx, x = this.look[i] - g, c = this.lookV[i] + w * x; this.look[i] = g + (x + c * dt) * e; this.lookV[i] = (this.lookV[i] - c * w * dt) * e; } }
     const shut = this.blinkK > 0 && !NO_SHUT[this.exprB];
-    const pa = pupilOf(this.expr), pb = pupilOf(this.exprB), k = this.exprK, fang = this.fangs ? 6 : 0, ea = EXPR[this.expr], eb = EXPR[this.exprB];
+    const pa = pupilOf(this.expr), pb = pupilOf(this.exprB), k = this.exprK, fang = this.fangs ? 6 : 0, ag = U.fStyle.value === 1, xa = ag ? AGG[this.expr] : null, xb = ag ? AGG[this.exprB] : null, ea = xa || EXPR[this.expr], eb = xb || EXPR[this.exprB];
     const fm = c => fang ? c + (c >= 32 ? 1 : c >= 24 ? 4 : 6) : c; U.fCells.value.set(ea[0], fm(ea[1]), eb[0], fm(eb[1])); U.fMix.value.set(k, shut ? 1 : 0, 1, 6);
     U.fPupil.value.set(this.look[0], this.look[1], pa.pu + (pb.pu - pa.pu) * k, pa.py + (pb.py - pa.py) * k);
-    U.fComp.value.set(1, 1, 0, 0); U.uLag.value.w = this.t;
+    U.fComp.value.set(1, 1, ag ? (xa ? xa[2] : 0) + ((xb ? xb[2] : 0) - (xa ? xa[2] : 0)) * k : 0, ag ? (xa ? xa[3] : 0) + ((xb ? xb[3] : 0) - (xa ? xa[3] : 0)) * k : 0); U.uLag.value.w = this.t;
     if (this.coatMixT !== undefined) U.uCoatMix.value += (this.coatMixT - U.uCoatMix.value) * Math.min(1, dt * 3);
     // the paint's living state (v9b): the high water of the coat and of the wading band (they slip down after the level over a couple
     // of seconds: the runs the shader leaves above the edge reach up to them), the flow of the streaks (quicker while it drains) and
@@ -18305,7 +18320,7 @@ const WEAR_WHERE = { island: 'Palette Island', blank: 'Blank Canvas', halloween:
 const EYE_COLS = { brown: { name: 'Brown', lin: [0.16, 0.06, 0.035], css: '#8A5636' }, blue: { name: 'Blue', lin: [0.03, 0.1, 0.32], css: '#3B7BE0' }, green: { name: 'Green', lin: [0.04, 0.18, 0.05], css: '#46A853' },
   violet: { name: 'Violet', lin: [0.14, 0.045, 0.28], css: '#8E52DA' }, gold: { name: 'Gold', lin: [0.34, 0.17, 0.016], css: '#D8A41F' } };
 const EYE_KEYS = Object.keys(EYE_COLS);
-const EYE_STYLES = { round: 'Round', edgy: 'Squid', dot: 'Dot', sly: 'Sly', zombie: 'Zombie' }, EYE_STYLE_K = { round: 0, edgy: 1, dot: 2, zombie: 3, sly: 4 };
+const EYE_STYLES = { round: 'Round', edgy: 'Aggressive', dot: 'Dot', sly: 'Sly', zombie: 'Zombie' }, EYE_STYLE_K = { round: 0, edgy: 1, dot: 2, zombie: 3, sly: 4 };
 const NO_IRIS = k => k === 'dot' || k === 'zombie'; // (styles whose iris color is fixed)
 const WEAR_CAT = { head: 'head', side: 'head', eye: 'face', lash: 'face', mouth: 'face', neck: 'cloth', back: 'cloth' };
 for (const w of WEAR) w.cat = WEAR_CAT[w.slot] || 'face';
@@ -19052,7 +19067,7 @@ const WEAR_ICON = {
   hat: '<path d="M14 26c3-6 5-13 9-19 1 4 2 9 4 13l-1 6z" fill="#4A3378" stroke="#D9C8FF" stroke-width="1.6" stroke-linejoin="round"/><ellipse cx="20" cy="27.5" rx="15" ry="3.6" fill="#4A3378" stroke="#D9C8FF" stroke-width="1.6"/><path d="M14.2 23.2c3.6 1.2 8.4 1.2 12.6 0l.5 2.6c-4.4 1.4-9.4 1.4-13.8 0z" fill="#FF8A1F"/>',
   horns: '<path d="M9 30c-1-8 1-15 6-19-1 5 0 10 3 14zM31 30c1-8-1-15-6-19 1 5 0 10-3 14z" fill="#E1283E" stroke="#FFC2CC" stroke-width="1.6" stroke-linejoin="round"/>',
 };
-const ES_ICON_T = { round: '<svg viewBox="0 0 40 40"><ellipse cx="20" cy="20" rx="13" ry="12" fill="#fff" stroke="#171320" stroke-width="2.5"/><circle cx="21" cy="21" r="6" fill="#8A5636"/><circle cx="21.5" cy="21.5" r="3" fill="#171320"/><circle cx="19" cy="18.5" r="1.6" fill="#fff"/></svg>', edgy: '<svg viewBox="0 0 40 40"><path d="M3 20C8 11 16 9 23 12L37 8L30 16C33 20 30 26 24 29L15 36L13 29C7 28 3 24 3 20Z" fill="#171320"/><path d="M10 20C13 14 20 13 26 16C25 23 18 27 11 25C9.5 24 9.5 22 10 20Z" fill="#fff"/><path d="M10 9L22 5L21 9Z" fill="#171320"/><circle cx="18.5" cy="19.5" r="5.6" fill="#8A5636"/><circle cx="19" cy="20" r="3" fill="#171320"/><circle cx="16.4" cy="17.2" r="1.9" fill="#fff"/></svg>', dot: '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="9.5" fill="#171320"/><circle cx="16.5" cy="16.5" r="3" fill="#fff"/></svg>' };; ES_ICON_T.zombie = '<svg viewBox="0 0 40 40">' + WEAR_ICON.zombie + '</svg>'; ES_ICON_T.sly = '<svg viewBox="0 0 40 40">' + WEAR_ICON.sly + '</svg>';
+const ES_ICON_T = { round: '<svg viewBox="0 0 40 40"><ellipse cx="20" cy="20" rx="13" ry="12" fill="#fff" stroke="#171320" stroke-width="2.5"/><circle cx="21" cy="21" r="6" fill="#8A5636"/><circle cx="21.5" cy="21.5" r="3" fill="#171320"/><circle cx="19" cy="18.5" r="1.6" fill="#fff"/></svg>', edgy: '<svg viewBox="0 0 40 40"><defs><clipPath id="esAggC"><path d="M5.5 15.2L34.5 20.6C34.5 29 25 33.5 18.5 32.6C10 31.6 5.5 25 5.5 15.2Z"/></clipPath></defs><path d="M5.5 15.2L34.5 20.6C34.5 29 25 33.5 18.5 32.6C10 31.6 5.5 25 5.5 15.2Z" fill="#fff" stroke="#171320" stroke-width="2.2" stroke-linejoin="round"/><g clip-path="url(#esAggC)"><circle cx="20" cy="21.5" r="7.6" fill="#8A5636"/><circle cx="20.2" cy="21.8" r="3.6" fill="#171320"/><circle cx="17.4" cy="21" r="2" fill="#fff"/></g><path d="M4.6 15L35.4 20.8" stroke="#171320" stroke-width="3.6" stroke-linecap="round"/></svg>', dot: '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="9.5" fill="#171320"/><circle cx="16.5" cy="16.5" r="3" fill="#fff"/></svg>' };; ES_ICON_T.zombie = '<svg viewBox="0 0 40 40">' + WEAR_ICON.zombie + '</svg>'; ES_ICON_T.sly = '<svg viewBox="0 0 40 40">' + WEAR_ICON.sly + '</svg>';
 function renderLook() {
   const fresh = new Set(store.fresh || []);
   if (EXTRA.some(x => x.id === myLook.eyes) && !bought(myLook.eyes)) { myLook.eyes = 'round'; saveLook(); }
