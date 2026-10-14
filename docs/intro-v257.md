@@ -49,7 +49,7 @@ The music is new and is written on the theme (`music/menu.mp3`). It builds a lay
 | name (card) | "What do we call you?" Prefilled with a random name, dice for another (it bounces) | drive (everything) |
 | confirm (card) | "All set?" It waves. *Not yet* (back to the eye colour, standing now, every pick still live) or *Let's roll* | drive |
 | wink | Two tape strips slap in, it winks with a knowing tilt of the head (a sparkle and a star by its eye), crouches and leaps away into the scrapyard | riser, one bar |
-| hand-over | The iris closes as the sting hits and opens on the lobby; it jumps in from the left and lands on its spot | sting; one bar later the menu song comes in at its 8th bar |
+| hand-over | The iris closes as the sting hits and opens on the lobby; it jumps in from the left and lands on its spot | sting on that bar's chord; on the hit the menu song carries on from the same bar (v263) |
 
 Every card after the first has a *Back*.
 
@@ -106,7 +106,7 @@ Dm  A5 F5. D5 C6 | Am  C6. B5 A5 (C5 E5) | F  A5 C6 B5 G#5 | E  E5 . B4 C5 D5 E5
 | `music/intro_low.mp3` | 2, eye style | Bouncing root-and-octave bass, harp arpeggios | 254 KB |
 | `music/intro_tops.mp3` | 3, paint colour | Shaker sixteenths, off-beat hats | 218 KB |
 | `music/intro_drive.mp3` | 4, naming | Kick, snare, clap, a tom fill, the melody on strings an octave down | 254 KB |
-| `music/intro_sting.mp3` | the reveal | A one-bar riser into an E major hit (sub boom, crash, orchestra, celesta run up). E major is the dominant, so the theme's A minor resolves it | 145 KB |
+| `music/intro_sting.mp3` | the reveal | One sprite (v263, `tools/intro_hit.py`): a one-bar riser into an unpitched impact (sub boom, tom, kick, crash), then the pitched part of the hit (a run up, the orchestra and a celesta glissando) on each of the loop's chords, Dm, Am, Bb, E and F. The E part with the impact is the original E major hit | 376 KB |
 | `sfx/intro_fx.mp3` | effects | Barrel wobble, tip, pour, eyes pop, form, sparkle (Ludo.ai), one sprite | 93 KB |
 
 All loops are 17.31446 s (8 bars), with loop points `a = 0.25`, `b = 17.56444` and a pre-roll before `a`.
@@ -115,8 +115,8 @@ The engine is `AU.flm`, inside `makeAudio`:
 - It plays through `trkBus`, so the music switch, pause muffle and mute all apply. Effects go through `sfx`.
 - Each stem starts on one shared clock as soon as it decodes, so a slow network only delays a layer and never breaks sync.
 - Layer changes land on the next beat.
-- `AU.flm.sting(lead)` schedules the hit on the first bar line at least `lead` seconds away. The riser starts a bar before it, the stems stop on the hit, and the intro's timeline (wink, jump, iris) is timed from it.
-- The menu song is started one bar after the hit at offset 17.605 s (its bar 8, the melody's pickup bar). This skips its intro and lead-in build and carries on in tempo. It is set up as the game's own current track, so the rest of `AU.music` behaves as usual afterwards.
+- `AU.flm.sting(lead)` schedules the hit on the first bar line at least `lead` seconds away. The riser and impact start a bar before it, the pitched part is the chord of the bar the hit lands on, the stems stop on the hit, and the intro's timeline (wink, jump, iris) is timed from it.
+- (v263) The loop's eight bars are the menu song's bars 9 to 16 (the same chords, Dm Am Bb E Dm Am F E, checked by chroma bar by bar). On the hit, which lands on the loop's bar e, the menu song starts from its bar 9 + e at offset `MENU_AT + (1 + e)` bars, so it carries on from the same part of the song with no gap. `MENU_AT` is 17.627 s (the song's bar 8), set against the intro's own beat by cross-correlating the two songs' onsets (22 ms on from the earlier kick-onset estimate); after the hit the menu's beat sits within 0 to 9 ms of where the intro's would have been. It is set up as the game's own current track, so the rest of `AU.music` behaves as usual afterwards.
 - If sound never started (no tap, muted), the menu song starts the usual way.
 
 Nothing intro-related is fetched for anyone but a first-timer. For them, the fetch starts at the end of loading (the air stem first), so loading time is unchanged for everyone.
@@ -260,7 +260,7 @@ In the test build, `FL.peek()` reports the phase, draw calls and triangles, `FL.
 - **The music was judged by analysis, not by ear.** The key, the melody re-tracked from the rendered stems, the seams, the levels and the hand-over were all checked numerically. A listen to `docs/intro-v257-music-preview.mp3` and `intro-v257.mp4` should decide:
   - the mix balance;
   - the sting;
-  - the menu song's entry point: offset 17.605 s, its bar 8, measured from the kick onsets. If it lands a hair early or late, change `MENU_AT` in `tools/v257_intro_au.js`.
+  - the menu song's entry point: `MENU_AT` 17.627 s is its bar 8 (v263, measured against the intro's beat). If it lands a hair early or late, change `MENU_AT` in `tools/v257_intro_au.js`.
 - **The wink is subtle on the Squid and Dot eyes**, since those styles darken the eye. The sparkle and star sell it.
 - **No skip button.** The intro is about 47 seconds (9 of them the sky and the title), with four choices and a check in it. Quitting halfway shows it again next launch.
 - **Fallback fonts:** if the web fonts haven't arrived when the barrel's label is drawn, it is drawn again once they have.

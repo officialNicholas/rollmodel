@@ -3392,7 +3392,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 262</p>
+      <p class="ver">Version 263</p>
     </div>
   </div>
 
@@ -13509,11 +13509,17 @@ function makeAudio() {
     _trk(k) { return k ? !!(TRK[k] && TRK[k].buf) : trk && trk.key; },
     // (v257) the first launch's music, written on the theme: its key, its tempo (110.89 a minute), its chords and its main melody, in five
     // stems of one 8-bar loop on one clock (air, keys, low, tops, drive), brought in a layer at a time on the beat as the look comes
-    // together. At the end a riser into the sting (the E major hit the theme's A minor answers), and a bar later the menu song comes in on
-    // the downbeat of its eighth bar, where its melody starts, so it carries on in time. It plays through the track bus (the music switch
-    // and the pause muffle work on it as on any song); the intro's effects go through the effects bus
+    // together. The loop's eight bars are the menu song's bars 9 to 16 (its melody, on the same chords), so at the end a riser leads into a
+    // hit on a bar line (v263: voiced on that bar's chord), and on the hit the menu song carries on from that very bar, in time: the intro
+    // flows straight into it. It plays through the track bus (the music switch and the pause muffle work on it as on any song); the intro's
+    // effects go through the effects bus
     flm: (() => {
-      const LOOP = { a: 0.25, b: 17.56444 }, BEAT = 60 / 110.89, BAR = BEAT * 4, LV = 0.21, MENU_AT = 17.605, STEMS = ['air', 'keys', 'low', 'tops', 'drive'];
+      const LOOP = { a: 0.25, b: 17.56444 }, BEAT = 60 / 110.89, BAR = BEAT * 4, LV = 0.21, MENU_AT = 17.627, STEMS = ['air', 'keys', 'low', 'tops', 'drive'];
+      // (v263) the menu song's bar 8 starts at MENU_AT in its file (measured against the intro's own beat: 22 ms on from the kick-onset
+      // estimate), so the loop's bar e is the song's bar 9 + e at MENU_AT + (1 + e) bars. The hit is one sprite: the riser and impact
+      // (imp, the hit a bar in), then the pitched part on each of the loop's chords (each starting HIT_LEAD before its hit)
+      const HIT = { imp: [0.0, 6.36429], dm: [6.51429, 4.8], am: [11.46429, 4.8], bb: [16.41429, 4.8], e: [21.36429, 4.8], f: [26.31429, 4.8] }, HIT_LEAD = 0.6;
+      const CHORD = ['dm', 'am', 'bb', 'e', 'dm', 'am', 'f', 'e'];
       const FX = { wobble: [0, 0.524], tip: [0.824, 0.55], pour: [1.673, 3.919], eyes: [5.893, 0.393], form: [6.585, 1.255], sparkle: [8.14, 0.8], tumble: [9.24, 2.326] };
       // each layer: how loud each stem is (the air steps back a little as the rest come in)
       const LAY = [[1, 0, 0, 0, 0], [0.9, 1, 0, 0, 0], [0.8, 1, 1, 0, 0], [0.7, 1, 1, 1, 0], [0.55, 1, 1, 1, 1]];
@@ -13542,13 +13548,14 @@ function makeAudio() {
         const S = M.S; if (!S) return; const t = next(BEAT);
         for (const k in S.n) { const g = S.n[k].g.gain; g.cancelScheduledValues(t); g.setTargetAtTime(lvlOf(k, M.lay), t, BEAT * 0.35); }
       }
-      // the menu song from its eighth bar, starting at t (in time with the intro: they share the tempo)
-      function menuAt(t) {
+      // the menu song from bar 9 + e (the bar the intro's loop had reached), starting at t on that bar's downbeat: the same tempo, the same
+      // chord, the melody carrying on where the intro's had got to
+      function menuAt(t, e) {
         const R = TRK.menu; if (!R || !R.buf) { setTimeout(() => { lastMode = 'none'; api.music('menu'); }, Math.max(0, (t - T()) * 1000)); return; }
         trkStop(0.3); const src = ctx.createBufferSource(), g = ctx.createGain(), lvl = R.k * TRK_LVL.menu;
         src.buffer = R.buf; src.loop = true; src.loopStart = R.a; src.loopEnd = Math.min(R.b, R.buf.duration);
-        g.gain.setValueAtTime(0, t - 0.01); g.gain.linearRampToValueAtTime(lvl, t + 0.02); src.connect(g); g.connect(trkBus); src.start(t - 0.01, MENU_AT - 0.01);
-        trk = { key: 'menu', src, g, t0: t - MENU_AT }; trkWant = 'menu'; trkPend = null; musOn = false; mus.gain.cancelScheduledValues(t); mus.gain.setTargetAtTime(0, t, 0.1); lastMode = 'menu';
+        g.gain.setValueAtTime(0, t - 0.01); g.gain.linearRampToValueAtTime(lvl, t + 0.02); src.connect(g); g.connect(trkBus); const off = MENU_AT + (1 + e) * BAR; src.start(t - 0.01, off - 0.01);
+        trk = { key: 'menu', src, g, t0: t - off }; M.hand = { e, off, at: t }; trkWant = 'menu'; trkPend = null; musOn = false; mus.gain.cancelScheduledValues(t); mus.gain.setTargetAtTime(0, t, 0.1); lastMode = 'menu';
       }
       return {
         // fetch and decode (the air first: the music can begin as soon as it's in); nothing here is asked for unless the intro runs
@@ -13562,20 +13569,23 @@ function makeAudio() {
         renew() { M.S = null; if (M.on) begin(); },
         layer(n) { n = Math.max(0, Math.min(LAY.length - 1, n | 0)); if (n <= M.lay) return; M.lay = n; apply(); },
         get lay() { return M.lay; },
+        get hand() { return M.hand || null; }, // (v263, for tests: the bar it handed over on and the song's offset)
         // how many beats into the loop's clock it is (null when it isn't playing): the character nods along to it
         beat() { const S = M.S; return S && ctx ? (T() - S.t0) / BEAT : null; },
         // one of the intro's own effects (false if it isn't in yet, so the caller can use one of the game's)
         fx(k, v) { const R = B.fx, s = FX[k]; if (!ctx || !R || !s || !sfx || ctx.state !== 'running') return false;
           try { const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = R; g.gain.value = (v == null ? 1 : v) * 0.9; src.connect(g); g.connect(sfx); src.start(T() + 0.005, s[0], s[1]); } catch (e) { return false; } return true; },
-        // the reveal: the hit on the first bar line at least lead seconds away (its riser a bar before), the loop let go on it, and the menu
-        // song a bar after. How long until the hit, in seconds
+        // the reveal: the hit on the first bar line at least lead seconds away (its riser a bar before, its chord that bar's), the loop let
+        // go on it, and on it the menu song from the same bar. How long until the hit, in seconds
         sting(lead) {
           M.on = false; if (!ctx || ctx.state !== 'running') return lead;
-          const S = M.S, hit = S ? next(BAR, lead) : T() + lead;
-          if (B.sting && trkBus) { const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = B.sting; g.gain.value = LV * 1.2; src.connect(g); g.connect(trkBus); const st = hit - BAR;
-            if (st >= T()) src.start(st); else src.start(T(), T() - st); }
+          const S = M.S, hit = S ? next(BAR, lead) : T() + lead, e = S ? ((Math.round((hit - S.t0) / BAR) % 8) + 8) % 8 : 0;
+          // (one part of the sprite, from `at` seconds: started partway in if that's already gone by)
+          const part = (k, at) => { const sg = HIT[k]; if (!sg) return; const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = B.sting; g.gain.value = LV * 1.2; src.connect(g); g.connect(trkBus);
+            const late = Math.max(0, T() - at); if (late < sg[1]) src.start(at + late, sg[0] + late, sg[1] - late); };
+          if (B.sting && trkBus) { part('imp', hit - BAR); part(CHORD[e], hit - HIT_LEAD); }
           if (S) { for (const k in S.n) { const n = S.n[k]; n.g.gain.cancelScheduledValues(T()); n.g.gain.setTargetAtTime(n.g.gain.value * 1.08, hit - BAR, BEAT); n.g.gain.setTargetAtTime(0, hit - 0.01, 0.04); try { n.src.stop(hit + 0.5); } catch (e) {} } M.S = null; }
-          menuAt(hit + BAR); return Math.max(0, hit - T());
+          menuAt(hit, e); return Math.max(0, hit - T());
         },
         end() { M.on = false; M.gone = true; const S = M.S; if (S && ctx) for (const k in S.n) { const n = S.n[k]; n.g.gain.cancelScheduledValues(T()); n.g.gain.setTargetAtTime(0, T(), 0.15); try { n.src.stop(T() + 0.8); } catch (e) {} }
           M.S = null; setTimeout(() => { for (const k in B) delete B[k]; }, 3000); },
