@@ -3389,7 +3389,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 272</p>
+      <p class="ver">Version 273</p>
     </div>
   </div>
 
@@ -20824,6 +20824,14 @@ function tutRocket(D, dt) {
 const TG_REST = ['Now <em>win it!</em>', 'Beat him and cover as much of the canvas as you can. Bonus points every time you take him out.', 'Let\u2019s do it!'];
 function tutCardText(t) { $('tgTitle').innerHTML = t[0]; $('tgText').textContent = t[1]; $('tgGo').textContent = t[2]; $('tgLater').hidden = !t[3]; if (t[3]) $('tgLater').textContent = t[3]; }
 // the welcome to the real game: commissions open, and what to chase next
+// (v273) back in the lobby after the Strokes lesson: Ol' Bloop tells you the new game modes are open. Once, for whoever has just finished it
+function tutModesDue() { return tutPh() === 'done' && store.tut.modes === 'due' && evUnlocked() && state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden && $('tutGo').hidden && !vic; }
+function tutModesCard() {
+  const el = $('tutGo'); if (!el.hidden) return; el.dataset.mode = 'modes'; store.evNew = Object.assign(store.evNew || {}, { solo: 1, showdown: 1 }); menu.classList.add('tutoring');
+  tutCardText(['New game <em>modes!</em>', 'Time trial and Showdown are open now. Time trial: paint all you can in 60 seconds and beat your best. Showdown: two hearts each, last one standing wins.', 'Show me', 'Later']);
+  el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); tutCardCoach(); AU.fanfare && AU.fanfare(); AU.bloop(0.55); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);
+}
+function tutModesDone(open) { const el = $('tutGo'); el.classList.remove('on'); el.hidden = true; coachCorner(null); el.dataset.mode = ''; store.tut.modes = 1; save(); menu.classList.remove('tutoring'); if (open) setTimeout(() => openEvents(), 250); }
 function tutWelcome() {
   const el = $('tutGo'); if (!el.hidden) return; el.dataset.mode = 'welcome';
   tutCardText(['Commissions <em>are open!</em>', 'Commissions are goals that pay extra dabs, and they refresh every day. Check in whenever you\u2019re here.', 'Show me', 'Later']);
@@ -20845,11 +20853,12 @@ function tutStrokesCard(n) {
   if (el.hidden) { el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); } tutCardCoach(); if (n === 1) { store.evNew = { solo: 1, showdown: 1 }; AU.fanfare && AU.fanfare(); AU.bloop(0.55); menu.classList.add('tutoring'); } else AU.bloop(0.5); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);
 }
 function tutStrokesGo() { const el = $('tutGo'), m = el.dataset.mode; if (m === 'strokes1') return tutStrokesCard(2); el.classList.remove('on'); el.hidden = true; coachCorner(null); el.dataset.mode = ''; store.tut.strokes = 'on'; tutSet('strokes'); openStrokes(); } /* (straight onto the page: no lobby tip flashing up first) */
-function tutStrokesEnd() { tutSDone = 0; store.tut.strokes = 1; tutSet('done'); save(); tutHide(); menu.classList.remove('tutoring'); }
+function tutStrokesEnd() { tutSDone = 0; store.tut.strokes = 1; if (!store.tut.modes) store.tut.modes = 'due'; tutSet('done'); save(); tutHide(); menu.classList.remove('tutoring'); }
 function tutStrokesTick() {
   if (state !== 'menu' || building || irisBusy || !setModal.hidden || !nameModal.hidden || !howModal.hidden) return tutHide();
   if (shopOpen) return tutShow('Back to the lobby', 'shopBack', 'back'); if (lookOpen) return tutShow('Back to the lobby', 'lkDone', 'back');
   if (menuPage === 'worlds') return tutShow('Back to the lobby', 'worldBack', 'back'); if (menuPage === 'events') return tutShow('Back to the lobby', 'evBack', 'back');
+  if (!strokesOpen() && strokeSpecial() === 'giant' && strokesOf().own.includes('giant')) return tutStrokesEnd(); // (v273: done, and back out: the lesson's over)
   if (!strokesOpen()) return tutShow('Tap Strokes to open it', 'abilBtn', 'sOpen');
   const d = strokesOf(), giant = () => $('stSpecialRail').querySelector('.stopt[data-st="giant"]');
   if (stPopId && stPopId !== 'giant' && !(d.craft && d.craft.id === stPopId)) closeStPop(true); // (v257: the lesson walks the Giant's card)
@@ -20868,8 +20877,8 @@ function tutCard(on) {
   if (on) { el.dataset.mode = 'rest'; tutCardText(TG_REST); matchLeft = 10; tut.card = true; tut.slowK = 0; bannerEl.classList.remove('on'); el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); tutCardCoach(); AU.fanfare && AU.fanfare(); AU.bloop(0.55); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60); return; }
   el.classList.remove('on'); el.hidden = true; coachCorner(null); if (tut) { if (tut.card) { P.paint = 1; P.slamCD = 0; matchLeft = 10; banner('Paint it ' + colorOf().name.toLowerCase() + '!', TH.label, false, true); tutFinStart(); } /* (Let's do it: a full tank and the pound ready for the final push) */ tut.card = false; tut.slowK = 1; }
 }
-$('tgGo').addEventListener('click', () => { AU.init(); AU.ui(); const m = $('tutGo').dataset.mode; if (m === 'welcome') tutWelcomeDone(true); else if (m === 'strokes1' || m === 'strokes2') tutStrokesGo(); else tutCard(false); });
-$('tgLater').addEventListener('click', () => { AU.init(); AU.ui(); tutWelcomeDone(false); });
+$('tgGo').addEventListener('click', () => { AU.init(); AU.ui(); const m = $('tutGo').dataset.mode; if (m === 'welcome') tutWelcomeDone(true); else if (m === 'modes') tutModesDone(true); else if (m === 'strokes1' || m === 'strokes2') tutStrokesGo(); else tutCard(false); });
+$('tgLater').addEventListener('click', () => { AU.init(); AU.ui(); if ($('tutGo').dataset.mode === 'modes') return tutModesDone(false); tutWelcomeDone(false); });
 // the first real match: no weather until halfway, then the sun in three short steps (find shade, with the way to it shown; hold to stay put in
 // it; or hide in a coffin), then the rain in one plain line, no slow-down, then the zombie eyes turn up close by. Your paint lasts longer
 // this match (stepBlob), and the orb comes up near you (orbSpawn)
@@ -21170,9 +21179,10 @@ function tutEndMatch() { // (as a match ends)
 }
 function tutFangsSale() { const t = store.tut.price || (store.tut.price = {}); if (t.fangs >= 0) return; if (!OWNED.has('fangs')) { OWNED.add('fangs'); store.owned = [...OWNED]; } t.fangs = store.drops || 0; save(); if (shopOpen) renderShop(); }
 // between matches the coach points the way: the shop for the flower and the fangs, the locker to wear them, then the canvases to vote
-const tutBootEl = $('boot'), tutOrientEl = $('orient'); let tutStrokesAt = 0, tutSDone = 0, tutCommsAt = 0;
+const tutBootEl = $('boot'), tutOrientEl = $('orient'); let tutStrokesAt = 0, tutSDone = 0, tutCommsAt = 0, tutModesAt = 0;
 function tutMenuTick() {
   if (tutPh() === 'done' && tutStrokesDue()) { if (!tutStrokesAt) tutStrokesAt = performance.now(); if (performance.now() - tutStrokesAt > 1200) tutStrokesCard(1); return; } /* (a beat of the lobby, then the praise) */
+  if (tutPh() === 'done' && tutModesDue()) { if (!tutModesAt) tutModesAt = performance.now(); if (performance.now() - tutModesAt > 700) tutModesCard(); return; } else tutModesAt = 0;
   if (tutPh() === 'done' && tutCommsDue()) { if (!tutCommsAt) tutCommsAt = performance.now(); if (performance.now() - tutCommsAt > 1200) { menu.classList.add('tutoring'); tutWelcome(); } return; } /* (rank 3: commissions open) */
   if (tutPh() === 'done') { if (menu.classList.contains('tutoring')) menu.classList.remove('tutoring'); if (!(state === 'play' && tutTip && tutTip.key === 'protip')) tutHide(); return; } /* (the onboarding is over: nothing to point at, so no hunting the page for open dialogs every frame) */
   if ((FL && FL.busy()) || bootHold || !booted || !tutBootEl.classList.contains('gone') || !tutOrientEl.hidden || document.querySelector('.modal:not([hidden]):not(#stPop)')) return tutHide(); // (nothing over the loading screen, the orientation chooser or any dialog) // (nothing over the loading screen: its tap to start must get through)
