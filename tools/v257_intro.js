@@ -445,7 +445,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     sky: () => { const u = ease5(X.ph === 'sky' ? X.pt / SKY.pan : X.ph === 'wait' ? 0 : 1); return { pos: _sp.set(0.95, 0.3 + 0.12 * u, 3.7), yaw: 2.99 - 0.03 * u, pitch: 0.4 + 0.05 * u, dof: 0 }; },
     barrel: () => ({ t: _st.set(-0.6, 0.42, -0.25), r: 0.78, yaw: 0.28, p: 0.14, dof: 0.35 }),
     tip: () => ({ t: _st.set(0.1, 0.22, 0.05), r: 1.15, yaw: 0.14, p: 0.3, dof: 0.25 }),
-    eyes: () => ({ t: _st.set(X.ch.x, 0.06, X.ch.z), r: 0.46, yaw: 0.04, p: 0.3, dof: 1 }),
+    eyes: () => ({ t: _st.set(C0.x, 0.06, C0.z), r: 0.46, yaw: 0.04, p: 0.3, dof: 1 }), // (where its head comes up)
     paint: () => ({ t: _st.set(X.ch.x - 0.05, 0.08, X.ch.z), r: 0.72, yaw: 0.08, p: 0.4, dof: 0.75 }),
     form: () => ({ t: _st.set((C0.x + LAND.x) / 2, 0.32, (C0.z + LAND.z) / 2), r: 0.95, yaw: 0.06, p: 0.3, dof: 0.4 }),
     name: () => ({ t: _st.set(LAND.x, 0.3, LAND.z), r: 0.5, yaw: -0.14, p: 0.16, dof: 0.95 }),
@@ -575,7 +575,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     if (!X.lid.on) { const m = X.drum.lid.position; proj(_a.copy(m), _pa); add(_pa.x, _pa.y, _pa.x + 0.001, _pa.y, BR.R * 0.9 * Math.min(1, 0.4 + m.y * 0), 0.03); }
     // the character: its body, low and high, where the sun throws them (out in the paint, only once it's up out of it)
     if (X.tw.on) { proj(_a.set(X.tw.x, X.tw.y, X.tw.z), _pa); add(_pa.x, _pa.y, _pa.x + 0.001, _pa.y, TW_R * 0.8, 0.06); }
-    const c = X.ch, hp = X.hold.position; if (X.hold.visible && c.y > 0.02) { _a.set(hp.x, Math.max(0, c.y - PR) + 0.05, hp.z); _b.set(hp.x, Math.max(0, c.y - PR) + 0.3, hp.z); // (where it is now, a step to the side and all)
+    const c = X.ch, hp = X.hold.position; if (X.hold.visible && c.y > 0.02 && !(X.climb && X.out < 0.6)) { _a.set(hp.x, Math.max(0, c.y - PR) + 0.05, hp.z); _b.set(hp.x, Math.max(0, c.y - PR) + 0.3, hp.z); // (where it is now, a step to the side and all)
       proj(_a, _pa); proj(_b, _pb); add(_pa.x, _pa.y, _pb.x, _pb.y, 0.15, 0.03 + c.h * 0.05); }
     X.floor.U.uNC.value = n;
   }
@@ -652,17 +652,17 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
   const pressed = (box, attr, k) => { for (const b of $(box).children) b.setAttribute('aria-pressed', String(b.getAttribute(attr) === k)); };
   function pickIris(k) {
     if (!EYE_COLS[k]) return; myLook.iris = k; X.I.setIris && X.I.setIris(EYE_COLS[k].lin); pressed('flIrisO', 'data-i', k);
-    X.I.blink && X.I.blink(); X.ch.pop = 1; snd('pop'); if (!X.stood) ripple(X.ch.x, X.ch.z, 0.35); move('tilt');
+    X.I.blink && X.I.blink(); X.ch.pop = 1; snd('pop'); if (!X.stood) ripple(C0.x, C0.z, 0.35); move('tilt');
   }
   function pickStyle(k) {
     myLook.eyes = k; X.I.setEyeStyle && X.I.setEyeStyle(EYE_STYLE_K[k] || 0); pressed('flStyleO', 'data-s', k);
-    X.I.flutter && X.I.flutter(3); X.ch.pop = 1.4; snd('pop'); if (!X.stood) ripple(X.ch.x, X.ch.z, 0.5); move('proud');
+    X.I.flutter && X.I.flutter(3); X.ch.pop = 1.4; snd('pop'); if (!X.stood) ripple(C0.x, C0.z, 0.5); move('proud');
   }
   function pickPaint(id) {
     const c = PALETTE.find(p => p.id === id); if (!c) return; X.paintTo = new THREE.Color(c.hex); X.paintId = id; X.pearlTo = 0;
     setColor(id); X.I.setColor && X.I.setColor(new THREE.Color(c.hex)); pressed('flPaintO', 'data-c', id); $('flPaintGo').disabled = false;
     // a splash of it: the puddle heaves and throws up a few drops
-    const cx = X.stood ? C0.x : X.ch.x, cz = X.stood ? C0.z : X.ch.z;
+    const cx = C0.x, cz = C0.z;
     for (let i = 0; i < 12; i++) { const a = rand() * 6.283, s = rnd(0.5, 1.4); spawn(new V3(cx + Math.cos(a) * 0.25, 0.03, cz + Math.sin(a) * 0.25), new V3(Math.cos(a) * s, rnd(1.5, 2.8), Math.sin(a) * s), rnd(0.012, 0.024), new THREE.Color(c.hex)); }
     ripple(cx, cz, 0.8); snd('splat', 0.7); X.ch.pop = 1.2; X.I.blink && X.I.blink(); buzz(10); if (X.ph === 'paint') move(X.stood ? 'admire' : 'ears');
     if (X.stood && X.I.popIn) X.I.popIn(); // (standing: the new paint washes up over it and bursts off, the game's own way)
@@ -711,7 +711,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     else if (k === 'tilt') { const a = seg(u, 0.04, 0.3), over = Math.sin(clamp((u - 0.12) / 0.3, 0, 1) * Math.PI) * 0.18, back = seg(u, 0.74, 1), kk = (a + over * a) * (1 - back);
       o.roll = sd * 0.26 * kk; o.pitch = 0.12 * kk; o.sway = -sd * 0.12 * kk; o.rise = 0.06 * kk; o.lx = 0.03 * sd * kk; o.ly = 0.14 * kk; o.face = kk > 0.3 ? 'curious' : null; if (at('e', u, 0.15)) flick(-sd, 0.4); }
     // (a new eye style: chin up, a smirk)
-    else if (k === 'proud') { const kk = seg(u, 0.04, 0.25) * (1 - seg(u, 0.78, 1)); o.pitch = 0.16 * kk; o.rise = 0.06 * kk; o.ly = 0.04 * kk; o.face = kk > 0.3 ? 'smirk' : null; if (at('e', u, 0.08)) flick(0, 0.4); }
+    else if (k === 'proud') { const kk = seg(u, 0.04, 0.25) * (1 - seg(u, 0.78, 1)); o.pitch = 0.16 * kk; o.rise = 0.06 * kk; o.ly = 0.04 * kk; o.face = kk > 0.3 ? (X.stood ? 'smirk' : 'happy') : null; /* (down in the paint its lids don't show: a wink would lose an eye) */ if (at('e', u, 0.08)) flick(0, 0.4); }
     // (standing, a new coat: a look down over one shoulder at itself, then the other, its ears wagging, pleased)
     else if (k === 'admire') { const x = seg(u, 0.04, 0.22) - 2 * seg(u, 0.4, 0.58) + seg(u, 0.76, 0.94), dn = seg(u, 0.02, 0.18) * (1 - seg(u, 0.78, 0.96));
       o.lx = 0.07 * sd * x; o.ly = -0.06 * dn; o.pitch = -0.08 * dn; o.roll = -0.08 * sd * x; o.face = dn > 0.3 ? 'glee' : null; if (at('w1', u, 0.3)) flick(sd, 0.5); if (at('w2', u, 0.62)) flick(-sd, 0.45); }
@@ -750,6 +750,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
   // where it is, and how it moves, by the phase
   function story(dt) {
     const c = X.ch, F = X.flags, once = k => F[k] ? false : (F[k] = true), I = X.I; let t = X.pt;
+    X.climb = false; // (down in the paint or climbing out of it: sunk() says so this frame)
     c.air = false; c.sq = 0; c.rise = 0; let wy = 0, wp = 0.06, hr = 0, hp = 0;
     const cards = X.ph === 'iris' || X.ph === 'style' || X.ph === 'paint' || X.ph === 'name' || X.ph === 'confirm';
     X.mv = movesTick(dt, cards && X.pt > 0.5, X.stood);
@@ -776,10 +777,12 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
       streamAt(t);
       // a bubble or two comes up where it's going to surface; then the eyes come up out of it (stretching up, then settling) and look
       // about, the head tipping and an ear flicking with each look
-      for (const [k, at, v] of [['b1', 5.55, 0.18], ['b2', 5.85, 0.26]]) if (t >= at && once(k)) { ripple(c.x + rnd(-0.05, 0.05), c.z + rnd(-0.05, 0.05), v); AU.glug && AU.glug(0.4 + v); }
-      if (t >= 6.2 && once('pop')) { X.hold.visible = true; snd('eyes', 1); ripple(c.x, c.z, 1); I.face && I.face('startle', 0.6); }
+      for (const [k, at, v] of [['b1', 5.55, 0.18], ['b2', 5.85, 0.26]]) if (t >= at && once(k)) { ripple(C0.x + rnd(-0.05, 0.05), C0.z + rnd(-0.05, 0.05), v); AU.glug && AU.glug(0.4 + v); }
+      if (t >= 6.2 && once('pop')) { X.hold.visible = true; snd('eyes', 1); ripple(C0.x, C0.z, 1); I.face && I.face('startle', 0.6); }
+      // (v266) down in the paint it lies along its way out, as in the game's basin: the bottom of the hole comes up under it and its eyes
+      // come up out of the paint (overshooting a little, then settling)
       const up = t < 6.2 ? 0 : 1 - Math.exp(-(t - 6.2) * 7) * Math.cos((t - 6.2) * 15);
-      c.y = -0.9 + (eyeY() + 0.9) * up;
+      sunk(0, 0.9 * (1 - up));
       if (t >= 6.2 && t < 7.2) c.sq = -0.3 * Math.exp(-(t - 6.2) * 6) * Math.cos((t - 6.2) * 13);
       if (t > 6.9 && t < 7.6) { wy = 0.7; hr = 0.1; } else if (t >= 7.6 && t < 8.4) { wy = -0.7; hr = -0.1; } else wy = 0;
       if (t >= 6.9 && once('tw1')) twitch(); if (t >= 7.6 && once('tw2')) twitch();
@@ -790,22 +793,23 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     }
     if (X.ph === 'iris' || X.ph === 'style' || X.ph === 'paint') {
       tiltAt(Math.PI / 2);
-      if (X.stood) { c.x = LAND.x; c.z = LAND.z; c.y = PR; c.yaw += (0 - c.yaw) * Math.min(1, dt * 8); wy = Math.sin(X.t * 0.5) * 0.12; wp = 0.12; }
-      else { c.y += (eyeY() - c.y) * Math.min(1, dt * 6); wy = Math.sin(X.t * 0.6) * 0.25 + Math.sin(X.t * 1.7) * 0.06; wp = 0.08; }
+      if (X.stood) { c.x = LAND.x; c.z = LAND.z; c.y = PR; c.yaw += (STAND_YAW - c.yaw) * Math.min(1, dt * 8); wy = Math.sin(X.t * 0.5) * 0.12; wp = 0.12; }
+      else { sunk(0, 0); wy = Math.sin(X.t * 0.6) * 0.25 + Math.sin(X.t * 1.7) * 0.06 - CY * 0.8; wp = 0.08; } // (its head turned to the camera)
     }
     if (X.ph === 'form') {
       tiltAt(Math.PI / 2);
-      // it gathers itself up out of the paint (stretching up, the paint running off it), crouches, and jumps clear
-      if (once('f0')) { snd('form', 1); I.face && I.face('focus', 1.2); }
-      const ru = eOut(t / 0.9); c.y = eyeY() + (PR - eyeY()) * ru; c.wade = 1; if (t < 0.9) { c.rise = 0.45 * Math.sin(ru * Math.PI); c.sq = -0.12 * Math.sin(ru * Math.PI); hp = -0.1 * Math.sin(ru * Math.PI); }
-      if (t < 0.9 && rand() < dt * 30) { const a = rand() * 6.283; spawn(new V3(c.x + Math.cos(a) * 0.2, 0.02, c.z + Math.sin(a) * 0.2), new V3(Math.cos(a) * 0.4, rnd(0.8, 1.6), Math.sin(a) * 0.4), rnd(0.01, 0.02)); }
-      if (t > 0.95 && t < 1.2) { c.sq = 0.4 * Math.sin((t - 0.95) / 0.25 * Math.PI); hp = 0.12 * Math.sin((t - 0.95) / 0.25 * Math.PI); }
-      const J0 = 1.2, J1 = 1.95;
-      if (t >= J0 && once('jump')) { AU.jump && AU.jump(); AU.vox && AU.vox('hyah', 0.8); ripple(c.x, c.z, 1); for (let i = 0; i < 14; i++) { const a = rand() * 6.283, s = rnd(0.6, 1.6); spawn(new V3(c.x + Math.cos(a) * 0.2, 0.04, c.z + Math.sin(a) * 0.2), new V3(Math.cos(a) * s, rnd(2, 3.4), Math.sin(a) * s), rnd(0.014, 0.028)); } }
-      if (t >= J0 && t < J1) { const u = (t - J0) / (J1 - J0), H = 0.85; c.x = C0.x + (LAND.x - C0.x) * u; c.z = C0.z + (LAND.z - C0.z) * u; c.h = 4 * H * u * (1 - u); c.y = PR + c.h; c.vy = 4 * H * (1 - 2 * u) / (J1 - J0); c.air = true; c.rise = u < 0.5 ? 0.6 : 0.2; hp = -0.15 * (1 - 2 * u);
-        if (rand() < dt * 25) spawn(new V3(c.x, c.y - 0.1, c.z), new V3(rnd(-0.3, 0.3), -0.5, rnd(-0.3, 0.3)), rnd(0.01, 0.018)); }
-      if (t >= J1) { c.x = LAND.x; c.z = LAND.z; c.y = PR; c.h = 0; const k = t - J1; c.sq = Math.max(0, 0.5 * Math.exp(-k * 7) * Math.cos(k * 16)); }
-      if (t >= J1 && once('land')) { AU.land && AU.land(0.9); snd('splat', 1.1); X.cs.shake = 0.7; buzz(18); splat(LAND.x, LAND.z, 0.24); burst(LAND.x, LAND.z, 9, 0.8); for (let i = 0; i < 18; i++) { const a = i / 18 * 6.283, s = rnd(1, 2); spawn(new V3(LAND.x + Math.cos(a) * 0.2, 0.04, LAND.z + Math.sin(a) * 0.2), new V3(Math.cos(a) * s, rnd(1, 2.2), Math.sin(a) * s), rnd(0.01, 0.022)); } }
+      // (v266) it climbs out the way it climbs out of a basin in the game: hauling itself up the bank of the hole on all fours, hands
+      // reaching up onto the floor, body pitched up the slope, slowest as its chest goes over the lip, hips and tail out last, the paint
+      // running off it; then it shakes itself off
+      const GO = 0.15, CT = 1.8, J1 = GO + CT, u = crPath((t - GO) / CT);
+      if (once('f0')) { snd('form', 1); I.face && I.face('focus', J1); }
+      if (t >= GO && once('hup')) { AU.vox && AU.vox('hup', 0.7); ripple(C0.x, C0.z, 0.7); }
+      const fl = smoothstep(J1 + 0.1, J1 + 0.7, t); if (fl < 1) sunk(u, 0, fl); else { c.x = LAND.x; c.z = LAND.z; c.y = PR; c.yaw += (STAND_YAW - c.yaw) * Math.min(1, dt * 3); } c.wade = 1; // (out, it turns to face you)
+      const lx = PC.x + DIR.x * CR.lip, lz = PC.z + DIR.z * CR.lip; // (the lip of the hole, where it comes up over)
+      if (u > 0.08 && u < 0.85 && rand() < dt * 22) { const a = rand() * 6.283; spawn(new V3(lx + Math.cos(a) * 0.15, 0.03, lz + Math.sin(a) * 0.15), new V3(Math.cos(a) * 0.35, rnd(0.6, 1.3), Math.sin(a) * 0.35), rnd(0.008, 0.016)); }
+      if (u > 0.55 && once('mid')) { ripple(lx, lz, 0.8); AU.glug && AU.glug(0.5); for (let i = 0; i < 10; i++) { const a = i / 10 * 6.283, sp = rnd(0.5, 1.1); spawn(new V3(lx + Math.cos(a) * 0.2, 0.03, lz + Math.sin(a) * 0.2), new V3(Math.cos(a) * sp, rnd(1, 1.9), Math.sin(a) * sp), rnd(0.01, 0.02)); } }
+      if (t >= J1 && once('land')) { AU.land && AU.land(0.35); buzz(10); ripple(lx, lz, 0.5); }
+      if (t >= J1) { const k = t - J1, osc = 0.32 * Math.exp(-k * 6) * Math.cos(k * 15); c.sq = Math.max(0, osc); c.rise = Math.max(0, -osc) * 0.6; }
       // and shakes the paint off, then looks up at you, pleased
       if (t >= J1 + 0.38 && once('shake')) { I.shake && I.shake(1); I.coatBurst && I.coatBurst(0.16); AU.vox && AU.vox('brr', 0.6); }
       if (t >= J1 + 1.05 && once('pleased')) { I.face && I.face('glee', 0.8); twitch(); }
@@ -813,7 +817,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
       if (t >= J1 + 0.3) c.wade = Math.max(0.25, c.wade - dt * 1.5);
       if (t >= J1 + 1.45) go('name');
     }
-    if (X.ph === 'name' || X.ph === 'confirm') { tiltAt(Math.PI / 2); c.x = LAND.x; c.z = LAND.z; c.y = PR; c.yaw += (0 - c.yaw) * Math.min(1, dt * 8); wy = Math.sin(X.t * 0.5) * 0.12; wp = 0.12;
+    if (X.ph === 'name' || X.ph === 'confirm') { tiltAt(Math.PI / 2); c.x = LAND.x; c.z = LAND.z; c.y = PR; c.yaw += (STAND_YAW - c.yaw) * Math.min(1, dt * 8); wy = Math.sin(X.t * 0.5) * 0.12; wp = 0.12;
       if (Math.floor(X.t / 3.3) !== X.flags.gl) { X.flags.gl = Math.floor(X.t / 3.3); if (X.flags.gl % 3 === 2) { X.ch.pop = 0.7; I.blink && I.blink(); } } }
     if (X.ph === 'wink') {
       tiltAt(Math.PI / 2); c.h = c.air ? c.h : 0;
@@ -851,7 +855,23 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     // the paint's colour, easing to the one picked
     if (X.paintTo) { X.paint.lerp(X.paintTo, Math.min(1, dt * 5)); X.pearl += (X.pearlTo - X.pearl) * Math.min(1, dt * 4); }
   }
-  const eyeY = () => -0.3; // (sunk to its eyes: the top of its head and its eyes out of the paint)
+  // (v266) down in the paint and climbing out of it: the game's own basin crawl-out (CR, crPath and the animator's climb). The hole is ground
+  // for its body: deep under the paint, rising up a bank to the lip, and on back under the sand, so all of it but what's out of the paint
+  // stays under the sand (its tail too). It lies along its way out, from where its head comes up (C0) to its spot (LAND); the hole sits
+  // behind the spot as the game's does. Each frame: how far out it is (u, 0 to 1) and how much deeper the bottom still is (sink)
+  const DIR = new V3(LAND.x - C0.x, 0, LAND.z - C0.z).normalize(), CY = Math.atan2(DIR.x, DIR.z), PC = new V3(LAND.x - DIR.x * CR.poolBack, 0, LAND.z - DIR.z * CR.poolBack);
+  const STAND_YAW = CY * 0.6; // (standing on its spot it faces the camera, mostly, with its tail kept off the drum)
+  function sunk(u, sink, flat) {
+    const c = X.ch, cl = X.cl || (X.cl = { inv: new THREE.Matrix4(), floor: 0, tailK: 0.6, curl: 0, D: CR.deep, fn: null });
+    if (X.hEye === undefined) X.hEye = eyeReach();
+    const B = Math.hypot(LAND.x - C0.x, LAND.z - C0.z) + X.hEye, back = B * (1 - u);
+    c.x = LAND.x - DIR.x * back; c.z = LAND.z - DIR.z * back; c.y = PR; c.yaw = CY; c.air = false;
+    cl.inv.makeRotationY(CY).setPosition(PC.x, 0, PC.z).invert(); cl.D = Math.max(0.12, CR.deep + sink) * (1 - (flat || 0)); // (flat: the hole filling in behind it once it's out)
+    cl.fn = cl.fn || ((x, z) => { if (z >= CR.lip) return 0; const a = Math.abs(x), k = smoothstep(CR.lip, CR.lip - CR.ramp, z) * (a < CR.side ? 1 : Math.max(0, 1 - (a - CR.side) / 0.12)); return -cl.D * k; });
+    X.climb = true; X.out = u; // (charTick hands it to the animator; out of the paint once its chest is over the lip)
+  }
+  // how far ahead of its middle its eyes are, standing (so its eyes come up where the head was always going to)
+  function eyeReach() { try { const v = new V3(); X.CH.headTop(X.I, v, null, 0.55); return clamp(v.z * PR, 0.1, 0.6); } catch (e) { return 0.3; } }
   function tiltAt(a) {
     // the drum rocks on the edge of its base it leans toward (lying down, it rests on its rims)
     const B = X.drum.g, sg = a >= 0 ? 1 : -1, piv = BR.base.clone().addScaledVector(TIP, sg * BR.R);
@@ -890,13 +910,13 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     c.pop = Math.max(0, (c.pop || 0) - dt * 3); const bob = c.pop > 0 ? Math.sin((1 - c.pop / 1.4) * Math.PI) * 0.03 * c.pop : 0, yw = c.yaw, sc = m.sway * 0.035 + m.dx, cy = Math.cos(c.yaw), sy = Math.sin(c.yaw);
     h.position.set(c.x + cy * sc, c.y + bob, c.z - sy * sc); h.rotation.set(0, yw, m.sway * 0.05); h.updateMatrixWorld(true);
     o.dt = dt; o.inAir = c.air; o.vy = c.vy; o.height = c.air ? c.h : 0; o.lean = 0; o.spd = 0; o.speed = 0; o.squash = c.sq + m.sq; o.rise = c.rise + m.rise; o.leap = c.air && !c.curl; o.curl = c.curl || 0; o.blob = 0; o.grip = c.grip || 0;
-    o.wt.yaw = c.wy + m.lx * 5; o.wt.pitch = c.wp + 0.85 + m.ly * 3; o.watch = o.wt; o.headRoll = c.hr + m.roll; o.headPitch = c.hp + m.pitch; o.shove = clamp(m.sway, -1, 1); o.push = 0; o.earCover = 0; o.wave = 0; o.climb = null; o.D = null; o.maxBall = 1;
+    o.wt.yaw = c.wy + m.lx * 5; o.wt.pitch = c.wp + 0.85 + m.ly * 3; o.watch = o.wt; o.headRoll = c.hr + m.roll; o.headPitch = c.hp + m.pitch; o.shove = clamp(m.sway, -1, 1); o.push = 0; o.earCover = 0; o.wave = 0; o.climb = X.climb ? X.cl : null; o.D = null; o.maxBall = 1;
     if (mv.face && I.face) I.face(mv.face, 0.15); // (the move's face, held over its own while it lasts)
     if (I.setPaint) I.setPaint(X.paint); if (I.setWade) I.setWade(c.wade);
     X.CH.update(I, o);
     // its rim and fin light from the sun, seen from the intro's camera
     if (I.ax && I.ax.look) I.ax.look.U.uKeyDir.value.copy(SUN).transformDirection(X.pc.matrixWorldInverse);
-    X.floor.U.uHole.value.set(c.x, c.z, 0.17, X.hold.visible && c.y < PR * 0.9 && !c.air && Math.hypot(c.x - C0.x, c.z - C0.z) < 0.3 ? 1 - clamp((c.y - eyeY()) / (PR - eyeY()), 0, 1) * 0.6 : 0);
+    X.floor.U.uHole.value.set(C0.x + DIR.x * 0.4 * (X.out || 0), C0.z + DIR.z * 0.4 * (X.out || 0), 0.17, X.hold.visible && X.climb ? 1 - smoothstep(0.35, 0.75, X.out || 0) : 0); // (the ring where it's coming up out of the paint)
   }
   // ---- each frame ----
   function frame(rdt) {
