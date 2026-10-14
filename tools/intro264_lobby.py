@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""v264 lobby entrance probe: an existing player in the lobby, the entrance started by hand (FL.jin), stepped at 30 fps, every frame saved."""
+"""v264 lobby entrance probe: a new player, the intro jumped straight to its hand-over (FL.handoff, test build only), then the lobby entrance stepped at 30 fps, every frame saved. Usage: intro264_lobby.py <out dir> [port|land] (NF=frames)"""
 import asyncio, json, os, sys
 from playwright.async_api import async_playwright
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
