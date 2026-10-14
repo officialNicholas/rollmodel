@@ -52,7 +52,7 @@ b = ph['barrel'] + BAR0
 for at, v in [(0.5, 0.75), (1.12, 0.85), (1.74, 1.0)]: sfx('wobble', b + at, v)
 for e in log:
     if e.get('act') == 'tumble': sfx('tumble', e['t'], 0.375)
-sfx('tip', b + 3.1); sfx('pour', b + 3.22, 0.9); sfx('eyes', b + 6.2); sfx('form', ph['form']); sfx('sparkle', wink + 0.2, 0.9)
+sfx('tip', b + 3.1); sfx('pour', b + 3.22, 0.9); sfx('eyes', b + 6.2); sfx('form', ph['form']); sfx('sparkle', wink + 0.2, 0.225)
 mix = np.tanh(mix * 2.2) / 2.2; mix *= 0.89 / max(1e-6, np.abs(mix).max())
 import soundfile as sf; wav = out + '.wav'; sf.write(wav, mix, SR)
 subprocess.run(['ffmpeg', '-v', 'error', '-y', '-framerate', str(fps), '-i', os.path.join(d, 'f%05d.jpg'), '-i', wav, '-c:v', 'libx264', '-preset', 'slow', '-crf', '27', '-pix_fmt', 'yuv420p',

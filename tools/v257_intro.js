@@ -823,7 +823,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
       const hit = X.hitIn || 2.4, relAt = Math.max(1.75, hit - 0.62), aimAt = Math.max(0.95, relAt - 0.95), irisAt = Math.max(relAt + 0.22, hit - 0.42);
       const LY = 1.3, lx = Math.sin(LY), lz = Math.cos(LY), PULL = 0.42; // (side on to the camera, a little toward it: the crouch and the draw read in profile)
       if (once('w')) { I.face && I.face('smirk', aimAt - 0.05); }
-      if (t >= 0.2 && once('tw')) { snd('sparkle', 0.9); twinkle(); twitch(); }
+      if (t >= 0.2 && once('tw')) { snd('sparkle', 0.225); twinkle(); twitch(); } // (the wink's sparkle, soft)
       if (t < aimAt) { const k = smoothstep(0.05, 0.35, t) * (1 - smoothstep(aimAt - 0.3, aimAt - 0.1, t)); hr = 0.16 * k; hp = 0.12 * k; c.x = LAND.x; c.z = LAND.z; c.y = PR; wy = 0; wp = 0.1; c.grip = 0; c.curl = 0; }
       else if (t < relAt) {
         const u = clamp((t - aimAt) / (relAt - aimAt), 0, 1), pull = u * u * (3 - 2 * u), tr = u > 0.75 ? Math.sin(X.t * 70) * 0.05 * (u - 0.75) : 0;
