@@ -3559,7 +3559,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="stload" role="tablist" aria-label="Your loadout">
           <button class="stslot" id="stSpecial" type="button" role="tab" data-cat="special" aria-controls="stSpecialRail"><span class="stk">Special</span><span class="stnow" id="stSpecialNow"></span></button>
           <button class="stslot" id="stSkill" type="button" role="tab" data-cat="skill" aria-controls="stSkillRail"><span class="stk">Skill</span><span class="stnow" id="stSkillNow"></span></button>
-          <button class="stslot" id="stItem" type="button" role="tab" data-cat="item" aria-controls="stItemRail"><span class="stk">Item</span><span class="stnow" id="stItemNow"></span></button>
+          <button class="stslot" id="stItem" type="button" role="tab" data-cat="item" aria-controls="stItemRail"><span class="stk">Transform</span><span class="stnow" id="stItemNow"></span></button>
         </div>
         <div class="stcraft" id="stCraft" hidden><span class="stcic" id="stCraftIc" aria-hidden="true"></span><span class="stct"><small>On the bench</small><span id="stCraftN">Giant</span></span><b class="stctime" id="stCraftT">20:00</b><button class="stskip" id="stSkip" type="button">Skip</button><span class="stbar" aria-hidden="true"><i id="stCraftBar"></i></span></div>
         <section class="stpanel" id="stPanel" aria-labelledby="stCatH"><div class="stphd"><h3 id="stCatH">Special strokes</h3><small id="stCatS">What the orb gives you</small></div>
@@ -3611,10 +3611,10 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic"><span class="ink drip"></span><span class="glyph">&#8645;</span><span class="cap">Refill</span></div><div><b>Hide and burst</b><p id="howBurst"></p></div></div>
         <div class="pol"><div class="pic" style="--pc:#F29A3A"><span class="ink"></span><span class="glyph sm">&#9728;</span><span class="cap">Weather</span></div><div><b>Heat and rain</b><p id="howSun"></p></div></div>
         <div class="pol"><div class="pic" style="--pc:#C77DFF"><span class="ink"></span><span class="glyph sm">&#9679;</span><span class="cap">The orb</span></div><div><b>Go giant</b><p id="howOrb"></p></div></div>
-        <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
+        <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 280</p>
+      <p class="ver">Version 281</p>
     </div>
   </div>
 
@@ -14170,7 +14170,7 @@ function paintHow() {
   $('howBurst').textContent = 'Hide in a ' + pw + ' to refill. Swipe up mid-jump to dash forward, curled into a ball. Coming out of a ' + pw + ', you can swipe down to dash back as well. You can\'t be touched while you dash. Roll into a taken ' + pw + ' to kick out whoever\'s inside and climb in.';
   $('howSun').textContent = 'A heat wave bakes anything out in the open, so hide in a ' + pw + ' or the shade. Rain: everyone speeds up and puddles water your paint down. Pound a puddle to water down their paint all around it.';
   $('howOrb').textContent = 'Roll up to the glowing orb (or jump into it) for a super move: go giant for 5 seconds, or ride a rocket and come down like a giant\'s pound. Roll into ' + riv + ' while you\'re giant and it\'s out.';
-  $('howItems').textContent = 'A roller or a turret turns up on the canvas now and then. Grab it and it waits in your hand: ' + say('tap its button', 'press F') + ' when you want it. The roller lays wide stripes and refills you; the turret plants you and fires paint. Picking up another drops the one you hold.';
+  $('howItems').textContent = 'Transforms turn up on the canvas now and then: a roller, a turret, a paint trap or a whirlwind. Grab one and it waits in your hand; ' + say('tap its button', 'press F') + ' and you change into it. The roller lays wide stripes and refills you; the turret plants you and fires paint. You start every match holding the one you picked under Strokes. Picking up another drops the one you hold.';
   const el = $('howCtl'); if (el) el.innerHTML = keysUI ? '<kbd>A</kbd> <kbd>D</kbd> or the arrows steer. <kbd>Space</kbd> jumps, <kbd>Shift</kbd> rolls. Hold <kbd>S</kbd> to stop and load a fling, let go to fling. <kbd>E</kbd> pounds. <kbd>P</kbd> pauses, <kbd>M</kbd> mutes.' : 'Drag sideways to steer. Tap to jump, swipe up to roll, swipe up mid-jump to dash. Hold to stop, then pull down and let go to fling. The arrow button pounds.'; }
 paintHow();
 const bannerEl = $('banner'); let bannerUntil = 0, bannerWx = false;
@@ -18531,7 +18531,7 @@ const ST_CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12.5
 const stPct = o => (100 * (1 - craftLeft() / (o.craft * 60000))).toFixed(1) + '%';
 // (v275) the tiles: the picture on a glow of its slot's color, the name, and a status line along the foot: Equipped, Owned (Yours for the
 // items), the craft time on one still to craft, its bar and the time left while it's on the bench, the rank it opens at, or New
-const ST_CATS = { special: { h: 'Special strokes', s: 'What the orb gives you', rail: 'stSpecialRail', slot: 'stSpecial' }, skill: { h: 'Skills', s: 'Always on, all match', rail: 'stSkillRail', slot: 'stSkill' }, item: { h: 'Items', s: 'You start every match holding it', rail: 'stItemRail', slot: 'stItem' } };
+const ST_CATS = { special: { h: 'Special strokes', s: 'What the orb gives you', rail: 'stSpecialRail', slot: 'stSpecial' }, skill: { h: 'Skills', s: 'Always on, all match', rail: 'stSkillRail', slot: 'stSkill' }, item: { h: 'Transforms', s: 'You start every match holding it', rail: 'stItemRail', slot: 'stItem' } };
 let stCat = 'special';
 const stCatOf = id => stIsItem(id) ? 'item' : stIsSkill(id) ? 'skill' : 'special';
 function stSetCat(cat, quiet) {
@@ -18557,7 +18557,7 @@ function stPopRender() {
   const card = $('stPop').querySelector('.stpop'); card.classList.toggle('skill', skill || item); card.dataset.cat = stCatOf(id);
   if (card.dataset.id === id && card.dataset.own === '0' && own) { const a = $('stPopArt'); a.style.animation = 'none'; void a.offsetWidth; a.style.animation = ''; } // (just crafted: the picture pops again)
   card.dataset.id = id; card.dataset.own = own ? '1' : '0';
-  $('stPopKind').textContent = item ? 'Item' : skill ? 'Skill' : 'Special stroke';
+  $('stPopKind').textContent = item ? 'Transform' : skill ? 'Skill' : 'Special stroke';
   const ow = $('stPopOwn'); ow.hidden = !own; ow.innerHTML = ST_CHECK + (on ? 'Equipped' : item || ST_STARTERS.includes(id) ? 'Yours' : 'Crafted');
   if ($('stPopArt').dataset.id !== id) { $('stPopArt').dataset.id = id; $('stPopArt').innerHTML = STROKE_ICON[id]; }
   $('stPopName').textContent = o.name; $('stPopDesc').textContent = o.desc;
@@ -18580,10 +18580,10 @@ function openStPop(id) {
 function closeStPop(quiet) { clearTimeout(stPopT); if (!stPopId) return; const id = stPopId; stPopId = null; $('stPop').hidden = true; if (!quiet) AU.ui(); const t = document.querySelector('.stopt[data-st="' + id + '"], .stopt[data-sk="' + id + '"], .stopt[data-it="' + id + '"]'); if (t && strokesOpen()) t.focus({ preventScroll: true }); }
 function skillCard() {}
 function equipSkill(id) { const d = strokesOf(); if (!d.own.includes(id) || d.skill === id) return; d.skill = id; stSkillSel = id; save(); AU.ready && AU.ready(); buzz(8); renderStrokes(); stToast(SKILLS.find(x => x.id === id).name + ' is your skill'); }
-function equipItem(id) { const d = strokesOf(); if (!stIsItem(id) || d.item === id) return; d.item = id; save(); AU.ready && AU.ready(); buzz(8); renderStrokes(); stToast(spName(id) + ' is your starting item'); }
+function equipItem(id) { const d = strokesOf(); if (!stIsItem(id) || d.item === id) return; d.item = id; save(); AU.ready && AU.ready(); buzz(8); renderStrokes(); stToast(spName(id) + ' is your starting transform'); }
 function renderStrokes() {
   const d = strokesOf(); craftTick();
-  const now = (id, list, el, k) => { const o = list.find(x => x.id === id) || list[0]; el.innerHTML = '<span class="stic">' + STROKE_ICON[o.id] + '</span><span class="stname">' + o.name + '</span>'; $(ST_CATS[k].slot).setAttribute('aria-label', ST_CATS[k].slot === 'stSpecial' ? 'Special stroke: ' + o.name : (k === 'skill' ? 'Skill: ' : 'Item: ') + o.name); };
+  const now = (id, list, el, k) => { const o = list.find(x => x.id === id) || list[0]; el.innerHTML = '<span class="stic">' + STROKE_ICON[o.id] + '</span><span class="stname">' + o.name + '</span>'; $(ST_CATS[k].slot).setAttribute('aria-label', ST_CATS[k].slot === 'stSpecial' ? 'Special stroke: ' + o.name : (k === 'skill' ? 'Skill: ' : 'Transform: ') + o.name); };
   now(strokeSpecial(), SPECIALS, $('stSpecialNow'), 'special'); now(strokeSkill(), SKILLS, $('stSkillNow'), 'skill'); now(strokeItem(), ST_ITEMS, $('stItemNow'), 'item');
   for (const k of ['special', 'skill']) $(ST_CATS[k].slot).classList.toggle('fresh', !!d.fresh && stCatOf(d.fresh) === k); // (a dot on the slot with something newly crafted)
   const soon = '<span class="stopt soon" aria-hidden="true"><span class="stoi">' + stImg('soon') + '</span><span class="stn">More soon</span><span class="stost">&nbsp;</span></span>';
@@ -21161,7 +21161,7 @@ const TUT_STEPS = [
     exit() { $('itemBtn').classList.remove('tutup'); },
     tick(dt) { if (P.st === 'play' && !P.held && !(P.power && P.power.type === 'roller')) P.held = 'roller'; /* (whatever became of it, it's back in your hand) */
       if (tut.wait > 0) { tut.wait -= dt; return false; }
-      if (tut.sub !== 'use' && P.held === 'roller' && P.st === 'play') { tut.sub = 'use'; tut.slowK = 0.35; tutShow(say('This is your *ROLLER*. *TAP* it!', 'This is your *ROLLER*. Press *F*!'), 'itemBtn', 'use', true); }
+      if (tut.sub !== 'use' && P.held === 'roller' && P.st === 'play') { tut.sub = 'use'; tut.slowK = 0.35; tutShow(say('This is a *TRANSFORM* item. *TAP* it!', 'This is a *TRANSFORM* item. Press *F*!'), 'itemBtn', 'use', true); }
       return !!(P.power && P.power.type === 'roller'); } },
   // (v270) rolling: the rival comes round onto the line in front of you and walks down it at you. As he comes in range it slows right
   // down, a finger shows the swipe up and the roll is aimed at him. Round again if you miss (the roller holds out) till he's flattened
@@ -21243,7 +21243,7 @@ function tutStrokesDue() { return tutPh() === 'done' && !store.tut.strokes && st
 function tutStrokesCard(n) {
   const el = $('tutGo'); el.dataset.mode = 'strokes' + n;
   if (n === 1) tutCardText(['Look at <em>you</em>, rookie!', 'Rank ' + repOf(store.xp || 0).lv + ' already. You’ve come a long way since that first canvas, and I’ve been watching.', 'Aw, thanks', '']);
-  else tutCardText(['Let’s learn <em>some more</em>', 'You’ve unlocked Strokes: your special move, a skill and the item you start with. Time trial and Showdown are open now too. Strokes first: come see.', 'Show me', '']);
+  else tutCardText(['Let’s learn <em>some more</em>', 'You’ve unlocked Strokes: your special move, a skill and the transform you start with. Time trial and Showdown are open now too. Strokes first: come see.', 'Show me', '']);
   if (el.hidden) { el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); } tutCardCoach(); if (n === 1) { store.evNew = { solo: 1, showdown: 1 }; AU.fanfare && AU.fanfare(); AU.bloop(0.55); menu.classList.add('tutoring'); } else AU.bloop(0.5); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);
 }
 function tutStrokesGo() { const el = $('tutGo'), m = el.dataset.mode; if (m === 'strokes1') return tutStrokesCard(2); el.classList.remove('on'); el.hidden = true; coachCorner(null); el.dataset.mode = ''; store.tut.strokes = 'on'; tutSet('strokes'); openStrokes(); } /* (straight onto the page: no lobby tip flashing up first) */
@@ -21263,7 +21263,7 @@ function tutStrokesTick() {
   if (strokeSpecial() !== 'giant') { if (stPopId === 'giant') return tutShow('It’s ready! Tap Equip to make it your special stroke', 'stPopEquip', 'sEquip', false, false, null, false, true);
     return tutShow('It’s ready! Tap the Giant', giant, 'sEquipT', false, false, null, false, true); }
   if (stPopId) return; // (Equipped shows on the card for a beat, then it goes)
-  if (!tutSDone) { tutSDone = performance.now(); tutShow('Giant it is! Grab the orb in a match and go big. Skills and items have their own tabs up top', null, 'sDone', false, true, null, false, true); }
+  if (!tutSDone) { tutSDone = performance.now(); tutShow('Giant it is! Grab the orb in a match and go big. Skills and transforms have their own tabs up top', null, 'sDone', false, true, null, false, true); }
   else if (performance.now() - tutSDone > 5200) tutStrokesEnd();
 }
 function tutWelcomeDone(open) { const el = $('tutGo'); el.classList.remove('on'); el.hidden = true; coachCorner(null); el.dataset.mode = ''; store.tut.comms = 1; tutSet('done'); save(); paintComm(); menu.classList.remove('tutoring'); kick($('commBtn'), 'bump'); if (open) setTimeout(() => openComms(), 250); }
@@ -21616,7 +21616,7 @@ function tutMenuTick() {
   return tutShow('Time for a real match. Tap *Play*', 'homePlay', 'pick');
 }
 // the lesson's finish, in place of the tally for a beat: the canvas through the window, the title, and what was learned ticked off; Next goes on to the tally
-const TW_LIST = ['Steering', 'Flinging', 'Refilling', 'The pound', 'Dodging', 'The roller', 'The orb', 'Finding items'];
+const TW_LIST = ['Steering', 'Flinging', 'Refilling', 'The pound', 'Dodging', 'Transforms', 'The orb', 'Finding items'];
 // (the finish page pulls the camera wide over the canvas, as the results do)
 function showTutWin() {
   const el = $('tutWin'); $('twList').innerHTML = TW_LIST.map((t, i) => '<li style="--i:' + i + '"><i><svg viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L20 7"/></svg></i>' + t + '</li>').join('');
