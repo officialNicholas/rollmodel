@@ -43,6 +43,12 @@ part('imp', hit - BAR); part(CHORD[eb], hit - HIT_LEAD)
 mn = load(os.path.join(M, 'menu.mp3'), SR, 2); m0 = int(hit * SR); o = int((MENU_AT + (1 + eb) * BAR) * SR); n = min(N - m0, len(mn) - o)
 if n > 0: seg = mn[o:o + n] * 0.923 * 0.26; f = min(n, int(1.5 * SR)); seg[-f:] *= np.linspace(1, 0, f)[:, None]; mix[m0:m0 + n] += seg
 fx = load(os.path.join(ROOT, 'game', 'sfx', 'intro_fx.mp3'), SR, 2)
+# (v267) the desert wind under it all, on the effects bus as the game plays it: its loop from the sky on, faded up over 3 s, gone as the
+# iris closes (out from 0.45 s before the hit). The effects here are at 0.5 for the game's 0.9, so its 0.13 is 0.13 * 0.5 / 0.9
+WIND = (0.4, 18.7, 0.13)
+wd = load(os.path.join(ROOT, 'game', 'sfx', 'intro_wind.mp3'), SR, 2); wa, wb = int(WIND[0] * SR), int(min(WIND[1], len(wd) / SR) * SR)
+w0 = ph['sky']; i0 = int(w0 * SR); tw = t[i0:] - w0; wg = np.clip(tw / 3.0, 0, 1); wo = t[i0:] >= hit - 0.45; wg[wo] *= np.exp(-(t[i0:][wo] - (hit - 0.45)) / 0.3)
+mix[i0:] += wd[wa + (np.arange(N - i0) % (wb - wa))] * (wg * WIND[2] * 0.5 / 0.9)[:, None]
 def sfx(k, at, v=1.0):
     s, l = FX[k]; x = fx[int(s * SR):int((s + l) * SR)] * v * 0.5; i = int(at * SR); n = min(len(x), N - i)
     if n > 0 and i >= 0: mix[i:i + n] += x[:n]
