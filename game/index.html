@@ -3614,7 +3614,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 279</p>
+      <p class="ver">Version 280</p>
     </div>
   </div>
 
@@ -9941,14 +9941,14 @@ const EYE_STYLES = { round: 'Round', edgy: 'Aggressive', dot: 'Dot', zombie: 'Zo
 const EYE_STYLE_K = { round: 0, edgy: 1, dot: 2, zombie: 3 };
 // each expression is an eye cell and a mouth cell (yawn and dizzy borrow parts of the others), as in the game
 const EXPR = { neutral: [0, 8], happy: [1, 9], angry: [2, 10], hurt: [3, 11], glee: [4, 12], scared: [5, 13], yawn: [6, 13], dizzy: [7, 11], peek: [5, 13], leap: [5, 9], brace: [7, 11],
-  shake: [7, 11], content: [4, 24], sleepy: [20, 8], doze: [6, 24], smirk: [21, 24], blep: [1, 25], sad: [22, 26], focus: [23, 8], cute: [1, 27], curious: [5, 27], sneeze: [7, 13], pout: [22, 27], startle: [5, 13], menace: [32, 33] }; // (v252: new eyes in cells 20-23, new mouths in 24-27, those with fangs in 28-31)
+  shake: [7, 11], content: [4, 24], sleepy: [20, 8], doze: [6, 24], smirk: [21, 24], blep: [1, 25], sad: [22, 26], focus: [23, 8], cute: [1, 27], curious: [5, 27], sneeze: [7, 13], pout: [22, 27], startle: [5, 13], menace: [32, 33], ready: [23, 36] }; // (v252: new eyes in cells 20-23, new mouths in 24-27, those with fangs in 28-31)
   // (v279) the aggressive eyes keep their lids down whatever the mood, and never smile: [eye cell, mouth cell, how far the lid lifts,
   // how much steeper it slants]. 36: the flat mouth; 33: the smirk. Shut eyes lift the lid out of the way
   const AGG = { neutral: [0, 36, 0, 0], happy: [0, 33, -0.012, 0], glee: [0, 33, -0.012, 0], content: [0, 33, 0, 0], cute: [0, 33, -0.01, 0], blep: [0, 33, 0, 0], smirk: [0, 33, -0.015, 0.02],
-    curious: [0, 36, 0.035, -0.06], focus: [0, 36, -0.02, 0.04], menace: [0, 33, -0.035, 0.05], angry: [0, 10, -0.045, 0.08], leap: [0, 33, 0.02, 0],
+    curious: [0, 36, 0.035, -0.06], focus: [0, 36, -0.02, 0.04], ready: [0, 36, -0.025, 0.05], menace: [0, 33, -0.035, 0.05], angry: [0, 10, -0.045, 0.08], leap: [0, 33, 0.02, 0],
     peek: [5, 36, 0.08, -0.08], startle: [5, 13, 0.13, -0.12], scared: [5, 13, 0.16, -0.15], sad: [22, 26, 0.07, -0.25], pout: [22, 36, 0.05, -0.2], hurt: [3, 11, 0.04, -0.1],
     sleepy: [20, 36, -0.02, -0.08], doze: [6, 36, 0.5, 0], yawn: [6, 13, 0.5, 0], sneeze: [7, 13, 0.5, 0], dizzy: [7, 11, 0.5, 0], brace: [7, 11, 0.5, 0], shake: [7, 11, 0.5, 0] };
-const PUPILS = { peek: { pu: 1.08, py: 0 }, leap: { pu: 1.12, py: 0 }, curious: { pu: 1.14, py: 0.04 }, startle: { pu: 0.7, py: 0 }, smirk: { pu: 1, py: -0.06 } };
+const PUPILS = { peek: { pu: 1.08, py: 0 }, leap: { pu: 1.12, py: 0 }, curious: { pu: 1.14, py: 0.04 }, startle: { pu: 0.7, py: 0 }, smirk: { pu: 1, py: -0.06 }, ready: { pu: 0.9, py: -0.02 } };
 const NO_SHUT = { glee: 1, hurt: 1, yawn: 1, dizzy: 1, brace: 1, shake: 1, content: 1, doze: 1, smirk: 1, sneeze: 1 };
 function pupilOf(name) { const F = PUPILS[name] || FACE_LIDS[name]; if (!F) return { pu: 1, py: 0 }; const L = F.L || F; return { pu: L.pu || 1, py: (L.py || 0) * FACE_EYE.ry }; }
 // ---------- the slime's face, drawn once into two sheets (4 across, 5 down) ----------
@@ -22357,12 +22357,12 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     if (!X || X.ph === ph) return; const was = X.ph; X.ph = ph; X.pt = 0; X.flags = {};
     const look = X.stood ? 'stood' : null;
     if (ph === 'sky') shot('sky', true);
-    else if (ph === 'iris') { shot(look || 'eyes'); card('flIris'); AU.flm.layer(1); if (was === 'confirm') move('look'); }
+    else if (ph === 'iris') { shot(look || 'eyes'); card('flIris'); AU.flm.layer(1); if (was === 'confirm') { move('look'); if (X.I && X.I.setExpression) X.I.setExpression('happy'); } }
     else if (ph === 'style') { shot(look || 'eyes'); card('flStyle'); AU.flm.layer(2); }
     else if (ph === 'paint') { shot(look || 'paint'); card('flPaint'); AU.flm.layer(3); }
     else if (ph === 'form') { if (!X.paintId) pickPaint(colorId); card(null); AU.flm.layer(3); shot('form'); }
     else if (ph === 'name') { X.stood = true; shot('name'); card('flName'); const i = $('flNameIn'); if (!i.value) i.value = cleanName(store.name) || randomName(); AU.flm.layer(4); }
-    else if (ph === 'confirm') { shot('stood'); card('flAsk'); move('perk'); }
+    else if (ph === 'confirm') { shot('stood'); card('flAsk'); move('perk'); if (X.I && X.I.setExpression) X.I.setExpression('ready'); } // (v280: ready for action, not happy)
     else if (ph === 'wink') { card(null); shot('exit'); X.hitIn = AU.flm.sting(2.4); const s = $('flSend'); s.hidden = false; void s.offsetWidth; s.classList.add('on'); }
   }
   // the title over the sky: in, and later out
@@ -22569,7 +22569,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     if (c.pop > pv.pop + 0.2) { const A = anim(); if (A && A.kickGills) A.kickGills(0, 0.35 * c.pop); } pv.pop = c.pop;
     o.dt = dt; o.inAir = c.air; o.vy = c.vy; o.height = c.air ? c.h : 0; o.lean = 0; o.spd = mvSpd; o.speed = mvSpd; o.spinV = pv.spin; o.squash = c.sq + m.sq; o.rise = c.rise + m.rise; o.leap = c.air && !c.curl; o.curl = c.curl || 0; o.blob = 0; o.grip = c.grip || 0;
     o.wt.yaw = c.wy + m.lx * 5; o.wt.pitch = c.wp + 0.85 + m.ly * 3; o.watch = o.wt; o.headRoll = c.hr + m.roll; o.headPitch = c.hp + m.pitch; o.shove = clamp(m.sway, -1, 1); o.push = 0; o.earCover = 0; o.wave = 0; o.climb = X.climb ? X.cl : null; o.D = null; o.maxBall = 1;
-    if (mv.face && I.face) I.face(mv.face, 0.15); // (the move's face, held over its own while it lasts)
+    if (mv.face && I.face) I.face(X.ph === 'confirm' || X.ph === 'wink' ? ({ happy: 'ready', glee: 'smirk', content: 'ready', cute: 'ready', curious: 'ready' })[mv.face] || mv.face : mv.face, 0.15); // (the move's face, held over its own while it lasts; v280: on All set? no grins)
     if (I.setPaint) I.setPaint(X.paint); if (I.setWade) I.setWade(c.wade);
     X.CH.update(I, o);
     earsTick(dt);
