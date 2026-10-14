@@ -15,7 +15,8 @@ if os.path.isdir(dst): shutil.rmtree(dst)
 html = open(os.path.join(game, 'index.html'), encoding='utf8').read()
 used = set(re.findall(r"['\"](axo-pack[-\w]*\.txt)['\"]", html))  # (quoted, as the page loads it: a comment naming one doesn't count)
 # (only the character pack the page loads goes in: older packs stay in the repo for older builds, not in the app)
-skip = lambda d, names: [n for n in names if n == '.DS_Store' or (d == game and n.startswith('axo-pack') and n.endswith('.txt') and n not in used)]
+# (and no local test pages: game/_*.html are probe builds, never part of the game)
+skip = lambda d, names: [n for n in names if n == '.DS_Store' or (d == game and ((n.startswith('axo-pack') and n.endswith('.txt') and n not in used) or (n.startswith('_') and n.endswith('.html'))))]
 shutil.copytree(game, dst, ignore=skip)
 for sub in ('fonts', 'licenses'): shutil.copytree(os.path.join(shared, sub), os.path.join(dst, sub))
 # the fonts from the app itself, not Google

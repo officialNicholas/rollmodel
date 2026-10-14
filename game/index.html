@@ -1327,6 +1327,8 @@ body.homeon .corner{display:none}
 .sopt.soon .sbtn{filter:grayscale(.85) brightness(.7);cursor:default}
 .sopt.soon .sbtn:active{transform:skewX(-6deg)}
 .soontag{display:inline-block;padding:3px 7px 2px;border-radius:4px;background:var(--gold);color:#171320;font:900 9.5px/1 var(--font-head);letter-spacing:.08em;text-shadow:none;transform:rotate(-3deg)}
+.sreset{grid-column:1/-1;justify-self:center;margin:4px 0 0;padding:6px 12px;border:0;background:none;font:700 12px/1.2 var(--font-ui);color:rgba(255,255,255,.55);text-decoration:underline;text-underline-offset:3px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sreset.arm{color:#FF7A8A;text-decoration:none}
 .sver{grid-column:1/-1;margin:2px 0 0;font:800 11px/1 var(--font-ui);color:rgba(255,255,255,.45);text-align:center}
 @media (min-aspect-ratio:1/1){#setModal .card>#srows{grid-template-columns:repeat(4,minmax(0,1fr));right:0;left:0;padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,env(safe-area-inset-right));top:calc(max(12px,env(safe-area-inset-top)) + 58px);bottom:calc(max(12px,env(safe-area-inset-bottom)) + 62px)}.sopt.wide,.sopt.full{grid-column:span 2}.sopt.full{align-self:end}}
 @media (max-height:520px) and (min-aspect-ratio:1/1){#setModal .card>#setTitle{font-size:30px;line-height:42px}.tog,.tog button{height:40px}.sbtn{min-height:42px}.sbtns.three .sbtn{min-height:44px}.slab{font-size:12.5px}#setModal .card>#srows{gap:12px 12px}}
@@ -3348,7 +3350,6 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="evcard soon" data-ev="match" style="--ec:#19B7A5"><button class="evmain" id="evMatch" type="button" aria-disabled="true"><span class="evbar"><i>Coming soon</i></span><span class="evtop"><span class="evic" aria-hidden="true"><svg viewBox="0 0 64 64"><circle cx="32" cy="28" r="22" fill="#8FDCF3" stroke="#171320" stroke-width="3.2"/><path d="M10 28h44M32 6c-8 7-8 37 0 44M32 6c8 7 8 37 0 44M14 16h36M14 40h36" fill="none" stroke="#171320" stroke-width="2.4"/><circle cx="15" cy="49" r="9" fill="#E3122F" stroke="#171320" stroke-width="3"/><circle cx="49" cy="49" r="9" fill="#2E9BFF" stroke="#171320" stroke-width="3"/><circle cx="12.5" cy="47.5" r="1.6" fill="#171320"/><circle cx="17.5" cy="47.5" r="1.6" fill="#171320"/><circle cx="46.5" cy="47.5" r="1.6" fill="#171320"/><circle cx="51.5" cy="47.5" r="1.6" fill="#171320"/></svg></span><span class="evtx"><b>Matchmaking</b><small>Play people online</small></span></span><span class="evart" aria-hidden="true"><img id="evMatchArt" alt=""></span></button><i class="evsoon">Coming soon</i></div>
         <div class="evcard" data-ev="showdown" style="--ec:#8E5CFF"><button class="evmain" id="evShow" type="button" aria-expanded="false" aria-controls="evShowPick"><span class="evbar"><i>Last one standing</i></span><span class="evtop"><span class="evic" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M32 6C18 6 9 15.5 9 28c0 7 3 12 8 15v7c0 2.5 2 4 4.5 4h21c2.5 0 4.5-1.5 4.5-4v-7c5-3 8-8 8-15C55 15.5 46 6 32 6z" fill="#fff" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M18.5 25l8 8M26.5 25l-8 8M37.5 25l8 8M45.5 25l-8 8" stroke="#171320" stroke-width="4.2" stroke-linecap="round"/><path d="M29 41l3-4 3 4z" fill="#171320" stroke="#171320" stroke-width="2" stroke-linejoin="round"/><path d="M25 54v-5M32 54v-5M39 54v-5" stroke="#171320" stroke-width="2.8" stroke-linecap="round"/><path d="M16 18a17 17 0 0 1 10-7" fill="none" stroke="#D9D2F0" stroke-width="3" stroke-linecap="round"/></svg></span><span class="evtx"><b>Showdown</b><small>Two hearts each</small></span></span><span class="evart" aria-hidden="true"><img id="evShowArt" alt=""></span></button><div class="evdrop" id="evShowPick" hidden role="group" aria-label="Which Showdown"><button type="button" data-m="ffa"><b>Free-for-all</b><small>Four of you, one left</small></button><button type="button" data-m="duo"><b>2 v 2</b><small>You and a teammate</small></button></div></div>
         <div class="evcard" data-ev="solo" style="--ec:#F29A3A"><button class="evmain" id="evSolo" type="button"><span class="evbar"><i>Beat your best</i></span><span class="evtop"><span class="evic" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M40 34v8c0 2-1.5 3-3.5 3H33v13" fill="none" stroke="#171320" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M40 34v8c0 2-1.5 3-3.5 3H33v13" fill="none" stroke="#C9C2E4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><rect x="27.5" y="48" width="11" height="13" rx="4" fill="#5B5580" stroke="#171320" stroke-width="3"/><rect x="6" y="14" width="40" height="20" rx="8" fill="#FFD84A" stroke="#171320" stroke-width="3.2"/><path d="M11 19h30" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"/><path d="M46 24h4c2 0 3 1 3 3v7h-13" fill="none" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M12 34v5a3 3 0 0 0 6 0v-5M26 34v8a3 3 0 0 0 6 0v-8" fill="#FFD84A" stroke="#171320" stroke-width="2.6"/></svg></span><span class="evtx"><b>Time trial</b><small>Just you, 60 seconds</small></span></span><span class="evart" aria-hidden="true"><img id="evSoloArt" alt=""></span></button></div>
-        <div class="evcard" data-ev="tut" style="--ec:#2E9BFF"><button class="evmain" id="evTut" type="button"><span class="evbar"><i>With your coach</i></span><span class="evtop"><span class="evic" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M32 10 4 22l28 12 28-12z" fill="#2A2437" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M14 27v12c0 5 8 9 18 9s18-4 18-9V27l-18 7z" fill="#3C3859" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M32 22l20 6v14" fill="none" stroke="#171320" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M32 22l20 6v14" fill="none" stroke="#FFD84A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M48 42h8l-2 9h-4z" fill="#FFD84A" stroke="#171320" stroke-width="2.6" stroke-linejoin="round"/><path d="M14 20 32 13l18 7" fill="none" stroke="#7C76A0" stroke-width="2.4" stroke-linecap="round"/></svg></span><span class="evtx"><b>Tutorial</b><small>Learn the moves</small></span></span><span class="evart" aria-hidden="true"><img id="evTutArt" alt=""></span></button></div>
       </div>
     </div>
     <div class="mworld" id="mWorld" hidden>
@@ -3387,7 +3388,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 268</p>
+      <p class="ver">Version 269</p>
     </div>
   </div>
 
@@ -3412,6 +3413,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="sopt wide"><p class="slab">Help</p><div class="sbtns"><button class="sbtn" id="howOpen" type="button" aria-haspopup="dialog"><span>How to play</span></button></div><p class="gnote" id="lastErr"></p></div>
         <div class="sopt wide soon"><p class="slab">Play with friends <i class="soontag">Coming soon</i></p><div class="sbtns"><button class="sbtn" type="button" disabled><span>Invite friends</span></button><button class="sbtn" type="button" disabled><span>Link account</span></button></div></div>
         <div class="sopt full"><div class="sbtns three"><button class="sbtn" id="tosBtn" type="button" aria-haspopup="dialog"><span>Terms of Service</span></button><button class="sbtn" id="privBtn" type="button" aria-haspopup="dialog"><span>Privacy Policy</span></button><button class="sbtn" id="credBtn" type="button" aria-haspopup="dialog"><span>Credits</span></button></div></div>
+        <button class="sreset" id="resetBtn" type="button">Restart Game</button>
         <p class="sver" id="setVer"></p>
       </div>
       <button class="btn play sm" id="setDone" type="button">Done</button>
@@ -20061,7 +20063,7 @@ function zoneTick(dt) {
 // the tutorial plays the lesson again ----------
 const evEl = $('mEvents');
 let evFrom = false; // (the canvases were opened from here: their back button comes back here)
-function evArt() { const set = (id, sid) => { const im = $(id), src = stageArtOf(sid); if (src && im.getAttribute('src') !== src) im.src = src; }; set('evSoloArt', 'blank'); set('evVsArt', VOTE_STAGES.includes(stageSel) ? stageSel : 'cathedral'); set('evShowArt', 'manor'); set('evTutArt', 'island'); set('evMatchArt', 'crypt'); }
+function evArt() { const set = (id, sid) => { const im = $(id), src = stageArtOf(sid); if (src && im.getAttribute('src') !== src) im.src = src; }; set('evSoloArt', 'blank'); set('evVsArt', VOTE_STAGES.includes(stageSel) ? stageSel : 'cathedral'); set('evShowArt', 'manor'); set('evMatchArt', 'crypt'); }
 function evFold() { $('evVs').closest('.evcard').classList.remove('open'); $('evVsPick').hidden = true; $('evVs').setAttribute('aria-expanded', 'false'); evFoldShow(); }
 function evFoldShow() { $('evShow').closest('.evcard').classList.remove('open'); $('evShowPick').hidden = true; $('evShow').setAttribute('aria-expanded', 'false'); }
 function openEvents() {
@@ -20097,7 +20099,7 @@ $('evVsPick').addEventListener('click', e => { const b = e.target.closest('butto
 $('evMatch').addEventListener('click', () => { AU.init(); AU.nope(); const c = $('evMatch').closest('.evcard'), old = c.querySelector('.evtoast'); if (old) old.remove(); const t = document.createElement('span'); t.className = 'evtoast'; t.textContent = 'Matchmaking is coming soon'; c.appendChild(t); setTimeout(() => t.remove(), 1700); });
 $('evShow').addEventListener('click', evGate('showdown', () => { const c = $('evShow').closest('.evcard'), open = !c.classList.contains('open'); if (open) { $('evVs').closest('.evcard').classList.remove('open'); $('evVsPick').hidden = true; $('evVs').setAttribute('aria-expanded', 'false'); } c.classList.toggle('open', open); $('evShowPick').hidden = !open; $('evShow').setAttribute('aria-expanded', String(open)); if (open) setTimeout(() => $('evShowPick').querySelector('[data-m="' + (mode === 'duo' ? 'duo' : 'ffa') + '"]').focus({ preventScroll: true }), 30); }));
 $('evShowPick').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; AU.init(); AU.pop(); evPick(b.dataset.m); });
-$('evTut').addEventListener('click', uiClick(() => { if (building) return; store.tut = { ph: 'match' }; save(); evFold(); evEl.hidden = true; document.body.classList.remove('evon'); menuPage = 'home'; menu.dataset.page = 'home'; $('mHome').hidden = false; start(); }));
+// (v269: the Tutorial event is gone; a new player's first match is still the lesson)
 
 // ---------- screen orientation: picked on the first launch, changed in Settings. On a phone held the other way the game asks for a turn ----------
 const ORIENT_NAMES = { port: 'upright', land: 'wide' };
@@ -20352,7 +20354,7 @@ window.addEventListener('error', ev => { if (ev && (ev.error || ev.message)) fra
 // (v256) the shaders compiled ahead of the warm-up render, without blocking the page where the browser can (the loading bar keeps
 // moving meanwhile); the warm-up render after finds them ready
 async function warmCompile() {
-  if (typeof renderer.compileAsync !== 'function') return;
+  if (typeof renderer.compileAsync !== 'function' || !renderer.extensions.has('KHR_parallel_shader_compile')) return; // (v269: without it, compileAsync made every one at once: the warm-up's pieces make them instead)
   const hid = []; scene.traverse(o => { if (!o.visible) { hid.push(o); o.visible = true; } });
   let p = null; try { p = renderer.compileAsync(scene, camera); } catch (e) {} // (every program asked for now; the browser builds them in the background)
   for (const o of hid) o.visible = false;
@@ -20360,16 +20362,20 @@ async function warmCompile() {
   try { if (p) await Promise.race([p, new Promise(r => setTimeout(r, 8000))]); } catch (e) {}
   if (!par) while (performance.now() - t0 < 700) await new Promise(r => requestAnimationFrame(() => r())); // (no way to ask if they're done: a moment's head start)
 }
-function warmRender() {
-  if (vic) return; const hid = [], fc = [], fm = [];
-  scene.traverse(o => { if (!o.visible) { hid.push(o); o.visible = true; } if (o.frustumCulled) { fc.push(o); o.frustumCulled = false; } });
-  for (const f of floaters) for (const m of f.mats) if (!m.transparent) { m.transparent = true; m.needsUpdate = true; fm.push(m); }
+// (v269: given a set, only those are drawn in the warm passes: the rest are kept out of every pass by their layers, which children don't
+// inherit. With piece set it stops there, drawn once (piece 1, when the frame before was a warm one, its lights the same) or twice)
+function warmRender(only, piece) {
+  if (vic) return; const hid = [], fc = [], fm = [], off = [];
+  scene.traverse(o => { if (!o.visible) { hid.push(o); o.visible = true; } if (o.frustumCulled) { fc.push(o); o.frustumCulled = false; }
+    if (only && (o.isMesh || o.isPoints || o.isLine || o.isSprite) && !only.has(o)) { off.push(o, o.layers.mask); o.layers.mask = 0; } });
+  if (!piece) for (const f of floaters) for (const m of f.mats) if (!m.transparent) { m.transparent = true; m.needsUpdate = true; fm.push(m); }
   sun.shadow.needsUpdate = true;
   // twice: three draws the shadows before it sets up the frame's lights, so the first pass makes its shadow shaders for the lights of the
   // last frame drawn, and only the second makes the ones every frame of play will ask for
   const scOn = shadowCache.on; shadowCache.on = false; warming = true; // (and with the shadow cache off, so everything is drawn into the shadows both times)
-  try { renderFrame(); sun.shadow.needsUpdate = true; renderFrame(); } catch (e) {}
-  shadowCache.on = scOn;
+  try { renderFrame(); if (piece !== 1) { sun.shadow.needsUpdate = true; renderFrame(); } } catch (e) {}
+  shadowCache.on = scOn; for (let i = 0; i < off.length; i += 2) off[i].layers.mask = off[i + 1];
+  if (piece) { warming = false; for (const o of hid) o.visible = false; for (const o of fc) o.frustumCulled = true; sun.shadow.needsUpdate = true; return; }
   // the victory pose draws the winners straight to the screen (its own shader variants): compile those too
   if (post) try { const ds = [P, H, H2, H3]; for (const D of ds) vicLayer(D, true); renderer.setRenderTarget(null); renderer.render(vicBg, vicBgCam); const ac = renderer.autoClear; renderer.autoClear = false; renderer.render(scene, vicCam); renderer.autoClear = ac; for (const D of ds) vicLayer(D, false); } catch (e) {}
   for (const o of hid) o.visible = false; for (const o of fc) o.frustumCulled = true; for (const m of fm) { m.transparent = false; m.needsUpdate = true; }
@@ -20377,6 +20383,50 @@ function warmRender() {
   try { renderFrame(); } catch (e) {}
   if (!post) try { edgeOverlay(true); } catch (e) {}
   warming = false; if (lobbyOn()) try { renderFrame(); } catch (e) {}
+}
+// (v269) the warm-up at the end of loading, in pieces. In one go it handed the GPU every shader and every first draw at once, and the
+// GPU then took its time over them after "Ready": the page could show nothing new until it was done (the bar sat full, the menu song
+// already playing, "Tap to start" not drawn). Now a few materials at a time, each piece finished (its fence passed, a frame drawn)
+// before the next, the bar moving as they go; then the passes only the whole warm-up covers
+function gpuIdle(cap) {
+  return new Promise(res => {
+    let gl = null, fs = null; try { gl = renderer.getContext(); if (gl.fenceSync) { fs = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0); gl.flush(); } } catch (e) { fs = null; }
+    const t0 = performance.now(), poll = () => {
+      let ok = !fs; try { if (fs && gl.getSyncParameter(fs, gl.SYNC_STATUS) === gl.SIGNALED) ok = true; } catch (e) { ok = true; }
+      if (ok || performance.now() - t0 > cap) { try { if (fs) gl.deleteSync(fs); } catch (e) {} return res(); }
+      setTimeout(poll, 16);
+    };
+    requestAnimationFrame(() => setTimeout(poll, 0));
+  });
+}
+// a scene's drawables grouped by material, in a few even pieces
+function warmPieces(root, most) {
+  const by = new Map(); root.traverse(o => { if (!(o.isMesh || o.isPoints || o.isLine || o.isSprite)) return; const m = Array.isArray(o.material) ? o.material[0] : o.material, k = m ? m.uuid : ''; let g = by.get(k); if (!g) by.set(k, g = []); g.push(o); });
+  const G = [...by.values()], n = Math.max(1, Math.min(most, Math.ceil(G.length / 24))), per = Math.ceil(G.length / n), out = [];
+  for (let i = 0; i < n; i++) { const s = new Set(); for (const g of G.slice(i * per, (i + 1) * per)) for (const o of g) s.add(o); if (s.size) out.push(s); }
+  return out;
+}
+async function warmSteps(p0, p1, msg) {
+  if (vic) return warmRender();
+  const parts = warmPieces(scene, 16), n = parts.length, at = i => p0 + (p1 - p0) * i / (n + 1);
+  for (let i = 0; i < n; i++) { warmRender(parts[i], i ? 1 : 2); bootTo(at(i + 1), at(i + 2), 2500, msg); await gpuIdle(5000); }
+  // then what only the whole pass covers: the floaters see-through, the victory pose, the edge, a normal frame and the lobby's
+  const fl = new Set(), fm = new Set(); for (const f of floaters) for (const m of f.mats) fm.add(m);
+  scene.traverse(o => { if (o.material && [].concat(o.material).some(m => fm.has(m))) fl.add(o); });
+  warmRender(fl); bootTo(p1, p1, 0, msg); await gpuIdle(5000);
+}
+// the same for a scene drawn straight to the screen (the first launch's): everything shown, a few materials at a time
+async function warmScene(sc, cam, p0, p1, msg) {
+  const parts = warmPieces(sc, 8), n = parts.length, at = i => p0 + (p1 - p0) * i / (n + 1);
+  const draw = only => {
+    const hid = [], fc = [], off = [];
+    sc.traverse(o => { if (!o.visible) { hid.push(o); o.visible = true; } if (o.frustumCulled) { fc.push(o); o.frustumCulled = false; }
+      if (only && (o.isMesh || o.isPoints || o.isLine || o.isSprite) && !only.has(o)) { off.push(o, o.layers.mask); o.layers.mask = 0; } });
+    try { renderer.setRenderTarget(null); renderer.render(sc, cam); } catch (e) {}
+    for (let i = 0; i < off.length; i += 2) off[i].layers.mask = off[i + 1]; for (const o of hid) o.visible = false; for (const o of fc) o.frustumCulled = true;
+  };
+  for (let i = 0; i < n; i++) { draw(parts[i]); bootTo(at(i + 1), at(i + 2), 2500, msg); await gpuIdle(5000); }
+  draw(null); bootTo(p1, p1, 0, msg); await gpuIdle(5000);
 }
 let warmQ = 0, bootWarm = false; const queueWarm = () => { clearTimeout(warmQ); if (bootWarm) warmQ = setTimeout(warmRender, 30); }; // (v256: not while loading: loading warms up once, at its end)
 // compile every shader up front (including the ones only a giant slam, the orb or a burst uses) so nothing hitches mid-game
@@ -20396,6 +20446,20 @@ colorId = PALETTE.some(p => p.id === store.color) ? store.color : 'red'; renderS
 if (!store.tut || typeof store.tut !== 'object' || !store.tut.ph) store.tut = { ph: (store.runs || 0) > 0 ? 'done' : 'match' };
 const tutArrowEl = $('tutArrow'), tutGV = new THREE.Vector3(), tutHandEl = $('tutHand'), tutEl = $('tut'), tutTxt = $('tutText'), tutCall = $('tutCall'), tutSlowEl = $('tutSlow'), tutDim = $('tutDim'), tutAva = $('tutAva');
 let tut2 = null, tut = null, tutPrev = null, tutTip = null, tutWinDue = false, tutNiAt = 0, tutFirstAt = 0, tutBrowseAt = 0; // tutBrowseAt: when the free look round the shop began // tutFirstAt: when the lobby first stood clear for the onboarding's first word (it waits a second) // tutNiAt: when the new item card came up (the coach waits for the item to land) // tutWinDue: the lesson's finish screen is owed, before the tally // tut: the scripted match; tutPrev: the mode, level and canvas to put back after it; tutTip: the tip up now
+// (v269) Restart Game: back to a first launch, the sound, music, screen and graphics settings kept. A first tap asks, a second within a few
+// seconds does it. The save goes to the app too (at once, not after the usual short wait), so the app's own copy can't bring it back
+{ const b = $('resetBtn'); let armT = 0;
+  const disarm = () => { if (armT) clearTimeout(armT); armT = 0; b.classList.remove('arm'); b.textContent = 'Restart Game'; };
+  b.addEventListener('click', () => {
+    if (!armT) { b.classList.add('arm'); b.textContent = 'Tap again to erase all progress'; AU.nope && AU.nope(); buzz(8); armT = setTimeout(disarm, 4000); return; }
+    disarm(); b.disabled = true;
+    const keep = {}; for (const k of ['muted', 'sfxOff', 'musicOff', 'gfx', 'orient']) if (store[k] !== undefined) keep[k] = store[k];
+    for (const k of Object.keys(store)) delete store[k];
+    Object.assign(store, { level: 0, sel: 0, best: {}, stars: {}, seen: {}, muted: false, runs: 0, tut: { ph: 'match' } }, keep); // (as a first launch starts: the lesson first)
+    save(); saveSend(); try { AU.trim && AU.trim(); } catch (e) {}
+    setTimeout(() => location.reload(), 150);
+  });
+  $('setDone').addEventListener('click', disarm); $('setBack').addEventListener('click', disarm); }
 const tutPh = () => store.tut.ph, tutSet = ph => { if (store.tut.ph === ph) return; store.tut.ph = ph; save(); };
 const tutMatchDue = () => tutPh() === 'match';
 const TUT_SLOW = 0.35, TUT_M2 = 'sewer'; // (the canvas the lesson's vote lands on: the second match is on Sludge Sewer)
@@ -21436,8 +21500,9 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
       ch: { x: C0.x, z: C0.z, y: -1.2, yaw: 0, air: false, vy: 0, h: 0, sq: 0, rise: 0, wy: 0, wp: 0.05, hr: 0, hp: 0, wade: 1, pop: 0 }, mv: null, mvs: { roll: 0, pitch: 0, sway: 0, sq: 0, rise: 0, lx: 0, ly: 0, dx: 0 }, th: null, stood: false,
       cs: { p: new V3(), l: new V3(), vp: new V3(), vl: new V3(), ox: 0, oy: 0, vox: 0, voy: 0, shake: 0, dof: 0, vd: 0, b: view(), w: view(), tr: null }, fr: { x0: 0, y0: 0, x1: viewW, y1: viewH }, frv: {}, shotK: 'sky', flags: {} });
     shot('sky', true);
-    // (everything compiled now, while the orientation's asked for or the camera's still up in the sky)
-    try { if (renderer.compileAsync) { hold.visible = stream.m.visible = true; renderer.compileAsync(sc, cam).catch(() => {}); hold.visible = stream.m.visible = false; } } catch (e) {}
+    // (everything compiled now, while the orientation's asked for or the camera's still up in the sky; only where the browser builds them in
+    // the background: elsewhere that made them all at once, and api.prep has warmed the scene in pieces during loading instead)
+    try { if (renderer.compileAsync && renderer.extensions.has('KHR_parallel_shader_compile')) { hold.visible = stream.m.visible = true; renderer.compileAsync(sc, cam).catch(() => {}); hold.visible = stream.m.visible = false; } } catch (e) {}
     I.onBurst = () => burstOff();
   }
   function dispose() {
@@ -21692,7 +21757,10 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
   const MOVE_T = { tilt: 1.9, proud: 2.0, admire: 2.6, perk: 1.7 };
   const MV = { act: null, u: 0, dur: 1, t: 0.8, b0: 0, side: 1, f: {}, last: '', o: { roll: 0, pitch: 0, sway: 0, sq: 0, rise: 0, lx: 0, ly: 0, dx: 0, face: null } };
   const beat = () => { const b = AU.flm && AU.flm.beat ? AU.flm.beat() : null; return b == null ? X.t * 110.89 / 60 : b; };
-  function move(k, side) { const L = MOVES_UP.find(a => a[0] === k); MV.act = k; MV.dur = MOVE_T[k] || (L ? L[1] : 1.6); MV.u = 0; MV.b0 = beat(); MV.f = {}; MV.side = side || (rand() < 0.5 ? -1 : 1); MV.last = k; }
+  function move(k, side) { const L = MOVES_UP.find(a => a[0] === k); MV.act = k; MV.dur = MOVE_T[k] || (L ? L[1] : 1.6); MV.u = 0; MV.b0 = beat(); MV.f = {}; MV.side = side || (rand() < 0.5 ? -1 : 1); MV.last = k;
+    // (v269) each move sets its ears going, as the lobby's moves do: swung toward a look or a step, flipped up by a nod or a perk
+    const A = anim(), sd = MV.side, KK = { look: [0.55 * sd, 0.25], glance: [0.4 * sd, 0.2], step: [0.45 * sd, 0.3], ears: [0.2 * sd, 0.7], listen: [0.15 * sd, 0.5], tilt: [0.35 * sd, 0.45], proud: [0, 0.6], admire: [0.4 * sd, 0.4], perk: [0, 0.7] }[k];
+    if (A && A.kickGills && KK) A.kickGills(KK[0], KK[1]); }
   const anim = () => X.I.ax && X.I.ax.A;
   const twitch = () => { const A = anim(); if (A) A.twT = 0; }; // (an ear flicks, the animator's own way)
   // one ear flicked up and out (sd: -1 the left, 1 the right, 0 both), k how hard
@@ -21794,7 +21862,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
       // a bubble or two comes up where it's going to surface; then the eyes come up out of it (stretching up, then settling) and look
       // about, the head tipping and an ear flicking with each look
       for (const [k, at, v] of [['b1', 5.55, 0.18], ['b2', 5.85, 0.26]]) if (t >= at && once(k)) { ripple(C0.x + rnd(-0.05, 0.05), C0.z + rnd(-0.05, 0.05), v); AU.glug && AU.glug(0.4 + v); }
-      if (t >= 6.2 && once('pop')) { X.hold.visible = true; snd('eyes', 1); ripple(C0.x, C0.z, 1); I.face && I.face('startle', 0.6); }
+      if (t >= 6.2 && once('pop')) { X.hold.visible = true; snd('eyes', 1); ripple(C0.x, C0.z, 1); I.face && I.face('startle', 0.6); const A = anim(); if (A && A.kickGills) A.kickGills(0, 0.9); }
       // (v266) down in the paint it lies along its way out, as in the game's basin: the bottom of the hole comes up under it and its eyes
       // come up out of the paint (overshooting a little, then settling)
       const up = t < 6.2 ? 0 : 1 - Math.exp(-(t - 6.2) * 7) * Math.cos((t - 6.2) * 15);
@@ -21824,7 +21892,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
       const lx = PC.x + DIR.x * CR.lip, lz = PC.z + DIR.z * CR.lip; // (the lip of the hole, where it comes up over)
       if (u > 0.08 && u < 0.85 && rand() < dt * 22) { const a = rand() * 6.283; spawn(new V3(lx + Math.cos(a) * 0.15, 0.03, lz + Math.sin(a) * 0.15), new V3(Math.cos(a) * 0.35, rnd(0.6, 1.3), Math.sin(a) * 0.35), rnd(0.008, 0.016)); }
       if (u > 0.55 && once('mid')) { ripple(lx, lz, 0.8); AU.glug && AU.glug(0.5); for (let i = 0; i < 10; i++) { const a = i / 10 * 6.283, sp = rnd(0.5, 1.1); spawn(new V3(lx + Math.cos(a) * 0.2, 0.03, lz + Math.sin(a) * 0.2), new V3(Math.cos(a) * sp, rnd(1, 1.9), Math.sin(a) * sp), rnd(0.01, 0.02)); } }
-      if (t >= J1 && once('land')) { AU.land && AU.land(0.35); buzz(10); ripple(lx, lz, 0.5); }
+      if (t >= J1 && once('land')) { AU.land && AU.land(0.35); buzz(10); ripple(lx, lz, 0.5); const A = anim(); if (A && A.kickGills) A.kickGills(0, -0.5); }
       if (t >= J1) { const k = t - J1, osc = 0.32 * Math.exp(-k * 6) * Math.cos(k * 15); c.sq = Math.max(0, osc); c.rise = Math.max(0, -osc) * 0.6; }
       // and shakes the paint off, then looks up at you, pleased
       if (t >= J1 + 0.38 && once('shake')) { I.shake && I.shake(1); I.coatBurst && I.coatBurst(0.16); AU.vox && AU.vox('brr', 0.6); }
@@ -21918,6 +21986,22 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     v.x += 0.06; v.project(X.pc); const x = (v.x * 0.5 + 0.5) * viewW, y = (0.5 - v.y * 0.5) * viewH;
     w.style.left = x.toFixed(0) + 'px'; w.style.top = y.toFixed(0) + 'px'; w.hidden = false; w.classList.remove('go'); void w.offsetWidth; w.classList.add('go');
   }
+  // (v269) its ears have weight: when its head jerks (popping up, a look round, a nod, a lunge, a turn), they lag behind and swing back,
+  // flopping, as they do on the player in a match. The head's change of speed in the world, in its own frame, nudges the animator's own
+  // ear springs (the same push a hop or a landing gives them): up and down flaps them, side to side swings them
+  const _eh = new V3(), _ev = new V3(), _eq = new THREE.Quaternion();
+  function earsTick(dt) {
+    const A = anim(), P = X.I.ax && X.I.ax.P; if (!A || !A.gillPush || !P || !(dt > 0)) return;
+    P.jointWorld(A.mesh || 'crawl', 'head', _eh);
+    const E = X.ear || (X.ear = { p: _eh.clone(), v: new V3(), ok: false });
+    _ev.subVectors(_eh, E.p).divideScalar(dt); E.p.copy(_eh);
+    if (!X.hold.visible || _ev.length() > 6) { E.v.copy(_ev); E.ok = false; return; } // (a jump to a new place isn't motion)
+    if (!E.ok) { E.v.copy(_ev); E.ok = true; return; }
+    const dv = _ev.clone().sub(E.v); E.v.copy(_ev);
+    X.hold.getWorldQuaternion(_eq); dv.applyQuaternion(_eq.invert()); // (into its own frame: x its side, y up, z ahead)
+    const K = 240, up = clamp(-(dv.y + 0.6 * dv.z) * K, -320, 320), side = clamp(-dv.x * K, -320, 320);
+    for (let j = 0; j < 6; j++) { const k = j % 3 === 2 ? 0.8 : 1; A.gillPush[j * 2] += up * k; A.gillPush[j * 2 + 1] += side * k; }
+  }
   // the character: its place, its pose (the game's own animator does the rest)
   function charTick(dt) {
     const c = X.ch, I = X.I, o = X.o, h = X.hold, m = X.mvs, mv = X.mv || MV.o, k = Math.min(1, dt * 9);
@@ -21925,11 +22009,22 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     // (a step to the side: across its own left and right; the animator walks its feet there from how the ground moves under it)
     c.pop = Math.max(0, (c.pop || 0) - dt * 3); const bob = c.pop > 0 ? Math.sin((1 - c.pop / 1.4) * Math.PI) * 0.03 * c.pop : 0, yw = c.yaw, sc = m.sway * 0.035 + m.dx, cy = Math.cos(c.yaw), sy = Math.sin(c.yaw);
     h.position.set(c.x + cy * sc, c.y + bob, c.z - sy * sc); h.rotation.set(0, yw, m.sway * 0.05); h.updateMatrixWorld(true);
-    o.dt = dt; o.inAir = c.air; o.vy = c.vy; o.height = c.air ? c.h : 0; o.lean = 0; o.spd = 0; o.speed = 0; o.squash = c.sq + m.sq; o.rise = c.rise + m.rise; o.leap = c.air && !c.curl; o.curl = c.curl || 0; o.blob = 0; o.grip = c.grip || 0;
+    // (v269) how it's really moving, handed to the game's animator as the game hands over the player's: its speed over the ground and how
+    // fast it's turning (on the spot or not), from where it is frame to frame. The game's own physics then swing its ears and tail after
+    // it, flopping as it sets off, stops and turns, as in a match (a jump to a new place or heading isn't motion, and is left out)
+    const pv = X.pv || (X.pv = { x: h.position.x, z: h.position.z, yaw: yw, spd: 0, spin: 0, pop: 0 });
+    if (dt > 0) { const sp = Math.hypot(h.position.x - pv.x, h.position.z - pv.z) / dt, dy = wrapPi(yw - pv.yaw), w = Math.abs(dy) > 0.7 ? 0 : dy / dt;
+      pv.spd += ((sp < 8 ? sp : 0) - pv.spd) * Math.min(1, dt * 12); pv.spin += (clamp(w, -12, 12) - pv.spin) * Math.min(1, dt * 16); }
+    pv.x = h.position.x; pv.z = h.position.z; pv.yaw = yw;
+    const mvSpd = X.hold.visible && !c.air ? pv.spd : 0;
+    // (and a pick's little pop flips its ears up, as a hop does)
+    if (c.pop > pv.pop + 0.2) { const A = anim(); if (A && A.kickGills) A.kickGills(0, 0.35 * c.pop); } pv.pop = c.pop;
+    o.dt = dt; o.inAir = c.air; o.vy = c.vy; o.height = c.air ? c.h : 0; o.lean = 0; o.spd = mvSpd; o.speed = mvSpd; o.spinV = pv.spin; o.squash = c.sq + m.sq; o.rise = c.rise + m.rise; o.leap = c.air && !c.curl; o.curl = c.curl || 0; o.blob = 0; o.grip = c.grip || 0;
     o.wt.yaw = c.wy + m.lx * 5; o.wt.pitch = c.wp + 0.85 + m.ly * 3; o.watch = o.wt; o.headRoll = c.hr + m.roll; o.headPitch = c.hp + m.pitch; o.shove = clamp(m.sway, -1, 1); o.push = 0; o.earCover = 0; o.wave = 0; o.climb = X.climb ? X.cl : null; o.D = null; o.maxBall = 1;
     if (mv.face && I.face) I.face(mv.face, 0.15); // (the move's face, held over its own while it lasts)
     if (I.setPaint) I.setPaint(X.paint); if (I.setWade) I.setWade(c.wade);
     X.CH.update(I, o);
+    earsTick(dt);
     // its rim and fin light from the sun, seen from the intro's camera
     if (I.ax && I.ax.look) I.ax.look.U.uKeyDir.value.copy(SUN).transformDirection(X.pc.matrixWorldInverse);
     X.floor.U.uHole.value.set(C0.x + DIR.x * 0.4 * (X.out || 0), C0.z + DIR.z * 0.4 * (X.out || 0), 0.17, X.hold.visible && X.climb ? 1 - smoothstep(0.35, 0.75, X.out || 0) : 0); // (the ring where it's coming up out of the paint)
@@ -22000,10 +22095,18 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
   }
   // keys go to the cards while it runs (Enter mustn't start a match from the lobby behind it)
   function keyStop(e) { if (api.live) e.stopPropagation(); }
+  // (v269) the scene built during the loading screen and drawn once there, a few materials at a time (warmScene), so the first launch
+  // doesn't open on a frozen screen while the GPU makes the desert's shaders; api.boot then only adds the cards
+  let prepped = false;
+  api.prep = async (p0, p1, msg) => {
+    if (prepped || X) return;
+    try { build(); shadowsInit(); prepped = true; } catch (e) { console.warn('intro:', e && e.message); X = null; return; }
+    X.hold.visible = X.stream.m.visible = true; try { await warmScene(X.sc, X.pc, p0, p1, msg); } finally { if (X) X.hold.visible = X.stream.m.visible = false; }
+  };
   api.boot = () => {
     try { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Figtree:wght@400&display=swap'; document.head.appendChild(l); } catch (e) {} // (the title's regular weight: the page only asks for the heavier ones)
     document.body.classList.add('flon'); api.live = true; window.addEventListener('keydown', keyStop, true);
-    try { build(); buildUi(); shadowsInit(); }
+    try { if (!prepped) { build(); shadowsInit(); } buildUi(); }
     catch (e) { console.warn('intro:', e && e.message); try { if (UI) UI.el.remove(); } catch (x) {} UI = null; X = null; api.live = false; api.hush = false; document.body.classList.remove('flon'); window.removeEventListener('keydown', keyStop, true); AU.music('menu'); const ask = () => { if (!store.orient) openOrient(); }; if (bootHold) { const w = setInterval(() => { if (!bootHold) { clearInterval(w); ask(); } }, 100); } else ask(); return; }
     AU.flm.load(); AU.music('intro');
     const start = () => { X.ready = true; AU.flm.play(); };
@@ -22022,8 +22125,11 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
 applyOrient(); showMenu();
 await bootStep(0.82, 0.93, 'Hanging the show');
 await Promise.race([slimeLoad, new Promise(r => setTimeout(r, 12000))]); attachSlimes();
-bootTo(0.93, 0.99, 3500, 'Lighting the gallery'); await warmCompile(); // (v256)
-warmRender(); bootWarm = true;
+bootTo(Math.max(0.86, bootPos()), 0.93, 3500, 'Lighting the gallery'); await warmCompile(); // (v256)
+{ const p0 = Math.min(0.93, Math.max(0.86, bootPos())), p1 = FL && FL.due ? 0.96 : 0.99; // (v269: in pieces, the bar moving with them)
+  try { await warmSteps(p0, p1, 'Lighting the gallery'); } catch (e) { try { warmRender(); } catch (x) {} }
+  if (FL && FL.due && FL.prep) try { await FL.prep(p1, 0.99, 'Setting the scene'); } catch (e) {} }
+bootWarm = true;
 bootTo(1, 1, 0, 'Ready');
 setTimeout(() => AU.pre(), 1200);
 // sound: in the app it can start straight away; in a browser it starts on the first touch. Any touch also brings it back after the app

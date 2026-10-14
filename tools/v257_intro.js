@@ -420,8 +420,9 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
       ch: { x: C0.x, z: C0.z, y: -1.2, yaw: 0, air: false, vy: 0, h: 0, sq: 0, rise: 0, wy: 0, wp: 0.05, hr: 0, hp: 0, wade: 1, pop: 0 }, mv: null, mvs: { roll: 0, pitch: 0, sway: 0, sq: 0, rise: 0, lx: 0, ly: 0, dx: 0 }, th: null, stood: false,
       cs: { p: new V3(), l: new V3(), vp: new V3(), vl: new V3(), ox: 0, oy: 0, vox: 0, voy: 0, shake: 0, dof: 0, vd: 0, b: view(), w: view(), tr: null }, fr: { x0: 0, y0: 0, x1: viewW, y1: viewH }, frv: {}, shotK: 'sky', flags: {} });
     shot('sky', true);
-    // (everything compiled now, while the orientation's asked for or the camera's still up in the sky)
-    try { if (renderer.compileAsync) { hold.visible = stream.m.visible = true; renderer.compileAsync(sc, cam).catch(() => {}); hold.visible = stream.m.visible = false; } } catch (e) {}
+    // (everything compiled now, while the orientation's asked for or the camera's still up in the sky; only where the browser builds them in
+    // the background: elsewhere that made them all at once, and api.prep has warmed the scene in pieces during loading instead)
+    try { if (renderer.compileAsync && renderer.extensions.has('KHR_parallel_shader_compile')) { hold.visible = stream.m.visible = true; renderer.compileAsync(sc, cam).catch(() => {}); hold.visible = stream.m.visible = false; } } catch (e) {}
     I.onBurst = () => burstOff();
   }
   function dispose() {
@@ -676,7 +677,10 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
   const MOVE_T = { tilt: 1.9, proud: 2.0, admire: 2.6, perk: 1.7 };
   const MV = { act: null, u: 0, dur: 1, t: 0.8, b0: 0, side: 1, f: {}, last: '', o: { roll: 0, pitch: 0, sway: 0, sq: 0, rise: 0, lx: 0, ly: 0, dx: 0, face: null } };
   const beat = () => { const b = AU.flm && AU.flm.beat ? AU.flm.beat() : null; return b == null ? X.t * 110.89 / 60 : b; };
-  function move(k, side) { const L = MOVES_UP.find(a => a[0] === k); MV.act = k; MV.dur = MOVE_T[k] || (L ? L[1] : 1.6); MV.u = 0; MV.b0 = beat(); MV.f = {}; MV.side = side || (rand() < 0.5 ? -1 : 1); MV.last = k; }
+  function move(k, side) { const L = MOVES_UP.find(a => a[0] === k); MV.act = k; MV.dur = MOVE_T[k] || (L ? L[1] : 1.6); MV.u = 0; MV.b0 = beat(); MV.f = {}; MV.side = side || (rand() < 0.5 ? -1 : 1); MV.last = k;
+    // (v269) each move sets its ears going, as the lobby's moves do: swung toward a look or a step, flipped up by a nod or a perk
+    const A = anim(), sd = MV.side, KK = { look: [0.55 * sd, 0.25], glance: [0.4 * sd, 0.2], step: [0.45 * sd, 0.3], ears: [0.2 * sd, 0.7], listen: [0.15 * sd, 0.5], tilt: [0.35 * sd, 0.45], proud: [0, 0.6], admire: [0.4 * sd, 0.4], perk: [0, 0.7] }[k];
+    if (A && A.kickGills && KK) A.kickGills(KK[0], KK[1]); }
   const anim = () => X.I.ax && X.I.ax.A;
   const twitch = () => { const A = anim(); if (A) A.twT = 0; }; // (an ear flicks, the animator's own way)
   // one ear flicked up and out (sd: -1 the left, 1 the right, 0 both), k how hard
@@ -778,7 +782,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
       // a bubble or two comes up where it's going to surface; then the eyes come up out of it (stretching up, then settling) and look
       // about, the head tipping and an ear flicking with each look
       for (const [k, at, v] of [['b1', 5.55, 0.18], ['b2', 5.85, 0.26]]) if (t >= at && once(k)) { ripple(C0.x + rnd(-0.05, 0.05), C0.z + rnd(-0.05, 0.05), v); AU.glug && AU.glug(0.4 + v); }
-      if (t >= 6.2 && once('pop')) { X.hold.visible = true; snd('eyes', 1); ripple(C0.x, C0.z, 1); I.face && I.face('startle', 0.6); }
+      if (t >= 6.2 && once('pop')) { X.hold.visible = true; snd('eyes', 1); ripple(C0.x, C0.z, 1); I.face && I.face('startle', 0.6); const A = anim(); if (A && A.kickGills) A.kickGills(0, 0.9); }
       // (v266) down in the paint it lies along its way out, as in the game's basin: the bottom of the hole comes up under it and its eyes
       // come up out of the paint (overshooting a little, then settling)
       const up = t < 6.2 ? 0 : 1 - Math.exp(-(t - 6.2) * 7) * Math.cos((t - 6.2) * 15);
@@ -808,7 +812,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
       const lx = PC.x + DIR.x * CR.lip, lz = PC.z + DIR.z * CR.lip; // (the lip of the hole, where it comes up over)
       if (u > 0.08 && u < 0.85 && rand() < dt * 22) { const a = rand() * 6.283; spawn(new V3(lx + Math.cos(a) * 0.15, 0.03, lz + Math.sin(a) * 0.15), new V3(Math.cos(a) * 0.35, rnd(0.6, 1.3), Math.sin(a) * 0.35), rnd(0.008, 0.016)); }
       if (u > 0.55 && once('mid')) { ripple(lx, lz, 0.8); AU.glug && AU.glug(0.5); for (let i = 0; i < 10; i++) { const a = i / 10 * 6.283, sp = rnd(0.5, 1.1); spawn(new V3(lx + Math.cos(a) * 0.2, 0.03, lz + Math.sin(a) * 0.2), new V3(Math.cos(a) * sp, rnd(1, 1.9), Math.sin(a) * sp), rnd(0.01, 0.02)); } }
-      if (t >= J1 && once('land')) { AU.land && AU.land(0.35); buzz(10); ripple(lx, lz, 0.5); }
+      if (t >= J1 && once('land')) { AU.land && AU.land(0.35); buzz(10); ripple(lx, lz, 0.5); const A = anim(); if (A && A.kickGills) A.kickGills(0, -0.5); }
       if (t >= J1) { const k = t - J1, osc = 0.32 * Math.exp(-k * 6) * Math.cos(k * 15); c.sq = Math.max(0, osc); c.rise = Math.max(0, -osc) * 0.6; }
       // and shakes the paint off, then looks up at you, pleased
       if (t >= J1 + 0.38 && once('shake')) { I.shake && I.shake(1); I.coatBurst && I.coatBurst(0.16); AU.vox && AU.vox('brr', 0.6); }
@@ -902,6 +906,22 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     v.x += 0.06; v.project(X.pc); const x = (v.x * 0.5 + 0.5) * viewW, y = (0.5 - v.y * 0.5) * viewH;
     w.style.left = x.toFixed(0) + 'px'; w.style.top = y.toFixed(0) + 'px'; w.hidden = false; w.classList.remove('go'); void w.offsetWidth; w.classList.add('go');
   }
+  // (v269) its ears have weight: when its head jerks (popping up, a look round, a nod, a lunge, a turn), they lag behind and swing back,
+  // flopping, as they do on the player in a match. The head's change of speed in the world, in its own frame, nudges the animator's own
+  // ear springs (the same push a hop or a landing gives them): up and down flaps them, side to side swings them
+  const _eh = new V3(), _ev = new V3(), _eq = new THREE.Quaternion();
+  function earsTick(dt) {
+    const A = anim(), P = X.I.ax && X.I.ax.P; if (!A || !A.gillPush || !P || !(dt > 0)) return;
+    P.jointWorld(A.mesh || 'crawl', 'head', _eh);
+    const E = X.ear || (X.ear = { p: _eh.clone(), v: new V3(), ok: false });
+    _ev.subVectors(_eh, E.p).divideScalar(dt); E.p.copy(_eh);
+    if (!X.hold.visible || _ev.length() > 6) { E.v.copy(_ev); E.ok = false; return; } // (a jump to a new place isn't motion)
+    if (!E.ok) { E.v.copy(_ev); E.ok = true; return; }
+    const dv = _ev.clone().sub(E.v); E.v.copy(_ev);
+    X.hold.getWorldQuaternion(_eq); dv.applyQuaternion(_eq.invert()); // (into its own frame: x its side, y up, z ahead)
+    const K = 240, up = clamp(-(dv.y + 0.6 * dv.z) * K, -320, 320), side = clamp(-dv.x * K, -320, 320);
+    for (let j = 0; j < 6; j++) { const k = j % 3 === 2 ? 0.8 : 1; A.gillPush[j * 2] += up * k; A.gillPush[j * 2 + 1] += side * k; }
+  }
   // the character: its place, its pose (the game's own animator does the rest)
   function charTick(dt) {
     const c = X.ch, I = X.I, o = X.o, h = X.hold, m = X.mvs, mv = X.mv || MV.o, k = Math.min(1, dt * 9);
@@ -909,11 +929,22 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     // (a step to the side: across its own left and right; the animator walks its feet there from how the ground moves under it)
     c.pop = Math.max(0, (c.pop || 0) - dt * 3); const bob = c.pop > 0 ? Math.sin((1 - c.pop / 1.4) * Math.PI) * 0.03 * c.pop : 0, yw = c.yaw, sc = m.sway * 0.035 + m.dx, cy = Math.cos(c.yaw), sy = Math.sin(c.yaw);
     h.position.set(c.x + cy * sc, c.y + bob, c.z - sy * sc); h.rotation.set(0, yw, m.sway * 0.05); h.updateMatrixWorld(true);
-    o.dt = dt; o.inAir = c.air; o.vy = c.vy; o.height = c.air ? c.h : 0; o.lean = 0; o.spd = 0; o.speed = 0; o.squash = c.sq + m.sq; o.rise = c.rise + m.rise; o.leap = c.air && !c.curl; o.curl = c.curl || 0; o.blob = 0; o.grip = c.grip || 0;
+    // (v269) how it's really moving, handed to the game's animator as the game hands over the player's: its speed over the ground and how
+    // fast it's turning (on the spot or not), from where it is frame to frame. The game's own physics then swing its ears and tail after
+    // it, flopping as it sets off, stops and turns, as in a match (a jump to a new place or heading isn't motion, and is left out)
+    const pv = X.pv || (X.pv = { x: h.position.x, z: h.position.z, yaw: yw, spd: 0, spin: 0, pop: 0 });
+    if (dt > 0) { const sp = Math.hypot(h.position.x - pv.x, h.position.z - pv.z) / dt, dy = wrapPi(yw - pv.yaw), w = Math.abs(dy) > 0.7 ? 0 : dy / dt;
+      pv.spd += ((sp < 8 ? sp : 0) - pv.spd) * Math.min(1, dt * 12); pv.spin += (clamp(w, -12, 12) - pv.spin) * Math.min(1, dt * 16); }
+    pv.x = h.position.x; pv.z = h.position.z; pv.yaw = yw;
+    const mvSpd = X.hold.visible && !c.air ? pv.spd : 0;
+    // (and a pick's little pop flips its ears up, as a hop does)
+    if (c.pop > pv.pop + 0.2) { const A = anim(); if (A && A.kickGills) A.kickGills(0, 0.35 * c.pop); } pv.pop = c.pop;
+    o.dt = dt; o.inAir = c.air; o.vy = c.vy; o.height = c.air ? c.h : 0; o.lean = 0; o.spd = mvSpd; o.speed = mvSpd; o.spinV = pv.spin; o.squash = c.sq + m.sq; o.rise = c.rise + m.rise; o.leap = c.air && !c.curl; o.curl = c.curl || 0; o.blob = 0; o.grip = c.grip || 0;
     o.wt.yaw = c.wy + m.lx * 5; o.wt.pitch = c.wp + 0.85 + m.ly * 3; o.watch = o.wt; o.headRoll = c.hr + m.roll; o.headPitch = c.hp + m.pitch; o.shove = clamp(m.sway, -1, 1); o.push = 0; o.earCover = 0; o.wave = 0; o.climb = X.climb ? X.cl : null; o.D = null; o.maxBall = 1;
     if (mv.face && I.face) I.face(mv.face, 0.15); // (the move's face, held over its own while it lasts)
     if (I.setPaint) I.setPaint(X.paint); if (I.setWade) I.setWade(c.wade);
     X.CH.update(I, o);
+    earsTick(dt);
     // its rim and fin light from the sun, seen from the intro's camera
     if (I.ax && I.ax.look) I.ax.look.U.uKeyDir.value.copy(SUN).transformDirection(X.pc.matrixWorldInverse);
     X.floor.U.uHole.value.set(C0.x + DIR.x * 0.4 * (X.out || 0), C0.z + DIR.z * 0.4 * (X.out || 0), 0.17, X.hold.visible && X.climb ? 1 - smoothstep(0.35, 0.75, X.out || 0) : 0); // (the ring where it's coming up out of the paint)
@@ -984,10 +1015,18 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
   }
   // keys go to the cards while it runs (Enter mustn't start a match from the lobby behind it)
   function keyStop(e) { if (api.live) e.stopPropagation(); }
+  // (v269) the scene built during the loading screen and drawn once there, a few materials at a time (warmScene), so the first launch
+  // doesn't open on a frozen screen while the GPU makes the desert's shaders; api.boot then only adds the cards
+  let prepped = false;
+  api.prep = async (p0, p1, msg) => {
+    if (prepped || X) return;
+    try { build(); shadowsInit(); prepped = true; } catch (e) { console.warn('intro:', e && e.message); X = null; return; }
+    X.hold.visible = X.stream.m.visible = true; try { await warmScene(X.sc, X.pc, p0, p1, msg); } finally { if (X) X.hold.visible = X.stream.m.visible = false; }
+  };
   api.boot = () => {
     try { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Figtree:wght@400&display=swap'; document.head.appendChild(l); } catch (e) {} // (the title's regular weight: the page only asks for the heavier ones)
     document.body.classList.add('flon'); api.live = true; window.addEventListener('keydown', keyStop, true);
-    try { build(); buildUi(); shadowsInit(); }
+    try { if (!prepped) { build(); shadowsInit(); } buildUi(); }
     catch (e) { console.warn('intro:', e && e.message); try { if (UI) UI.el.remove(); } catch (x) {} UI = null; X = null; api.live = false; api.hush = false; document.body.classList.remove('flon'); window.removeEventListener('keydown', keyStop, true); AU.music('menu'); const ask = () => { if (!store.orient) openOrient(); }; if (bootHold) { const w = setInterval(() => { if (!bootHold) { clearInterval(w); ask(); } }, 100); } else ask(); return; }
     AU.flm.load(); AU.music('intro');
     const start = () => { X.ready = true; AU.flm.play(); };
