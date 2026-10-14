@@ -167,7 +167,11 @@ Each anchor must match exactly once:
 8. `  const isc = D === P && lookIntro && state === 'menu' ? V.introSc : 1;\n` (in `visuals`): preceded by the jump-in's hop, squash and rise.
 9. `  if (bootHold || !booted || !tutBootEl.classList.contains('gone')` (in `tutMenuTick`): the coach waits while `FL.busy()`.
 
+All nine were checked against the main branch's page as it is at v259 (`claude/roll-model-handoff-a8a8gx`, commit 9317a2a). Each matches once, the built page passes `node --check`, and the whole intro plays through on it, from the sky to Bloop's first line, with no page errors. To build on that copy, use `python3 tools/q257_intro.py game/_intro_main.html --test --src=<its index.html>`.
+
 `FL` is a `var`, so the hooks are safe before it is assigned. For a returning player `FL` is a stub: `due` is false and every hook is a no-op.
+
+The hand-over is safe when the iris shuts at once (`window.__instant`, or reduced motion). `handoff()` can dispose the scene in the middle of `story()`, so `story()` and `frame()` stop right there. This was reproduced on the earlier build (the game's error line showed `null paintTo`) and is clean now.
 
 If the scene can't be built (for instance neither character pack loaded), the intro stands down: the lobby's song plays and the orientation chooser opens exactly as before. This was tested with both packs pointed at missing files.
 
