@@ -3059,10 +3059,17 @@ html.touchnav :focus-visible{outline:none!important}
 /* the fight card for four: four columns wide, four rows upright */
 .vsx .vsrow.quad .vhead b{font-size:clamp(12px,3.6vw,22px)}
 .vsx .vsrow.quad .vcol .vbox{width:200%}
+.vsx .vsrow.rows.quad .vcol .vbox{width:auto} /* (v284: in rows the shot is the row's own width, four fighters or two) */
 @media (min-aspect-ratio:1/1){.vsx .vsrow.quad .vcol .vbox{width:84%;top:16%}}
 .vsrow.rows.quad .vhead b{font-size:clamp(15px,5vw,24px)}
 .vsrow.rows .vcol.foe3 .vhead{left:auto;right:0;justify-items:end;text-align:right;border-radius:0 0 0 14px;padding:9px 14px 8px 18px}
 .vsrow.rows .vcol.foe3{animation-name:rowinr}
+/* (v284) upright with the vote to come: the rows stop where its panel will come up (its height: the label, the reel, the tally and
+   the padding), the bottom band and the title fill the space under them till then */
+.vsx.vvr .vsrow.rows{bottom:max(20%,calc(209px + max(12px,env(safe-area-inset-bottom,0px))))}
+.vsx.vvr .vband.bot{height:calc(10% + 236px + env(safe-area-inset-bottom,0px))}
+.vsx.vvr .vstitle{bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+
 .vcol.foe3{animation-delay:.24s}
 .vcol.ally{animation-delay:.08s}
 .vsrow.duo .vcol.ally+.vcol.foe{box-shadow:-6px 0 0 #E3122F,-12px 0 14px rgba(0,0,0,.45)}
@@ -3622,7 +3629,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 283</p>
+      <p class="ver">Version 284</p>
     </div>
   </div>
 
@@ -19739,16 +19746,42 @@ function portraitOf(D, W, Hh, o) {
   for (let y = 0; y < Hh; y++) id.data.set(buf.subarray((Hh - 1 - y) * W * 4, (Hh - y) * W * 4), y * W * 4);
   g.putImageData(id, 0, 0); return c;
 }
+// (v284) the screen's top inset (a notch, or an app's bar laid over the page), in the page's own pixels
+function vsSafeTop() { const d = document.createElement('div'); d.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:env(safe-area-inset-top,0px);visibility:hidden;pointer-events:none'; document.body.appendChild(d); const h = d.getBoundingClientRect().height || 0; d.remove(); return h; }
+// (v284) landscape, as the vote's panel comes up: each fighter's head glides into the middle of what its panel still shows (across,
+// and under its name, over the vote), smaller only if it must be; the shot knows where it put the head (el._fr: its middle, and its
+// height, in the shot). Worked out from the layout, not from where the panels' entrance animations have them at that moment.
+function vsVoteFit() {
+  const row = $('vsRow'), vx = $('vsx'); if (row.classList.contains('rows')) return; const vtop = vx.clientHeight - $('vvote').offsetHeight;
+  for (const el of row.querySelectorAll('.vbox')) { const fr = el._fr, col = el.closest('.vcol'); if (!fr || !fr.fd || !col || el.offsetParent !== col) continue;
+    const hd = col.querySelector('.vhead'), cy = row.offsetTop + col.offsetTop, top = hd && hd.offsetHeight ? hd.offsetTop + hd.offsetHeight : 0, band = vtop - cy - top; if (band < 40) continue;
+    el.style.animation = 'none'; el.style.transform = ''; const base = getComputedStyle(el).transform, bm = base && base !== 'none' ? new DOMMatrix(base) : null, w = el.offsetWidth, h = el.offsetHeight; if (!h) continue;
+    const hy = el.offsetTop + (bm ? bm.m42 : 0) + fr.fy * h, hx = el.offsetLeft + (bm ? bm.m41 : 0) + fr.fx * w, k = Math.min(1, band * 0.8 / (fr.fd * h)), dy = top + band * 0.5 - hy, dx = col.offsetWidth / 2 - hx;
+    el.style.transformOrigin = (fr.fx * 100).toFixed(2) + '% ' + (fr.fy * 100).toFixed(2) + '%'; el.style.transition = 'transform .45s cubic-bezier(.2,1.1,.35,1)';
+    el.style.transform = (bm ? base + ' ' : '') + 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px) scale(' + k.toFixed(3) + ')'; }
+}
 function vsSnapTick() {
   const q = vsSnap; if (--q.t > 0) { for (const [D] of q.list) { const lk = ((vOf(D) || {}).slime || {}).ax && vOf(D).slime.ax.look; if (lk) { if (lk.exprK < 1) { lk.exprK = 1; lk.expr = lk.exprB; } lk.blinkK = 0; lk.blinkT = Math.max(lk.blinkT || 0, 1.2); } } return; } vsSnap = null;
-  if (q.id === runId) { const rows = $('vsRow').classList.contains('rows'); for (const [D, el, pose] of q.list) { if (!el) continue; const r = el.getBoundingClientRect(), fw = 720, fh = Math.max(240, Math.min(900, Math.round(fw * (r.height || 360) / (r.width || 480)))); /* (the shot takes the row's own shape: nothing cropped) */
+  if (q.id === runId) { const rows = $('vsRow').classList.contains('rows'); for (const [D, el, pose] of q.list) { if (!el) continue;
+      if (rows) { /* (v284) upright, one fighter per row: the shot at the row's own shape and settled size (the rows slide in and the shots
+        settle from a little larger, so its layout size, not where the animation has it now), the head in the middle of what you can see
+        of the row: below the screen's top inset, above the title at the foot */
+        const col = el.closest('.vcol') || el.parentNode, bw = Math.max(1, el.offsetWidth || col.offsetWidth || 390), bh = Math.max(1, el.offsetHeight || col.offsetHeight || 160);
+        const k = Math.min(2.2, 1400 / bw, 1200 / bh), fw = Math.max(64, Math.round(bw * k)), fh = Math.max(64, Math.round(bh * k));
+        const top0 = col.getBoundingClientRect().top + el.offsetTop; let top = Math.max(top0, vsSafeTop()), bot = top0 + bh;
+        if (!$('vsx').classList.contains('vvr')) for (const b of document.querySelectorAll('#vsx .vband.bot, #vsx .vstitle')) { const br = b.getBoundingClientRect(); if (br.height > 0 && br.top < bot && br.bottom > top) bot = Math.min(bot, br.top + 4); }
+        const vis = Math.max(40, bot - top), foe = /\bfoe/.test(col.className || '');
+        const fr = { fd: Math.min(0.86, vis * 0.66 / bh), fx: 0.5, fy: (top + vis * 0.5 - top0) / bh, turn: foe ? 0.3 : -0.3 };
+        el.replaceChildren(portraitOf(D, fw, fh, Object.assign({}, pose, { face: true, yaw: 0 }, fr))); continue; }
+      const r = el.getBoundingClientRect(), fw = 720, fh = Math.max(240, Math.min(900, Math.round(fw * (r.height || 360) / (r.width || 480)))); /* (the shot takes the row's own shape: nothing cropped) */
       let fr = null; { const col = el.closest('.vcol'); if (col) { const cr = col.getBoundingClientRect(), hd = col.querySelector('.vhead'), hr = hd && hd.getBoundingClientRect(), wide = !!(hr && hr.width > cr.width * 0.7); let bot = cr.bottom;
         for (const b of document.querySelectorAll('#vsx .vband.bot, #vsx .vstitle')) { const br = b.getBoundingClientRect(); if (br.height > 0 && br.top < cr.bottom && br.bottom > cr.top) bot = Math.min(bot, br.top + 4); }
         const plL = hr && hr.width ? (hr.left + hr.right) / 2 < (cr.left + cr.right) / 2 : true; let top = cr.top + (hr && hr.height ? (wide ? hr.height + 4 : hr.height * 0.35) : 0), L = cr.left, R = cr.right;
         top = Math.max(top, r.top); bot = Math.min(bot, r.bottom); L = Math.max(L, r.left); R = Math.min(R, r.right); /* (what of the shot its panel shows) */
         const rh = r.height || fh, rw = r.width || (rows ? fw : 600), vis = Math.max(60, bot - top), tx = L + (R - L) * (wide ? 0.5 : plL ? 0.57 : 0.43), ty = top + vis * (wide ? 0.5 : 0.54);
         fr = { fd: Math.min(0.9, vis * (wide ? 0.4 : 0.64) / rh), fx: (tx - r.left) / rw, fy: (ty - r.top) / rh, turn: wide ? (D === P ? -0.3 : 0.3) : plL ? -0.3 : 0.3 }; } }
-      const c = rows ? portraitOf(D, fw, fh, Object.assign({}, pose, { face: true, yaw: 0 }, fr)) : portraitOf(D, 600, 720, Object.assign({}, pose, fr)); el.replaceChildren(c); } }
+      const c = rows ? portraitOf(D, fw, fh, Object.assign({}, pose, { face: true, yaw: 0 }, fr)) : portraitOf(D, 600, 720, Object.assign({}, pose, fr)); el.replaceChildren(c); el._fr = fr; }
+    if (!rows && $('vsx').classList.contains('voting')) vsVoteFit(); } /* (v284: the vote came up before the shots were taken) */
   for (const [D] of q.list) { D.ip = D.vsIp || null; D.vsIp = null; if (D !== P) { D.look.drop.visible = false; if (D.vsSt) { D.st = D.vsSt; D.vsSt = null; } } }
 }
 function showVS(cb) {
@@ -19756,7 +19789,7 @@ function showVS(cb) {
   const el = $('vsx'), md = MODES.find(m => m[0] === mode) || MODES[0];
   const card = (D, name, cls) => '<div class="vcol ' + cls + '" style="--sc:' + TEAMS[D.team].css + ';--cd:' + mixHex(TEAMS[D.team].wet, 0x0C0620, 0.62) + '">' + (cls === 'me' ? '' : '<i class="vseam" aria-hidden="true"></i>') + '<i class="vsweep" aria-hidden="true"></i><div class="vhead"><small>' + (cls === 'me' ? 'You' : cls === 'me ally' ? 'Teammate' : 'CPU') + '</small><b>' + escAttr(name) + '</b></div><span class="vbox" id="vbox' + D.team + '"></span>' + Array.from({ length: 9 }, (_, i) => '<i class="pt" style="--x:' + (6 + Math.random() * 88).toFixed(0) + '%;--s:' + (3 + Math.random() * 7).toFixed(0) + 'px;--d:' + (2.2 + Math.random() * 2.4).toFixed(2) + 's;--w:' + (-Math.random() * 4).toFixed(2) + 's;--dx:' + ((Math.random() - 0.5) * 60).toFixed(0) + 'px"></i>').join('') + '</div>';
   let h = card(P, playerName(), 'me'); if (mode === 'duo') h += card(H3, NAMES[3], 'me ally') + card(H, NAMES[1], 'foe') + card(H2, NAMES[2], 'foe2'); else if (mode !== 'solo') { h += card(H, NAMES[1], 'foe'); if (mode === 'trio' || mode === 'ffa') h += card(H2, NAMES[2], 'foe2'); if (mode === 'ffa') h += card(H3, NAMES[3], 'foe3'); }
-  $('vsRow').innerHTML = h; $('vsRow').classList.toggle('trio', mode === 'trio'); $('vsRow').classList.toggle('quad', isShow()); $('vsRow').classList.toggle('duo', mode === 'duo'); $('vsRow').classList.toggle('rows', viewH > viewW && mode !== 'solo'); /* (upright: one fighter per row, shot on the face) */
+  $('vsRow').innerHTML = h; $('vsRow').classList.toggle('trio', mode === 'trio'); $('vsRow').classList.toggle('quad', isShow()); $('vsRow').classList.toggle('duo', mode === 'duo'); $('vsRow').classList.toggle('rows', viewH > viewW && mode !== 'solo'); $('vsx').classList.toggle('vvr', viewH > viewW && mode !== 'solo' && !window.__noVote && !tutMatchDue()); /* (v284: the vote to come) */ /* (upright: one fighter per row, shot on the face) */
   // the rivals step out, dressed, with their game face on; the portraits are taken two frames on, once their bodies have settled
   const list = [[P, $('vbox0'), VS_POSE.me]]; if (mode !== 'solo') list.push([H, $('vbox1'), VS_POSE.foe]); if (mode === 'trio' || isShow()) list.push([H2, $('vbox2'), VS_POSE.foe2]); if (isShow()) list.push([H3, $('vbox3'), mode === 'duo' ? VS_POSE.ally : VS_POSE.foe3]);
   for (const [D, , pose] of list) { D.wearPop = 1; D.wearOff = false; D.wearHid = false; if (D !== P) { D.look.drop.visible = true; D.yaw = P.yaw; D.flatT = 0; D.stunT = 0; D.dry = false; D.vsSt = D.st; D.st = 'play'; }
@@ -19787,7 +19820,7 @@ function openVote(id, done) {
   const NV = VOTE_STAGES.length, REP = 12, wi = (REP - 5) * NV + VOTE_STAGES.indexOf(win); let h = '';
   for (let r = 0; r < REP; r++) for (const sid of VOTE_STAGES) h += '<span class="vcard" data-s="' + sid + '"><img alt="" src="' + stageArtOf(sid) + '"><b class="vcn">' + escAttr(themeLabel(sid)) + '</b></span>';
   $('vts').innerHTML = '<div class="vreel" id="vreel"><div class="vtrack" id="vtrack">' + h + '</div></div><div class="vtally" id="vtally" aria-live="polite"></div>';
-  $('vvLbl').textContent = 'The votes are in'; $('vvWin').textContent = ''; box.classList.remove('ticking', 'done'); box.classList.add('reel'); box.hidden = false; $('vsx').classList.add('voting');
+  $('vvLbl').textContent = 'The votes are in'; $('vvWin').textContent = ''; box.classList.remove('ticking', 'done'); box.classList.add('reel'); box.hidden = false; $('vsx').classList.add('voting'); vsVoteFit();
   const st = voteState = { id, votes, open: false, timers: [] };
   const at = (ms, fn) => st.timers.push(setTimeout(() => { if (st !== voteState || id !== runId) return; fn(); }, ms));
   const reel = $('vreel'), track = $('vtrack'), cards = [...track.children];
