@@ -12,7 +12,7 @@ d, out = sys.argv[1], sys.argv[2]; L = json.load(open(os.path.join(d, 'log.json'
 nfr = len([f for f in os.listdir(d) if f.endswith('.jpg')]); dur = nfr / fps; N = int(dur * SR)
 ph = {e['ph']: e['t'] for e in log if 'ph' in e}; act = {e['act']: e['t'] for e in log if 'act' in e}
 wink = ph['wink']; hit_in = next((e['hit'] for e in log if e.get('ph') == 'wink'), 2.4) or 2.4; hit = wink + hit_in
-t0 = hit - int((hit - ph['barrel']) / BAR) * BAR  # (the loop's clock, so the hit lands on one of its bar lines)
+t0 = hit - int((hit - ph['sky']) / BAR) * BAR  # (the loop's clock, so the hit lands on one of its bar lines; it starts with the sky)
 nb = lambda t: t0 + np.ceil((t - t0) / BEAT) * BEAT
 lay_at = [t0, nb(ph['iris']), nb(ph['style']), nb(ph['paint']), nb(ph['name'])]
 LAY = [[1, 0, 0, 0, 0], [0.9, 1, 0, 0, 0], [0.8, 1, 1, 0, 0], [0.7, 1, 1, 1, 0], [0.55, 1, 1, 1, 1]]
@@ -36,7 +36,10 @@ fx = load(os.path.join(ROOT, 'game', 'sfx', 'intro_fx.mp3'), SR, 2)
 def sfx(k, at, v=1.0):
     s, l = FX[k]; x = fx[int(s * SR):int((s + l) * SR)] * v * 0.5; i = int(at * SR); n = min(len(x), N - i)
     if n > 0 and i >= 0: mix[i:i + n] += x[:n]
-b = ph['barrel']
+SKY_TITLE, BAR0 = 1.8, 1.05  # (v257_intro.js: when the title comes up over the sky; the drum's thumps before it rocks)
+sfx('sparkle', ph['sky'] + SKY_TITLE, 0.45)
+for at, v in [(0.12, 0.7), (0.62, 1.0)]: sfx('tip', ph['barrel'] + at, 0.3 * v)
+b = ph['barrel'] + BAR0
 for at, v in [(0.5, 0.75), (1.12, 0.85), (1.74, 1.0)]: sfx('wobble', b + at, v)
 for e in log:
     if e.get('act') == 'tumble': sfx('tumble', e['t'], 0.75)

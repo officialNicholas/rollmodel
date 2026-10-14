@@ -51,6 +51,8 @@
         wake() { if (M.on && !M.S) begin(); },
         layer(n) { n = Math.max(0, Math.min(LAY.length - 1, n | 0)); if (n <= M.lay) return; M.lay = n; apply(); },
         get lay() { return M.lay; },
+        // how many beats into the loop's clock it is (null when it isn't playing): the character nods along to it
+        beat() { const S = M.S; return S && ctx ? (T() - S.t0) / BEAT : null; },
         // one of the intro's own effects (false if it isn't in yet, so the caller can use one of the game's)
         fx(k, v) { const R = B.fx, s = FX[k]; if (!ctx || !R || !s || !sfx || ctx.state !== 'running') return false;
           try { const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = R; g.gain.value = (v == null ? 1 : v) * 0.9; src.connect(g); g.connect(sfx); src.start(T() + 0.005, s[0], s[1]); } catch (e) { return false; } return true; },
