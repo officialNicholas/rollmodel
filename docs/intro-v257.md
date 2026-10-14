@@ -74,6 +74,8 @@ The character is the game's own axolotl, driven by the game's own animator (its 
 
 A look turns the head about 25 degrees. Still down in the paint (the first time through the eye cards) it does all but the step. Between moves it waits 1 to 2.5 seconds.
 
+**The ears (v269)** flop on the game's own spring physics, the same springs that swing them in a match. The intro feeds the animator the character's real motion: its speed over the sand and its turn rate (from where it actually is each frame, eased, so a teleport between shots reads as nothing) go in as the animator's `spd`, `speed` and `spinV`, so walking, stepping and turning swing them as crawling does in play. On top of that the head's own movement throws them about: each frame the head's change of velocity (in the character's frame) pushes the springs the other way, as inertia would (`earsTick`), so a nod, a look or the climb out of the hole leaves them swinging after. Each move gives them a small push of its own as it starts (a look flicks the ear on that side, a perk lifts both), the pop up out of the paint throws them up and the landing after the climb drops them. Measured as the springs' swing summed each frame, the cards now move them about as much as the lobby's idle does, and the climb out about half as much as a match.
+
 ## The camera
 
 A shot is either a place and which way it looks (the sky), or what to look at, how much of it to fit and from which way (everything else).
@@ -134,6 +136,8 @@ Everything is built only when the intro runs and disposed at the hand-over (`dis
 - the baked shadow texture;
 - the character's own materials (its geometry and face sheets are shared with the game's characters, so they are left alone);
 - its entry in `AXOC.S.list`.
+
+(v269) For a new player it's built during the loading screen, not after it (`FL.prep`, called at the end of loading): the scene is made, its baked shadow drawn, and then everything in it is drawn once a few materials at a time, each piece finished on the GPU before the next (`warmScene`), with the bar showing "Setting the scene". Before, the scene was made after "Ready" and its shaders were all made on its first frame, which could hold the loading screen up for seconds with the intro music already playing. `compileAsync` on the scene now only runs where the browser builds shaders in the background (`KHR_parallel_shader_compile`).
 
 While the intro is live it draws instead of the lobby. `frameBody` returns before `step`, `visuals` and `renderFrame`, so the lobby and canvas cost nothing during it. It's one render pass straight to the screen.
 
