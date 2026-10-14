@@ -11,7 +11,7 @@ STRIP = """const g = new THREE.Group(); g.add(body, lid);
     // (v285) the paint it poured out: a line of it left along the inside, down the side it lies on, thickening toward the mouth; darker
     // deep inside, where little light reaches
     { const dn = new V3(0, -1, 0).applyQuaternion(new THREE.Quaternion().setFromAxisAngle(TIPAX, Math.PI / 2).invert()), a0 = Math.atan2(dn.z, dn.x), rows = 26, cols = 6, pos = [], col = [];
-      const at = (u, c) => { const y = 0.07 + u * (H - 0.075), w = (0.02 + 0.055 * u * u) * (1 + 0.18 * Math.sin(y * 37 + 1.3) + 0.1 * Math.sin(y * 91)), sx = c / cols * 2 - 1, ang = a0 + sx * w / R, r = R - 0.013 - 0.006 * (1 - sx * sx); return [Math.cos(ang) * r, y, Math.sin(ang) * r]; };
+      const at = (u, c) => { const y = 0.07 + u * (H - 0.075), w = (0.03 + 0.085 * u * u) * (1 + 0.18 * Math.sin(y * 37 + 1.3) + 0.1 * Math.sin(y * 91)), sx = c / cols * 2 - 1, ang = a0 + sx * w / R, r = R - 0.013 - 0.006 * (1 - sx * sx); return [Math.cos(ang) * r, y, Math.sin(ang) * r]; };
       for (let i = 0; i < rows; i++) for (let c = 0; c < cols; c++) { const A = at(i / rows, c), B = at(i / rows, c + 1), C = at((i + 1) / rows, c), D = at((i + 1) / rows, c + 1); pos.push(...A, ...C, ...B, ...B, ...C, ...D);
         for (const u of [i, i + 1, i, i, i + 1, i + 1]) { const k = 0.3 + 0.7 * Math.pow(u / rows, 1.3); col.push(k, k, k); } }
       const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); pg.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); pg.computeVertexNormals();
