@@ -3206,6 +3206,14 @@ html.touchnav :focus-visible{outline:none!important}
 .evnew{position:absolute;left:12px;top:-10px;z-index:3;padding:5px 10px 4px;border-radius:999px;background:#E3122F;color:#fff;font:900 11px/1 var(--font-head);letter-spacing:.08em;text-transform:uppercase;box-shadow:0 0 0 2.5px #171320;transform:rotate(-5deg);animation:evnew 1.4s ease-in-out infinite;pointer-events:none}
 @keyframes evnew{50%{transform:rotate(-5deg) scale(1.12)}}
 .evcard:not(.fresh) .evnew{display:none}
+/* (v283) Ol' Bloop's pick on the Showdown card: his face in a gold ring and a gold tag, bobbing on the card's picture; taps go through */
+.evbloop{position:absolute;right:12px;bottom:14px;z-index:4;display:flex;align-items:center;pointer-events:none;animation:evbloopin .5s cubic-bezier(.2,1.5,.35,1) .35s both,evbloopbob 2.4s ease-in-out .9s infinite}
+.evbloop i{position:relative;z-index:1;flex:none;width:46px;height:46px;border-radius:50%;background:#2A2437 url(art/coach.webp) 50% 16%/165% no-repeat;box-shadow:0 0 0 2.5px #F2C14E,0 0 0 5px #171320,0 5px 0 5px rgba(0,0,0,.25)}
+.evbloop b{margin-left:-12px;padding:8px 13px 7px 19px;border-radius:999px;background:#F2C14E;color:#171320;font:900 12px/1 var(--font-head);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;box-shadow:0 0 0 2.5px #171320,0 4px 0 #171320}
+@keyframes evbloopin{from{opacity:0;transform:translateY(10px) scale(.55)}}
+@keyframes evbloopbob{50%{transform:translateY(-4px) rotate(-2deg)}}
+@media (prefers-reduced-motion:reduce){.evbloop{animation:none}}
+
 @media (prefers-reduced-motion:reduce){.evnew{animation:none}}
 
 /* (v257) the first launch: the lobby stays out of sight while it runs. Its cards: a strip of black tape with the line in big white
@@ -3614,7 +3622,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 282</p>
+      <p class="ver">Version 283</p>
     </div>
   </div>
 
@@ -19826,7 +19834,7 @@ const fmtClock = s => { const t = Math.max(0, Math.ceil(s)); return Math.floor(t
 function pause() {
   if (state !== 'play') return; state = 'paused'; if (P.charging) clearCharge(P); kbCharge = false; AU.chargeStop(); AU.roll(0, 0); AU.sizzle(0);
   const [a, b] = fmtPair(teamCov(0), teamCov(1));
-  $('pauseYou').textContent = a; $('pauseCpu').textContent = b; $('pauseClock').textContent = fmtClock(matchLeft) + ' left'; pauseEl.hidden = false; AU.music('pause'); setTimeout(() => $('resumeBtn').focus({ preventScroll: true }), 30);
+  $('pauseYou').textContent = a; $('pauseCpu').textContent = b; $('pauseClock').textContent = fmtClock(matchLeft) + ' left'; $('quitBtn').textContent = tut ? 'Skip tutorial' : 'Menu'; pauseEl.hidden = false; AU.music('pause'); setTimeout(() => $('resumeBtn').focus({ preventScroll: true }), 30);
 }
 function resume() { if (state !== 'paused') return; state = 'play'; pauseEl.hidden = true; AU.music('play'); if ($('tutSlow').classList.contains('on')) AU.slow(true, true); }
 const PT_A = ['Prelude', 'Study', 'Impression', 'Sonata', 'Daydream', 'Duel', 'Etude', 'Rhapsody'];
@@ -20127,7 +20135,7 @@ $('orbBtn').addEventListener('click', e => { e.preventDefault(); if (state === '
 $('slamBtn').addEventListener('click', e => { e.preventDefault(); if (state === 'play' && e.detail === 0) useSlam(P); });
 $('resumeBtn').addEventListener('click', uiClick(resume));
 $('restartBtn').addEventListener('click', uiClick(replay));
-$('quitBtn').addEventListener('click', uiClick(toMenu));
+$('quitBtn').addEventListener('click', uiClick(() => tut ? tutSkip() : toMenu())); // (v283: the first lesson's pause skips it)
 const howModal = $('howModal');
 function openHow() { if (state !== 'menu') return; paintHow(); howModal.hidden = false; setTimeout(() => $('howClose').focus({ preventScroll: true }), 30); }
 function closeHow() { if (howModal.hidden) return; howModal.hidden = true; if (state === 'menu') { setModal.hidden = false; $('howOpen').focus({ preventScroll: true }); } } // (it's opened from Settings: back there)
@@ -21225,7 +21233,7 @@ function tutModesCard() {
   tutCardText(['New game <em>modes!</em>', '', 'Show me', '']); // (v282: just the news and the button)
   el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); tutCardCoach(); AU.fanfare && AU.fanfare(); AU.bloop(0.55); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);
 }
-function tutModesDone(open) { const el = $('tutGo'); el.classList.remove('on'); el.hidden = true; coachCorner(null); el.dataset.mode = ''; store.tut.modes = 1; save(); menu.classList.remove('tutoring'); if (open) setTimeout(() => openEvents(), 250); }
+function tutModesDone(open) { const el = $('tutGo'); el.classList.remove('on'); el.hidden = true; coachCorner(null); el.dataset.mode = ''; store.tut.modes = 1; if (!store.tut.trySd) store.tut.trySd = 'due'; save(); menu.classList.remove('tutoring'); if (open) setTimeout(() => openEvents(), 250); }
 function tutWelcome() {
   const el = $('tutGo'); if (!el.hidden) return; el.dataset.mode = 'welcome';
   tutCardText(['Commissions <em>are open!</em>', 'Commissions are goals that pay extra dabs, and they refresh every day. Check in whenever you\u2019re here.', 'Show me', 'Later']);
@@ -21572,13 +21580,27 @@ function tutEndMatch() { // (as a match ends)
   if (tutPh() === 'match2') { tut2 = null; tutHide(); delete store.tut.price; store.tut.m3 = 1; tutSet('done'); save(); }
   else if (tut3) { tut3 = null; tutHide(); store.tut.m3 = 2; save(); }
 }
+// (v283) Skip tutorial, from the first lesson's pause: the match ends there and you're back in the lobby with what it would have given you,
+// the flower and the fangs, already yours (there are no dabs from a match you skipped), and Ol' Bloop goes on to putting them on
+function tutSkip() {
+  if (!tut || state !== 'paused') return;
+  tutCard(false); tut = null; tutHide(); if (tutSlowEl.classList.contains('on')) AU.slow(false, true); tutSlowEl.classList.remove('on'); tutPipsEl.classList.remove('on');
+  for (const id of ['flower', 'fangs']) { OWNED.add(id); BOUGHT.add(id); } store.owned = [...OWNED]; store.bought = [...BOUGHT]; store.fresh = [...new Set([...(store.fresh || []), 'flower', 'fangs'])];
+  newItem = null; delete store.tut.price; store.tut.skipped = 1; tutSet('locker'); save(); toMenu();
+}
 function tutFangsSale() { const t = store.tut.price || (store.tut.price = {}); if (t.fangs >= 0) return; if (!OWNED.has('fangs')) { OWNED.add('fangs'); store.owned = [...OWNED]; } t.fangs = store.drops || 0; save(); if (shopOpen) renderShop(); }
 // between matches the coach points the way: the shop for the flower and the fangs, the locker to wear them, then the canvases to vote
-const tutBootEl = $('boot'), tutOrientEl = $('orient'); let tutStrokesAt = 0, tutSDone = 0, tutCommsAt = 0, tutModesAt = 0;
+const tutBootEl = $('boot'), tutOrientEl = $('orient'); let tutStrokesAt = 0, tutSDone = 0, tutCommsAt = 0, tutModesAt = 0, tutTrySdAt = 0;
 function tutMenuTick() {
   if (tutPh() === 'done' && tutStrokesDue()) { if (!tutStrokesAt) tutStrokesAt = performance.now(); if (performance.now() - tutStrokesAt > 1200) tutStrokesCard(1); return; } /* (a beat of the lobby, then the praise) */
   if (tutPh() === 'done' && tutModesDue()) { if (!tutModesAt) tutModesAt = performance.now(); if (performance.now() - tutModesAt > 700) tutModesCard(); return; } else tutModesAt = 0;
   if (tutPh() === 'done' && tutCommsDue()) { if (!tutCommsAt) tutCommsAt = performance.now(); if (performance.now() - tutCommsAt > 1200) { menu.classList.add('tutoring'); tutWelcome(); } return; } /* (rank 3: commissions open) */
+  // (v283) the modes are open: the first time you're on Choose event, Ol' Bloop's pick sits on the Showdown card (his face and "Try this
+  // one!"), a suggestion only: nothing dimmed or blocked, any card works; it goes once you leave the page
+  if (tutPh() === 'done' && store.tut.trySd === 'due') { const sd = document.querySelector('.evcard[data-ev="showdown"]');
+    if (state === 'menu' && menuPage === 'events' && sd) { if (!sd.querySelector('.evbloop')) { sd.classList.add('bpick'); sd.insertAdjacentHTML('beforeend', '<span class="evbloop" aria-hidden="true"><i></i><b>Try this one!</b></span>'); } tutTrySdAt = 1; }
+    else if (tutTrySdAt) { store.tut.trySd = 1; save(); tutTrySdAt = 0; document.querySelectorAll('.evbloop').forEach(e => e.remove()); document.querySelectorAll('.evcard.bpick').forEach(e => e.classList.remove('bpick')); }
+  }
   if (tutPh() === 'done') { if (menu.classList.contains('tutoring')) menu.classList.remove('tutoring'); if (!(state === 'play' && tutTip && tutTip.key === 'protip')) tutHide(); return; } /* (the onboarding is over: nothing to point at, so no hunting the page for open dialogs every frame) */
   if ((FL && FL.busy()) || bootHold || !booted || !tutBootEl.classList.contains('gone') || !tutOrientEl.hidden || document.querySelector('.modal:not([hidden]):not(#stPop)')) return tutHide(); // (nothing over the loading screen, the orientation chooser or any dialog) // (nothing over the loading screen: its tap to start must get through)
   const ph = tutPh(); if (menu.classList.contains('tutoring') !== (ph !== 'done')) menu.classList.toggle('tutoring', ph !== 'done'); // (the lesson keeps the lobby simple: no commissions, no how-to)
@@ -22401,7 +22423,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
       if (t >= 2.5 && t < 3.12) a = (Math.PI / 2) * eIn((t - 2.5) / 0.62);
       if (t >= 3.12) { const u = t - 3.12; a = Math.PI / 2 - 0.16 * Math.abs(Math.sin(u * 9)) * Math.exp(-u * 5.5); }
       tiltAt(a);
-      if (t >= 0.5 && once('w1')) snd('wobble', 0.75); if (t >= 1.12 && once('w2')) snd('wobble', 0.85); if (t >= 1.74 && once('w3')) snd('wobble', 1);
+      if (t >= 0.5 && once('w1')) { snd('wobble', 0.75); if (AU.xwant) for (const n of ['i_bubble', 'i_rise', 'i_climb', 'i_shake']) AU.xwant(n); } // (v283: the puddle's and the shake's sounds, fetched now) if (t >= 1.12 && once('w2')) snd('wobble', 0.85); if (t >= 1.74 && once('w3')) snd('wobble', 1);
       if (t >= 2.3 && once('s1')) shot('tip');
       if (t >= 3.1 && once('thud')) { snd('tip', 1); X.cs.shake = 1; buzz([10, 30, 20]); popLid(); { const dp = X.drum.g.position; burst(dp.x + TIP.x * 0.3, dp.z + TIP.z * 0.3, 12, 1.1); burst(dp.x - TIP.x * 0.2, dp.z - TIP.z * 0.2, 6, 0.8); } for (let i = 0; i < 16; i++) { const a2 = rand() * 6.283, s = rnd(0.4, 1.2); spawn(new V3(X.drum.g.position.x + Math.cos(a2) * 0.3, 0.05, X.drum.g.position.z + Math.sin(a2) * 0.3), new V3(Math.cos(a2) * s, rnd(0.6, 1.4), Math.sin(a2) * s), rnd(0.006, 0.012), new THREE.Color(0xC9874D)); } }
       if (t >= 3.2) { const u = (t - 3.2) / 2.8; X.R = 0.95 * eOut(u); X.MR = u < 1 ? 0.2 * (1 - 0.4 * u) : Math.max(0, 0.12 - (t - 6) * 0.08); }
@@ -22409,8 +22431,8 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
       streamAt(t);
       // a bubble or two comes up where it's going to surface; then the eyes come up out of it (stretching up, then settling) and look
       // about, the head tipping and an ear flicking with each look
-      for (const [k, at, v] of [['b1', 5.55, 0.18], ['b2', 5.85, 0.26]]) if (t >= at && once(k)) { ripple(C0.x + rnd(-0.05, 0.05), C0.z + rnd(-0.05, 0.05), v); AU.glug && AU.glug(0.4 + v); }
-      if (t >= 6.2 && once('pop')) { X.hold.visible = true; snd('eyes', 1); ripple(C0.x, C0.z, 1); I.face && I.face('startle', 0.6); const A = anim(); if (A && A.kickGills) A.kickGills(0, 0.9); }
+      for (const [k, at, v] of [['b1', 5.55, 0.18], ['b2', 5.85, 0.26]]) if (t >= at && once(k)) { ripple(C0.x + rnd(-0.05, 0.05), C0.z + rnd(-0.05, 0.05), v); if (!(k === 'b1' && AU.xplay && AU.xplay('i_bubble', { v: 0.75 }))) AU.glug && AU.glug(0.4 + v); }
+      if (t >= 6.2 && once('pop')) { X.hold.visible = true; snd('eyes', 1); AU.xplay && AU.xplay('i_rise', { v: 0.85 }); ripple(C0.x, C0.z, 1); I.face && I.face('startle', 0.6); const A = anim(); if (A && A.kickGills) A.kickGills(0, 0.9); }
       // (v266) down in the paint it lies along its way out, as in the game's basin: the bottom of the hole comes up under it and its eyes
       // come up out of the paint (overshooting a little, then settling)
       const up = t < 6.2 ? 0 : 1 - Math.exp(-(t - 6.2) * 7) * Math.cos((t - 6.2) * 15);
@@ -22434,7 +22456,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
       // reaching up onto the floor, body pitched up the slope, slowest as its chest goes over the lip, hips and tail out last, the paint
       // running off it; then it shakes itself off
       const GO = 0.15, CT = 1.8, J1 = GO + CT, u = crPath((t - GO) / CT);
-      if (once('f0')) { snd('form', 1); I.face && I.face('focus', J1); }
+      if (once('f0')) { snd('form', 1); AU.xplay && AU.xplay('i_climb', { v: 0.8, d: 0.12 }); I.face && I.face('focus', J1); }
       if (t >= GO && once('hup')) { AU.vox && AU.vox('hup', 0.7); ripple(C0.x, C0.z, 0.7); }
       const fl = smoothstep(J1 + 0.1, J1 + 0.7, t); if (fl < 1) sunk(u, 0, fl); else { c.x = LAND.x; c.z = LAND.z; c.y = PR; c.yaw += (STAND_YAW - c.yaw) * Math.min(1, dt * 3); } c.wade = 1; // (out, it turns to face you)
       const lx = PC.x + DIR.x * CR.lip, lz = PC.z + DIR.z * CR.lip; // (the lip of the hole, where it comes up over)
@@ -22443,7 +22465,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
       if (t >= J1 && once('land')) { AU.land && AU.land(0.35); buzz(10); ripple(lx, lz, 0.5); const A = anim(); if (A && A.kickGills) A.kickGills(0, -0.5); }
       if (t >= J1) { const k = t - J1, osc = 0.32 * Math.exp(-k * 6) * Math.cos(k * 15); c.sq = Math.max(0, osc); c.rise = Math.max(0, -osc) * 0.6; }
       // and shakes the paint off, then looks up at you, pleased
-      if (t >= J1 + 0.38 && once('shake')) { I.shake && I.shake(1); I.coatBurst && I.coatBurst(0.16); AU.vox && AU.vox('brr', 0.6); }
+      if (t >= J1 + 0.38 && once('shake')) { AU.xplay && AU.xplay('i_shake', { v: 0.95 }); I.shake && I.shake(1); I.coatBurst && I.coatBurst(0.16); AU.vox && AU.vox('brr', 0.6); }
       if (t >= J1 + 1.05 && once('pleased')) { I.face && I.face('glee', 0.8); twitch(); }
       if (t >= J1 + 1.05) { const k = smoothstep(J1 + 1.05, J1 + 1.3, t); hp = 0.12 * k; hr = 0.08 * k; }
       if (t >= J1 + 0.3) c.wade = Math.max(0.25, c.wade - dt * 1.5);
