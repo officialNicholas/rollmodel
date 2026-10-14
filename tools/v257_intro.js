@@ -501,7 +501,7 @@ void main(){ if (vS < uCut) discard; vec3 n = normalize(vN), v = normalize(camer
       if (t < jumpAt) { c.x = LAND.x; c.z = LAND.z; c.y = PR; wy = 0; wp = 0.1; if (t > jumpAt - 0.22) c.sq = 0.35 * Math.sin((t - jumpAt + 0.22) / 0.22 * Math.PI); }
       else { const u = (t - jumpAt) / 0.75, H = 0.95; c.yaw += (2.2 - c.yaw) * Math.min(1, dt * 10); c.x = LAND.x + u * 2.9; c.z = LAND.z - u * 2.2; c.h = 4 * H * u * (1 - u); c.y = PR + Math.max(-0.6, c.h); c.vy = 4 * H * (1 - 2 * u) / 0.75; c.air = true; c.rise = 0.5;
         if (once('j')) { AU.jump && AU.jump(); AU.vox && AU.vox('whee', 0.8); } }
-      if (t >= irisAt && once('iris')) handoff();
+      if (t >= irisAt && once('iris')) { handoff(); if (!X) return; } // (the iris can close at once, and the scene's gone with it)
     }
     c.wy += (wy - c.wy) * Math.min(1, dt * 5); c.wp += (wp - c.wp) * Math.min(1, dt * 5);
     // the paint's colour, easing to the one picked
@@ -552,7 +552,8 @@ void main(){ if (vS < uCut) discard; vec3 n = normalize(vN), v = normalize(camer
     if (!X) return false; const dt = Math.min(0.05, rdt); X.t += dt; X.pt += dt;
     if (X.ph === 'wait' && X.ready) go('sky');
     if (AU.flm) AU.flm.wake();
-    story(dt); camTick(dt); lidTick(dt); dropsTick(dt); charTick(dt); shadowsTick();
+    story(dt); if (!X) return false; // (handed over this very frame: the lobby draws it)
+    camTick(dt); lidTick(dt); dropsTick(dt); charTick(dt); shadowsTick();
     const U = X.floor.U, H = viewH; U.uT.value = X.t; U.uR.value = X.R; U.uMR.value = X.MR; U.uCol.value.copy(X.paint); U.uPearl.value = X.pearl;
     X.stream.U.uTime.value = X.t; X.stream.U.uCol.value.copy(X.paint); X.stream.U.uPearl.value = X.pearl; X.grit.U.uT.value = X.t; X.grit.U.uPx.value = renderer.getPixelRatio() * H / 780;
     renderer.setRenderTarget(null); renderer.render(X.sc, X.pc);
