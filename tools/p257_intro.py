@@ -53,8 +53,10 @@ async def main():
                 if not v and 'None' in cond: return v
                 await pg.wait_for_timeout(120)
             log('timeout waiting for', cond); return None
-        await until("v['ph'] == 'sky' and v['pt'] >= 0.25"); await shot('a0_sky')
-        for k, at in [('a_barrel', 0.2), ('b_wobble', 1.4), ('c_tip', 2.9), ('d_pour', 3.9), ('e_pour2', 5.2), ('f_eyes', 6.8), ('g_look', 7.9)]:
+        # (the sky: the stars, the title, the pan down; then the drum, its thumps first: v257_intro.js SKY and BAR0)
+        for k, at in [('a0_sky', 0.8), ('a1_title', 3.6), ('a2_pan', 7.4)]:
+            await until(f"v['ph'] == 'sky' and v['pt'] >= {at}"); await shot(k)
+        for k, at in [('a_barrel', 0.2), ('a3_thump', 0.75), ('b_wobble', 2.45), ('c_tip', 3.95), ('d_pour', 4.95), ('e_pour2', 6.25), ('f_eyes', 7.85), ('g_look', 8.95)]:
             await until(f"v['ph'] == 'barrel' and v['pt'] >= {at}"); await shot(k)
         await until("v['ph'] == 'iris' and v['pt'] > 1.2"); await shot('h_iris')
         await pg.click('.flopt[data-i="blue"]'); await pg.wait_for_timeout(900); await shot('h2_blue')
