@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from intro_audio_an import load
 SR = 44100; BEAT = 60 / 110.89; BAR = 4 * BEAT; LOOP = (0.25, 17.56444); LV = 0.21; MENU_AT = 17.605
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); M = os.path.join(ROOT, 'game', 'music')
-FX = {'wobble': (0, 0.524), 'tip': (0.824, 0.55), 'pour': (1.673, 3.919), 'eyes': (5.893, 0.393), 'form': (6.585, 1.255), 'sparkle': (8.14, 0.8)}
+FX = {'wobble': (0, 0.524), 'tip': (0.824, 0.55), 'pour': (1.673, 3.919), 'eyes': (5.893, 0.393), 'form': (6.585, 1.255), 'sparkle': (8.14, 0.8), 'tumble': (9.24, 2.326)}
 d, out = sys.argv[1], sys.argv[2]; L = json.load(open(os.path.join(d, 'log.json'))); fps = L['fps']; log = L['log']
 nfr = len([f for f in os.listdir(d) if f.endswith('.jpg')]); dur = nfr / fps; N = int(dur * SR)
 ph = {e['ph']: e['t'] for e in log if 'ph' in e}; act = {e['act']: e['t'] for e in log if 'act' in e}
@@ -38,6 +38,8 @@ def sfx(k, at, v=1.0):
     if n > 0 and i >= 0: mix[i:i + n] += x[:n]
 b = ph['barrel']
 for at, v in [(0.5, 0.75), (1.12, 0.85), (1.74, 1.0)]: sfx('wobble', b + at, v)
+for e in log:
+    if e.get('act') == 'tumble': sfx('tumble', e['t'], 0.75)
 sfx('tip', b + 3.1); sfx('pour', b + 3.22, 0.9); sfx('eyes', b + 6.2); sfx('form', ph['form']); sfx('sparkle', wink + 0.2, 0.9)
 mix = np.tanh(mix * 2.2) / 2.2; mix *= 0.89 / max(1e-6, np.abs(mix).max())
 import soundfile as sf; wav = out + '.wav'; sf.write(wav, mix, SR)
