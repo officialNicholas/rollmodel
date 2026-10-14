@@ -232,7 +232,8 @@ If the scene can't be built (for instance neither character pack loaded), the in
 ## Files
 
 - `tools/v257_intro.py`: the patch module, `apply(s)`. It reads `v257_intro.js`, `v257_intro.css` and `v257_intro_au.js` from beside itself.
-- `tools/q257_intro.py`: the quick builder. It writes `game/_intro_test.html`; `--test` adds `window.__T`.
+- `tools/q257_intro.py`: the quick builder onto a page without the intro (the v256 page and earlier). It writes `game/_intro_test.html`; `--test` adds `window.__T`.
+- `tools/qswap_intro.py`: the quick builder onto the shipped page, which already carries the intro (`game/index.html` on this branch since the merge of v265): it swaps the page's three intro blocks for the files in `tools/` as they are now. `--test` adds `window.__T` and `FL.handoff`.
 - `tools/c257_intro.py`: makes the screenshot composites from a probe run.
 - `tools/r257_intro.py` and `tools/r257_mix.py`: the video (`intro-v257.mp4`). The recorder steps the page at a fixed 30 frames a second of game time (`requestAnimationFrame`, `performance.now` and the CSS animations together) and logs when each stage begins. The mixer lays in the music as the game plays it (the layers on the beat, the sting on a bar line, the menu song from its bar 8) and the intro's effects. The game's own synthesized effects (pops, splats, jumps) aren't in the video's sound.
 - `tools/perf257_intro.py`: the cost per stage, against the lobby.
@@ -248,7 +249,7 @@ If the scene can't be built (for instance neither character pack loaded), the in
 ## Testing
 
 ```
-python3 tools/q257_intro.py --test            # build game/_intro_test.html (not committed)
+python3 tools/qswap_intro.py --test           # build game/_intro_test.html from the shipped page (not committed)
 python3 -m http.server 8765 --directory game &
 PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers python3 tools/p257_intro.py out port inset
 PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers python3 tools/p257_intro.py out land inset
