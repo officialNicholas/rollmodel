@@ -176,21 +176,23 @@ Measured with `tools/perf257_intro.py` (Chromium with SwiftShader, 390x780, aver
 
 | Stage | Main-thread ms | Frame ms (SwiftShader) | Draw calls | Triangles |
 |---|---|---|---|---|
-| Sky (opening) | 2.0 | 81 | 14 | 22k |
-| Drum rocks, tips, pours; eyes pop up | 2.1 | 180 | 17 | 52k |
-| Eye colour card (close-up) | 2.5 | 349 | 13 | 51k |
-| Eye style card (close-up) | 2.3 | 379 | 13 | 51k |
-| Paint card | 2.2 | 318 | 16 | 52k |
-| Forming, jumping, shaking | 2.5 | 279 | 16 | 52k |
-| Name card | 2.4 | 310 | 16 | 52k |
-| All set? | 2.2 | 352 | 13 | 51k |
-| Wink, send-off, leap | 2.1 | 271 | 16 | 52k |
-| Jump-in (lobby) | 5.6 | 140 | 4 | 44k |
-| Lobby | 4.6 | 184 | 4 | 44k |
+| Sky (stars, title, the pan down) | 2.0 | 94 | 17 | 25k |
+| Drum thumps, rocks, tips, pours; eyes pop up | 2.5 | 222 | 20 | 53k |
+| Eye colour card (close-up) | 2.9 | 391 | 19 | 53k |
+| Eye style card (close-up) | 2.7 | 463 | 16 | 53k |
+| Paint card | 3.0 | 404 | 19 | 53k |
+| Forming, jumping, shaking | 3.0 | 338 | 20 | 55k |
+| Name card | 2.8 | 369 | 20 | 55k |
+| All set? | 2.5 | 390 | 20 | 55k |
+| Wink, send-off, leap | 2.5 | 345 | 19 | 53k |
+| Jump-in (lobby) | 5.9 | 150 | 4 | 44k |
+| Lobby | 5.1 | 204 | 4 | 44k |
+
+The lobby itself measured about 10% slower in this run than in the one before the windmill, stars and moves went in (184 ms then), so runs vary by about that much. Against the lobby in the same run, the close-ups went from 1.7 to 2 times its frame time to 1.9 to 2.3 times. What's new in those shots is the windmill (2 draws), the birds (1), the painted far ground and the tape's and agaves' stir; they weren't timed one by one. The stars cost nothing once the camera has come down (the shader skips them).
 
 There is no shadow map, no post pass and no render target.
 
-On the main thread the intro costs about half of what the lobby does. On pixels, the wide shots cost about what the lobby does and the close-ups about 1.7 to 2 times as much under SwiftShader. Timing each layer of the eyes close-up off in turn:
+On the main thread the intro costs about half of what the lobby does. On pixels, the wide shots cost about what the lobby does and the close-ups about 1.9 to 2.3 times as much under SwiftShader. Timing each layer of the eyes close-up off in turn:
 
 | Layer | Share of the close-up's pixel cost |
 |---|---|
