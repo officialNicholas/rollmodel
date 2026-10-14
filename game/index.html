@@ -3614,7 +3614,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 281</p>
+      <p class="ver">Version 282</p>
     </div>
   </div>
 
@@ -21216,13 +21216,13 @@ function tutRocket(D, dt) {
 }
 // the card that ends the lesson: the match holds still under it, and Let's do it lets it go
 const TG_REST = ['Now <em>win it!</em>', 'Beat him and cover as much of the canvas as you can. Bonus points every time you take him out.', 'Let\u2019s do it!'];
-function tutCardText(t) { $('tgTitle').innerHTML = t[0]; $('tgText').textContent = t[1]; $('tgGo').textContent = t[2]; $('tgLater').hidden = !t[3]; if (t[3]) $('tgLater').textContent = t[3]; }
+function tutCardText(t) { $('tgTitle').innerHTML = t[0]; $('tgText').textContent = t[1] || ''; $('tgText').hidden = !t[1]; $('tgGo').textContent = t[2]; $('tgLater').hidden = !t[3]; if (t[3]) $('tgLater').textContent = t[3]; }
 // the welcome to the real game: commissions open, and what to chase next
 // (v273) back in the lobby after the Strokes lesson: Ol' Bloop tells you the new game modes are open. Once, for whoever has just finished it
 function tutModesDue() { return tutPh() === 'done' && store.tut.modes === 'due' && evUnlocked() && state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden && $('tutGo').hidden && !vic; }
 function tutModesCard() {
   const el = $('tutGo'); if (!el.hidden) return; el.dataset.mode = 'modes'; store.evNew = Object.assign(store.evNew || {}, { solo: 1, showdown: 1 }); menu.classList.add('tutoring');
-  tutCardText(['New game <em>modes!</em>', 'Time trial and Showdown are open now. Time trial: paint all you can in 60 seconds and beat your best. Showdown: two hearts each, last one standing wins.', 'Show me', 'Later']);
+  tutCardText(['New game <em>modes!</em>', '', 'Show me', '']); // (v282: just the news and the button)
   el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); tutCardCoach(); AU.fanfare && AU.fanfare(); AU.bloop(0.55); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);
 }
 function tutModesDone(open) { const el = $('tutGo'); el.classList.remove('on'); el.hidden = true; coachCorner(null); el.dataset.mode = ''; store.tut.modes = 1; save(); menu.classList.remove('tutoring'); if (open) setTimeout(() => openEvents(), 250); }
