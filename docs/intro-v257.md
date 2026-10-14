@@ -34,7 +34,7 @@ The music is new and is written on the theme (`music/menu.mp3`). It builds a lay
 | Stage | What happens | Music layer |
 |---|---|---|
 | wait | The scene is ready behind the orientation chooser (if it's needed) | |
-| sky 0–2.3 | Looking up at the sky over the canyon rim, then the camera cranes down onto the drum | air (starts as soon as it decodes) |
+| sky 0–2.3 | Looking up at the sky over the canyon rim, then the camera cranes down onto the drum, and a tumbleweed rolls past it on the wind | air (starts as soon as it decodes) |
 | barrel 0.5–2.4 | The drum rocks left, right, harder left (a creak and slosh each time) | air |
 | barrel 2.5–3.2 | Tips over (thud, camera shake, a puff of sand, the lid flies off and clatters) | air |
 | barrel 3.2–6.2 | A rope of glossy pearl paint pours from the mouth into a spreading puddle on the sand | air |
@@ -118,6 +118,14 @@ While the intro is live it draws instead of the lobby. `frameBody` returns befor
   - agaves;
   - a sheet of corrugated iron (`art/intro_rust.webp`);
   - caution tape on three posts ("CAUTION WET PAINT").
+- **Dust:** soft puffs that always face the camera, 96 at most, one instanced draw.
+  - On the wind, they drift low over the sand from the left, with a gust of them every 6 to 10 seconds; the air is already dusty when the intro starts.
+  - Impacts kick them up: the drum's thud, the lid's bounces, the character's landing and its leap away, and every bounce of the tumbleweed.
+  - Fine specks of sand also blow past, some low and some up in the light (one point cloud).
+- **The tumbleweed** is a ball of 170 dry twigs, each a bent chord through it made of thin three-sided tubes, about 4k triangles in one draw.
+  - It rolls in from the left on the wind, skipping over the sand: it turns as far as it rolls, wobbles a little, casts its own sun shadow and puffs dust at each bounce.
+  - Its first pass rolls behind the drum during the crane down, just before the drum starts to rock. After that it comes back every 7 to 12 seconds on a path behind the action.
+  - It gets a dry rustle as it comes into view, added to the end of `sfx/intro_fx.mp3` so the other effects keep their offsets.
 - **The rest:** the pour is one deformed tube, drops are one instanced mesh (up to 96), and wind-blown sand is one point cloud. The lighting is a sun, a rim light, a warm bounce off the sand and a sky/sand hemisphere.
 - **The character** is the game's own `AXOC.make()` axolotl, driven through `AXOC.update` with the game's animator. Eye colour and style, colour, paint coat, `shake()`, `coatBurst()` and the `smirk` wink face are all its own.
 
