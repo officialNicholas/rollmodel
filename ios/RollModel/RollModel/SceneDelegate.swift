@@ -3,6 +3,7 @@ import UIKit
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
+    private var wasInBackground = false
 
     func scene(_ scene: UIScene,
                willConnectTo session: UISceneSession,
@@ -13,6 +14,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window.rootViewController = GameViewController()
         window.makeKeyAndVisible()
         self.window = window
+        GameAudio.onRestart = { [weak self] in self?.gameController?.restartSound() }
     }
 
     func sceneWillResignActive(_ scene: UIScene) {
@@ -20,10 +22,16 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         gameController?.pauseGame()
     }
 
+    func sceneDidEnterBackground(_ scene: UIScene) {
+        wasInBackground = true
+    }
+
     func sceneDidBecomeActive(_ scene: UIScene) {
-        // Back from the home screen, a call or the app switcher: turn the audio session back on, then tell the game, which restarts its sound.
+        // Back from the home screen, a call or the app switcher: turn the audio session back on, then tell the game, which restarts its sound
+        // (from the background on a fresh start, since iOS can hand the page its old sound back stuck).
         GameAudio.reactivate()
-        gameController?.resumeGame()
+        gameController?.resumeGame(afterBackground: wasInBackground)
+        wasInBackground = false
     }
 
     private var gameController: GameViewController? {

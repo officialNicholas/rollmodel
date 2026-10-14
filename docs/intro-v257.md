@@ -7,7 +7,7 @@ The player then picks, each live on the character:
 - the eye style;
 - the paint colour (puddle, character and buttons all change).
 
-The character hauls itself out, jumps clear and shakes the paint off its body and ears. The player names it and confirms ("All set?": *Not yet* goes back to change things, *Let's roll* goes on). Two strips of tape slap across the screen ("Fresh out of the barrel?" / "Now go paint the town!"). It winks and leaps away, the iris closes, and it opens on the lobby with the character jumping in from the side. The lesson then starts exactly as before (Ol' Bloop: "Hey, rookie! Ready to roll?...").
+The character hauls itself out, jumps clear and shakes the paint off its body and ears. The player names it and confirms ("All set?": *Not yet* goes back to change things, *Let's roll* goes on). Two strips of tape slap across the screen ("Fresh out of the barrel?" / "Now go paint the town!"). It winks, then slingshots itself off: it turns side on, digs in low and draws back, lets go, balls up into a blob of jelly paint and shoots out of the shot. The iris closes, opens on the lobby, and the blob flies in from the side, slams into the middle of the floor (a crown of paint, a ring, a thud and a little camera shake) and the character crawls up out of the puddle with the same climb as out of a basin (v264). The lesson then starts exactly as before (Ol' Bloop: "Hey, rookie! Ready to roll?...").
 
 The look follows the references the player sent:
 - a sunlit desert scrapyard, warm sand, hard shadows;
@@ -49,8 +49,8 @@ The music is new and is written on the theme (`music/menu.mp3`). It builds a lay
 | form | It rises out of the paint (stretching up as it runs off), crouches, jumps clear (drops trailing), lands with a splash, shakes the paint off (the coat bursts into flying drops), then looks up, pleased | tops |
 | name (card) | "What do we call you?" Prefilled with a random name, dice for another (its ears wag) | drive (everything) |
 | confirm (card) | "All set?" Its ears perk up and it looks up at you. *Not yet* (back to the eye colour, standing now, every pick still live) or *Let's roll* | drive |
-| wink | Two tape strips slap in, it winks with a knowing tilt of the head (a sparkle and a star by its eye), crouches and leaps away into the scrapyard | riser, one bar |
-| hand-over | The iris closes as the sting hits and opens on the lobby; it jumps in from the left and lands on its spot | sting; one bar later the menu song comes in at its 8th bar |
+| wink | Two tape strips slap in, it winks with a knowing tilt of the head (a sparkle and a star by its eye). Then the game's slingshot (v264): it turns side on, digs in and draws back low (the game's grip pose, the charge sound and its three notches, trembling at full stretch), lets go and becomes a ball of jelly paint that shoots up and out of the side of the shot in about a quarter of a second, a pop of drops behind it | riser, one bar |
+| hand-over | The iris closes as the sting hits and opens on the lobby. Half a second on, the game's own jelly ball flies in high from off the left edge and dives, faster and faster, into the middle of the floor: a crown of paint drops, two rings, the splat and a thud, a small camera shake. The basin's pool is already open from the slam and the character crawls up out of it with the basin crawl-out (`startIntro`, from 0.32 s in), then the lesson starts | sting on that bar's chord; on the hit the menu song carries on from the same bar (v263) |
 
 Every card after the first has a *Back*.
 
@@ -107,7 +107,7 @@ Dm  A5 F5. D5 C6 | Am  C6. B5 A5 (C5 E5) | F  A5 C6 B5 G#5 | E  E5 . B4 C5 D5 E5
 | `music/intro_low.mp3` | 2, eye style | Bouncing root-and-octave bass, harp arpeggios | 254 KB |
 | `music/intro_tops.mp3` | 3, paint colour | Shaker sixteenths, off-beat hats | 218 KB |
 | `music/intro_drive.mp3` | 4, naming | Kick, snare, clap, a tom fill, the melody on strings an octave down | 254 KB |
-| `music/intro_sting.mp3` | the reveal | A one-bar riser into an E major hit (sub boom, crash, orchestra, celesta run up). E major is the dominant, so the theme's A minor resolves it | 145 KB |
+| `music/intro_sting.mp3` | the reveal | One sprite (v263, `tools/intro_hit.py`): a one-bar riser into an unpitched impact (sub boom, tom, kick, crash), then the pitched part of the hit (a run up, the orchestra and a celesta glissando) on each of the loop's chords, Dm, Am, Bb, E and F. The E part with the impact is the original E major hit | 376 KB |
 | `sfx/intro_fx.mp3` | effects | Barrel wobble, tip, pour, eyes pop, form, sparkle (Ludo.ai), one sprite | 93 KB |
 
 All loops are 17.31446 s (8 bars), with loop points `a = 0.25`, `b = 17.56444` and a pre-roll before `a`.
@@ -116,8 +116,8 @@ The engine is `AU.flm`, inside `makeAudio`:
 - It plays through `trkBus`, so the music switch, pause muffle and mute all apply. Effects go through `sfx`.
 - Each stem starts on one shared clock as soon as it decodes, so a slow network only delays a layer and never breaks sync.
 - Layer changes land on the next beat.
-- `AU.flm.sting(lead)` schedules the hit on the first bar line at least `lead` seconds away. The riser starts a bar before it, the stems stop on the hit, and the intro's timeline (wink, jump, iris) is timed from it.
-- The menu song is started one bar after the hit at offset 17.605 s (its bar 8, the melody's pickup bar). This skips its intro and lead-in build and carries on in tempo. It is set up as the game's own current track, so the rest of `AU.music` behaves as usual afterwards.
+- `AU.flm.sting(lead)` schedules the hit on the first bar line at least `lead` seconds away. The riser and impact start a bar before it, the pitched part is the chord of the bar the hit lands on, the stems stop on the hit, and the intro's timeline (wink, jump, iris) is timed from it.
+- (v263) The loop's eight bars are the menu song's bars 9 to 16 (the same chords, Dm Am Bb E Dm Am F E, checked by chroma bar by bar). On the hit, which lands on the loop's bar e, the menu song starts from its bar 9 + e at offset `MENU_AT + (1 + e)` bars, so it carries on from the same part of the song with no gap. `MENU_AT` is 17.627 s (the song's bar 8), set against the intro's own beat by cross-correlating the two songs' onsets (22 ms on from the earlier kick-onset estimate); after the hit the menu's beat sits within 0 to 9 ms of where the intro's would have been. It is set up as the game's own current track, so the rest of `AU.music` behaves as usual afterwards.
 - If sound never started (no tap, muted), the menu song starts the usual way.
 - `AU.flm.renew()` (added on the main branch in v260, and kept here) brings the stems back, with the layers that were in, when the sound starts afresh on a new audio context.
 - `AU.flm.beat()` is how many beats into the loop's clock it is; the character nods along to it.
@@ -187,8 +187,8 @@ Measured with `tools/perf257_intro.py` (Chromium with SwiftShader, 390x780, aver
 | Forming, jumping, shaking | 3.0 | 338 | 20 | 55k |
 | Name card | 2.8 | 369 | 20 | 55k |
 | All set? | 2.5 | 390 | 20 | 55k |
-| Wink, send-off, leap | 2.5 | 345 | 19 | 53k |
-| Jump-in (lobby) | 5.9 | 150 | 4 | 44k |
+| Wink, send-off (v257 leap) | 2.5 | 345 | 19 | 53k |
+| Jump-in (lobby, v257) | 5.9 | 150 | 4 | 44k |
 | Lobby | 5.1 | 204 | 4 | 44k |
 
 The lobby itself measured about 10% slower in this run than in the one before the windmill, stars and moves went in (184 ms then), so runs vary by about that much. Against the lobby in the same run, the close-ups went from 1.7 to 2 times its frame time to 1.9 to 2.3 times. What's new in those shots is the windmill (2 draws), the birds (1), the painted far ground and the tape's and agaves' stir; they weren't timed one by one. The stars cost nothing once the camera has come down (the shader skips them).
@@ -267,7 +267,7 @@ In the test build, `FL.peek()` reports the phase, draw calls and triangles, `FL.
 - **The music was judged by analysis, not by ear.** The key, the melody re-tracked from the rendered stems, the seams, the levels and the hand-over were all checked numerically. A listen to `docs/intro-v257-music-preview.mp3` and `intro-v257.mp4` should decide:
   - the mix balance;
   - the sting;
-  - the menu song's entry point: offset 17.605 s, its bar 8, measured from the kick onsets. If it lands a hair early or late, change `MENU_AT` in `tools/v257_intro_au.js`.
+  - the menu song's entry point: `MENU_AT` 17.627 s is its bar 8 (v263, measured against the intro's beat). If it lands a hair early or late, change `MENU_AT` in `tools/v257_intro_au.js`.
 - **The wink is subtle on the Squid and Dot eyes**, since those styles darken the eye. The sparkle and star sell it.
 - **No skip button.** The intro is about 47 seconds (9 of them the sky and the title), with four choices and a check in it. Quitting halfway shows it again next launch.
 - **Fallback fonts:** if the web fonts haven't arrived when the barrel's label is drawn, it is drawn again once they have.
