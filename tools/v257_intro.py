@@ -26,7 +26,9 @@ def apply(s):
     s = rep(s, "  if ((AXOC.S.ready || SLIME.S.ready) && !VP.slime && booted && state === 'menu' && !lookOpen && !irisBusy) { attachSlimes(); queueWarm(); }\n",
                "  if ((AXOC.S.ready || SLIME.S.ready) && !VP.slime && booted && state === 'menu' && !lookOpen && !irisBusy) { attachSlimes(); queueWarm(); }\n  if (FL && FL.frame(rdt)) { lastCpu = (performance.now() - cpu0) / 1000; return; } // (v257: the first launch's own scene)\n")
     s = rep(s, "  visuals(dt, rdt); flushTrail(); pbarTick(rdt); lockerTick(); dipTick(rdt);\n", "  visuals(dt, rdt); flushTrail(); pbarTick(rdt); lockerTick(); dipTick(rdt); if (FL && FL.jin) FL.after(rdt);\n")
-    s = rep(s, "  const isc = D === P && lookIntro && state === 'menu' ? V.introSc : 1;\n", "  if (D === P && state === 'menu' && FL && FL.jin) { const q = FL.jin; hop = q.hop; sq = q.sq; rise = q.rise; spinY = 0; } // (v257: jumping in after the intro)\n  const isc = D === P && lookIntro && state === 'menu' ? V.introSc : 1;\n")
+    s = rep(s, "  const isc = D === P && lookIntro && state === 'menu' ? V.introSc : 1;\n", "  if (D === P && state === 'menu' && FL && FL.jin && FL.jin.ph !== 'crawl') { const q = FL.jin; hop = q.hop; sq = q.sq; rise = q.rise; spinY = 0; } // (v257: coming in after the intro; v264: the crawl-out poses itself)\n  const isc = D === P && lookIntro && state === 'menu' ? V.introSc : 1;\n")
+    # ---- (v264) the lobby's entrance: the game's jelly ball stands in for the character while it flies in
+    s = rep(s, "|| !!(vic && D.vicPose && D.vicPose.ball)); /* (the dodge roll", "|| !!(vic && D.vicPose && D.vicPose.ball) || !!(D === P && state === 'menu' && FL && FL.jin && FL.jin.ball)); /* (the dodge roll")
     # ---- the coach waits until it has landed
     s = rep(s, "  if (bootHold || !booted || !tutBootEl.classList.contains('gone')", "  if ((FL && FL.busy()) || bootHold || !booted || !tutBootEl.classList.contains('gone')")
     return s

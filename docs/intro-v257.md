@@ -7,7 +7,7 @@ The player then picks, each live on the character:
 - the eye style;
 - the paint colour (puddle, character and buttons all change).
 
-The character hauls itself out, jumps clear and shakes the paint off its body and ears. The player names it and confirms ("All set?": *Not yet* goes back to change things, *Let's roll* goes on). Two strips of tape slap across the screen ("Fresh out of the barrel?" / "Now go paint the town!"). It winks and leaps away, the iris closes, and it opens on the lobby with the character jumping in from the side. The lesson then starts exactly as before (Ol' Bloop: "Hey, rookie! Ready to roll?...").
+The character hauls itself out, jumps clear and shakes the paint off its body and ears. The player names it and confirms ("All set?": *Not yet* goes back to change things, *Let's roll* goes on). Two strips of tape slap across the screen ("Fresh out of the barrel?" / "Now go paint the town!"). It winks, then slingshots itself off: it turns side on, digs in low and draws back, lets go, balls up into a blob of jelly paint and shoots out of the shot. The iris closes, opens on the lobby, and the blob flies in from the side, slams into the middle of the floor (a crown of paint, a ring, a thud and a little camera shake) and the character crawls up out of the puddle with the same climb as out of a basin (v264). The lesson then starts exactly as before (Ol' Bloop: "Hey, rookie! Ready to roll?...").
 
 The look follows the references the player sent:
 - a sunlit desert scrapyard, warm sand, hard shadows;
@@ -48,8 +48,8 @@ The music is new and is written on the theme (`music/menu.mp3`). It builds a lay
 | form | It rises out of the paint (stretching up as it runs off), crouches, jumps clear (drops trailing), lands with a splash, shakes the paint off (the coat bursts into flying drops), then looks up, pleased | tops |
 | name (card) | "What do we call you?" Prefilled with a random name, dice for another (it bounces) | drive (everything) |
 | confirm (card) | "All set?" It waves. *Not yet* (back to the eye colour, standing now, every pick still live) or *Let's roll* | drive |
-| wink | Two tape strips slap in, it winks with a knowing tilt of the head (a sparkle and a star by its eye), crouches and leaps away into the scrapyard | riser, one bar |
-| hand-over | The iris closes as the sting hits and opens on the lobby; it jumps in from the left and lands on its spot | sting on that bar's chord; on the hit the menu song carries on from the same bar (v263) |
+| wink | Two tape strips slap in, it winks with a knowing tilt of the head (a sparkle and a star by its eye). Then the game's slingshot (v264): it turns side on, digs in and draws back low (the game's grip pose, the charge sound and its three notches, trembling at full stretch), lets go and becomes a ball of jelly paint that shoots up and out of the side of the shot in about a quarter of a second, a pop of drops behind it | riser, one bar |
+| hand-over | The iris closes as the sting hits and opens on the lobby. Half a second on, the game's own jelly ball flies in high from off the left edge and dives, faster and faster, into the middle of the floor: a crown of paint drops, two rings, the splat and a thud, a small camera shake. The basin's pool is already open from the slam and the character crawls up out of it with the basin crawl-out (`startIntro`, from 0.32 s in), then the lesson starts | sting on that bar's chord; on the hit the menu song carries on from the same bar (v263) |
 
 Every card after the first has a *Back*.
 
@@ -186,8 +186,8 @@ Measured with `tools/perf257_intro.py` (Chromium with SwiftShader, 390x780, aver
 | Forming, jumping, shaking | 3.0 | 338 | 20 | 55k |
 | Name card | 2.8 | 369 | 20 | 55k |
 | All set? | 2.5 | 390 | 20 | 55k |
-| Wink, send-off, leap | 2.5 | 345 | 19 | 53k |
-| Jump-in (lobby) | 5.9 | 150 | 4 | 44k |
+| Wink, send-off (v257 leap) | 2.5 | 345 | 19 | 53k |
+| Jump-in (lobby, v257) | 5.9 | 150 | 4 | 44k |
 | Lobby | 5.1 | 204 | 4 | 44k |
 
 The lobby itself measured about 10% slower in this run than in the one before the windmill, stars and moves went in (184 ms then), so runs vary by about that much. Against the lobby in the same run, the close-ups went from 1.7 to 2 times its frame time to 1.9 to 2.3 times. What's new in those shots is the windmill (2 draws), the birds (1), the painted far ground and the tape's and agaves' stir; they weren't timed one by one. The stars cost nothing once the camera has come down (the shader skips them).

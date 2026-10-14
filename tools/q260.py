@@ -9,4 +9,5 @@ for m in ['v257_intro', 'v260_intro_glue']:
     s = importlib.import_module(m).apply(s); print(m, 'ok')
 if '--test' in sys.argv:
     a = '\nrequestAnimationFrame(frame);\n};'; assert s.count(a) == 1; s = s.replace(a, '\nwindow.__T = { ev: s => eval(s) };' + a)
+    a = '  api.after = after;\n'; assert s.count(a) == 1; s = s.replace(a, a + '  api.handoff = handoff; // (test build only: the probes jump straight to the end)\n')
 out = sys.argv[1]; open(out, 'w').write(s); print('q260 ok', len(s), out)

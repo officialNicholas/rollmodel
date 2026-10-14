@@ -416,7 +416,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     form: () => ({ t: _st.set((C0.x + LAND.x) / 2, 0.32, (C0.z + LAND.z) / 2), r: 0.95, yaw: 0.06, p: 0.3, dof: 0.4 }),
     name: () => ({ t: _st.set(LAND.x, 0.3, LAND.z), r: 0.5, yaw: -0.14, p: 0.16, dof: 0.95 }),
     stood: () => ({ t: _st.set(LAND.x, 0.28, LAND.z), r: 0.56, yaw: 0.1, p: 0.2, dof: 0.9 }),
-    exit: () => ({ t: _st.set(LAND.x + 0.5, 0.3, LAND.z - 0.4), r: 1.05, yaw: -0.05, p: 0.2, dof: 0.4 }),
+    exit: () => ({ t: _st.set(LAND.x + 0.12, 0.3, LAND.z - 0.2), r: 1.4, yaw: -0.05, p: 0.22, dof: 0.35 }), // (v264: wide enough for the slingshot's pull and the shot away)
   };
   const SHOT_T = { barrel: SKY.dur, tip: 1.35, eyes: 1.7, paint: 1.5, form: 1.2, name: 1.4, stood: 1.1, exit: 1.4 }; // (how long the move into each takes)
   const _sp = new V3(), _st = new V3(), _wd = new V3(), _L = new V3(), _L2 = new V3();
@@ -763,13 +763,34 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
       if (Math.floor(X.t / 3.3) !== X.flags.gl) { X.flags.gl = Math.floor(X.t / 3.3); if (X.flags.gl % 3 === 2) { X.ch.pop = 0.7; I.blink && I.blink(); } } }
     if (X.ph === 'wink') {
       tiltAt(Math.PI / 2); c.h = c.air ? c.h : 0;
-      const hit = X.hitIn || 2.4, jumpAt = Math.max(1.3, hit - 0.95), irisAt = Math.max(jumpAt + 0.42, hit - 0.42);
-      if (once('w')) { I.face && I.face('smirk', Math.max(1.4, jumpAt - 0.1)); }
+      // (v264) the send-off: the wink, then the game's own slingshot. It turns to aim, digs in and draws back low, further the longer it
+      // holds (the charge's notches as it goes), trembling at full stretch; lets go, balls up and shoots off out of the shot, and the iris
+      // closes behind it
+      const hit = X.hitIn || 2.4, relAt = Math.max(1.75, hit - 0.62), aimAt = Math.max(0.95, relAt - 0.95), irisAt = Math.max(relAt + 0.22, hit - 0.42);
+      const LY = 1.3, lx = Math.sin(LY), lz = Math.cos(LY), PULL = 0.42; // (side on to the camera, a little toward it: the crouch and the draw read in profile)
+      if (once('w')) { I.face && I.face('smirk', aimAt - 0.05); }
       if (t >= 0.2 && once('tw')) { snd('sparkle', 0.9); twinkle(); twitch(); }
-      // (a knowing tilt of the head with the wink, chin up; then down into a crouch, and away)
-      if (t < jumpAt) { const k = smoothstep(0.05, 0.35, t) * (1 - smoothstep(jumpAt - 0.3, jumpAt - 0.1, t)); hr = 0.16 * k; hp = 0.12 * k; c.x = LAND.x; c.z = LAND.z; c.y = PR; wy = 0; wp = 0.1; if (t > jumpAt - 0.24) { const q = (t - jumpAt + 0.24) / 0.24; c.sq = 0.42 * Math.sin(q * Math.PI); hp = -0.1 * Math.sin(q * Math.PI); } }
-      else { const u = (t - jumpAt) / 0.75, H = 0.95; c.yaw += (2.2 - c.yaw) * Math.min(1, dt * 10); c.x = LAND.x + u * 2.9; c.z = LAND.z - u * 2.2; c.h = 4 * H * u * (1 - u); c.y = PR + Math.max(-0.6, c.h); c.vy = 4 * H * (1 - 2 * u) / 0.75; c.air = true; c.rise = 0.5;
-        if (once('j')) { AU.jump && AU.jump(); AU.vox && AU.vox('whee', 0.8); burst(LAND.x, LAND.z, 6, 0.6); } }
+      if (t < aimAt) { const k = smoothstep(0.05, 0.35, t) * (1 - smoothstep(aimAt - 0.3, aimAt - 0.1, t)); hr = 0.16 * k; hp = 0.12 * k; c.x = LAND.x; c.z = LAND.z; c.y = PR; wy = 0; wp = 0.1; c.grip = 0; c.curl = 0; }
+      else if (t < relAt) {
+        const u = clamp((t - aimAt) / (relAt - aimAt), 0, 1), pull = u * u * (3 - 2 * u), tr = u > 0.75 ? Math.sin(X.t * 70) * 0.05 * (u - 0.75) : 0;
+        c.yaw += (LY - c.yaw) * Math.min(1, dt * 9);
+        c.x = LAND.x - lx * PULL * pull + tr * lz; c.z = LAND.z - lz * PULL * pull - tr * lx; c.y = PR; c.air = false;
+        c.grip = 0.35 + 0.65 * pull; c.curl = 0; c.sq = 0.3 * pull; hp = -0.1 * pull; hr = 0; wy = 0; wp = 0.05;
+        if (once('aim')) { I.face && I.face('focus', relAt - aimAt + 0.15); AU.chargeStart && AU.chargeStart(); }
+        AU.chargeSet && AU.chargeSet(pull);
+        if (u >= 0.33 && once('n1')) AU.notch && AU.notch(1); if (u >= 0.66 && once('n2')) AU.notch && AU.notch(2); if (u >= 0.97 && once('n3')) AU.notch && AU.notch(3);
+      } else {
+        // let go: a pop of paint and in its place a ball of jelly paint (the game's own slingshot ball), shooting off up and away
+        const s = t - relAt, x0 = LAND.x - lx * PULL, z0 = LAND.z - lz * PULL, VH = 7.5, VU = 4.6, G = 7; // (out of the side of the shot in about a quarter of a second)
+        if (once('rel')) { AU.chargeStop && AU.chargeStop(); AU.release && AU.release(); AU.fling && AU.fling(1); AU.vox && AU.vox('whee', 0.8); burst(x0, z0, 9, 0.8);
+          X.hold.visible = false; c.grip = 0; c.curl = 0;
+          if (!X.blob) { X.blob = new THREE.Mesh(new THREE.SphereGeometry(1, 28, 20), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.12, metalness: 0 })); X.sc.add(X.blob); }
+          X.blob.material.color.copy(X.paint); X.blob.visible = true;
+          for (let i = 0; i < 26; i++) { const a = rand() * 6.283, sp = rnd(0.8, 2.4); spawn(new V3(x0 + Math.cos(a) * 0.12, PR * rnd(0.5, 1.2), z0 + Math.sin(a) * 0.12), new V3(Math.cos(a) * sp - lx * 0.8, rnd(1.2, 3.2), Math.sin(a) * sp - lz * 0.8), rnd(0.012, 0.03)); } }
+        c.x = x0 + lx * VH * s; c.z = z0 + lz * VH * s; c.y = PR + VU * s - 0.5 * G * s * s; c.air = true;
+        const B = X.blob, vy = VU - G * s, sp = Math.hypot(VH, vy), R = PR * 0.92 * (0.6 + 0.4 * smoothstep(0, 0.08, s)), st = 1 + 0.35 * smoothstep(0, 0.06, s);
+        B.position.set(c.x, c.y, c.z); _d.set(lx * VH / sp, vy / sp, lz * VH / sp); B.quaternion.setFromUnitVectors(_up, _d); B.scale.set(R / Math.sqrt(st), R * st, R / Math.sqrt(st));
+      }
       if (t >= irisAt && once('iris')) { handoff(); if (!X) return; } // (the iris can close at once, and the scene's gone with it)
     }
     c.wy += (wy - c.wy) * Math.min(1, dt * 5); c.wp += (wp - c.wp) * Math.min(1, dt * 5); c.hr += (hr - c.hr) * Math.min(1, dt * 7); c.hp += (hp - c.hp) * Math.min(1, dt * 9);
@@ -815,7 +836,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     c.pop = Math.max(0, (c.pop || 0) - dt * 3); const bob = c.pop > 0 ? Math.sin((1 - c.pop / 1.4) * Math.PI) * 0.03 * c.pop : 0, yw = c.yaw + m.spin, sc = m.sway * 0.035;
     h.position.set(c.x - Math.cos(yw) * sc, c.y + bob + hop, c.z + Math.sin(yw) * sc); h.rotation.set(0, yw, m.sway * 0.06 + m.bank); h.updateMatrixWorld(true);
     const up = !c.air && hop > 0.012;
-    o.dt = dt; o.inAir = c.air || up; o.vy = c.air ? c.vy : vy; o.height = c.air ? c.h : up ? hop : 0; o.lean = 0; o.spd = 0; o.speed = 0; o.squash = c.sq + m.sq; o.rise = c.rise + m.rise; o.leap = c.air; o.curl = 0; o.blob = 0;
+    o.dt = dt; o.inAir = c.air || up; o.vy = c.air ? c.vy : vy; o.height = c.air ? c.h : up ? hop : 0; o.lean = 0; o.spd = 0; o.speed = 0; o.squash = c.sq + m.sq; o.rise = c.rise + m.rise; o.leap = c.air && !c.curl; o.curl = c.curl || 0; o.blob = 0; o.grip = c.grip || 0;
     o.wt.yaw = c.wy + m.lx * 8; o.wt.pitch = c.wp + 0.85 + m.ly * 3; o.watch = o.wt; o.headRoll = c.hr + m.roll; o.headPitch = c.hp + m.pitch; o.shove = clamp(m.sway, -1, 1); o.push = clamp(m.push, -1, 1); o.earCover = m.earCover; o.wave = m.wave; o.climb = null; o.D = null; o.maxBall = 1;
     if (mv.face && I.face) I.face(mv.face, 0.15); // (the move's face, held over its own while it lasts)
     if (I.setPaint) I.setPaint(X.paint); if (I.setWade) I.setWade(c.wade);
@@ -847,22 +868,46 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
       api.live = false; document.body.classList.remove('flon'); window.removeEventListener('keydown', keyStop, true);
       if (UI) { UI.el.remove(); UI = null; } dispose();
       try { showMenu(); } finally { api.hush = false; } camSnap = true; if (AU.state !== 'running') AU.music('menu'); // (no sound yet: the song starts as usual when it does)
-      api.jin = { t: 0, x0: 0, hop: 0, sq: 0, rise: 0, landed: false };
+      api.jin = reduceMotion ? null : { t: 0, ph: 'fly', hop: 0, sq: 0, rise: 0, r: new V3() };
       irisOpen(); setTimeout(() => { if (AU.flm) AU.flm.end(); }, 6000);
     });
     if (!ok) X.flags.iris = false;
   }
-  // in from the side of the lobby: a leap that lands on its spot
-  const JIN_T = 0.9, JIN_AT = 0.12; // (how long the leap takes, and a beat of the iris opening before it)
+  // (v264) into the lobby: the ball flies in from off the side of the view and slams into the middle of the floor (two beats after the hit,
+  // when the menu song came in): a crown of paint, a thud and a shake, and it comes up out of the puddle with the crawl-out the locker
+  // uses, the same climb as out of a basin
+  const JIN_AT = 0.5, JIN_T = 0.5;
+  // (the lobby draws only its own layer, which the win screen and the fight card's portraits draw too. The entrance's paint drops have a
+  // pool of their own on it, sized for the lobby's close view; the slam's two rings go on it while this lasts and come off after)
+  let slamMat = null;
+  const rings4 = on => { for (const f of fxRings.concat(fxFree)) f.m.layers[on ? 'enable' : 'disable'](4); };
   function after(rdt) {
     const J = api.jin; if (!J) return;
-    J.t += Math.min(0.05, rdt); const u = (J.t - JIN_AT) / JIN_T;
-    // (from the camera as it is now, every frame: off the left edge of what's in view, and a leap a good part of the view's height)
-    camera.updateMatrixWorld(); const e = camera.matrixWorld.elements, d = camera.position.distanceTo(drop.position), hh = Math.tan(camera.fov * Math.PI / 360) * d;
-    J.r = (J.r || new V3()).set(e[0], e[1], e[2]).normalize(); J.x0 = -(hh * camera.aspect + 0.9);
-    if (u < 1) { const k = Math.max(0, u); J.hop = 4 * Math.min(1.1, hh * 0.5) * k * (1 - k); J.sq = 0; J.rise = k < 0.5 ? 0.6 : 0.2; drop.position.addScaledVector(J.r, J.x0 * (1 - k)); } // (across at an even pace, as a leap goes)
-    else { if (!J.landed) { J.landed = true; AU.land && AU.land(0.8); AU.splat(0.9); buzz(16); try { addSplat(P.x, P.y, P.z, P.yaw, 0.9, -8, false, false, 0); for (let i = 0; i < 14; i++) { const a = i / 14 * 6.283; spawnPart(P.x, P.y + 0.3, P.z, Math.cos(a) * 2.2, 2 + Math.random() * 1.6, Math.sin(a) * 2.2, 0.5, teamMats[0], 0.7); } } catch (e) {} }
-      const k = J.t - JIN_AT - JIN_T; J.hop = 0; J.rise = 0; J.sq = Math.max(0, 0.5 * Math.exp(-k * 7) * Math.cos(k * 16)); if (k > 0.9) api.jin = null; }
+    if (state !== 'menu' || (J.ph === 'crawl' && !lookIntro)) { rings4(false); api.jin = null; return; }
+    J.t += Math.min(0.05, rdt);
+    if (J.ph === 'crawl') return;
+    if (!slamMat) { slamMat = teamMats[0].clone(); slamMat.transparent = true; partPool(slamMat).im.layers.enable(4); } // (transparent: never the shared pool)
+    slamMat.color.setHex(TEAMS[0].wet);
+    const u = (J.t - JIN_AT) / JIN_T, yw = (VP && VP.yawDraw) || 0, fx = Math.sin(yw), fz = Math.cos(yw), back = CR.poolBack;
+    if (u < 1) {
+      // (from the camera as it is now, every frame: off the left edge of what's in view, high, diving to where the puddle opens)
+      camera.updateMatrixWorld(); const e = camera.matrixWorld.elements, d = camera.position.distanceTo(drop.position), hh = Math.tan(camera.fov * Math.PI / 360) * d;
+      J.r.set(e[0], e[1], e[2]).normalize(); const k = Math.max(0, u), x0 = -(hh * camera.aspect + 0.9), H0 = hh * 0.95;
+      J.ball = true; // (the game's own jelly ball, as a long slingshot flies)
+      J.hop = H0 * (1 - k * k); J.sq = 0; J.rise = 0; // (falling faster all the way down: it hits at full speed)
+      drop.position.addScaledVector(J.r, x0 * (1 - k)); drop.position.x -= fx * back * k; drop.position.z -= fz * back * k;
+      if (k > 0 && Math.random() < 0.8) spawnPart(drop.position.x, drop.position.y + J.hop + 0.3, drop.position.z, (Math.random() - 0.5) * 0.5, 0.3 + Math.random() * 0.5, (Math.random() - 0.5) * 0.5, 0.35, slamMat, 0.3 + Math.random() * 0.2);
+      return;
+    }
+    // the slam: into the paint it goes (a crown of drops and two rings out over the floor), and up out of it it comes
+    J.ball = false; J.hop = 0; J.sq = 0; J.rise = 0; J.ph = 'crawl';
+    const cx = P.x - fx * back, cz = P.z - fz * back;
+    AU.splat(1.4); AU.land && AU.land(1); AU.splashWater && AU.splashWater(); buzz(22); shake = Math.max(shake, 0.22);
+    try { shockwave(cx, P.y, cz, 1.7, TEAMS[0].wet); shockwave(cx, P.y, cz, 1.1, 0xFFFFFF); rings4(true); } catch (err) {}
+    for (let i = 0; i < 34; i++) { const a = i / 34 * 6.2832 + Math.random() * 0.3, sp = 1.2 + Math.random() * 1.3, r = 0.35 + Math.random() * 0.2;
+      spawnPart(cx + Math.cos(a) * r, P.y + 0.08, cz + Math.sin(a) * r, Math.cos(a) * sp, 2.4 + Math.random() * 2, Math.sin(a) * sp, 0.8, slamMat, 0.32 + Math.random() * 0.3); }
+    // (the climb starts with the pool already open from the slam, so its eyes come up out of it straight away)
+    startIntro(); if (lookIntro && lookIntro.crawl) lookIntro.t = 0.32;
   }
   // keys go to the cards while it runs (Enter mustn't start a match from the lobby behind it)
   function keyStop(e) { if (api.live) e.stopPropagation(); }

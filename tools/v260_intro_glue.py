@@ -11,4 +11,8 @@ def apply(s):
                    "        renew() { M.S = null; if (M.on) begin(); },\n")
     s = rep(s, "    check();\n    try { window.dispatchEvent(new Event('aurenew')); } catch (e) {}\n",
                "    check(); if (api.flm && api.flm.renew) api.flm.renew(); // (v260: the first launch's music too)\n    try { window.dispatchEvent(new Event('aurenew')); } catch (e) {}\n")
+    # (v264) the circle wipe takes its first size at once, so the first wipe after a launch never shows a frame of the hole's default
+    # (closed, all black) before its first step
+    s = rep(s, "if (u < 1) requestAnimationFrame(go); else if (done) done(); };\n  requestAnimationFrame(go);\n}",
+               "if (u < 1) requestAnimationFrame(go); else if (done) done(); };\n  go(t0);\n}")
     return s
