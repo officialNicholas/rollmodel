@@ -1,7 +1,8 @@
 """v285: the first launch, two details at the drum (a patch over the intro, tools/v257_intro.js).
 - Its ear went into the drum: where its head comes up out of the puddle was a short reach from the tipped drum's mouth, and a floppy
   ear swung through the rim. That spot (the puddle, the ring it comes up through, the ripples and the camera's close shot all go by
-  it) is 10 cm further out from the mouth, along the way the paint ran.
+  it) is 14 cm further out from the mouth, along the way the paint ran, and its glance away from the drum is a little smaller (the
+  ear on the drum's side swung back toward the rim with it).
 - A line of the pearly paint is left along the inside of the drum, down the side it lies on, from the closed end to the mouth and
   thickening toward it, with a wavering edge; darker deep inside, where little light gets. So the paint plainly came out of there."""
 def rep(s, a, b, n=1):
@@ -19,7 +20,9 @@ STRIP = """const g = new THREE.Group(); g.add(body, lid);
     return { g, body, lid };"""
 
 def apply(s):
-    # where its head comes up: 10 cm further out from the drum's mouth, along the way the paint ran (TIP is (0.93, 0, 0.36), normalised)
-    s = rep(s, "C0 = new V3(0.72, 0, 0.26)", "C0 = new V3(0.813, 0, 0.296)")
+    # where its head comes up: 14 cm further out from the drum's mouth, along the way the paint ran (TIP is (0.93, 0, 0.36), normalised)
+    s = rep(s, "C0 = new V3(0.72, 0, 0.26)", "C0 = new V3(0.851, 0, 0.311)")
+    # and its glance away from the drum a little smaller, so the ear on the drum's side doesn't swing back into the rim
+    s = rep(s, "else if (t >= 7.6 && t < 8.4) { wy = -0.7; hr = -0.1; }", "else if (t >= 7.6 && t < 8.4) { wy = -0.5; hr = -0.08; }")
     s = rep(s, "const g = new THREE.Group(); g.add(body, lid); return { g, body, lid };", STRIP)
     return s

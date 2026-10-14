@@ -162,7 +162,7 @@ function itemPop(pw) {
 function itemTick(dt) {
   if (tut) return itemTickOld(dt); // (the first lesson keeps its own script)
   const alive = ACTIVE.filter(D => D.st !== 'out'), IS = itemSpawn;
-  for (const D of alive) { if (hasItem(D)) D.emptyT = 0; else if (D.st === 'play') D.emptyT = (D.emptyT || 0) + dt; }
+  for (const D of alive) { if (hasItem(D)) D.handT = 0; else if (D.st === 'play') D.handT = (D.handT || 0) + dt; }
   for (const pw of powers) { if (pw.pop < 1) pw.pop = Math.min(1, pw.pop + dt * 3); if (pw.grace > 0) pw.grace -= dt; pw.age = (pw.age || 0) + dt; }
   for (let i = powers.length - 1; i >= 0; i--) { const pw = powers[i]; if (pw.g && (pw.age > ITEM_STALE || zoneLost(pw.x, pw.z))) itemPop(pw); }
   IS.gap = (IS.gap || 0) - dt;
@@ -173,8 +173,8 @@ function itemTick(dt) {
   if (matchLeft <= 6 || IS.gap > 0) return;
   const empty = alive.filter(D => !hasItem(D)); if (empty.length <= powers.filter(pw => pw.g).length) return;
   // for whoever has waited longest (and has nothing already out there for them); on a tie, whoever's behind
-  let R = null; for (const D of empty) { if (D.st !== 'play' || powers.some(pw => pw.g && pw.forD === D)) continue; if (!R || D.emptyT > R.emptyT + 0.5 || (Math.abs(D.emptyT - R.emptyT) <= 0.5 && itemEdge(D) < itemEdge(R))) R = D; }
-  if (!R || R.emptyT < itemWait(R, empty.length, alive.length)) return;
+  let R = null; for (const D of empty) { if (D.st !== 'play' || powers.some(pw => pw.g && pw.forD === D)) continue; if (!R || D.handT > R.handT + 0.5 || (Math.abs(D.handT - R.handT) <= 0.5 && itemEdge(D) < itemEdge(R))) R = D; }
+  if (!R || R.handT < itemWait(R, empty.length, alive.length)) return;
   const sp = itemSpot(R); if (!sp) { IS.gap = 1; return; }
   IS.pend = { x: sp[0], y: sp[1], z: sp[2], t: 0, R, type: itemType() };
   if (state === 'play' && Math.hypot(P.x - sp[0], P.z - sp[2]) < 18) AU.spot();
@@ -242,11 +242,11 @@ def apply(s):
                ITEMS.lstrip('\n').replace('__ITEM_TYPE__', expr) + "// what you hold goes back on the stage when you pick up something else, dropped just behind you\n")
     s = rep(s, "powers = []; itemSpawn.t = 6 + Math.random() * 3; itemSpawn.last = null;\n}",
                "powers = []; itemSpawn.t = 6 + Math.random() * 3; itemSpawn.last = null;\n"
-               "  itemSpawn.pend = null; itemSpawn.gap = 0; if (itemMarkGet.m) itemMarkGet.m.g.visible = false; for (const D of [P, H, H2, H3]) if (D) D.emptyT = 0; // (v285)\n"
+               "  itemSpawn.pend = null; itemSpawn.gap = 0; if (itemMarkGet.m) itemMarkGet.m.g.visible = false; for (const D of [P, H, H2, H3]) if (D) D.handT = 0; // (v285)\n"
                "  if (AU.xwant) { AU.xwant('w_wind'); AU.xwant('w_ting'); }\n}")
     # a CPU that has waited a while goes further for one
     s = rep(s, "if (!D.held && Math.random() < AI.grab) { let best = null, bd = 8; for (const pw of powers)",
-               "if (!D.held && Math.random() < AI.grab) { let best = null, bd = 8 + Math.min(10, (D.emptyT || 0) * 1.5); for (const pw of powers)")
+               "if (!D.held && Math.random() < AI.grab) { let best = null, bd = 8 + Math.min(10, (D.handT || 0) * 1.5); for (const pw of powers)")
     # and one that came for it, it goes and gets (as a player would, following the arrow)
     s = rep(s, "const n = NAV.at(pw.x, pw.z, pw.y); if (n && nDist[n.id] < bd) { bd = nDist[n.id]; best = n; } } if (best) return aiGo(D, best, 'grab'); }",
                "const n = NAV.at(pw.x, pw.z, pw.y); if (n && nDist[n.id] < (pw.forD === D ? Math.max(bd, 30) : bd)) { bd = nDist[n.id]; best = n; } } if (best) return aiGo(D, best, 'grab'); }")
