@@ -5,7 +5,7 @@ src = os.path.join(os.path.dirname(HERE), 'game', 'index.html')
 s = open(os.environ.get('BASE', src)).read()
 OLD, NEW = os.environ.get('VER', '259:260').split(':')
 assert s.count('<p class="ver">Version %s</p>' % OLD) == 1; s = s.replace('<p class="ver">Version %s</p>' % OLD, '<p class="ver">Version %s</p>' % NEW)
-for m in ['v257_intro', 'v260_intro_glue', 'v269_settings', 'v269_boot', 'v270_loadout']:
+for m in ['v257_intro', 'v260_intro_glue', 'v269_settings', 'v269_boot', 'v270_loadout', 'v271_whirl']:
     s = importlib.import_module(m).apply(s); print(m, 'ok')
 if '--test' in sys.argv:
     a = '\nrequestAnimationFrame(frame);\n};'; assert s.count(a) == 1; s = s.replace(a, '\nwindow.__T = { ev: s => eval(s) };' + a)
