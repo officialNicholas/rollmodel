@@ -118,6 +118,8 @@ The engine is `AU.flm`, inside `makeAudio`:
 - `AU.flm.sting(lead)` schedules the hit on the first bar line at least `lead` seconds away. The riser and impact start a bar before it, the pitched part is the chord of the bar the hit lands on, the stems stop on the hit, and the intro's timeline (wink, jump, iris) is timed from it.
 - (v263) The loop's eight bars are the menu song's bars 9 to 16 (the same chords, Dm Am Bb E Dm Am F E, checked by chroma bar by bar). On the hit, which lands on the loop's bar e, the menu song starts from its bar 9 + e at offset `MENU_AT + (1 + e)` bars, so it carries on from the same part of the song with no gap. `MENU_AT` is 17.627 s (the song's bar 8), set against the intro's own beat by cross-correlating the two songs' onsets (22 ms on from the earlier kick-onset estimate); after the hit the menu's beat sits within 0 to 9 ms of where the intro's would have been. It is set up as the game's own current track, so the rest of `AU.music` behaves as usual afterwards.
 - If sound never started (no tap, muted), the menu song starts the usual way.
+- `AU.flm.renew()` (added on the main branch in v260, and kept here) brings the stems back, with the layers that were in, when the sound starts afresh on a new audio context.
+- `AU.flm.beat()` is how many beats into the loop's clock it is; the character nods along to it.
 
 Nothing intro-related is fetched for anyone but a first-timer. For them, the fetch starts at the end of loading (the air stem first), so loading time is unchanged for everyone.
 
@@ -176,21 +178,23 @@ Measured with `tools/perf257_intro.py` (Chromium with SwiftShader, 390x780, aver
 
 | Stage | Main-thread ms | Frame ms (SwiftShader) | Draw calls | Triangles |
 |---|---|---|---|---|
-| Sky (opening) | 2.0 | 81 | 14 | 22k |
-| Drum rocks, tips, pours; eyes pop up | 2.1 | 180 | 17 | 52k |
-| Eye colour card (close-up) | 2.5 | 349 | 13 | 51k |
-| Eye style card (close-up) | 2.3 | 379 | 13 | 51k |
-| Paint card | 2.2 | 318 | 16 | 52k |
-| Forming, jumping, shaking | 2.5 | 279 | 16 | 52k |
-| Name card | 2.4 | 310 | 16 | 52k |
-| All set? | 2.2 | 352 | 13 | 51k |
-| Wink, send-off, leap | 2.1 | 271 | 16 | 52k |
-| Jump-in (lobby) | 5.6 | 140 | 4 | 44k |
-| Lobby | 4.6 | 184 | 4 | 44k |
+| Sky (stars, title, the pan down) | 2.0 | 94 | 17 | 25k |
+| Drum thumps, rocks, tips, pours; eyes pop up | 2.5 | 222 | 20 | 53k |
+| Eye colour card (close-up) | 2.9 | 391 | 19 | 53k |
+| Eye style card (close-up) | 2.7 | 463 | 16 | 53k |
+| Paint card | 3.0 | 404 | 19 | 53k |
+| Forming, jumping, shaking | 3.0 | 338 | 20 | 55k |
+| Name card | 2.8 | 369 | 20 | 55k |
+| All set? | 2.5 | 390 | 20 | 55k |
+| Wink, send-off, leap | 2.5 | 345 | 19 | 53k |
+| Jump-in (lobby) | 5.9 | 150 | 4 | 44k |
+| Lobby | 5.1 | 204 | 4 | 44k |
+
+The lobby itself measured about 10% slower in this run than in the one before the windmill, stars and moves went in (184 ms then), so runs vary by about that much. Against the lobby in the same run, the close-ups went from 1.7 to 2 times its frame time to 1.9 to 2.3 times. What's new in those shots is the windmill (2 draws), the birds (1), the painted far ground and the tape's and agaves' stir; they weren't timed one by one. The stars cost nothing once the camera has come down (the shader skips them).
 
 There is no shadow map, no post pass and no render target.
 
-On the main thread the intro costs about half of what the lobby does. On pixels, the wide shots cost about what the lobby does and the close-ups about 1.7 to 2 times as much under SwiftShader. Timing each layer of the eyes close-up off in turn:
+On the main thread the intro costs about half of what the lobby does. On pixels, the wide shots cost about what the lobby does and the close-ups about 1.9 to 2.3 times as much under SwiftShader. Timing each layer of the eyes close-up off in turn:
 
 | Layer | Share of the close-up's pixel cost |
 |---|---|
@@ -215,6 +219,8 @@ Each anchor must match exactly once:
 9. `  if (bootHold || !booted || !tutBootEl.classList.contains('gone')` (in `tutMenuTick`): the coach waits while `FL.busy()`.
 
 All nine were checked against the main branch's page as it is at v259 (`claude/roll-model-handoff-a8a8gx`, commit 9317a2a). Each matches once, the built page passes `node --check`, and the whole intro plays through on it, from the sky to Bloop's first line, with no page errors. To build on that copy, use `python3 tools/q257_intro.py game/_intro_main.html --test --src=<its index.html>`.
+
+On the main branch's page at v261 (commit 311461d), which already carries an earlier copy of the intro, the update is a swap of its three blocks (the stylesheet, `flm`, `var FL`) for the files here; with that done the whole intro plays through to Bloop's first line with no page errors. The anchors don't change.
 
 `FL` is a `var`, so the hooks are safe before it is assigned. For a returning player `FL` is a stub: `due` is false and every hook is a no-op.
 
