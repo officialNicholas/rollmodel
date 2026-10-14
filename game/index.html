@@ -3441,6 +3441,36 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 @media (max-width:359px){#mStrokes .stcraft{column-gap:8px;padding:9px 8px 10px}#mStrokes .stcraft .stct small{letter-spacing:.08em}#mStrokes .stctime{font-size:20px}#mStrokes .stskip{padding:8px 11px 7px;font-size:13px}#mStrokes .stslot .stic,#mStrokes .stopt .stoi{width:54px;height:54px}#mStrokes .stslot .stic .stimg,#mStrokes .stopt .stoi .stimg{width:48px;height:48px}#mStrokes .stslot .stname,#mStrokes .stopt .stn{font-size:13px}#mStrokes .stload,#mStrokes .strail{gap:8px}}
 @media (min-aspect-ratio:1/1){body.stpage .tut[data-pos="low"][data-lowc]{max-width:min(46vw,384px)}}
 @media (prefers-reduced-motion:reduce){#mStrokes .stslot,#mStrokes .strail.in .stopt,#stPop .stpop,#mStrokes .stslot.fresh::before{animation:none}}
+
+/* (v276) a finished job's reward waits on its card: Claim reward under the ribbon; the dabs fly up into a copy of your counter over the dim */
+.comm.claim{background:#FFFDF6}
+.comm.claim>.ct,.comm.claim>.cr{opacity:.72;filter:grayscale(.25)}
+.comm.claim .cstripe{top:44px}
+.comm .cclaim{grid-column:1/-1;appearance:none;display:flex;align-items:center;justify-content:center;gap:9px;max-height:64px;margin:14px 2px 2px;padding:11px 12px 10px;border:2.5px solid var(--black);border-radius:10px;background:linear-gradient(180deg,#FFE7A0 0%,#F2C14E 58%,#E2A62A 100%);color:var(--black);font:900 15px/1 var(--font-head);letter-spacing:.06em;text-transform:uppercase;box-shadow:inset 0 2px 0 rgba(255,255,255,.55),0 4px 0 var(--black);cursor:pointer;-webkit-tap-highlight-color:transparent;overflow:hidden;animation:cclaimin .45s .1s cubic-bezier(.3,1.6,.5,1) both}
+.comm .cclaim span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.comm .cclaim b{display:inline-flex;align-items:center;gap:3px;padding:4px 7px 3px;border-radius:999px;background:rgba(23,19,32,.13);font:900 12px/1 var(--font-head);letter-spacing:.02em;white-space:nowrap}
+.comm .cclaim .dropi{width:14px;height:14px}
+.comm .cclaim:active:not(:disabled){transform:translateY(3px);box-shadow:inset 0 2px 0 rgba(255,255,255,.55),0 1px 0 var(--black)}
+.comm .cclaim:focus-visible{outline:3px solid #7CC8FF;outline-offset:2px}
+.comm .cclaim.took{background:#fff;color:#1C7A3D;cursor:default;animation:cclaimout .32s 1s ease-in forwards}
+.comm .cclaim.took svg{width:16px;height:16px}
+@keyframes cclaimin{from{opacity:0;transform:translateY(10px) scale(.86)}}
+@keyframes cclaimout{to{opacity:0;max-height:0;margin-top:0;margin-bottom:0;padding-top:0;padding-bottom:0;border-width:0}}
+#commModal .cwallet{position:absolute!important;z-index:3;margin:0;pointer-events:none!important;animation:fadein .2s both}
+#commModal .cwallet .dshop{display:none}
+#commModal .cwallet.cbump .dcoin{animation:cbump .22s ease-out}
+#commModal .cwallet.cbump b,#commModal .cwallet.cbig b{animation:cbumpn .26s ease-out}
+#commModal .cwallet.cbig .dcoin{animation:cbig .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes cbump{45%{transform:scale(1.22) rotate(-8deg)}}
+@keyframes cbig{40%{transform:scale(1.4) rotate(10deg)}}
+@keyframes cbumpn{45%{transform:scale(1.16);color:#FFE08A}}
+#commModal .ccoin{position:absolute;left:0;top:0;z-index:4;width:34px;height:34px;pointer-events:none;will-change:transform;filter:drop-shadow(0 2px 0 rgba(23,19,32,.35))}
+#commModal .ccoin svg{display:block;width:100%;height:100%}#commModal .ccoin .dabk{fill:var(--ink)}
+#commModal .cxpf{position:absolute;z-index:4;pointer-events:none;font:900 18px/1 var(--font-head);color:#fff;text-shadow:0 0 0 #171320,1.5px 1.5px 0 #171320,-1.5px 1.5px 0 #171320,1.5px -1.5px 0 #171320,-1.5px -1.5px 0 #171320,0 3px 0 #171320;white-space:nowrap;animation:cxpf 1.4s ease-out forwards}
+@keyframes cxpf{0%{opacity:0;transform:translateY(8px) scale(.7)}14%{opacity:1;transform:translateY(-6px) scale(1.1)}70%{opacity:1}100%{opacity:0;transform:translateY(-60px) scale(1)}}
+#commBadge.claim{animation:cbadge 1.4s ease-in-out infinite}
+@keyframes cbadge{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+@media (prefers-reduced-motion:reduce){.comm .cclaim,#commModal .cwallet,#commBadge.claim,#commModal .cxpf{animation:none}.comm .cclaim.took{display:none}}
 </style>
 
 <div id="stage">
@@ -3576,7 +3606,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Pick-ups</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 275</p>
+      <p class="ver">Version 276</p>
     </div>
   </div>
 
@@ -3684,7 +3714,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
   <div class="modal" id="commModal" hidden>
     <div class="card" role="dialog" aria-modal="true" aria-labelledby="commTitle">
       <h2 class="ctitle" id="commTitle">Commissions</h2>
-      <p class="cnote small">Three jobs a day. Each one pays XP and dabs once.</p>
+      <p class="cnote small">Three jobs a day. Finish one, then claim its XP and dabs.</p>
       <p class="cnext">Fresh set in <b id="commNext"></b></p>
       <div class="comms" id="commList"></div>
       <button class="btn play sm" id="commClose" type="button">Back to the studio</button>
@@ -13486,6 +13516,12 @@ function makeAudio() {
     if (ctx) sbLoops();
   }
   function sbLoad() { sbFetch('m'); sbFetch('s'); }
+  // (v276) a few effects of their own outside the sheets (the commissions' ribbon and coins): fetched and decoded when first wanted
+  const XB = {};
+  function xGet(n) { if (XB[n] || !ctx || typeof fetch !== 'function' || location.protocol === 'file:') return; XB[n] = 'busy';
+    fetch(SFX_BASE + n + '.mp3').then(r => { if (!r.ok) throw new Error('missing'); return r.arrayBuffer(); }).then(b => new Promise((ok, bad) => { const p = ctx.decodeAudioData(b, ok, bad); if (p && p.catch) p.catch(bad); })).then(buf => { XB[n] = buf; }).catch(() => { XB[n] = null; }); }
+  function xPlay(n, o) { o = o || {}; const b = XB[n]; if (!ctx || !b || b === 'busy' || ctx.state !== 'running') { xGet(n); return false; }
+    try { const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = b; src.playbackRate.value = o.rate || 1; g.gain.value = (o.v == null ? 1 : o.v) * cur.g0; src.connect(g); g.connect(sfx); src.start(T() + (o.d || 0) + 0.004); } catch (e) { return false; } return true; }
   // play one take of a sound: o.v level, o.rate pitch, o.vary random pitch spread, o.d delay, o.p a stereo spot (else where it was heard from)
   function P_(name, o) {
     const e = SFXI.snd && SFXI.snd[name]; if (!e || !ctx) return false;
@@ -13785,6 +13821,7 @@ function makeAudio() {
       stuck = true; if (retry > 0) { retry--; renew(); } }, 800);
   }
   const api = {
+    xwant(n) { xGet(n); }, xplay(n, o) { return xPlay(n, o); }, // (v276)
     // synthesize the kit and the reverbs now, while the menu is up, so the first tap (often Play) doesn't pay for it
     pre() {
       if (kitGo || ctx || typeof AudioBuffer !== 'function') return; try { new AudioBuffer({ numberOfChannels: 1, length: 2, sampleRate: PRE_SR }); } catch (e) { return; }
@@ -15097,8 +15134,8 @@ function endMatch() {
   wr.played++; if (ry > wr.best) wr.best = ry; if (win > 0 && mode !== 'solo') wr.wins++;
   // reputation: paint earns it, a win earns more, and a finished commission pays
   endInfo.diff = diff; let gain = Math.round(16 + ry * 0.9 + (win > 0 ? 36 : win === 0 && mode !== 'solo' ? 12 : 0) + (newBest ? 14 : 0) + (mode === 'trio' ? 8 : 0));
-  const fin = commProgress(endInfo); gain += fin.length * COMM_XP; endInfo.xp0 = store.xp || 0; store.xp = endInfo.xp0 + gain; endInfo.xp = gain; endInfo.comms = fin;
-  const drops = Math.round(8 + ry * 0.35 + (win > 0 ? 30 : win === 0 && mode !== 'solo' ? 12 : 0) + (newBest ? 10 : 0) + (mode === 'trio' ? 6 : 0)) + fin.length * COMM_DABS; store.drops = (store.drops || 0) + drops; endInfo.drops = drops;
+  const fin = commProgress(endInfo); endInfo.xp0 = store.xp || 0; store.xp = endInfo.xp0 + gain; endInfo.xp = gain; endInfo.comms = fin;
+  const drops = Math.round(8 + ry * 0.35 + (win > 0 ? 30 : win === 0 && mode !== 'solo' ? 12 : 0) + (newBest ? 10 : 0) + (mode === 'trio' ? 6 : 0)); store.drops = (store.drops || 0) + drops; endInfo.drops = drops;
   save(); tutEndMatch();
   banner(mode === 'solo' ? "Time's up!" : 'Time!', '', false); buzz([40, 30, 40]); slow = 0.6;
   if (mode === 'solo' ? newBest : win > 0) celebrating = true;
@@ -18323,7 +18360,7 @@ function repOf(xp) { let lv = 1, x = Math.max(0, xp | 0); while (x >= xpNeed(lv)
 // commissions: three jobs at a time
 const COMMS = [{ id: 'play3', t: 'Three exhibitions', d: 'Play 3 matches, any mode', n: 3, k: 'play' }, { id: 'win1', t: 'Beat a rival', d: 'Win a 1v1', n: 1, k: 'win1' }, { id: 'cov35', t: 'Cover 35%', d: 'Paint 35% of a canvas in one match', n: 1, k: 'cov', v: 35 }, { id: 'trio', t: 'Three-way', d: 'Enter a 3-way exhibition', n: 1, k: 'trio' }, { id: 'solo30', t: 'Beat the clock', d: 'Cover 30% in a Time trial', n: 1, k: 'solo', v: 30 }, { id: 'win3', t: 'On a roll', d: 'Win 3 matches', n: 3, k: 'win' }, { id: 'play5', t: 'Regular', d: 'Play 5 matches', n: 5, k: 'play' }, { id: 'cov25', t: 'Quarter canvas', d: 'Paint 25% of a canvas in one match', n: 1, k: 'cov', v: 25 }, { id: 'hard1', t: 'Harsh critics', d: 'Win with the critics on harsh', n: 1, k: 'hard' }];
 const COMM_XP = 60, COMM_DABS = 20;
-function commState() { if (!store.comm || !store.comm.active) store.comm = { active: [], prog: {}, done: [] }; const c = store.comm; { const day = new Date().toDateString(); if (c.day !== day) { if (c.day) { c.active = []; c.prog = {}; c.done = []; store.commSeen = 0; } c.day = day; save(); } } /* (a fresh set every day) */ c.active = c.active.filter(id => COMMS.some(x => x.id === id)); while (c.active.length < 3) { const pool = COMMS.filter(x => !c.active.includes(x.id) && !c.done.includes(x.id)); if (!pool.length) break; c.active.push(pool[(Math.random() * pool.length) | 0].id); } return c; }
+function commState() { if (!store.comm || !store.comm.active) store.comm = { active: [], prog: {}, done: [], claimed: [], v276: 1 }; const c = store.comm; if (!c.v276) { c.v276 = 1; c.claimed = (c.done || []).slice(); } if (!Array.isArray(c.claimed)) c.claimed = []; { const day = new Date().toDateString(); if (c.day !== day) { if (c.day) { const owe = c.done.filter(id => !c.claimed.includes(id)).length; if (owe) { store.drops = (store.drops || 0) + owe * COMM_DABS; store.xp = (store.xp || 0) + owe * COMM_XP; } c.active = []; c.prog = {}; c.done = []; c.claimed = []; store.commSeen = 0; } c.day = day; save(); } } /* (a fresh set every day) */ c.active = c.active.filter(id => COMMS.some(x => x.id === id)); while (c.active.length < 3) { const pool = COMMS.filter(x => !c.active.includes(x.id) && !c.done.includes(x.id)); if (!pool.length) break; c.active.push(pool[(Math.random() * pool.length) | 0].id); } return c; }
 function commProgress(info) {
   const c = commState(), fin = [];
   for (const id of c.active) { const k = COMMS.find(x => x.id === id); if (!k || c.done.includes(id)) continue; let p = c.prog[id] || 0;
@@ -18332,12 +18369,64 @@ function commProgress(info) {
   for (const k of fin) { c.done.push(k.id); delete c.prog[k.id]; } // (it keeps its place in the day's set, striped)
   commState(); return fin;
 }
+// (v276) a finished job keeps its reward on its card under the Completed ribbon until you claim it
+const COMM_CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12.5l4.6 4.6L19.5 6.7" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const commUnclaimed = c => { c = c || commState(); return c.done.filter(id => !c.claimed.includes(id)); };
+function commBadgePaint() { const n = commsDue() ? commUnclaimed().length : 0, b = $('commBadge'); b.hidden = n <= 0; b.textContent = n; b.classList.toggle('claim', n > 0); if (n > 0) { AU.xwant('ribbon'); AU.xwant('coins'); AU.xwant('coin'); } }
 function renderComms() { const c = commState(), seen = store.commSeen || 0, note = '<p class="cnote">Every commission done. The critics are speechless.</p>';
-  const cards = c.active.map(id => { const k = COMMS.find(x => x.id === id), di = c.done.indexOf(id), fin = di >= 0, p = fin ? k.n : c.prog[id] || 0;
-    return '<div class="comm' + (fin ? ' fin' + (di >= seen ? ' fresh' : '') : '') + '" style="--p:' + Math.round(100 * p / k.n) + '"><div class="ring" data-n="' + p + '/' + k.n + '"></div><div class="ct"><b>' + k.t + '</b><small>' + k.d + '</small></div><b class="cr"><span>+' + COMM_XP + ' XP</span><span>+' + COMM_DABS + DROP_SVG + '</span></b>' + (fin ? '<i class="cstripe"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12.5l4.6 4.6L19.5 6.7" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Completed</i>' : '') + '</div>'; }).join('');
+  const cards = c.active.map(id => { const k = COMMS.find(x => x.id === id), di = c.done.indexOf(id), fin = di >= 0, got = fin && c.claimed.includes(id), p = fin ? k.n : c.prog[id] || 0;
+    return '<div class="comm' + (fin ? ' fin' + (di >= seen ? ' fresh' : '') + (got ? ' got' : ' claim') : '') + '" data-id="' + id + '" style="--p:' + Math.round(100 * p / k.n) + '"><div class="ring" data-n="' + p + '/' + k.n + '"></div><div class="ct"><b>' + k.t + '</b><small>' + k.d + '</small></div><b class="cr"><span>+' + COMM_XP + ' XP</span><span>+' + COMM_DABS + DROP_SVG + '</span></b>'
+      + (fin ? '<i class="cstripe">' + COMM_CHECK + 'Completed</i>' : '')
+      + (fin && !got ? '<button class="cclaim" type="button" data-id="' + id + '"><span>Claim reward</span><b>+' + COMM_DABS + DROP_SVG + '</b><b>+' + COMM_XP + ' XP</b></button>' : '') + '</div>'; }).join('');
   $('commList').innerHTML = cards + (!cards || c.active.every(id => c.done.includes(id)) ? note : ''); }
-function openComms() { if (state !== 'menu' || lookOpen || !commsDue()) return; renderComms(); store.commSeen = (store.comm && store.comm.done.length) || 0; save(); $('commBadge').hidden = true; $('commModal').hidden = false; setTimeout(() => $('commClose').focus({ preventScroll: true }), 30); }
-function closeComms() { $('commModal').hidden = true; $('commBtn').focus({ preventScroll: true }); }
+// your dabs counter, lifted over the panel's dim (a copy of it in the same place) so you can watch the claim land
+function commWallet(on) {
+  const m = $('commModal'); let w = $('commWallet'); if (!on) { if (w) w.remove(); return; }
+  const src = $('dabsBtn'), r = src && src.getClientRects().length ? src.getBoundingClientRect() : null, mr = m.getBoundingClientRect();
+  if (!w) { w = src ? src.cloneNode(true) : document.createElement('span'); for (const el of w.querySelectorAll('[id]')) el.removeAttribute('id'); w.id = 'commWallet'; w.removeAttribute('title'); w.setAttribute('aria-hidden', 'true'); w.tabIndex = -1; w.classList.add('cwallet'); m.appendChild(w); }
+  w.style.left = ((r ? r.left : 16) - mr.left).toFixed(1) + 'px'; w.style.top = ((r ? r.top : 16) - mr.top).toFixed(1) + 'px';
+  const b = w.querySelector('b'); if (b && !w.dataset.fly) b.textContent = String(store.drops || 0);
+}
+window.addEventListener('resize', () => { if (!$('commModal').hidden) commWallet(true); });
+// the dabs: a burst off the button, each on its own arc up into the counter, the count going up a clink at a time
+function commCoins(btn, from, to) {
+  const m = $('commModal'), w = $('commWallet'), num = w && w.querySelector('b'); if (!w || !num || reduceMotion) { if (num) num.textContent = String(to); if (w) kick(w, 'cbump'); return; }
+  const mr = m.getBoundingClientRect(), br = btn.getBoundingClientRect(), dc = w.querySelector('.dcoin') || w, wr = dc.getBoundingClientRect(), svg = (dc.querySelector('svg') || {}).outerHTML || '';
+  const tx = wr.left + wr.width / 2 - mr.left, ty = wr.top + wr.height / 2 - mr.top, sx = br.left + br.width * 0.5 - mr.left, sy = br.top + br.height * 0.5 - mr.top, N = 10, coins = [];
+  w.dataset.fly = '1';
+  for (let i = 0; i < N; i++) { const el = document.createElement('i'); el.className = 'ccoin'; el.innerHTML = svg; el.style.opacity = '0'; m.appendChild(el);
+    const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.6, sp = 60 + Math.random() * 90;
+    coins.push({ el, t0: i * 0.05, dur: 0.6 + Math.random() * 0.25, x0: sx + (Math.random() - 0.5) * br.width * 0.5, y0: sy + (Math.random() - 0.5) * 10, cx: sx + Math.cos(a) * sp * 1.5, cy: sy + Math.sin(a) * sp - 40, s: 0.85 + Math.random() * 0.35, rot: (Math.random() - 0.5) * 540, done: false }); }
+  let T0 = null, landed = 0;
+  const step = ts => {
+    if (T0 === null) T0 = ts; const t = (ts - T0) / 1000, gone = m.hidden;
+    for (const c of coins) { if (c.done) continue; if (t < c.t0 && !gone) continue; const u = gone ? 1 : Math.min(1, (t - c.t0) / c.dur), v = 1 - u;
+      const x = v * v * c.x0 + 2 * v * u * c.cx + u * u * tx, y = v * v * c.y0 + 2 * v * u * c.cy + u * u * ty, s = c.s * (1 - 0.4 * u * u);
+      c.el.style.opacity = '1'; c.el.style.transform = 'translate(' + (x - 17).toFixed(1) + 'px,' + (y - 17).toFixed(1) + 'px) rotate(' + (c.rot * u).toFixed(0) + 'deg) scale(' + s.toFixed(3) + ')';
+      if (u >= 1) { c.done = true; c.el.remove(); landed++; num.textContent = String(Math.round(from + (to - from) * landed / N)); if (!gone) { kick(w, 'cbump'); AU.xplay('coin', { v: 0.5, rate: 0.96 + landed * 0.035 }) || (landed % 3 === 1 && AU.pop()); } } }
+    if (coins.some(c => !c.done)) requestAnimationFrame(step); else { num.textContent = String(to); delete w.dataset.fly; if (!gone) { kick(w, 'cbig'); buzz(15); } }
+  };
+  requestAnimationFrame(step);
+}
+function commXp(btn) { const m = $('commModal'), mr = m.getBoundingClientRect(), br = btn.getBoundingClientRect(), el = document.createElement('b'); el.className = 'cxpf'; el.textContent = '+' + COMM_XP + ' XP'; el.style.left = (br.right - mr.left - 46).toFixed(0) + 'px'; el.style.top = (br.top - mr.top - 4).toFixed(0) + 'px'; m.appendChild(el); setTimeout(() => el.remove(), 1500); }
+function commClaim(id, btn) {
+  const c = commState(); if (!c.done.includes(id) || c.claimed.includes(id)) return;
+  c.claimed.push(id); const from = store.drops || 0; store.drops = from + COMM_DABS; store.xp = (store.xp || 0) + COMM_XP; save();
+  const card = btn.closest('.comm'); btn.disabled = true; btn.classList.add('took'); btn.innerHTML = '<span>' + COMM_CHECK + 'Claimed</span>';
+  AU.xplay('coins', { v: 0.8 }) || AU.power(); buzz([12, 40, 12]);
+  commXp(btn); commCoins(btn, from, store.drops); commBadgePaint();
+  setTimeout(() => { if (card.isConnected) { card.classList.remove('claim'); card.classList.add('got'); btn.remove(); } }, 1350); // (the button folds away; the card is a finished one)
+}
+$('commList').addEventListener('click', e => { const b = e.target.closest('.cclaim'); if (!b || b.disabled) return; AU.init(); commClaim(b.dataset.id, b); });
+function openComms() { if (state !== 'menu' || lookOpen || !commsDue()) return;
+  const c = commState(); renderComms(); store.commSeen = c.done.length; save(); $('commModal').hidden = false; commWallet(true); commBadgePaint();
+  // each newly finished job: its ribbon slaps on, one after another, with its sound; then its Claim button pops up under it
+  let i = 0; for (const card of $('commList').querySelectorAll('.comm.fresh')) { const d = 0.3 + i * 0.45, st = card.querySelector('.cstripe'), b = card.querySelector('.cclaim');
+    if (st) st.style.animationDelay = d.toFixed(2) + 's'; if (b) b.style.animationDelay = (d + 0.55).toFixed(2) + 's';
+    setTimeout(() => { if (!$('commModal').hidden) AU.xplay('ribbon', { v: 0.85 }) || AU.pop(); }, d * 1000); i++; }
+  setTimeout(() => { const b = $('commList').querySelector('.cclaim'); (b || $('commClose')).focus({ preventScroll: true }); }, i ? 300 + i * 450 + 600 : 30);
+}
+function closeComms() { $('commModal').hidden = true; commWallet(false); for (const el of $('commModal').querySelectorAll('.ccoin,.cxpf')) el.remove(); renderLobbyUI(); $('commBtn').focus({ preventScroll: true }); }
 $('commBtn').addEventListener('click', () => { AU.init(); if (!commsDue()) { AU.nope(); const b = $('commBtn'), rail = b.parentElement, old = b.querySelector('.abtoast'); if (old) old.remove(); const t = document.createElement('span'); t.className = 'abtoast'; t.setAttribute('role', 'status'); t.textContent = 'Reach rank ' + COMM_RANK + ' to open Commissions'; b.appendChild(t); kick(b, 'abnudge'); rail.classList.add('abup'); clearTimeout(commT); commT = setTimeout(() => { t.remove(); rail.classList.remove('abup'); }, 2000); return; } AU.ui(); openComms(); });
 $('commClose').addEventListener('click', () => { AU.init(); AU.ui(); closeComms(); });
 $('commModal').addEventListener('click', e => { if (e.target === $('commModal')) closeComms(); });
@@ -18514,7 +18603,7 @@ function renderLobbyUI() {
   $('lobbyMode').textContent = mode === 'solo' ? 'Time trial \u00b7 60 seconds' : md[1] + ' \u00b7 CPU ' + (CRITICS[diff] || 'fair').toLowerCase();
   showDrops(); paintPBar();
   try { $('nameFace').innerHTML = faceIcon(P, false); } catch (e) {}
-  const c = commState(), fresh = c.done.length - (store.commSeen || 0); $('commBadge').hidden = fresh <= 0; $('commBadge').textContent = fresh;
+  commBadgePaint();
 }
 
 // the pick's name (the canvas behind the menu can lag behind it while you browse the paintings)
@@ -19849,7 +19938,7 @@ function showRep(info) {
   const r0 = repOf(info.xp0), r1 = repOf(info.xp0 + info.xp), up = r1.lv > r0.lv; row.hidden = false; row.classList.toggle('up', up);
   $('repRowName').textContent = r0.name; $('xpGain').innerHTML = '+' + info.xp + '<small>XP</small>'; xpFrame(m, (XP_FRAMES - 1) * r0.x / r0.need);
   const dg = $('dropGain'); dg.hidden = !(info.drops > 0); if (info.drops > 0) dg.innerHTML = '+' + info.drops + DROP_SVG + '<small>dabs</small>';
-  $('commDone').innerHTML = (info.comms || []).map((k, i) => '<div class="cd" style="animation-delay:' + (1.6 + i * 0.15).toFixed(2) + 's">Commission done: ' + k.t + '<b>+' + COMM_XP + ' XP &middot; +' + COMM_DABS + ' dabs</b></div>').join('');
+  $('commDone').innerHTML = (info.comms || []).map((k, i) => '<div class="cd" style="animation-delay:' + (1.6 + i * 0.15).toFixed(2) + 's">Commission done: ' + k.t + '<b>Claim it in Commissions</b></div>').join('');
   const t0 = performance.now(), dur = up ? 1700 : 1100, f0 = r0.x / r0.need, f1 = r1.x / r1.need;
   const step = () => { const u = clamp((performance.now() - t0 - 900) / dur, 0, 1), e = u * u * (3 - 2 * u); let f;
     if (up) { const half = 0.55; f = e < half ? f0 + (1 - f0) * (e / half) : f1 * ((e - half) / (1 - half)); if (e >= half && !row.classList.contains('lv')) { row.classList.add('lv'); $('repRowName').textContent = r1.name; $('repRowName').animate([{ transform: 'scale(1.6)' }, { transform: 'none' }], { duration: 420, easing: 'cubic-bezier(.3,1.6,.5,1)' }); AU.fanfare(); AU.say('levelup'); } }
@@ -20217,8 +20306,8 @@ function endShowdown(timeUp) {
   store.runs = (store.runs || 0) + 1; if (store.itemIn > 0) store.itemIn--;
   store.world = store.world || {}; const wk = worldKey(), wr = store.world[wk] = store.world[wk] || { best: 0, wins: 0, played: 0 }; wr.played++; if (win > 0) wr.wins++;
   endInfo.diff = diff; const pl = P.place || 4; let gain = Math.round(18 + 9 * P.kos + (win > 0 ? 40 : win === 0 ? 14 : 0) + (pl === 2 ? 12 : pl === 3 ? 5 : 0) + 4 * Math.max(0, P.hearts | 0));
-  const fin = commProgress(endInfo); gain += fin.length * COMM_XP; endInfo.xp0 = store.xp || 0; store.xp = endInfo.xp0 + gain; endInfo.xp = gain; endInfo.comms = fin;
-  const drops = Math.round(8 + 5 * P.kos + (win > 0 ? 30 : win === 0 ? 12 : 0) + (pl === 2 ? 8 : 0)) + fin.length * COMM_DABS; store.drops = (store.drops || 0) + drops; endInfo.drops = drops;
+  const fin = commProgress(endInfo); endInfo.xp0 = store.xp || 0; store.xp = endInfo.xp0 + gain; endInfo.xp = gain; endInfo.comms = fin;
+  const drops = Math.round(8 + 5 * P.kos + (win > 0 ? 30 : win === 0 ? 12 : 0) + (pl === 2 ? 8 : 0)); store.drops = (store.drops || 0) + drops; endInfo.drops = drops;
   save(); tutEndMatch();
   const duo = mode === 'duo';
   if (win > 0) banner(duo ? 'Your team wins!' : 'Last one standing!', timeUp ? 'Most hearts left' : '', false);
