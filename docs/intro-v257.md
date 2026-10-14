@@ -45,34 +45,34 @@ The music is new and is written on the theme (`music/menu.mp3`). It builds a lay
 | barrel 6.6–10 | Two bubbles come up where it will surface; the eyes pop up (stretching up and settling, a bloop and ripples), look left and right (the head tips and an ear flicks with each look), blink; the camera moves in | air |
 | iris (card) | "Those eyes need a color." 5 iris colours, live on the face. Picking one: a curious head tilt, as if admiring them | keys |
 | style (card) | "Now give them some style." Round, Squid, Dot. Picking one: chin up, a smirk | low |
-| paint (card) | "Pick your paint." The camera eases back; 6 paints; the puddle, the character, its coat and the game's own colour change live, with a splash and a wiggle. Standing (after *Not yet*), the new paint washes up over it and bursts off, the game's own `popIn` | tops |
+| paint (card) | "Pick your paint." The camera eases back; 6 paints; the puddle, the character, its coat and the game's own colour change live, with a splash and a wag of its ears. Standing (after *Not yet*), the new paint washes up over it and bursts off, the game's own `popIn` | tops |
 | form | It rises out of the paint (stretching up as it runs off), crouches, jumps clear (drops trailing), lands with a splash, shakes the paint off (the coat bursts into flying drops), then looks up, pleased | tops |
-| name (card) | "What do we call you?" Prefilled with a random name, dice for another (it bounces) | drive (everything) |
-| confirm (card) | "All set?" It waves. *Not yet* (back to the eye colour, standing now, every pick still live) or *Let's roll* | drive |
+| name (card) | "What do we call you?" Prefilled with a random name, dice for another (its ears wag) | drive (everything) |
+| confirm (card) | "All set?" Its ears perk up and it looks up at you. *Not yet* (back to the eye colour, standing now, every pick still live) or *Let's roll* | drive |
 | wink | Two tape strips slap in, it winks with a knowing tilt of the head (a sparkle and a star by its eye), crouches and leaps away into the scrapyard | riser, one bar |
 | hand-over | The iris closes as the sting hits and opens on the lobby; it jumps in from the left and lands on its spot | sting; one bar later the menu song comes in at its 8th bar |
 
 Every card after the first has a *Back*.
 
-While a card is up the character keeps moving with the lobby's own idle moves (see below), and the camera moves between shots as described under *The camera*.
+While a card is up the character keeps moving with small, subtle moves (see below), and the camera moves between shots as described under *The camera*.
 
 ## The character's moves
 
-The character is the game's own axolotl, driven by the game's own animator. On top of where the intro puts it, it does the lobby's idle moves (`idleStep` in the game), ported move for move and fed through the same inputs (`headRoll`, `headPitch`, `shove`, `push`, `wave`, squash, rise, a hop, a spin and bank of the body, where it looks, and the face for each):
+The character is the game's own axolotl, driven by the game's own animator (its breathing, gills, tail, feet and faces). While a card is up, the intro adds small, unhurried moves on top. Each one is eased in and out with no kick at either end, and the pose they give is eased again, so a move cut short by a pick never jumps. They go through the animator's own inputs: where it looks, the head's roll and pitch, the shove of its body, its gills (the ears) and its face.
 
 | Move | What it does | When |
 |---|---|---|
-| listen | Nods along to the beat, the head tipping side to side bar by bar | Any card, on the intro music's own beat (`AU.flm.beat()`) |
-| look | Looks one way then the other, the head tilting with each look, an ear flicking | Any card |
-| blep | Head to one side, the tip of its tongue out, an ear flicking | Any card |
-| proud | Chin up, a smirk, a little sway | Any card; and with each eye-style pick |
-| bounce | Little hops on the beat, gleeful | Standing; and with the dice |
-| wag, wiggle | Swaying, banking and twisting at the hips | Standing (a wiggle in the paint with each paint pick) |
-| wave | One hand up off the sand, waving | Standing; and on "All set?" |
-| tilt | The new-hat move: a dip, the head tipping over to one side (overshooting and settling), chin up, eyes rolled up | With each eye-colour pick |
-| show | The new-outfit shimmy, looking down at itself | With each paint pick, standing |
+| look | Looks one way, holds, across to the other, holds, back. It blinks as it sets off each way, the head tips into the look, an ear flicks | Any card |
+| glance | Looks off to one side a while, chin up a touch, the ear on that side flicking | Any card |
+| ears | Its ears wag: one, the other, one, the other, each a little softer, the head rocking gently with them | Any card; and with the dice, and with a paint pick while it's still in the paint |
+| step | Shifts its weight, steps to one side (the animator walks its feet there), looks off that way, then steps back to its spot. Its body isn't turned: the animator takes any turn on the spot for a pivot and swings right round | Standing |
+| listen | Nods along to the intro music's beat (`AU.flm.beat()`), gently, the head tipping side to side bar by bar | Any card, now and then |
+| tilt | The head tips over to one side, overshoots a touch and settles, chin up, eyes rolled up to see, an ear flicking | With each eye-colour pick |
+| proud | Chin up, a smirk, both ears up | With each eye-style pick |
+| admire | Looks down over one shoulder at itself, then the other, ears wagging, pleased | With each paint pick, standing (with the game's own `popIn`: the new paint washes over it and bursts off) |
+| perk | Both ears up, chin up to you, a happy look and a blink | On "All set?" |
 
-Still down in the paint (the first time through the eye cards) it only does the head moves (listen, look, blep, proud). A move picked by a choice cuts in at once; the pose is eased so nothing jumps. Between moves it waits 0.9 to 2.3 seconds. Its own animator does the rest: breathing, the gills, the tail, landing squash, the shake.
+A look turns the head about 25 degrees. Still down in the paint (the first time through the eye cards) it does all but the step. Between moves it waits 1 to 2.5 seconds.
 
 ## The camera
 
@@ -167,7 +167,7 @@ While the intro is live it draws instead of the lobby. `frameBody` returns befor
 - **The tumbleweed** is a ball of 170 dry twigs, each a bent chord through it made of thin three-sided tubes, about 4k triangles in one draw.
   - It rolls in from the left on the wind, skipping over the sand: it turns as far as it rolls, wobbles a little, casts its own sun shadow and puffs dust at each bounce.
   - Its first pass rolls behind the drum as the camera comes down, just before the drum starts to thump. After that it comes back every 7 to 12 seconds on a path behind the action.
-  - It gets a dry rustle as it comes into view, added to the end of `sfx/intro_fx.mp3` so the other effects keep their offsets.
+  - It gets a soft dry rustle as it comes into view (at half the level it first had), added to the end of `sfx/intro_fx.mp3` so the other effects keep their offsets.
 - **The rest:** the pour is one deformed tube, drops are one instanced mesh (up to 96), and wind-blown sand is one point cloud. The lighting is a sun, a rim light, a warm bounce off the sand and a sky/sand hemisphere.
 - **The character** is the game's own `AXOC.make()` axolotl, driven through `AXOC.update` with the game's animator. Eye colour and style, colour, paint coat, `shake()`, `coatBurst()` and the `smirk` wink face are all its own.
 
