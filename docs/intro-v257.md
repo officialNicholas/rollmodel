@@ -109,6 +109,7 @@ Dm  A5 F5. D5 C6 | Am  C6. B5 A5 (C5 E5) | F  A5 C6 B5 G#5 | E  E5 . B4 C5 D5 E5
 | `music/intro_drive.mp3` | 4, naming | Kick, snare, clap, a tom fill, the melody on strings an octave down | 254 KB |
 | `music/intro_sting.mp3` | the reveal | One sprite (v263, `tools/intro_hit.py`): a one-bar riser into an unpitched impact (sub boom, tom, kick, crash), then the pitched part of the hit (a run up, the orchestra and a celesta glissando) on each of the loop's chords, Dm, Am, Bb, E and F. The E part with the impact is the original E major hit | 376 KB |
 | `sfx/intro_fx.mp3` | effects | Barrel wobble, tip, pour, eyes pop, form, sparkle (Ludo.ai), one sprite | 93 KB |
+| `sfx/intro_wind.mp3` | effects | (v267) The desert's air under everything: low wind over the sand, sand hissing, a soft gust now and then. Two 10 s Ludo.ai takes stitched into an 18.3 s loop that wraps seamlessly at an even level (`tools/desert_wind.py`), looped from 0.4 s to 18.7 s. It fades up over 3 s when the intro starts, plays low (0.13, about 5 dB under the opening air pad), and fades out as the iris closes at the sting | 225 KB |
 
 All loops are 17.31446 s (8 bars), with loop points `a = 0.25`, `b = 17.56444` and a pre-roll before `a`.
 
@@ -240,7 +241,7 @@ If the scene can't be built (for instance neither character pack loaded), the in
 - `tools/p257_intro.py`: the Playwright probe. It plays the whole intro through its cards (portrait, landscape, app insets) and captures every stage. `SAVE=<json>` checks a returning player instead.
 - `tools/intro_score.py`: composes and renders the music. `tools/intro_music_build.py`, `tools/intro_audio_an.py` and `tools/intro_music_gen.py` are the analysis and generation helpers. `tools/assets/intro257/` holds the Ludo.ai one-shots the score uses.
 - Assets:
-  - `game/music/intro_{air,keys,low,tops,drive,sting}.mp3` and `game/sfx/intro_fx.mp3`, reached through the game's own `MUSIC_BASE` and `SFX_BASE`;
+  - `game/music/intro_{air,keys,low,tops,drive,sting}.mp3`, `game/sfx/intro_fx.mp3` and `game/sfx/intro_wind.mp3`, reached through the game's own `MUSIC_BASE` and `SFX_BASE`;
   - `game/art/intro_{canyon,sand,drum,rust}.webp`, reached as `art/<name>.webp` like the game's other art.
 
   The intro's splats are the game's own `art/splat2.webp` and `art/m_splat2.webp`, used as CSS masks filled with your paint.

@@ -4,7 +4,7 @@ clock, the stems' buffers carried over. Apply after v257_intro.py."""
 def rep(s, a, b, n=1):
     c = s.count(a); assert c == n, (c, n, a[:160]); return s.replace(a, b)
 def apply(s):
-    if "renew() { M.S = null; if (M.on) begin(); }," not in s:  # (the intro's own engine carries it from 6d88869 on)
+    if "        renew() { M.S = null;" not in s:  # (the intro's own engine carries it from 6d88869 on; v267's restarts the wind too)
         s = rep(s, "        wake() { if (M.on && !M.S) begin(); },\n",
                    "        wake() { if (M.on && !M.S) begin(); },\n"
                    "        // (v260) the sound started afresh on a new context: the stems come back on it, with the layers that were in\n"
