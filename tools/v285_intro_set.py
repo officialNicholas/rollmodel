@@ -67,6 +67,7 @@ ROCKS = r"""    // rocks: (v285) weathered sandstone boulders, rounded by the wi
           P.setXYZ(i, px * cr - pz * sr + x, py, px * sr + pz * cr + z);
           uv[i * 2] = Math.atan2(dz, dx) / 6.2832 + 0.5; uv[i * 2 + 1] = py / 0.85 + ri * 0.37; }
         for (let i = 0; i < n; i += 3) { const a = uv[i * 2], b = uv[i * 2 + 2], c = uv[i * 2 + 4]; if (Math.max(a, b, c) - Math.min(a, b, c) > 0.5) for (let j = 0; j < 3; j++) if (uv[(i + j) * 2] < 0.5) uv[(i + j) * 2] += 1; } // (a triangle across the seam takes its u from one side)
+        { const reps = Math.max(1, Math.round(6.2832 * (sx + sz) * 0.5 / 1.5)); for (let i = 0; i < n; i++) uv[i * 2] *= reps; } // (about as many texels round it as up it: a big rock wraps the picture twice)
         g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); smoothN(g);
         // darker low down where it meets the sand and in the hollows, a touch lighter and sandier where sand settles on top
         const N = g.attributes.normal, col = new Float32Array(n * 3), tint = 0.94 + 0.12 * rand();
