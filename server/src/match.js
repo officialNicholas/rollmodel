@@ -44,7 +44,7 @@ export class Match {
     this.P = sessions.map((s, slot) => this._mkPlayer(s, slot));
     this.level = null; this.cov = null; this.pots = []; this.hits = [];
     this.snapSeq = 0; this.nextCovAt = 0; this.startAt = 0; this.endAt = 0; this.endingAt = 0; this.lastTick = nowMs();
-    this.weather = []; this.zone = []; this.items = null; this.results = null; this.rematchUntil = 0; this.layoutHash = null;
+    this.weather = []; this.zone = []; this.items = null; this.results = null; this.rematchUntil = 0; this.layoutHash = null; this.otUsed = false;
     this.stats = { states: 0, rejected: 0, corrections: 0, snapshots: 0, bytes: 0 };
   }
   _mkPlayer(sess, slot) {
@@ -72,7 +72,7 @@ export class Match {
   roster() { return this.P.map(p => ({ slot: p.slot, id: p.id, name: p.name, look: p.look, side: p.side, color: p.color, rating: Math.round(p.rating.r) })); }
   publicRules() {
     const r = this.rules;
-    return { matchT: r.matchT, sdT: r.sdT, hearts: r.hearts, respawnT: r.respawnT, flatT: r.flatT, slamFirst: r.slamFirst, slamCd: r.slamCd, potShields: r.potShields, items: r.items, weather: r.weather, zone: r.zone, lagCompMaxMs: r.lagCompMaxMs, snapshotHz: r.snapshotHz };
+    return { matchT: r.matchT, sdT: r.sdT, hearts: r.hearts, respawnT: r.respawnT, flatT: r.flatT, slamFirst: r.slamFirst, slamCd: r.slamCd, potShields: r.potShields, items: r.items, weather: r.weather, zone: r.zone, lagCompMaxMs: r.lagCompMaxMs, snapshotHz: r.snapshotHz, koPct: r.koPct, overtime: r.overtime, potDownT: r.potDownT };
   }
   playerById(id) { return this.P.find(p => p.id === id) || null; }
   get active() { return this.phase !== 'closed'; }
@@ -438,7 +438,7 @@ export class Match {
   // pound while hidden: burst out of the pot and blast everyone close away (no knock-out)
   _burst(p, ts, vt) {
     const pot = this.pots[p.pot]; if (!pot) return;
-    this._leavePot(p, ts, 'burst');
+    this._leavePot(p, ts, 'burst'); this._sinkPot(pot); // (the burst breaks it, as in the game; it comes back in the same place)
     p.mover.launch(13.5, ts, pot.y + 0.35); // the game throws you high out of the pot (and you splat where you land)
     this.cov.stamp(pot.x, pot.y, pot.z, G.SLAM_R * 0.7, p.color);
     this._puddleRefill(p, pot, G.SLAM_R, ts);
@@ -611,7 +611,11 @@ export class Match {
     if (this.items) this.items.tick(now, dt);
     if (now >= this.nextCovAt) { this.nextCovAt = now + 1000 / this.rules.coverageHz; this._all({ t: 'cov', s: this.cov.bySide().map(r2), c: this.cov.colors().map(r2) }); }
     if (this.showdown) { if (this.endingAt && now >= this.endingAt) return this._end('last_standing'); }
-    if (now >= this.endAt) this._end('time');
+    if (now >= this.endAt) {
+      // versus, level at the buzzer (on the whole numbers everyone sees, knock-outs included): play on, once
+      if (!this.showdown && !this.otUsed && this.rules.overtime > 0 && this._tied()) { this.otUsed = true; this.endAt = now + this.rules.overtime * 1000; this._all({ t: 'overtime', endAt: this.endAt, secs: this.rules.overtime }); }
+      else this._end('time');
+    }
   }
   // AFK and disconnects
   _presence(now) {
@@ -670,7 +674,7 @@ export class Match {
     this.results = {
       matchId: this.id, mode: this.mode, reason, winner, rated: this.rated, duration: Math.max(0, Math.round((now - this.startAt) / 100) / 10),
       results: this.P.map(p => ({
-        slot: p.slot, id: p.id, name: p.name, side: p.side, coverage: r2(colCov[p.slot] || 0), sideCoverage: r2(sideCov[p.side] || 0),
+        slot: p.slot, id: p.id, name: p.name, side: p.side, coverage: r2(colCov[p.slot] || 0), sideCoverage: r2(sideCov[p.side] || 0), score: this.showdown ? undefined : this._score(p.side, sideCov),
         kos: p.kos, deaths: p.deaths, flats: p.flats, stomps: p.stomps, hearts: p.hearts, place: p.place, left: p.st === 'left',
         rating: ratings ? { before: Math.round(p.rating.r), after: Math.round(ratings.get(p.id).r), rd: Math.round(ratings.get(p.id).rd) } : null,
       })),
@@ -680,14 +684,21 @@ export class Match {
     this.log.info('match ended', { reason, winner, cov: sideCov.map(r2) });
     this.srv.onMatchEnd(this, ratings);
   }
-  // 1 is best. Versus: by side coverage. Showdown: whoever is still in (most hearts, then knock-outs), then the order
+  // a side's versus score, as the game counts it: its coverage in whole percent, plus koPct for each knock-out
+  _score(side, sideCov) { let kos = 0; for (const p of this.P) if (p.side === side) kos += p.kos; return Math.round(sideCov[side] || 0) + this.rules.koPct * kos; }
+  _tied() {
+    const sideCov = this.cov ? this.cov.bySide() : [], live = [...new Set(this.P.filter(p => p.st !== 'left').map(p => p.side))];
+    if (live.length < 2) return false;
+    const sc = live.map(s => this._score(s, sideCov)).sort((a, b) => b - a); return sc[0] === sc[1];
+  }
+  // 1 is best. Versus: by score (side coverage, plus the knock-out bonus). Showdown: whoever is still in (most hearts, then knock-outs), then the order
   // sides went out. Anyone who left is last.
   _places(sideCov) {
     const sides = [...new Set(this.info.sides)], of = s => this.P.filter(p => p.side === s);
     const gone = s => of(s).every(p => p.st === 'left');
     let order;
     if (!this.showdown) {
-      order = sides.filter(s => !gone(s)).map(s => ({ s, k: [sideCov[s] || 0] }));
+      order = sides.filter(s => !gone(s)).map(s => ({ s, k: [this._score(s, sideCov)] }));
     } else {
       const alive = sides.filter(s => of(s).some(p => p.st !== 'left' && p.st !== 'out' && p.hearts > 0));
       order = alive.map(s => ({ s, k: [1e9, of(s).reduce((a, p) => a + p.hearts, 0), of(s).reduce((a, p) => a + p.kos, 0)] }));

@@ -52,7 +52,9 @@ export const DEFAULT_RULES = Object.freeze({
   maxRewindMs: 450, // absolute cap on how far back any rewind can reach
   snapshotHz: 30, coverageHz: 4,
   strikesToKick: 6, strikeDecay: 20, // one strike forgiven every strikeDecay seconds of clean play
-  potDownT: 8, potInk: 1.0, potRefill: 0.04,
+  potDownT: 4.6, potInk: 1.0, potRefill: 0.04, // (a drained or burst pot is gone this long, about as long as the game's own: 1 s sinking, 3.6 s down)
+  koPct: 2, // versus: each knock-out adds this many points to the coverage score, as in the game
+  overtime: 10, // versus: a tie at the buzzer plays on this many seconds, once (0: a tie is a draw)
 });
 
 export const LIMITS = Object.freeze({

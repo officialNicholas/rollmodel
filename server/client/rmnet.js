@@ -504,6 +504,7 @@ const RMNetSDK = (() => {
           break;
         }
         case 'cov': this._emit('coverage', { sides: m.s, colors: m.c }); break; // (short on the wire: four a second)
+        case 'overtime': if (this.match) this.match.endAt = m.endAt; this._emit('overtime', m); break; // (versus: level at the buzzer, plays on once)
         case 'matchEnd': this._clock.locked = false; this._emit('matchEnd', m); break;
         case 'matchCancelled': case 'matchClosed':
           this._emit(m.t, m); this.match = null; this.slot = -1; this._clock.locked = false; this._tracks.clear();

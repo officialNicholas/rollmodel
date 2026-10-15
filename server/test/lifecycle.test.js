@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { MODES, layoutHash, FLAGS } from '../client/rmnet.js';
 import { MODE_INFO } from '../src/constants.js';
-import { startServer, makeBots, until, sleep, metric } from './helpers/harness.js';
+import { startServer, makeBots, until, sleep, metric, matchOf } from './helpers/harness.js';
 
 async function playOnce(bots, { expectRematch }) {
   const ends = await Promise.all(bots.map(b => b.wait('matchEnd', () => true, 40000)));
@@ -112,4 +112,33 @@ test('Showdown 2v2: a side is out only when both are out', async () => {
     assert.equal(end.winner, 0);
     for (const r of end.results) assert.equal(r.place, r.side === 0 ? 1 : 2);
   } finally { for (const b of bots) b.close(); await srv.close(); }
+});
+
+test('versus: knock-outs add to the score, and a tie at the buzzer plays on once', async () => {
+  // a level match: both stand still and paint nothing, so overtime comes, and after it a draw
+  let srv = await startServer({ matchT: 1.5, overtime: 1.5, idleForfeit: 60 });
+  let [A, B] = makeBots(srv, 2, { behavior: 'still', prefix: 'ot' });
+  try {
+    await Promise.all([A, B].map(b => b.connect()));
+    await A.net.queue('duel'); await B.net.queue('duel');
+    const ot = await A.wait('overtime', () => true, 10000);
+    assert.ok(ot.endAt > A.net.serverNow() && ot.secs === 1.5);
+    const end = await A.wait('matchEnd', () => true, 10000);
+    assert.equal(end.winner, -1);
+    for (const r of end.results) { assert.equal(r.score, 0); assert.equal(r.place, 1); }
+  } finally { A.close(); B.close(); await srv.close(); }
+  // a knock-out is worth two points: with no paint down, it alone wins the match (and no overtime)
+  srv = await startServer({ matchT: 1.5, overtime: 1.5, idleForfeit: 60 });
+  [A, B] = makeBots(srv, 2, { behavior: 'still', prefix: 'ko' });
+  try {
+    await Promise.all([A, B].map(b => b.connect()));
+    await A.net.queue('duel'); await B.net.queue('duel');
+    await A.wait('start');
+    matchOf(srv, A.id).P[A.slot].kos = 1; // (as if A had pounded B once)
+    let ot = false; A.on('overtime', () => { ot = true; });
+    const end = await A.wait('matchEnd', () => true, 10000);
+    assert.equal(ot, false);
+    const ra = end.results.find(r => r.slot === A.slot), rb = end.results.find(r => r.slot === B.slot);
+    assert.equal(ra.score, 2); assert.equal(rb.score, 0); assert.equal(end.winner, ra.side); assert.equal(ra.place, 1); assert.equal(rb.place, 2);
+  } finally { A.close(); B.close(); await srv.close(); }
 });

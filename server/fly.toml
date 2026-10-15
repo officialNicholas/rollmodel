@@ -8,6 +8,8 @@ primary_region = "ord"
   TRUST_PROXY = "1"
   DATA_FILE = "/data/store.json"
   LOG_LEVEL = "info"
+  # the game doesn't show online pick-ups yet: none are handed out
+  RULES = '{"items":false}'
 
 [http_service]
   internal_port = 8080

@@ -7,7 +7,7 @@ import { createLogger } from '../../src/log.js';
 import { Bot } from './bot.js';
 import { netSim, PROFILES } from './netsim.js';
 
-export const FAST_RULES = { matchT: 8, sdT: 25, countdown: 0.6, startLead: 0.1, layoutTimeout: 5, rematchWindow: 4, weather: false, items: false, slamFirst: 0.5, reconnectWindow: 3, afkWarn: 1.5, afkForfeit: 4, idleForfeit: 30 };
+export const FAST_RULES = { matchT: 8, sdT: 25, countdown: 0.6, startLead: 0.1, layoutTimeout: 5, rematchWindow: 4, weather: false, items: false, slamFirst: 0.5, reconnectWindow: 3, afkWarn: 1.5, afkForfeit: 4, idleForfeit: 30, overtime: 0 };
 
 export async function startServer(rules = {}, extra = {}) {
   const srv = await createGameServer(Object.assign({ port: 0, host: '127.0.0.1', store: new MemoryStore(), log: createLogger({ level: process.env.RM_LOG || 'silent' }), rules: Object.assign({}, FAST_RULES, rules), maxPerIp: 2000, maxConnections: 5000, shutdownGraceMs: 200 }, extra));
