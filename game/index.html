@@ -3631,6 +3631,18 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 #mStrokes .stcraft::before{left:50%;top:-9px;width:64px;height:19px;margin-left:-32px;transform:rotate(-3deg)}
 @media (min-aspect-ratio:1/1) and (max-height:600px){#mStrokes .stpanel{padding:20px 10px 12px 28px}#mStrokes .stopt .stoi{width:60px;height:60px}#mStrokes .stopt .stoi .stimg{width:52px;height:52px}#mStrokes .stslot{scale:.97}#mStrokes .stslot.on{scale:1}}
 @media (prefers-reduced-motion:reduce){#mStrokes .stslot,#mStrokes .stopt{transition:none}}
+/* (v295) the Turning slider: a dark slot like the toggles, filled gold up to a chunky gold knob */
+.trn{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;height:46px}
+.trnl{font:400 11px/1 var(--font-display);letter-spacing:.04em;text-transform:uppercase;color:rgba(255,255,255,.55)}
+.trnv{margin-left:auto;padding:4px 8px 3px;border-radius:6px;background:linear-gradient(180deg,#FFE08A 0%,#F2C14E 100%);color:#171320;font:400 12px/1 var(--font-display);text-shadow:none;box-shadow:0 0 0 2px #171320;transform:skewX(-6deg)}
+#turnPick{--v:50%;-webkit-appearance:none;appearance:none;width:100%;height:30px;margin:0;padding:0;background:none;cursor:pointer;touch-action:pan-y}
+#turnPick:focus{outline:none}
+#turnPick::-webkit-slider-runnable-track{height:16px;border-radius:9px;background:linear-gradient(90deg,#F2C14E 0,#FFE08A var(--v),#28243A var(--v));box-shadow:0 0 0 2.5px #171320,inset 0 3px 0 rgba(0,0,0,.3)}
+#turnPick::-moz-range-track{height:16px;border-radius:9px;background:linear-gradient(90deg,#F2C14E 0,#FFE08A var(--v),#28243A var(--v));box-shadow:0 0 0 2.5px #171320,inset 0 3px 0 rgba(0,0,0,.3)}
+#turnPick::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:30px;height:30px;margin-top:-7px;border:0;border-radius:9px;background:linear-gradient(180deg,#FFE08A 0%,#F2C14E 100%);box-shadow:0 0 0 2.5px #171320,inset 0 3px 0 rgba(255,255,255,.5),inset 0 -4px 0 rgba(0,0,0,.18),0 4px 0 #171320;transform:skewX(-6deg)}
+#turnPick::-moz-range-thumb{width:30px;height:30px;border:0;border-radius:9px;background:linear-gradient(180deg,#FFE08A 0%,#F2C14E 100%);box-shadow:0 0 0 2.5px #171320,inset 0 3px 0 rgba(255,255,255,.5),inset 0 -4px 0 rgba(0,0,0,.18),0 4px 0 #171320}
+#turnPick:focus-visible::-webkit-slider-thumb{outline:3px solid var(--gold);outline-offset:3px}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.trn{height:40px}}
 /* (v293) Time trial: the leaderboard strip on the canvas picker */
 .mworld #soloNote.ttoff{display:none}
 .ttstrip{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;width:min(100%,420px);margin:0 auto 4px;padding:9px 12px 9px 10px;box-sizing:border-box;border:0;border-radius:3px;
@@ -3872,7 +3884,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 294</p>
+      <p class="ver">Version 295</p>
     </div>
   </div>
 
@@ -3894,6 +3906,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="sopt"><p class="slab">Music</p><div class="seg duo tog" id="musPick" role="group" aria-label="Music"><button type="button" data-v="on" aria-pressed="true"><span>On</span></button><button type="button" data-v="off" aria-pressed="false"><span>Off</span></button></div></div>
         <div class="sopt wide"><p class="slab">Screen</p><div class="seg duo tog pick" id="orientPick" role="group" aria-label="Screen"><button type="button" data-o="port" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10.5 18h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Upright</button><button type="button" data-o="land" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6.5" width="19" height="11" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M18 10.5v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Wide</button></div></div>
         <div class="sopt wide"><p class="slab">Visuals</p><div class="seg duo tog pick" id="gfxPick" role="group" aria-label="Visuals"><button type="button" data-g="hi" aria-pressed="false"><span>Graphics</span></button><button type="button" data-g="perf" aria-pressed="false"><span>Performance</span></button></div><p class="gnote" id="gfxNote" aria-live="polite"></p></div>
+        <div class="sopt wide"><p class="slab">Turning <b class="trnv" id="turnVal">100%</b></p><div class="trn"><span class="trnl" aria-hidden="true">Gentle</span><input type="range" id="turnPick" min="50" max="150" step="5" value="100" aria-label="Turning speed" aria-describedby="turnNote"><span class="trnl" aria-hidden="true">Quick</span></div><p class="gnote" id="turnNote">How fast you turn when you swipe.</p></div>
         <div class="sopt wide"><p class="slab">Help</p><div class="sbtns"><button class="sbtn" id="howOpen" type="button" aria-haspopup="dialog"><span>How to play</span></button></div><p class="gnote" id="lastErr"></p></div>
         <div class="sopt wide soon"><p class="slab">Play with friends <i class="soontag">Coming soon</i></p><div class="sbtns"><button class="sbtn" type="button" disabled><span>Invite friends</span></button><button class="sbtn" type="button" disabled><span>Link account</span></button></div></div>
         <div class="sopt full"><div class="sbtns three"><button class="sbtn" id="tosBtn" type="button" aria-haspopup="dialog"><span>Terms of Service</span></button><button class="sbtn" id="privBtn" type="button" aria-haspopup="dialog"><span>Privacy Policy</span></button><button class="sbtn" id="credBtn" type="button" aria-haspopup="dialog"><span>Credits</span></button></div></div>
@@ -4135,6 +4148,7 @@ let ARENA = 26.4; const ARENA_MAX = 33; // half size of the canvas floor (a 3-wa
 const TW = 0.8;            // trail width
 const PR = 0.34;           // drop radius
 const SPACING = 0.12;      // trail point spacing
+const turnPct = () => { const v = +store.turn; return v >= 50 && v <= 150 ? Math.round(v / 5) * 5 : 100; }, turnK = () => 0.89 * turnPct() / 100; // (v295: 100% turns about 10% slower than before; the steering helpers make up a little of it)
 const TURN = 3.9;          // rad/s at full steer (more when slow, and it keeps its arc when fast)
 const STEP = 0.32;         // highest ledge you roll up without jumping
 const JUMP_V = 5.6, GRAV = 15;
@@ -15653,8 +15667,8 @@ function steerAndTurn(D, dt, scaleBy) {
       scaleBy *= 1 + 0.5 * k + 0.5 * kk * sf; D.spd = Math.max(cfg.speed * 0.55, D.spd - D.spd * (1.8 * k + 4 * kk * sf) * dt); } }
     else if (ahead > 0.25 && sf > 0) D.spd -= Math.max(0, D.spd - cfg.speed) * 6 * sf * ahead * dt; // flying at a drop without steering: bleed off the extra speed so there's time to turn
   }
-  const sr = D.spd / cfg.speed, agile = D.turret && !D.air ? 0.85 : D.air ? 1 : sr < 1 ? Math.min(D.charging ? 1.35 : 1.6, 1 + 0.6 * (1 - Math.max(0, sr))) : Math.min(1.3, sr), want = input * TURN * scaleBy * agile; // (a turret turns itself round with its stubs: a little steadier)
-  let lean = 0; if (D === P && !P.ai && !D.air && !D.charging && !kcam && Math.abs(input) > 0.4 && D.spd > 0.8) { const st = steerTarget(D, input); if (st) lean = -clamp(st.err, -1, 1) * TURN * 0.6 * Math.min(1, Math.abs(input) * 1.4); } // (the lean the rest of the way, on top of what you asked for)
+  const sr = D.spd / cfg.speed, agile = D.turret && !D.air ? 0.85 : D.air ? 1 : sr < 1 ? Math.min(D.charging ? 1.35 : 1.6, 1 + 0.6 * (1 - Math.max(0, sr))) : Math.min(1.3, sr), want = input * TURN * scaleBy * agile * (D === P && !P.ai && !kcam ? turnK() : 1); // (a turret turns itself round with its stubs: a little steadier)
+  let lean = 0; if (D === P && !P.ai && !D.air && !D.charging && !kcam && Math.abs(input) > 0.4 && D.spd > 0.8) { const st = steerTarget(D, input); if (st) lean = -clamp(st.err, -1, 1) * TURN * turnK() * 0.6 * Math.min(1, Math.abs(input) * 1.4); } // (the lean the rest of the way, on top of what you asked for)
   const wantL = want + lean; D.turn += (wantL - D.turn) * Math.min(1, dt * (D === P && !P.ai ? (wantL * D.turn < 0 ? 50 : 36) : 20));
   D.yaw -= D.turn * dt;
 }
@@ -17862,7 +17876,7 @@ function visuals(dt, rdt) {
     else if (state === 'dead') dPos.lerp(dLook, Math.min(1, rdt * 0.5));
   } else {
     camTurnS += ((P.st === 'play' ? P.turn : 0) - camTurnS) * (1 - Math.exp(-rdt * 9));
-    let dy = P.yaw - camTurnS * 0.085 - camYaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); [camYaw, camYawV] = sdamp(camYaw, camYaw + dy, camYawV, 0.21, Math.min(rdt, 0.05));
+    let dy = P.yaw - camTurnS * 0.14 - camYaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); { const y0 = camYaw, dtc = Math.min(rdt, 0.05); [camYaw, camYawV] = sdamp(camYaw, camYaw + dy, camYawV, 0.3, dtc); const lim = CAM_SWING * dtc; if (camYaw - y0 > lim) camYaw = y0 + lim; else if (y0 - camYaw > lim) camYaw = y0 - lim; camYawV = clamp(camYawV, -CAM_SWING, CAM_SWING); } // (v295: eased in and out of turns, with a little more lead so it keeps up as before; quick spins capped at 250 degrees a second)
     camCharge += ((P.charging ? P.charge : 0) - camCharge) * (1 - Math.exp(-rdt * 5));
     const F = other(P), fdx = F.x - P.x, fdz = F.z - P.z, fd = Math.hypot(fdx, fdz), foeK = F.st === 'play' && P.st === 'play' ? clamp(1 - (fd - 5) / 9, 0, 1) : 0; camFoe += (foeK - camFoe) * (1 - Math.exp(-rdt * 3));
     camTur += ((P.turret ? 0.5 + (P.turret.aim === undefined ? 0.4 : P.turret.aim) : 0) - camTur) * (1 - Math.exp(-rdt * 3)); // a turret's view pulls up and out with its range
@@ -17885,12 +17899,12 @@ function visuals(dt, rdt) {
     }
   }
   const k = camSnap ? 1 : 1 - Math.exp(-rdt * (state === 'intro' ? 7 : playing ? (P.rocket ? (P.rocket.ph === 'up' ? 3.2 : P.rocket.ph === 'dive' && !P.rocket.slow ? 9 : 6) : introOut > 0 ? 16 : 12) : lookIntro ? 5 : 2.2)); camSnap = false; introOut = Math.max(0, introOut - rdt / 1.15);
-  if (k < 1 && state === 'play' && !P.rocket && introOut <= 0) { smoothDamp(camPos, camVel, dPos, 0.09, rdt); smoothDamp(camLook, lookVel, dLook, 0.07, rdt); }
+  if (k < 1 && state === 'play' && !P.rocket && introOut <= 0) { smoothDamp(camPos, camVel, dPos, 0.12, rdt); smoothDamp(camLook, lookVel, dLook, 0.1, rdt); }
   else { const ox = camPos.x, oy = camPos.y, oz = camPos.z, lx = camLook.x, ly = camLook.y, lz = camLook.z, iv = rdt > 0 && k < 1 ? 1 / rdt : 0; camPos.lerp(dPos, k); camLook.lerp(dLook, k); camVel.set((camPos.x - ox) * iv, (camPos.y - oy) * iv, (camPos.z - oz) * iv); lookVel.set((camLook.x - lx) * iv, (camLook.y - ly) * iv, (camLook.z - lz) * iv); }
   // a safety net: one bad number would otherwise stick in the smoothing for good (a black screen), so start again from the target
   if (!Number.isFinite(camPos.x + camPos.y + camPos.z + camLook.x + camLook.y + camLook.z + camVel.x + camVel.y + camVel.z + lookVel.x + lookVel.y + lookVel.z) && Number.isFinite(dPos.x + dPos.y + dPos.z + dLook.x + dLook.y + dLook.z)) { camPos.copy(dPos); camLook.copy(dLook); camVel.set(0, 0, 0); lookVel.set(0, 0, 0); }
   camera.position.copy(camPos); camera.up.set(0, 1, 0); camera.lookAt(camLook);
-  if (playing) camera.rotateZ(-look.lean * 0.03);
+  /* (v295: the view no longer rolls as you lean into a turn) */
   if (shake > 0.001 && !reduceMotion) { const s2 = shake * shake * 2.2; camera.position.addScaledVector(tv2.set(Math.random() - 0.5, Math.random() - 0.5, 0).applyQuaternion(camera.quaternion), s2); }
   if (quake.amp > 0) { quake.t += rdt; const q = quake.amp * Math.exp(-quake.t * 3.2); if (!reduceMotion) { camera.position.y += Math.sin(quake.t * 24) * q * 0.85; camera.position.x += Math.sin(quake.t * 17 + 1.3) * q * 0.4; camera.position.z += Math.cos(quake.t * 21) * q * 0.4; camera.rotateZ(Math.sin(quake.t * 13) * q * 0.035); } if (quake.t > 1.8) quake.amp = 0; }
   shake *= Math.exp(-rdt * 9); fovKick *= Math.exp(-rdt * 4);
@@ -17946,6 +17960,7 @@ const inkSegs = Array.from(document.querySelectorAll('#ttrack i')), inkSpans = A
 const tugLiq = makeLiquid($('meter')); let tugT = 0; const tugS = { y: 0, c: 0 }; // the strip's shares, eased so paint pours in rather than jumping
 const tankEl = $('bar'), tankTrack = $('ttrack'); let tankOn = false, tankFlip = false, tankX = -1e4, tankY = -1e4, tankPct = -1, tankPing = 0, tankShow = false, tankHidT = 9, tankLastP = 1, tankLastSt = '';
 const tankS = { x: 0, vx: 0, y: 0, vy: 0, set: false }; let tankFrame = -1;
+const CAM_SWING = 4.4; // (v295) the fastest the play camera swings round after you, radians a second (250 degrees: above an ordinary turn, below a spin on the spot)
 const sdamp = (cur, tgt, vel, st, dt) => { const om = 2 / st, x = om * dt, e = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x), ch = cur - tgt, tmp = (vel + om * ch) * dt; return [tgt + (ch + tmp) * e, (vel - om * tmp) * e]; };
 const pingTank = t => { tankPing = Math.max(tankPing, t || 1.3); };
 function placeTank(rdt) {
@@ -20696,7 +20711,7 @@ howModal.addEventListener('click', e => { if (e.target === howModal) closeHow();
 const setModal = $('setModal'), GFX_NOTE = { hi: 'Full lighting, reflections, glow and extra detail. Best on newer phones and computers.', perf: 'Simpler lighting and fewer effects, for the smoothest play on any device.' };
 let gfxPick = GFX;
 function paintSettings() { try { $('lastErr').textContent = store.lastErr ? 'Last error: ' + store.lastErr : ''; } catch (e) {} for (const b of $('sfxPick').children) b.setAttribute('aria-pressed', String((b.dataset.v === 'off') === !!store.sfxOff)); for (const b of $('musPick').children) b.setAttribute('aria-pressed', String((b.dataset.v === 'off') === !!store.musicOff)); { const v = document.querySelector('#howModal .ver'); $('setVer').textContent = v ? v.textContent : ''; } for (const b of $('orientPick').children) b.setAttribute('aria-pressed', String(b.dataset.o === (store.orient || ''))); for (const b of $('gfxPick').children) b.setAttribute('aria-pressed', String(b.dataset.g === gfxPick)); $('gfxNote').textContent = GFX_NOTE[gfxPick]; $('setDone').textContent = gfxPick === GFX ? 'Done' : 'Restart to apply'; }
-function openSettings() { if (state !== 'menu' || lookOpen || shopOpen) return; gfxPick = GFX; paintSettings(); setModal.hidden = false; setTimeout(() => $('gfxPick').querySelector('[aria-pressed="true"]').focus({ preventScroll: true }), 30); }
+function openSettings() { if (state !== 'menu' || lookOpen || shopOpen) return; gfxPick = GFX; paintSettings(); if (window.__turnShow) window.__turnShow(); setModal.hidden = false; setTimeout(() => $('gfxPick').querySelector('[aria-pressed="true"]').focus({ preventScroll: true }), 30); }
 function closeSettings() { if (setModal.hidden) return; setModal.hidden = true; $('hamBtn').focus({ preventScroll: true }); }
 function doneSettings() { if (gfxPick === GFX) return closeSettings(); store.gfx = gfxPick; save(); $('setDone').disabled = true; $('setDone').textContent = 'Restarting'; setTimeout(() => location.reload(), 120); }
 $('setBtn').addEventListener('click', uiClick(openSettings));
@@ -21191,6 +21206,12 @@ $('orientOk').addEventListener('click', () => { AU.init(); AU.pop(); const el = 
 $('orientPick').addEventListener('click', e => { const t = e.target.closest('button'); if (!t || t.dataset.o === store.orient) return; AU.init(); AU.ui(); setOrient(t.dataset.o); });
 $('rotateSwap').addEventListener('click', () => { AU.init(); AU.ui(); setOrient(viewW > viewH ? 'land' : 'port'); });
 window.addEventListener('resize', () => setTimeout(checkRotate, 0));
+// (v295) the Turning slider in Settings
+{ const el = $('turnPick'), show = () => { const v = turnPct(); el.value = String(v); el.style.setProperty('--v', ((v - 50) / 100 * 100).toFixed(1) + '%'); $('turnVal').textContent = v + '%'; el.setAttribute('aria-valuetext', v + '%'); };
+  let last = turnPct();
+  el.addEventListener('input', () => { const v = Math.round(+el.value / 5) * 5; store.turn = clamp(v, 50, 150); show(); if (v !== last) { last = v; try { AU.tick && AU.tick(0); } catch (e) {} } });
+  el.addEventListener('change', () => { save(); });
+  window.__turnShow = show; show(); }
 $('gfxPick').addEventListener('click', e => { const b = e.target.closest('button[data-g]'); if (!b || b.dataset.g === gfxPick) return; AU.ui(); gfxPick = b.dataset.g; paintSettings(); });
 $('srows').addEventListener('pointerdown', e => { const g = e.target.closest('.sgrp'); if (!g) return; for (const x of $('srows').children) x.classList.toggle('on', x === g); });
 $('setDone').addEventListener('click', uiClick(doneSettings));
