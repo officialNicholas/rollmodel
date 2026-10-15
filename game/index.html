@@ -3884,7 +3884,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 296</p>
+      <p class="ver">Version 297</p>
     </div>
   </div>
 
@@ -15491,6 +15491,7 @@ function kcamSteer(D, dt) {
 }
 function knockOut(D, reason, by) {
   if (D.st === 'ko' || state !== 'play') return;
+  if (tut && D === P && by && by !== P && (reason === 'pound' || reason === 'coffin' || reason === 'crush')) return tutSpare(by, reason); // (v297: not in the lesson)
   const sdLast = isShow() && sdHit(D, by);
   const pot = D.pot; if (pot) { pot.occ = null; D.pot = null; }
   if (D.charging) clearCharge(D);
@@ -15535,7 +15536,13 @@ function respawnBlob(D) {
   for (let i = 0; i < 16; i++) { const a = Math.random() * 6.283; spawnPart(best.x, best.y + 0.7, best.z, Math.cos(a) * 2.6, 2.5 + Math.random() * 2, Math.sin(a) * 2.6, 0.5, tmat(D), 0.75); }
 }
 // rolled over or landed on: flat as a pancake for 2 seconds
+// (v297) the lesson: a rival's pound, stomp, ram or roll leaves you unhurt (a wobble, a moment's cover; in the dodge step a miss counts)
+function tutSpare(by, reason) {
+  P.immuneT = Math.max(P.immuneT, 0.6); P.wob = 1; P.squash = Math.max(P.squash || 0, 0.35); buzz(10);
+  if (tut && tut.driveMode === 'fight' && (reason === 'pound' || reason === 'coffin')) { tut.hits = (tut.hits || 0) + 1; popText('Too late! Swipe up a beat sooner'); }
+}
 function flatten(B, A, how) {
+  if (tut && B === P && A && A !== P) return tutSpare(A, how); // (v297: not in the lesson)
   if (B.charging) clearCharge(B);
   B.flatT = FLAT_T; B.spd = 0; B.turn = 0; B.slam = false; B.squash = 1; B.wob = 1; B.flats++; A.flatted++; emote(A, 'glee', 1.2);
   if (B.air) { B.air = false; B.vy = 0; const g = surfaceUnder(B.x, B.z, B.y + STEP, true); if (g > -Infinity) B.y = g; }
