@@ -75,7 +75,7 @@ var BOSS = (() => {
   function texFromBytes(bytes, mime) {
     const t = new THREE.Texture(); t.colorSpace = THREE.SRGBColorSpace; t.flipY = false; t.anisotropy = 4;
     const blob = new Blob([bytes], { type: mime || 'image/webp' });
-    createImageBitmap(blob, { imageOrientation: 'none', premultiplyAlpha: 'none', colorSpaceConversion: 'none' }).then(img => { t.image = img; t.needsUpdate = true; });
+    createImageBitmap(blob, { imageOrientation: 'none', premultiplyAlpha: 'none', colorSpaceConversion: 'none' }).then(img => { t.image = img; t.needsUpdate = true; t.userData.ready = true; });
     return t;
   }
 
@@ -160,7 +160,7 @@ vec3 bossDefN(vec3 p, vec3 n) {
   // its own light: richer straight on, a bright pink-white rim at the edges, brighter toward the tentacles' tips
   vec3 deep = base * base * 1.35;
   float tip = smoothstep(0.55, 1.0, vInfo.y) * step(0.01, vInfo.z) * step(vInfo.z, 0.55);
-  totalEmissiveRadiance += jelly * (deep * (0.32 + 0.22 * tip) * bGlow.x + mix(base, vec3(1.0, 0.82, 0.97), 0.45) * fr * 1.05 * bGlow.y);
+  totalEmissiveRadiance += jelly * (deep * (0.42 + 0.22 * tip) * bGlow.x + mix(base, vec3(1.0, 0.82, 0.97), 0.45) * fr * 1.05 * bGlow.y);
   totalEmissiveRadiance += cuff * base * 0.12 + glove * vec3(0.10, 0.09, 0.14) * (0.5 + fr);
   // the purple charge (pulsing), the hit flash
   totalEmissiveRadiance += vec3(0.62, 0.22, 1.0) * bGlow.z * (0.55 + 0.45 * sin(bGlow.w)) * (0.4 + fr) * (jelly + 0.35 * glove);
@@ -177,6 +177,8 @@ vec3 bossDefN(vec3 p, vec3 n) {
       .replace('#include <project_vertex>', '#include <project_vertex>\n vWp = (modelMatrix * vec4(transformed, 1.0)).xyz;');
     sh.fragmentShader = BODY_FS_PARS + '\n' + sh.fragmentShader
       .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n if (vWp.y < bClip.x) discard;')
+      // (the jelly a little pinker and lighter than the texture, whose patches lean blue: closer to the picture)
+      .replace('#include <map_fragment>', '#include <map_fragment>\n { float jj = 1.0 - smoothstep(3.5, 4.0, vInfo.w * 8.0); diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.14, 0.9, 0.97) + vec3(0.05, 0.012, 0.04), jj * 0.75); }')
       .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n' + BODY_FS_MAIN);
     return sh;
   }
@@ -219,7 +221,7 @@ vWp = (modelMatrix * vec4(transformed, 1.0)).xyz;`);
   // The model has no face, so it gets one: each eye a white cap bulging out of the jelly, drawn in its shader (the upper lid's slant for
   // anger, a lower lid for squints, the pupil with its shine, spiral eyes when dizzy, "> <" when hurt, a glow when charged), and each
   // brow a thick jelly ridge with an ink outline that rides on the upper lid. One mesh, one draw: each piece has its own transform.
-  const EYE = { w: 0.34, h: 0.39, d: 0.15 }, BROW = { len: 0.62, r: 0.085 };
+  const EYE = { w: 0.42, h: 0.47, d: 0.17 }, BROW = { len: 0.74, r: 0.1 };
   function faceGeo() {
     const P = [], N = [], F = [], I = [];
     const vert = (p, n, f) => { P.push(p.x, p.y, p.z); N.push(n.x, n.y, n.z); F.push(f[0], f[1], f[2], f[3]); return P.length / 3 - 1; };
@@ -250,8 +252,8 @@ vWp = (modelMatrix * vec4(transformed, 1.0)).xyz;`);
     g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3)); g.setAttribute('aF', new THREE.Float32BufferAttribute(F, 4)); g.setIndex(I);
     g.boundingSphere = new THREE.Sphere(new V3(0, 0, 0), 20); return g;
   }
-  const FACE_VS = `attribute vec4 aF; varying vec4 vF; uniform mat4 fM[4];`;
-  const FACE_FS_PARS = `varying vec4 vF; uniform vec4 fEA[2], fEB[2], fEC[2]; uniform vec3 fSkin, fBrow, fInk; uniform vec4 fT;
+  const FACE_VS = `attribute vec4 aF; varying vec4 vF; varying vec3 vFw; uniform mat4 fM[4];`;
+  const FACE_FS_PARS = `varying vec4 vF; varying vec3 vFw; uniform vec4 fEA[2], fEB[2], fEC[2], bClip; uniform vec3 fSkin, fBrow, fInk; uniform vec4 fT;
 float segD(vec2 p, vec2 a, vec2 b) { vec2 pa = p - a, ba = b - a; return length(pa - ba * clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0)); }`;
   // the eye, drawn: e is the spot on the eye in its own ellipse (-1 .. 1). A: the upper lid's height, its slant (down toward the nose),
   // the lower lid's height, its slant; B: the pupil (x, y, size), the glow; C: "> <", spirals, which way the nose is (1 / -1)
@@ -298,8 +300,10 @@ diffuseColor.rgb = fCol;`;
       Object.assign(sh.uniforms, FU);
       sh.vertexShader = FACE_VS + '\n' + sh.vertexShader
         .replace('#include <beginnormal_vertex>', 'mat4 fMx = aF.x < 0.5 ? fM[0] : aF.x < 1.5 ? fM[1] : aF.x < 2.5 ? fM[2] : fM[3]; vec3 objectNormal = normalize(mat3(fMx) * normal);')
-        .replace('#include <begin_vertex>', 'vec3 transformed = (fMx * vec4(position, 1.0)).xyz; vF = aF;');
+        .replace('#include <begin_vertex>', 'vec3 transformed = (fMx * vec4(position, 1.0)).xyz; vF = aF;')
+        .replace('#include <project_vertex>', '#include <project_vertex>\n vFw = (modelMatrix * vec4(transformed, 1.0)).xyz;');
       sh.fragmentShader = FACE_FS_PARS + '\n' + sh.fragmentShader
+        .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n if (vFw.y < bClip.x) discard;')
         .replace('#include <color_fragment>', '#include <color_fragment>\n' + FACE_FS)
         .replace('#include <opaque_fragment>', 'outgoingLight = mix(outgoingLight, fCol * (fInkK > 0.5 ? 1.0 : 0.92), fUnlit) + fEmi;\n#include <opaque_fragment>');
     };
@@ -311,13 +315,13 @@ diffuseColor.rgb = fCol;`;
   // Arcs are jagged polylines drawn as ribbons that face the camera (a hot white core inside a soft purple glow), re-formed many times a
   // second: rings of them hugging each fist's outline, bolts for the zap, bursts that spray out from an impact. Glows are soft discs
   // that face the camera; rings lie flat on the floor and spread. Everything is written into fixed buffers each frame.
-  const ARC_N = 30, ARC_P = 12, GLOW_N = 6, RING_N = 4;
+  const ARC_N = 36, ARC_P = 14, GLOW_N = 6, RING_N = 4;
   const FX_VS = `attribute vec4 aS; attribute vec3 aT; varying vec4 vS;
 void main() {
   vS = aS; vec4 mv = modelViewMatrix * vec4(position, 1.0); float layer = aS.y, ks = length(modelMatrix[0].xyz);
   if (layer < 1.5) {
     vec4 mt = modelViewMatrix * vec4(position + aT * 0.05, 1.0); vec2 d = mt.xy - mv.xy; d = length(d) > 1e-6 ? normalize(d) : vec2(1.0, 0.0);
-    float w = (layer < 0.5 ? 0.028 : 0.16) * aS.z * ks;
+    float w = (layer < 0.5 ? 0.042 : 0.21) * aS.z * ks;
     mv.xy += vec2(-d.y, d.x) * aS.x * w;
   } else if (layer < 2.5) { mv.xy += vec2(aS.x, aS.z) * aT.x * ks; }
   else { mv = modelViewMatrix * vec4(position + vec3(aS.x, 0.0, aS.z) * aT.x, 1.0); }
@@ -326,8 +330,8 @@ void main() {
   const FX_FS = `varying vec4 vS;
 void main() {
   float layer = vS.y, a = 0.0; vec3 c = vec3(0.0);
-  if (layer < 0.5) { float s = abs(vS.x); a = (1.0 - s * s) * vS.w; c = mix(vec3(0.75, 0.35, 1.0), vec3(1.0, 0.95, 1.0), 1.0 - smoothstep(0.0, 0.6, s)) * 1.6; }
-  else if (layer < 1.5) { float s = abs(vS.x); a = exp(-s * s * 3.5) * 0.42 * vS.w; c = vec3(0.62, 0.22, 1.0); }
+  if (layer < 0.5) { float s = abs(vS.x); a = (1.0 - s * s) * vS.w; c = mix(vec3(0.78, 0.38, 1.0), vec3(1.0, 0.96, 1.0), 1.0 - smoothstep(0.0, 0.65, s)) * 2.1; }
+  else if (layer < 1.5) { float s = abs(vS.x); a = exp(-s * s * 3.5) * 0.55 * vS.w; c = vec3(0.64, 0.24, 1.0); }
   else if (layer < 2.5) { float r = length(vec2(vS.x, vS.z)); a = exp(-r * r * 4.0) * vS.w; c = vec3(0.7, 0.3, 1.0) * (1.0 + 0.8 * exp(-r * r * 30.0)); }
   else { float r = length(vec2(vS.x, vS.z)); float ring = exp(-pow((r - 0.86) / 0.07, 2.0)) + 0.18 * (1.0 - smoothstep(0.0, 0.86, r)); a = ring * vS.w * (1.0 - smoothstep(0.95, 1.0, r)); c = mix(vec3(0.62, 0.25, 1.0), vec3(1.0, 0.9, 1.0), exp(-pow((r - 0.86) / 0.035, 2.0))); }
   if (a < 0.004) discard;
@@ -342,7 +346,7 @@ void main() {
     const g = new THREE.BufferGeometry();
     const pA = new THREE.BufferAttribute(pos, 3).setUsage(THREE.DynamicDrawUsage), sA = new THREE.BufferAttribute(aS, 4).setUsage(THREE.DynamicDrawUsage), tA = new THREE.BufferAttribute(aT, 3).setUsage(THREE.DynamicDrawUsage);
     g.setAttribute('position', pA); g.setAttribute('aS', sA); g.setAttribute('aT', tA); g.setIndex(idx); g.boundingSphere = new THREE.Sphere(new V3(), 1e4);
-    const mat = new THREE.ShaderMaterial({ vertexShader: FX_VS, fragmentShader: FX_FS, transparent: true, depthWrite: false, blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor, blendEquation: THREE.AddEquation, fog: false });
+    const mat = new THREE.ShaderMaterial({ vertexShader: FX_VS, fragmentShader: FX_FS, transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor, blendEquation: THREE.AddEquation, fog: false });
     const mesh = new THREE.Mesh(g, mat); mesh.frustumCulled = false; mesh.renderOrder = 40;
     const arcs = []; for (let k = 0; k < ARC_N; k++) arcs.push({ on: false, life: 0, t: 0, kind: 0, hand: -1, int: 0, pts: new Float32Array(ARC_P * 3), regen: 0, A: new V3(), B: new V3(), w: 1 });
     const glows = []; for (let k = 0; k < GLOW_N; k++) glows.push({ on: false, p: new V3(), size: 1, int: 0 });
@@ -392,7 +396,7 @@ void main() {
       return { ids, J, L, name: t.name, rad: t.rad, n: ids.length, k };
     });
     R.arm = {};
-    for (const s of ['L', 'R']) {
+    for (const s of SIDES) {
       const A = H.arms[s], ids = A.bones.map(n => idx[n]), J = ids.map(i => R.rp[i].clone()); J.push(R.ep[ids[5]].clone());
       const t0 = J[1].clone().sub(J[0]).normalize(), t1 = J[6].clone().sub(J[5]).normalize(), chord = J[6].distanceTo(J[0]);
       // the rest curve as a cubic: the handle lengths that best fit the six rest joints
@@ -424,16 +428,19 @@ void main() {
   const POSE = {
     open:   { f: [[0.05, 0, 0], [0.05, 0, 0], [0.04, 0, 0]], t: [[0.0, 0, 0], [0.05, 0, 0], [0.05, 0, 0]], tog: 0 },
     relax:  { f: [[0.32, 0, 0], [0.42, 0, 0], [0.3, 0, 0]], t: [[0.12, 0.1, 0], [0.25, 0, 0], [0.2, 0, 0]], tog: 0.35 },
-    fist:   { f: [[1.5, 0, 0], [1.75, 0, 0], [1.25, 0, 0]], t: [[0.55, 0.62, 0.35], [0.75, 0, 0], [0.55, 0, 0]], tog: 0.95 },
+    // (the fist: curled just short of the fingers pressing into the palm, which would show the outline through the creases; the thumb's
+    // angles were fitted on the rig so it wraps round the side and tucks over the curled index, as on the owner's sheet, a little long)
+    fist:   { f: [[1.3, 0, 0], [1.25, 0, 0], [0.85, 0, 0]], t: [[0.911, 0.876, -0.447], [0.694, 0, 0], [0.158, 0, 0]], tst: 1.25, tog: 0.85 },
     spread: { f: [[-0.16, 0, 0], [-0.1, 0, 0], [-0.05, 0, 0]], t: [[-0.1, -0.15, 0], [-0.05, 0, 0], [0, 0, 0]], tog: -0.3 },
   };
   const POSE_NAMES = ['open', 'relax', 'fist', 'point', 'spread'];
-  const DIG_ORDER = ['thumb', 'index', 'middle', 'pinky'];
+  const DIG_ORDER = ['thumb', 'index', 'middle', 'pinky'], SIDES = ['L', 'R'];
   // (point: the index straight, the rest a fist)
   function poseAngles(name, d, j, out) {
     const P = name === 'point' ? (d === 'index' ? POSE.open : POSE.fist) : POSE[name];
     const a = d === 'thumb' ? P.t[j] : P.f[j]; out[0] = a[0]; out[1] = a[1]; out[2] = a[2];
-    out[3] = d === 'thumb' ? 0 : (name === 'point' ? (d === 'index' ? 0.1 : 0.9) : P.tog);
+    // (the close-up turn; for the thumb this channel carries its stretch instead: a cartoon thumb reaches round the fist)
+    out[3] = d === 'thumb' ? (P.tst || 1) - 1 : (name === 'point' ? (d === 'index' ? 0.1 : 0.9) : P.tog);
     if (name === 'point' && d === 'thumb') { out[0] *= 0.9; }
     return out;
   }
@@ -441,25 +448,25 @@ void main() {
   // the expressions: the upper lid's height and slant (down toward the nose), the lower lid's, the pupil's size, a glow, "> <", spirals,
   // the brows' tilt (inner end down) for the left and the right, how high they ride, a squint of the eye cap
   const EXPR = {
-    angry:     { lid: 0.32, sl: 0.62, low: -1.3, lsl: 0, pr: 0.31, glow: 0, xx: 0, dz: 0, bL: 0.42, bR: 0.42, bY: 0.0 },
-    glare:     { lid: 0.2, sl: 0.55, low: -0.6, lsl: 0.12, pr: 0.27, glow: 0, xx: 0, dz: 0, bL: 0.5, bR: 0.5, bY: -0.02 },
-    charging:  { lid: 0.14, sl: 0.72, low: -0.5, lsl: 0.16, pr: 0.24, glow: 0.35, xx: 0, dz: 0, bL: 0.58, bR: 0.58, bY: -0.03 },
-    glow:      { lid: 0.16, sl: 0.66, low: -0.36, lsl: 0.22, pr: 0.24, glow: 1, xx: 0, dz: 0, bL: 0.6, bR: 0.6, bY: -0.03 },
-    hurt:      { lid: 0.02, sl: 0.0, low: -0.02, lsl: 0, pr: 0.3, glow: 0, xx: 1, dz: 0, bL: -0.42, bR: -0.42, bY: 0.07 },
-    dizzy:     { lid: 0.64, sl: 0.05, low: -1.3, lsl: 0, pr: 0.3, glow: 0, xx: 0, dz: 1, bL: -0.25, bR: 0.15, bY: 0.05 },
-    smug:      { lid: 0.0, sl: -0.14, low: -0.6, lsl: -0.1, pr: 0.27, glow: 0, xx: 0, dz: 0, bL: 0.36, bR: -0.22, bY: 0.02 },
-    defeated:  { lid: 0.08, sl: -0.48, low: -1.3, lsl: 0, pr: 0.22, glow: 0, xx: 0, dz: 0, bL: -0.5, bR: -0.5, bY: 0.05 },
-    surprised: { lid: 1.08, sl: 0.0, low: -1.3, lsl: 0, pr: 0.2, glow: 0, xx: 0, dz: 0, bL: -0.15, bR: -0.15, bY: 0.14 },
-    neutral:   { lid: 0.72, sl: 0.12, low: -1.3, lsl: 0, pr: 0.3, glow: 0, xx: 0, dz: 0, bL: 0.12, bR: 0.12, bY: 0.04 },
+    angry:     { lid: 0.32, sl: 0.62, low: -1.3, lsl: 0, pr: 0.31, glow: 0, xx: 0, dz: 0, bL: 0.42, bR: 0.42, bY: 0.0, gx: 0 },
+    glare:     { lid: 0.2, sl: 0.55, low: -0.6, lsl: 0.12, pr: 0.27, glow: 0, xx: 0, dz: 0, bL: 0.5, bR: 0.5, bY: -0.02, gx: 0.34 },
+    charging:  { lid: 0.24, sl: 0.5, low: -0.78, lsl: 0.1, pr: 0.24, glow: 0.35, xx: 0, dz: 0, bL: 0.58, bR: 0.58, bY: -0.03, gx: 0 },
+    glow:      { lid: 0.3, sl: 0.46, low: -0.62, lsl: 0.12, pr: 0.24, glow: 1, xx: 0, dz: 0, bL: 0.6, bR: 0.6, bY: -0.03, gx: 0 },
+    hurt:      { lid: 0.02, sl: 0.0, low: -0.02, lsl: 0, pr: 0.3, glow: 0, xx: 1, dz: 0, bL: -0.42, bR: -0.42, bY: 0.07, gx: 0 },
+    dizzy:     { lid: 0.64, sl: 0.05, low: -1.3, lsl: 0, pr: 0.3, glow: 0, xx: 0, dz: 1, bL: -0.25, bR: 0.15, bY: 0.05, gx: 0 },
+    smug:      { lid: 0.0, sl: -0.14, low: -0.6, lsl: -0.1, pr: 0.27, glow: 0, xx: 0, dz: 0, bL: 0.36, bR: -0.22, bY: 0.02, gx: -0.12 },
+    defeated:  { lid: 0.08, sl: -0.48, low: -1.3, lsl: 0, pr: 0.22, glow: 0, xx: 0, dz: 0, bL: -0.5, bR: -0.5, bY: 0.05, gx: 0 },
+    surprised: { lid: 1.08, sl: 0.0, low: -1.3, lsl: 0, pr: 0.2, glow: 0, xx: 0, dz: 0, bL: -0.15, bR: -0.15, bY: 0.14, gx: 0 },
+    neutral:   { lid: 0.72, sl: 0.12, low: -1.3, lsl: 0, pr: 0.3, glow: 0, xx: 0, dz: 0, bL: 0.12, bR: 0.12, bY: 0.04, gx: 0 },
   };
-  const EKEYS = ['lid', 'sl', 'low', 'lsl', 'pr', 'glow', 'xx', 'dz', 'bL', 'bR', 'bY'];
+  const EKEYS = ['lid', 'sl', 'low', 'lsl', 'pr', 'glow', 'xx', 'dz', 'bL', 'bR', 'bY', 'gx'];
   const wn = (t, a, b, c) => Math.sin(t * a) * 0.5 + Math.sin(t * b + 1.7) * 0.3 + Math.sin(t * c + 4.1) * 0.2;   // (a smooth wander, -1 .. 1)
 
   // ---------------------------------------------------------------- a boss
   function makeBoss(opts) {
     opts = opts || {};
     const group = new THREE.Group(), model = new THREE.Group(); group.add(model); group.name = 'boss';
-    const scale = opts.scale || 1, HOVER = opts.hover || 5.6;
+    const scale = opts.scale || 1, HOVER = opts.hover || 5.6, FLOOR = opts.floorY || 0, FIST_R = 0.5, GLOVE = opts.glove || 1.3;
     group.scale.setScalar(scale);
     const B = { group, isReady: false, busy: false, scale, stats: { tris: 0, draws: 0, cpuMs: 0 }, fistR: 0.6 * scale, bellR: 2.2 * scale, move: 'idle' };
     const evs = {};
@@ -494,7 +501,8 @@ void main() {
       const hull = new THREE.SkinnedMesh(pack.geo, inkMat(U)); hull.bindMode = THREE.DetachedBindMode; hull.bind(skel, ident); hull.frustumCulled = false; hull.renderOrder = 29;
       const FU = { fM: { value: [new M4(), new M4(), new M4(), new M4()] }, fEA: { value: [new THREE.Vector4(), new THREE.Vector4()] }, fEB: { value: [new THREE.Vector4(), new THREE.Vector4()] },
         fEC: { value: [new THREE.Vector4(0, 0, -1, 0), new THREE.Vector4(0, 0, 1, 0)] }, fSkin: { value: new THREE.Color(0xEE6CC9).convertSRGBToLinear() }, fBrow: { value: new THREE.Color(0xF58AD6).convertSRGBToLinear() },
-        fInk: { value: new THREE.Color(INK_C).convertSRGBToLinear() }, fT: { value: new THREE.Vector4() } };
+        fInk: { value: new THREE.Color(INK_C).convertSRGBToLinear() }, fT: { value: new THREE.Vector4() }, bClip: U.bClip };
+      if (H.face.size) { EYE.w = H.face.size[0]; EYE.h = H.face.size[1]; EYE.d = H.face.size[2]; }   // (the eyes the pack was made for: the bell is pressed back under them)
       const face = new THREE.Mesh(pack.faceGeo || (pack.faceGeo = faceGeo()), faceMat(FU)); face.frustumCulled = false; face.renderOrder = 31;
       const fx = makeFX(), pt = makeParticles();
       model.add(hull, body, face, fx.mesh, pt.pts);
@@ -519,9 +527,9 @@ void main() {
       };
       const mkArm = s => ({ s, W: new V3(), Wv: new V3(), H1: new V3(), H1v: new V3(), H2: new V3(), H2v: new V3(), Qh: new Q4(), init: false, ang: new Float32Array(4 * 3 * 3), angV: new Float32Array(4 * 3 * 3), tog: new Float32Array(4), togV: new Float32Array(4),
         pw: new Float32Array(5), pwOld: new Float32Array(5), pwNew: new Float32Array(5), pwT: -10, sq: 0, sqV: 0, cuff: new V3(), cuffV: new V3(), cs: 0, csV: 0, fc: new V3(), fcPrev: new V3(), fcV: new V3(), scale: 1, spark: 0, landed: false, lastY: 0,
-        pts: new Array(25).fill(0).map(() => new V3()), cum: new Float32Array(25), J: new Array(7).fill(0).map(() => new V3()), handOverride: null });
+        pts: new Array(25).fill(0).map(() => new V3()), cum: new Float32Array(25), J: new Array(7).fill(0).map(() => new V3()), handOverride: null, off: new V3(0, -1, 0), scl: GLOVE, landV: 0 });
       const arms = { L: mkArm('L'), R: mkArm('R') };
-      const mkAT = () => ({ w: new V3(), t0: new V3(), t1: new V3(), l0: 1.5, l1: 1.4, k: 1, z: 0.55, hd: new V3(0, 0, 1), hp: new V3(0, -1, 0), hw: 0.8, pose: new Float32Array(5), scale: 1, spark: 0.45, wobK: 1 });
+      const mkAT = () => ({ w: new V3(), t0: new V3(), t1: new V3(), l0: 1.5, l1: 1.4, k: 1, z: 0.55, hd: new V3(0, 0, 1), hp: new V3(0, -1, 0), hw: 0.8, pose: new Float32Array(5), scale: 1, spark: 0.45, wobK: 1, fcP: new V3(), fcK: 0 });
       const T = { off: new V3(), yaw: null, lean: 0, roll: 0, pulse: 1, pulseAmp: 1, squash: 1, slump: 0, flash: 0, charge: 0, clipY: -1e4, clipBand: 0, expr: 'angry', lookOv: null, arm: { L: mkAT(), R: mkAT() }, tentW: 1, tentG: 1, rootK: 1, eyeGlow: 0 };
       const tents = R.tent.map((c, k) => ({ c, x: new Float32Array((c.n + 1) * 3), xp: new Float32Array((c.n + 1) * 3), init: false, ph: k * 1.37 + 0.3, ph2: k * 2.11 + 1.1, dirA: k * 0.9 + 0.4, hPrev: 1 / 60, anc: new V3(), ancPrev: new V3(),
         stiff: Array.from({ length: c.n + 1 }, (_, j) => j === 0 ? 1 : (c.n > 4 ? (j <= 2 ? 0.22 : 0.05 * Math.pow(1 - (j - 2) / (c.n - 1), 1.5) + 0.006) : 0.08 * Math.pow(1 - (j - 1) / c.n, 1.3) + 0.01)) }));
@@ -538,24 +546,34 @@ void main() {
       // ---------------------------------------------------------------- idle: the hover (written first every frame; a move writes over it)
       function idle(t) {
         T.off.set(0.05 * wn(t, 0.31, 0.53, 0.89), 0.1 * wn(t, 0.41, 0.23, 0.71), 0.05 * wn(t, 0.27, 0.61, 0.37)); T.yaw = null; T.lean = 0.04 * wn(t, 0.35, 0.57, 0.91); T.roll = 0.035 * wn(t, 0.29, 0.47, 0.83);
-        T.pulse = 1; T.pulseAmp = 1; T.squash = 1; T.slump = 0; T.flash = 0; T.charge = 0; T.expr = 'angry'; T.lookOv = null; T.tentW = 1; T.tentG = 1; T.rootK = 1; T.eyeGlow = 0;
-        for (const s of ['L', 'R']) {
+        T.pulse = 1; T.pulseAmp = 1; T.squash = 1; T.slump = 0; T.flash = 0; T.charge = 0; T.expr = 'angry'; T.lookOv = null; T.tentW = 1; T.tentG = 1; T.rootK = 1; T.eyeGlow = 0; T.clipY = -1e4; T.clipBand = 0;
+        for (const s of SIDES) {
           const a = T.arm[s], g = s === 'L' ? 1 : -1, ph = g > 0 ? 0 : 2.1;
-          a.w.set(g * (3.15 + 0.14 * wn(t + ph, 0.37, 0.61, 0.23)), -3.05 + 0.16 * wn(t + ph, 0.43, 0.29, 0.67), 0.95 + 0.14 * wn(t + ph, 0.33, 0.51, 0.19));
-          a.t0.set(g * 0.86, 0.5, 0.12).normalize(); a.t1.set(-g * 0.12, -1, 0.18).normalize(); a.l0 = 1.55; a.l1 = 1.45; a.k = 1; a.z = 0.5;
-          a.hd.set(g * 0.12, -0.32, 1).normalize(); a.hp.set(0, -1, -0.2).normalize(); a.hw = 0.85; a.scale = 1.22; a.spark = 0.45; a.wobK = 1;
+          // (as in the picture: each arm rises up and out from the bell's side in a high arch, then comes down to its cuff; the fists held
+          // out wide at mid height, knuckles to the front)
+          a.w.set(g * (3.45 + 0.16 * wn(t + ph, 0.37, 0.61, 0.23)), -1.45 + 0.18 * wn(t + ph, 0.43, 0.29, 0.67), 0.95 + 0.16 * wn(t + ph, 0.33, 0.51, 0.19));
+          a.t0.set(g * 0.5, 0.86, 0.1).normalize(); a.t1.set(g * 0.06, -1, 0.1).normalize(); a.l0 = 2.3; a.l1 = 1.9; a.k = 1; a.z = 0.5;
+          a.hd.set(g * 0.1, -0.42, 1).normalize(); a.hp.set(0, -1, -0.35).normalize(); a.hw = 0.9; a.scale = GLOVE; a.spark = 0.45; a.wobK = 1;
           // the fists flex now and then: a squeeze, a loosening
           const flex = clamp01(0.5 + 0.9 * wn(t * 0.7 + ph * 3, 0.9, 1.7, 2.3));
           a.pose.fill(0); a.pose[2] = 1 - 0.3 * flex; a.pose[1] = 0.3 * flex;
         }
       }
       // the arms' targets are written in the boss's own frame (x its left, y up, z its front, from the root); toModel turns them into
-      // the model's space for the physics (by where the root is and which way it faces)
-      const yawQ = new Q4(), rootQ = new Q4(), bellQ = new Q4(), Mbell = new M4();
+      // the model's space for the physics (by where the root is and which way it faces). A move can ask for a fist's middle at a point
+      // instead (fcP, model space, with a weight fcK): the wrist is worked out from the hand's asked-for turn (the fist sits along the
+      // knuckles' direction from the wrist).
+      const yawQ = new Q4(), yawQi = new Q4(), rootQ = new Q4(), bellQ = new Q4(), Mbell = new M4();
+      const palmL = {}; for (const s of SIDES) palmL[s] = new V3().fromArray(H.arms[s].palm).applyMatrix4(R.binv[R.arm[s].hand]);
+      function handQ(a, out) { _v.copy(a.hd).normalize(); _v2.copy(a.hp).addScaledVector(_v, -a.hp.dot(_v)); if (_v2.lengthSq() < 1e-8) _v2.set(0, -1, 0).addScaledVector(_v, _v.y); _v2.normalize(); _v3.crossVectors(_v, _v2); return quatFromAxes(_v3, _v, _v2, out); }
       function toModel() {
-        for (const s of ['L', 'R']) { const a = T.arm[s]; if (a.abs) { a.abs = false; continue; }
-          a.w.applyQuaternion(yawQ).add(st.root); a.t0.applyQuaternion(yawQ); a.t1.applyQuaternion(yawQ); a.hd.applyQuaternion(yawQ); a.hp.applyQuaternion(yawQ); }
+        for (const s of SIDES) { const a = T.arm[s];
+          a.w.applyQuaternion(yawQ).add(st.root); a.t0.applyQuaternion(yawQ); a.t1.applyQuaternion(yawQ); a.hd.applyQuaternion(yawQ); a.hp.applyQuaternion(yawQ);
+          if (a.fcK > 0) { handQ(a, _q3); _v4.copy(palmL[s]).multiplyScalar(arms[s].scl || a.scale).applyQuaternion(_q3); _v.copy(a.fcP).sub(_v4); a.w.lerp(_v, Math.min(1, a.fcK)); a.fcK = 0; } }
       }
+      // the floor under a point (model space): none over the pool (its hole), so the boss can rise out of it and sink into it
+      const POOL_R = opts.poolR === undefined ? 4.0 : opts.poolR, POOL_Y = opts.poolY === undefined ? -0.14 : opts.poolY;
+      const floorAt = (x, z) => x * x + z * z < POOL_R * POOL_R ? POOL_Y - 50 : FLOOR;
 
       // ---------------------------------------------------------------- physics: one small step
       const spr = (x, v, target, w, z, h) => v + (w * w * (target - x) - 2 * z * w * v) * h;   // (the new velocity)
@@ -563,7 +581,7 @@ void main() {
         v.x += (w * w * (tgt.x - p.x) - 2 * z * w * v.x - ax) * h; v.y += (w * w * (tgt.y - p.y) - 2 * z * w * v.y - ay) * h; v.z += (w * w * (tgt.z - p.z) - 2 * z * w * v.z - az) * h;
         p.addScaledVector(v, h);
       }
-      const S_ = { L: new V3(), R: new V3() }, H1t = new V3(), H2t = new V3(), FLOOR = opts.floorY || 0;
+      const S_ = { L: new V3(), R: new V3() }, H1t = new V3(), H2t = new V3();
       function bellFrame() {
         _e.set(st.lean, st.yaw, st.roll, 'YXZ'); rootQ.setFromEuler(_e);
         _e.set(st.lean + st.tilt.x * 0.55, st.yaw, st.roll + st.tilt.z * 0.55, 'YXZ'); bellQ.setFromEuler(_e);
@@ -587,30 +605,34 @@ void main() {
         _v2.copy(st.rootA); _q.copy(yawQ).invert(); _v2.applyQuaternion(_q);
         st.tiltV.x += (-49 * st.tilt.x - 2 * 0.32 * 7 * st.tiltV.x - _v2.z * 0.035) * h; st.tiltV.z += (-49 * st.tilt.z - 2 * 0.32 * 7 * st.tiltV.z + _v2.x * 0.035) * h;
         st.tilt.x += st.tiltV.x * h; st.tilt.z += st.tiltV.z * h; st.tilt.x = Math.max(-0.5, Math.min(0.5, st.tilt.x)); st.tilt.z = Math.max(-0.5, Math.min(0.5, st.tilt.z));
-        st.sqV = spr(st.sq, st.sqV, T.squash, 9, 0.28, h) - _v2.y * 0.004 * h; st.sq += st.sqV * h;
+        st.sqV = spr(st.sq, st.sqV, T.squash, 9, 0.28, h) - _v2.y * 0.004 * h;
+        if (st.sq < 0.86) st.sqV += (0.86 - st.sq) * 420 * h; else if (st.sq > 1.2) st.sqV -= (st.sq - 1.2) * 420 * h;   // (stiffer toward its limits: jelly, not a pancake)
+        st.sq = Math.max(0.72, Math.min(1.32, st.sq + st.sqV * h));
         for (let k = 0; k < 2; k++) { const w = k ? 15 : 11; st.wobV[k] += (-w * w * st.wob[k * 2] - 2 * 0.12 * w * st.wobV[k]) * h; st.wob[k * 2] += st.wobV[k] * h; }
         bellFrame();
         // the arms: the wrist springs to its target (lagging, overshooting, dragged by the group's own motion), each handle a little looser
-        for (const s of ['L', 'R']) {
+        for (const s of SIDES) {
           const a = T.arm[s], A = arms[s], RA = R.arm[s], S0 = S_[s];
           defJS(U, RA.J[0], S0); S0.applyMatrix4(Mbell);
           if (!A.init) { A.W.copy(a.w); A.H1.copy(S0).addScaledVector(a.t0, a.l0); A.H2.copy(a.w).addScaledVector(a.t1, -a.l1); A.init = true; }
           const w = 2 * Math.PI * 1.15 * a.k, z = a.z;
           const vy0 = A.Wv.y;
           springV(A.W, A.Wv, a.w, w, z, h, ax, ay, az);
-          // the floor: a fist stops on it (and says so if it came down hard)
-          const minY = FLOOR + 0.5 * a.scale;
-          if (A.W.y < minY) { if (A.Wv.y < -4 && !A.landed) { A.landed = true; A.landV = -A.Wv.y; } A.W.y = minY; if (A.Wv.y < 0) A.Wv.y = 0; A.Wv.x *= 0.9; A.Wv.z *= 0.9; }
+          // the floor: the fist (not the wrist) stops on it, and says so if it came down hard
+          const minY = floorAt(A.W.x + A.off.x, A.W.z + A.off.z) + FIST_R * A.scl - A.off.y;
+          if (A.W.y < minY) { if (A.Wv.y < -3 && !A.landed) { A.landed = true; A.landV = -A.Wv.y; } A.W.y = minY; if (A.Wv.y < 0) A.Wv.y = 0; A.Wv.x *= 0.86; A.Wv.z *= 0.86; }
           H1t.copy(S0).addScaledVector(a.t0, a.l0); H2t.copy(A.W).addScaledVector(a.t1, -a.l1);
           springV(A.H1, A.H1v, H1t, w * 0.85, 0.62, h, ax, ay, az); springV(A.H2, A.H2v, H2t, w * 0.9, 0.58, h, ax, ay, az);
-          // the fingers: each eases toward the pose a moment after the last (index first, pinky last), then springs onto it
+          // the fingers: each eases toward the pose a moment after the last (the index first, the pinky last; closing, the thumb comes
+          // over last, onto the curled fingers), then each joint springs onto it, the tips a touch quicker than the knuckles
+          const closing = A.pwT[2] + A.pwT[3] > A.pwD[2] + A.pwD[3] + 0.02;
           for (let d = 0; d < 4; d++) {
-            const tau = [0.06, 0.03, 0.05, 0.075][d], k1 = 1 - Math.exp(-h / tau), base = d * 5;
+            const tau = d === 0 ? (closing ? 0.12 : 0.04) : TAU_D[d], k1 = 1 - Math.exp(-h / tau), base = d * 5;
             for (let p = 0; p < 5; p++) A.pwD[base + p] += (A.pwT[p] - A.pwD[base + p]) * k1;
           }
           for (let d = 0; d < 4; d++) for (let j = 0; j < 3; j++) for (let c = 0; c < 3; c++) {
             const i = (d * 3 + j) * 3 + c; let tg = 0; for (let p = 0; p < 5; p++) { const wgt = A.pwD[d * 5 + p]; if (wgt > 1e-4) tg += wgt * POSE_TAB[p][(d * 3 + j) * 4 + c]; }
-            A.angV[i] = spr(A.ang[i], A.angV[i], tg, 24, 0.52, h); A.ang[i] += A.angV[i] * h;
+            A.angV[i] = spr(A.ang[i], A.angV[i], tg, JW[j], 0.5, h); A.ang[i] += A.angV[i] * h;
           }
           for (let d = 0; d < 4; d++) { let tg = 0; for (let p = 0; p < 5; p++) tg += A.pwD[d * 5 + p] * POSE_TAB[p][(d * 3) * 4 + 3]; A.togV[d] = spr(A.tog[d], A.togV[d], tg, 24, 0.55, h); A.tog[d] += A.togV[d] * h; }
           // the fist's squash on a landing, the cuff's jiggle (it swings against the fist's acceleration)
@@ -621,16 +643,18 @@ void main() {
         }
       }
       // the hand poses as a table: [pose][(digit * 3 + joint) * 4 + (flex, spread, twist, close-up)]
-      const POSE_TAB = POSE_NAMES.map(p => { const t = new Float32Array(48), o = [0, 0, 0, 0]; DIG_ORDER.forEach((d, di) => { for (let j = 0; j < 3; j++) { poseAngles(p, d, j, o); for (let c = 0; c < 4; c++) t[(di * 3 + j) * 4 + c] = o[c]; } }); return t; });
-      for (const s of ['L', 'R']) { arms[s].pwD = new Float32Array(20); arms[s].pwT = new Float32Array(5); arms[s].fcA = new V3(); for (let d = 0; d < 4; d++) arms[s].pwD[d * 5 + 2] = 1; arms[s].pwT[2] = 1; }
+      const POSE_TAB = POSE_NAMES.map(() => new Float32Array(48)), TAU_D = [0, 0.03, 0.05, 0.075], JW = [19, 23, 28];
+      function fillPoses() { const o = [0, 0, 0, 0]; POSE_NAMES.forEach((p, k) => { const t = POSE_TAB[k]; DIG_ORDER.forEach((d, di) => { for (let j = 0; j < 3; j++) { poseAngles(p, d, j, o); for (let c = 0; c < 4; c++) t[(di * 3 + j) * 4 + c] = o[c]; } }); }); }
+      fillPoses();
+      for (const s of SIDES) { arms[s].pwD = new Float32Array(20); arms[s].pwT = new Float32Array(5); arms[s].fcA = new V3(); for (let d = 0; d < 4; d++) arms[s].pwD[d * 5 + 2] = 1; arms[s].pwT[2] = 1; }
 
       // ---------------------------------------------------------------- the pose: every bone's matrix from the state
       const qX = new Q4(), qY = new Q4(), qZ = new Q4(), qF = new Q4(), qT = new Q4(), mBasis = new M4(), restZ0 = {};
-      for (const s of ['L', 'R']) restZ0[s] = new V3(0, 0, 1).applyQuaternion(R.rq[R.arm[s].ids[0]]);
+      for (const s of SIDES) restZ0[s] = new V3(0, 0, 1).applyQuaternion(R.rq[R.arm[s].ids[0]]);
       const quatFromAxes = (x, y, z, out) => { const e = mBasis.elements; e[0] = x.x; e[1] = x.y; e[2] = x.z; e[4] = y.x; e[5] = y.y; e[6] = y.z; e[8] = z.x; e[9] = z.y; e[10] = z.z; return out.setFromRotationMatrix(mBasis); };
       function pose(dt) {
         Mb[0].compose(st.root, rootQ, _s.set(1, 1, 1)); Mb[1].copy(Mbell);
-        for (const s of ['L', 'R']) {
+        for (const s of SIDES) {
           const a = T.arm[s], A = arms[s], RA = R.arm[s], S0 = S_[s];
           // the arm: a cubic from the shoulder through the two handles to the wrist, cut into six even bones; each stretches (and thins)
           const pts = A.pts, cum = A.cum; cum[0] = 0;
@@ -640,7 +664,7 @@ void main() {
           for (let k = 0; k < 6; k++) {
             Y.subVectors(A.J[k + 1], A.J[k]); const L = Y.length(); Y.divideScalar(Math.max(L, 1e-6));
             transport(Z, Y, Z); X.crossVectors(Y, Z);
-            const sy = L / R.len[RA.ids[k]], th = Math.max(0.74, Math.min(1.12, 1 / Math.sqrt(Math.max(0.3, sy))));
+            const sy = L / R.len[RA.ids[k]], th = Math.max(0.8, Math.min(1.12, Math.pow(Math.max(0.3, sy), -0.3)));   // (stretched, it thins a little: jelly keeps some of its volume)
             setFrame(Mb[RA.ids[k]], X, Y, Z, A.J[k], th, sy, th);
           }
           // the hand: following the arm's end, turned toward the move's own heading for the fist; squashed on a landing
@@ -649,17 +673,21 @@ void main() {
           quatFromAxes(_v3, _v, _v2, qT); qF.slerp(qT, a.hw);
           if (A.handOverrideQ) qF.copy(A.handOverrideQ);
           A.Qh.slerp(qF, 1 - Math.exp(-dt * 18));
-          const sc = a.scale * (1 + 0.04 * A.cs), sq = A.sq;
+          A.scl += (a.scale - A.scl) * (1 - Math.exp(-dt * 7));
+          const sc = A.scl * (1 + 0.04 * A.cs), sq = A.sq;
           Mb[RA.hand].compose(A.W, A.Qh, _s.set(sc * (1 + 0.5 * sq), sc * (1 - sq), sc * (1 + 0.5 * sq)));
           // the digits: each joint bent from its rest place (spread about the palm's normal, then the curl, then a twist)
           for (let d = 0; d < 4; d++) {
-            const ids = RA.dig[DIG_ORDER[d]]; let parent = Mb[RA.hand];
+            const ids = RA.dig[DIG_ORDER[d]], stt = d === 0 ? Math.max(0.8, 1 + A.tog[0]) : 1; let parent = Mb[RA.hand];
             for (let j = 0; j < 3; j++) {
-              const i = (d * 3 + j) * 3; let spread = A.ang[i + 1]; if (j === 0) spread += A.tog[d] * RA.tog[DIG_ORDER[d]];
-              qZ.setFromAxisAngle(AX_Z, spread); qX.setFromAxisAngle(AX_X, A.ang[i]); qY.setFromAxisAngle(AX_Y, A.ang[i + 2]);
+              // (the left hand's bone frames are the mirror of the right's, so its spread and twist turn the other way)
+              const i = (d * 3 + j) * 3, mir = -RA.sgn; let spread = A.ang[i + 1] * mir; if (j === 0) spread += A.tog[d] * RA.tog[DIG_ORDER[d]];
+              qZ.setFromAxisAngle(AX_Z, spread); qX.setFromAxisAngle(AX_X, A.ang[i]); qY.setFromAxisAngle(AX_Y, A.ang[i + 2] * mir);
               _q.copy(qZ).multiply(qX).multiply(qY); _m.makeRotationFromQuaternion(_q);
-              Mb[ids[j]].multiplyMatrices(parent, R.loc[ids[j]]).multiply(_m); parent = Mb[ids[j]];
+              _m2.copy(R.loc[ids[j]]); if (j > 0 && stt !== 1) { const e = _m2.elements; e[12] *= stt; e[13] *= stt; e[14] *= stt; }   // (a stretched thumb puts its next joint further out)
+              Mb[ids[j]].multiplyMatrices(parent, _m2).multiply(_m); parent = Mb[ids[j]];
             }
+            if (stt !== 1) for (let j = 0; j < 3; j++) Mb[ids[j]].scale(_s.set(1, stt, 1));
           }
           // the cuff rides on the hand, with a jiggle of its own
           _e.set(A.cuff.x, 0, A.cuff.z); _q.setFromEuler(_e); _m.compose(_v.set(0, 0, 0), _q, _s.set(1 + 0.06 * A.cs, 1 - 0.04 * A.cs, 1 + 0.06 * A.cs));
@@ -667,7 +695,7 @@ void main() {
           // the fist's middle (model space) and how it's moving (for the cuff, the sparks and the fight)
           A.fcPrev.copy(A.fc); _v.fromArray(H.arms[s].palm).applyMatrix4(R.binv[RA.hand]).applyMatrix4(Mb[RA.hand]); A.fc.copy(_v);
           const v2 = _v2.copy(A.fc).sub(A.fcPrev).divideScalar(Math.max(dt, 1e-3)); A.fcA.copy(v2).sub(A.fcV).divideScalar(Math.max(dt, 1e-3)).clampLength(0, 300); A.fcV.copy(v2);
-          A.scale = sc;
+          A.off.copy(A.fc).sub(A.W); A.scale = sc;
         }
       }
       // ---------------------------------------------------------------- the tentacles: chains of points in the water (world space)
@@ -705,7 +733,7 @@ void main() {
               const nx = x[o - 3] + dx * k2, ny = x[o - 2] + dy * k2, nz = x[o - 1] + dz * k2;
               xp[o] += (nx - x[o]) * 0.85; xp[o + 1] += (ny - x[o + 1]) * 0.85; xp[o + 2] += (nz - x[o + 2]) * 0.85;
               x[o] = nx; x[o + 1] = ny; x[o + 2] = nz;
-              const fy = Gp.y + (FLOOR + 0.1) * sc;
+              _v4.set(x[o], x[o + 1], x[o + 2]).applyMatrix4(Gi); const fy = Gp.y + (floorAt(_v4.x, _v4.z) + 0.1) * sc;
               if (x[o + 1] < fy) { x[o + 1] = fy; xp[o + 1] = fy; xp[o] += (x[o] - xp[o]) * 0.25; xp[o + 2] += (x[o + 2] - xp[o + 2]) * 0.25; }
             }
           }
@@ -749,8 +777,8 @@ void main() {
         U.bTent.value.set(0.06 * T.tentW, 2.4, 0, 0);
         U.bFlash.value.set(1, 0.6, 0.92, st.flash);
         U.bGlow.value.set(0.62 + 0.1 * Math.sin(t * 1.3), 1, st.charge, st.chargePh);
-        U.bClip.value.set(T.clipY, T.clipBand, 0, 0);
-        for (const s of ['L', 'R']) { const A = arms[s], a = T.arm[s]; let sum = 0;
+        U.bClip.value.set(T.clipY < -1e3 ? -1e4 : Gp.y + T.clipY * Gs.x, T.clipBand * Gs.x, 0, 0);   // (the pool's line, in world units)
+        for (const s of SIDES) { const A = arms[s], a = T.arm[s]; let sum = 0;
           if (A.handOverride) { A.pwT.fill(0); A.pwT[POSE_NAMES.indexOf(A.handOverride)] = 1; }
           else { for (let p = 0; p < 5; p++) sum += Math.max(0, a.pose[p]); for (let p = 0; p < 5; p++) A.pwT[p] = sum > 1e-4 ? Math.max(0, a.pose[p]) / sum : (p === 2 ? 1 : 0); } }
       }
@@ -758,7 +786,7 @@ void main() {
       function wobble(k, ang) {
         st.wobV[0] += 0.9 * k * (0.6 + 0.4 * Math.random()); st.wobAng[0] = ang === undefined ? Math.random() * 6.28 : ang;
         st.wobV[1] += 0.6 * k * (0.6 + 0.4 * Math.random()); st.wobAng[1] = Math.random() * 6.28;
-        st.sqV -= 1.4 * k;
+        st.sqV -= 0.75 * Math.min(k, 2);
       }
 
       // ---------------------------------------------------------------- the face
@@ -782,7 +810,7 @@ void main() {
         for (let i = 0; i < 2; i++) {
           _q.copy(bellQ).multiply(eyeQ[i]); _v.copy(eyeP[i]).applyMatrix4(Mbell); _v2.copy(lk).sub(_v); _q2.copy(_q).invert(); _v2.applyQuaternion(_q2);
           const zz = Math.max(0.3, _v2.z), inner = (i ? 1 : -1) * 0.06;
-          let px = Math.max(-0.5, Math.min(0.5, _v2.x / zz * 0.9)) + inner + fe.sac[0], py = Math.max(-0.42, Math.min(0.42, _v2.y / zz * 0.9)) - 0.06 + fe.sac[1];
+          let px = Math.max(-0.5, Math.min(0.5, _v2.x / zz * 0.9 + E.gx)) + inner + fe.sac[0], py = Math.max(-0.42, Math.min(0.42, _v2.y / zz * 0.9)) - 0.06 + fe.sac[1];
           if (name === 'defeated') { py -= 0.25; } if (name === 'smug' || name === 'glare') px += (i ? 0 : 0) + 0.0;
           const w = 32; for (let c = 0; c < 2; c++) { const j = i * 2 + c, g = c ? py : px, x0 = fe.pup[j] - g, cc = fe.pupV[j] + w * x0, e = Math.exp(-w * dt); fe.pup[j] = g + (x0 + cc * dt) * e; fe.pupV[j] = (fe.pupV[j] - cc * w * dt) * e; }
           // the eye: on the bell (moving with its pulse and squash), turned with it
@@ -802,20 +830,34 @@ void main() {
       }
 
       // ---------------------------------------------------------------- the lightning, glows and rings
-      const ARC_HAND = 7, BOLT0 = 14, BOLT_N = 6, BURST0 = 20;
-      const zap = { on: false, A: new V3(), B: new V3(), t: 0, life: 0 }, _a = new V3(), _b = new V3(), _c = new V3(), _d = new V3();
-      function formRing(arc, fc, rr, cam) {
-        // round the fist in the plane facing the camera: an arc of jagged steps, sometimes a spike straight out
-        _d.subVectors(cam, fc).normalize(); _a.crossVectors(_d, AX_Y); if (_a.lengthSq() < 1e-6) _a.set(1, 0, 0); _a.normalize(); _b.crossVectors(_a, _d);
-        const p = arc.pts, spike = Math.random() < 0.22, a0 = Math.random() * 6.283, span = 0.9 + Math.random() * 1.7, r0 = rr * (1.0 + Math.random() * 0.22);
+      const ARC_HAND = 9, BOLT0 = 18, BOLT_N = 6, BURST0 = 24;
+      const zap = { on: false, A: new V3(), B: new V3(), t: 0, life: 0 }, _a = new V3(), _b = new V3(), _c = new V3(), _d = new V3(), _hx = new V3(), _hy = new V3(), _hz = new V3(), _hc = new V3(), _u = new V3();
+      // the arcs hug the glove's outline: the glove as an ellipsoid in its own frame (rounder and shorter as a fist, longer open), its
+      // outline in the plane facing the camera found from its half-widths along each of the hand's axes
+      function gloveShape(s, A) {
+        const e = Mb[R.arm[s].hand].elements, sc = A.scl, f = clamp01(A.pwD[12] + A.pwD[13]);   // (how curled: the middle finger's fist and point weights)
+        _hx.set(e[0], e[1], e[2]).normalize(); _hy.set(e[4], e[5], e[6]).normalize(); _hz.set(e[8], e[9], e[10]).normalize();
+        _hc.copy(A.fc).addScaledVector(_hy, lerp(0.42, 0.12, f) * sc).addScaledVector(_hz, lerp(0.02, 0.14, f) * sc);
+        return f;
+      }
+      const silR = (u, s, f) => { const rx = lerp(0.95, 0.66, f) * s, ry = lerp(1.0, 0.62, f) * s, rz = lerp(0.36, 0.56, f) * s, a = u.dot(_hx) * rx, b = u.dot(_hy) * ry, c = u.dot(_hz) * rz; return Math.sqrt(a * a + b * b + c * c); };
+      function formRing(arc, s, k, n, cam) {
+        // round the glove in the plane facing the camera: a jagged run along its outline (a share of the way round each, so together they
+        // ring it), or now and then a spike forking straight out from the edge. Kept relative to the fist's middle, so it rides along.
+        const A = arms[s], f = gloveShape(s, A), sc = A.scl;
+        _d.subVectors(cam, _hc).normalize(); _a.crossVectors(_d, AX_Y); if (_a.lengthSq() < 1e-6) _a.set(1, 0, 0); _a.normalize(); _b.crossVectors(_a, _d);
+        const p = arc.pts, spike = Math.random() < 0.2, a0 = (k + Math.random() * 0.6) / n * 6.283, span = 6.283 / n * (1.15 + Math.random() * 0.6);
+        let rad = 0, jit = 0;
         for (let i = 0; i < ARC_P; i++) {
-          const u = i / (ARC_P - 1); let th, rad;
-          if (spike) { th = a0 + (Math.random() - 0.5) * 0.35; rad = r0 * (0.95 + u * 0.85); }
-          else { th = a0 + span * u; rad = r0 * (1 + (i % 2 ? 1 : -1) * (0.05 + Math.random() * 0.13)); }
-          const cx = Math.cos(th) * rad, cy = Math.sin(th) * rad, dz = rr * 0.3 + (Math.random() - 0.5) * rr * 0.2;
-          p[i * 3] = _a.x * cx + _b.x * cy + _d.x * dz; p[i * 3 + 1] = _a.y * cx + _b.y * cy + _d.y * dz; p[i * 3 + 2] = _a.z * cx + _b.z * cy + _d.z * dz;
+          const u = i / (ARC_P - 1); let th, rk;
+          jit = jit * 0.45 + (Math.random() - 0.5) * 0.22;   // (a short random walk: crackle, not a regular zigzag)
+          if (spike) { th = a0 + jit * 0.6; rk = 1.02 + u * 0.7; }
+          else { th = a0 + span * u + jit * 0.25; rk = 1.1 + jit * 0.6; }
+          _u.copy(_a).multiplyScalar(Math.cos(th)).addScaledVector(_b, Math.sin(th)); rad = silR(_u, sc, f) * rk;
+          const dz = 0.25 * rad;
+          p[i * 3] = _hc.x - A.fc.x + _u.x * rad + _d.x * dz; p[i * 3 + 1] = _hc.y - A.fc.y + _u.y * rad + _d.y * dz; p[i * 3 + 2] = _hc.z - A.fc.z + _u.z * rad + _d.z * dz;
         }
-        arc.int = 0.55 + Math.random() * 0.45; arc.regen = 0.035 + Math.random() * 0.06; arc.w = 0.8 + Math.random() * 0.5;
+        arc.int = 0.6 + Math.random() * 0.4; arc.regen = 0.04 + Math.random() * 0.06; arc.w = spike ? 0.75 : 0.9 + Math.random() * 0.5;
       }
       function formBolt(arc, A, Bp, amp) {
         _c.subVectors(Bp, A); const L = _c.length(); _c.divideScalar(L || 1); _a.crossVectors(_c, AX_Y); if (_a.lengthSq() < 1e-6) _a.set(1, 0, 0); _a.normalize(); _b.crossVectors(_a, _c);
@@ -832,18 +874,18 @@ void main() {
           const th = Math.random() * 6.283, el = flat ? 0.05 + Math.random() * 0.35 : (Math.random() - 0.3) * 1.4;
           _d.set(Math.cos(th) * Math.cos(el), Math.sin(el), Math.sin(th) * Math.cos(el)); arc.A.copy(p); arc.B.copy(p).addScaledVector(_d, len * (0.6 + Math.random() * 0.7));
           formBolt(arc, arc.A, arc.B, 0.13); arc.on = true; arc.kind = 2; arc.life = 0.28 + Math.random() * 0.2; arc.t = 0; made++; }
-        for (const g of fx.glows) if (!g.on || g.kind === 2) { g.on = true; g.kind = 2; g.p.copy(p); g.size = len * 0.9; g.int = 1.4; g.life = 0.35; g.t = 0; break; }
+        for (let k = 4; k < GLOW_N; k++) { const g = fx.glows[k]; if (!g.on || g.t > 0.15) { g.on = true; g.kind = 2; g.p.copy(p); g.size = len * 0.9; g.int = 1.4; g.life = 0.35; g.t = 0; break; } }
         if (ring) for (const r of fx.rings) if (!r.on) { r.on = true; r.p.set(p.x, FLOOR + 0.05, p.z); r.r1 = ring; r.t = 0; r.life = 0.55 + ring * 0.06; r.int = 1; break; }
       }
       function fxUpdate(dt) {
         const cam = st.camOK ? st.camM : _c.set(0, 6, 20);
-        for (const s of ['L', 'R']) {
+        for (const s of SIDES) {
           const A = arms[s], a = T.arm[s], i0 = s === 'L' ? 0 : ARC_HAND, rr = 0.56 * A.scale;
           const want = Math.min(1.6, a.spark + st.charge * 0.6); A.spark += (want - A.spark) * (1 - Math.exp(-dt * 9));
-          const nOn = Math.min(ARC_HAND, Math.round(1 + A.spark * 5.5));
+          const nOn = A.spark < 0.03 ? 0 : Math.min(ARC_HAND, Math.round(2.5 + A.spark * 4.5)), nRing = Math.max(3, nOn - 1);
           for (let k = 0; k < ARC_HAND; k++) { const arc = fx.arcs[i0 + k]; arc.kind = 0; arc.hand = s === 'L' ? 0 : 1;
             if (k >= nOn) { arc.on = false; continue; }
-            arc.regen -= dt; if (!arc.on || arc.regen <= 0) { formRing(arc, A.fc, rr, cam); arc.on = Math.random() < 0.55 + 0.4 * Math.min(1, A.spark); arc.regen = arc.on ? arc.regen : 0.02 + Math.random() * 0.05; } }
+            arc.regen -= dt; if (!arc.on || arc.regen <= 0) { formRing(arc, s, k % nRing, nRing, cam); arc.on = Math.random() < 0.7 + 0.3 * Math.min(1, A.spark); arc.regen = arc.on ? arc.regen : 0.02 + Math.random() * 0.04; } }
           const g = fx.glows[s === 'L' ? 0 : 1]; g.on = true; g.kind = 0; g.p.copy(A.fc); g.size = rr * (1.7 + 0.6 * A.spark); g.int = Math.min(1.2, 0.18 + 0.45 * A.spark) * (0.85 + 0.15 * Math.random());
         }
         // the zap's bolts
@@ -852,7 +894,9 @@ void main() {
           if (!zOn || k >= (zap.n || 3)) { arc.on = false; continue; }
           arc.regen -= dt; if (!arc.on || arc.regen <= 0) { formBolt(arc, zap.A, zap.B, zap.amp || 0.07); arc.on = true; } arc.int = (0.7 + Math.random() * 0.3) * (1 - sstep(zap.life * 0.7, zap.life, zap.t)); }
         if (zap.on && !zOn) zap.on = false;
-        const gz = fx.glows[2]; gz.on = zOn; gz.kind = 0; if (zOn) { gz.p.copy(zap.A); gz.size = 1.3; gz.int = 1.2; } const gz2 = fx.glows[3]; gz2.on = zOn && zap.hitOn; gz2.kind = 0; if (gz2.on) { gz2.p.copy(zap.B); gz2.size = 1.8; gz2.int = 1.3 * (1 - zap.t / zap.life); }
+        const ball = zap.ball > 0.02, gz = fx.glows[2]; gz.on = ball || (zOn && zap.hitOn); gz.kind = 0;
+        if (gz.on) { gz.p.copy(ball ? zap.G : zap.A); gz.size = ball ? 0.45 + 1.35 * zap.ball : 1.3; gz.int = ball ? (0.35 + 1.05 * zap.ball) * (0.85 + 0.15 * Math.random()) : 1.2 * (1 - zap.t / zap.life); }
+        const gz2 = fx.glows[3]; gz2.on = zOn && zap.hitOn; gz2.kind = 0; if (gz2.on) { gz2.p.copy(zap.B); gz2.size = 1.8; gz2.int = 1.3 * (1 - zap.t / zap.life); }
         for (let k = BURST0; k < ARC_N; k++) { const arc = fx.arcs[k]; if (!arc.on) continue; arc.t += dt; if (arc.t >= arc.life) { arc.on = false; continue; }
           arc.regen -= dt; if (arc.regen <= 0) formBolt(arc, arc.A, arc.B, 0.13); arc.int = 1 - arc.t / arc.life; }
         for (const g of fx.glows) if (g.on && g.kind === 2) { g.t += dt; g.int = 1.4 * (1 - g.t / g.life); if (g.t >= g.life) g.on = false; }
@@ -863,7 +907,7 @@ void main() {
         const P = fx.pos, S2 = fx.aS, Tn = fx.aT;
         for (let k = 0; k < ARC_N; k++) {
           const arc = fx.arcs[k], on = arc.on, hand = arc.kind === 0, base = hand ? arms[arc.hand ? 'R' : 'L'].fc : null;
-          const inten = on ? arc.int * (hand ? Math.min(1.25, 0.35 + arms[arc.hand ? 'R' : 'L'].spark * 0.75) : 1) : 0;
+          const inten = on ? arc.int * (hand ? Math.min(1.5, 0.6 + arms[arc.hand ? "R" : "L"].spark * 0.7) : 1) : 0;
           for (let l = 0; l < 2; l++) { const b = (k * 2 + l) * ARC_P * 2;
             for (let i = 0; i < ARC_P; i++) {
               const p = arc.pts, i0 = Math.max(0, i - 1) * 3, i1 = Math.min(ARC_P - 1, i + 1) * 3;
@@ -884,7 +928,7 @@ void main() {
       }
 
       // ---------------------------------------------------------------- particles
-      const C_BUB = new THREE.Color(0.7, 0.85, 1.0), C_SLIME = new THREE.Color(0.35, 1.0, 0.3), C_JELLY = new THREE.Color(0.95, 0.4, 0.85), C_SPARK = new THREE.Color(0.75, 0.4, 1.0);
+      const C_BUB = new THREE.Color(0.7, 0.85, 1.0), C_SLIME = new THREE.Color(0.35, 1.0, 0.3), C_JELLY = new THREE.Color(0.95, 0.4, 0.85), C_SPARK = new THREE.Color(0.75, 0.4, 1.0), C_STAR = new THREE.Color(1.0, 0.92, 0.45);
       function spawn(type, p, vx, vy, vz, size, life, col) {
         const q = pt.P[pt.next]; pt.next = (pt.next + 1) % PT_N;
         q.on = true; q.type = type; q.p.copy(p); q.v.set(vx, vy, vz); q.size = size; q.life = life; q.t = 0; q.c.copy(col); q.g = type === 0 ? -0.6 : type === 3 ? -0.2 : 2.2; q.drag = type === 0 ? 1.2 : 0.8;
@@ -910,4 +954,297 @@ void main() {
         }
         pt.pA.needsUpdate = true; pt.PA.needsUpdate = true; pt.CA.needsUpdate = true;
       }
-//@@END@@
+
+      // ---------------------------------------------------------------- the moves
+      // A move writes its targets over the hover's each frame (blending in at its start and back out at its end), fires each of its
+      // events once, and lasts len seconds at speed 1 (opts.speed runs it faster). The springs underneath give every change its weight,
+      // its overshoot and its settle, so one move can cut into another at any moment and the body still flows.
+      const mv = { name: 'idle', t: 0, len: 0, sp: 1, o: {}, fired: 0, M: null, P: new V3(), C: new V3(), side: 'L', g: 1, a0: 0, a1: 0, ar: 0, dir: 1, hold: 3, yaw: 0, lunge: 0, dist: 0, dripT: 0 };
+      const mA = new V3(), mB = new V3(), mC = new V3(), mE = new V3(), hitW = new V3();
+      const evOf = extra => { const d = { move: mv.name }; if (extra) for (const k in extra) d[k] = extra[k]; return d; };
+      function fire(bit, name, extra) { if (mv.fired & bit) return false; mv.fired |= bit; emit(name, evOf(extra)); return true; }
+      const wIO = (t, L, a, b) => sstep(0, a, t) * (1 - sstep(L - b, L, t));
+      // the floor point a move aims at (world x, z; the player when not given), in the model's space
+      function aim(o, out) { if (o && typeof o.x === 'number' && typeof o.z === 'number') out.set(o.x, Gp.y, o.z).applyMatrix4(Gi); else out.copy(st.look); out.y = FLOOR; return out; }
+      const yawTo = p => Math.atan2(p.x - st.root.x, p.z - st.root.z);
+      const dlerp = (v, x, y, z, k) => { mE.set(x, y, z).normalize(); v.lerp(mE, k); if (v.lengthSq() < 1e-6) v.copy(mE); return v.normalize(); };
+      // the writers: a wrist (the boss's frame), a fist's middle (the model's space), the hand's turn (knuckles along h, the palm facing p,
+      // the boss's frame), the arm's curve (the tangents leaving the shoulder and arriving at the wrist, and their reach), the hand's pose,
+      // the arm's spring (how fast and how bouncy), the root's offset
+      function wrist(s, x, y, z, k) { const a = T.arm[s].w; a.x = lerp(a.x, x, k); a.y = lerp(a.y, y, k); a.z = lerp(a.z, z, k); }
+      function fistAt(s, p, k) { if (k <= 0) return; const a = T.arm[s]; a.fcP.copy(p); a.fcK = k; }
+      function turn(s, hx, hy, hz, px, py, pz, hw, k) { const a = T.arm[s]; dlerp(a.hd, hx, hy, hz, k); dlerp(a.hp, px, py, pz, k); a.hw = lerp(a.hw, hw, k); }
+      function curve(s, ax, ay, az, bx, by, bz, l0, l1, k) { const a = T.arm[s]; dlerp(a.t0, ax, ay, az, k); dlerp(a.t1, bx, by, bz, k); a.l0 = lerp(a.l0, l0, k); a.l1 = lerp(a.l1, l1, k); }
+      function grip(s, name, k) { const a = T.arm[s], j = POSE_NAMES.indexOf(name); for (let p = 0; p < 5; p++) a.pose[p] = lerp(a.pose[p], p === j ? 1 : 0, k); }
+      function springy(s, kk, z, k) { const a = T.arm[s]; a.k = lerp(a.k, kk, k); a.z = lerp(a.z, z, k); }
+      function off(x, y, z, k) { T.off.x = lerp(T.off.x, x, k); T.off.y = lerp(T.off.y, y, k); T.off.z = lerp(T.off.z, z, k); }
+      const boss2m = (x, y, z, out) => out.set(x, y, z).applyQuaternion(yawQ).add(st.root);   // (a point in the boss's frame, in the model's space)
+      const dirB = (v, out) => out.copy(v).applyQuaternion(yawQi);                              // (a model-space direction in the boss's frame)
+      const FR = () => FIST_R * GLOVE;
+      // a fist can only reach so far (its arm stretches to about two and a half times its length); past that it stops short, in the air
+      function reach(s, p) {
+        const S0 = S_[s], max = 2.5 * R.arm[s].restLen; mE.copy(p).sub(S0); const L = mE.length();
+        if (L > max) p.copy(S0).addScaledVector(mE, max / L);
+        p.y = Math.max(p.y, floorAt(p.x, p.z) + FR() * 0.9); return p;
+      }
+      // a fist lands: the sparks and the ring on the floor, the jolt through the jelly, the hit (in world units) for the fight
+      function land(s, bit, ring, power, name) {
+        if (mv.fired & bit) return; mv.fired |= bit;
+        const A = arms[s]; A.landed = false;
+        mC.copy(A.fc); mC.y = Math.max(floorAt(mC.x, mC.z) + 0.04, mC.y - FIST_R * A.scl * 0.9);
+        burst(mC, 6, 1.25 + 0.35 * power, mC.y < FLOOR + 0.3, ring);
+        wobble(0.8 * power, Math.atan2(A.fc.z - st.root.z, A.fc.x - st.root.x)); A.sqV -= 7 * power; A.spark = 1.9; tentKick(0, 2.4 * power, 0, 1.4 * power);
+        for (let i = 0; i < 6; i++) spawn(3, mC, (Math.random() - 0.5) * 3, 1 + Math.random() * 2, (Math.random() - 0.5) * 3, 0.1 + Math.random() * 0.08, 0.5, C_SPARK);
+        if (name) { hitW.copy(A.fc).applyMatrix4(G); emit(name, evOf({ hand: s, x: hitW.x, y: hitW.y, z: hitW.z, r: FIST_R * A.scl * Gs.x, ring: ring * Gs.x, power })); }
+      }
+      const evSweep = { move: 'sweep', hand: 'L', x: 0, y: 0, z: 0, r: 0 };   // (the one sweep event, reused every frame of the pass)
+      const zapG = new V3(); zap.ball = 0; zap.G = zapG;
+      const MOVES = {
+        // ---- punch: wind-up (the arm draws back and up, the glove crackles), a fast straight strike to the floor, the impact, recovery
+        punch: { len: 2.0,
+          init(m) { aim(m.o, m.P); toBossP(m.P, mA); m.side = m.o.hand === 'L' || m.o.hand === 'R' ? m.o.hand : mA.x >= 0 ? 'L' : 'R'; m.g = m.side === 'L' ? 1 : -1;
+            m.yaw = yawTo(m.P); m.dist = Math.hypot(m.P.x - st.root.x, m.P.z - st.root.z); m.lunge = Math.min(2.6, Math.max(0, m.dist - 4.4) * 0.62); },
+          run(m, t) {
+            const s = m.side, o = s === 'L' ? 'R' : 'L', g = m.g, w = wIO(t, 2.0, 0.15, 0.75);
+            const kW = sstep(0, 0.42, t) * (1 - sstep(0.5, 0.57, t)), kS = sstep(0.5, 0.56, t), kH = sstep(0.62, 0.8, t);
+            T.yaw = m.yaw + g * (0.34 * kW - 0.16 * kS * (1 - 0.6 * kH)) * w;
+            off(-g * 0.35 * kW, 0.4 * kW - 0.5 * kS, -0.7 * kW + m.lunge * kS, w);
+            T.lean = lerp(T.lean, -0.15 * kW + 0.26 * kS, w); T.roll = lerp(T.roll, g * (0.09 * kW - 0.07 * kS), w); T.squash = lerp(T.squash, 1 + 0.07 * kW - 0.06 * kS, w);
+            wrist(s, g * 3.1, 0.95, -1.35, kW * w); curve(s, g * 0.6, 0.75, -0.3, g * 0.3, 0.45, -1, 1.5, 1.3, kW * w); turn(s, g * 0.35, 0.45, 1, 0, -1, 0.45, 0.95, kW * w);
+            grip(s, 'fist', w); T.arm[s].spark = lerp(T.arm[s].spark, 1.35 - 0.45 * kH, w);
+            if (kS > 0) {
+              mB.copy(m.P); mB.y = FLOOR + FR() * 0.92; reach(s, mB); fistAt(s, mB, kS * w); springy(s, 2.9 - 1.5 * kH, 0.8 + 0.15 * kH, kS * w);
+              mC.copy(mB).sub(S_[s]); dirB(mC, mC).normalize();
+              turn(s, mC.x, mC.y, mC.z, 0, -1, -0.3, 1, kS * w); curve(s, mC.x + g * 0.3, mC.y + 0.2, mC.z, mC.x, mC.y, mC.z, 0.35 * m.dist, 0.3 * m.dist, kS * w);
+            }
+            wrist(o, -g * 2.3, -1.9 + 0.35 * kW, 1.5 - 1.9 * kS, w); grip(o, 'fist', w); turn(o, -g * 0.2, 0.1, 1, 0, -1, 0.2, 0.9, w);
+            T.expr = kS > 0.5 ? (kH > 0.5 ? 'glare' : 'angry') : 'charging';
+            fire(1, 'windup', { hand: s }); if (t >= 0.5) fire(2, 'strike', { hand: s });
+            if (!(m.fired & 4) && t > 0.5 && (arms[s].landed || arms[s].fc.distanceTo(mB) < 0.4 || t > 0.8)) land(s, 4, 3.0, 1, 'hit');
+            if (t >= 1.15) fire(8, 'recover', { hand: s });
+          } },
+        // ---- double slam: both fists up high (the bell stretches, the eyes glow), then down onto the target together: a shockwave
+        slam: { len: 2.7,
+          init(m) { aim(m.o, m.P); m.yaw = yawTo(m.P); m.dist = Math.hypot(m.P.x - st.root.x, m.P.z - st.root.z); m.lunge = Math.min(2.4, Math.max(0, m.dist - 4.2) * 0.55); },
+          run(m, t) {
+            const w = wIO(t, 2.7, 0.2, 0.8), kW = sstep(0, 0.72, t) * (1 - sstep(0.85, 0.94, t)), kS = sstep(0.85, 0.92, t), kH = sstep(1.0, 1.2, t);
+            T.yaw = m.yaw; off(0, 0.7 * kW - 1.0 * kS, -0.5 * kW + m.lunge * kS, w);
+            T.lean = lerp(T.lean, -0.22 * kW + 0.3 * kS, w); T.squash = lerp(T.squash, 1 + 0.13 * kW - 0.12 * kS * (1 - kH), w);
+            T.charge = lerp(T.charge, 0.85 * kW, w); T.eyeGlow = Math.max(T.eyeGlow, sstep(0.3, 0.7, t) * (1 - sstep(1.1, 1.5, t)) * w);
+            for (const s of SIDES) {
+              const g = s === 'L' ? 1 : -1;
+              wrist(s, g * 1.05, 2.95, -0.35, kW * w); curve(s, g * 0.6, 1, 0, -g * 0.25, 1, 0.15, 1.3, 1.1, kW * w); turn(s, -g * 0.25, 1, 0.25, 0, 0.3, 1, 0.95, kW * w);
+              grip(s, 'fist', w); T.arm[s].spark = lerp(T.arm[s].spark, 1.55 - 0.5 * kH, w);
+              if (kS > 0) {
+                mB.set(g * 0.62, 0, 0).applyQuaternion(yawQ).add(m.P); mB.y = FLOOR + FR() * 0.95; reach(s, mB); fistAt(s, mB, kS * w); springy(s, 2.7 - 1.4 * kH, 0.82 + 0.1 * kH, kS * w);
+                turn(s, 0, -1, 0.55, -g, -0.3, 0, 1, kS * w); curve(s, g * 0.3, 0.6, 1, 0, -1, 0.5, 1.2, 0.9, kS * w);
+              }
+            }
+            T.expr = t < 0.85 ? (t < 0.35 ? 'charging' : 'glow') : (kH > 0.5 ? 'glare' : 'angry');
+            fire(1, 'windup'); if (t >= 0.85) fire(2, 'strike');
+            if (!(m.fired & 4) && t > 0.86 && ((arms.L.landed && arms.R.landed) || t > 1.02)) {
+              m.fired |= 4; land('L', 16, 0, 1.3, null); land('R', 32, 0, 1.3, null);
+              mC.copy(arms.L.fc).add(arms.R.fc).multiplyScalar(0.5); mC.y = FLOOR; burst(mC, 4, 2.2, true, 5.6);
+              wobble(1.8); st.flash = Math.max(st.flash, 0.35);
+              hitW.copy(mC).applyMatrix4(G); emit('hit', evOf({ hand: 'both', x: hitW.x, y: hitW.y, z: hitW.z, r: 1.5 * Gs.x, ring: 5.6 * Gs.x, power: 2 }));
+            }
+            if (t >= 1.75) fire(8, 'recover');
+          } },
+        // ---- sweep: one arm reaches out to the side, then sweeps an arc low across the floor (an open glove, palm first) through the target
+        sweep: { len: 2.5,
+          init(m) { aim(m.o, m.P); toBossP(m.P, mA); m.side = m.o.hand === 'L' || m.o.hand === 'R' ? m.o.hand : mA.x >= 0 ? 'L' : 'R'; m.g = m.side === 'L' ? 1 : -1;
+            m.C.copy(st.root); m.C.y = FLOOR; const ang = Math.atan2(m.P.x - m.C.x, m.P.z - m.C.z);
+            m.dir = m.o.dir === 1 || m.o.dir === -1 ? m.o.dir : -m.g; m.ar = Math.max(POOL_R + 1.2, Math.min(8.5, Math.hypot(m.P.x - m.C.x, m.P.z - m.C.z)));
+            m.a0 = ang - m.dir * 1.3; m.a1 = ang + m.dir * 1.3; m.yaw = ang; evSweep.hand = m.side; },
+          run(m, t) {
+            const s = m.side, o = s === 'L' ? 'R' : 'L', g = m.g, w = wIO(t, 2.5, 0.2, 0.8);
+            const kW = sstep(0, 0.55, t), kS = sstep(0.55, 0.64, t), u = eIO(clamp01((t - 0.6) / 0.62)), kF = sstep(1.2, 1.55, t);
+            const a = lerp(m.a0 - m.dir * 0.15 * (1 - kS), m.a1 + m.dir * 0.3 * kF, u), sn = Math.sin(a), cs = Math.cos(a);
+            T.yaw = lerp(m.a0, m.a1, u) + m.dir * 0.35 * (1 - u) * kW;
+            off(0, -0.55 * kW, 0.4 * kS * (1 - kF), w); T.lean = lerp(T.lean, 0.12 * kW, w); T.roll = lerp(T.roll, -m.dir * 0.12 * kS * (1 - kF), w);
+            mB.set(m.C.x + sn * m.ar, FLOOR + FR() * 0.85 + (1.5 * (1 - kS) + 1.1 * kF), m.C.z + cs * m.ar); reach(s, mB); fistAt(s, mB, kW * w);
+            springy(s, 1.9, 0.72, kW * w);
+            mC.set(sn, -0.3, cs); dirB(mC, mC); mA.set(cs * m.dir, 0, -sn * m.dir); dirB(mA, mA);
+            turn(s, mC.x, mC.y, mC.z, mA.x, mA.y, mA.z, 1, kW * w); curve(s, g * 0.8, 0.1, 0.4, mC.x, mC.y, mC.z, 1.6, 1.0, kW * w);
+            grip(s, kS > 0.5 && kF < 0.5 ? 'spread' : 'open', w); T.arm[s].spark = lerp(T.arm[s].spark, 1.2, w);
+            wrist(o, -g * 2.8, -1.4, -0.9 + 0.8 * kS, w); grip(o, 'fist', w);
+            T.expr = kS > 0.5 ? 'angry' : 'charging';
+            fire(1, 'windup', { hand: s }); if (t >= 0.6) fire(2, 'strike', { hand: s });
+            if (t >= 0.6 && t <= 1.22) {
+              const A = arms[s]; hitW.copy(A.fc).applyMatrix4(G); evSweep.x = hitW.x; evSweep.y = hitW.y; evSweep.z = hitW.z; evSweep.r = FIST_R * 1.6 * A.scl * Gs.x; emit('sweep', evSweep);
+              if (Math.random() < 0.5) { mA.copy(A.fc); mA.y = FLOOR + 0.1; spawn(3, mA, (Math.random() - 0.5) * 2, 0.6 + Math.random(), (Math.random() - 0.5) * 2, 0.09, 0.5, C_SPARK); }
+            }
+            if (t >= 1.25) fire(8, 'recover', { hand: s });
+          } },
+        // ---- zap: the fists come together in front, a ball of lightning grows between them (the eyes glow, the bell beats fast), then a bolt
+        zap: { len: 2.9,
+          init(m) { aim(m.o, m.P); m.yaw = yawTo(m.P); },
+          run(m, t) {
+            const w = wIO(t, 2.9, 0.2, 0.8), kC = sstep(0, 0.6, t), kF = sstep(1.25, 1.31, t), kR = sstep(1.4, 1.95, t);
+            T.yaw = m.yaw; off(0, -0.2 * kC + 0.25 * kF * (1 - kR), -0.75 * kF * (1 - kR), w);
+            T.lean = lerp(T.lean, 0.08 * kC - 0.22 * kF * (1 - kR), w);
+            for (const s of SIDES) {
+              const g = s === 'L' ? 1 : -1;
+              wrist(s, g * (1.25 - 0.2 * kF), -2.5 + 0.15 * kC, 1.9 + 0.6 * kF * (1 - kR), w); curve(s, g * 0.7, -0.3, 0.8, -g * 0.5, 0.1, 1, 1.3, 1.0, w);
+              turn(s, -g * 0.55, 0.05, 0.85, -g, 0, -0.2, 0.95, w * (1 - kF)); turn(s, -g * 0.1, 0.05, 1, 0, -0.2, 1, 1, w * kF);
+              grip(s, kF > 0.5 ? 'spread' : 'relax', w); T.arm[s].spark = lerp(T.arm[s].spark, 1.6 * kC * (1 - kR) + 0.3, w);
+            }
+            T.charge = lerp(T.charge, kC * (1 - kR), w); T.pulse = lerp(T.pulse, 2.3, w * kC * (1 - kF)); T.pulseAmp = lerp(T.pulseAmp, 0.55, w * kC * (1 - kF));
+            T.expr = t < 0.3 ? 'charging' : t < 1.95 ? 'glow' : 'angry';
+            zapG.copy(arms.L.fc).add(arms.R.fc).multiplyScalar(0.5); zap.ball = kC * (1 - kF) * w;
+            if (t < 1.25) { zap.A.copy(arms.L.fc); zap.B.copy(arms.R.fc); zap.on = kC > 0.3; zap.t = 0; zap.life = 9; zap.n = 2; zap.amp = 0.16; zap.hitOn = false; }
+            fire(1, 'windup');
+            if (t >= 1.25 && fire(2, 'strike')) {
+              zap.on = true; zap.t = 0; zap.life = 0.62; zap.n = 5; zap.amp = 0.055; zap.hitOn = true; zap.A.copy(zapG); zap.B.copy(m.P); zap.B.y = FLOOR + 0.2;
+              burst(zap.B, 7, 1.6, true, 2.8); wobble(1.1); st.sqV -= 1.2;
+              hitW.copy(zap.B).applyMatrix4(G); emit('zap', evOf({ x: hitW.x, y: hitW.y, z: hitW.z, r: 1.1 * Gs.x })); emit('hit', evOf({ hand: 'zap', x: hitW.x, y: hitW.y, z: hitW.z, r: 1.1 * Gs.x, ring: 2.8 * Gs.x, power: 1.5 }));
+            }
+            if (zap.on && zap.hitOn) zap.A.copy(zapG);
+            if (t >= 1.4) fire(8, 'recover');
+          } },
+        // ---- hurt: a flinch away from the hit, a flash, the jelly wobbling, "> <", the gloves flung open
+        hurt: { len: 1.15,
+          init(m) { aim(m.o, m.P); mA.copy(st.root).sub(m.P); mA.y = 0; if (mA.lengthSq() < 1e-6) mA.set(0, 0, -1); mA.normalize();
+            st.rootV.addScaledVector(mA, 3.4); st.rootV.y += 1.5; wobble(1.9, Math.atan2(mA.z, mA.x)); st.sqV -= 1.2; st.flash = 1; tentKick(mA.x * 4, 2.2, mA.z * 4, 2.5);
+            for (const s of SIDES) { arms[s].Wv.addScaledVector(mA, 3); arms[s].Wv.y += 4; } },
+          run(m, t) {
+            const w = wIO(t, 1.15, 0.04, 0.5), kO = 1 - sstep(0.3, 0.62, t);
+            T.expr = t < 0.62 ? 'hurt' : 'angry';
+            for (const s of SIDES) { const g = s === 'L' ? 1 : -1; wrist(s, g * 3.7, -1.5, 0.2, w * kO); grip(s, 'spread', w * kO); T.arm[s].spark = lerp(T.arm[s].spark, 0.08, w * kO); }
+            T.lean = lerp(T.lean, -0.22 * kO, w); T.pulseAmp = lerp(T.pulseAmp, 0.3, w * kO);
+          } },
+        // ---- stunned: it sinks low, the gloves flop onto the floor round it (the opening), dizzy spirals; then it shakes it off and rises
+        stunned: { len: 5.4,
+          init(m) { m.hold = Math.max(0.6, m.o.time || 3); m.len = 0.9 + m.hold + 1.4; },
+          run(m, t) {
+            const L = m.len, w = wIO(t, L, 0.1, 0.9), kD = sstep(0, 0.85, t), kU = sstep(0.9 + m.hold, 0.9 + m.hold + 0.9, t), k = kD * (1 - kU);
+            off(0, -(HOVER - 3.2) * k, 0.3 * k, w);
+            for (const s of SIDES) {
+              const g = s === 'L' ? 1 : -1;
+              boss2m(g * 4.3, 0, 2.4, mB); const r = Math.hypot(mB.x, mB.z), rMin = POOL_R + 1.1; if (r < rMin) { mB.x *= rMin / Math.max(r, 1e-3); mB.z *= rMin / Math.max(r, 1e-3); }
+              mB.y = FLOOR + FR() * 0.8; fistAt(s, mB, k * w); springy(s, 0.75, 0.5, k * w);
+              turn(s, g * 0.35, -0.3, 1, 0, -1, 0, 0.9, k * w); grip(s, 'relax', k * w); T.arm[s].spark = lerp(T.arm[s].spark, 0.04, k * w);
+            }
+            T.slump = lerp(T.slump, 0.32, k * w); T.pulse = lerp(T.pulse, 0.35, k * w); T.pulseAmp = lerp(T.pulseAmp, 0.45, k * w);
+            T.tentW = lerp(T.tentW, 0.3, k * w); T.tentG = lerp(T.tentG, 2.4, k * w);
+            const sw = t - 0.9; T.roll += 0.1 * Math.sin(sw * 2.4) * k * w; T.lean += 0.08 * Math.cos(sw * 2.4) * k * w;
+            const shake = kU > 0 && kU < 1 ? Math.sin((t - 0.9 - m.hold) * 26) * Math.sin(kU * Math.PI) : 0; T.yaw = st.yaw + 0.0; if (shake) { T.roll += 0.14 * shake; }
+            T.expr = k > 0.35 ? 'dizzy' : kU > 0 ? 'angry' : 'surprised';
+            if (k > 0.6 && Math.random() < 0.25) { mA.set(st.root.x + (Math.random() - 0.5) * 2.4, st.root.y + 1.5 + Math.random() * 0.4, st.root.z + (Math.random() - 0.5) * 2.4); spawn(3, mA, 0, 0.25, 0, 0.12 + Math.random() * 0.06, 0.7, C_STAR); }
+            if (t >= 0.85) fire(1, 'stunStart'); if (t >= 0.9 + m.hold) fire(2, 'stunEnd');
+          } },
+        // ---- taunt: one glove wags a finger at the player ("no, no, no"), the other beckons (palm up, the fingers curling in twice), a
+        // smug chuckle
+        taunt: { len: 2.8,
+          run(m, t) {
+            const w = wIO(t, 2.8, 0.35, 0.6), env = sstep(0.4, 0.6, t) * (1 - sstep(2.0, 2.3, t)), wag = 0.5 * Math.sin((t - 0.45) * Math.PI * 2 * 2.1) * env;
+            wrist('R', -2.25, -0.95, 1.75, w); turn('R', Math.sin(wag) * 0.9, Math.cos(wag), 0.15, 0, 0, 1, 1, w); grip('R', 'point', w); curve('R', -0.7, 0.4, 0.5, 0, 1, 0.2, 1.5, 1.1, w);
+            wrist('L', 2.3, -2.0, 1.9, w); turn('L', -0.35, 0.2, 1, 0, 1, -0.2, 1, w); grip('L', 'open', w);
+            const bk = env * (0.5 - 0.5 * Math.cos((t - 0.5) * Math.PI * 2 * 1.4)); grip('L', 'fist', w * bk * 0.85);
+            off(0, 0.1 * Math.abs(Math.sin(t * 8.5)) * env, -0.15, w); T.squash = lerp(T.squash, 1 - 0.04 * Math.abs(Math.sin(t * 8.5)) * env, w); T.lean = lerp(T.lean, -0.1, w);
+            T.arm.R.spark = lerp(T.arm.R.spark, 0.7, w); T.expr = 'smug';
+          } },
+        // ---- intro: it rises out of the pool with its arms spread wide, shakes the slime off, then bumps its fists with a spark burst
+        intro: { len: 5.0,
+          init(m) { st.root.set(0, POOL_Y - 4.6, 0); st.rootV.set(0, 0, 0); st.yaw = yawTo(st.look); m.yaw = st.yaw; snap(); },
+          run(m, t) {
+            const w = 1 - sstep(4.3, 5.0, t), kR = clamp01(t / 1.7), rise = kR < 1 ? eBack(kR, 1.2) : 1, kSh = sstep(2.0, 2.15, t) * (1 - sstep(2.7, 2.95, t));
+            const kB = sstep(3.0, 3.3, t), kBump = sstep(3.3, 3.42, t);
+            T.rootK = lerp(1, 2.6, 1 - sstep(1.8, 2.2, t));
+            off(0, (POOL_Y - 4.6 - HOVER) * (1 - rise) - 0.35 * kSh, 0, w);
+            T.clipY = t < 2.6 ? POOL_Y : -1e4; T.clipBand = 0.35;
+            const sh = Math.sin((t - 2.0) * Math.PI * 2 * 4.2) * kSh; T.yaw = m.yaw + 0.42 * sh; T.roll = lerp(T.roll, -0.16 * sh, w); T.squash = lerp(T.squash, 1 + 0.12 * (1 - kR) * (t < 1.7 ? 1 : 0) + 0.05 * sh, w);
+            for (const s of SIDES) {
+              const g = s === 'L' ? 1 : -1, kOut = 1 - kB;
+              wrist(s, g * (2.3 + 2.0 * sstep(0.75, 1.5, t)), 0.9 - 2.0 * kSh, 0.5, w * kOut); turn(s, g * 0.9, 0.35, 0.4, 0, 0.3, 1, 0.9, w * kOut); grip(s, 'spread', w * kOut * (1 - kSh)); grip(s, 'relax', w * kSh);
+              boss2m(g * (1.6 - 0.98 * kBump), -1.9, 2.2, mB); fistAt(s, mB, kB * w); turn(s, -g, 0.1, 0.25, 0, -1, 0, 1, kB * w); grip(s, 'fist', kB * w);
+              springy(s, 1.8, 0.62, kB * w); T.arm[s].spark = lerp(T.arm[s].spark, t < 2.95 ? 0.05 : 1.45, w);
+            }
+            T.expr = t < 0.9 ? 'neutral' : t < 2.0 ? 'glare' : t < 2.9 ? 'hurt' : 'angry'; if (t > 3.35 && t < 3.9) T.eyeGlow = 1;
+            if (t < 1.9 && T.off.y + HOVER > POOL_Y - 3 && Math.random() < 0.6) { const a = Math.random() * 6.283, r = 1.4 + Math.random() * 1.1;
+              mA.set(st.root.x + Math.cos(a) * r, POOL_Y + 0.05, st.root.z + Math.sin(a) * r); spawn(1, mA, Math.cos(a) * 1.4, 2.4 + Math.random() * 2.2, Math.sin(a) * 1.4, 0.1 + Math.random() * 0.1, 1.1, C_SLIME); }
+            if (kSh > 0.2 && Math.random() < 0.7) { const a = Math.random() * 6.283; mA.set(st.root.x + Math.cos(a) * 2.1, st.root.y - 0.8 + Math.random() * 1.6, st.root.z + Math.sin(a) * 2.1);
+              spawn(1, mA, Math.cos(a) * 4 - Math.sin(a) * 2 * sh, 1.5 + Math.random() * 1.5, Math.sin(a) * 4 + Math.cos(a) * 2 * sh, 0.08 + Math.random() * 0.08, 0.9, C_SLIME); }
+            if (fire(1, 'introRise')) {} if (t >= 2.0) fire(2, 'introShake');
+            if (t >= 3.4 && fire(4, 'introBump')) { mC.copy(arms.L.fc).add(arms.R.fc).multiplyScalar(0.5); burst(mC, 9, 1.4, false, 0); wobble(1.2); st.flash = Math.max(st.flash, 0.25); arms.L.spark = arms.R.spark = 2; }
+            if (t >= 4.95) fire(8, 'introDone');
+          } },
+        // ---- defeat: a last flinch, then it deflates (the bell sags, the arms go limp, the sparks die) and sinks into the pool in bubbles
+        defeat: { len: 4.2, stay: true,
+          init(m) { st.flash = 1; wobble(2.2); st.sqV -= 1.2; tentKick(0, 3, 0, 3); },
+          run(m, t) {
+            const kF = 1 - sstep(0.35, 0.7, t), kD = sstep(0.5, 1.7, t), kS = sstep(1.7, 4.0, t);
+            T.expr = t < 0.6 ? 'hurt' : 'defeated';
+            off(0, -1.0 * kD + (POOL_Y - 5.2 - HOVER + 1.0) * kS * kS, 0, 1);
+            T.slump = kD; T.pulseAmp = lerp(1, 0.12, kD); T.pulse = lerp(1, 0.3, kD); T.tentW = lerp(1, 0.25, kD); T.tentG = lerp(1, 2.6, kD); T.rootK = 1 + kS;
+            T.clipY = kS > 0 ? POOL_Y : -1e4; T.clipBand = 0.3;
+            for (const s of SIDES) { const g = s === 'L' ? 1 : -1;
+              wrist(s, g * 3.4, 0.2, 0.4, kF); grip(s, 'spread', kF);
+              wrist(s, g * 2.4, -3.2, 0.7, kD); springy(s, 0.6, 0.45, kD); grip(s, 'relax', kD); turn(s, g * 0.2, -1, 0.3, 0, -0.3, -1, 0.9, kD); T.arm[s].spark = lerp(T.arm[s].spark, 0, Math.max(kD, 1 - kF)); }
+            if (kS > 0 && kS < 0.98 && Math.random() < 0.85) { const a = Math.random() * 6.283, r = Math.random() * 2.2;
+              mA.set(st.root.x + Math.cos(a) * r, POOL_Y + 0.05 + Math.random() * 0.3, st.root.z + Math.sin(a) * r); spawn(0, mA, 0, 0.9 + Math.random() * 1.2, 0, 0.08 + Math.random() * 0.14, 1.6 + Math.random(), C_BUB); }
+            if (t >= 4.2) fire(1, 'defeated');
+          } },
+      };
+      // a point in the model's space, in the boss's own frame (relative to the root, unturned)
+      function toBossP(p, out) { return out.copy(p).sub(st.root).applyQuaternion(yawQi); }
+      // everything back on its targets at once (the intro starts the boss out of sight, so nothing may trail in from where it was)
+      function snap() { for (const s of SIDES) { arms[s].init = false; arms[s].Wv.set(0, 0, 0); arms[s].H1v.set(0, 0, 0); arms[s].H2v.set(0, 0, 0); } for (const tn of tents) tn.init = false; st.tilt.set(0, 0, 0); st.tiltV.set(0, 0, 0); }
+
+      // ---------------------------------------------------------------- each frame
+      const gLast = new V3(), gV = new V3(); let gInit = false, lookOn = false; const lookWv = new V3();
+      function syncG() { model.updateWorldMatrix(true, false); G.copy(model.matrixWorld); Gi.copy(G).invert(); G.decompose(Gp, Gq, Gs); }
+      function update(dt, ctx) {
+        const c0 = performance.now();
+        dt = dt > 0 ? Math.min(dt, 0.1) : 1 / 60;
+        st.t += dt; syncG();
+        // the group's own motion (when the fight moves it): its acceleration, in the model's frame, drags the arms behind it
+        if (!gInit) { gLast.copy(Gp); gV.set(0, 0, 0); gInit = true; }
+        _v.copy(Gp).sub(gLast).divideScalar(dt); st.gAcc.copy(_v).sub(gV).divideScalar(dt).clampLength(0, 80); gV.copy(_v); gLast.copy(Gp);
+        _q.copy(Gq).invert(); st.gAcc.applyQuaternion(_q).divideScalar(Math.max(Gs.x, 1e-3));
+        // where it looks: where it was told, or the player; the camera (if given) for the sparks, which face it
+        if (lookOn) st.look.copy(lookWv).applyMatrix4(Gi); else if (ctx.player) st.look.copy(ctx.player).applyMatrix4(Gi);
+        if (ctx.camera) { st.camM.setFromMatrixPosition(ctx.camera.matrixWorld).applyMatrix4(Gi); st.camOK = true; }
+        yawQ.setFromAxisAngle(AX_Y, st.yaw); yawQi.copy(yawQ).invert();
+        // the hover, then the move over it
+        idle(st.t); zap.ball = 0; if (mv.name !== 'zap' && !zap.hitOn) zap.on = false;
+        if (mv.M) {
+          mv.t += dt * mv.sp; const M = mv.M; M.run(mv, M.stay ? Math.min(mv.t, mv.len) : mv.t);
+          if (mv.t >= mv.len && !M.stay && mv.M === M) { const n = mv.name; mv.M = null; mv.name = 'idle'; B.busy = false; B.move = 'idle'; emit('done', { move: n }); }
+        }
+        if (!mv.M) for (const s of SIDES) arms[s].landed = false;
+        toModel(); frameSetup(dt);
+        const n = Math.max(1, Math.ceil(dt * 120)), h = dt / n;
+        for (let i = 0; i < n; i++) step(h);
+        pose(dt); tentacles(dt); writeSkin(); faceUpdate(dt); fxUpdate(dt); ptUpdate(dt);
+        B.stats.cpuMs = performance.now() - c0;
+      }
+      function play(name, o) {
+        syncG(); yawQ.setFromAxisAngle(AX_Y, st.yaw); yawQi.copy(yawQ).invert();
+        const M = MOVES[name];
+        if (!M) { if (mv.M && mv.name !== 'defeat') { const n = mv.name; mv.M = null; mv.name = 'idle'; B.busy = false; B.move = 'idle'; emit('done', { move: n, cut: true }); } return 0; }
+        if (mv.M && mv.name === 'defeat' && name !== 'intro') return 0;   // (beaten: only the intro brings it back)
+        if (mv.M) emit('done', { move: mv.name, cut: true });
+        mv.name = name; mv.M = M; mv.o = o || {}; mv.t = 0; mv.fired = 0; mv.sp = Math.max(0.4, Math.min(3, +mv.o.speed || 1)); mv.len = M.len;
+        for (const s of SIDES) arms[s].landed = false;
+        if (M.init) M.init(mv, mv.o);
+        B.busy = true; B.move = name; emit('start', { move: name });
+        return mv.len / mv.sp;
+      }
+      B.fistR = FIST_R * GLOVE * scale; B.bellR = H.bell.rRim * scale; B.moves = Object.keys(MOVES);
+      B._dbg = { FU, U, E, face_, T, st, arms, mv, R, H, tents, Mb, tex: pack.tex, POSE, fillPoses };   // (for the viewer and tests)
+      return {
+        play, update,
+        lookAt(x, y, z) { if (x === null || x === undefined) { lookOn = false; return; } if (typeof x === 'object') lookWv.copy(x); else lookWv.set(x, y, z); lookOn = true; },
+        face(e, hold) { if (!e) { face_.hold = 0; face_.hold2 = null; return; } face_.hold2 = EXPR[e] ? e : 'angry'; face_.hold = hold === undefined ? 1e9 : hold; },
+        hand(s, p) { const P = POSE_NAMES.indexOf(p) >= 0 ? p : null; if (s === 'both' || !s) { arms.L.handOverride = arms.R.handOverride = P; } else if (arms[s]) arms[s].handOverride = P; },
+        fist(s, out) { return (out || new V3()).copy(arms[s === 'R' ? 'R' : 'L'].fc).applyMatrix4(G); },
+        bellPoint(out) { return (out || new V3()).set(0, 0.25, 0).applyMatrix4(Mbell).applyMatrix4(G); },
+        dispose() { for (const m of [body.material, hull.material, face.material, fx.mesh.material, pt.pts.material, body.customDepthMaterial]) m.dispose(); fx.g.dispose(); pt.g.dispose(); skel.dispose(); },
+      };
+    }
+  }
+
+  return { makeBoss, load, EXPR: Object.keys(EXPR), POSES: POSE_NAMES };
+})();
+const makeBoss = o => BOSS.makeBoss(o);

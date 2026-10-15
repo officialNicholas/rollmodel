@@ -283,7 +283,7 @@ def disc_normal(p):
     # (the dome's own outward direction from its middle: the sculpted lumps on its face would tilt a surface normal every which way)
     n = p - np.array([AX[0], 40.0, AX[2]]); return n / np.linalg.norm(n)
 FACE = {}
-EYE_X, EYE_Y, BROW_Y = 15.0, 49.0, 60.0
+EYE_X, EYE_Y, BROW_Y = 15.5, 45.0, 57.0
 for nm, x, y in (('eye', EYE_X, EYE_Y), ('brow', EYE_X * 1.05, BROW_Y), ('mid', 0.0, EYE_Y)):
     pa, _ = ray_front(AX[0] + x, y); pb, _ = ray_front(AX[0] - x, y)
     na, nb_ = disc_normal(pa), disc_normal(pb)
@@ -292,6 +292,22 @@ for nm, x, y in (('eye', EYE_X, EYE_Y), ('brow', EYE_X * 1.05, BROW_Y), ('mid', 
     else:
         FACE[nm + 'L'] = (np.array([AX[0] + x, y, z]), n); FACE[nm + 'R'] = (np.array([AX[0] - x, y, z]), n * [-1, 1, 1])
 for k, v in FACE.items(): print('face', k, v[0].round(2), v[1].round(3))
+# the eyes are caps laid on the bell (in the runtime): where a sculpted lump of the dome would poke through one, the bell's surface is
+# pressed back under the cap (the cap hides it), so each eye sits whole. The cap: half-widths w, h and depth d (game units), its middle
+# 0.82 d out from the anchor, its rim sunk 0.18 d in.
+EYE_W, EYE_H, EYE_D = 0.42, 0.47, 0.17
+moved = 0
+for side in 'LR':
+    p, n = FACE['eye' + side]
+    ex = np.cross([0, 1.0, 0], n); ex /= np.linalg.norm(ex); ey = np.cross(n, ex)
+    rel = V - p; lx, ly, lz = rel @ ex * S / EYE_W, rel @ ey * S / EYE_H, rel @ n * S
+    r = np.hypot(lx, ly); m = (label == -1) & (r < 1.18) & (lz > -0.6)
+    cap = (np.sqrt(np.clip(1 - np.minimum(r, 1) ** 2, 0, 1)) - 0.18) * EYE_D - 0.03   # (the cap's height there, less a margin)
+    cap = np.where(r < 1, cap, -0.18 * EYE_D - 0.03 - (r - 1) * 0.5)
+    push = np.where(m & (lz > cap), lz - cap, 0) * (1 - np.clip((r - 1.0) / 0.18, 0, 1))
+    V[:] = V - (push / S)[:, None] * n[None, :]; moved += int((push > 1e-4).sum())
+NV = vnormals(V, T)
+print('bell pressed back under the eyes at', moved, 'vertices')
 
 # ---------------------------------------------------------------- the texture: fill the atlas's empty space, paint the face patch, WebP
 def raster_cov(N):
@@ -367,7 +383,7 @@ head = {'v': 1, 'n': int(n), 'ni': int(len(IDX)), 'scale': S, 'bellW': BELL_W,
                      'palm': M(HAND[s]['palm']), 'palmN': HAND[s]['n'].round(5).tolist(), 'fwd': HAND[s]['fwd'].round(5).tolist(),
                      'rad': round(float(np.median(next(tb for tb in tubes if tb['kind'] == 'arm' and tb['side'] == s)['rad'])) * S, 4)} for s in 'RL'},
         'bell': {'yRim': round((26.0 - Y0) * S, 4), 'yTop': round((Y_TOP - Y0) * S, 4), 'rRim': round(RIM_R * S, 4), 'yCeil': round((57.0 - Y0) * S, 4)},
-        'face': {k: {'p': M(v[0]), 'n': v[1].round(5).tolist()} for k, v in FACE.items()},
+        'face': dict({k: {'p': M(v[0]), 'n': v[1].round(5).tolist()} for k, v in FACE.items()}, size=[EYE_W, EYE_H, EYE_D]),
         'texRes': TEX, 'texMime': 'image/webp'}
 # ---------------------------------------------------------------- the pack
 mn, mx = Pm.min(0), Pm.max(0); head['bbox'] = [mn.round(5).tolist(), mx.round(5).tolist()]
