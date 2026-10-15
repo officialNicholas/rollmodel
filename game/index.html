@@ -3899,7 +3899,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 301</p>
+      <p class="ver">Version 302</p>
     </div>
   </div>
 
@@ -11192,7 +11192,8 @@ const AXOC = (() => {
     out.setFromMatrixPosition(_m); out.z -= d === undefined ? 0.5 : d; return out;
   }
   function bodyPoint(I, x, y, z, out) { const H = headFrame(I); return out.copy(H.neck); }
-  return { S, load, make, update, headTop, headSize, bodyPoint, backPoint, headR0: HEAD_R0, faceK: 1.18 };
+  function boneAt(I, name, out) { const X = I.ax, M = X.P.m[X.A.mesh], b = M.byName[name] || M.byName.chest; b.updateWorldMatrix(true, false); _mi.copy(I.root.matrixWorld).invert(); _m.multiplyMatrices(_mi, b.matrixWorld).premultiply(I.root.matrix); return out.setFromMatrixPosition(_m); } // (v302: a bone's place, in the body's space)
+  return { S, load, make, update, headTop, headSize, bodyPoint, backPoint, boneAt, headR0: HEAD_R0, faceK: 1.18 };
 })();
 const axoLoad = AXOC.load(window.AXO_PACK || 'axo-pack-250.txt').catch(e => { AXOC.S.failed = true; console.warn('axolotl pack:', e && e.message); });
 // (the slime only comes in if the axolotl never arrives)
@@ -11417,6 +11418,74 @@ const monoParts = (() => { const rim = new THREE.TorusGeometry(0.2, 0.028, 10, 4
   return [[rim, goldMat], [chain, goldMat], [glass, glassMat]]; })();
 const stacheParts = (() => { const side = m => { const pts = [[0, -0.02, 0], [0.11 * m, -0.04, 0.01], [0.21 * m, -0.01, 0.0], [0.28 * m, 0.07, -0.03], [0.3 * m, 0.13, -0.05]].map(p => new THREE.Vector3(...p)); return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, false, 'centripetal'), 20, 0.05, 8); };
   const cap = m => new THREE.SphereGeometry(0.05, 10, 8).translate(0.3 * m, 0.13, -0.05); return [[mergeGeos([side(1), side(-1), new THREE.SphereGeometry(0.058, 12, 10), cap(1), cap(-1)]), stacheMat]]; })();
+// ---------- (v302) five new everyday pieces: a propeller cap, bouncy antennae, a snorkel mask, arm floaties and a hero cape ----------
+const vcolGeo = (g, colOf) => { const q = g.index ? g.toNonIndexed() : g, p = q.attributes.position, n = p.count, a = new Float32Array(n * 3), c = new THREE.Color(), cen = new THREE.Vector3();
+  for (let i = 0; i < n; i += 3) { cen.set(0, 0, 0); for (let k = 0; k < 3; k++) cen.x += p.getX(i + k) / 3, cen.y += p.getY(i + k) / 3, cen.z += p.getZ(i + k) / 3; c.set(colOf(cen)); for (let k = 0; k < 3; k++) { a[(i + k) * 3] = c.r; a[(i + k) * 3 + 1] = c.g; a[(i + k) * 3 + 2] = c.b; } }
+  q.setAttribute('color', new THREE.BufferAttribute(linArr(a), 3)); return q; };
+const vcolMat = (extra) => { const m = glossMat(0xFFFFFF, Object.assign({ vertexColors: true }, extra || {})); m.vertexColors = true; return m; };
+const capMat = vcolMat({ roughness: 0.6, clearcoat: 0.15 }), _fM = new THREE.Matrix4();
+const propCapParts = (() => { const C = [0xE63946, 0xFFD23F, 0x3A86FF];
+  const dome = vcolGeo(new THREE.SphereGeometry(0.5, 36, 14, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(1, 0.92, 1), v => C[Math.floor(((Math.atan2(v.z, v.x) / (Math.PI * 2) + 1) % 1) * 6) % 3]);
+  const bill = new THREE.CylinderGeometry(0.42, 0.42, 0.045, 28, 1, false, -Math.PI / 2, Math.PI).scale(1, 1, 0.82).translate(0, 0.005, 0.27).rotateX(0.12);
+  const button = new THREE.SphereGeometry(0.07, 14, 10).translate(0, 0.46, 0), pin = new THREE.CylinderGeometry(0.022, 0.022, 0.16, 8).translate(0, 0.53, 0);
+  return [[dome, capMat], [bill, glossMat(0x3A86FF, { roughness: 0.5, clearcoat: 0.2 })], [button, glossMat(0xFFD23F, { roughness: 0.4 })], [pin, glossMat(0xE8E2F2, { roughness: 0.3 })]]; })();
+const propParts = (() => { const blade = s => new THREE.SphereGeometry(1, 16, 8).scale(0.3, 0.025, 0.075).translate(0.3 * s, 0, 0).rotateX(0.32 * s); return [[mergeGeos([blade(1), blade(-1)]), glossMat(0xE63946, { roughness: 0.35, clearcoat: 0.5 })], [new THREE.SphereGeometry(0.045, 10, 8), glossMat(0xFFD23F, { roughness: 0.4 })]]; })();
+const antennaParts = (() => { const pts = [[0, 0, 0], [0.02, 0.22, 0.02], [0.08, 0.42, 0.05], [0.16, 0.56, 0.08]].map(p => new THREE.Vector3(...p)), stalk = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 16, 0.028, 8);
+  return [[stalk, glossMat(0x231A2B, { roughness: 0.4, clearcoat: 0.4 })], [new THREE.SphereGeometry(0.1, 16, 12).translate(0.17, 0.6, 0.085), glossMat(0xFF5DA2, { roughness: 0.3, clearcoat: 0.8 })]]; })();
+// the snorkel mask in the head's own units (the face sphere's centre, facing +z). Fitted to the axolotl's measured head: the face is 0.44 out
+// at the middle and 0.40 at the eyes (0.2 either side, 0.07 up), the sides 0.49 out; the strap runs along the sides and tucks in under the ears
+const snorkelParts = (() => { const rubber = glossMat(0xFFC93C, { roughness: 0.45, clearcoat: 0.3 }), dark = glossMat(0x231A2B, { roughness: 0.5 }), tubeM = glossMat(0xFF7A1A, { roughness: 0.35, clearcoat: 0.5 });
+  const onEye = (g, s) => g.rotateX(-0.15).rotateY(0.55 * s).translate(0.2 * s, 0.07, 0.435); // (each lens turned out with the curve of the face)
+  const lens = s => onEye(new THREE.TorusGeometry(0.115, 0.034, 10, 32).scale(1.15, 1, 1), s), glass = s => onEye(new THREE.CircleGeometry(0.115, 28).scale(1.15, 1, 1).translate(0, 0, 0.004), s);
+  const bridge = new THREE.CylinderGeometry(0.028, 0.028, 0.12, 8).rotateZ(Math.PI / 2).translate(0, 0.085, 0.49);
+  const sp = [50, 70, 90, 110, 130, 150, 180, -150, -130, -110, -90, -70, -50].map(a => { const b = Math.abs(a), r = b <= 90 ? 0.475 + (b - 50) / 40 * 0.035 : 0.51 + (b - 90) / 90 * 0.05, t = a * Math.PI / 180;
+    return new THREE.Vector3(Math.sin(t) * (r + 0.012), 0.07 + 0.06 * Math.pow((b - 50) / 130, 2), Math.cos(t) * (r + 0.012)); });
+  const strap = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(sp), 48, 0.022, 6);
+  const pts = [[-0.08, -0.21, 0.5], [-0.3, -0.18, 0.41], [-0.47, -0.03, 0.2], [-0.535, 0.2, 0.06], [-0.51, 0.5, -0.01], [-0.48, 0.78, -0.04]].map(p => new THREE.Vector3(...p)), tube = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 28, 0.04, 10);
+  const top = new THREE.CylinderGeometry(0.058, 0.052, 0.1, 12).translate(-0.48, 0.81, -0.045), bite = new THREE.SphereGeometry(0.055, 12, 8).scale(1.3, 0.8, 0.8).translate(-0.06, -0.21, 0.5);
+  return [[mergeGeos([lens(1), lens(-1)]), rubber], [mergeGeos([glass(1), glass(-1)]), glassMat], [bridge, rubber], [strap, dark], [tube, tubeM], [top, rubber], [bite, dark]]; })();
+// the arm floaties: two fat orange chambers round each upper arm with a little white valve (in the body's units: the upper arm is about
+// 0.18 thick and 0.48 long, and splays out and back from the shoulder)
+const floatParts = (() => { const ch = y => new THREE.TorusGeometry(0.29, 0.085, 12, 30).rotateX(Math.PI / 2).translate(0, y, 0);
+  return [[mergeGeos([ch(0.07), ch(-0.07)]), glossMat(0xFF8A1F, { roughness: 0.22, clearcoat: 0.9, clearcoatRoughness: 0.08 })], [new THREE.CylinderGeometry(0.03, 0.034, 0.06, 10).rotateZ(-Math.PI / 2).translate(0.39, 0.07, 0), glossMat(0xFFFFFF, { roughness: 0.35 })]]; })();
+// the hero cape: a sheet whose points are laid along the spine every frame (rows down the back, columns across), wrapped over the back
+// as a loose oval a little bigger than the body's (in the body's units the back is 0.21-0.26 over the spine and 0.53-0.59 to each side).
+// Royal blue with a gold hem and a gold star (it shows on every paint colour), lined in red
+const CAPE_R = 10, CAPE_C = 11;
+const capeTex = (() => { const cv = document.createElement('canvas'); cv.width = cv.height = 256; const g = cv.getContext('2d');
+  const gr = g.createLinearGradient(0, 0, 256, 0); gr.addColorStop(0, '#1C3CB8'); gr.addColorStop(0.5, '#2E5BEA'); gr.addColorStop(1, '#1C3CB8'); g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
+  g.fillStyle = '#F2C14E'; g.fillRect(0, 0, 20, 256); g.fillRect(236, 0, 20, 256); g.fillRect(0, 228, 256, 28);
+  g.fillStyle = '#231A2B'; g.fillRect(0, 0, 6, 256); g.fillRect(250, 0, 6, 256); g.fillRect(0, 250, 256, 6); g.fillRect(20, 0, 3, 228); g.fillRect(233, 0, 3, 228); g.fillRect(20, 225, 216, 3);
+  g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 22 : 50; g.lineTo(128 + Math.cos(a) * r, 112 + Math.sin(a) * r); } g.closePath();
+  g.fillStyle = '#F2C14E'; g.fill(); g.lineWidth = 6; g.strokeStyle = '#231A2B'; g.lineJoin = 'round'; g.stroke();
+  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; })();
+const capeMat = glossMat(0xFFFFFF, { side: THREE.FrontSide, roughness: 0.62, clearcoat: 0.12, sheen: 0.5, sheenColor: new THREE.Color(0x9DB4FF) }), capeLining = glossMat(0xC0213A, { side: THREE.BackSide, roughness: 0.7, clearcoat: 0.05 }), claspMat = glossMat(0xE8C25A, { roughness: 0.25, clearcoat: 0.8 });
+capeMat.map = capeTex; capeMat.needsUpdate = true;
+function capeGeo() { const g = new THREE.BufferGeometry(), n = CAPE_R * CAPE_C, idx = [], uv = new Float32Array(n * 2); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+  for (let r = 0; r < CAPE_R; r++) for (let c = 0; c < CAPE_C; c++) { const i = r * CAPE_C + c; uv[i * 2] = c / (CAPE_C - 1); uv[i * 2 + 1] = 1 - r / (CAPE_R - 1); }
+  g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  for (let r = 0; r < CAPE_R - 1; r++) for (let c = 0; c < CAPE_C - 1; c++) { const a = r * CAPE_C + c, b = a + 1, d = a + CAPE_C, e = d + 1; idx.push(a, d, b, b, d, e); }
+  g.setIndex(idx); return g; }
+// lay the cape along a centreline (pts: body-space points from the shoulders back): each row an arc of an oval over the back, gathered at
+// the neck; at speed the back rows lift and stream out behind, the arc opens and it flutters
+const _cv = new THREE.Vector3(), _ct = new THREE.Vector3(), _cs = new THREE.Vector3(), _cu = new THREE.Vector3(0, 1, 0);
+function capeLay(g, pts, t, spd) {
+  const p = g.attributes.position, L = pts.length - 1, sk = Math.min(1, spd / 6);
+  for (let r = 0; r < CAPE_R; r++) { const u = r / (CAPE_R - 1), f = u * L * (1 + 0.16 * sk), i = Math.min(L - 1, Math.floor(f)), k = f - i;
+    _cv.copy(pts[i]).lerp(pts[i + 1], k); _ct.copy(pts[i + 1]).sub(pts[i]).normalize(); _cs.crossVectors(_cu, _ct).normalize();
+    const q = Math.min(3.999, u * 4), j = Math.floor(q), m = q - j, at = K => K[j] + (K[j + 1] - K[j]) * m, A = at(CAPE_A), B = at(CAPE_B) + sk * 0.32 * u * u;
+    const pm = at(CAPE_PM) * (1 - 0.25 * sk * u), fl = Math.sin(t * (5 + spd) - u * 5) * (0.02 + 0.05 * sk) * u;
+    for (let c = 0; c < CAPE_C; c++) { const v = c / (CAPE_C - 1) * 2 - 1, ph = v * pm, x = A * Math.sin(ph), y = B * Math.cos(ph) + fl + Math.sin(t * 6 + v * 2.2 + u * 3) * 0.015 * u;
+      p.setXYZ(r * CAPE_C + c, _cv.x + _cs.x * x, _cv.y + y, _cv.z + _cs.z * x); } }
+  p.needsUpdate = true; g.computeVertexNormals(); g.computeBoundingSphere(); }
+// how far out (A) and over (B) the spine it wraps, and how far round (PM, radians from the top), at the chest, the middle of the back,
+// the waist, the hips and the base of the tail: the back's measured top plus a little air, gathered at the neck, hanging down the
+// flanks, narrower and higher over the hips so the knees come up beside it, and draped down over the tail
+const CAPE_A = [0.62, 0.74, 0.72, 0.55, 0.5], CAPE_B = [0.36, 0.32, 0.29, 0.38, 0.3], CAPE_PM = [0.6, 1.45, 1.45, 1.1, 1.45];
+const CAPE_REST = [[0, 0, 0], [0, -0.02, -0.53], [0, -0.055, -1.05], [0, -0.076, -1.73], [0, -0.016, -2.23]].map(p => new THREE.Vector3(...p));
+// how each sits (window.__*Fit: a tuning hook)
+const PROPCAP_FIT = window.__propcapFit || { s: 1.12, y: -0.32, rx: -0.12, rz: 0.06 }, ANTENNA_FIT = window.__antennaFit || { s: 1, y: -0.1, x: 0.26, z: 0.08 };
+const FLOAT_FIT = window.__floatFit || { s: 1, k: 0.45 }; // (k of the way down the upper arm)
 // how each sits (window.__*Fit: a tuning hook)
 const BEANIE_FIT = window.__beanieFit || { s: 1.18, y: -0.36, rx: -0.14, rz: 0.08 }, PARTY_FIT = window.__partyFit || { s: 0.95, y: -0.12, rx: 0.1, rz: 0.4 };
 const MONO_FIT = window.__monoFit || { x: 0.2, y: 0.06, z: 0.44, s: 0.62 }, STACHE_FIT = window.__stacheFit || { x: 0, y: -0.11, z: 0.44, s: 0.48 }, SCARF_FIT = window.__scarfFit || { s: 0.4, y: 0.05, z: 0.04 };
@@ -11429,7 +11498,14 @@ function makeWear2(body) {
   const pearls = new THREE.Group(); { const m = new THREE.Mesh(pearlG, pearlMat), o = new THREE.Mesh(pearlG, inkMat); m.renderOrder = 33; o.renderOrder = 32.6; m.add(o); pearls.add(m); }
   const beanie = simplePiece(beanieParts, BEANIE_FIT.s), party = simplePiece(partyParts, PARTY_FIT.s), scarf = simplePiece(scarfParts), monocle = simplePiece(monoParts), stache = simplePiece(stacheParts);
   for (const m of [pirate, top, bow, pearls, patch, flower, tiara, glasses, hockey, bunny, skull, beanie, party, scarf, monocle, stache]) { m.visible = false; body.add(m); }
-  return { pirate, top, bow, pearls, patch, flower, tiara, glasses, hockey, bunny, skull, beanie, party, scarf, monocle, stache };
+  // (v302) the five new pieces
+  const propcap = simplePiece(propCapParts, PROPCAP_FIT.s), prop = simplePiece(propParts); prop.position.y = 0.62; propcap.userData.gin.add(prop); propcap.userData.prop = prop;
+  const antennae = new THREE.Group(); antennae.userData.st = [-1, 1].map(sd => { const a = simplePiece(antennaParts, ANTENNA_FIT.s); a.scale.x = sd; a.position.set(ANTENNA_FIT.x * sd, 0, ANTENNA_FIT.z); antennae.add(a); return a; });
+  const snorkel = simplePiece(snorkelParts), floaties = new THREE.Group(); floaties.userData.arm = [1, -1].map(() => { const f = simplePiece(floatParts, FLOAT_FIT.s); floaties.add(f); return f; });
+  const cape = new THREE.Group(); { const g = capeGeo(); capeLay(g, CAPE_REST, 0, 0); const m = new THREE.Mesh(g, capeMat), ln = new THREE.Mesh(g, capeLining); m.renderOrder = 33; ln.renderOrder = 33; m.castShadow = true; cape.add(m, ln); cape.userData.geo = g;
+    const cl = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.04, 8, 20), claspMat), o = new THREE.Mesh(cl.geometry, inkMat); o.renderOrder = 32.6; cl.add(o); cl.renderOrder = 33; cape.add(cl); cape.userData.clasp = cl; }
+  for (const m of [propcap, antennae, snorkel, floaties, cape]) { m.visible = false; body.add(m); }
+  return { pirate, top, bow, pearls, patch, flower, tiara, glasses, hockey, bunny, skull, beanie, party, scarf, monocle, stache, propcap, antennae, snorkel, floaties, cape };
 }
 // pin each piece to the goo surface (it squashes and stretches) every frame
 const easeElastic = u => u <= 0 ? 0 : u >= 1 ? 1 : Math.pow(2, -10 * u) * Math.sin((u * 10 - 0.75) * 2.0944) + 1;
@@ -11456,12 +11532,12 @@ function placeWear(W, U, look, D, withFangs) {
   const t = clock + (D.cpu ? 1.9 * D.team : 0), off = !!D.wearOff || !!D.wearHid || (D.wearPop !== undefined && D.wearPop < 0);
   W.hat.visible = !off && look.head === 'hat'; W.halo.visible = !off && look.head === 'halo'; W.pirate.visible = !off && look.head === 'pirate'; W.top.visible = !off && look.head === 'tophat'; W.tiara.visible = !off && look.head === 'tiara'; W.bunny.visible = !off && look.head === 'bunny';
   W.bow.visible = !off && look.neck === 'bowtie'; W.pearls.visible = !off && look.neck === 'pearls'; W.patch.visible = false; W.flower.visible = !off && look.side === 'flower'; W.glasses.visible = !off && look.eye === 'glasses'; W.hockey.visible = !off && look.eye === 'hockey'; W.skull.visible = !off && look.head === 'skull';
-  W.beanie.visible = !off && look.head === 'beanie'; W.party.visible = !off && look.head === 'party'; W.scarf.visible = !off && look.neck === 'scarf'; W.monocle.visible = !off && look.eye === 'monocle'; W.stache.visible = !off && look.mouth === 'stache';
+  W.beanie.visible = !off && look.head === 'beanie'; W.party.visible = !off && look.head === 'party'; W.scarf.visible = !off && look.neck === 'scarf'; W.monocle.visible = !off && look.eye === 'monocle'; W.stache.visible = !off && look.mouth === 'stache'; W.propcap.visible = !off && look.head === 'propcap'; W.antennae.visible = !off && look.head === 'antennae'; W.snorkel.visible = !off && look.eye === 'snorkel'; W.floaties.visible = !off && look.arms === 'floaties'; W.cape.visible = !off && look.back === 'cape'; // (v302)
   for (const h of W.horns) h.visible = !off && look.head === 'horns';
   const rl = U.gRoll.value, wingK = clamp(1 - rl * 2.2, 0, 1); // a roller has no back to wear wings on: they shrink away as it forms
   for (const w of W.wings) w.visible = !off && look.back === 'wings' && wingK > 0.02;
   for (const f of W.fangs) f.visible = !off && withFangs && look.mouth === 'fangs';
-  if (!W.bs) { W.bs = new Map(); for (const o of [W.hat, W.halo, W.pirate, W.top, W.bow, W.pearls, W.patch, W.flower, W.tiara, W.glasses, W.hockey, W.bunny, W.skull, W.beanie, W.party, W.scarf, W.monocle, W.stache, ...W.horns, ...W.wings, ...W.fangs]) W.bs.set(o, o.scale.clone()); }
+  if (!W.bs) { W.bs = new Map(); for (const o of [W.hat, W.halo, W.pirate, W.top, W.bow, W.pearls, W.patch, W.flower, W.tiara, W.glasses, W.hockey, W.bunny, W.skull, W.beanie, W.party, W.scarf, W.monocle, W.stache, W.propcap, W.antennae, W.snorkel, ...W.horns, ...W.wings, ...W.fangs]) W.bs.set(o, o.scale.clone()); }
   const pu = D.wearPop !== undefined && D.wearPop < 0.6 ? clamp(D.wearPop / 0.6, 0, 1) : 1, pk = Math.max(0.001, easeElastic(pu)), S = wearSpring(W);
   for (const [o, bs] of W.bs) if (o.visible) o.scale.set(bs.x * pk, bs.y * pk, bs.z * pk);
   const dropIn = pu < 1 ? Math.pow(1 - Math.min(1, pu * 2.4), 2) * 0.9 : 0;
@@ -11471,10 +11547,15 @@ function placeWear(W, U, look, D, withFangs) {
     const CH = SI.kind === 'axo' ? AXOC : SLIME, hs = CH.headSize(SI) * 1.3; CH.headTop(SI, tv3, wearQ);
     for (const [o, F] of [[W.hat, HAT_FIT.witch], [W.pirate, HAT_FIT.pirate], [W.top, HAT_FIT.top], [W.tiara, HAT_FIT.tiara], [W.bunny, HAT_FIT.bunny], [W.skull, HAT_FIT.skull], [W.beanie, BEANIE_FIT], [W.party, PARTY_FIT]]) if (o.visible) { const fy = o === W.hat && !WEAR_A.witch ? (HI ? -0.27 : -0.2) : F.y;
       o.position.copy(tv3).add(tv1.set(0, (fy + dropIn + S.b * 0.22) * hs, 0)); o.quaternion.copy(wearQ).multiply(wearQ2.setFromEuler(wearE.set(F.rx + S.tx * 0.9, 0, F.rz + S.tz * 0.9))); o.scale.multiplyScalar(hs); o.scale.y *= 1 + S.b * 0.45; const w = 1 - S.b * 0.18; o.scale.x *= w; o.scale.z *= w; }
+    // (v302) the propeller cap and the antennae ride the head like the hats; the snorkel mask sits on the face; the floaties on the upper arms; the cape down the back
+    if (W.propcap.visible) { const F = PROPCAP_FIT; W.propcap.position.copy(tv3).add(tv1.set(0, (F.y + dropIn + S.b * 0.22) * hs, 0)); W.propcap.quaternion.copy(wearQ).multiply(wearQ2.setFromEuler(wearE.set(F.rx + S.tx * 0.9, 0, F.rz + S.tz * 0.9))); W.propcap.scale.multiplyScalar(hs);
+      const pr = W.propcap.userData.prop; pr.rotation.y = (pr.userData.a = (pr.userData.a || 0) + wearDt * (5 + Math.min(1, (D.spd || 0) / 5) * 16 + (D.air ? 8 : 0))); }
+    if (W.antennae.visible) { const F = ANTENNA_FIT; W.antennae.position.copy(tv3).add(tv1.set(0, (F.y + dropIn + S.b * 0.3) * hs, 0)); W.antennae.quaternion.copy(wearQ); W.antennae.scale.multiplyScalar(hs);
+      for (const a of W.antennae.userData.st) { const sd = Math.sign(a.scale.x); a.rotation.set(-0.12 + S.tx * 1.5 + Math.sin(t * 7.5 + sd) * 0.05, 0, -sd * (0.3 + Math.sin(t * 6.1 + sd * 2) * 0.05) + S.tz * 1.5); } }
     // on the face and the side of the head (the everyday slime only: the other forms have their own heads): the patch over its right eye,
     // the flower tucked in by its left ear (lower when a hat's brim is over it); and the bow tie under its chin
     const plain = SI.form === 'slime' && !SI.st.formNext, mk = CH.headSize(SI) / CH.headR0;
-    if (!plain) { W.patch.visible = W.flower.visible = W.bow.visible = W.pearls.visible = W.glasses.visible = W.hockey.visible = W.skull.visible = W.scarf.visible = W.monocle.visible = W.stache.visible = false; }
+    if (!plain) { W.patch.visible = W.flower.visible = W.bow.visible = W.pearls.visible = W.glasses.visible = W.hockey.visible = W.skull.visible = W.scarf.visible = W.monocle.visible = W.stache.visible = W.snorkel.visible = W.floaties.visible = W.cape.visible = false; }
     // painted on (every form): the lashes (none under the patch), the patch and its strap, the eyes' color
     if (SI.setLashes) { const k = !off ? Math.min(1, pu * 1.4) : 0, lk = look.lash === 'lashes' ? k : 0, pt = look.eye === 'patch' ? k : 0; SI.setLashes(lk, pt > 0 ? 0 : lk); SI.setPatch(pt); SI.setIris((EYE_COLS[look.iris] || EYE_COLS.brown).lin); if (SI.setEyeStyle) SI.setEyeStyle(EYE_STYLE_K[look.eyes] || 0); }
     if (W.monocle.visible || W.stache.visible) { CH.headTop(SI, wv1, wq1, 0); /* (on the face, from the head's centre: the monocle over the right eye, the mustache under the nose) */
@@ -11490,11 +11571,17 @@ function placeWear(W, U, look, D, withFangs) {
     if (W.bow.visible && CH.bodyPoint(SI, 0, -0.03, 0.835, wv1)) { W.bow.position.copy(wv1); W.bow.quaternion.setFromEuler(wearE.set(-0.12 + S.tx * 0.35, 0, Math.sin(t * 2.1) * 0.05 + S.tz * 0.5)).premultiply(SI.groups.slime.quaternion); W.bow.scale.multiplyScalar(mk * 0.4); }
     if (W.scarf.visible && CH.bodyPoint(SI, 0, -0.03, 0.835, wv1)) { W.scarf.position.copy(wv1).add(wv2.set(0, SCARF_FIT.y, SCARF_FIT.z).multiplyScalar(mk).applyQuaternion(wq1)); W.scarf.quaternion.setFromEuler(wearE.set(-0.12 + S.tx * 0.35, 0, Math.sin(t * 2.1) * 0.04 + S.tz * 0.5)).premultiply(SI.groups.slime.quaternion); W.scarf.scale.multiplyScalar(mk * SCARF_FIT.s); }
     if (W.pearls.visible && CH.bodyPoint(SI, 0, -0.03, 0.835, wv1)) { W.pearls.position.copy(wv1); W.pearls.quaternion.setFromEuler(wearE.set(-0.12 + S.tx * 0.35, 0, Math.sin(t * 2.1) * 0.04 + S.tz * 0.5)).premultiply(SI.groups.slime.quaternion); W.pearls.scale.multiplyScalar(mk * 0.4); }
+    if (W.snorkel.visible) { CH.headTop(SI, wv1, wq1, 0); W.snorkel.position.copy(wv1); W.snorkel.quaternion.copy(wq1).multiply(wearQ2.setFromEuler(wearE.set(S.tx * 0.2, 0, S.tz * 0.15))); W.snorkel.scale.multiplyScalar(mk); }
+    if ((W.floaties.visible || W.cape.visible) && CH.boneAt) {
+      if (W.floaties.visible) { const fa = W.floaties.userData.arm; for (let i = 0; i < 2; i++) { const f = fa[i], sd = i ? -1 : 1, a = CH.boneAt(SI, sd > 0 ? 'upperarm.L' : 'upperarm.R', wv1), b = CH.boneAt(SI, sd > 0 ? 'forearm.L' : 'forearm.R', wv2);
+        wv3.copy(b).sub(a).normalize(); f.position.copy(a).lerp(b, FLOAT_FIT.k); wv1.set(sd, 0, 0).addScaledVector(wv3, -sd * wv3.x).normalize(); wv2.crossVectors(wv1, wv3); _fM.makeBasis(wv1, wv3, wv2); f.quaternion.setFromRotationMatrix(_fM); f.scale.setScalar(pk * (1 + Math.sin(t * 3.1 + sd) * 0.025)); } } // (round the arm, its valve outward)
+      if (W.cape.visible) { const P4 = W.cape.userData.pts || (W.cape.userData.pts = [0, 1, 2, 3, 4].map(() => new THREE.Vector3())); CH.boneAt(SI, 'chest', P4[0]); CH.boneAt(SI, 'spine1', P4[1]); CH.boneAt(SI, 'spine', P4[2]); CH.boneAt(SI, 'hips', P4[3]); CH.boneAt(SI, 'tail1', P4[4]);
+        capeLay(W.cape.userData.geo, P4, t, D.spd || 0); W.cape.position.set(0, 0, 0); W.cape.quaternion.identity(); W.cape.userData.clasp.position.copy(P4[0]).add(wv1.set(0, 0.37, 0.02)); W.cape.userData.clasp.rotation.set(-1.2, 0, 0); } }
     if (W.halo.visible) { W.halo.position.copy(tv3).add(tv1.set(-S.tz * 0.45 * hs, (0.3 + Math.sin(t * 2.3) * 0.045 + S.b * 0.35 + dropIn) * hs, S.tx * 0.45 * hs)); W.halo.rotation.set(-0.18 + S.tx * 0.6, 0, Math.sin(t * 1.3) * 0.08 + S.tz * 0.6); W.halo.scale.multiplyScalar(hs); }
     return;
   }
   const fl = rl * (0.36 + Math.sin(t * 2.6) * 0.035); // on the roller, head pieces hover just over its top instead of sinking into it
-  W.patch.visible = W.flower.visible = W.bow.visible = W.pearls.visible = W.glasses.visible = W.hockey.visible = W.skull.visible = W.scarf.visible = W.monocle.visible = W.stache.visible = false;
+  W.patch.visible = W.flower.visible = W.bow.visible = W.pearls.visible = W.glasses.visible = W.hockey.visible = W.skull.visible = W.scarf.visible = W.monocle.visible = W.stache.visible = W.propcap.visible = W.antennae.visible = W.snorkel.visible = W.floaties.visible = W.cape.visible = false;
   for (const [o, F] of [[W.pirate, HAT_FIT.pirate], [W.top, HAT_FIT.top], [W.tiara, HAT_FIT.tiara], [W.bunny, HAT_FIT.bunny], [W.skull, HAT_FIT.skull], [W.beanie, BEANIE_FIT], [W.party, PARTY_FIT]]) if (o.visible) { o.position.copy(gooJS(tv2.set(0, 1, 0), U)).add(tv1.set(0, F.y * 0.8 + dropIn + fl + S.b * 0.22, 0)); o.rotation.set(F.rx * (1 - 0.8 * rl) + S.tx * 0.9, 0, F.rz * (1 - 0.8 * rl) + S.tz * 0.9); }
   if (W.hat.visible) { W.hat.position.copy(gooJS(tv2.set(0, 1, 0), U)).add(tv1.set(0.03 * (1 - rl), (HI ? -0.27 : -0.2) + dropIn + fl + S.b * 0.22, -0.03 * (1 - rl))); W.hat.rotation.set(-0.14 * (1 - 0.8 * rl) + S.tx * 0.9, 0, -0.16 * (1 - 0.8 * rl) + S.tz * 0.9); W.hat.scale.y *= 1 + S.b * 0.45; const w = 1 - S.b * 0.18; W.hat.scale.x *= w; W.hat.scale.z *= w; }
   if (W.halo.visible) { W.halo.position.copy(gooJS(tv2.set(0, 1, 0), U)).add(tv1.set(-S.tz * 0.45, 0.3 + Math.sin(t * 2.3) * 0.045 + S.b * 0.35, -0.02 + S.tx * 0.45)); W.halo.rotation.set(-0.18 + S.tx * 0.6, 0, Math.sin(t * 1.3) * 0.08 + S.tz * 0.6); }
@@ -17523,7 +17610,7 @@ function rollRivalLooks() { rollRivalCols(); teamTint = true; teamHues(); const 
 // in as on the customize screen, and is the whole look if the slime's models never arrive ----------
 const vOf = D => D === P ? VP : D.look && D.look.V;
 function attachSlime(V, W, color) {
-  const keep = new Set([V.rig, V.rk, V.tur, V.bat, ...(W ? [W.hat, W.halo, W.pirate, W.top, W.bow, W.pearls, W.patch, W.flower, W.tiara, W.glasses, W.hockey, W.bunny, W.skull, W.beanie, W.party, W.scarf, W.monocle, W.stache] : [])].filter(Boolean)), old = new THREE.Group();
+  const keep = new Set([V.rig, V.rk, V.tur, V.bat, ...(W ? [W.hat, W.halo, W.pirate, W.top, W.bow, W.pearls, W.patch, W.flower, W.tiara, W.glasses, W.hockey, W.bunny, W.skull, W.beanie, W.party, W.scarf, W.monocle, W.stache, W.propcap, W.antennae, W.snorkel, W.floaties, W.cape] : [])].filter(Boolean)), old = new THREE.Group();
   for (const o of V.body.children.slice()) if (!keep.has(o)) old.add(o); V.body.add(old); V.oldBlob = old;
   const I = (AXOC.S.ready ? AXOC : SLIME).make({ color }); I.root.visible = false; V.body.add(I.root); V.slime = I; V.body.userData.slime = I; return I;
 }
@@ -18930,7 +19017,7 @@ let colorId = 'red', menuReact = 0;
 // your look: color (above), eye shape, and this season's accessories: one on your head, one on your back, one in your mouth
 const EYES = [['round', 'Round'], ['googly', 'Googly'], ['sleepy', 'Sleepy'], ['angry', 'Angry'], ['happy', 'Happy'], ['cyclops', 'Cyclops']];
 const WEAR = [{ id: 'pirate', name: 'Pirate hat', slot: 'head', stage: 'island' }, { id: 'patch', name: 'Eye patch', slot: 'eye', stage: 'island' }, { id: 'flower', name: 'Flower', slot: 'side', stage: 'island' },
-  { id: 'tophat', name: 'Top hat', slot: 'head', stage: 'blank' }, { id: 'bowtie', name: 'Bow tie', slot: 'neck', stage: 'blank' }, { id: 'pearls', name: 'Pearl necklace', slot: 'neck', stage: 'blank' }, { id: 'tiara', name: 'Tiara', slot: 'head', stage: 'blank' }, { id: 'lashes', name: 'Lashes', slot: 'lash', stage: 'blank' }, { id: 'glasses', name: 'Glasses', slot: 'eye', stage: 'blank' }, { id: 'beanie', name: 'Beanie', slot: 'head', stage: 'blank' }, { id: 'party', name: 'Party hat', slot: 'head', stage: 'blank' }, { id: 'monocle', name: 'Monocle', slot: 'eye', stage: 'blank' }, { id: 'stache', name: 'Mustache', slot: 'mouth', stage: 'blank' }, { id: 'scarf', name: 'Scarf', slot: 'neck', stage: 'blank' },
+  { id: 'tophat', name: 'Top hat', slot: 'head', stage: 'blank' }, { id: 'bowtie', name: 'Bow tie', slot: 'neck', stage: 'blank' }, { id: 'pearls', name: 'Pearl necklace', slot: 'neck', stage: 'blank' }, { id: 'tiara', name: 'Tiara', slot: 'head', stage: 'blank' }, { id: 'lashes', name: 'Lashes', slot: 'lash', stage: 'blank' }, { id: 'glasses', name: 'Glasses', slot: 'eye', stage: 'blank' }, { id: 'beanie', name: 'Beanie', slot: 'head', stage: 'blank' }, { id: 'party', name: 'Party hat', slot: 'head', stage: 'blank' }, { id: 'monocle', name: 'Monocle', slot: 'eye', stage: 'blank' }, { id: 'stache', name: 'Mustache', slot: 'mouth', stage: 'blank' }, { id: 'scarf', name: 'Scarf', slot: 'neck', stage: 'blank' }, { id: 'antennae', name: 'Bouncy antennae', slot: 'head', stage: 'blank' }, { id: 'snorkel', name: 'Snorkel mask', slot: 'eye', stage: 'blank' }, { id: 'propcap', name: 'Propeller cap', slot: 'head', stage: 'blank' }, { id: 'floaties', name: 'Arm floaties', slot: 'arms', stage: 'blank' }, { id: 'cape', name: 'Hero cape', slot: 'back', stage: 'blank' },
   { id: 'hat', name: 'Witch hat', slot: 'head', season: 1, stage: 'halloween' }, { id: 'halo', name: 'Halo', slot: 'head', season: 1, stage: 'halloween' }, { id: 'fangs', name: 'Fangs', slot: 'mouth', season: 1, stage: 'halloween' }, { id: 'hockey', name: 'Hockey mask', slot: 'eye', season: 1, stage: 'halloween' }, { id: 'bunny', name: 'Bunny ears', slot: 'head', season: 1, stage: 'halloween' }, { id: 'skull', name: 'Skull bow', slot: 'head', season: 1, stage: 'halloween' }];
 const WEAR_WHERE = { island: 'Palette Island', blank: 'Blank Canvas', halloween: 'the Spooky SZN stages' };
 // the eyes' color: five to pick from (lin: the iris in the shader, css: on the picker and the basin's eyes)
@@ -18939,7 +19026,7 @@ const EYE_COLS = { brown: { name: 'Brown', lin: [0.16, 0.06, 0.035], css: '#8A56
 const EYE_KEYS = Object.keys(EYE_COLS);
 const EYE_STYLES = { round: 'Round', edgy: 'Aggressive', dot: 'Dot', sly: 'Sly', zombie: 'Zombie' }, EYE_STYLE_K = { round: 0, edgy: 1, dot: 2, zombie: 3, sly: 4 };
 const NO_IRIS = k => k === 'dot' || k === 'zombie'; // (styles whose iris color is fixed)
-const WEAR_CAT = { head: 'head', side: 'head', eye: 'face', lash: 'face', mouth: 'face', neck: 'cloth', back: 'cloth' };
+const WEAR_CAT = { head: 'head', side: 'head', eye: 'face', lash: 'face', mouth: 'face', neck: 'cloth', back: 'cloth', arms: 'cloth' };
 for (const w of WEAR) w.cat = WEAR_CAT[w.slot] || 'face';
 // things to find and buy that are not worn on the body: an eye style
 const EXTRA = [{ id: 'zombie', name: 'Zombie eyes', slot: 'eyes', cat: 'eyes', season: 1, stage: 'halloween' }, { id: 'sly', name: 'Sly eyes', slot: 'eyes', cat: 'eyes' }], ITEMS = WEAR.concat(EXTRA);
@@ -18958,8 +19045,8 @@ function eyeShowFace(E) {
 // what you've found so far (everything starts locked)
 const OWNED = new Set(Array.isArray(store.owned) ? store.owned.filter(id => ITEMS.some(w => w.id === id)) : []);
 // drops: paint earned at the end of a match. A found item goes on sale in the locker; it is worn once it is bought
-const PRICES = { sly: 545, flower: 145, pearls: 160, scarf: 180, bowtie: 185, stache: 195, beanie: 205, party: 240, monocle: 290, lashes: 220, glasses: 270, patch: 330, fangs: 400, tiara: 475, tophat: 580, bunny: 645, pirate: 695, hockey: 765, skull: 835, halo: 850, zombie: 975, hat: 1105 };
-const OUTRIGHT = new Set(['flower', 'lashes', 'bowtie', 'pearls', 'beanie', 'party', 'monocle', 'stache', 'scarf']), needFind = w => !OUTRIGHT.has(w.id) && (!!w.season || w.slot === 'head'); // (in stock from the start: nothing to find, only dabs to pay) // (what has to be found on a canvas before it is for sale)
+const PRICES = { sly: 545, flower: 145, pearls: 160, scarf: 180, bowtie: 185, stache: 195, beanie: 205, party: 240, monocle: 290, lashes: 220, glasses: 270, patch: 330, fangs: 400, tiara: 475, tophat: 580, bunny: 645, pirate: 695, hockey: 765, skull: 835, halo: 850, zombie: 975, hat: 1105, antennae: 195, floaties: 245, snorkel: 295, propcap: 345, cape: 480 }; // (v302: the five new everyday pieces; see docs/wearables-v302.md)
+const OUTRIGHT = new Set(['flower', 'lashes', 'bowtie', 'pearls', 'beanie', 'party', 'monocle', 'stache', 'scarf', 'antennae', 'snorkel', 'propcap', 'floaties', 'cape']), needFind = w => !OUTRIGHT.has(w.id) && (!!w.season || w.slot === 'head'); // (in stock from the start: nothing to find, only dabs to pay) // (what has to be found on a canvas before it is for sale)
 const PRICE = w => { const t = store.tut && store.tut.price; if (t && t[w.id] >= 0) return t[w.id]; if (w.id === 'zombie' && store.zombieDeal && !BOUGHT.has('zombie')) return Math.max(1, Math.floor((store.drops || 0) * 0.7)); /* (the first find of the season: always within reach) */ return PRICES[w.id] || (w.season ? 850 : w.slot === 'head' ? 510 : 255); }; // (the lesson sets the flower's and the fangs' prices)
 const BOUGHT = new Set(Array.isArray(store.bought) ? store.bought.filter(id => OWNED.has(id)) : [...OWNED]);
 if (!Array.isArray(store.bought)) { store.bought = [...BOUGHT]; }
@@ -18970,7 +19057,7 @@ function showDrops() { const n = store.drops || 0; if ($('statDrops')) $('statDr
 const owns = id => OWNED.has(id);
 function unlockItem(id) { if (OWNED.has(id)) return false; OWNED.add(id); store.owned = [...OWNED]; store.fresh = [...new Set([...(store.fresh || []), id])]; store.seen = store.seen || {}; store.seen.look = 0; save(); $('lookBtn').classList.add('hot'); return true; }
 if (typeof store.itemIn !== 'number') store.itemIn = 4 + Math.floor(Math.random() * 5); // matches to go before the next item can turn up
-const myLook = (() => { const l = Object.assign({}, store.look || {}); if (l.head && l.side) l.side = null; const ok = (v, slot) => WEAR.some(w => w.id === v && w.slot === slot) && BOUGHT.has(v) ? v : null; return { eyes: EYE_STYLES[l.eyes] ? l.eyes : 'round', head: ok(l.head, 'head'), back: ok(l.back, 'back'), mouth: ok(l.mouth, 'mouth'), eye: ok(l.eye, 'eye'), side: ok(l.side, 'side'), neck: ok(l.neck, 'neck'), lash: ok(l.lash, 'lash'), iris: ['brown', 'blue', 'green', 'violet', 'gold'].includes(l.iris) ? l.iris : 'brown' }; })();
+const myLook = (() => { const l = Object.assign({}, store.look || {}); if (l.head && l.side) l.side = null; const ok = (v, slot) => WEAR.some(w => w.id === v && w.slot === slot) && BOUGHT.has(v) ? v : null; return { eyes: EYE_STYLES[l.eyes] ? l.eyes : 'round', head: ok(l.head, 'head'), back: ok(l.back, 'back'), mouth: ok(l.mouth, 'mouth'), eye: ok(l.eye, 'eye'), side: ok(l.side, 'side'), neck: ok(l.neck, 'neck'), lash: ok(l.lash, 'lash'), arms: ok(l.arms, 'arms'), iris: ['brown', 'blue', 'green', 'violet', 'gold'].includes(l.iris) ? l.iris : 'brown' }; })();
 const colorOf = () => PALETTE.find(p => p.id === colorId) || PALETTE[0];
 function setColor(id) {
   const c = PALETTE.find(p => p.id === id) || PALETTE[0], css = '#' + c.hex.toString(16).padStart(6, '0').toUpperCase(); colorId = c.id;
@@ -19664,6 +19751,11 @@ const EYE_ICON = {
   cyclops: '<circle cx="20" cy="20" r="11" fill="#fff" stroke="#1A1030" stroke-width="2"/><circle cx="21" cy="21.5" r="5.2" fill="#1A1030"/><circle cx="23" cy="19" r="1.6" fill="#fff"/>',
 };
 const WEAR_ICON = {
+  antennae: '<path d="M15 30c-1-8-3-13-7-17M25 30c1-8 3-13 7-17" fill="none" stroke="#231A2B" stroke-width="2.6" stroke-linecap="round"/><circle cx="8" cy="11" r="4.6" fill="#FF5DA2" stroke="#D9C8FF" stroke-width="1.4"/><circle cx="32" cy="11" r="4.6" fill="#FF5DA2" stroke="#D9C8FF" stroke-width="1.4"/>',
+  snorkel: '<rect x="5" y="15" width="13" height="10" rx="5" fill="#BFE6FF" stroke="#FFC93C" stroke-width="2.6"/><rect x="20" y="15" width="13" height="10" rx="5" fill="#BFE6FF" stroke="#FFC93C" stroke-width="2.6"/><path d="M35 30V6" stroke="#FF7A1A" stroke-width="3.4" stroke-linecap="round"/>',
+  propcap: '<path d="M7 28c0-8 6-13 13-13s13 5 13 13z" fill="#E63946" stroke="#D9C8FF" stroke-width="1.4"/><path d="M16 15.6L18 28h4l2-12.4" fill="#FFD23F"/><path d="M20 15v-5" stroke="#E8E2F2" stroke-width="2"/><path d="M10 9h20" stroke="#E63946" stroke-width="3.4" stroke-linecap="round"/><path d="M27 28h9" stroke="#3A86FF" stroke-width="3.4" stroke-linecap="round"/>',
+  floaties: '<g fill="#FF8A1F" stroke="#D9C8FF" stroke-width="1.4"><ellipse cx="11" cy="16" rx="7.5" ry="5"/><ellipse cx="11" cy="24" rx="7.5" ry="5"/><ellipse cx="29" cy="16" rx="7.5" ry="5"/><ellipse cx="29" cy="24" rx="7.5" ry="5"/></g><path d="M8 20h6M26 20h6" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="17" cy="15" r="1.6" fill="#fff"/><circle cx="35" cy="15" r="1.6" fill="#fff"/>',
+  cape: '<path d="M12 8h16l6 26c-5 2-23 2-28 0z" fill="#D62839" stroke="#D9C8FF" stroke-width="1.4" stroke-linejoin="round"/><circle cx="20" cy="9" r="3" fill="#E8C25A"/>',
   beanie: '<path d="M8 25c0-9 5.5-15 12-15s12 6 12 15z" fill="#2A9D8F" stroke="#D9C8FF" stroke-width="1.6" stroke-linejoin="round"/><rect x="6.5" y="23.5" width="27" height="6.5" rx="3" fill="#F6EBD7" stroke="#D9C8FF" stroke-width="1.6"/><circle cx="20" cy="8.5" r="3.6" fill="#F6EBD7" stroke="#D9C8FF" stroke-width="1.6"/>',
   party: '<path d="M20 5l11 27H9z" fill="#FF5A8A" stroke="#D9C8FF" stroke-width="1.6" stroke-linejoin="round"/><path d="M12.8 22.5h14.4l2.6 6.5H10.2zM16.6 13h6.8l1.8 4.5h-10.4z" fill="#FFE066"/><circle cx="20" cy="5.5" r="2.8" fill="#F6EBD7" stroke="#D9C8FF" stroke-width="1.4"/>',
   monocle: '<circle cx="18" cy="16" r="8.5" fill="#BFE6FF" fill-opacity=".35" stroke="#E8C25A" stroke-width="2.6"/><path d="M24.5 21.5c3 3 4.5 7 5.5 11" fill="none" stroke="#E8C25A" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="1.5 2"/>',
@@ -19731,7 +19823,7 @@ const SHOP_CATS = [['season', 'Season One · <em class="hw">Spooky SZN</em>'], [
 function shopNote(t, bad) { const el = $('shopNote'); el.textContent = t; el.classList.toggle('bad', !!bad); restartCls(el, 'on'); clearTimeout(shopNoteT); shopNoteT = setTimeout(() => el.classList.remove('on'), 3200); }
 // each item as it looks on you: your blob wearing it, rendered once and kept (again if your paint changes)
 const shopPics = new Map(); let shopPicKey = '', picRT = null, picScene = null, picCam = null;
-const PIC_SRC = { pirate: () => pWear.pirate, tophat: () => pWear.top, bowtie: () => pWear.bow, pearls: () => pWear.pearls, patch: () => pWear.patch, flower: () => pWear.flower, tiara: () => pWear.tiara, glasses: () => pWear.glasses, hockey: () => pWear.hockey, bunny: () => pWear.bunny, skull: () => pWear.skull, hat: () => pWear.hat, halo: () => pWear.halo, beanie: () => pWear.beanie, party: () => pWear.party, scarf: () => pWear.scarf, monocle: () => pWear.monocle, stache: () => pWear.stache }; // (fangs, lashes and the zombie eyes keep their drawn icons: white teeth on a pale card say nothing)
+const PIC_SRC = { pirate: () => pWear.pirate, tophat: () => pWear.top, bowtie: () => pWear.bow, pearls: () => pWear.pearls, patch: () => pWear.patch, flower: () => pWear.flower, tiara: () => pWear.tiara, glasses: () => pWear.glasses, hockey: () => pWear.hockey, bunny: () => pWear.bunny, skull: () => pWear.skull, hat: () => pWear.hat, halo: () => pWear.halo, beanie: () => pWear.beanie, party: () => pWear.party, scarf: () => pWear.scarf, monocle: () => pWear.monocle, stache: () => pWear.stache, propcap: () => pWear.propcap, antennae: () => pWear.antennae, snorkel: () => pWear.snorkel, floaties: () => pWear.floaties.userData.pic || (pWear.floaties.userData.pic = (() => { const g = new THREE.Group(); for (const sd of [-1, 1]) { const f = simplePiece(floatParts, FLOAT_FIT.s); f.position.x = sd * 0.42; f.rotation.set(0.5, 0, sd * 0.3); g.add(f); } return g; })()), cape: () => pWear.cape.userData.pic || (pWear.cape.userData.pic = (() => { const g = new THREE.Group(), r = new THREE.Group(), cg = capeGeo(); capeLay(cg, CAPE_REST, 1.2, 2.5); r.add(new THREE.Mesh(cg, capeMat), new THREE.Mesh(cg, capeLining)); r.rotation.set(-1.2, Math.PI, 0, 'YXZ'); g.add(r); return g; })()) }; // (fangs, lashes and the zombie eyes keep their drawn icons: white teeth on a pale card say nothing)
 function itemPic(w) {
   const src = PIC_SRC[w.id]; if (!src || typeof pWear === 'undefined') return '';
   const S = 320; if (!picRT) { picRT = new THREE.WebGLRenderTarget(S, S, { colorSpace: THREE.SRGBColorSpace }); picScene = new THREE.Scene(); picCam = new THREE.PerspectiveCamera(28, 1, 0.01, 100);
