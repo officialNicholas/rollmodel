@@ -64,9 +64,9 @@ export class Room {
   }
   view() {
     return { t: 'room', code: this.code, mode: this.mode, host: this.host, need: this.need, inMatch: !!this.match,
-      players: this.members.map(s => ({ id: s.player.id, name: s.player.name, look: s.player.look, ready: !!this.ready.get(s.player.id) })) };
+      players: this.members.map(s => ({ id: s.roomPid, name: s.roomName, look: s.roomLook, ready: !!this.ready.get(s.roomPid), away: !!s.closed || undefined })) };
   }
-  allReady() { return this.members.length === this.need && this.members.every(s => this.ready.get(s.player.id)); }
+  allReady() { return this.members.length === this.need && this.members.every(s => !s.closed && this.ready.get(s.roomPid)); }
 }
 
 export function uniqueCode(taken) { for (let i = 0; i < 50; i++) { const c = roomCode(); if (!taken.has(c)) return c; } throw new Error('no free room code'); }

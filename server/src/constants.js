@@ -42,6 +42,7 @@ export const DEFAULT_RULES = Object.freeze({
   slamFirst: G.SLAM_FIRST, slamCd: G.SLAM_CD,
   layoutTimeout: 15, reconnectWindow: 20, afkWarn: 5, afkForfeit: 15, idleForfeit: 40,
   rematchWindow: 30, endLinger: 0, // (the game's tally and winner screen take about ten seconds before the buttons show)
+  roomGrace: 60, // a private room keeps a dropped player's place this long (say a phone that went to another app to send the code)
   weather: true, items: true, zone: true,
   itemFirst: [6, 9], itemEvery: [9, 13], // seconds: when the first pick-up appears, and the gap between them
   // The spec says a player hidden in a pot is safe from a pound. The current single-player game knocks them out instead

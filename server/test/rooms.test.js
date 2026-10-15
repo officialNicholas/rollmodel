@@ -77,3 +77,39 @@ test('ratings: the winner of a queue match gains, the loser drops, and it is sav
     const w2 = await W.net.connect(); assert.equal(w2.ratings.duel.r, rw.rating.after);
   } finally { W.close(); L.close(); await srv.close(); }
 });
+
+test('a room keeps a dropped player\'s place for a while: the code still works and they come back into it', async () => {
+  const srv = await startServer({ matchT: 3, rematchWindow: 1, roomGrace: 1.5 });
+  const [H, G] = makeBots(srv, 2, { behavior: 'wander', prefix: 'grace' });
+  let H2 = null;
+  try {
+    await Promise.all([H, G].map(b => b.connect()));
+    const code = await H.net.createRoom('duel');
+    // the host's phone drops (it went to another app to send the code)
+    H.close(); await sleep(150);
+    assert.ok(srv.rooms.get(code), 'the room is still there');
+    // the friend joins meanwhile, and sees the host is away
+    const joined = await G.net.joinRoom(code);
+    assert.equal(joined.players.length, 2); assert.equal(joined.players.find(p => p.id === H.id).away, true);
+    // the host comes back on a new connection (same device token): back in the room, and joining it again is fine
+    H2 = new (H.constructor)(Object.assign({}, H.o, { token: H.token, name: 'grace1' }));
+    const back = H2.wait('room', m => m.code === code, 5000);
+    await H2.connect(); const r = await back;
+    assert.equal(r.players.length, 2); assert.ok(!r.players.some(p => p.away), 'nobody away now');
+    assert.equal((await H2.net.joinRoom(code)).code, code, 'rejoining a room you are back in is not an error');
+    const found = Promise.all([H2, G].map(b => b.wait('matchFound')));
+    H2.net.ready(true); G.net.ready(true);
+    const f = await found; assert.equal(f[0].room, code);
+    await H2.wait('matchEnd', () => true, 15000);
+  } finally { for (const b of [H, G, H2]) if (b) b.close(); await srv.close(); }
+  // and when nobody comes back in time, the room goes
+  const srv2 = await startServer({ roomGrace: 0.5 });
+  const [A, B] = makeBots(srv2, 2, { behavior: 'still', prefix: 'gone' });
+  try {
+    await Promise.all([A, B].map(b => b.connect()));
+    const code = await A.net.createRoom('duel');
+    A.close(); await sleep(900);
+    assert.equal(srv2.rooms.has(code), false, 'gone after the grace');
+    await assert.rejects(B.net.joinRoom(code), e => e.code === 'not_found');
+  } finally { A.close(); B.close(); await srv2.close(); }
+});

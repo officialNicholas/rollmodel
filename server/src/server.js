@@ -15,6 +15,9 @@ import { performance } from 'node:perf_hooks';
 const CLOSE = { NORMAL: 1000, AWAY: 1001, VERSION: 4000, REPLACED: 4001, KICKED: 4003, HELLO: 4004, POLICY: 4008 };
 const JSON_TYPES = new Set(['hello', 'queue', 'cancelQueue', 'createRoom', 'joinRoom', 'leaveRoom', 'ready', 'setName', 'layout', 'act', 'rematch', 'leaveMatch', 'bye']);
 
+// a room member: who they are, kept on the connection (a dropped one keeps its place for a while)
+const roomMember = sess => Object.assign(sess, { roomPid: sess.player.id, roomName: sess.player.name, roomLook: sess.player.look });
+
 export class GameServer {
   // opts: { port, host, store, dataFile, log, logLevel, rules, allowedOrigins, maxConnections, maxPerIp, trustProxy, shutdownGraceMs }
   constructor(opts = {}) {
@@ -23,6 +26,7 @@ export class GameServer {
     this.rules = Object.assign({}, DEFAULT_RULES, opts.rules || {});
     this.store = opts.store || (opts.dataFile && opts.dataFile !== 'memory' ? new JsonFileStore(opts.dataFile) : new MemoryStore());
     this.sessions = new Set(); this.online = new Map(); this.inMatch = new Map(); this.matches = new Set(); this.rooms = new Map();
+    this.roomAway = new Map(); // player id -> the dropped connection whose place in a room is being kept
     this.mm = new Matchmaker(); this.perIp = new Map(); this.connSeq = 0; this.closing = false;
     this.stats = { connections: 0, messages: 0, violations: 0, kicked: 0, matchesStarted: 0, matchesEnded: 0, matchesCancelled: 0, bytesOut: 0, framesOut: 0 };
     this.tickTimes = new Window(8192); this.tickCpu = new Window(8192); this.startedAt = nowMs(); this._timer = null; this._nextTick = 0; this._lastMM = 0; this._lastPing = 0;
@@ -104,7 +108,7 @@ export class GameServer {
     if (this.online.get(sess.player.id) === sess) this.online.delete(sess.player.id);
     this.mm.remove(sess);
     if (sess.match) { const p = sess.match.playerById(sess.player.id); if (p && p.sess === sess) sess.match.onDisconnect(p); }
-    else if (sess.room) this._leaveRoom(sess, true);
+    else if (sess.room) this._roomAway(sess);
     sess.ws = null;
   }
   _close(sess, code, reason) { try { if (sess.ws) sess.ws.close(code, reason); } catch (e) { /* already closed */ } }
@@ -211,7 +215,7 @@ export class GameServer {
       const old = this.online.get(player.id);
       if (old && old !== sess) {
         this.sendJson(old, { t: 'kicked', reason: 'replaced' });
-        this.mm.remove(old); if (old.room) this._leaveRoom(old, true);
+        this.mm.remove(old); if (old.room) this._roomAway(old); // (its place in a room goes to the new connection, below)
         if (old.match) { const op = old.match.playerById(player.id); if (op && op.sess === old) old.match.onDisconnect(op); old.match = null; }
         this.online.delete(player.id); old.player = null; this._close(old, CLOSE.REPLACED, 'replaced');
       }
@@ -220,6 +224,7 @@ export class GameServer {
       const ratings = Object.fromEntries(Object.entries(player.ratings).map(([k, v]) => [k, { r: Math.round(v.r), rd: Math.round(v.rd), games: v.games }]));
       this.sendJson(sess, { t: 'welcome', id: player.id, token, name: player.name, nameChanged: nm.changed || undefined, ratings, serverTime: nowMs(), proto: PROTOCOL_VERSION, resume: match && match.active ? match.id : null, modes: Object.keys(MODE_INFO) });
       if (match && match.active) { const p = match.playerById(player.id); if (p && p.st !== 'left') { sess.match = match; sess.slot = p.slot; match.onReconnect(p, sess); } else this.inMatch.delete(player.id); }
+      if (!sess.match) this._roomBack(sess);
     } catch (e) {
       this.log.error('hello failed', { err: e.stack || e.message }); this.sendError(sess, 'server', 'could not sign in', m.r, true); this._close(sess, CLOSE.KICKED, 'server error');
     } finally {
@@ -241,11 +246,12 @@ export class GameServer {
         if (!MODE_INFO[m.mode]) return this.sendError(sess, 'bad_mode', 'unknown mode', m.r);
         if (sess.match || sess.room) return this.sendError(sess, 'busy', 'already in a match or room', m.r);
         this.mm.remove(sess);
-        const room = new Room(m.mode, sess); room.code = uniqueCode(this.rooms); room.members.push(sess); this.rooms.set(room.code, room); sess.room = room;
+        const room = new Room(m.mode, sess); room.code = uniqueCode(this.rooms); room.members.push(roomMember(sess)); this.rooms.set(room.code, room); sess.room = room;
         this.sendJson(sess, Object.assign(room.view(), { r: m.r })); return;
       }
       case 'joinRoom': {
         const code = typeof m.code === 'string' ? m.code.toUpperCase().trim() : '';
+        if (sess.room && sess.room.code === code && !sess.match) return this.sendJson(sess, Object.assign(sess.room.view(), { r: m.r })); // (already back in it)
         if (sess.match || sess.room) return this.sendError(sess, 'busy', 'already in a match or room', m.r);
         const room = /^[A-Z0-9]{5}$/.test(code) ? this.rooms.get(code) : null;
         if (!room) {
@@ -254,7 +260,7 @@ export class GameServer {
         }
         if (room.members.length >= room.need) return this.sendError(sess, 'full', 'that room is full', m.r);
         if (room.match) return this.sendError(sess, 'busy', 'that room is playing', m.r);
-        this.mm.remove(sess); room.members.push(sess); room.ready.set(sess.player.id, false); sess.room = room;
+        this.mm.remove(sess); room.members.push(roomMember(sess)); room.ready.set(sess.player.id, false); sess.room = room;
         for (const s of room.members) this.sendJson(s, Object.assign(room.view(), s === sess ? { r: m.r } : {}));
         return;
       }
@@ -294,11 +300,29 @@ export class GameServer {
       case 'bye': this.mm.remove(sess); return;
     }
   }
-  _leaveRoom(sess, silent) {
+  _leaveRoom(sess, silent, pid = sess.player && sess.player.id) {
     const room = sess.room; if (!room) return;
-    room.members = room.members.filter(s => s !== sess); room.ready.delete(sess.player.id); sess.room = null;
+    room.members = room.members.filter(s => s !== sess); room.ready.delete(pid); sess.room = null;
+    if (this.roomAway.get(pid) === sess) { this.roomAway.delete(pid); clearTimeout(sess.awayTimer); }
     if (!room.members.length) { this.rooms.delete(room.code); return; }
-    if (room.host === sess.player.id) room.host = room.members[0].player.id;
+    if (room.host === pid) room.host = room.members[0].roomPid;
+    for (const s of room.members) this.sendJson(s, room.view());
+  }
+  // A member's connection dropped (say a phone that went to another app to send the room code): their place is kept for
+  // roomGrace seconds, so the code still works and they come back into the room when they reconnect.
+  _roomAway(sess) {
+    const room = sess.room, pid = sess.player && sess.player.id; if (!room || !pid) return;
+    if (room.match) return this._leaveRoom(sess, true, pid); // (a room that's playing: the match keeps their place)
+    room.ready.set(pid, false); sess.roomAwayAt = nowMs(); this.roomAway.set(pid, sess);
+    clearTimeout(sess.awayTimer); sess.awayTimer = setTimeout(() => { if (sess.room === room) this._leaveRoom(sess, true, pid); }, (this.rules.roomGrace ?? 60) * 1000);
+    for (const s of room.members) this.sendJson(s, room.view());
+  }
+  _roomBack(sess) {
+    const pid = sess.player.id, old = this.roomAway.get(pid); if (!old) return;
+    this.roomAway.delete(pid); clearTimeout(old.awayTimer);
+    const room = old.room, i = room ? room.members.indexOf(old) : -1;
+    if (i < 0 || this.rooms.get(room.code) !== room || room.match) return;
+    room.members[i] = roomMember(sess); sess.room = room; old.room = null; room.ready.set(pid, false); this.mm.remove(sess);
     for (const s of room.members) this.sendJson(s, room.view());
   }
 
@@ -327,7 +351,7 @@ export class GameServer {
       if (cancelled && !match.room && p.st !== 'left' && !culprits.includes(p.id) && !this.closing) { this.mm.add(sess, match.mode, p.queuedAt || now); this.sendJson(sess, { t: 'queued', mode: match.mode, requeued: true }); }
     }
     if (match.room) {
-      const room = match.room; room.match = null; room.ready = new Map(room.members.map(s => [s.player.id, false]));
+      const room = match.room; room.match = null; room.ready = new Map(room.members.map(s => [s.roomPid, false]));
       room.members = room.members.filter(s => !s.closed);
       if (!room.members.length) this.rooms.delete(room.code); else for (const s of room.members) this.sendJson(s, room.view());
     }
