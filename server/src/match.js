@@ -367,8 +367,16 @@ export class Match {
     const saved = p.effects.slam === true; // a saved slam (pick-up): no wait, no paint, a bigger circle
     if (saved) p.effects.slam = false;
     else {
-      if (p.slamCd > 0.2) return 'cooldown';
-      if (p.paint < G.POUND_MIN - 0.01) return 'no_paint';
+      const no = p.slamCd > 0.2 ? 'cooldown' : p.paint < G.POUND_MIN - 0.01 ? 'no_paint' : null;
+      if (no) {
+        // refused: it does nothing to anyone, but the phone has already gone up into it, so that height is let through
+        // and the player isn't put back for it (at most once every 400 ms)
+        if (p.st === 'play' && !(p.bounceAt > ts - 400)) {
+          const at = sampleHist(p.vhist, ts) || { grounded: !p.mover.airborne }, air = !at.grounded;
+          p.bounceAt = ts; if (air && p.flingOpen && p.flingC > 0.15 && ts - p.flingAt < 3000) p.mover.onMissile(ts); else p.mover.onPound(ts, air);
+        }
+        return no;
+      }
       if ((p.effects.giant || 0) <= ts) p.paint -= Math.min(G.SLAM_COST, p.paint - 0.08);
       p.slamCd = this.rules.slamCd;
     }
@@ -694,6 +702,9 @@ export class Match {
     for (const p of this.P) this._send(p, Object.assign({ t: 'matchEnd', rematchUntil: this.rematchUntil }, this.results));
     this.log.info('match ended', { reason, winner, cov: sideCov.map(r2) });
     this.srv.onMatchEnd(this, ratings);
+    // a player who left won't play again: no rematch to wait for
+    for (const p of this.P) if (p.st === 'left') p.rematch = false;
+    this._rematchCheck();
   }
   // a side's versus score, as the game counts it: its coverage in whole percent, plus koPct for each knock-out
   _score(side, sideCov) { let kos = 0; for (const p of this.P) if (p.side === side) kos += p.kos; return Math.round(sideCov[side] || 0) + this.rules.koPct * kos; }

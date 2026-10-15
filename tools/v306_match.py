@@ -75,6 +75,7 @@ function netWire(net) {
   on('correction', netCorrect); on('ko', netKo); on('respawn', netRespawn); on('flat', netFlat); on('push', netPush); on('dodged', netDodged);
   on('pot', netPot); on('potEject', netEject); on('act', netFoeAct); on('resume', netResume);
   on('coverage', m => { NM.cov = [+(m.sides || [])[NM.side] || 0, +(m.sides || [])[NM.foeSide] || 0]; });
+  on('snapshot', s => { const me = (s.players || []).find(q => q.slot === NM.slot); if (me) NM.srvPaint = me.paint; }); // (the referee's paint meter, for the pound)
   on('overtime', m => { NM.endAt = m.endAt; if (state === 'play') { banner('Overtime!', (m.secs | 0) + ' more seconds', true); AU.horn(); buzz([30, 40, 30]); lastCount = 99; } });
   on('matchEnd', netEnd); on('matchCancelled', netCancelled); on('matchClosed', netClosed); on('rematch', netVotes);
   on('playerAway', m => { if (m.slot === NM.foe && state === 'play') popText(nameOf(H) + ' lost connection'); });
@@ -311,6 +312,8 @@ def apply(s):
     s = rep(s, "  if (dt > 0) { const n = Math.ceil(dt / 0.012); for (let i = 0; i < n; i++) step(dt / n); }\n",
                "  if (dt > 0) { const n = Math.ceil(dt / 0.012); for (let i = 0; i < n; i++) { if (NM) netAhead = dt * (n - i) / n; step(dt / n); } netAhead = 0; }\n  if (NM) netFrame();\n")
     s = rep(s, "function goTime() {\n  showCount('Go!', true);", "function goTime() {\n  if (NM && NM.phase === 'end') return; // (v306: the server ended it while this phone was still in the intro)\n  showCount('Go!', true);")
+    s = rep(s, "const slamReady = D => D.slamCD <= 0 && D.paint >= POUND_MIN && !D.slam && (canAct(D) || D.st === 'hide');",
+               "const slamReady = D => D.slamCD <= 0 && D.paint >= POUND_MIN && !D.slam && (canAct(D) || D.st === 'hide') && !(NM && D === P && NM.srvPaint !== undefined && NM.srvPaint < POUND_MIN - 0.005);")
     s = rep(s, "function kcamStart(V) {\n  if (kcamUsed ||", "function kcamStart(V) {\n  if (NM || kcamUsed ||")
     # ---- your blob: its moves go to the referee; a knock-out, a respawn or a flattening only when the server says
     s = rep(s, "if (D.koT <= 0) { if (D.rag) ragEnd(D); if (D.elimNow) sdOut(D); else respawnBlob(D); } return; }",

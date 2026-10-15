@@ -45,8 +45,10 @@ test('speed hack: corrected every time, then kicked and flagged; the honest play
     metric('cheat.speedhack.kickedAfter', Date.now() - t0, 'ms', 'a 1.6x speed hack: corrected each time, kicked after this long');
     assert.ok(c.A.stats.corrections >= 3, 'corrected first (' + c.A.stats.corrections + ')');
     assert.ok(c.A.events.every(e => e[1] === 'speed'));
+    const closed = c.B.wait('matchClosed', () => true, 5000);
     const e = await end; assert.equal(e.reason, 'forfeit'); assert.equal(e.winner, c.pb.side);
-    assert.equal(e.results.find(r => r.slot === c.A.slot).left, true);
+    assert.equal((await closed).reason, 'rematch_declined', 'no rematch to wait for with a player who left');
+    assert.equal(e.results.find(r => r.slot === c.pa.slot).left, true);
     await sleep(50); const rec = await c.srv.store.get(c.A.id); assert.ok(rec.flags.some(f => f.reason === 'cheating'));
   } finally { await c.close(); }
 });
