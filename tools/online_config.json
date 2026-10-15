@@ -1,0 +1,5 @@
+{
+  "_about": "Online settings baked into the game build (tools/v305_friends.py). Both values are public by design: the project's address and its publishable (anon) key. Leave them empty to build with online play off.",
+  "supabase_url": "",
+  "supabase_key": ""
+}

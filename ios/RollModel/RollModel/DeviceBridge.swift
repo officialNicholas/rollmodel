@@ -2,8 +2,8 @@ import UIKit
 import WebKit
 
 /// Tells the game what it is running on, so it can pick its graphics level on its own: the chip generation, the memory,
-/// Low Power Mode and how warm the phone is running. It keeps the game told when those change, and lets the game keep
-/// the screen awake during a match.
+/// Low Power Mode and how warm the phone is running. It keeps the game told when those change, lets the game keep
+/// the screen awake during a match, and opens the share sheet for the game (a friend code).
 ///
 /// The game reads this as window.__NATIVE (set before its own script runs) and listens for a "nativechange" event.
 /// Any other shell (an Android one later) only has to provide the same two things.
@@ -30,7 +30,8 @@ final class DeviceBridge: NSObject, WKScriptMessageHandler {
             "lowPower": info.isLowPowerModeEnabled,
             "thermal": info.thermalState.rawValue,
             "maxFPS": UIScreen.main.maximumFramesPerSecond,
-            "scale": Double(UIScreen.main.scale)
+            "scale": Double(UIScreen.main.scale),
+            "share": true
         ]
     }
 
@@ -89,6 +90,24 @@ final class DeviceBridge: NSObject, WKScriptMessageHandler {
             // The screen stays on while a match is being played, and sleeps as usual everywhere else.
             UIApplication.shared.isIdleTimerDisabled = awake
         }
+        if let text = body["share"] as? String, !text.isEmpty, text.count <= 300 {
+            share(text)
+        }
+    }
+
+    /// The system share sheet (Messages, AirDrop, Copy...) for a line of text from the game: your friend code.
+    private func share(_ text: String) {
+        guard let view = webView, let root = view.window?.rootViewController else { return }
+        var host = root
+        while let shown = host.presentedViewController, !shown.isBeingDismissed { host = shown }
+        if host is UIActivityViewController { return } // (one open at a time)
+        let sheet = UIActivityViewController(activityItems: [text], applicationActivities: nil)
+        if let pop = sheet.popoverPresentationController { // (an iPad shows it as a popover, from the middle of the screen)
+            pop.sourceView = view
+            pop.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 1, height: 1)
+            pop.permittedArrowDirections = []
+        }
+        host.present(sheet, animated: true)
     }
 }
 

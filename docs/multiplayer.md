@@ -319,6 +319,9 @@ player, 30 a second), PONG (17 bytes) and SPING (9 bytes). The exact byte layout
 4. **Accounts.** Today a player is a device token: lose the phone or reinstall, lose the rating. Before ranked play
    matters, link it to a real account: Sign in with Apple (required by the App Store if any other sign-in is offered)
    and possibly Game Center. That needs an Apple developer setup and server-side token checks.
+   Since v305 every player also has a Supabase account for friends (anonymous at first; see `supabase/README.md`). The
+   next step is for the game server to accept that account's token in `hello` in place of its own device token, so
+   ratings, friends and invites to private rooms all hang off one identity.
 5. **Privacy policy and terms.** Online play stores a device token, a display name, ratings, match records and IP
    addresses in logs, and flags suspected cheating. The App Store privacy labels, the privacy policy and the terms need
    to say so, including how long things are kept and how to ask for deletion.
