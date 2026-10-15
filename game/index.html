@@ -3910,6 +3910,28 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 #commBadge.claim{animation:cbadge 1.4s ease-in-out infinite}
 @keyframes cbadge{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
 @media (prefers-reduced-motion:reduce){.comm .cclaim,#commModal .cwallet,#commBadge.claim,#commModal .cxpf{animation:none}.comm .cclaim.took{display:none}}
+
+/* (v307) Settings on one screen: #srows frames the rows and #sfit holds them (the grid, as #srows had it), a little tighter, with
+   How to play beside the Terms, Privacy and Credits. A screen still too short for them gets them drawn smaller (setFit) */
+#setModal .card>#srows{display:block;overflow:hidden}
+#setModal #sfit{display:grid;grid-template-columns:inherit;align-content:start;gap:12px 12px;width:100%;transform-origin:0 0}
+#setModal .sopt{gap:5px}
+#setModal .slab{font-size:13px}
+#setModal .sopt .gnote{min-height:0;font-size:11px;line-height:1.3}
+#setModal #turnNote{position:absolute;width:1px;height:1px;margin:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+#setModal .trn{height:40px}
+#setModal .acrow .acnote{min-height:0}
+#setModal .sbtn{min-height:46px}
+#setModal .sbtns.four{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+#setModal .sbtns.four .sbtn{min-height:48px;padding:4px;font-size:11.5px;line-height:1.1}
+#setModal .serr{grid-column:1/-1;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#setModal .serr:empty{display:none}
+#setModal .sfoot{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
+#setModal .sfoot .sreset{margin:0;padding:4px 0}
+#setModal .sfoot .sver{margin:0;text-align:right}
+@media (orientation:landscape){#setModal #sfit{gap:10px 12px}}
+/* (v307) the account's birth year: one picker */
+.acbd.acyr{grid-template-columns:minmax(0,9em)}
 </style>
 
 <div id="stage">
@@ -4047,7 +4069,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 306</p>
+      <p class="ver">Version 307</p>
     </div>
   </div>
 
@@ -4065,18 +4087,17 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
     <div class="card" role="dialog" aria-modal="true" aria-labelledby="setTitle"><i class="swash" aria-hidden="true"><i></i></i>
       <h2 class="ctitle" id="setTitle">Settings</h2>
       <button class="sback" id="setBack" type="button" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4.5 7.5 12l7.5 7.5" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-      <div class="srows" id="srows">
+      <div class="srows" id="srows"><div class="sfit" id="sfit">
         <div class="sopt"><p class="slab">Sound effects</p><div class="seg duo tog" id="sfxPick" role="group" aria-label="Sound effects"><button type="button" data-v="on" aria-pressed="true"><span>On</span></button><button type="button" data-v="off" aria-pressed="false"><span>Off</span></button></div></div>
         <div class="sopt"><p class="slab">Music</p><div class="seg duo tog" id="musPick" role="group" aria-label="Music"><button type="button" data-v="on" aria-pressed="true"><span>On</span></button><button type="button" data-v="off" aria-pressed="false"><span>Off</span></button></div></div>
         <div class="sopt wide"><p class="slab">Screen</p><div class="seg duo tog pick" id="orientPick" role="group" aria-label="Screen"><button type="button" data-o="port" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10.5 18h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Upright</button><button type="button" data-o="land" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6.5" width="19" height="11" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M18 10.5v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Wide</button></div></div>
         <div class="sopt wide"><p class="slab">Visuals</p><div class="seg duo tog pick" id="gfxPick" role="group" aria-label="Visuals"><button type="button" data-g="hi" aria-pressed="false"><span>Graphics</span></button><button type="button" data-g="perf" aria-pressed="false"><span>Performance</span></button></div><p class="gnote" id="gfxNote" aria-live="polite"></p></div>
         <div class="sopt wide"><p class="slab">Turning <b class="trnv" id="turnVal">80%</b></p><div class="trn"><span class="trnl" aria-hidden="true">Gentle</span><input type="range" id="turnPick" min="50" max="150" step="5" value="80" aria-label="Turning speed" aria-describedby="turnNote"><span class="trnl" aria-hidden="true">Quick</span></div><p class="gnote" id="turnNote">How fast you turn when you swipe.</p></div>
-        <div class="sopt wide"><p class="slab">Help</p><div class="sbtns"><button class="sbtn" id="howOpen" type="button" aria-haspopup="dialog"><span>How to play</span></button></div><p class="gnote" id="lastErr"></p></div>
         <div class="sopt wide acrow" id="acRow"><p class="slab" id="acSlab">Account</p><p class="gnote acnote" id="acNote" aria-live="polite"></p><div class="sbtns" id="acBtns"></div></div>
-        <div class="sopt full"><div class="sbtns three"><button class="sbtn" id="tosBtn" type="button" aria-haspopup="dialog"><span>Terms of Service</span></button><button class="sbtn" id="privBtn" type="button" aria-haspopup="dialog"><span>Privacy Policy</span></button><button class="sbtn" id="credBtn" type="button" aria-haspopup="dialog"><span>Credits</span></button></div></div>
-        <button class="sreset" id="resetBtn" type="button">Restart Game</button>
-        <p class="sver" id="setVer"></p>
-      </div>
+        <div class="sopt full sdocs"><div class="sbtns four"><button class="sbtn" id="howOpen" type="button" aria-haspopup="dialog"><span>How to play</span></button><button class="sbtn" id="tosBtn" type="button" aria-haspopup="dialog"><span>Terms of Service</span></button><button class="sbtn" id="privBtn" type="button" aria-haspopup="dialog"><span>Privacy Policy</span></button><button class="sbtn" id="credBtn" type="button" aria-haspopup="dialog"><span>Credits</span></button></div></div>
+        <p class="gnote serr" id="lastErr"></p>
+        <div class="sfoot"><button class="sreset" id="resetBtn" type="button">Restart Game</button><p class="sver" id="setVer"></p></div>
+      </div></div>
       <button class="btn play sm" id="setDone" type="button">Done</button>
     </div>
   </div>
@@ -15531,6 +15552,7 @@ function unSay(why, n) {
     : why === 'chars' ? (/\s/.test(n) ? 'No spaces. Try _ instead' : /^[0-9_]*$/.test(n) ? 'Add a letter or two' : 'Just letters, numbers and _')
     : why === 'reserved' ? 'That one’s reserved. Try another' : why === 'bad' ? 'Let’s keep it friendly. Try another' : why === 'taken' ? 'Taken. Try another'
     : why === 'slow_down' ? 'That’s a lot of changes. Try again later' : why === 'offline' ? 'You’re offline. Try again when you’re online'
+    : why === 'walled' ? 'Accounts work in the Roll Model app, not in this preview' : why === 'server' ? 'Can’t reach the Roll Model server. Try again in a bit' // (v307)
     : why === 'out' ? 'You’re signed out. Log in first' : 'Try another';
 }
 function applyMode() { const sd = isShow(); ARENA = mode === 'trio' || sd ? ARENA_MAX : 26.4; VS_CFG.pots = mode === 'trio' ? 11 : sd ? 12 : 8; VS_CFG.rivals = mode === 'trio' || sd ? 17 : 12; ACTIVE = mode === 'solo' ? [P] : mode === 'trio' ? [P, H, H2] : sd ? [P, H, H2, H3] : [P, H]; SIDE = mode === 'duo' ? [0, 1, 1, 0] : [0, 1, 2, 3]; teamHues(); }
@@ -21334,6 +21356,23 @@ $('ttPrev').addEventListener('click', () => { const i = TT_STAGES.indexOf(ttSel)
 $('ttNext').addEventListener('click', () => { const i = TT_STAGES.indexOf(ttSel); ttSel = TT_STAGES[(i + 1) % TT_STAGES.length]; AU.ui(); ttRender(); kick($('ttStage'), 'bump'); });
 document.querySelector('.tttabs').addEventListener('click', e => { const b = e.target.closest('[data-tt]'); if (!b || b.dataset.tt === ttTab) return; ttTab = b.dataset.tt; AU.ui(); ttRender(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('ttModal').hidden) { e.preventDefault(); e.stopPropagation(); closeTT(); } }, true);
+// ---------- (v307) a page that may not go online. The web preview inside the Claude app lets a page talk to nothing outside it, so
+// there the account form, Friends and online play can't work, and each refused connection used to read as "You're offline". The
+// browser fires securitypolicyviolation when the page's own rules turn a connection away: from then on the game says these work in
+// the Roll Model app. netProbe makes one small request to find out (opening Settings or the account form), in case nothing has
+// tried yet ----------
+var NET_WALLED = false, NET_PROBED = false;
+const NET_APP = 'This preview can’t go online. Accounts, friends and online play work in the Roll Model app.';
+const netWhy = () => NET_WALLED ? 'walled' : (typeof navigator !== 'undefined' && navigator.onLine === false) ? 'offline' : 'server';
+document.addEventListener('securitypolicyviolation', e => { try { if (/\.supabase\.co|\.fly\.dev/i.test(String(e.blockedURI || ''))) netWall(); } catch (x) {} });
+function netWall() {
+  if (NET_WALLED) return; NET_WALLED = true;
+  try { if (AC.open && !AC.busy) acRender(); } catch (e) {}
+  try { if (!setModal.hidden) acSetPaint(); } catch (e) {}
+  try { if (FR.open) frRender(); } catch (e) {}
+  try { if (ON.v === 'error' || ON.v === 'connecting') { ON.v = 'error'; ON.err = 'Online play works in the Roll Model app, not in this preview.'; onUpd(); } } catch (e) {}
+}
+function netProbe() { if (NET_WALLED || NET_PROBED || !SB_CFG) return; NET_PROBED = true; try { fetch(SB_CFG.url + '/auth/v1/health', { mode: 'no-cors', cache: 'no-store' }).catch(() => {}); } catch (e) {} }
 // ---------- (v305) Friends, on Supabase: a friend code each, requests both ways, who's online, and a Friends board for the Time
 // trial. The page talks to Supabase's REST API itself (no library): an anonymous account the first time (its refresh token kept
 // with the save), then the database's rm_* functions for everything else (supabase/migrations: they only hand out what a player
@@ -21345,7 +21384,7 @@ const NATIVE_SHARE = !!(window.__NATIVE && window.__NATIVE.share);
 const FR = { s: null, sp: null, me: null, box: null, busy: false, polling: false, err: '', at: 0, retryAt: 0, open: false, note: '', noteOk: true, typed: '', menu: '', confirm: '', seen: null, skew: 0, board: {}, boardBusy: '', sync: '', sig: '', flushing: false, paid: false };
 const frEsc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const frCode = c => c ? c.slice(0, 4) + ' ' + c.slice(4) : '';
-const frErrText = e => (typeof navigator !== 'undefined' && navigator.onLine === false) ? 'You’re offline. Friends come back when you’re online.' : e && e.status === 429 ? 'Busy right now. Try again in a minute.' : 'Can’t reach the Roll Model server right now.';
+const frErrText = e => NET_WALLED ? 'Friends work in the Roll Model app, not in this preview.' : (typeof navigator !== 'undefined' && navigator.onLine === false) ? 'You’re offline. Friends come back when you’re online.' : e && e.status === 429 ? 'Busy right now. Try again in a minute.' : 'Can’t reach the Roll Model server right now.';
 async function sbFetch(path, body, auth, keep) {
   const h = { apikey: SB_CFG.key, 'Content-Type': 'application/json' };
   if (auth && FR.s) h.Authorization = 'Bearer ' + FR.s.access_token; else if (/^eyJ/.test(SB_CFG.key)) h.Authorization = 'Bearer ' + SB_CFG.key; // (a legacy anon key is a token itself)
@@ -21903,7 +21942,7 @@ async function onNet() {
 }
 function onFail(e) {
   if (!e || e.code === 'closed' || e.code === 'off') return;
-  ON.v = e.code === 'old' ? 'old' : 'error'; ON.err = e.code === 'offline' || onOffline() ? 'You’re offline. Online play comes back when you are.' : 'Can’t reach the game server right now.'; onUpd();
+  ON.v = e.code === 'old' ? 'old' : 'error'; ON.err = NET_WALLED ? 'Online play works in the Roll Model app, not in this preview.' : e.code === 'offline' || onOffline() ? 'You’re offline. Online play comes back when you are.' : 'Can’t reach the game server right now.'; onUpd();
 }
 const ON_JOIN = { not_found: 'No room has that code. Check it and try again.', full: 'That room’s full already.', busy: 'They’re in a match right now. Try again in a minute.', rate: 'That’s a lot of tries. Wait a little, then try again.' };
 const onReqText = e => e && e.code === 'timeout' ? 'The game server didn’t answer. Try again.' : e && e.code === 'disconnected' ? 'Lost the connection. Try again.' : e && e.status ? frErrText(e) : 'Something went wrong. Try again.';
@@ -22150,7 +22189,7 @@ function onTick() {
   const i = ON.inv, now = Date.now();
   if (i && i.st === 'open' && now - i.at > 124000) onInvEnd('No answer from ' + i.name); // (a yes at the last second still gets here: the next check is up to 3 s off)
   else if (i && i.st === 'accepted' && now - i.acc > 30000) onInvEnd(i.name + ' couldn’t get in. Try again?');
-  if (ON.lost && now - ON.lost > 20000 && !ON.match) { onlineDrop(); ON.v = 'error'; ON.err = onOffline() ? 'You’re offline. Online play comes back when you are.' : 'Lost the connection to the game server.'; onUpd(); }
+  if (ON.lost && now - ON.lost > 20000 && !ON.match) { onlineDrop(); ON.v = 'error'; ON.err = NET_WALLED ? 'Online play works in the Roll Model app, not in this preview.' : onOffline() ? 'You’re offline. Online play comes back when you are.' : 'Lost the connection to the game server.'; onUpd(); }
   if (ON.after && state === 'menu') onAfter();
   if (state !== 'menu' && !ON.match && ON.net && (ON.queued || ON.room || ON.inv)) onlineDrop();
   if (ON.invites.length) { const t = now + FR.skew, l = ON.invites.filter(x => Date.parse(x.expires) > t); if (l.length !== ON.invites.length) { ON.invites = l; onUpd(); if (FR.open) frRender(); } }
@@ -22170,7 +22209,7 @@ function acOut() { return !!(store.sbs && store.sbs.out); } // (these three are 
 function acHas() { return !!(SB_CFG && store.sbs && store.sbs.rt && !acOut()); } // (a player on the server: a new name goes there first)
 function acctReady() { return !!(SB_CFG && store.sbs && store.sbs.rt && store.sbs.perm && store.sbs.acct && !acOut()); } // (signed in, with a real account)
 const acName = () => (FR.me && !FR.me.needs_name && FR.me.name) || (store.sbs && store.sbs.name) || '';
-const acErrText = e => (typeof navigator !== 'undefined' && navigator.onLine === false) ? 'You’re offline. Try again when you’re online.' : e && e.status === 429 ? 'Too many tries. Wait a minute, then try again.' : 'Can’t reach the Roll Model server. Try again in a bit.';
+const acErrText = e => NET_WALLED ? NET_APP : (typeof navigator !== 'undefined' && navigator.onLine === false) ? 'You’re offline. Try again when you’re online.' : e && e.status === 429 ? 'Too many tries. Wait a minute, then try again.' : 'Can’t reach the Roll Model server. Try again in a bit.';
 const acJwt = t => { try { return JSON.parse(atob(String(t).split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))) || {}; } catch (e) { return {}; } };
 const acStop = (why, at) => Object.assign(new Error(why || 'bad'), { why: why || 'bad', at });
 // Supabase's API as sbFetch does it, with the method and token given (a PUT to change the user; another player's token, to delete it)
@@ -22229,16 +22268,16 @@ async function unClaim(n, strict) {
     if (!r || r.ok === false) return { ok: false, why: (r && r.why) || 'bad' };
     FR.need = ''; if (FR.me) Object.assign(FR.me, { name: r.name, needs_name: false }); else FR.retryAt = 0;
     acSync(r); return Object.assign({}, r, { ok: true });
-  } catch (e) { return strict ? { ok: false, why: e && e.out ? 'out' : 'offline' } : { ok: true, name: n, off: true }; }
+  } catch (e) { return strict ? { ok: false, why: e && e.out ? 'out' : netWhy() } : { ok: true, name: n, off: true }; } // (v307: offline only when the phone is)
 }
 // Next (or Save) under a username: kept on the server before it goes on; a problem stays on the card, said on the line
 async function unSubmit(id, stId, btnId, done, strict) {
   const i = $(id), st = $(stId), b = $(btnId); if (!i || !b || b.dataset.busy) return; const n = unNorm(i.value), why = n ? unWhy(n) : 'empty';
   if (why || i.dataset.un === 'bad') { AU.nope(); if (UN_W[id]) UN_W[id](); if (st) kick(st, 'unshake'); return; }
   b.dataset.busy = '1'; b.disabled = true; if (st) { st.dataset.s = 'wait'; st.textContent = 'Checking…'; }
-  const r = await Promise.race([unClaim(n, strict), new Promise(res => setTimeout(() => res(strict ? { ok: false, why: 'offline' } : { ok: true, name: n, off: true }), 9000))]);
+  const r = await Promise.race([unClaim(n, strict), new Promise(res => setTimeout(() => res(strict ? { ok: false, why: netWhy() } : { ok: true, name: n, off: true }), 9000))]);
   delete b.dataset.busy; b.disabled = false;
-  if (!r.ok) { AU.nope(); if (r.why !== 'offline' && r.why !== 'slow_down' && r.why !== 'out') { UN_FREE.set(n.toLowerCase(), { at: Date.now(), ok: false, why: r.why }); if (UN_W[id]) UN_W[id](); } // (its line, and its button, as for any name that can't be had)
+  if (!r.ok) { AU.nope(); if (!/^(offline|walled|server|slow_down|out)$/.test(r.why)) { UN_FREE.set(n.toLowerCase(), { at: Date.now(), ok: false, why: r.why }); if (UN_W[id]) UN_W[id](); } // (its line, and its button, as for any name that can't be had)
     if (st) { st.dataset.s = 'bad'; st.textContent = unSay(r.why, n); kick(st, 'unshake'); } return; }
   done(r.name || n);
 }
@@ -22276,25 +22315,24 @@ const AC_YOUNG = '<div class="frmsg acmsg">' + FR_FACES + '<b>Sorry, not yet!</b
 const acPw = (id, k, ac) => '<div class="acpw"><input id="' + id + '" data-k="' + k + '" type="' + (AC.show ? 'text' : 'password') + '" maxlength="72" autocomplete="' + ac + '" autocapitalize="off" autocorrect="off" spellcheck="false" value="' + frEsc(AC.f[k] || '') + '"><button class="frb ghost acshow" data-ac="show" type="button" aria-pressed="' + AC.show + '">' + (AC.show ? 'Hide' : 'Show') + '</button></div>';
 function acNewHtml() {
   const f = AC.f, yr = new Date().getFullYear(), o = (v, t, s) => '<option value="' + v + '"' + (String(s) === String(v) ? ' selected' : '') + '>' + t + '</option>';
-  let mo = o('', 'Month', f.m || ''), dy = o('', 'Day', f.d || ''), ye = o('', 'Year', f.y || '');
-  AC_MONTHS.forEach((m, i) => { mo += o(i + 1, m, f.m); }); for (let d = 1; d <= 31; d++) dy += o(d, d, f.d); for (let y = yr; y >= 1900; y--) ye += o(y, y, f.y);
+  let ye = o('', 'Year', f.y || ''); for (let y = yr; y >= 1900; y--) ye += o(y, y, f.y); // (v307: the birth year only)
   const tx = (id, k, lab, ac, cap) => '<div><label for="' + id + '">' + lab + '</label><input id="' + id + '" data-k="' + k + '" type="text" maxlength="40" autocomplete="' + ac + '" autocapitalize="' + cap + '" autocorrect="off" spellcheck="false" value="' + frEsc(f[k] || '') + '"></div>';
   return '<form class="acform" id="acNew" novalidate autocomplete="on">'
     + '<div class="acf"><label for="acUser">Username</label><input id="acUser" data-k="user" type="text" maxlength="12" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" aria-describedby="acUserSt" value="' + frEsc(f.user || '') + '"><p class="unst" id="acUserSt" aria-live="polite"></p></div>'
     + '<div class="acf"><div class="acpair">' + tx('acFirst', 'first', 'First name', 'given-name', 'words') + tx('acLast', 'last', 'Last name', 'family-name', 'words') + '</div><p class="unst" id="acNameSt" aria-live="polite"></p></div>'
-    + '<fieldset class="acf"><legend>Birthday</legend><div class="acbd"><select id="acM" data-k="m" aria-label="Birth month" autocomplete="bday-month">' + mo + '</select><select id="acD" data-k="d" aria-label="Birth day" autocomplete="bday-day">' + dy + '</select><select id="acY" data-k="y" aria-label="Birth year" autocomplete="bday-year">' + ye + '</select></div><p class="unst" id="acBdSt" aria-live="polite"></p></fieldset>'
+    + '<fieldset class="acf"><legend>Birth year</legend><div class="acbd acyr"><select id="acY" data-k="y" aria-label="Birth year" autocomplete="bday-year">' + ye + '</select></div><p class="unst" id="acBdSt" aria-live="polite"></p></fieldset>'
     + '<div class="acf"><label for="acPass">Password</label>' + acPw('acPass', 'pass', 'new-password') + '<p class="unst" id="acPassSt" aria-live="polite"></p></div>'
     + '<div class="acagree acw"><input type="checkbox" id="acAgree" data-k="agree"' + (f.agree ? ' checked' : '') + ' aria-label="I agree to the Terms of Service and Privacy Policy"><label for="acAgree">I agree to the</label><button class="aclink" type="button" data-doc="tos">Terms of Service</button><span>and</span><button class="aclink" type="button" data-doc="priv">Privacy Policy</button></div>'
-    + '<p class="acerr acw" id="acErr" role="alert">' + frEsc(AC.err) + '</p>'
+    + '<p class="acerr acw" id="acErr" role="alert">' + frEsc(AC.err || (NET_WALLED ? NET_APP : '')) + '</p>'
     + '<button class="frb go acgo acw" id="acGo" type="submit" disabled>Make my account</button>'
-    + '<p class="frfine acw">Friends see your username, paint colour and rank. Your name and birthday stay private.</p></form>';
+    + '<p class="frfine acw">Friends see your username, paint colour and rank. Your name and birth year stay private.</p></form>';
 }
 function acInHtml() {
   const swap = acHas() && !(store.sbs && store.sbs.perm) && acName();
   return '<form class="acform acin" id="acIn" novalidate autocomplete="on">'
     + '<div class="acf acw"><label for="acInUser">Username</label><input id="acInUser" data-k="inUser" type="text" maxlength="16" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" value="' + frEsc(AC.f.inUser || '') + '"></div>'
     + '<div class="acf acw"><label for="acInPass">Password</label>' + acPw('acInPass', 'inPass', 'current-password') + '</div>'
-    + '<p class="acerr acw" id="acErr" role="alert">' + frEsc(AC.err) + '</p>'
+    + '<p class="acerr acw" id="acErr" role="alert">' + frEsc(AC.err || (NET_WALLED ? NET_APP : '')) + '</p>'
     + '<button class="frb go acgo acw" id="acGo" type="submit">Log in</button>'
     + (swap ? '<p class="frfine acw">Logging in swaps <b>' + frEsc(swap) + '</b>, the player on this device, for your account.</p>' : '') + '</form>';
 }
@@ -22309,29 +22347,29 @@ function acRender() {
 function acForm() {
   const v = id => { const e = $(id); return e ? e.value : ''; }, pad = x => String(x).padStart(2, '0');
   const clean = s => s.normalize('NFC').replace(/[’‘`´]/g, "'").replace(/\s+/g, ' ').trim(); // (iOS types ’ for ')
-  const user = unNorm(v('acUser')), first = clean(v('acFirst')), last = clean(v('acLast')), m = +v('acM'), d = +v('acD'), y = +v('acY'), pass = v('acPass'), agree = !!($('acAgree') && $('acAgree').checked);
+  const user = unNorm(v('acUser')), first = clean(v('acFirst')), last = clean(v('acLast')), y = +v('acY'), pass = v('acPass'), agree = !!($('acAgree') && $('acAgree').checked);
   const nameOk = s => /^\p{L}[\p{L} .'-]{0,39}$/u.test(s), t = new Date(), today = t.getFullYear() + '-' + pad(t.getMonth() + 1) + '-' + pad(t.getDate());
-  const real = !!(m && d && y) && new Date(y, m - 1, d).getDate() === d, bday = real ? y + '-' + pad(m) + '-' + pad(d) : '';
+  const real = y >= 1900 && y <= t.getFullYear(), bday = real ? y + '-12-31' : ''; // (v307: the year only, sent as its last day: the youngest a player born then can be, so 13 or older is certain)
   const cy = t.getFullYear() - 13, cut = cy + '-' + pad(t.getMonth() + 1) + '-' + pad(Math.min(t.getDate(), new Date(cy, t.getMonth() + 1, 0).getDate())); // (13 years ago today, as the server counts it)
-  const why = { user: !!unWhy(user) || !!($('acUser') && $('acUser').dataset.un === 'bad'), first: !nameOk(first), last: !nameOk(last), bday: !real || bday > today || y < 1900,
+  const why = { user: !!unWhy(user) || !!($('acUser') && $('acUser').dataset.un === 'bad'), first: !nameOk(first), last: !nameOk(last), bday: !real,
     pass: !(pass.length >= 8 && /\p{L}/u.test(pass) && /[0-9]/.test(pass)), agree: !agree };
   return { ok: !Object.values(why).some(Boolean), why, user, first, last, bday, pass, young: real && bday > cut };
 }
 function acValid() {
   if (AC.tab !== 'new' || !$('acNew')) return; const f = acForm(), w = f.why, set = (id, s, t) => { const e = $(id); if (e) { e.dataset.s = s; e.textContent = t; } };
-  const nb = !!(AC.f.first && w.first) || !!(AC.f.last && w.last), all = !!(AC.f.m && AC.f.d && AC.f.y);
+  const nb = !!(AC.f.first && w.first) || !!(AC.f.last && w.last), all = !!AC.f.y;
   set('acNameSt', nb ? 'bad' : '', nb ? 'Letters only, please' : ''); $('acFirst').setAttribute('aria-invalid', String(!!(AC.f.first && w.first))); $('acLast').setAttribute('aria-invalid', String(!!(AC.f.last && w.last)));
-  set('acBdSt', all && w.bday ? 'bad' : '', all && w.bday ? 'That date doesn’t look right' : '');
-  for (const id of ['acM', 'acD', 'acY']) $(id).classList.toggle('empty', !$(id).value);
+  set('acBdSt', all && w.bday ? 'bad' : '', all && w.bday ? 'Pick your birth year' : '');
+  $('acY').classList.toggle('empty', !$('acY').value);
   set('acPassSt', w.pass ? '' : 'ok', w.pass ? '8 or more, with a letter and a number' : 'Good password');
-  const g = $('acGo'); if (g && !AC.busy) g.disabled = !f.ok;
+  const g = $('acGo'); if (g && !AC.busy) g.disabled = !f.ok || NET_WALLED;
 }
 function acBusy(t) { const g = $('acGo'), f = $('acBody').querySelector('.acform'); if (f) f.classList.toggle('busy', !!t); if (!g) return; if (t) { g.dataset.t = g.dataset.t || g.textContent; g.textContent = t; g.disabled = true; } else { if (g.dataset.t) g.textContent = g.dataset.t; g.disabled = false; acValid(); } }
 function acFail(e) {
   AC.busy = false; const w = e && e.why;
   if (w === 'age') { store.acYoung = Date.now(); save(); return acRender(); }
   AC.err = e && e.at === 'user' ? unSay(w, unNorm(AC.f.user)) + '.' : w === 'nouser' ? 'No account has that username.' : w === 'pass' ? 'Wrong password. Try again.'
-    : w === 'first' ? 'Check your first name: letters only.' : w === 'last' ? 'Check your last name: letters only.' : w === 'birthday' ? 'Check your birthday.'
+    : w === 'first' ? 'Check your first name: letters only.' : w === 'last' ? 'Check your last name: letters only.' : w === 'birthday' ? 'Check your birth year.'
     : e && e.code === 'weak_password' ? 'Pick a harder password.' : e && e.out ? 'You’re signed out. Log in again.' : e && e.at === 'save' ? 'Something went wrong. Try again.' : acErrText(e);
   if (e && e.at === 'user') { const i = $('acUser'), st = $('acUserSt'); if (i) i.dataset.un = 'bad'; if (st) { st.dataset.s = 'bad'; st.textContent = unSay(w, unNorm(AC.f.user)); } }
   const x = $('acErr'); if (x) x.textContent = AC.err; AU.nope(); acBusy(null); if (x) kick(x, 'unshake');
@@ -22411,7 +22449,7 @@ function acReset() {
 function acctOpen(next, tab) {
   if (acctReady()) { if (typeof next === 'function') next(); return; }
   if (!SB_CFG) { frToast('<span>Online play is coming soon</span>'); return; }
-  AC.next = typeof next === 'function' ? next : null; AC.tab = tab === 'in' ? 'in' : 'new'; AC.err = ''; AC.busy = false; if (!AC.f.userTyped) AC.f.user = acSuggest(); // (their name now, unless they've typed one here)
+  netProbe(); AC.next = typeof next === 'function' ? next : null; AC.tab = tab === 'in' ? 'in' : 'new'; AC.err = ''; AC.busy = false; if (!AC.f.userTyped) AC.f.user = acSuggest(); // (their name now, unless they've typed one here)
   if (!AC.open) AC.ret = document.activeElement; AC.open = true; $('acModal').hidden = false; acRender();
   const c = $('acModal').querySelector('.ttcard'); c.style.animation = 'none'; void c.offsetWidth; c.style.animation = '';
   setTimeout(() => { const i = !touchy() && $(AC.tab === 'in' ? 'acInUser' : 'acUser'); (i || $('acX')).focus({ preventScroll: true }); }, 40);
@@ -22454,8 +22492,8 @@ function acSetPaint() {
   if (!on) { t = 'Accounts come with online play.'; h = b('new', 'Make an account') + b('in', 'Log in'); }
   else if (AC.del && acctReady()) { t = 'Delete <b>' + frEsc(nm) + '</b> for good? Your username, friends and account details all go, and it can’t be undone.'; h = b('delyes', 'Delete for good', 'acdel') + b('delno', 'Keep it'); }
   else if (acctReady()) { t = (AC.note ? frEsc(AC.note) + ' ' : '') + 'Signed in as <b>' + frEsc(nm) + '</b>'; h = b('out', 'Log out') + b('del', 'Delete account', 'acdel'); }
-  else { t = AC.note ? frEsc(AC.note) : acOut() ? 'You’re signed out. Log in, or make a new account.' : 'Make an account to add friends and play online.'; h = b('new', 'Make an account') + b('in', 'Log in'); }
-  $('acNote').innerHTML = t; $('acBtns').innerHTML = h;
+  else { t = AC.note ? frEsc(AC.note) : NET_WALLED ? 'Accounts and online play work in the Roll Model app, not in this preview.' : acOut() ? 'You’re signed out. Log in, or make a new account.' : 'Make an account to add friends and play online.'; h = b('new', 'Make an account') + b('in', 'Log in'); }
+  $('acNote').innerHTML = t; $('acBtns').innerHTML = h; setFitSoon();
 }
 $('acBtns').addEventListener('click', async e => {
   const b = e.target.closest('[data-ac]'); if (!b || b.disabled || AC.busy) return; const a = b.dataset.ac; AU.init(); AU.ui(); AC.note = '';
@@ -22478,7 +22516,7 @@ function acMatchPaint() {
   b.setAttribute('aria-label', on ? 'Play online: 1v1 against real people' : 'Play online, locked: open Strokes in the lobby to unlock it');
 }
 function evToast(c, t) { const old = c.querySelector('.evtoast'); if (old) old.remove(); const s = document.createElement('span'); s.className = 'evtoast'; s.setAttribute('role', 'status'); s.textContent = t; c.appendChild(s); setTimeout(() => s.remove(), 1700); }
-function mpGo() { if (typeof window.onlineOpen === 'function') window.onlineOpen(); else evToast($('evMatch').closest('.evcard'), 'Online matches are coming soon'); }
+function mpGo() { if (typeof onlineOpen === 'function') onlineOpen(); else evToast($('evMatch').closest('.evcard'), 'Online matches are coming soon'); }
 function mpTap() {
   const c = $('evMatch').closest('.evcard');
   if (!mpOpen()) { AU.nope(); buzz(8); return evToast(c, repOf(store.xp || 0).lv < ABIL_RANK ? 'Reach rank ' + ABIL_RANK + ', then open Strokes' : 'Open Strokes in the lobby to unlock it'); }
@@ -22852,15 +22890,30 @@ $('restartBtn').addEventListener('click', uiClick(replay));
 $('quitBtn').addEventListener('click', uiClick(() => tut ? tutSkip() : toMenu())); // (v283: the first lesson's pause skips it)
 const howModal = $('howModal');
 function openHow() { if (state !== 'menu') return; paintHow(); howModal.hidden = false; setTimeout(() => $('howClose').focus({ preventScroll: true }), 30); }
-function closeHow() { if (howModal.hidden) return; howModal.hidden = true; if (state === 'menu') { setModal.hidden = false; $('howOpen').focus({ preventScroll: true }); } } // (it's opened from Settings: back there)
+function closeHow() { if (howModal.hidden) return; howModal.hidden = true; if (state === 'menu') { setModal.hidden = false; setFitSoon(); $('howOpen').focus({ preventScroll: true }); } } // (it's opened from Settings: back there)
 $('howOpen').addEventListener('click', uiClick(() => { if (state !== 'menu') return; setModal.hidden = true; openHow(); }));
 $('howClose').addEventListener('click', uiClick(closeHow));
 howModal.addEventListener('click', e => { if (e.target === howModal) closeHow(); });
 // ---------- settings: Graphics or Performance visuals. The choice is saved and the game restarts to apply it ----------
-const setModal = $('setModal'), GFX_NOTE = { hi: 'Full lighting, reflections, glow and extra detail. Best on newer phones and computers.', perf: 'Simpler lighting and fewer effects, for the smoothest play on any device.' };
+const setModal = $('setModal'), GFX_NOTE = { hi: 'Full lighting, reflections and glow. Best on newer devices.', perf: 'Simpler lighting and fewer effects, for the smoothest play.' }; // (v307: one line each)
 let gfxPick = GFX;
-function paintSettings() { try { $('lastErr').textContent = store.lastErr ? 'Last error: ' + store.lastErr : ''; } catch (e) {} for (const b of $('sfxPick').children) b.setAttribute('aria-pressed', String((b.dataset.v === 'off') === !!store.sfxOff)); for (const b of $('musPick').children) b.setAttribute('aria-pressed', String((b.dataset.v === 'off') === !!store.musicOff)); { const v = document.querySelector('#howModal .ver'); $('setVer').textContent = v ? v.textContent : ''; } for (const b of $('orientPick').children) b.setAttribute('aria-pressed', String(b.dataset.o === (store.orient || ''))); for (const b of $('gfxPick').children) b.setAttribute('aria-pressed', String(b.dataset.g === gfxPick)); $('gfxNote').textContent = GFX_NOTE[gfxPick]; $('setDone').textContent = gfxPick === GFX ? 'Done' : 'Restart to apply'; }
-function openSettings() { if (state !== 'menu' || lookOpen || shopOpen) return; gfxPick = GFX; paintSettings(); AC.del = false; AC.note = ''; acSetPaint(); if (window.__turnShow) window.__turnShow(); setModal.hidden = false; setTimeout(() => $('gfxPick').querySelector('[aria-pressed="true"]').focus({ preventScroll: true }), 30); }
+// ---------- (v307) Settings on one screen: if the rows are taller than the room between the title and Done, they're drawn smaller
+// to fit (laid out wider by the same factor, so they still fill the width), never scrolled. A window too small to read them at 60%
+// scrolls instead ----------
+function setFit() {
+  const r = $('srows'), f = $('sfit'); if (!r || !f || setModal.hidden) return;
+  f.style.transform = ''; f.style.width = ''; r.style.overflowY = '';
+  const cs = getComputedStyle(r), room = r.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom); let k = 1, h = f.offsetHeight;
+  for (let i = 0; i < 4 && h * k > room + 0.5; i++) { k = Math.max(0.6, room / h); f.style.width = (100 / k).toFixed(3) + '%'; f.style.transform = 'scale(' + k.toFixed(4) + ')'; h = f.offsetHeight; }
+  if (h * k > room + 1) r.style.overflowY = 'auto';
+  f.dataset.k = k.toFixed(3);
+}
+let setFitQ = 0;
+function setFitSoon() { if (setFitQ) return; setFitQ = requestAnimationFrame(() => { setFitQ = 0; setFit(); }); }
+addEventListener('resize', () => { if (!setModal.hidden) setFitSoon(); });
+try { if (document.fonts) document.fonts.ready.then(() => { if (!setModal.hidden) setFitSoon(); }); } catch (e) {}
+function paintSettings() { try { $('lastErr').textContent = store.lastErr ? 'Last error: ' + store.lastErr : ''; } catch (e) {} for (const b of $('sfxPick').children) b.setAttribute('aria-pressed', String((b.dataset.v === 'off') === !!store.sfxOff)); for (const b of $('musPick').children) b.setAttribute('aria-pressed', String((b.dataset.v === 'off') === !!store.musicOff)); { const v = document.querySelector('#howModal .ver'); $('setVer').textContent = v ? v.textContent : ''; } for (const b of $('orientPick').children) b.setAttribute('aria-pressed', String(b.dataset.o === (store.orient || ''))); for (const b of $('gfxPick').children) b.setAttribute('aria-pressed', String(b.dataset.g === gfxPick)); $('gfxNote').textContent = GFX_NOTE[gfxPick]; $('setDone').textContent = gfxPick === GFX ? 'Done' : 'Restart to apply'; setFitSoon(); }
+function openSettings() { if (state !== 'menu' || lookOpen || shopOpen) return; gfxPick = GFX; paintSettings(); AC.del = false; AC.note = ''; acSetPaint(); if (window.__turnShow) window.__turnShow(); setModal.hidden = false; setFit(); netProbe(); setTimeout(() => $('gfxPick').querySelector('[aria-pressed="true"]').focus({ preventScroll: true }), 30); }
 function closeSettings() { if (setModal.hidden) return; setModal.hidden = true; $('hamBtn').focus({ preventScroll: true }); }
 function doneSettings() { if (gfxPick === GFX) return closeSettings(); store.gfx = gfxPick; save(); $('setDone').disabled = true; $('setDone').textContent = 'Restarting'; setTimeout(() => location.reload(), 120); }
 $('setBtn').addEventListener('click', uiClick(openSettings));
@@ -22992,11 +23045,11 @@ $('setBack').addEventListener('click', uiClick(doneSettings));
 // the pages of words: the terms, the privacy note, the credits (each comes back to Settings)
 const DOCS = {
   tos: ['Terms of Service', '<p>Updated October 15, 2026. Roll Model is still being made, and these terms will grow with it.</p><h3>Play fair</h3><p>No cheating, hacking, or using bugs to win.</p><h3>Be kind</h3><p>Pick a username that’s friendly to everyone: no swearing, nothing hateful, and no pretending to be someone else. We can change or remove a username that breaks these rules, and close an account that keeps breaking them.</p><h3>Your account</h3><p>You need to be 13 or older to make an account and play online. Keep your password to yourself: you’re responsible for what happens on your account. You can delete it any time in Settings.</p><h3>Changes</h3><p>We may update these terms as the game grows. The date at the top says when they last changed.</p>'],
-  priv: ['Privacy Policy', '<p>Updated October 15, 2026.</p><h3>On this device</h3><p>Your progress (your dabs, items, ranks and settings) is saved on this device. You don’t need an account to play.</p><h3>Your username</h3><p>Your username is kept on our server so no one else can take it. Other players can see it, with your paint colour and rank.</p><h3>Your account</h3><p>If you make an account, we keep your username, your first and last name, your birthday, and when you agreed to these terms. Your name and birthday are private: other players never see them. We ask for your birthday because online play is for players 13 and older.</p><p>Your password is handled by our sign-in provider, Supabase. It’s stored scrambled (hashed), never in a form anyone can read, not even us.</p><h3>Playing online</h3><p>To run friends and online matches we keep your friend code, your friends, friend requests and blocks, invites to play, your Time trial scores for the friends board, records of your online matches, and when you were last online.</p><h3>Who has it</h3><p>We don’t sell your information or show you ads. Supabase stores it for us, and online matches run on our game server.</p><h3>Deleting it</h3><p>Settings › Account › Delete account removes your account and everything above from our server for good. Restart Game in Settings clears this device.</p>'],
+  priv: ['Privacy Policy', '<p>Updated October 15, 2026.</p><h3>On this device</h3><p>Your progress (your dabs, items, ranks and settings) is saved on this device. You don’t need an account to play.</p><h3>Your username</h3><p>Your username is kept on our server so no one else can take it. Other players can see it, with your paint colour and rank.</p><h3>Your account</h3><p>If you make an account, we keep your username, your first and last name, your birth year, and when you agreed to these terms. Your name and birth year are private: other players never see them. We ask for your birth year because online play is for players 13 and older.</p><p>Your password is handled by our sign-in provider, Supabase. It’s stored scrambled (hashed), never in a form anyone can read, not even us.</p><h3>Playing online</h3><p>To run friends and online matches we keep your friend code, your friends, friend requests and blocks, invites to play, your Time trial scores for the friends board, records of your online matches, and when you were last online.</p><h3>Who has it</h3><p>We don’t sell your information or show you ads. Supabase stores it for us, and online matches run on our game server.</p><h3>Deleting it</h3><p>Settings › Account › Delete account removes your account and everything above from our server for good. Restart Game in Settings clears this device.</p>'],
   cred: ['Credits', '<h3>Roll Model</h3><p>Season 1: Spooky SZN</p><h3>Built with</h3><p>three.js (MIT License)</p><h3>Type</h3><p>Bowlby One, Figtree and Barlow Condensed (SIL Open Font License)</p><h3>Sound and voices</h3><p>Made with Ludo.ai</p><h3>3D items</h3><p>Made with Meshy</p><h3>Thanks</h3><p>To everyone who rolls through the paint.</p>']
 };
 function openDoc(k, back) { const d = DOCS[k]; if (!d) return; PB.docFrom = k; PB.docBack = typeof back === 'function' ? back : null; $('docModal').classList.toggle('acup', !!PB.docBack); $('docTitle').textContent = d[0]; $('docBody').innerHTML = d[1]; $('docBody').scrollTop = 0; if (!PB.docBack) setModal.hidden = true; $('docModal').hidden = false; setTimeout(() => $('docClose').focus({ preventScroll: true }), 30); }
-function closeDoc() { if ($('docModal').hidden) return; $('docModal').hidden = true; if (PB.docBack) { const f = PB.docBack; PB.docBack = null; return f(); } if (state === 'menu') { setModal.hidden = false; const b = $({ tos: 'tosBtn', priv: 'privBtn', cred: 'credBtn' }[PB.docFrom]); if (b) b.focus({ preventScroll: true }); } }
+function closeDoc() { if ($('docModal').hidden) return; $('docModal').hidden = true; if (PB.docBack) { const f = PB.docBack; PB.docBack = null; return f(); } if (state === 'menu') { setModal.hidden = false; setFitSoon(); const b = $({ tos: 'tosBtn', priv: 'privBtn', cred: 'credBtn' }[PB.docFrom]); if (b) b.focus({ preventScroll: true }); } }
 for (const [id, k] of [['tosBtn', 'tos'], ['privBtn', 'priv'], ['credBtn', 'cred']]) $(id).addEventListener('click', uiClick(() => openDoc(k)));
 $('docClose').addEventListener('click', uiClick(closeDoc));
 $('docModal').addEventListener('click', e => { if (e.target === $('docModal')) closeDoc(); });

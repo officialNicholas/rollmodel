@@ -14,13 +14,16 @@ server works, its rules and how to deploy it are in `docs/multiplayer.md`; the d
   or `_`, at least one letter (the game keeps names to 12 so they fit the name tags), nothing rude however it's spelt,
   no names that pretend to be staff, and not taken ("Checking…", "It's yours", "Taken. Try another"). The dice only
   rolls usernames that can be had. Offline, the intro goes on and the name is checked later.
-- **An account to play with others.** Friends and online play need one: username, first and last name, birthday (13 or
-  older), a password (8 or more characters with a letter and a number), and a box to agree to the Terms of Service and
+- **An account to play with others.** Friends and online play need one: username, first and last name, birth year (13 or
+  older; v307: the year only, counted as its last day so 13 is certain), a password (8 or more characters with a letter and a number), and a box to agree to the Terms of Service and
   the Privacy Policy, which open over the form but don't have to be read. Under 13: "Sorry, not yet", and nothing is
   made. The account is made from the player you already are, so your friend code and friends carry over.
 - **Log in on another phone** with your username and password (Settings, Friends, or Play online). Settings has an
   Account row: who's signed in, Log out, and Delete account (asks first; deletes everything and frees the username).
 - **Play online** (the old Matchmaking card on Choose Event) unlocks once you've opened the Strokes page.
+- **In the Claude app's web preview** none of this can work: the preview lets a page talk to nothing outside it. Since v307 the
+  game notices (the browser reports each connection it turns away) and says accounts, friends and online play work in the app,
+  instead of "You're offline".
 
 ## Playing online
 

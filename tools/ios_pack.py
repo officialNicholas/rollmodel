@@ -16,8 +16,8 @@ if os.path.isdir(dst): shutil.rmtree(dst)
 html = open(os.path.join(game, 'index.html'), encoding='utf8').read()
 used = set(re.findall(r"['\"](axo-pack[-\w]*\.txt)['\"]", html))  # (quoted, as the page loads it: a comment naming one doesn't count)
 # (only the character pack the page loads goes in: older packs stay in the repo for older builds, not in the app)
-# (and no local test pages: game/_*.html are probe builds, never part of the game)
-skip = lambda d, names: [n for n in names if n == '.DS_Store' or (d == game and ((n.startswith('axo-pack') and n.endswith('.txt') and n not in used) or (n.startswith('_') and n.endswith('.html'))))]
+# (and no local test pages: the game is index.html, so no other page at the top of game/ goes in, whatever it's called)
+skip = lambda d, names: [n for n in names if n == '.DS_Store' or (d == game and ((n.startswith('axo-pack') and n.endswith('.txt') and n not in used) or (n.endswith('.html') and n != 'index.html')))]
 shutil.copytree(game, dst, ignore=skip)
 for sub in ('fonts', 'licenses'): shutil.copytree(os.path.join(shared, sub), os.path.join(dst, sub))
 # the fonts from the app itself, not Google
@@ -59,6 +59,7 @@ for key, body in re.findall(r"\n    (\w+): \{([^}]*)\}", TRKS):
     assert os.path.isfile(os.path.join(dst, n)), ('song missing in the app', n)
 for n in set(re.findall(r"\.say\('(\w+)'", html)): assert os.path.isfile(os.path.join(dst, 'voice', 'say_%s.mp3' % n)), ('line missing', n)
 for n in ('sfx/m.mp3', 'sfx/s.mp3'): assert os.path.isfile(os.path.join(dst, n)), n
+assert sorted(f for f in os.listdir(dst) if f.endswith('.html')) == ['index.html'], 'a page other than the game in the app'
 print('offline check:', len(names), 'named files, every song, line and sheet in the app; nothing outside but online play', sorted(online))
 open(os.path.join(dst, 'index.html'), 'w', encoding='utf8').write(html)
 for ref in re.findall(r'<script src="([^"]+)"', html): assert ref.startswith('native/') or os.path.isfile(os.path.join(dst, ref)), ref

@@ -31,7 +31,7 @@ the Friends screen says friends are on the way.
 | Table | Holds |
 |---|---|
 | `profiles` | Username, look (paint colour, eyes), rank, the 8-character friend code, and when the player was last online |
-| `accounts` | For players who made an account: first and last name, birthday, and which terms they agreed to and when. Only the player can read it |
+| `accounts` | For players who made an account: first and last name, birth year (since v307 the game sends only the year, as its 31 December), and which terms they agreed to and when. Only the player can read it |
 | `friend_requests` | Pending requests (deleted once accepted, declined or cancelled) |
 | `friendships` | One row per pair of friends |
 | `blocks` | Who blocked whom |
@@ -48,7 +48,7 @@ through these functions:
 | `rm_me(name, look, rank)` | Makes your profile the first time (only with a clean, free username), updates the rest after; never renames you; returns your friend code and whether you have an account |
 | `rm_rename(name)` | A new username (clean and free; 10 tries an hour) |
 | `rm_login_email(name)` | The made-up address a username signs in with (nothing for a player without an account) |
-| `rm_account_save(first, last, birthday, terms)`, `rm_account()` | The account details (13 or older), and reading your own back |
+| `rm_account_save(first, last, birthday, terms)`, `rm_account()` | The account details (13 or older; the game passes the birth year as its last day, so a player counts as 13 only once that's certain), and reading your own back |
 | `rm_delete_me()` | Deletes the player and everything of theirs, and frees the username |
 | `rm_inbox(status)` | Everything the Friends screen shows, in one call; also marks you online (`lobby` / `match` / `offline`) |
 | `rm_add_friend(code)` | Sends a request, or makes you friends at once if they'd already asked you |
