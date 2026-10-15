@@ -378,6 +378,8 @@ const RMNetSDK = (() => {
     leaveRoom() { return this._request({ t: 'leaveRoom' }); }
     ready(on = true) { return this._sendJ({ t: 'ready', ready: !!on }); }
     rematch(vote = true) { return this._sendJ({ t: 'rematch', vote: !!vote }); }
+    // quit the current match for good (during play it counts as a forfeit); resolves once the server has let you go
+    leaveMatch() { return this._request({ t: 'leaveMatch' }); }
     setName(name) { return this._request({ t: 'setName', name }).then(r => { this.name = r.name; return r.name; }); }
 
     // ---- map consensus ----
@@ -456,7 +458,7 @@ const RMNetSDK = (() => {
       else if (type === MSG.SPING) { const t = codec.decodeSPing(data); if (t !== null) this._sendB(codec.encodeSPong(t)); }
     }
     _onSnap(data) {
-      const s = decodeSnapshot(data); if (!s) return;
+      const s = decodeSnapshot(data); if (!s || !this.match) return; // (one still in flight from a match we have left)
       const local = this._now(), sn = local + this._clock.offset, stamps = [];
       this._snapTimes.push(local); this._st.snapshots++; this._ack = s.ack;
       for (const p of s.players) {

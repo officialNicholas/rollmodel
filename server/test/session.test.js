@@ -44,6 +44,20 @@ test('a player who does not come back in time forfeits', async () => {
   } finally { await c.close(); }
 });
 
+test('quitting a match forfeits it at once', async () => {
+  const c = await duel({ matchT: 30 });
+  try {
+    const slotA = c.A.slot; // (the SDK forgets its slot once it has left)
+    const left = c.B.wait('playerLeft', m => m.slot === slotA, 5000), end = c.B.wait('matchEnd', () => true, 5000);
+    const r = await c.A.net.leaveMatch();
+    assert.equal(r.reason, 'you_left'); assert.equal(c.A.net.match, null); assert.equal(c.A.slot, -1);
+    assert.equal((await left).reason, 'quit');
+    const e = await end; assert.equal(e.reason, 'forfeit'); assert.equal(e.results.find(x => x.slot === slotA).left, true);
+    await assert.rejects(c.A.net.leaveMatch(), e2 => e2.code === 'not_in_match');
+    assert.equal((await c.A.net.queue('duel')).mode, 'duel', 'free to queue again');
+  } finally { await c.close(); }
+});
+
 test('the same token on a new device takes over the session and the match', async () => {
   const c = await duel({ matchT: 30 });
   try {

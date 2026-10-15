@@ -2,6 +2,7 @@
 // all of them match. Anything else cancels it and puts the honest players back in the queue.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { canonicalLayout } from '../client/rmnet.js';
 import { startServer, makeBots, until, sleep } from './helpers/harness.js';
 
 async function setup(n, mode, tampers = {}, rules = {}) {
@@ -9,8 +10,10 @@ async function setup(n, mode, tampers = {}, rules = {}) {
   const bots = makeBots(srv, n, { behavior: 'still' });
   bots.forEach((b, i) => { if (tampers[i]) Object.assign(b.o, tampers[i]); });
   await Promise.all(bots.map(b => b.connect()));
+  // listen before queueing: the match can be found in the same moment the last queue request is answered
+  const found = bots.map(b => b.wait('matchFound').catch(() => null));
   for (const b of bots) await b.net.queue(mode);
-  return { srv, bots };
+  return { srv, bots, found };
 }
 const done = async ({ srv, bots }) => { for (const b of bots) b.close(); await srv.close(); };
 
@@ -43,10 +46,13 @@ test('a layout that differs by one box cancels the match; honest players go back
 test('a client that claims the right hash for a different layout is caught (the server hashes it itself)', async () => {
   const ctx = await setup(2, 'duel', { 1: { sendLayout: false } });
   try {
-    const f = await ctx.bots[1].wait('matchFound').catch(() => null);
+    const f = await ctx.found[1];
     await until(() => ctx.bots[1].layout, 3000);
-    const honest = ctx.bots[1].layout, forged = JSON.parse(JSON.stringify(honest)); forged.holes = [];
-    // sends the honest hash with a layout that has no holes
+    const honest = ctx.bots[1].layout, forged = JSON.parse(JSON.stringify(honest));
+    // a modded stage with no holes and without the centrepiece (some stages have no holes at all, so drop a piece too)
+    forged.holes = []; forged.boxes = forged.boxes.slice(1);
+    assert.notEqual(canonicalLayout(forged), canonicalLayout(honest));
+    // sends the honest hash with it
     ctx.bots[1].net._sendJ({ t: 'layout', m: ctx.bots[1].net.match.id, hash: ctx.bots[1].net.layoutHash(honest), layout: forged });
     const c = await ctx.bots[0].wait('matchCancelled'); assert.equal(c.reason, 'layout_mismatch'); assert.ok(f);
   } finally { await done(ctx); }
@@ -71,7 +77,7 @@ test('a client that never sends its layout times out the match', async () => {
 test('layouts for a match you are not in are refused', async () => {
   const ctx = await setup(2, 'duel', { 1: { sendLayout: false } });
   try {
-    await ctx.bots[1].wait('matchFound');
+    assert.ok(await ctx.found[1]);
     const err = ctx.bots[1].wait('error', m => m.code === 'not_in_match');
     ctx.bots[1].net._sendJ({ t: 'layout', m: 'm_somebodyelse', hash: '0', layout: ctx.bots[1].layout });
     await err;

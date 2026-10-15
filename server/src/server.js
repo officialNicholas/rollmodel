@@ -282,7 +282,14 @@ export class GameServer {
         return;
       }
       case 'rematch': { const match = sess.match; if (!match) return; const p = match.playerById(sess.player.id); if (p) match.onRematch(p, m.vote === true); return; }
-      case 'leaveMatch': { const match = sess.match; if (!match) return; const p = match.playerById(sess.player.id); if (p) match.forfeit(p, 'quit'); this._detach(sess, match); this.sendJson(sess, { t: 'matchClosed', matchId: match.id, reason: 'you_left', r: m.r }); return; }
+      case 'leaveMatch': {
+        const match = sess.match; if (!match) return this.sendError(sess, 'not_in_match', 'not in a match', m.r);
+        const p = match.playerById(sess.player.id);
+        this._detach(sess, match);
+        // the match sends nothing more to this connection (it may be in a new match soon); its player forfeits
+        if (p && p.sess === sess) { p.sess = null; match.forfeit(p, 'quit'); }
+        this.sendJson(sess, { t: 'matchClosed', matchId: match.id, reason: 'you_left', r: m.r }); return;
+      }
       case 'bye': this.mm.remove(sess); return;
     }
   }
