@@ -123,6 +123,7 @@ The engine is `AU.flm`, inside `makeAudio`:
 - (v263) The loop's eight bars are the menu song's bars 9 to 16 (the same chords, Dm Am Bb E Dm Am F E, checked by chroma bar by bar). On the hit, which lands on the loop's bar e, the menu song starts from its bar 9 + e at offset `MENU_AT + (1 + e)` bars, so it carries on from the same part of the song with no gap. `MENU_AT` is 17.627 s (the song's bar 8), set against the intro's own beat by cross-correlating the two songs' onsets (22 ms on from the earlier kick-onset estimate); after the hit the menu's beat sits within 0 to 9 ms of where the intro's would have been. It is set up as the game's own current track, so the rest of `AU.music` behaves as usual afterwards.
 - If sound never started (no tap, muted), the menu song starts the usual way.
 - `AU.flm.renew()` (added on the main branch in v260, and kept here) brings the stems back, with the layers that were in, when the sound starts afresh on a new audio context.
+- (v309) Going to the background now lets go of every song that isn't playing (main's `memTrim`), and the menu song is one of them during the intro. If the player comes back before the hand-over, `flm` decodes it again, so the hand-over still carries on in time. Checked on the v309 build: one trip to the background at the eye-colour card, and the hand-over landed on the song's bar 9 + 4 as without it; before the fix it fell back to starting the song from the top. A memory warning in the middle of the intro still lets the song go until the hand-over, which then starts it the usual way.
 - `AU.flm.beat()` is how many beats into the loop's clock it is; the character nods along to it.
 
 Nothing intro-related is fetched for anyone but a first-timer. For them, the fetch starts at the end of loading (the air stem first), so loading time is unchanged for everyone.
@@ -236,7 +237,7 @@ If the scene can't be built (for instance neither character pack loaded), the in
 
 ## Main's patches over the intro
 
-The main branch's later modules (in `tools/q260.py`) patch lines of the intro's own code after `tools/v257_intro.py` has put it on the page. Each of these must stay exactly as it is in `tools/v257_intro.js` (or `.css`), or main has to be told the new text so it can move its patch. All of them matched exactly once as of v306 (commit 2acda39).
+The main branch's later modules (in `tools/q260.py`) patch lines of the intro's own code after `tools/v257_intro.py` has put it on the page. Each of these must stay exactly as it is in `tools/v257_intro.js` (or `.css`), or main has to be told the new text so it can move its patch. All of them matched exactly once as of v309 (commit 480bb18): main's builder, run on the files here, makes the shipped page byte for byte.
 
 | Module | Lines it hooks |
 |---|---|
@@ -255,7 +256,7 @@ With v306 the name card asks for a username. As it's typed, the line under the i
 
 - `tools/v257_intro.py`: the patch module, `apply(s)`. It reads `v257_intro.js`, `v257_intro.css` and `v257_intro_au.js` from beside itself.
 - `tools/q257_intro.py`: the quick builder onto a page without the intro (the v256 page and earlier). It writes `game/_intro_test.html`; `--test` adds `window.__T`.
-- `tools/qswap_intro.py`: the quick builder onto the shipped page, which already carries the intro (`game/index.html` on this branch since the merge of v265): it swaps the page's three intro blocks for the files in `tools/` as they are now. `--test` adds `window.__T` and `FL.handoff`.
+- `tools/qswap_intro.py`: the quick builder onto the shipped page as it was from v265 to v287: it swaps the page's three intro blocks for the files in `tools/` as they are now. From v288 on, main's modules patch lines inside those blocks, so the blocks no longer match and the test build comes from main's own builder instead (see Testing).
 - `tools/c257_intro.py`: makes the screenshot composites from a probe run.
 - `tools/r257_intro.py` and `tools/r257_mix.py`: the video (`intro-v257.mp4`). The recorder steps the page at a fixed 30 frames a second of game time (`requestAnimationFrame`, `performance.now` and the CSS animations together) and logs when each stage begins. The mixer lays in the music as the game plays it (the layers on the beat, the sting on a bar line, the menu song from its bar 8) the intro's effects and the desert wind (v267) under it all until the iris closes. The game's own synthesized effects (pops, splats, jumps) aren't in the video's sound.
 - `tools/perf257_intro.py`: the cost per stage, against the lobby.
@@ -271,14 +272,15 @@ With v306 the name card asks for a username. As it's typed, the line under the i
 ## Testing
 
 ```
-python3 tools/qswap_intro.py --test           # build game/_intro_test.html from the shipped page (not committed)
+git show f4663ec^:game/index.html > /tmp/base259.html   # the v259 page, the one main's builder starts from
+BASE=/tmp/base259.html VER=259:309 python3 tools/q260.py game/_intro_test.html --test   # (not committed)
 python3 -m http.server 8765 --directory game &
 PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers python3 tools/p257_intro.py out port inset
 PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers python3 tools/p257_intro.py out land inset
 SAVE='{"name":"Dusk","runs":9,"orient":"port","tut":{"ph":"done"}}' PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers python3 tools/p257_intro.py out port
 ```
 
-In the test build, `FL.peek()` reports the phase, draw calls and triangles, `FL.go(phase)` jumps to a phase (`sky`, `barrel`, `iris`, `style`, `paint`, `form`, `name`, `confirm`, `wink`), and `FL._x()` is the scene.
+Built without `--test`, that's byte for byte the shipped `game/index.html` (checked at v309), so the test build is the real page with the intro files as they are in `tools/` now. In the test build, `FL.peek()` reports the phase, draw calls and triangles, `FL.go(phase)` jumps to a phase (`sky`, `barrel`, `iris`, `style`, `paint`, `form`, `name`, `confirm`, `wink`), and `FL._x()` is the scene.
 
 ## Not done or worth a look
 

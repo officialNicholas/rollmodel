@@ -65,7 +65,10 @@
           get(SFX_BASE + 'intro_wind.mp3', b => { B.wind = b; wind(); });
           get(MUSIC_BASE + 'intro_air.mp3', b => { B.air = b; begin();
             for (const k of STEMS.slice(1)) get(MUSIC_BASE + 'intro_' + k + '.mp3', b2 => { B[k] = b2; node(k); });
-            get(MUSIC_BASE + 'intro_sting.mp3', b2 => { B.sting = b2; }); get(SFX_BASE + 'intro_fx.mp3', b2 => { B.fx = b2; }); }); },
+            get(MUSIC_BASE + 'intro_sting.mp3', b2 => { B.sting = b2; }); get(SFX_BASE + 'intro_fx.mp3', b2 => { B.fx = b2; }); });
+          // (going to the background lets go of every song not playing (v309's memTrim), the menu song with them, and the hand-over
+          // carries on in it: back on screen before the hand-over, it's decoded again)
+          document.addEventListener('visibilitychange', () => { if (!document.hidden && !M.gone && !M.sung && TRK.menu && !TRK.menu.buf) trkDecode('menu'); }); },
         play() { M.on = true; if (ctx) { begin(); wind(); } },
         wake() { if (M.on && !M.S) begin(); if (M.on && !M.W) wind(); },
         // (v260) the sound started afresh on a new context: the stems come back on it, with the layers that were in
@@ -82,7 +85,7 @@
         // the reveal: the hit on the first bar line at least lead seconds away (its riser a bar before, its chord that bar's), the loop let
         // go on it, and on it the menu song from the same bar. How long until the hit, in seconds
         sting(lead) {
-          M.on = false; if (!ctx || ctx.state !== 'running') { windOut(T(), 0.1); return lead; }
+          M.on = false; M.sung = true; if (!ctx || ctx.state !== 'running') { windOut(T(), 0.1); return lead; }
           const S = M.S, hit = S ? next(BAR, lead) : T() + lead, e = S ? ((Math.round((hit - S.t0) / BAR) % 8) + 8) % 8 : 0;
           windOut(hit - 0.45, 0.3); // (the wind goes as the iris closes on the desert)
           // (one part of the sprite, from `at` seconds: started partway in if that's already gone by)
