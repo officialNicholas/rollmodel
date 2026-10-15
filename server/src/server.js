@@ -70,7 +70,8 @@ export class GameServer {
     };
   }
   _ip(req) {
-    if (this.opts.trustProxy) { const f = req.headers['x-forwarded-for']; if (typeof f === 'string' && f) return f.split(',')[0].trim(); }
+    // behind a proxy: Fly.io's own header first (set by its edge, so a client can't fake it), then the usual one
+    if (this.opts.trustProxy) { const fc = req.headers['fly-client-ip']; if (typeof fc === 'string' && fc) return fc.trim(); const f = req.headers['x-forwarded-for']; if (typeof f === 'string' && f) return f.split(',')[0].trim(); }
     return req.socket.remoteAddress || '?';
   }
   _upgrade(req, socket, head) {

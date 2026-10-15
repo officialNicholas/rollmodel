@@ -7,6 +7,7 @@ do $$ begin
 end $$;
 create schema if not exists auth;
 create table if not exists auth.users (id uuid primary key, is_anonymous boolean not null default true, created_at timestamptz not null default now());
+alter table auth.users add column if not exists email text;
 -- as Supabase does it: the caller's id from the request's JWT claims
 create or replace function auth.uid() returns uuid language sql stable as $$
   select nullif(coalesce(current_setting('request.jwt.claim.sub', true), (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub')), '')::uuid

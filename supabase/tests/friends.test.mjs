@@ -1,4 +1,4 @@
-// Tests for supabase/migrations/*_friends.sql on a plain local Postgres (with tests/local_stub.sql standing in for Supabase).
+// Tests for supabase/migrations/*_friends.sql (with *_accounts.sql on top) on a plain local Postgres (with tests/local_stub.sql standing in for Supabase).
 // Each call runs the way Supabase runs an app request: as the "authenticated" role, with the caller's id in the JWT claims.
 //   PGURL=postgres://postgres@localhost:54329/rmtest node --test supabase/tests/friends.test.mjs
 // (needs the `pg` package: NODE_PATH=/path/to/node_modules)
@@ -19,7 +19,14 @@ async function as(user, sql, params = [], role = 'authenticated') {
   } catch (e) { await c.query('rollback').catch(() => {}); throw e; } finally { c.release(); }
 }
 const call = async (user, fn, args = []) => (await as(user, 'select public.' + fn + '(' + args.map((_, i) => '$' + (i + 1)).join(', ') + ') as r', args))[0].r;
-async function player(name) { const id = uid(); await db.query('insert into auth.users (id) values ($1)', [id]); const me = await call(id, 'rm_me', [name, { eyes: 'round' }, 3]); return { id, ...me }; }
+// a fresh player with a username nobody else has: the name and a suffix of consonants (which can't spell anything the filter
+// would catch), unique for every run against the same database
+let seq = 0;
+const suffix = () => String(Date.now() * 100 + (seq++ % 100)).slice(-8).replace(/[0-9]/g, d => 'bcdfghjlmn'[d]);
+async function player(name) {
+  const id = uid(); await db.query('insert into auth.users (id) values ($1)', [id]);
+  const me = await call(id, 'rm_me', [name + '_' + suffix(), { eyes: 'round' }, 3]); assert.equal(me.ok, true, JSON.stringify(me)); return { id, ...me };
+}
 
 test.after(() => db.end());
 
@@ -33,15 +40,14 @@ test('the tables are closed to the app; only the functions answer', async () => 
   await assert.rejects(as(null, "select public.rm_inbox('lobby')"), /sign in first/);
 });
 
-test('a profile: made once, keeps its code, cleans the name', async () => {
+test('a profile: made once, keeps its code and its username', async () => {
   const a = await player('Bea');
   assert.match(a.code, /^[2-9A-HJKMNP-Z]{8}$/);
-  const again = await call(a.id, 'rm_me', ['  Bea \u0007 the   Great and Long Name  ', null, 1500]);
+  assert.equal(a.anon, true); assert.equal(a.account, false); assert.equal(a.needs_name, false);
+  const again = await call(a.id, 'rm_me', ['SomebodyElse', null, 1500]);
   assert.equal(again.code, a.code);
-  assert.equal(again.name, 'Bea the Great an');
+  assert.equal(again.name, a.name); // (a username only changes through rm_rename)
   assert.equal(again.rank, 999);
-  const keep = await call(a.id, 'rm_me', [null, null, null]);
-  assert.equal(keep.name, 'Bea the Great an');
   await assert.rejects(call(uid(), 'rm_inbox', ['lobby']), /no profile yet/);
 });
 
@@ -52,14 +58,14 @@ test('requests by code: send, both ways makes friends, the answers', async () =>
   assert.equal((await call(a.id, 'rm_add_friend', [b.code.slice(0, 4).toLowerCase() + '-' + b.code.slice(4)])).state, 'sent');
   assert.equal((await call(a.id, 'rm_add_friend', [b.code])).state, 'already_sent');
   let ib = await call(b.id, 'rm_inbox', ['lobby']);
-  assert.equal(ib.incoming.length, 1); assert.equal(ib.incoming[0].name, 'Cal');
+  assert.equal(ib.incoming.length, 1); assert.equal(ib.incoming[0].name, a.name);
   let ia = await call(a.id, 'rm_inbox', ['lobby']);
-  assert.equal(ia.outgoing.length, 1); assert.equal(ia.outgoing[0].name, 'Dot');
+  assert.equal(ia.outgoing.length, 1); assert.equal(ia.outgoing[0].name, b.name);
   assert.equal((await call(b.id, 'rm_add_friend', [a.code])).state, 'friends_now'); // (she'd asked: friends at once)
   assert.equal((await call(a.id, 'rm_add_friend', [b.code])).state, 'already_friends');
   ib = await call(b.id, 'rm_inbox', ['match']); ia = await call(a.id, 'rm_inbox', ['lobby']);
   assert.equal(ia.outgoing.length, 0); assert.equal(ib.incoming.length, 0);
-  assert.equal(ia.friends.length, 1); assert.equal(ia.friends[0].name, 'Dot'); assert.equal(ia.friends[0].online, true); assert.equal(ia.friends[0].status, 'match');
+  assert.equal(ia.friends.length, 1); assert.equal(ia.friends[0].name, b.name); assert.equal(ia.friends[0].online, true); assert.equal(ia.friends[0].status, 'match');
   await call(b.id, 'rm_inbox', ['offline']);
   ia = await call(a.id, 'rm_inbox', ['lobby']); assert.equal(ia.friends[0].online, false); assert.equal(ia.friends[0].status, 'offline');
   await db.query("update public.profiles set last_seen = now() - interval '5 minutes', status = 'lobby' where id = $1", [b.id]);
@@ -88,7 +94,7 @@ test('blocking: friendship and requests gone, and they cannot reach you again (w
   assert.equal((await call(a.id, 'rm_add_friend', [b.code])).state, 'sent'); // (looks sent...)
   assert.equal((await call(b.id, 'rm_inbox')).incoming.length, 0); // (...but never arrives)
   assert.equal((await call(a.id, 'rm_inbox')).outgoing.length, 0);
-  assert.equal((await call(b.id, 'rm_inbox')).blocked[0].name, 'Hal');
+  assert.equal((await call(b.id, 'rm_inbox')).blocked[0].name, a.name);
   await call(b.id, 'rm_unblock', [a.id]);
   assert.equal((await call(a.id, 'rm_add_friend', [b.code])).state, 'sent');
   assert.equal((await call(b.id, 'rm_inbox')).incoming.length, 1);
@@ -102,7 +108,7 @@ test('invites: friends only, one open at a time, accept gives the room, they run
   const i1 = await call(a.id, 'rm_invite', [b.id, 'abc12', 'duel']); assert.equal(i1.ok, true);
   const i2 = await call(a.id, 'rm_invite', [b.id, 'XYZ98', 'duel']); assert.equal(i2.ok, true);
   let ib = await call(b.id, 'rm_inbox');
-  assert.equal(ib.invites.length, 1); assert.equal(ib.invites[0].room, 'XYZ98'); assert.equal(ib.invites[0].from.name, 'Jo');
+  assert.equal(ib.invites.length, 1); assert.equal(ib.invites[0].room, 'XYZ98'); assert.equal(ib.invites[0].from.name, a.name);
   assert.deepEqual(await call(b.id, 'rm_answer_invite', [i1.id, true]), { ok: false, why: 'gone' }); // (replaced by the newer one)
   assert.deepEqual(await call(c.id, 'rm_answer_invite', [i2.id, true]), { ok: false, why: 'gone' }); // (not hers)
   assert.deepEqual(await call(b.id, 'rm_answer_invite', [i2.id, true]), { ok: true, room: 'XYZ98', mode: 'duel' });
@@ -130,5 +136,5 @@ test('Time trial: your best of the week, and a board of you and your friends onl
   assert.deepEqual(await call(a.id, 'rm_trial', ['blank', 101]), { ok: false, why: 'bad_run' });
   assert.deepEqual(await call(a.id, 'rm_trial', ['Bad Stage!', 50]), { ok: false, why: 'bad_run' });
   const board = await call(a.id, 'rm_friends_board', ['blank', null]);
-  assert.deepEqual(board.rows.map(r => [r.name, r.best, r.runs, r.me]), [['Oli', 40, 1, false], ['Ned', 31, 2, true]]);
+  assert.deepEqual(board.rows.map(r => [r.name, r.best, r.runs, r.me]), [[b.name, 40, 1, false], [a.name, 31, 2, true]]);
 });
