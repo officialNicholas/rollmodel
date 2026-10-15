@@ -634,10 +634,10 @@ export class Match {
       if (p.st === 'left') continue;
       if (!p.connected) { if (now - p.awaySince > this.rules.reconnectWindow * 1000) this.forfeit(p, 'disconnected'); continue; }
       if (this.phase !== 'play' || (p.st !== 'play' && p.st !== 'hide')) continue;
-      const quiet = now - p.lastStateAt;
+      const quiet = now - Math.max(p.lastStateAt, this.startAt); // (counted from Go: building the stage and the countdown don't count)
       if (quiet > this.rules.afkWarn * 1000 && !p.afk) { p.afk = true; this._all({ t: 'afk', slot: p.slot, on: true }); }
       if (quiet > this.rules.afkForfeit * 1000) { this.forfeit(p, 'afk'); continue; }
-      if (p.st === 'play' && now - p.lastMoveAt > this.rules.idleForfeit * 1000) this.forfeit(p, 'idle');
+      if (p.st === 'play' && now - Math.max(p.lastMoveAt, this.startAt) > this.rules.idleForfeit * 1000) this.forfeit(p, 'idle');
     }
   }
   _flags(p, now) {

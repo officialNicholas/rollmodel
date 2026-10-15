@@ -11,7 +11,8 @@ import { genLayout } from './layouts.js';
 let botSeq = 0;
 export class Bot {
   // opts: { url, name, WebSocket, behavior: 'wander' | 'chase' | 'still' | 'script', hz, seed, layoutFor(match), tamper(layout),
-  //         record (keep a trace of true positions), rematch (vote when the match ends), sendLayout (default true) }
+  //         record (keep a trace of true positions), rematch (vote when the match ends), sendLayout (default true),
+  //         layoutDelay (ms: a slow phone building the stage), silentAfterGo (ms after Go before the first state: still landing) }
   constructor(opts = {}) {
     this.o = Object.assign({ behavior: 'wander', hz: 60, record: false, rematch: null, sendLayout: true }, opts);
     this.n = ++botSeq; this.R = rng(opts.seed || this.n * 9973);
@@ -60,7 +61,7 @@ export class Bot {
     if (this.o.sendLayout) setTimeout(() => {
       // the SDK refuses to hash a broken layout; a modded client would send it anyway
       try { this.net.sendLayout(this.layout); } catch (e) { this.net._sendJ({ t: 'layout', m: m.matchId, hash: 'broken', layout: this.layout }); }
-    }, 5 + this.R() * 20);
+    }, (this.o.layoutDelay || 0) + 5 + this.R() * 20);
   }
   _resume(m) {
     this.match = m; this.startAt = m.startAt; this.rules = m.rules;
@@ -108,6 +109,7 @@ export class Bot {
     this._send();
   }
   _send() {
+    if (this.o.silentAfterGo && this.net.serverNow() < this.startAt + this.o.silentAfterGo) return;
     const b = this.body; this.stats.sent++;
     let st = b.state({ hidden: this.hidden >= 0, paint: this.paint });
     if (this.o.cheat) st = this.o.cheat(st, this) || st; // tests: a modded client reports something else

@@ -114,6 +114,18 @@ test('Showdown 2v2: a side is out only when both are out', async () => {
   } finally { for (const b of bots) b.close(); await srv.close(); }
 });
 
+test('the away timer starts at Go: a phone still landing a few seconds after Go is not ruled away', async () => {
+  // the real countdown (3 s), and away after 5 s without a state; both phones send nothing until 3 s after Go
+  const srv = await startServer({ countdown: 3, startLead: 0.25, afkWarn: 2, afkForfeit: 5, matchT: 10 });
+  const [A, B] = makeBots(srv, 2, { behavior: 'still', silentAfterGo: 3000 });
+  try {
+    await Promise.all([A, B].map(b => b.connect()));
+    const end = A.wait('matchEnd', () => true, 30000);
+    await A.net.queue('duel'); await B.net.queue('duel');
+    const m = await end; assert.equal(m.reason, 'time', 'played to the end, nobody forfeited');
+  } finally { A.close(); B.close(); await srv.close(); }
+});
+
 test('versus: knock-outs add to the score, and a tie at the buzzer plays on once', async () => {
   // a level match: both stand still and paint nothing, so overtime comes, and after it a draw
   let srv = await startServer({ matchT: 1.5, overtime: 1.5, idleForfeit: 60 });

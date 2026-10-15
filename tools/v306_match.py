@@ -92,7 +92,7 @@ function netAct(a, data) {
 // each frame: where you are, to the server (after you've landed from the drop at Go)
 function netFrame() {
   if (!NM || !NM.net) return;
-  if (state === 'play' && !NM.live && NM.startAt && P.st === 'play' && !P.air && netNow() >= NM.startAt) NM.live = true;
+  if (state === 'play' && !NM.live && NM.phase !== 'end' && NM.startAt && P.st === 'play' && !P.air && netNow() >= NM.startAt) NM.live = true;
   if (!NM.live || state !== 'play' || (P.st !== 'play' && P.st !== 'hide')) return;
   NM.net.sendState({ x: P.x, y: P.y, z: P.z, yaw: P.yaw, spd: P.st === 'hide' ? 0 : P.spd, vy: P.vy, air: P.air, rolling: P.rollT > 0, charging: P.charging, slam: !!P.slam, hidden: P.st === 'hide', flung: !!P.flung, dry: !!P.dry, missile: !!P.missile, paint: clamp(P.paint, 0, 1), aim: P.charging ? clamp(P.charge || 0, 0, 1) : 0 });
 }
@@ -296,6 +296,7 @@ def apply(s):
     s = rep(s, "  if (ffK > 1) dt = Math.min(dt, 0.05); // (the drawing's own timing no faster than a slow frame's)", "  if (ffK > 1 || NM) dt = Math.min(dt, 0.05); // (the drawing's own timing no faster than a slow frame's)")
     s = rep(s, "  if (dt > 0) { const n = Math.ceil(dt / 0.012); for (let i = 0; i < n; i++) step(dt / n); }\n",
                "  if (dt > 0) { const n = Math.ceil(dt / 0.012); for (let i = 0; i < n; i++) step(dt / n); }\n  if (NM) netFrame();\n")
+    s = rep(s, "function goTime() {\n  showCount('Go!', true);", "function goTime() {\n  if (NM && NM.phase === 'end') return; // (v306: the server ended it while this phone was still in the intro)\n  showCount('Go!', true);")
     s = rep(s, "function kcamStart(V) {\n  if (kcamUsed ||", "function kcamStart(V) {\n  if (NM || kcamUsed ||")
     # ---- your blob: its moves go to the referee; a knock-out, a respawn or a flattening only when the server says
     s = rep(s, "if (D.koT <= 0) { if (D.rag) ragEnd(D); if (D.elimNow) sdOut(D); else respawnBlob(D); } return; }",
