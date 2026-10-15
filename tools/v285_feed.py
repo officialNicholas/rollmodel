@@ -1,7 +1,7 @@
 """v285: the mid-match notices (a knock-out, "Roller!", "Whirlwind!", the weather...), refined. They were a big dark billboard with a
 cream rim, a heavy drop shadow, a wallpaper of paint marks and a large square emblem. Now a slim strip you can see through (its panel
 about 85%), about a quarter smaller: the fighter's colour (or the event's: heat orange, rain blue) as a slanted block at its start with
-a small mark in it, clean italic type with a quiet line under it, a hairline edge and one soft sheen as it lands. It slides in, sits,
+a small mark in it, clean italic type on one line (a long name shrinks it to fit) with a quiet line under it, a hairline edge and one soft sheen as it lands. It slides in, sits,
 and lifts away about 20% sooner than before (1.7 s, a long one 2.8 s, a quick one 1.3 s). A knock-out takes the knocked-out fighter's
 colour."""
 def rep(s, a, b, n=1):
@@ -21,8 +21,9 @@ CSS = """
 .banner .pem[data-k="drip"] i{width:20px;height:28px}
 .banner .pem[data-k="stroke"] i{width:34px;height:20px}
 .banner .ptxt{gap:5px;padding:10px 20px 11px 15px;transform:skewX(10deg)}
-#bannerBig{font:900 clamp(19px,6vw,27px)/1 var(--font-head);font-style:italic;letter-spacing:.005em;text-shadow:0 2px 0 rgba(0,0,0,.35)}
-#bannerSmall{font:800 10.5px/1.2 var(--font-ui);letter-spacing:.16em;color:rgba(244,238,227,.68);opacity:1;padding:0}
+#bannerBig{font:900 clamp(18px,5.6vw,26px)/1 var(--font-head);font-style:italic;letter-spacing:.005em;text-shadow:0 2px 0 rgba(0,0,0,.35);white-space:nowrap;text-wrap:nowrap}
+.banner .ptxt{justify-items:start;text-align:left}
+#bannerSmall{font:800 10.5px/1.25 var(--font-ui);letter-spacing:.14em;color:rgba(244,238,227,.68);opacity:1;padding:0;text-wrap:balance}
 .banner.on .plate,.banner.on.long .plate{animation:feedin 1.7s cubic-bezier(.2,.9,.25,1) forwards}
 .banner.on.long .plate{animation-duration:2.8s}
 .banner.on.quick .plate,.banner.on.long.quick .plate{animation-duration:1.3s}
@@ -44,4 +45,7 @@ def apply(s):
                "if (by === P) banner('Got ' + nameOf(D) + '!', D.hearts + (D.hearts === 1 ? ' heart left' : ' hearts left'), false, false, TEAMS[D.team].css);")
     s = rep(s, "else if (mine) banner(nameOf(D) + ' lost a heart', by ? 'Got by ' + sdName(by) : '', false, true);",
                "else if (mine) banner(nameOf(D) + ' lost a heart', by ? 'Got by ' + sdName(by) : '', false, true, TEAMS[D.team].css);")
+    # the headline on one line: a long name shrinks it to fit the strip rather than wrapping it onto a second line
+    s = rep(s, "$('bannerBig').textContent = big;",
+               "{ const B = $('bannerBig'); B.textContent = big; B.style.fontSize = ''; const room = Math.min(innerWidth * 0.86, 420) - 52 - 38, w = B.scrollWidth; if (w > room) B.style.fontSize = Math.max(13, parseFloat(getComputedStyle(B).fontSize) * room / w).toFixed(1) + 'px'; }")
     return s
