@@ -21,11 +21,11 @@ CSS = r"""
 #mStrokes{--skp:#E3A12C;--skt:#2A1A04}
 #mStrokes [data-cat="skill"]{--skp:#3A84D4;--skt:#FFF8EA}
 #mStrokes [data-cat="item"]{--skp:#D33A4C;--skt:#FFF8EA}
-#mStrokes .stslot{background:url(art/m_cpaper_g.webp) center/180px,var(--skp);background-blend-mode:multiply;border-radius:2px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08),4px 5px 0 rgba(0,0,0,.45);filter:brightness(.7) saturate(.85);scale:.95;transition:transform .16s ease,box-shadow .2s ease,rotate .2s ease,scale .2s ease,filter .2s ease}
+#mStrokes .stslot{background:url(art/m_cpaper_g.webp) center/180px,var(--skp);background-blend-mode:multiply;border-radius:2px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08),4px 5px 0 rgba(0,0,0,.45);filter:brightness(.82) saturate(.9);scale:.95;transition:transform .16s ease,box-shadow .2s ease,rotate .2s ease,scale .2s ease,filter .2s ease}
 #mStrokes .stslot .stic::before{display:none}
 #mStrokes .stslot .stname{color:var(--skt);text-shadow:0 1px 0 rgba(0,0,0,.18)}
 #mStrokes .stslot.on{filter:none;scale:1;rotate:0deg;translate:0 -3px;background:url(art/m_cpaper_g.webp) center/180px,var(--skp);background-blend-mode:multiply;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08),6px 8px 0 rgba(0,0,0,.5)}
-#mStrokes .stslot:not(.on){filter:brightness(.7) saturate(.85)}
+#mStrokes .stslot:not(.on){filter:brightness(.82) saturate(.9)}
 #mStrokes .stslot.on::after{bottom:-11px;width:18px;height:18px;margin-left:-9px;background:url(art/m_cpaper_g.webp) center/180px,var(--skp);background-blend-mode:multiply;box-shadow:3px 3px 0 0 rgba(0,0,0,.35)}
 #mStrokes .stslot.fresh::before{box-shadow:0 0 0 2px var(--skp)}
 /* the open category: a sheet of lined notebook paper, taped at its top corners */
@@ -36,10 +36,11 @@ CSS = r"""
 #mStrokes .stpanel::before,#mStrokes .stpanel::after{content:"";position:absolute;top:-10px;width:70px;height:22px;background:url(art/m_tape3.webp) center/100% 100% no-repeat;pointer-events:none;filter:drop-shadow(0 1px 0 rgba(23,19,32,.12))}
 #mStrokes .stpanel::before{left:-18px;transform:rotate(-32deg)}
 #mStrokes .stpanel::after{right:-18px;transform:rotate(30deg)}
-#mStrokes .stphd{align-items:flex-end;padding:0 2px 4px}
+#mStrokes .stphd{flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:5px;padding:0 2px 6px}
 #mStrokes .stphd h3{position:relative;isolation:isolate;padding:0 2px;background:none;color:var(--black);font:400 19px/1 var(--font-display);letter-spacing:.01em;text-transform:uppercase;transform:rotate(-1deg)}
 #mStrokes .stphd h3::after{content:"";position:absolute;left:-7px;right:-9px;bottom:-3px;height:13px;z-index:-1;background:var(--sk);opacity:.6;-webkit-mask:url(art/m_stroke2.webp) center/100% 100% no-repeat;mask:url(art/m_stroke2.webp) center/100% 100% no-repeat}
-#mStrokes .stphd small{color:#6E6680;font-style:italic}
+#mStrokes .stphd small{color:#6E6680;font-style:italic;text-align:left}
+#mStrokes .stphd h3{white-space:nowrap}
 /* the strokes: stickers on the page, their names written under them */
 #mStrokes .strail{gap:6px 8px}
 #mStrokes .stopt,#mStrokes .stopt.on,#mStrokes .stopt.raw,#mStrokes .stopt.lock,#mStrokes .stopt.crafting{padding:8px 4px 6px;border:0;border-radius:10px;background:none;box-shadow:none}
