@@ -349,6 +349,10 @@ button{font-family:var(--font-ui)}
 .giftptr.edge i{animation:giftbob 1s ease-in-out infinite alternate,orbpulse .7s ease-in-out infinite alternate}
 .giftptr i svg{width:22px;height:22px;display:block}
 @keyframes giftbob{from{transform:rotate(-8deg)}to{transform:rotate(8deg)}}
+/* (v285) the arrow to the nearest pick-up while you've got nothing: the item's own icon in a white bubble */
+.itemptr i{inset:4px;display:grid;place-items:center;background:radial-gradient(circle at 50% 38%,#FFFFFF,#F1F4FF 60%,#C9D6F2);box-shadow:0 0 12px 4px rgba(255,255,255,.6);animation:none}
+.itemptr.edge i{animation:orbpulse .7s ease-in-out infinite alternate}
+.itemptr i svg{width:20px;height:20px;fill:#E3122F;stroke:#E3122F}
 .newitem{position:fixed;inset:0;z-index:30;display:grid;place-items:center;overflow:hidden;background:radial-gradient(120% 90% at 50% 42%,#4A2A86 0%,var(--plum) 55%,#120A24 100%);opacity:0;transition:opacity .25s}
 .newitem.on{opacity:1}
 .nirays{position:absolute;left:50%;top:42%;width:170vmax;height:170vmax;margin:-85vmax 0 0 -85vmax;background:repeating-conic-gradient(rgba(255,216,107,.16) 0 9deg,rgba(255,216,107,0) 9deg 22.5deg);-webkit-mask:radial-gradient(closest-side,#000 18%,transparent 72%);mask:radial-gradient(closest-side,#000 18%,transparent 72%);animation:nirays 24s linear infinite}
@@ -2565,7 +2569,7 @@ svg{shape-rendering:geometricPrecision}
 .slamBtn.off .sbdial{opacity:1}
 /* ---- the coach: a striped dark plate, the coach's name over a dashed rule, its face, and the line; a hand points at what it is about ---- */
 .tut{position:absolute;left:0;top:0;z-index:60;pointer-events:none;width:max-content;max-width:min(94vw,520px);opacity:0;transition:opacity .2s}
-.tut.on{opacity:1}
+.tut.on{opacity:1}.tut.fade{transition:opacity .38s ease-out}
 .tut[data-pos="top"]{left:50%;top:96px;transform:translateX(-50%)}
 .tut[data-pos="above"]{transform:translateY(-100%)}
 .tut .tplate{position:relative;display:grid;grid-template-columns:60px minmax(0,1fr);grid-template-rows:auto auto;column-gap:14px;align-items:center;box-sizing:border-box;min-width:min(320px,94vw);padding:9px 20px 13px 12px;border-radius:14px;color:#fff;background:repeating-linear-gradient(-56deg,rgba(14,12,20,.86) 0 16px,rgba(44,40,54,.86) 16px 32px);box-shadow:0 8px 20px rgba(0,0,0,.45),inset 0 0 0 1.5px rgba(255,255,255,.09)}
@@ -2919,6 +2923,29 @@ html.touchnav :focus-visible{outline:none!important}
 /* the banner's paint pattern drifts only while the banner is up, as one sliding layer (108 px: a whole number of both its tiles) */
 .banner .plate::before{animation:none;right:-108px}
 .banner.on .plate::before{animation:platedrift 12s linear infinite}
+/* (v285) the mid-match notices, refined: a slim strip you can see through, the fighter's (or the event's) colour as a slanted block at
+   its start with a small mark in it, clean type, a hairline edge and one soft sheen as it lands; in, a beat, and lifted away */
+.banner{top:22%}
+@media (min-aspect-ratio:1/1){.banner{top:17%}}
+.banner .plate{min-height:0;max-width:min(86vw,420px);background:rgba(18,14,24,.84);border-radius:6px;box-shadow:inset 0 0 0 1.5px rgba(244,238,227,.16),0 8px 22px rgba(0,0,0,.28);transform:skewX(-10deg)}
+.banner .plate::before{display:none}
+.banner .plate::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,rgba(255,255,255,0) 35%,rgba(255,255,255,.13) 48%,rgba(255,255,255,0) 61%);transform:translateX(-110%);pointer-events:none}
+.banner.on .plate::after{animation:feedsheen .75s .1s cubic-bezier(.3,.6,.3,1) both}
+.banner .pem{width:52px;background:var(--acc,var(--ink));box-shadow:none;opacity:.95}
+.banner .pem i{width:26px;height:26px;transform:skewX(10deg) rotate(-8deg);filter:none}
+.banner .pem[data-k="drip"] i{width:20px;height:28px}
+.banner .pem[data-k="stroke"] i{width:34px;height:20px}
+.banner .ptxt{gap:5px;padding:10px 20px 11px 15px;transform:skewX(10deg)}
+#bannerBig{font:900 clamp(18px,5.6vw,26px)/1 var(--font-head);font-style:italic;letter-spacing:.005em;text-shadow:0 2px 0 rgba(0,0,0,.35);white-space:nowrap;text-wrap:nowrap}
+.banner .ptxt{justify-items:start;text-align:left}
+#bannerSmall{font:800 10.5px/1.25 var(--font-ui);letter-spacing:.14em;color:rgba(244,238,227,.68);opacity:1;padding:0;text-wrap:balance}
+.banner.on .plate,.banner.on.long .plate{animation:feedin 1.7s cubic-bezier(.2,.9,.25,1) forwards}
+.banner.on.long .plate{animation-duration:2.8s}
+.banner.on.quick .plate,.banner.on.long.quick .plate{animation-duration:1.3s}
+@keyframes feedin{0%{opacity:0;transform:translateX(-22px) skewX(-10deg)}12%{opacity:1;transform:translateX(3px) skewX(-10deg)}20%{transform:translateX(0) skewX(-10deg)}84%{opacity:1;transform:translateX(0) skewX(-10deg)}100%{opacity:0;transform:translate(0,-12px) skewX(-10deg)}}
+@keyframes feedsheen{to{transform:translateX(110%)}}
+@keyframes feedfade{0%,100%{opacity:0;transform:skewX(-10deg)}10%,85%{opacity:1;transform:skewX(-10deg)}}
+@media (prefers-reduced-motion:reduce){.banner.on .plate,.banner.on.long .plate,.banner.on.quick .plate{animation-name:feedfade}.banner.on .plate::after{animation:none}}
 @keyframes platedrift{to{transform:translateX(-108px)}}
 /* the paint tank's glows: a layer of their own behind the tube, faded or turned */
 .tank.low .ttrack,.tank.giant .ttrack,.tank.heat .ttrack{animation:none;filter:none}
@@ -3502,6 +3529,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
   <div class="ntags" id="ntags" aria-hidden="true"></div>
   <div class="orbflash" id="orbFlash"><i></i><i></i><i></i><i></i><i></i></div>
   <div class="orbptr" id="orbPtr"><i></i><u><b></b></u></div>
+  <div class="orbptr itemptr" id="itemPtr"><i></i><u><b></b></u></div>
   <div class="orbptr giftptr" id="giftPtr"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 11h15v9.2a1.6 1.6 0 0 1-1.6 1.6H6.1a1.6 1.6 0 0 1-1.6-1.6z" fill="#FFC61A" stroke="#1A1030" stroke-width="1.7"/><rect x="3" y="7.4" width="18" height="4.4" rx="1.4" fill="#FFD54F" stroke="#1A1030" stroke-width="1.7"/><path d="M10.4 7.6h3.2v14.1h-3.2z" fill="#FF3FA4"/><path d="M12 7.4C10.6 4 7.4 3.4 6.9 5.3c-.4 1.6 2 2.1 5.1 2.1zM12 7.4c1.4-3.4 4.6-4 5.1-2.1.4 1.6-2 2.1-5.1 2.1z" fill="#FF3FA4" stroke="#1A1030" stroke-width="1.4" stroke-linejoin="round"/></svg></i><u><b></b></u></div>
   <div class="foeptr" id="foePtr"><i></i><u><b></b></u></div>
   <div class="foeptr two" id="foePtr2"><i></i><u><b></b></u></div>
@@ -3629,7 +3657,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 284</p>
+      <p class="ver">Version 285</p>
     </div>
   </div>
 
@@ -12044,7 +12072,7 @@ const PU = {
 const puIconMat = toon(0xE3122F), puHaloMat = toon(0xFFFFFF);
 // ---------- v271: the Whirlwind: a wind-up, then a charge wrapped in a sideways tornado of your paint. It paints a wide trail, splats any
 // rival it runs into and ends in a burst; you're untouchable while it spins, and it stops short of a drop ----------
-const WHIRL_WIND = 0.3, WHIRL_DASH = 1.1, WHIRL_END = 0.4, WHIRL_R = 1.75, WHIRL_TRAIL = 1.9, WHIRL_STEP = 0.7, WHIRL_BURST = 2.4;
+const WHIRL_WIND = 1.3, WHIRL_DASH = 1.1, WHIRL_END = 0.4, WHIRL_R = 1.75, WHIRL_TRAIL = 1.9, WHIRL_STEP = 0.7, WHIRL_BURST = 2.4;
 const whirlV = () => cfg.speed * MOVE_K * 2.5;
 // the tornado: strips spiralling round the forward axis (+z), narrow at the nose and flaring wide behind (u: tail 0 to nose 1, v across)
 const WHIRL_G = (() => {
@@ -12085,15 +12113,84 @@ function whirlFx(D) {
   a.renderOrder = 36; b.renderOrder = 37; a.frustumCulled = b.frustumCulled = false; spin.add(a, b); g.visible = false; scene.add(g);
   return (D.wfx = { g, spin, pm, sm });
 }
+// ---------- v285: the Whirlwind's notice: a lane that fills as it winds, a glint when it locks ----------
+const WHIRL_LOCK = 0.45, WHIRL_LANE_W = 2 * (WHIRL_R + 0.25), WL_N = 18;
+// the lane: a strip on the ground, rails along its sides, chevrons running the way it will go over the part that has filled
+const whirlLaneM = new THREE.ShaderMaterial({ uniforms: { uCol: { value: new THREE.Color(0xE3122F) }, uFill: { value: 0 }, uT: { value: 0 }, uLock: { value: 0 }, uA: { value: 0 }, uLen: { value: 10 } },
+  vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+  fragmentShader: `uniform vec3 uCol; uniform float uFill, uT, uLock, uA, uLen; varying vec2 vUv;
+    void main(){ float u = vUv.x, e = abs(vUv.y * 2.0 - 1.0), d = u * uLen;
+      float rail = smoothstep(0.78, 0.86, e) * (1.0 - smoothstep(0.95, 1.0, e)), body = 1.0 - smoothstep(0.9, 1.0, e), filled = step(u, uFill);
+      float f = fract(d / 1.4 + e * 0.6 - uT * 1.8), chev = smoothstep(0.5, 0.62, f) * (1.0 - smoothstep(0.78, 0.9, f));
+      float ends = smoothstep(0.0, 0.06, u) * (1.0 - smoothstep(0.88, 1.0, u)), flash = uLock;
+      float a = (body * (0.14 + 0.24 * filled + 0.18 * flash) + rail * (0.5 + 0.4 * filled) + chev * body * filled * (0.5 + 0.3 * flash)) * ends;
+      vec3 c = mix(uCol, vec3(1.0), clamp(max(rail, chev * filled) * 0.8 + 0.25 * flash, 0.0, 1.0));
+      gl_FragColor = vec4(c, clamp(a * uA, 0.0, 1.0)); }`,
+  transparent: true, depthWrite: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -8, polygonOffsetUnits: -8 });
+// the glint: a crisp four-point star, gold with a white heart and a thin dark edge (it has to read over a bright tornado and any
+// paint), in a soft gold glow
+const WHIRL_SPARK_T = (() => { const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'), m = 128;
+  const gr = g.createRadialGradient(m, m, 0, m, m, 128); gr.addColorStop(0, 'rgba(255,226,120,0.75)'); gr.addColorStop(0.3, 'rgba(255,214,90,0.28)'); gr.addColorStop(1, 'rgba(255,214,90,0)'); g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
+  const star = (l, w, l2) => { const pts = []; for (let k = 0; k < 8; k++) { const a = -Math.PI / 2 + k * Math.PI / 4, r = k % 2 === 0 ? l : l2, b = a + Math.PI / 8; pts.push([m + Math.cos(a) * r, m + Math.sin(a) * r], [m + Math.cos(b) * w, m + Math.sin(b) * w]); }
+    g.beginPath(); g.moveTo(pts[0][0], pts[0][1]); for (const q of pts.slice(1)) g.lineTo(q[0], q[1]); g.closePath(); }; // (long points up, down and across; short ones between)
+  star(122, 15, 52); g.lineJoin = 'round'; g.lineWidth = 7; g.strokeStyle = 'rgba(70,30,0,0.55)'; g.stroke(); g.fillStyle = '#FFD23F'; g.fill();
+  star(92, 9, 34); g.fillStyle = '#FFFFFF'; g.fill();
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })();
+const whirlSparkM = new THREE.SpriteMaterial({ map: WHIRL_SPARK_T, transparent: true, depthTest: false, depthWrite: false, fog: false });
+function whirlLane(D) {
+  if (D.wlane) return D.wlane;
+  const N = WL_N, pos = new Float32Array((N + 1) * 6), uv = new Float32Array((N + 1) * 4), idx = [];
+  for (let i = 0; i <= N; i++) { uv.set([i / N, 0, i / N, 1], i * 4); if (i < N) { const k = i * 2; idx.push(k, k + 1, k + 2, k + 1, k + 3, k + 2); } }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setIndex(idx);
+  const m = new THREE.Mesh(g, whirlLaneM.clone()); m.frustumCulled = false; m.renderOrder = 7; m.visible = false; scene.add(m);
+  const sp = new THREE.Sprite(whirlSparkM.clone()); sp.renderOrder = 60; sp.frustumCulled = false; sp.visible = false; scene.add(sp);
+  return (D.wlane = { m, g, pos, sp });
+}
+{ const L = whirlLane({}); L.m.visible = false; } // (one hidden in the scene, so the warm-up builds its shader before a match needs it)
+// lay it from (x, z) along yaw over the ground, as far as the charge runs: cut where the ground drops away or a wall stands
+function whirlLaneLay(D, x, z, y, yaw) {
+  const L = whirlLane(D), fx = Math.sin(yaw), fz = Math.cos(yaw), rx = Math.cos(yaw), rz = -Math.sin(yaw), hw = WHIRL_LANE_W / 2, full = whirlV() * WHIRL_DASH + 0.9;
+  let len = full; for (let s = 0.9; s <= full; s += 0.45) { const px = x + fx * s, pz = z + fz * s, g = surfaceUnder(px, pz, y + STEP, true); if (g === -Infinity || g < y - 0.6 || blockedAt(px, pz, y)) { len = Math.max(1.2, s); break; } }
+  for (let i = 0; i <= WL_N; i++) { const s = len * i / WL_N, px = x + fx * s, pz = z + fz * s; let gy = surfaceUnder(px, pz, y + STEP, true); if (gy === -Infinity || gy < y - 0.8) gy = y;
+    L.pos.set([px - rx * hw, gy + 0.05, pz - rz * hw, px + rx * hw, gy + 0.05, pz + rz * hw], i * 6); }
+  L.g.attributes.position.needsUpdate = true; L.m.material.uniforms.uLen.value = len; return len;
+}
+// the wind-up: aim (the player steers; a CPU turns to its nearest rival) until the lock, then the glint and no more turning
+function whirlWind(D, W, dt) {
+  const L = whirlLane(D), lockAt = WHIRL_WIND - WHIRL_LOCK;
+  if (W.aim === undefined) W.aim = D.yaw;
+  if (W.t < lockAt) { if (D.ai) { let best = null, bd = 16; for (const O of foes(D)) if (O.st === 'play') { const d = Math.hypot(O.x - D.x, O.z - D.z); if (d < bd) { bd = d; best = O; } }
+      if (best) W.aim += clamp(wrapA(Math.atan2(best.x - D.x, best.z - D.z) - W.aim), -2.4 * dt, 2.4 * dt); D.yaw = W.aim; }
+    W.len = whirlLaneLay(D, D.x, D.z, D.y, D.yaw); }
+  else { if (W.lock === undefined) { W.lock = D.yaw; W.len = whirlLaneLay(D, D.x, D.z, D.y, W.lock); whirlGlint(D, W); } D.yaw = W.lock; }
+  const u = L.m.material.uniforms; u.uCol.value.copy(tmat(D).color); u.uFill.value = Math.min(1, W.t / WHIRL_WIND); u.uT.value = clock; u.uA.value = Math.min(1, W.t / 0.15); u.uLock.value = W.lock !== undefined ? Math.max(0.35, 1 - (W.t - lockAt) * 2) : 0; L.m.visible = true;
+}
+// the lock: a glint on the whirler and a ting; the CPUs lined up in its lane read it and step out (as often as their level dodges)
+function whirlGlint(D, W) {
+  const L = whirlLane(D), fx = Math.sin(W.lock), fz = Math.cos(W.lock); W.spT = 0;
+  L.sp.material.color.set(0xFFFFFF);
+  shockwave(D.x, D.y + 0.1, D.z, 1.7, 0xFFFFFF);
+  if (D === P) buzz(8);
+  if (hearable(D) && !(AU.xplay && AU.xplay('w_ting', { v: D === P ? 0.75 : 0.95 }))) AU.tick && AU.tick();
+  for (const B of foes(D)) if (B.ai && B.st === 'play') { B.ai.thinkT = 0; const dx = B.x - D.x, dz = B.z - D.z, al = dx * fx + dz * fz, sd = dx * fz - dz * fx;
+    if (al > -1 && al < (W.len || 10) + 1.5 && Math.abs(sd) < WHIRL_R + 1.4 && Math.random() < Math.max(AI.evade, AI.dodge)) { const sg = sd >= 0 ? 1 : -1; B.ai.evadeT = 0.85; B.ai.evX = D.x + fx * al - fz * sg * 2.5; B.ai.evZ = D.z + fz * al + fx * sg * 2.5; } }
+}
+function whirlGlintTick(D, W, dt) {
+  const L = D.wlane; if (!L) return;
+  if (W.spT !== undefined) { W.spT += dt; const k = W.spT / 0.55; if (k >= 1) L.sp.visible = false; else { const e = Math.sin(Math.PI * Math.min(1, k * 1.1)), s = 2.6 * Math.pow(Math.max(0, e), 0.6);
+    L.sp.visible = true; L.sp.position.set(D.x, D.y + 1.75, D.z); L.sp.scale.set(s, s, 1); L.sp.material.rotation = k * 1.3; L.sp.material.opacity = Math.min(1, 1.7 * e); } }
+  if (W.ph === 'dash') { const u = L.m.material.uniforms; u.uFill.value = 1; u.uT.value = clock; u.uLock.value = 0.35; u.uA.value = Math.max(0, 1 - W.t / 0.6); L.m.visible = u.uA.value > 0.01; }
+  else if (W.ph === 'end') L.m.visible = false;
+}
 function startWhirl(D) {
   if (D.charging) clearCharge(D); if (D === P) { holdCharge = false; slingOff(); }
   if (D.ai) { let best = null, bd = 14; for (const O of foes(D)) if (O.st === 'play') { const d = Math.hypot(O.x - D.x, O.z - D.z); if (d < bd) { bd = d; best = O; } } if (best) D.yaw = Math.atan2(best.x - D.x, best.z - D.z); } // (a CPU squares up to the nearest rival)
   D.whirl = { ph: 'wind', t: 0, spinA: 0, k: 0, swT: 0, lx: D.x, lz: D.z };
   const fx = whirlFx(D); fx.pm.uniforms.uCol.value.copy(tmat(D).color); fx.g.visible = true;
   emote(D, 'glee', 1.2);
-  if (D === P) { AU.rise(); buzz(10); banner('Whirlwind!', 'Steer it into a rival'); } else if (hearable(D)) AU.rise();
+  if (D === P) { if (!(AU.xplay && AU.xplay('w_wind', { v: 0.8 }))) AU.rise(); buzz(10); banner('Whirlwind!', 'Aim it. It charges when the lane fills'); } else if (hearable(D) && !(AU.xplay && AU.xplay('w_wind', { v: 0.9 }))) AU.rise();
 }
-function endWhirl(D) { D.whirl = null; if (D.wfx) D.wfx.g.visible = false; }
+function endWhirl(D) { D.whirl = null; if (D.wfx) D.wfx.g.visible = false; if (D.wlane) { D.wlane.m.visible = false; D.wlane.sp.visible = false; } }
 // the end: a burst of paint round you, and anyone close splatted
 function whirlBurst(D) {
   addSplat(D.x, D.y, D.z, D.yaw, WHIRL_TRAIL * 1.45, dryClock, false, false, tcode(D), 0.15); splash(D, 2.2); shockwave(D.x, D.y, D.z, 2.8, TEAMS[D.team].wet);
@@ -12103,14 +12200,14 @@ function whirlBurst(D) {
 function whirlTick(D, dt) {
   const W = D.whirl, fx = whirlFx(D); W.t += dt;
   const fwx = Math.sin(D.yaw), fwz = Math.cos(D.yaw);
-  if (W.ph === 'wind') { W.k = Math.min(1, W.t / WHIRL_WIND); W.spinA += dt * (8 + 24 * W.k);
+  if (W.ph === 'wind') { W.k = Math.min(1, W.t / WHIRL_WIND); W.spinA += dt * (8 + 24 * W.k); whirlWind(D, W, dt);
     if (Math.random() < dt * 40) { const a = Math.random() * 6.283, r = 1.3; spawnPart(D.x + Math.cos(a) * r, D.y + 0.4 + Math.sin(a) * 0.5, D.z + Math.sin(a) * r, -Math.cos(a) * 3, 0.4, -Math.sin(a) * 3, 0.3, puHaloMat, 0.35, 0); } // (sparks drawn in)
     if (W.t >= WHIRL_WIND) { W.ph = 'dash'; W.t = 0; W.lx = D.x; W.lz = D.z; if (D === P) { AU.boost(); AU.dash(); shake = Math.max(shake, 0.12); buzz(14); } else if (hearable(D)) AU.dash(); } }
   else if (W.ph === 'dash') {
     W.spinA += dt * 22;
     // leans toward a rival just ahead (inside a narrow cone), so a fair aim lands
-    let tg = null, tb = 0.55; for (const O of foes(D)) if (O.st === 'play' && !safe(O)) { const dx = O.x - D.x, dz = O.z - D.z, d = Math.hypot(dx, dz); if (d > 9 || d < 0.5) continue; const da = Math.abs(wrapA(Math.atan2(dx, dz) - D.yaw)); if (da < tb) { tb = da; tg = O; } }
-    if (tg) D.yaw += clamp(wrapA(Math.atan2(tg.x - D.x, tg.z - D.z) - D.yaw), -1.6 * dt, 1.6 * dt);
+    let tg = null, tb = 0.35; for (const O of foes(D)) if (O.st === 'play' && !safe(O)) { const dx = O.x - D.x, dz = O.z - D.z, d = Math.hypot(dx, dz); if (d > 9 || d < 0.5) continue; const da = Math.abs(wrapA(Math.atan2(dx, dz) - D.yaw)); if (da < tb) { tb = da; tg = O; } }
+    if (tg) D.yaw += clamp(wrapA(Math.atan2(tg.x - D.x, tg.z - D.z) - D.yaw), -0.9 * dt, 0.9 * dt);
     // the trail: a wide splat every so often
     if (Math.hypot(D.x - W.lx, D.z - W.lz) >= WHIRL_STEP) { W.lx = D.x; W.lz = D.z; addSplat(D.x, D.y, D.z, D.yaw, WHIRL_TRAIL, dryClock, false, false, tcode(D), 0.25); }
     // anyone in its path
@@ -12124,6 +12221,7 @@ function whirlTick(D, dt) {
     const g = surfaceUnder(D.x + fwx * 0.9, D.z + fwz * 0.9, D.y + STEP, true);
     if (W.t >= WHIRL_DASH || g === -Infinity || g < D.y - 0.6 || (W.t > 0.2 && D.spd < 1)) { if (W.t < WHIRL_DASH) D.spd = 0; W.ph = 'end'; W.t = 0; whirlBurst(D); } }
   else { W.spinA += dt * 12; W.k = W.t / WHIRL_END; if (W.t >= WHIRL_END) return endWhirl(D); }
+  whirlGlintTick(D, W, dt);
   // the tornado: on you, along your heading, spinning; it spins up and swells in, and the burst throws it wide as it fades
   fx.g.position.set(D.x, D.y + 0.55, D.z); fx.g.rotation.set(0, D.yaw, 0); fx.spin.rotation.z = W.spinA;
   const s = 1.15 * (W.ph === 'wind' ? 0.35 + 0.6 * W.k : W.ph === 'dash' ? 1 + 0.05 * Math.sin(W.t * 30) : 1 + 0.7 * W.k);
@@ -12342,6 +12440,8 @@ function placePower(pw, type, spot) { if (pw.g) scene.remove(pw.g); const m = ma
 const itemSpawn = { t: 7, last: null };
 function placePowers() {
   clearTraps(); powers.forEach(pw => pw.g && scene.remove(pw.g)); powers = []; itemSpawn.t = 6 + Math.random() * 3; itemSpawn.last = null;
+  itemSpawn.pend = null; itemSpawn.gap = 0; if (itemMarkGet.m) itemMarkGet.m.g.visible = false; for (const D of [P, H, H2, H3]) if (D) D.handT = 0; // (v285)
+  if (AU.xwant) { AU.xwant('w_wind'); AU.xwant('w_ting'); }
 }
 function spawnItem() {
   const alive = ACTIVE.filter(D => D.st !== 'out');
@@ -12349,15 +12449,95 @@ function spawnItem() {
   if (!spots.length) { itemSpawn.t = 2; return; }
   let trail = alive[0]; for (const D of alive) if (teamCov(D.team) < teamCov(trail.team)) trail = D;
   let best = null, bs = 1e9; for (const sp of spots) { const sc = Math.hypot(trail.x - sp[0], trail.z - sp[2]) + Math.random() * 9; if (sc < bs) { bs = sc; best = sp; } }
-  const type = tut && tut.noTurret ? 'roller' : (tut || tut2 || tut3) ? (itemSpawn.last === 'roller' ? (Math.random() < 0.65 ? 'turret' : 'roller') : (Math.random() < 0.65 ? 'roller' : 'turret')) : (() => { const w = { roller: 0.42, turret: 0.3, trap: 0.28, whirl: 0.3 }; if (w[itemSpawn.last]) w[itemSpawn.last] *= 0.45; const ks = Object.keys(w); let r = Math.random() * ks.reduce((q, k) => q + w[k], 0); for (const k of ks) if ((r -= w[k]) <= 0) return k; return 'roller'; })(); // (the lessons keep to rollers and turrets) // (the lesson: rollers only until the flower is found)
+  const type = itemType(); // (the lessons keep to rollers and turrets) // (the lesson: rollers only until the flower is found)
   const pw = { phase: Math.random() * 6, pop: 0, grace: 0, owner: null }; placePower(pw, type, best); powers.push(pw); itemSpawn.last = type; itemSpawn.t = 9 + Math.random() * 4;
   if (state === 'play' && Math.hypot(P.x - best[0], P.z - best[2]) < 16) AU.spot(); /* (the menu's backdrop spawns them too, silently) */
 }
-function itemTick(dt) {
+function itemTickOld(dt) {
   const alive = ACTIVE.filter(D => D.st !== 'out'), busy = alive.filter(D => D.held || D.power || D.turret).length, cap = mode === 'trio' || isShow() ? 2 : 1;
   itemSpawn.t -= dt;
   if (itemSpawn.t <= 0 && !(tut && !tut.items) && powers.length < cap && powers.length + busy < alive.length && matchLeft > 6) spawnItem();
   for (const pw of powers) { if (pw.pop < 1) pw.pop = Math.min(1, pw.pop + dt * 3); if (pw.grace > 0) pw.grace -= dt; }
+}
+// ---------- v285: pick-ups by need: who has one and who doesn't decides when the next comes and where ----------
+const ITEM_WARN = 1.2, ITEM_STALE = 25;
+const hasItem = D => !!(D.held || D.held2 || D.power || D.turret || D.whirl);
+// ahead (1), behind (-1) or level (0): hearts in a Showdown, the canvas otherwise
+function itemEdge(R) {
+  const F = foes(R).filter(O => O.st !== 'out'); if (!F.length) return 0;
+  if (isShow()) { let m = 0; for (const O of F) m = Math.max(m, O.hearts || 0); const h = R.hearts || 0; return h > m ? 1 : h < m ? -1 : 0; }
+  let m = 0; for (const O of F) m = Math.max(m, teamCov(O.team)); const d = teamCov(R.team) - m; return d > 4 ? 1 : d < -4 ? -1 : 0;
+}
+// how long an empty hand waits for the next one: sooner when nobody has one or rivals are holding theirs, later for whoever's ahead
+function itemWait(R, nEmpty, nAlive) {
+  let w = 6, held = 0; if (nEmpty >= nAlive) w -= 1.5;
+  for (const O of foes(R)) if (O.st !== 'out' && hasItem(O)) held++; w -= Math.min(2, held);
+  const e = itemEdge(R); w += e > 0 ? 2.5 : e < 0 ? -1.5 : 0;
+  return clamp(w, 3, 10);
+}
+// where: a short run from them, ahead of where they're facing if it can be, nearer them than any rival, on their level, inside the
+// Showdown line, clear of everyone, basins, boiling water and the other items
+function itemSpot(R) {
+  const zc = zoneCut(), F = foes(R).filter(O => O.st !== 'out'), others = ACTIVE.filter(O => O !== R && O.st !== 'out');
+  let best = null, bs = -1e9;
+  const at = (x, y, z, bonus) => {
+    const d = Math.hypot(x - R.x, z - R.z); if (d < 4.5 || d > 17) return;
+    if (zc && zoneOutside(x, z, zc - 2.5)) return;
+    if (others.some(O => Math.hypot(O.x - x, O.z - z) < 4) || powers.some(o => o.g && Math.hypot(o.x - x, o.z - z) < 3)) return;
+    if (pots.some(p => Math.hypot(p.x - x, p.z - z) < 2) || rivals.some(r => r.on && Math.hypot(r.x - x, r.z - z) < r.rad + 1.2)) return;
+    let dr = 30; for (const O of F) dr = Math.min(dr, Math.hypot(O.x - x, O.z - z));
+    const ahead = Math.cos(wrapA(Math.atan2(x - R.x, z - R.z) - R.yaw));
+    const dy = Math.abs(y - R.y); if (dy > 2.2) return; const sc = -Math.abs(d - 8) * 0.55 + clamp(dr - d, -6, 6) * 0.6 + ahead * 1.5 - dy * 2.5 + (dy < 0.4 ? bonus : 0) + Math.random(); // (on their level: a ledge or a pad only when nothing level will do)
+    if (sc > bs) { bs = sc; best = [x, y, z]; } };
+  for (const sp of POWER_SPOTS) at(sp[0], sp[1], sp[2], 1);
+  const ns = NAV.nodes; for (let k = 0; k < ns.length; k += 2) { const n = ns[k]; if (n.edge > 0 || onRampAt(n.x, n.z, 0.3) || overheadAt(n.x, n.z, n.h, 2.3, 0.4)) continue; at(n.x, n.h, n.z, 0); }
+  return best;
+}
+// the spot, 1.2 s ahead: a beam of light and a ring closing in on it, sparkles rising
+function itemMarkGet() { return itemMarkGet.m || (itemMarkGet.m = (() => {
+  const c = document.createElement('canvas'); c.width = 4; c.height = 64; const g = c.getContext('2d'), gr = g.createLinearGradient(0, 64, 0, 0);
+  gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.35, 'rgba(255,255,255,0.45)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 4, 64);
+  const tx = new THREE.CanvasTexture(c), add = { transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false };
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.62, 5, 24, 1, true).translate(0, 2.5, 0), new THREE.MeshBasicMaterial(Object.assign({ map: tx, color: 0xFFE7A0 }, add)));
+  const po = { polygonOffset: true, polygonOffsetFactor: -8, polygonOffsetUnits: -8 };
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.62, 0.8, 48), new THREE.MeshBasicMaterial(Object.assign({ color: 0xFFE7A0 }, add, po))); ring.rotation.x = -Math.PI / 2;
+  const disc = new THREE.Mesh(new THREE.CircleGeometry(0.62, 40), new THREE.MeshBasicMaterial(Object.assign({ color: 0xFFF6D8 }, add, po))); disc.rotation.x = -Math.PI / 2;
+  for (const m of [beam, ring, disc]) m.renderOrder = 8;
+  const grp = new THREE.Group(); grp.add(beam, ring, disc); grp.visible = false; scene.add(grp); return { g: grp, beam, ring, disc };
+})()); }
+itemMarkGet(); // (made now, hidden, so the warm-up builds its shaders before a match needs them)
+function itemMarkTick(q, dt) {
+  const M = itemMarkGet(), k = Math.min(1, q.t / ITEM_WARN), e = 1 - Math.pow(1 - k, 2);
+  M.g.position.set(q.x, q.y + 0.04, q.z); M.g.visible = true;
+  M.ring.scale.setScalar(2.7 - 1.7 * e); M.ring.material.opacity = 0.35 + 0.6 * e; M.disc.material.opacity = 0.1 + 0.25 * e;
+  M.beam.material.opacity = (0.3 + 0.55 * e) * (0.85 + 0.15 * Math.sin(clock * 18)); M.beam.scale.set(1, 0.35 + 0.65 * e, 1);
+  if (Math.random() < dt * 30) { const a = Math.random() * 6.283, r = 0.25 + Math.random() * 0.5; spawnPart(q.x + Math.cos(a) * r, q.y + 0.2, q.z + Math.sin(a) * r, 0, 2 + Math.random() * 1.5, 0, 0.6, puHaloMat, 0.16 + Math.random() * 0.12, 0); }
+}
+const itemType = () => tut && tut.noTurret ? 'roller' : (tut || tut2 || tut3) ? (itemSpawn.last === 'roller' ? (Math.random() < 0.65 ? 'turret' : 'roller') : (Math.random() < 0.65 ? 'roller' : 'turret')) : (() => { const w = { roller: 0.42, turret: 0.3, trap: 0.28, whirl: 0.3 }; if (w[itemSpawn.last]) w[itemSpawn.last] *= 0.45; const ks = Object.keys(w); let r = Math.random() * ks.reduce((q, k) => q + w[k], 0); for (const k of ks) if ((r -= w[k]) <= 0) return k; return 'roller'; })();
+// it pops (nobody took it, or the Showdown line closed over it)
+function itemPop(pw) {
+  if (pw.g) { for (let i = 0; i < 10; i++) { const a = i / 10 * 6.283; spawnPart(pw.x, pw.y + 1.05, pw.z, Math.cos(a) * 2.5, 0.5 + Math.random(), Math.sin(a) * 2.5, 0.3, puHaloMat, 0.4); } scene.remove(pw.g); pw.g = null; }
+  const ix = powers.indexOf(pw); if (ix >= 0) powers.splice(ix, 1);
+}
+function itemTick(dt) {
+  if (tut) return itemTickOld(dt); // (the first lesson keeps its own script)
+  const alive = ACTIVE.filter(D => D.st !== 'out'), IS = itemSpawn;
+  for (const D of alive) { if (hasItem(D)) D.handT = 0; else if (D.st === 'play') D.handT = (D.handT || 0) + dt; }
+  for (const pw of powers) { if (pw.pop < 1) pw.pop = Math.min(1, pw.pop + dt * 3); if (pw.grace > 0) pw.grace -= dt; pw.age = (pw.age || 0) + dt; }
+  for (let i = powers.length - 1; i >= 0; i--) { const pw = powers[i]; if (pw.g && (pw.age > ITEM_STALE || zoneLost(pw.x, pw.z))) itemPop(pw); }
+  IS.gap = (IS.gap || 0) - dt;
+  if (IS.pend) { const q = IS.pend; q.t += dt; itemMarkTick(q, dt);
+    if (q.t >= ITEM_WARN) { IS.pend = null; itemMarkGet().g.visible = false; const pw = { phase: Math.random() * 6, pop: 0, grace: 0, owner: null, age: 0, forD: q.R }; placePower(pw, q.type, [q.x, q.y, q.z]); powers.push(pw); IS.last = q.type; IS.gap = 2;
+      if (state === 'play' && Math.hypot(P.x - q.x, P.z - q.z) < 16) AU.pop(); }
+    return; }
+  if (matchLeft <= 6 || IS.gap > 0) return;
+  const empty = alive.filter(D => !hasItem(D)); if (empty.length <= powers.filter(pw => pw.g).length) return;
+  // for whoever has waited longest (and has nothing already out there for them); on a tie, whoever's behind
+  let R = null; for (const D of empty) { if (D.st !== 'play' || powers.some(pw => pw.g && pw.forD === D)) continue; if (!R || D.handT > R.handT + 0.5 || (Math.abs(D.handT - R.handT) <= 0.5 && itemEdge(D) < itemEdge(R))) R = D; }
+  if (!R || R.handT < itemWait(R, empty.length, alive.length)) return;
+  const sp = itemSpot(R); if (!sp) { IS.gap = 1; return; }
+  IS.pend = { x: sp[0], y: sp[1], z: sp[2], t: 0, R, type: itemType() };
+  if (state === 'play' && Math.hypot(P.x - sp[0], P.z - sp[2]) < 18) AU.spot();
 }
 // what you hold goes back on the stage when you pick up something else, dropped just behind you
 function dropHeld(D) {
@@ -14191,7 +14371,8 @@ paintHow();
 const bannerEl = $('banner'); let bannerUntil = 0, bannerWx = false;
 const reAdd = new Map(); let reAddQ = false;
 function restartCls(el, cls) { el.classList.remove(cls); let l = reAdd.get(el); if (!l) reAdd.set(el, l = []); if (!l.includes(cls)) l.push(cls); if (!reAddQ) { reAddQ = true; requestAnimationFrame(() => { reAddQ = false; for (const [e, cs] of reAdd) for (const c of cs) e.classList.add(c); reAdd.clear(); }); } }
-function banner(big, small, long, quick) { bannerUntil = performance.now() + (quick ? 1700 : long ? 3400 : 2100); bannerWx = /heat|rain/i.test(big); $('bannerBig').textContent = big; $('bannerSmall').textContent = small || ''; bannerEl.classList.toggle('long', !!long); bannerEl.classList.toggle('quick', !!quick); const em = $('bannerEm'); em.dataset.k = /rain/i.test(big) ? 'rain' : /heat/i.test(big) ? 'heat' : /paint it/i.test(big) ? 'stroke' : /giant|overtime|new item/i.test(big) ? 'splat' : 'drip'; restartCls(bannerEl, 'on'); }
+function banner(big, small, long, quick, acc) { bannerUntil = performance.now() + (quick ? 1300 : long ? 2800 : 1700); if (acc) bannerEl.style.setProperty('--acc', acc); else bannerEl.style.removeProperty('--acc'); // (v285: 20% shorter; acc: the fighter's colour)
+  bannerWx = /heat|rain/i.test(big); { const B = $('bannerBig'); B.textContent = big; B.style.fontSize = ''; const room = Math.min(innerWidth * 0.86, 420) - 52 - 38, w = B.scrollWidth; if (w > room) B.style.fontSize = Math.max(13, parseFloat(getComputedStyle(B).fontSize) * room / w).toFixed(1) + 'px'; } $('bannerSmall').textContent = small || ''; bannerEl.classList.toggle('long', !!long); bannerEl.classList.toggle('quick', !!quick); const em = $('bannerEm'); em.dataset.k = /rain/i.test(big) ? 'rain' : /heat/i.test(big) ? 'heat' : /paint it/i.test(big) ? 'stroke' : /giant|overtime|new item/i.test(big) ? 'splat' : 'drip'; restartCls(bannerEl, 'on'); }
 function hitEdge(A) { if (reduceMotion || !A || A === P) return; edgeRGB(TEAMS[A.team].css, EDGE_U.uHitC.value); EDGE.hitT0 = performance.now() / 1000; }
 function flashScreen() { if (reduceMotion) return; restartCls($('flash'), 'on'); }
 function popText(t) { const p = $('pop'); p.textContent = t; restartCls(p, 'on'); }
@@ -15358,7 +15539,7 @@ function stepBlob(D, dt) {
   if (D.frozenT > 0) { D.frozenT -= dt; if (D.frozenT <= 0) { D.frozenT = 0; thawFx(D); } }
   if (D.stunT > 0) { D.stunT -= dt; D.spd = 0; D.turn = 0; D.wob = Math.max(D.wob, 0.5); if (D.stunT <= 0) { D.stunT = 0; D.stunGuard = 1.5; D.squash = 0.6; D.fxShk = Math.max(D.fxShk, 0.8); fxLaunch(D, 0.5); if (hearable(D)) AU.pop(); } }
   else if (D.flatT > 0) { D.flatT -= dt; D.spd = 0; D.turn = 0; if (D.flatT <= 0) { D.immuneT = 1.0; D.squash = 0.9; D.wob = 1; D.fxShk = Math.max(D.fxShk, 1); fxLaunch(D, 0.6); if (hearable(D)) AU.pop(); } }
-  else steerAndTurn(D, dt, D.slam ? 0 : D.air ? (D.knockT > 0 ? 0.12 : D.charging ? 0.85 : 0.65) : D.whirl ? 0.5 : D.charging ? 0.75 : D.rollT > ROLL_T - ROLL_DASH ? 0.4 : 1);
+  else steerAndTurn(D, dt, D.slam ? 0 : D.air ? (D.knockT > 0 ? 0.12 : D.charging ? 0.85 : 0.65) : D.whirl ? (D.whirl.ph === 'dash' ? 0.3 : 0.5) : D.charging ? 0.75 : D.rollT > ROLL_T - ROLL_DASH ? 0.4 : 1);
   if (D.knockT > 0) D.knockT -= dt;
   if (D.slam) D.slamT += dt;
   if (D.dilT > 0) { D.dilT -= dt; if (D.spd > 1 && Math.random() < dt * 10) { const a = Math.random() * 6.283; spawnPart(D.x + Math.cos(a) * 0.3, D.y + 0.35, D.z + Math.sin(a) * 0.3, Math.cos(a) * 1.2, 1.5 + Math.random(), Math.sin(a) * 1.2, 0.3, boilPartMat, 0.45); } }
@@ -15858,7 +16039,7 @@ function aiSee(D) {
   const O = other(D), ai = D.ai, vis = aiCanSee(D, O) || sdSense(D, O), was = ai.o && ai.o.st !== 'lost';
   ai.oVis = vis;
   if (vis) {
-    ai.o = { x: O.x, z: O.z, y: O.y, yaw: O.yaw, spd: O.charging ? 0 : O.spd, st: O.st, slam: O.slam, air: O.air, vy: O.vy, flung: !!O.flung, flat: Math.max(O.flatT, O.stunT || 0), imm: O.immuneT, charging: O.charging, charge: O.charge, slowed: O.slowed, t: runT };
+    ai.o = { x: O.x, z: O.z, y: O.y, yaw: O.yaw, spd: O.charging ? 0 : O.spd, st: O.st, slam: O.slam, air: O.air, vy: O.vy, flung: !!O.flung, flat: Math.max(O.flatT, O.stunT || 0), imm: O.whirl ? 9 : O.immuneT, charging: O.charging, charge: O.charge, slowed: O.slowed, t: runT };
     ai.oPot = O.st === 'hide' ? O.pot : null;
     if (!was && O.st !== 'ko') ai.alert = { k: '!', t: 1.1 }; // spotted you
     return;
@@ -16070,6 +16251,7 @@ function aiThink(D) {
   if (O.giantT > 0.2 && oKnown && D.giantT <= 0 && !slamReady(D)) NAV.near(o.x, o.z, o.y, PR * GIANT_K + 3, n => { nMult[n.id] += 6; });
   if (oThreat && AI.evade > 0 && ai.mode !== 'hunt' && !(slamReady(D) && D.paint > 0.45)) NAV.near(o.x, o.z, o.y, KO_R, n => { nMult[n.id] += 2.5 * AI.evade * (1 + AI.model * hunterP * 1.5); });
   { const zc = zoneCut(); if (zc) { const nodes = NAV.nodes; for (let k = 0; k < nodes.length; k++) { const n = nodes[k]; if (zoneOutside(n.x, n.z, zc - 0.6)) nMult[n.id] += 10; } } } // (v256: out past the line)
+  if (AI.evade > 0) for (const F of foes(D)) { const W = F.whirl; if (!W || W.ph === 'end') continue; const yw = W.lock !== undefined ? W.lock : F.yaw, fx = Math.sin(yw), fz = Math.cos(yw), L = W.len || whirlV() * WHIRL_DASH; for (let q = 0; q <= L; q += 1.5) NAV.near(F.x + fx * q, F.z + fz * q, F.y, WHIRL_R + 0.9, n => { nMult[n.id] += 8 * AI.evade; }); } // (v285: out of a Whirlwind's lane)
   dijkstra(src.id, sunny || wxPhase === 'warn' || AI.sunLead > 0 && timeToSun() < 12 ? 0 : 64);
   // coffins we could use
   let coffin = null, cd = Infinity;
@@ -16175,7 +16357,7 @@ function aiThink(D) {
   // (v254) Showdown: paint is only fuel; with enough in the tank it goes looking for its rival
   if (isShow() && AI.seek && !sunNow && D.paint > Math.max(0.4, need + 0.12) && O.st === 'play' && O.immuneT <= 0.5 && !zoneLost(O.x, O.z) && Math.random() < AI.seek) { const sn = NAV.at(O.x, O.z, O.y); if (sn && nDist[sn.id] < Infinity && nDist[sn.id] > 3) return aiGo(D, sn, 'seek'); }
   // 5) a roller nearby is free paint
-  if (!D.held && Math.random() < AI.grab) { let best = null, bd = 8; for (const pw of powers) { if (!pw.g || (pw.grace > 0 && pw.owner === D)) continue; const n = NAV.at(pw.x, pw.z, pw.y); if (n && nDist[n.id] < bd) { bd = nDist[n.id]; best = n; } } if (best) return aiGo(D, best, 'grab'); }
+  if (!D.held && Math.random() < AI.grab) { let best = null, bd = 8 + Math.min(10, (D.handT || 0) * 1.5); for (const pw of powers) { if (!pw.g || (pw.grace > 0 && pw.owner === D)) continue; const n = NAV.at(pw.x, pw.z, pw.y); if (n && nDist[n.id] < (pw.forD === D ? Math.max(bd, 30) : bd)) { bd = nDist[n.id]; best = n; } } if (best) return aiGo(D, best, 'grab'); }
   // 6) paint: the route that sweeps through the most fresh and stolen ground for its length.
   //    With a pound coming up, a spot also counts what pounding it would paint (a pound covers as much as ~15 s of rolling),
   //    and a pound next to boiling water refills the tank too.
@@ -16371,6 +16553,10 @@ function aiEvade(D, dt) {
       if (hopOK(D)) { if (D.charging) cancelCharge(D); jump(D); return true; }
     } }
   } else if (!O.slam) ai.dodgeRolled = false;
+  // (v285) a Whirlwind about to run into it: roll through it at the last moment (as often as its level dodges a pound)
+  if (AI.dodge > 0 && !D.air && D.rollCD <= 0 && !(D.rollT > 0)) for (const F of foes(D)) { const W = F.whirl; if (!W || W.ph !== 'dash' || (W.seen || (W.seen = new Set())).has(D)) continue;
+    const fx = Math.sin(F.yaw), fz = Math.cos(F.yaw), dx = D.x - F.x, dz = D.z - F.z, al = dx * fx + dz * fz;
+    if (al > 0 && Math.abs(dx * fz - dz * fx) < WHIRL_R + 0.3 && al - WHIRL_R < whirlV() * 0.2) { W.seen.add(D); if (Math.random() < AI.dodge && rollSafe(D)) { if (D.charging) cancelCharge(D); dodgeRoll(D); return true; } } }
   if (ai.evadeT > 0) { ai.evadeT -= dt; if (D.charging) cancelCharge(D); aiSteer(D, D.x + (D.x - ai.evX) * 4, D.z + (D.z - ai.evZ) * 4, dt, true); return true; }
   if (!o || AI.evade <= 0) return false;
   if (o.slam && O.slam && ai.oVis) {
@@ -16473,8 +16659,8 @@ function aiStep(D, dt) {
   // hunting: aim for where you'll be, and finish when it's adjacent
   if (ai.mode === 'hunt') {
     const O = other(D), o = ai.o;
-    if (o && ((o.st === 'play' && runT - o.t < 0.6) || o.st === 'hide') && Math.hypot(o.x - D.x, o.z - D.z) < 3.2) { const lead = o.flat > 0 || o.st === 'hide' ? 0 : o.spd * 0.35; return aiSteer(D, o.x + Math.sin(o.yaw) * lead, o.z + Math.cos(o.yaw) * lead, dt, true); }
-    if (!o || (o.st !== 'play' && !(o.st === 'hide' && AI.coffinHunt > 0))) { ai.mode = 'paint'; ai.thinkT = 0; }
+    if (o && o.imm < 5 && ((o.st === 'play' && runT - o.t < 0.6) || o.st === 'hide') && Math.hypot(o.x - D.x, o.z - D.z) < 3.2) { const lead = o.flat > 0 || o.st === 'hide' ? 0 : o.spd * 0.35; return aiSteer(D, o.x + Math.sin(o.yaw) * lead, o.z + Math.cos(o.yaw) * lead, dt, true); }
+    if (!o || o.imm >= 5 || (o.st !== 'play' && !(o.st === 'hide' && AI.coffinHunt > 0))) { ai.mode = 'paint'; ai.thinkT = 0; }
   }
   const w = aiFollow(D);
   if (!w) { D.steer = 0; ai.thinkT = 0; return; }
@@ -17029,7 +17215,7 @@ function slimeVisual(D, V, dt, sq, rise, rad, gy, hop, fxK, fxL) {
   const ballOn = I.kind === 'axo' && ((D.st === 'play' && (state === 'play' || state === 'dead') && (flK0 > (V.balled ? 0.12 : 0.3) || D.rollOutT > (V.balled ? 0.1 : 0.16) || D.dashT > (V.balled ? 0.05 : 0.1) || D.rollT > (V.balled ? ROLL_T - ROLL_DASH : ROLL_T - ROLL_DASH + 0.06))) || !!(vic && D.vicPose && D.vicPose.ball) || !!(D === P && state === 'menu' && FL && FL.jin && FL.jin.ball)); /* (the dodge roll: a ball for its tumble, the axolotl back as it comes round onto its feet) */
   if (ballOn !== !!V.balled) { V.balled = ballOn; if (D.st === 'play' && (I.root.visible || V.oldBlob.visible)) ballPoof(D, ballOn); }
   if (V.balled) { U.gRise.value *= 0.3; U.gDrop.value *= 0.35; } // (a ball: drawn out along its flight only a little, never into a column)
-  const tur = !!D.turret && D.st === 'play', on = L.roll < 0.5 && !tur && !V.balled && !(D === P && lookIntro && lookIntro.t < (lookIntro.vis !== undefined ? lookIntro.vis : IN_LAND)), was = I.root.visible; // (on the mount the blob is the paint in the dome: hidden)
+  const tur = !!D.turret && D.st === 'play', on = (L.roll < 0.5 || D.st === 'hide') && !tur && !V.balled && !(D === P && lookIntro && lookIntro.t < (lookIntro.vis !== undefined ? lookIntro.vis : IN_LAND)), was = I.root.visible; // (on the mount the blob is the paint in the dome: hidden)
   I.root.visible = on; V.oldBlob.visible = !on && !tur && !(D === P && lookIntro && lookIntro.crawl); if (!on) return;
   if (!was) { if (I.kind === 'axo') I.ax.fresh = true; if (lookIntro) { if (!reduceMotion) I.popIn(); } else { I.st.formK = 0; I.st.pop = 1; I.st.earKick = 1; } }
   I.setForm(D.giantT > 0 ? 'giant' : 'slime');
@@ -17329,6 +17515,17 @@ function visuals(dt, rdt) {
       const on = !behind && Math.abs(x) < 0.9 && Math.abs(y) < 0.78, far = Math.hypot(gift.x - P.x, gift.z - P.z) > 6;
       if (on && !far) { if (el._on) { el._on = false; el.classList.remove('on'); } }
       else { let px, py, rot; if (on) { px = (x * 0.5 + 0.5) * W; py = (-y * 0.5 + 0.5) * Hh - 56 - Math.abs(Math.sin(clock * 5)) * 6; rot = 180; } else { const m = Math.max(Math.abs(x) / 0.86, Math.abs(y) / 0.72, 1e-3); x /= m; y /= m; px = (x * 0.5 + 0.5) * W; py = (-y * 0.5 + 0.5) * Hh; rot = Math.atan2(x, y) * 180 / Math.PI; }
+        if (!el._on) { el._on = true; el.classList.add('on'); } el.classList.toggle('edge', !on); el.style.transform = 'translate(' + px.toFixed(1) + 'px,' + py.toFixed(1) + 'px)'; el.children[1].style.transform = 'rotate(' + rot.toFixed(0) + 'deg)'; } }
+    else if (el._on) { el._on = false; el.classList.remove('on'); } }
+  // (v285) the nearest pick-up while you've got nothing (the one coming for you, if one is): over it when it's on screen and far off, on
+  // the screen's edge pointing at it when it isn't
+  { const el = $('itemPtr'); let tg = null, ty = null;
+    if (playing && P.st === 'play' && !tut && !hasItem(P)) { const q = itemSpawn.pend; if (q && q.R === P) { tg = q; ty = q.type; } else { let bd = 40; for (const pw of powers) if (pw.g && pw.pop >= 0.5) { const d = Math.hypot(pw.x - P.x, pw.z - P.z); if (d < bd) { bd = d; tg = pw; ty = pw.type; } } } }
+    if (tg) { tv1.set(tg.x, tg.y + 1.05, tg.z).project(camera); const W = viewW, Hh = viewH, behind = tv1.z > 1; let x = behind ? -tv1.x : tv1.x, y = behind ? -tv1.y : tv1.y;
+      const on = !behind && Math.abs(x) < 0.9 && Math.abs(y) < 0.78, far = Math.hypot(tg.x - P.x, tg.z - P.z) > 7;
+      if (on && !far) { if (el._on) { el._on = false; el.classList.remove('on'); } }
+      else { let px, py, rot; if (on) { px = (x * 0.5 + 0.5) * W; py = (-y * 0.5 + 0.5) * Hh - 48 - Math.abs(Math.sin(clock * 5)) * 6; rot = 180; } else { const m = Math.max(Math.abs(x) / 0.86, Math.abs(y) / 0.72, 1e-3); x /= m; y /= m; px = (x * 0.5 + 0.5) * W; py = (-y * 0.5 + 0.5) * Hh; rot = Math.atan2(x, y) * 180 / Math.PI; }
+        if (el._ty !== ty) { el._ty = ty; el.children[0].innerHTML = ITEM_ICON[ty] || ''; }
         if (!el._on) { el._on = true; el.classList.add('on'); } el.classList.toggle('edge', !on); el.style.transform = 'translate(' + px.toFixed(1) + 'px,' + py.toFixed(1) + 'px)'; el.children[1].style.transform = 'rotate(' + rot.toFixed(0) + 'deg)'; } }
     else if (el._on) { el._on = false; el.classList.remove('on'); } }
   // the holy water off screen: an edge marker, red when its pound is coming down near you or it's lining up a fling at you
@@ -20348,13 +20545,13 @@ function sdKoNote(D, reason, by) {
   const out = !!D.elimNow, me = D === P, mine = ally(D, P);
   if (out && me) { if (kof) { kof.elim = true; kof.elimTxt = D.place ? ORD(D.place) : 'Out'; } return; }
   if (out) {
-    if (by === P) banner(nameOf(D) + ' is out!', 'Eliminated', false);
-    else banner(nameOf(D) + ' is out!', by ? (by === P ? 'By you' : 'Taken out by ' + sdName(by)) : reason === 'fall' ? 'Fell off the canvas' : 'Knocked themselves out', false);
+    if (by === P) banner(nameOf(D) + ' is out!', 'Eliminated', false, false, TEAMS[D.team].css);
+    else banner(nameOf(D) + ' is out!', by ? (by === P ? 'By you' : 'Taken out by ' + sdName(by)) : reason === 'fall' ? 'Fell off the canvas' : 'Knocked themselves out', false, false, TEAMS[D.team].css);
     AU.horn && AU.horn(); buzz([18, 30, 18]); return;
   }
   if (me) return; // (the flood says it)
-  if (by === P) banner('Got ' + nameOf(D) + '!', D.hearts + (D.hearts === 1 ? ' heart left' : ' hearts left'), false);
-  else if (mine) banner(nameOf(D) + ' lost a heart', by ? 'Got by ' + sdName(by) : '', false, true);
+  if (by === P) banner('Got ' + nameOf(D) + '!', D.hearts + (D.hearts === 1 ? ' heart left' : ' hearts left'), false, false, TEAMS[D.team].css);
+  else if (mine) banner(nameOf(D) + ' lost a heart', by ? 'Got by ' + sdName(by) : '', false, true, TEAMS[D.team].css);
   else if (hearable(D)) popText(nameOf(D) + ' lost a heart');
 }
 // out of hearts: off the canvas for good (its things go with it); for you, the camera goes over to someone still in it
@@ -21092,6 +21289,10 @@ function tutHandAt(el, r0, nudge) {
   const r = el.getBoundingClientRect(), x = (r.left - r0.left + r.width * (0.5 + (nudge || 0)) - 22).toFixed(0) + 'px', y = (r.top - r0.top - 62).toFixed(0) + 'px';
   if (tutHandEl.hidden) tutHandEl.hidden = false; if (tutHandEl.style.left !== x) tutHandEl.style.left = x; if (tutHandEl.style.top !== y) tutHandEl.style.top = y;
 }
+// (v285) the same, faded out rather than cut (the first callout goes as you start steering)
+let tutFadeN = 0;
+function tutFade() { if (!tutTip) return; tutHandAt(null); tutGest(null); if ($('tutGo').hidden) coachCorner(null); tutTip = null; tutEl.classList.add('fade'); tutEl.classList.remove('on'); tutDim.classList.remove('on');
+  const n = ++tutFadeN; setTimeout(() => { if (n !== tutFadeN) return; tutEl.classList.remove('fade'); if (!tutTip) tutEl.hidden = true; }, 420); }
 function tutHide() { tutHandAt(null); tutGest(null); if ($('tutGo').hidden) coachCorner(null); if (!tutTip) return; tutTip = null; tutEl.classList.remove('on'); tutEl.hidden = true; tutDim.classList.remove('on'); }
 // the dim is four panes round the window on what the tip is about: above, below, left and right of it. (It was one sheet with a clip-path
 // hole, but Safari doesn't always repaint a hole that moves, so on iPhones the window went missing.) Taps fall through the gap
@@ -21158,9 +21359,9 @@ function tutPlace() {
 }
 // the lesson, one step at a time: each one says what to do, waits for it (slowed down while it waits), then the next. max: real seconds before it moves on anyway
 const TUT_STEPS = [
-  { id: 'move', max: 40, enter() { tut.moved = 0; tut.steered = false; tut.jumped = false; tut.lx = P.x; tut.lz = P.z; tut.slowK = TUT_SLOW; tutShow(say('*DRAG* to steer, *TAP* to jump!', '*A* and *D* steer, *SPACE* jumps!'), null, 'move', true); },
+  { id: 'move', max: 40, enter() { tut.moved = 0; tut.steered = false; tut.jumped = false; tut.lx = P.x; tut.lz = P.z; tut.slowK = 1; tutShow(say('*DRAG* to steer, *TAP* to jump!', '*A* and *D* steer, *SPACE* jumps!'), null, 'move', true); },
     tick() { if (P.st === 'play' && !P.air) tut.moved += Math.hypot(P.x - tut.lx, P.z - tut.lz); tut.lx = P.x; tut.lz = P.z;
-      if (Math.abs(steerIn) > 0.3 || keyL || keyR) tut.steered = true; if (P.st === 'play' && P.air && P.vy > 3 && !P.flung && !P.slam) tut.jumped = true; // (a steer and a jump: that is the lesson, done the moment both have happened)
+      if (Math.abs(steerIn) > 0.3 || keyL || keyR) tut.steered = true; if ((Math.abs(steerIn) > 0.12 || keyL || keyR) && tutTip && tutTip.key === 'move') tutFade(); // (v285: the callout goes as you start steering) if (P.st === 'play' && P.air && P.vy > 3 && !P.flung && !P.slam) tut.jumped = true; // (a steer and a jump: that is the lesson, done the moment both have happened)
       return (tut.steered && tut.jumped) || tut.moved > 14; } },
   { id: 'free0', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 1; }, /* (a beat, then the fling: both are ways to get about) */ tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
   { id: 'sling', max: 40, enter() { tut.slowK = TUT_SLOW; tutShow(say('*HOLD*, *PULL DOWN*, then let go to fling!', 'Hold *S*, then let go to fling!'), null, 'sling', true); },
@@ -21692,7 +21893,7 @@ var FL = (() => {
   const due = !!window.__introNow || (!store.introDone && !store.name && !((store.runs || 0) > 0) && tutPh() === 'match');
   const api = { due, live: false, jin: null, hush: due, busy: () => false, frame: () => false, after: () => {}, boot: () => {} };
   if (!due) return api;
-  const V3 = THREE.Vector3, PEARL = new THREE.Color(0xE6DEF2), C0 = new V3(0.72, 0, 0.26), LAND = new V3(0.42, 0, 1.18);
+  const V3 = THREE.Vector3, PEARL = new THREE.Color(0xE6DEF2), C0 = new V3(0.851, 0, 0.311), LAND = new V3(0.42, 0, 1.18);
   const SUN = new V3(-0.52, 0.8, 0.3).normalize(); // (toward the sun: high, over your left shoulder; shadows fall back and to the right)
   const clamp01 = u => clamp(u, 0, 1), eOut = u => 1 - Math.pow(1 - clamp01(u), 3), eIn = u => Math.pow(clamp01(u), 2.2), wrapPi = a => a - Math.round(a / 6.2832) * 6.2832;
   const ease5 = u => { u = clamp01(u); return u * u * u * (u * (u * 6 - 15) + 10); }; // (eases in and out with no kick at either end: not even in how fast it speeds up)
@@ -21737,7 +21938,16 @@ var FL = (() => {
       g.fillStyle = '#ECE5F6'; g.beginPath(); g.ellipse(W * 0.66, W * 0.3, 22, 13, 0.5, 0, 7); g.fill(); g.beginPath(); g.ellipse(W * 0.2, W * 0.7, 10, 7, 0.2, 0, 7); g.fill(); });
     const lid = new THREE.Mesh(new THREE.CylinderGeometry(R + 0.006, R + 0.006, 0.03, 32), [new THREE.MeshStandardMaterial({ color: 0x6E2219, roughness: 0.5, metalness: 0.5 }), new THREE.MeshStandardMaterial({ map: lidTop, roughness: 0.55, metalness: 0.35 }), new THREE.MeshStandardMaterial({ color: 0x3A120C, roughness: 0.8 })]);
     lid.position.y = H + 0.008;
-    const g = new THREE.Group(); g.add(body, lid); return { g, body, lid };
+    const g = new THREE.Group(); g.add(body, lid);
+    // (v285) the paint it poured out: a line of it left along the inside, down the side it lies on, thickening toward the mouth; darker
+    // deep inside, where little light reaches
+    { const dn = new V3(0, -1, 0).applyQuaternion(new THREE.Quaternion().setFromAxisAngle(TIPAX, Math.PI / 2).invert()), a0 = Math.atan2(dn.z, dn.x), rows = 26, cols = 6, pos = [], col = [];
+      const at = (u, c) => { const y = 0.07 + u * (H - 0.075), w = (0.03 + 0.085 * u * u) * (1 + 0.18 * Math.sin(y * 37 + 1.3) + 0.1 * Math.sin(y * 91)), sx = c / cols * 2 - 1, ang = a0 + sx * w / R, r = R - 0.013 - 0.006 * (1 - sx * sx); return [Math.cos(ang) * r, y, Math.sin(ang) * r]; };
+      for (let i = 0; i < rows; i++) for (let c = 0; c < cols; c++) { const A = at(i / rows, c), B = at(i / rows, c + 1), C = at((i + 1) / rows, c), D = at((i + 1) / rows, c + 1); pos.push(...A, ...C, ...B, ...B, ...C, ...D);
+        for (const u of [i, i + 1, i, i, i + 1, i + 1]) { const k = 0.3 + 0.7 * Math.pow(u / rows, 1.3); col.push(k, k, k); } }
+      const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); pg.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); pg.computeVertexNormals();
+      g.add(new THREE.Mesh(pg, dofMap(new THREE.MeshStandardMaterial({ color: PEARL, vertexColors: true, roughness: 0.2, metalness: 0.08, side: THREE.DoubleSide })))); }
+    return { g, body, lid };
   }
   function drawDrum(g, W, H, im) {
     seed = 257; g.fillStyle = '#9B2E21'; g.fillRect(0, 0, W, H);
@@ -21765,23 +21975,102 @@ var FL = (() => {
   const AGAVES = [[-0.95, 0.45, 0.42], [1.7, -0.3, 0.5], [-0.25, -1.75, 0.36], [2.35, 0.75, 0.3]];
   function makeSet() {
     const set = new THREE.Group(), mats = [];
-    // rocks: chunky faceted sandstone, banded light and dark
+    // (v285) a smooth surface from non-indexed triangles: each corner gets the average of the faces that meet there (by position)
+    const smoothN = g => { const P = g.attributes.position, n = P.count, acc = new Map(), a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), e1 = new THREE.Vector3(), e2 = new THREE.Vector3(), keys = new Array(n);
+      for (let i = 0; i < n; i++) keys[i] = Math.round(P.getX(i) * 2e4) + ',' + Math.round(P.getY(i) * 2e4) + ',' + Math.round(P.getZ(i) * 2e4);
+      for (let i = 0; i < n; i += 3) { a.fromBufferAttribute(P, i); b.fromBufferAttribute(P, i + 1); c.fromBufferAttribute(P, i + 2); e1.subVectors(b, a); e2.subVectors(c, a); e1.cross(e2);
+        for (let j = 0; j < 3; j++) { const k = keys[i + j], v = acc.get(k); if (v) v.add(e1); else acc.set(k, e1.clone()); } }
+      const N = new Float32Array(n * 3); for (let i = 0; i < n; i++) { const v = acc.get(keys[i]).clone().normalize(); N[i * 3] = v.x; N[i * 3 + 1] = v.y; N[i * 3 + 2] = v.z; }
+      g.setAttribute('normal', new THREE.BufferAttribute(N, 3)); return g; };
+    // (value noise, smooth, in 3D; and three octaves of it)
+    const h3 = (x, y, z) => { const q = Math.sin(x * 127.1 + y * 311.7 + z * 74.7) * 43758.5453; return q - Math.floor(q); };
+    const vn = (x, y, z) => { const ix = Math.floor(x), iy = Math.floor(y), iz = Math.floor(z), fx = x - ix, fy = y - iy, fz = z - iz, u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy), w = fz * fz * (3 - 2 * fz); let r = 0;
+      for (let p = 0; p < 2; p++) for (let q = 0; q < 2; q++) for (let t = 0; t < 2; t++) r += h3(ix + p, iy + q, iz + t) * (p ? u : 1 - u) * (q ? v : 1 - v) * (t ? w : 1 - w); return r * 2 - 1; };
+    const fbm = (x, y, z) => vn(x, y, z) * 0.6 + vn(x * 2.1 + 5.2, y * 2.1, z * 2.1) * 0.28 + vn(x * 4.3, y * 4.3 + 1.7, z * 4.3) * 0.12;
+    // rocks: (v285) weathered sandstone boulders, rounded by the wind, ledges worn along their beds, painted strata with relief
     { const gs = []; seed = 31;
-      for (const [x, z, sx, sy, sz] of ROCKS) { const g = new THREE.IcosahedronGeometry(1, 1), P = g.attributes.position; // (already one triangle to three vertices: faceted)
-        for (let i = 0; i < P.count; i++) { const vx = P.getX(i), vy = P.getY(i), vz = P.getZ(i), k = 1 + 0.18 * Math.sin(vx * 3.1 + x * 7) * Math.cos(vz * 2.7 + z * 5) + 0.08 * Math.sin(vy * 5 + x); P.setXYZ(i, vx * sx * k, Math.max(-0.2, vy) * sy * k + sy * 0.15, vz * sz * k); }
-        g.rotateY(rnd(0, 6.28)); g.translate(x, 0, z); g.computeVertexNormals();
-        paintVerts(g, (c, px, py) => { const b = 0.5 + 0.5 * Math.sin(py * 34 + px * 3); c.setHSL(0.045 + 0.01 * b, 0.62, 0.36 + 0.12 * b + 0.06 * Math.min(1, py / 0.4), THREE.SRGBColorSpace); }); gs.push(g); }
-      const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.92, flatShading: true }); mats.push(m); set.add(new THREE.Mesh(merge(gs), m)); }
-    // agaves: stiff blue-green blades fanning out of the sand
+      // the sandstone, painted once: level beds (tiling round the rock and up it), seams, mottling, grain, pits, desert varnish; and its relief
+      const TW = 512, TH = 256, hgt = new Float32Array(TW * TH);
+      const bed = new Float32Array(TH * 2); { let y = 0, k = 0; while (y < TH * 2) { const w = 3 + Math.floor(rand() * 14), tone = rand(); for (let i = 0; i < w && y < TH * 2; i++, y++) bed[y] = tone; k++; } for (let i = 0; i < TH; i++) bed[i] = bed[i] * 0.5 + bed[i + TH] * 0.5; }
+      const PAL = [[0.50, 0.22, 0.13], [0.66, 0.31, 0.17], [0.78, 0.43, 0.24], [0.86, 0.55, 0.33], [0.91, 0.66, 0.44]];
+      const pal = t => { const f = Math.min(0.999, Math.max(0, t)) * (PAL.length - 1), i = Math.floor(f), u = f - i, a = PAL[i], b = PAL[i + 1]; return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u]; };
+      const rockTex = canvasTex(TW, TH, (g, W, H) => {
+        const im = g.createImageData(W, H), d = im.data, tau = 6.2832;
+        for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+          const wob = 3.2 * Math.sin(x / W * tau * 2 + 1.3) + 1.6 * Math.sin(x / W * tau * 5 + y * 0.02) + 0.8 * Math.sin(x / W * tau * 11 + 2.1), yy = ((y + wob) % H + H) % H, i0 = Math.floor(yy), fr = yy - i0;
+          const b = bed[i0] * (1 - fr) + bed[(i0 + 1) % H] * fr, seam = Math.max(0, 1 - Math.abs(fr - 0.5) * 2) * (bed[i0] !== bed[(i0 + 1) % H] ? 1 : 0);
+          const mot = 0.5 * Math.sin(x / W * tau * 3 + y / H * tau * 2) + 0.3 * Math.sin(x / W * tau * 7 - y / H * tau * 5 + 1.1) + 0.2 * Math.sin(x / W * tau * 13 + y / H * tau * 9);
+          const grain = Math.random() - 0.5, c = pal(0.25 + 0.6 * b + 0.08 * mot);
+          const v = 1 + 0.12 * grain - 0.28 * seam;
+          const o = (y * W + x) * 4; d[o] = Math.min(255, c[0] * v * 255); d[o + 1] = Math.min(255, c[1] * v * 255); d[o + 2] = Math.min(255, c[2] * v * 255); d[o + 3] = 255;
+          hgt[y * W + x] = 0.55 * b + 0.12 * mot + 0.18 * grain - 0.6 * seam; }
+        g.putImageData(im, 0, 0);
+        // desert varnish: dark streaks running down from the tops of ledges; weathering pits (tafoni), each a dark cup with a lit rim
+        for (let i = 0; i < 38; i++) { const x = rnd(0, W), y = rnd(0, H), w = rnd(2, 9), l = rnd(20, 90), gr = g.createLinearGradient(0, y, 0, y + l); gr.addColorStop(0, 'rgba(40,16,8,.28)'); gr.addColorStop(1, 'rgba(40,16,8,0)'); g.fillStyle = gr; for (const ox of [0, -W, W]) g.fillRect(x + ox, y, w, l); }
+        for (let i = 0; i < 55; i++) { const x = rnd(0, W), y = rnd(0, H), r = rnd(1.5, 6), ry = r * rnd(0.5, 0.85); for (const ox of [0, -W, W]) { g.fillStyle = 'rgba(52,20,10,.5)'; g.beginPath(); g.ellipse(x + ox, y, r, ry, 0, 0, 6.2832); g.fill(); g.fillStyle = 'rgba(255,214,170,.18)'; g.beginPath(); g.ellipse(x + ox, y + ry * 0.7, r * 0.9, ry * 0.35, 0, 0, 3.1416); g.fill(); }
+          for (let yy = Math.max(0, Math.floor(y - ry)); yy < Math.min(H, Math.ceil(y + ry)); yy++) for (let xx = Math.floor(x - r); xx < Math.ceil(x + r); xx++) { const q = ((xx - x) / r) ** 2 + ((yy - y) / ry) ** 2; if (q < 1) hgt[yy * W + ((xx % W) + W) % W] -= 0.8 * (1 - q); } } });
+      const rockNrm = canvasTex(TW, TH, (g, W, H) => { const im = g.createImageData(W, H), d = im.data, at = (x, y) => hgt[((y + H) % H) * W + ((x + W) % W)], k = 2.2;
+        for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const nx = (at(x - 1, y) - at(x + 1, y)) * k, ny = (at(x, y + 1) - at(x, y - 1)) * k, l = Math.hypot(nx, ny, 1), o = (y * W + x) * 4; d[o] = (nx / l * 0.5 + 0.5) * 255; d[o + 1] = (ny / l * 0.5 + 0.5) * 255; d[o + 2] = (1 / l * 0.5 + 0.5) * 255; d[o + 3] = 255; }
+        g.putImageData(im, 0, 0); }, false);
+      for (const t of [rockTex, rockNrm]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; }
+      ROCKS.forEach(([x, z, sx, sy, sz], ri) => { const g = new THREE.IcosahedronGeometry(1, sx > 0.28 ? 3 : 2), P = g.attributes.position, n = P.count, o = ri * 3.7 + 1.3, rot = rnd(0, 6.28), cr = Math.cos(rot), sr = Math.sin(rot), uv = new Float32Array(n * 2);
+        for (let i = 0; i < n; i++) { const dx = P.getX(i), dy = P.getY(i), dz = P.getZ(i);
+          let k = 1 + 0.2 * fbm(dx * 1.5 + o, dy * 1.5, dz * 1.5 - o);
+          k *= 1 - 0.075 * Math.pow(Math.abs(Math.sin((dy + 0.12 * fbm(dx * 3 + o, 0.5, dz * 3)) * 5.2 + o)), 5); // (the softer beds worn back into ledges)
+          const px = dx * k * sx, pz = dz * k * sz; let py = Math.max(-0.14, dy * k) * sy + sy * 0.13; // (flat underneath, down in the sand)
+          P.setXYZ(i, px * cr - pz * sr + x, py, px * sr + pz * cr + z);
+          uv[i * 2] = Math.atan2(dz, dx) / 6.2832 + 0.5; uv[i * 2 + 1] = py / 0.85 + ri * 0.37; }
+        for (let i = 0; i < n; i += 3) { const a = uv[i * 2], b = uv[i * 2 + 2], c = uv[i * 2 + 4]; if (Math.max(a, b, c) - Math.min(a, b, c) > 0.5) for (let j = 0; j < 3; j++) if (uv[(i + j) * 2] < 0.5) uv[(i + j) * 2] += 1; } // (a triangle across the seam takes its u from one side)
+        { const reps = Math.max(1, Math.round(6.2832 * (sx + sz) * 0.5 / 1.5)); for (let i = 0; i < n; i++) uv[i * 2] *= reps; } // (about as many texels round it as up it: a big rock wraps the picture twice)
+        g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); smoothN(g);
+        // darker low down where it meets the sand and in the hollows, a touch lighter and sandier where sand settles on top
+        const N = g.attributes.normal, col = new Float32Array(n * 3), tint = 0.94 + 0.12 * rand();
+        for (let i = 0; i < n; i++) { const py = P.getY(i), ny = N.getY(i), ao = 0.5 + 0.5 * Math.min(1, py / (0.22 * sy + 0.02)), up = Math.max(0, (ny - 0.55) / 0.45), dust = up * up * 0.22;
+          col[i * 3] = ao * tint * (1 + dust * 0.9); col[i * 3 + 1] = ao * tint * (1 + dust * 0.75); col[i * 3 + 2] = ao * tint * (1 + dust * 0.45); }
+        g.setAttribute('color', new THREE.BufferAttribute(col, 3)); gs.push(g); });
+      const m = dofMap(new THREE.MeshStandardMaterial({ map: rockTex, normalMap: rockNrm, normalScale: new THREE.Vector2(1.1, 1.1), vertexColors: true, roughness: 0.94 })); mats.push(m); set.add(new THREE.Mesh(merge(gs), m)); }
+    // agaves: (v285) a rosette of thick channelled leaves in a spiral, young ones upright in the middle, old ones arching out; toothed margins,
+    // bud prints, a dusty bloom, a dark spine at each tip
     { const gs = []; seed = 77;
-      for (const [x, z, s] of AGAVES) { const n = 13; for (let i = 0; i < n; i++) { const a = i / n * 6.283 + rnd(-0.2, 0.2), lift = rnd(0.35, 1.25), L = s * rnd(0.7, 1.15), w = 0.05 * s / 0.4;
-        const pts = []; for (let k = 0; k <= 4; k++) { const u = k / 4, r = u * L * (0.55 + 0.45 * Math.cos(lift)), y = Math.sin(lift) * L * u - u * u * L * 0.25 * (1.4 - lift), ww = w * (1 - u) * (1 - 0.2 * u); const ca = Math.cos(a), sa = Math.sin(a);
-          pts.push([x + ca * r - sa * ww, y, z + sa * r + ca * ww], [x + ca * r + sa * ww, y, z + sa * r - ca * ww]); }
-        const pos = []; for (let k = 0; k < 4; k++) { const [a0, a1] = [pts[k * 2], pts[k * 2 + 1]], [b0, b1] = [pts[k * 2 + 2], pts[k * 2 + 3]]; pos.push(...a0, ...a1, ...b0, ...a1, ...b1, ...b0); }
-        const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals();
-        paintVerts(g, (c, px, py) => c.setHSL(0.42 - py * 0.12, 0.32, 0.22 + py * 0.55, THREE.SRGBColorSpace)); gs.push(g); } }
+      const leafTex = canvasTex(128, 256, (g, W, H) => {
+        // (u across the leaf, v up it: v = 0, the base, at the bottom of the picture; the blade fills u 0.08 to 0.92, its teeth stand out past that)
+        const L = 0.08 * W, R = 0.92 * W, Y = v => H * (1 - v);
+        g.clearRect(0, 0, W, H); g.save(); g.beginPath(); g.rect(L, 0, R - L, H);
+        for (let v = 0.16; v < 0.88; v += 0.065) for (const [e, s] of [[L, -1], [R, 1]]) { const y = Y(v); g.moveTo(e, y + 5); g.lineTo(e + s * L * 0.95, y - 3); g.lineTo(e, y - 1); g.closePath(); }
+        g.clip();
+        const gr = g.createLinearGradient(0, H, 0, 0); gr.addColorStop(0, '#D7DEC4'); gr.addColorStop(0.12, '#A9C2B0'); gr.addColorStop(0.3, '#6C9890'); gr.addColorStop(0.65, '#557F7B'); gr.addColorStop(0.9, '#3F6662'); gr.addColorStop(1, '#3A2A1E');
+        g.fillStyle = gr; g.fillRect(0, 0, W, H);
+        // lighter margins and midrib, the leaf's channel darker either side of it
+        const ac = g.createLinearGradient(0, 0, W, 0); ac.addColorStop(0, 'rgba(228,236,206,.75)'); ac.addColorStop(0.16, 'rgba(228,236,206,.0)'); ac.addColorStop(0.36, 'rgba(20,40,40,.16)'); ac.addColorStop(0.5, 'rgba(210,228,214,.22)'); ac.addColorStop(0.64, 'rgba(20,40,40,.16)'); ac.addColorStop(0.84, 'rgba(228,236,206,0)'); ac.addColorStop(1, 'rgba(228,236,206,.75)');
+        g.fillStyle = ac; g.fillRect(0, 0, W, H);
+        // bud prints: the faint outlines of the leaves it grew pressed against
+        g.lineWidth = 2.2; for (const [v0, a] of [[0.34, 0.2], [0.52, 0.16], [0.7, 0.12]]) { g.strokeStyle = 'rgba(230,240,226,' + a + ')'; g.beginPath(); g.moveTo(L + 4, Y(v0 - 0.12)); g.quadraticCurveTo(W * 0.5, Y(v0 + 0.08), R - 4, Y(v0 - 0.12)); g.stroke();
+          g.strokeStyle = 'rgba(25,45,45,' + (a * 0.8) + ')'; g.beginPath(); g.moveTo(L + 6, Y(v0 - 0.14)); g.quadraticCurveTo(W * 0.5, Y(v0 + 0.06), R - 6, Y(v0 - 0.14)); g.stroke(); }
+        // the waxy bloom: a fine pale dust over it
+        for (let i = 0; i < 260; i++) { g.fillStyle = 'rgba(235,242,236,' + rnd(0.04, 0.14).toFixed(2) + ')'; g.fillRect(rnd(0, W), rnd(0, H * 0.9), rnd(1, 2.5), rnd(1, 3)); }
+        // the teeth, dark red-brown, and the spine at the tip
+        g.fillStyle = '#5A2E1C'; g.fillRect(0, 0, L + 1.5, H); g.fillRect(R - 1.5, 0, W - R + 1.5, H);
+        const sp = g.createLinearGradient(0, Y(0.86), 0, 0); sp.addColorStop(0, 'rgba(70,40,26,0)'); sp.addColorStop(0.45, 'rgba(70,40,26,.9)'); sp.addColorStop(1, '#2E1A10'); g.fillStyle = sp; g.fillRect(0, 0, W, Y(0.86));
+        g.restore(); });
+      leafTex.wrapS = leafTex.wrapT = THREE.ClampToEdgeWrapping;
+      for (const [x, z, s] of AGAVES) { const nL = 22, a0 = rnd(0, 6.28), lean = rnd(0.85, 1.1);
+        for (let li = 0; li < nL; li++) { const t = li / (nL - 1), a = a0 + li * 2.39996, old = 1 - t; // (inner leaves last: young, short, upright)
+          const lift = 0.42 + 0.95 * t + rnd(-0.08, 0.08), droop = (0.55 + 0.5 * old) * lean, len = s * (0.55 + 0.6 * old) * rnd(0.9, 1.08), wid = s * (0.085 + 0.03 * old) / 0.84, y0 = 0.015 + 0.04 * t * s;
+          const dx = Math.cos(a), dz = Math.sin(a), rows = 8, pos = [], uv = [], cen = [];
+          let cx = x + dx * 0.02 * s, cy = y0, cz = z + dz * 0.02 * s, ang = lift;
+          for (let r = 0; r <= rows; r++) { const u = r / rows; cen.push([cx, cy, cz, ang, u]); const st = len / rows; ang = lift - droop * u * u * 1.4; const hz = Math.cos(ang) * st, vy = Math.sin(ang) * st; cx += dx * hz; cz += dz * hz; cy = Math.max(0.012, cy + vy); }
+          const sxv = -dz, szv = dx; // (across the leaf, level)
+          const ring = cen.map(([px, py, pz, an, u]) => { const w = wid * (u < 0.32 ? 0.62 + 0.38 * u / 0.32 : Math.max(0, 1 - Math.pow((u - 0.32) / 0.68, 1.35))), nyx = -Math.sin(an), nyy = Math.cos(an), ch = w * 0.42; // (the edges raised, the middle down: a channel)
+            return [[px + sxv * w + dx * nyx * ch * 0.4, py + nyy * ch * 0.4, pz + szv * w + dz * nyx * ch * 0.4, 0, u], [px - dx * nyx * ch * 0.25, py - nyy * ch * 0.25, pz - dz * nyx * ch * 0.25, 0.5, u], [px - sxv * w + dx * nyx * ch * 0.4, py + nyy * ch * 0.4, pz - szv * w + dz * nyx * ch * 0.4, 1, u]]; });
+          for (let r = 0; r < rows; r++) for (let c = 0; c < 2; c++) { const A = ring[r][c], B = ring[r][c + 1], C2 = ring[r + 1][c], D = ring[r + 1][c + 1];
+            for (const q of [A, B, D, A, D, C2]) { pos.push(q[0], q[1], q[2]); uv.push(q[3], q[4]); } }
+          const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); smoothN(g);
+          // deep in the rosette, darker; the youngest a little fresher
+          const n = pos.length / 3, col = new Float32Array(n * 3);
+          for (let i = 0; i < n; i++) { const v = uv[i * 2 + 1], k = (0.55 + 0.45 * Math.min(1, v * 1.6)) * (0.9 + 0.12 * t); col[i * 3] = k * (0.97 + 0.05 * t); col[i * 3 + 1] = k; col[i * 3 + 2] = k * (0.98 - 0.04 * t); }
+          g.setAttribute('color', new THREE.BufferAttribute(col, 3)); gs.push(g); } }
       // (they sway in the wind, the tips most, more in a gust)
-      const m = dofMap(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.7, side: THREE.DoubleSide }), { key: 'agave', head: '', body: 'float k = position.y * position.y * 4.0, g = 0.6 + 0.9 * uWind.y; transformed.x += (sin(uWind.x * 1.9 + position.x * 1.7 + position.z * 1.3) * g + 0.35 * sin(uWind.x * 4.1 + position.x * 9.0 + position.z * 7.0)) * 0.03 * k; transformed.z += sin(uWind.x * 1.4 + position.z * 2.3 + 0.7) * 0.012 * k;' });
+      const m = dofMap(new THREE.MeshStandardMaterial({ map: leafTex, alphaTest: 0.5, vertexColors: true, roughness: 0.6, side: THREE.DoubleSide }), { key: 'agave2', head: '', body: 'float k = position.y * position.y * 4.0, g = 0.6 + 0.9 * uWind.y; transformed.x += (sin(uWind.x * 1.9 + position.x * 1.7 + position.z * 1.3) * g + 0.35 * sin(uWind.x * 4.1 + position.x * 9.0 + position.z * 7.0)) * 0.03 * k; transformed.z += sin(uWind.x * 1.4 + position.z * 2.3 + 0.7) * 0.012 * k;' });
       mats.push(m); set.add(new THREE.Mesh(merge(gs), m)); }
     // corrugated iron leaning on the big rock
     { const g = new THREE.PlaneGeometry(1.05, 1.25, 36, 1), P = g.attributes.position; for (let i = 0; i < P.count; i++) P.setZ(i, 0.022 * Math.sin(P.getX(i) * Math.PI * 14)); g.computeVertexNormals();
@@ -22161,7 +22450,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
   function want(out) {
     const s = SHOTS[X.shotK](), W = viewW, H = viewH, F = X.fr; out.dof = s.dof;
     if (s.pos) { out.p.copy(s.pos); out.yaw = s.yaw; out.pitch = s.pitch; out.d = 20; out.ox = out.oy = 0; return out; }
-    const fw = Math.max(80, F.x1 - F.x0), fh = Math.max(80, F.y1 - F.y0), d = Math.max(0.6, s.r * H / (Math.tan(X.pc.fov * Math.PI / 360) * 0.86 * Math.min(fw, fh)));
+    const fw = Math.max(80, F.x1 - F.x0), fh = Math.max(80, F.y1 - F.y0), d = Math.max(0.6, s.r * (X.tn ? 1 + TURN.out * X.tn.z : 1) * H / (Math.tan(X.pc.fov * Math.PI / 360) * 0.86 * Math.min(fw, fh)));
     out.p.set(Math.sin(s.yaw) * Math.cos(s.p), Math.sin(s.p), Math.cos(s.yaw) * Math.cos(s.p)).multiplyScalar(d).add(s.t);
     _wd.subVectors(s.t, out.p); out.d = _wd.length(); out.yaw = Math.atan2(_wd.x, _wd.z); out.pitch = Math.asin(clamp(_wd.y / out.d, -1, 1));
     out.ox = (F.x0 + F.x1) / 2 - W / 2; out.oy = (F.y0 + F.y1) / 2 - H / 2; return out;
@@ -22298,6 +22587,37 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
   }
   const opt = (attr, k, inner, label, on) => '<button type="button" class="flopt" ' + attr + '="' + k + '" aria-label="' + label + '" aria-pressed="' + !!on + '"><i class="flsel" aria-hidden="true"></i><span class="flcur" aria-hidden="true">' + DROP + '</span>' + inner + '</button>';
   const go_ = (id, label, dis) => '<button class="flgo" type="button" id="' + id + '"' + (dis ? ' disabled' : '') + '><span>' + label + '</span></button>';
+  // (v285) turning it round to have a look at it, as in the locker: a drag across the scene (anywhere but the cards) while it stands on
+  // its spot. The camera eases back, slowly, the longer it's turned; let go and it glides on, then after a beat it turns itself back
+  // round to face you (the short way, at its own pace), and the camera comes back in as it does
+  const TURN = { k: 0.012, beat: 0.45, out: 0.42, zOut: 0.45, zIn: 1.3 };
+  const turnOk = () => !!X && X.stood && X.hold.visible && (X.ph === 'iris' || X.ph === 'style' || X.ph === 'paint' || X.ph === 'name' || X.ph === 'confirm');
+  const tnOf = () => X.tn || (X.tn = { tgt: 0, yaw: 0, vel: 0, z: 0, drag: null, wait: 0, back: true, moved: 0 });
+  const TAU = Math.PI * 2, homeOf = y => Math.round(y / TAU) * TAU;
+  function turnUi(el) {
+    el.addEventListener('pointerdown', e => { if (!turnOk() || e.target.closest('.flpanel') || (e.button || 0) !== 0) return; const T = tnOf();
+      T.drag = { id: e.pointerId, x: e.clientX, tm: performance.now(), v: 0 }; T.wait = 0; T.back = false; T.moved = 0; });
+    el.addEventListener('pointermove', e => { const T = X && X.tn, d = T && T.drag; if (!d || d.id !== e.pointerId) return; if (!turnOk()) { T.drag = null; return; }
+      const now = performance.now(), dx = e.clientX - d.x; d.v = d.v * 0.5 + 0.5 * dx / Math.max(4, now - d.tm); d.tm = now; T.tgt += dx * TURN.k; T.moved += Math.abs(dx); d.x = e.clientX; });
+    const end = e => { const T = X && X.tn, d = T && T.drag; if (!d || d.id !== e.pointerId) return;
+      if (e.type === 'pointerup' && performance.now() - d.tm < 90) T.tgt += clamp(d.v * TURN.k * 160, -2.6, 2.6); /* (let go mid-swipe: it glides on round) */ T.drag = null; T.wait = 0; };
+    el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+  }
+  // how far it's turned from facing you (added to its heading), stepped once a frame; and how far out the camera has eased (0 to 1)
+  function turnTick(dt) {
+    const T = tnOf(), ok = turnOk(); if (!ok) T.drag = null;
+    if (!T.drag) { const off = Math.abs(T.yaw - homeOf(T.yaw)) > 0.04, still = Math.abs(T.vel) < 0.3 && Math.abs(T.tgt - T.yaw) < 0.1;
+      if (!ok) { if (off || T.tgt !== homeOf(T.tgt)) { T.tgt = homeOf(T.yaw); T.back = true; } } // (off its spot: straightened up, now)
+      else if (!T.back && still) { T.wait += dt; if (T.wait > TURN.beat) { T.tgt = homeOf(T.yaw); T.back = true; if (off && X.I.blink) X.I.blink(); } } }
+    const ret = T.back && !T.drag, d = T.tgt - T.yaw, g = !ok ? 7 : ret ? 2.6 : 4.5, cap = !ok ? 9 : ret ? 3.2 : 6;
+    T.vel += (clamp(d * g, -cap, cap) - T.vel) * Math.min(1, dt * (ret ? 6 : 10)); T.yaw += T.vel * dt;
+    if (ret && Math.abs(d) < 0.002 && Math.abs(T.vel) < 0.01) { T.yaw = T.tgt = homeOf(T.tgt); T.vel = 0; }
+    // the camera: out while it's being turned (or gliding round), very slowly; back in once it's coming back round to face you
+    const out = ok && ((T.drag && T.moved > 6) || (!T.back && Math.abs(T.vel) > 0.3) || (T.z > 0 && !T.back));
+    const inK = T.back && Math.abs(T.tgt - T.yaw) < 0.7 ? TURN.zIn : !ok ? TURN.zIn * 2 : 0;
+    if (out) T.z += (1 - T.z) * Math.min(1, dt * TURN.zOut); else if (inK) T.z += (0 - T.z) * Math.min(1, dt * inK);
+    return T.yaw;
+  }
   function buildUi() {
     const el = document.createElement('div'); el.className = 'flui'; el.id = 'flUi';
     const irises = EYE_KEYS.map(k => opt('data-i', k, '<i class="fliri" style="--ic:' + EYE_COLS[k].css + '"></i><b>' + EYE_COLS[k].name + '</b>', EYE_COLS[k].name + ' eyes', myLook.iris === k)).join('');
@@ -22313,7 +22633,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
       + '<div class="flsend" id="flSend" hidden aria-hidden="true"><b>Fresh out of the barrel?</b><b>Now go paint the town!</b></div>'
       + '<div class="flwink" id="flWink" hidden>' + STAR + '</div>'
       + '<p class="fltitle" id="flTitle" hidden>' + ['A', 'Marcelin', 'Game'].map((w, i) => '<span style="--i:' + i + '">' + w + '</span>').join(' ') + '</p>';
-    stage.appendChild(el); UI = { el, cur: null };
+    stage.appendChild(el); UI = { el, cur: null }; turnUi(el);
     seed = 4242; for (const b of el.querySelectorAll('.flboard')) torn(b, 7, 14); for (const b of el.querySelectorAll('.flbanner, .flsend b')) torn(b, 5, 9);
     $('flIrisO').addEventListener('click', e => { const b = e.target.closest('.flopt'); if (!b) return; AU.init(); pickIris(b.dataset.i); });
     $('flStyleO').addEventListener('click', e => { const b = e.target.closest('.flopt'); if (!b) return; AU.init(); pickStyle(b.dataset.s); });
@@ -22471,7 +22791,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
       const up = t < 6.2 ? 0 : 1 - Math.exp(-(t - 6.2) * 7) * Math.cos((t - 6.2) * 15);
       sunk(0, 0.9 * (1 - up));
       if (t >= 6.2 && t < 7.2) c.sq = -0.3 * Math.exp(-(t - 6.2) * 6) * Math.cos((t - 6.2) * 13);
-      if (t > 6.9 && t < 7.6) { wy = 0.7; hr = 0.1; } else if (t >= 7.6 && t < 8.4) { wy = -0.7; hr = -0.1; } else wy = 0;
+      if (t > 6.9 && t < 7.6) { wy = 0.7; hr = 0.1; } else if (t >= 7.6 && t < 8.4) { wy = -0.5; hr = -0.08; } else wy = 0;
       if (t >= 6.9 && once('tw1')) twitch(); if (t >= 7.6 && once('tw2')) twitch();
       if (t >= 6.95 && once('l1')) I.face && I.face('curious', 1.2);
       if (t >= 8.4 && once('bl')) I.blink && I.blink();
@@ -22610,7 +22930,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     const c = X.ch, I = X.I, o = X.o, h = X.hold, m = X.mvs, mv = X.mv || MV.o, k = Math.min(1, dt * 9);
     for (const q in m) m[q] += ((mv[q] || 0) - m[q]) * k; // (the move's pose, eased so one cut short never jumps)
     // (a step to the side: across its own left and right; the animator walks its feet there from how the ground moves under it)
-    c.pop = Math.max(0, (c.pop || 0) - dt * 3); const bob = c.pop > 0 ? Math.sin((1 - c.pop / 1.4) * Math.PI) * 0.03 * c.pop : 0, yw = c.yaw, sc = m.sway * 0.035 + m.dx, cy = Math.cos(c.yaw), sy = Math.sin(c.yaw);
+    c.pop = Math.max(0, (c.pop || 0) - dt * 3); const bob = c.pop > 0 ? Math.sin((1 - c.pop / 1.4) * Math.PI) * 0.03 * c.pop : 0, yw = c.yaw + turnTick(dt), sc = m.sway * 0.035 + m.dx, cy = Math.cos(c.yaw), sy = Math.sin(c.yaw);
     h.position.set(c.x + cy * sc, c.y + bob, c.z - sy * sc); h.rotation.set(0, yw, m.sway * 0.05); h.updateMatrixWorld(true);
     // (v269) how it's really moving, handed to the game's animator as the game hands over the player's: its speed over the ground and how
     // fast it's turning (on the spot or not), from where it is frame to frame. The game's own physics then swing its ears and tail after
