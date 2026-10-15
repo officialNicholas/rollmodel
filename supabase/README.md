@@ -45,7 +45,7 @@ through these functions:
 | Function | Does |
 |---|---|
 | `rm_name_check(name)` | Anyone, even before signing in: is this username allowed, and is it free? |
-| `rm_me(name, look, rank)` | Makes your profile the first time (only with a clean, free username), updates the rest after; never renames you; returns your friend code and whether you have an account |
+| `rm_me(name, look, rank)` | Makes your profile the first time (only with a clean, free username), updates the rest after; never renames you; returns your friend code and whether you have an account. Since v308 the game calls it only when the player makes an account (or has one), so a name is held from then on |
 | `rm_rename(name)` | A new username (clean and free; 10 tries an hour) |
 | `rm_login_email(name)` | The made-up address a username signs in with (nothing for a player without an account) |
 | `rm_account_save(first, last, birthday, terms)`, `rm_account()` | The account details (13 or older; the game passes the birth year as its last day, so a player counts as 13 only once that's certain), and reading your own back |

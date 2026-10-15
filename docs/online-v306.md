@@ -10,10 +10,11 @@ server works, its rules and how to deploy it are in `docs/multiplayer.md`; the d
 
 ## Usernames and accounts
 
-- **A username from the first launch.** The intro's name card checks the name as it's typed: 3 to 16 letters, digits
-  or `_`, at least one letter (the game keeps names to 12 so they fit the name tags), nothing rude however it's spelt,
-  no names that pretend to be staff, and not taken ("Checking…", "It's yours", "Taken. Try another"). The dice only
-  rolls usernames that can be had. Offline, the intro goes on and the name is checked later.
+- **A name from the first launch, a username with the account.** The intro's name card checks the name on the phone as
+  it's typed: 3 to 16 letters, digits or `_`, at least one letter (the game keeps names to 12 so they fit the name
+  tags), nothing rude however it's spelt, and no names that pretend to be staff. Since v308 nothing goes to the server
+  then, so the game plays fully offline; the name is reserved when the player makes an account, and the account form
+  checks it against everyone's as it's typed ("Checking…", "It's yours", "Taken. Try another").
 - **An account to play with others.** Friends and online play need one: username, first and last name, birth year (13 or
   older; v307: the year only, counted as its last day so 13 is certain), a password (8 or more characters with a letter and a number), and a box to agree to the Terms of Service and
   the Privacy Policy, which open over the form but don't have to be read. Under 13: "Sorry, not yet", and nothing is

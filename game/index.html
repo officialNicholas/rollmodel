@@ -1280,7 +1280,7 @@ body.homeon .corner{display:none}
 .friends:focus-visible{outline:3px solid var(--gold);outline-offset:4px}
 
 /* the empty spots beside you, for a friend to join your lobby (soon) */
-.slot{appearance:none;position:absolute;left:0;top:0;z-index:2;display:grid;place-items:center;width:58px;height:46px;margin:0;padding:0;border:0;border-radius:6px;background:rgba(255,255,255,.42);box-shadow:inset 0 0 0 2.5px rgba(255,255,255,.95),0 0 0 2px rgba(23,19,32,.55),0 5px 0 rgba(23,19,32,.18);cursor:pointer;pointer-events:auto;transform:translate(-50%,-50%) skewX(-8deg);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);-webkit-tap-highlight-color:transparent;transition:background .15s}
+.slot{appearance:none;position:absolute;left:0;top:0;z-index:2;display:grid;place-items:center;width:58px;height:46px;margin:0;padding:0;border:0;border-radius:6px;background:rgba(255,255,255,.55);box-shadow:inset 0 0 0 2.5px rgba(255,255,255,.95),0 0 0 2px rgba(23,19,32,.55),0 5px 0 rgba(23,19,32,.18);cursor:pointer;pointer-events:auto;transform:translate(-50%,-50%) skewX(-8deg);-webkit-tap-highlight-color:transparent;transition:background .15s}
 .slot[hidden]{display:none}
 .slot::after{content:"";position:absolute;top:0;right:0;width:11px;height:11px;background:linear-gradient(225deg,rgba(23,19,32,.22) 50%,#fff 50%);border-top-right-radius:6px}
 .slot svg{width:24px;height:24px;transform:skewX(8deg);filter:drop-shadow(0 2px 0 rgba(23,19,32,.5))}
@@ -3932,6 +3932,10 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 @media (orientation:landscape){#setModal #sfit{gap:10px 12px}}
 /* (v307) the account's birth year: one picker */
 .acbd.acyr{grid-template-columns:minmax(0,9em)}
+
+/* (v308) the performance readout */
+.perfhud{position:fixed;left:max(6px,env(safe-area-inset-left));top:max(6px,env(safe-area-inset-top));z-index:9999;margin:0;padding:6px 8px;border-radius:6px;background:rgba(10,8,16,.72);color:#9DFFB0;font:600 10.5px/1.35 ui-monospace,Menlo,monospace;white-space:pre;pointer-events:none}
+.perfhud[hidden]{display:none}
 </style>
 
 <div id="stage">
@@ -4069,7 +4073,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 307</p>
+      <p class="ver">Version 308</p>
     </div>
   </div>
 
@@ -21443,7 +21447,7 @@ async function frPoll() {
 // while the screen is open, slower in a match (that's also what keeps you showing as online to your friends)
 function frTick() {
   if (!SB_CFG || document.hidden) return;
-  if (!FR.me) { if (!FR.busy && Date.now() > FR.retryAt && store.name && (tutPh() === 'done' || FR.open)) frStart(); return; }
+  if (!FR.me) { if (!FR.busy && Date.now() > FR.retryAt && acctReady() && (tutPh() === 'done' || FR.open)) frStart(); return; } // (v308: nothing on the server before an account)
   if (FR.sync !== frSig() && state === 'menu') { FR.sync = frSig(); sbRpc('rm_me', { p_name: frName(), p_look: frLook(), p_rank: frRank() }).catch(() => { FR.sync = ''; }); }
   if (Date.now() - FR.at > onPollGap()) frPoll(); // (v306: quicker with a friend online, and while an invite waits)
 }
@@ -21487,6 +21491,7 @@ function frRender(fromPoll) {
   if (!SB_CFG) h = '<div class="frmsg">' + FR_FACES + '<b>Friends are on the way</b><p>They play online, and online play isn’t switched on in this version yet.</p></div>';
   else if (acOut()) h = acAskHtml();
   else if (!FR.me && FR.need) h = unPickHtml();
+  else if (!FR.me && !acctReady()) h = acAskHtml(); // (v308: friends come with an account)
   else if (!FR.me) h = FR.err && !FR.busy ? '<div class="frmsg">' + FR_FACES + '<b>Can’t connect</b><p>' + frEsc(FR.err) + '</p><button class="frb go" data-act="retry" type="button">Try again</button></div>' : '<div class="frmsg"><span class="frspin" aria-hidden="true"></span><p>Getting your friend code…</p></div>';
   else if (FR.me.needs_name) h = unPickHtml();
   else if (!acctReady()) h = acAskHtml();
@@ -21559,7 +21564,7 @@ async function frPayout() {
   catch (e) { FR.paid = false; }
 }
 function frBoardHtml(sid) {
-  if (!FR.me) { if (acOut() || FR.need) return '<p class="ttnone"><b>' + (FR.need ? 'Pick your username' : 'Log in') + ' to race your friends here.</b>Your friends are on the lobby’s Friends button.</p>'; if (!FR.busy && Date.now() > FR.retryAt) frStart(); return FR.err && !FR.busy ? '<p class="ttnone"><b>Can’t load your friends’ times.</b>' + frEsc(FR.err) + '</p>' : '<p class="ttnone"><b>Loading your friends’ times…</b></p>'; }
+  if (!FR.me) { if (acOut() || FR.need) return '<p class="ttnone"><b>' + (FR.need ? 'Pick your username' : 'Log in') + ' to race your friends here.</b>Your friends are on the lobby’s Friends button.</p>'; if (!acctReady()) return '<p class="ttnone"><b>Make an account to race your friends here.</b>Friends come with an account: Settings, Account.</p>'; if (!FR.busy && Date.now() > FR.retryAt) frStart(); return FR.err && !FR.busy ? '<p class="ttnone"><b>Can’t load your friends’ times.</b>' + frEsc(FR.err) + '</p>' : '<p class="ttnone"><b>Loading your friends’ times…</b></p>'; }
   const c = FR.board[sid]; if (!c || Date.now() - c.at > 30000) frBoardLoad(sid);
   if (!c) return '<p class="ttnone"><b>Loading your friends’ times…</b></p>';
   let h = c.err && !c.rows.length ? '<p class="ttnone"><b>Can’t load your friends’ times.</b>' + frEsc(c.err) + '</p>' : !c.rows.length ? '<p class="ttnone"><b>No runs from you or your friends here this week.</b>Play a Time trial on this canvas to set the first.</p>'
@@ -22239,6 +22244,7 @@ function acSync(r) {
 function acPaintAll() { if (!$('setModal').hidden) acSetPaint(); if (menuPage === 'events') acMatchPaint(); if (FR.open) { FR.sig = ''; frRender(); } }
 
 // ---- the line under a username field: what's wrong at once; then (online, after a pause) whether it's free
+const UN_ONLINE = id => id === 'acUser' || ((id === 'nameInput' || id === 'frUnIn') && acctReady()); // (v308: a name is only checked against everyone's, and held, with an account)
 const UN_W = {}, UN_FREE = new Map(); // (each field's check, by its id; the server's answers, a minute each)
 const unMine = n => { const m = acHas() && acName(); return !!m && m.toLowerCase() === String(n).toLowerCase(); };
 function unWatch(id, stId, onState) {
@@ -22248,6 +22254,7 @@ function unWatch(id, stId, onState) {
     const i = $(id); if (!i) return; clearTimeout(t); const n = unNorm(i.value), why = n ? unWhy(n) : 'empty', my = ++seq;
     if (why) return show('bad', unSay(why, n));
     if (unMine(n)) return show('ok', 'It’s yours');
+    if (!UN_ONLINE(id)) return show('ok', 'Looks good'); // (v308: allowed is all a name needs before there's an account)
     if (!SB_CFG || navigator.onLine === false) return show('off', 'Looks good');
     const c = UN_FREE.get(n.toLowerCase()); if (c && Date.now() - c.at < 60000) return show(c.ok ? 'ok' : 'bad', c.ok ? 'It’s yours' : unSay(c.why, n));
     show('wait', 'Checking…');
@@ -22275,7 +22282,7 @@ async function unSubmit(id, stId, btnId, done, strict) {
   const i = $(id), st = $(stId), b = $(btnId); if (!i || !b || b.dataset.busy) return; const n = unNorm(i.value), why = n ? unWhy(n) : 'empty';
   if (why || i.dataset.un === 'bad') { AU.nope(); if (UN_W[id]) UN_W[id](); if (st) kick(st, 'unshake'); return; }
   b.dataset.busy = '1'; b.disabled = true; if (st) { st.dataset.s = 'wait'; st.textContent = 'Checking…'; }
-  const r = await Promise.race([unClaim(n, strict), new Promise(res => setTimeout(() => res(strict ? { ok: false, why: netWhy() } : { ok: true, name: n, off: true }), 9000))]);
+  const r = !UN_ONLINE(id) ? { ok: true, name: n, off: true } : await Promise.race([unClaim(n, strict), new Promise(res => setTimeout(() => res(strict ? { ok: false, why: netWhy() } : { ok: true, name: n, off: true }), 9000))]);
   delete b.dataset.busy; b.disabled = false;
   if (!r.ok) { AU.nope(); if (!/^(offline|walled|server|slow_down|out)$/.test(r.why)) { UN_FREE.set(n.toLowerCase(), { at: Date.now(), ok: false, why: r.why }); if (UN_W[id]) UN_W[id](); } // (its line, and its button, as for any name that can't be had)
     if (st) { st.dataset.s = 'bad'; st.textContent = unSay(r.why, n); kick(st, 'unshake'); } return; }
@@ -22292,7 +22299,7 @@ $('nameDice').addEventListener('click', () => UN_W.nameInput());
 function acAskHtml() {
   const out = acOut(), lost = out && store.sbs.lost, nm = !out && acName();
   return '<div class="frmsg acmsg">' + FR_FACES + '<b>' + (lost ? 'You’ve been signed out' : out ? 'You’re signed out' : 'Make an account') + '</b><p>'
-    + (lost ? 'Log in again to see your friends.' : out ? 'Log in to see your friends, or make a new account.' : 'Friends are for players with an account. Your username' + (nm ? ' <b>' + frEsc(nm) + '</b>' : '') + ' and friend code come with you.')
+    + (lost ? 'Log in again to see your friends.' : out ? 'Log in to see your friends, or make a new account.' : 'Friends are for players with an account. Make one to keep your username online and get your friend code.')
     + '</p><div class="acbtns"><button class="frb go" data-ac="new" type="button">Make an account</button><button class="frb" data-ac="in" type="button">Log in</button></div></div>';
 }
 function unPickHtml() {
@@ -22912,6 +22919,32 @@ let setFitQ = 0;
 function setFitSoon() { if (setFitQ) return; setFitQ = requestAnimationFrame(() => { setFitQ = 0; setFit(); }); }
 addEventListener('resize', () => { if (!setModal.hidden) setFitSoon(); });
 try { if (document.fonts) document.fonts.ready.then(() => { if (!setModal.hidden) setFitSoon(); }); } catch (e) {}
+// ---------- (v308) a performance readout: tap the version line in Settings five times (and five more to hide it). Once a second: frames
+// per second, the median and worst frame, the game's own work per frame, the quality step and what it holds (resolution, bloom, depth
+// blur, the see-through copy, the floor mirror, shadows), and the draw calls and triangles drawn ----------
+const PH = { on: false, el: null, iv: [], js: 0, at: 0, taps: 0, tapAt: 0, calls: 0, tris: 0, frames: 0 };
+function perfHudSet(on) {
+  PH.on = !!on; store.perfHud = PH.on ? 1 : 0; save();
+  if (PH.on && !PH.el) { PH.el = document.createElement('pre'); PH.el.className = 'perfhud'; PH.el.setAttribute('aria-hidden', 'true'); document.body.appendChild(PH.el); }
+  if (PH.el) PH.el.hidden = !PH.on; try { renderer.info.autoReset = !PH.on; renderer.info.reset(); } catch (e) {}
+  PH.iv.length = 0; PH.js = 0; PH.frames = 0; PH.calls = 0; PH.tris = 0; PH.at = performance.now();
+}
+function perfHudFrame(ft) {
+  if (ft > 0 && ft < 2) PH.iv.push(ft * 1000); PH.js += lastCpu * 1000; PH.frames++;
+  try { const r = renderer.info.render; PH.calls += r.calls; PH.tris += r.triangles; renderer.info.reset(); } catch (e) {}
+  const now = performance.now(); if (now - PH.at < 1000 || !PH.el) return;
+  const a = PH.iv.slice().sort((x, y) => x - y), n = a.length, q = Q_LAD[qLvl] || {}, f = Math.max(1, PH.frames);
+  PH.el.textContent = Math.round(n * 1000 / (now - PH.at)) + ' fps   median ' + (n ? a[n >> 1].toFixed(1) : '-') + '   worst ' + (n ? a[n - 1].toFixed(0) : '-') + ' ms\n'
+    + 'game ' + (PH.js / f).toFixed(1) + ' ms a frame   ' + (GFX === 'hi' ? 'Graphics' : 'Performance') + (NATIVE ? '   app' : '   web') + '\n'
+    + 'quality ' + qLvl + '/' + (Q_LAD.length - 1) + '   x' + curPR + (q.bloom ? ' bloom' : '') + (q.dof ? ' blur' : '') + (q.grab ? ' copy' : '') + (q.mirror ? ' mirror' : '') + ' shadows ' + ['full', 'lite', 'still'][shadowLite || 0] + '\n'
+    + 'draws ' + Math.round(PH.calls / f) + '   triangles ' + Math.round(PH.tris / f / 1000) + 'k';
+  PH.iv.length = 0; PH.js = 0; PH.frames = 0; PH.calls = 0; PH.tris = 0; PH.at = now;
+}
+$('setVer').addEventListener('click', () => { const now = performance.now(); PH.taps = now - PH.tapAt < 1500 ? PH.taps + 1 : 1; PH.tapAt = now; if (PH.taps >= 5) { PH.taps = 0; perfHudSet(!PH.on); AU.ui(); } });
+if (store.perfHud) setTimeout(() => perfHudSet(true), 0);
+// (v308) screens that cover the lobby: the 3D lobby holds still behind them instead of drawing every frame for nobody
+let LCOV = null;
+function lobbyCovered() { if (!LCOV) LCOV = ['setModal', 'howModal', 'docModal', 'acModal', 'nameModal', 'ttModal'].map(id => document.getElementById(id)).filter(Boolean); for (let i = 0; i < LCOV.length; i++) if (!LCOV[i].hidden) return true; return false; }
 function paintSettings() { try { $('lastErr').textContent = store.lastErr ? 'Last error: ' + store.lastErr : ''; } catch (e) {} for (const b of $('sfxPick').children) b.setAttribute('aria-pressed', String((b.dataset.v === 'off') === !!store.sfxOff)); for (const b of $('musPick').children) b.setAttribute('aria-pressed', String((b.dataset.v === 'off') === !!store.musicOff)); { const v = document.querySelector('#howModal .ver'); $('setVer').textContent = v ? v.textContent : ''; } for (const b of $('orientPick').children) b.setAttribute('aria-pressed', String(b.dataset.o === (store.orient || ''))); for (const b of $('gfxPick').children) b.setAttribute('aria-pressed', String(b.dataset.g === gfxPick)); $('gfxNote').textContent = GFX_NOTE[gfxPick]; $('setDone').textContent = gfxPick === GFX ? 'Done' : 'Restart to apply'; setFitSoon(); }
 function openSettings() { if (state !== 'menu' || lookOpen || shopOpen) return; gfxPick = GFX; paintSettings(); AC.del = false; AC.note = ''; acSetPaint(); if (window.__turnShow) window.__turnShow(); setModal.hidden = false; setFit(); netProbe(); setTimeout(() => $('gfxPick').querySelector('[aria-pressed="true"]').focus({ preventScroll: true }), 30); }
 function closeSettings() { if (setModal.hidden) return; setModal.hidden = true; $('hamBtn').focus({ preventScroll: true }); }
@@ -23023,7 +23056,7 @@ $('statsClose').addEventListener('click', uiClick(closeStats));
 $('statsModal').addEventListener('click', e => { if (e.target === $('statsModal')) closeStats(); });
 $('stRename').addEventListener('click', uiClick(() => { $('statsModal').hidden = true; openName(false); }));
 // friends, and a friend joining your lobby: soon
-function openFriends() { if (state !== 'menu') return; PB.ret = document.activeElement; FR.open = true; FR.note = ''; FR.menu = ''; FR.confirm = ''; frRender(); $('friendsModal').hidden = false; if (SB_CFG) { if (!FR.me) frStart(); else { FR.at = 0; frPoll(); } } setTimeout(() => $('frX').focus({ preventScroll: true }), 30); }
+function openFriends() { if (state !== 'menu') return; PB.ret = document.activeElement; FR.open = true; FR.note = ''; FR.menu = ''; FR.confirm = ''; frRender(); $('friendsModal').hidden = false; if (SB_CFG) { if (!FR.me) { if (acctReady()) frStart(); } else { FR.at = 0; frPoll(); } } setTimeout(() => $('frX').focus({ preventScroll: true }), 30); }
 function closeFriends() { if ($('friendsModal').hidden) return; FR.open = false; FR.menu = ''; FR.confirm = ''; $('friendsModal').hidden = true; if (PB.ret && PB.ret.focus) PB.ret.focus({ preventScroll: true }); }
 $('friendsBtn').addEventListener('click', uiClick(openFriends));
 for (const el of [slotL, slotR]) el.addEventListener('click', uiClick(openFriends));
@@ -23615,7 +23648,7 @@ function tunePerf(ft) {
   qCap = null; if (qCapped) { qCapped = false; return win(); } // (just out of the phone's 30 a second: this second was the switch-over, not a verdict)
   if (qLate >= 4 && qLvl < Q_LAD.length - 1) {
     if (qWin - qUpAt <= 3) { const b = qLvl; qBanLen[b] = Math.min(600, (qBanLen[b] || 15) * 2); qBan[b] = qWin + qBanLen[b]; } // (that notch up didn't hold: not again for a while)
-    qDownFrom = qLvl; qDownAt = qWin; setQ(qLvl + 1); qClean = 0; if (state === 'play') { qPlayDown = true; try { const L = qStage(); L[TH.id] = Math.max(L[TH.id] || 0, qLvl); } catch (e) {} } qSave();
+    qDownFrom = qLvl; qDownAt = qWin; setQ(qLvl + (med > 0.05 ? 3 : med > 0.0365 ? 2 : 1)); qClean = 0; // (v308: well behind, two or three notches at once) if (state === 'play') { qPlayDown = true; try { const L = qStage(); L[TH.id] = Math.max(L[TH.id] || 0, qLvl); } catch (e) {} } qSave();
   } else if (qLate === 0) {
     if (++qClean >= 8 && qLvl > 0 && cpuK < 0.5 && qWin >= (qBan[qLvl - 1] || 0) && state !== 'play' && state !== 'paused') { setQ(qLvl - 1); qUpAt = qWin; qClean = 0; qSave(); }
   } else qClean = 0;
@@ -23652,8 +23685,9 @@ function frameBody(t) {
   if (ffK > 1 || NM) dt = Math.min(dt, 0.05); // (the drawing's own timing no faster than a slow frame's)
   visuals(dt, rdt); flushTrail(); pbarTick(rdt); lockerTick(); dipTick(rdt); if (FL && FL.jin) FL.after(rdt);
   if (shadowLite >= 2) sun.shadow.needsUpdate = (++frameNo & 1) === 0;
-  if (!(state === 'menu' && (menuPage === 'worlds' || menuPage === 'events' || menuPage === 'strokes' || !commModalEl.hidden || !friendsModalEl.hidden || !onModalEl.hidden))) renderFrame(); // (v304: under Commissions the lobby holds still behind the blur)
+  if (!(state === 'menu' && (menuPage === 'worlds' || menuPage === 'events' || menuPage === 'strokes' || !commModalEl.hidden || !friendsModalEl.hidden || !onModalEl.hidden || lobbyCovered()))) renderFrame(); // (v308: and behind every screen that covers it) // (v304: under Commissions the lobby holds still behind the blur)
   lastCpu = (performance.now() - cpu0) / 1000;
+  if (PH.on) perfHudFrame(rawDt);
 }
 // a frame that throws must not take the game with it: the loop goes on, and the error is put on screen and kept for Settings
 let frameErrN = 0;
