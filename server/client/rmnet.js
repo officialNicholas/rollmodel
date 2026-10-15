@@ -36,9 +36,11 @@ const RMNetSDK = (() => {
   // Layout canonical form and hash. The server runs exactly this code too (it imports this file).
   //
   // layout = { arena, boxes: [[x0,x1,z0,z1,y0,y1,shape?]], ramps: [[x0,x1,z0,z1,axis,h0,h1]], holes: [[x0,x1,z0,z1,shape?]],
-  //            pots: [[x,y,z]], powers: [[x,y,z,kind?]], spawns: [[x,z,yaw]] }
+  //            pots: [[x,y,z]], powers: [[x,y,z,kind?]], spawns: [[x,z,yaw]], puddles?: [[x,y,z]] }
+  // (puddles, optional: the boiling-water spots; a pound that lands in one refills you, so the server needs them to
+  // know that refill is real)
   // Canonical form: the prefix "RM1" followed by JSON of
-  //   [arena, boxes, ramps, holes, pots, powers, spawns]
+  //   [arena, boxes, ramps, holes, pots, powers, spawns, puddles]   (puddles [] when there are none)
   // where every number becomes Math.round(n * 100) (an integer count of hundredths, -0 written as 0), a box or hole
   // shape is kept only when it is 'c' (round), a ramp axis is 'x' or 'z', and a power kind is kept only when it is a
   // non-empty string. Arrays keep their order. The hash is a 64-bit FNV-1a style mix (two 32-bit lanes) of that string,
@@ -62,7 +64,8 @@ const RMNetSDK = (() => {
     const pots = arr(L.pots, 'pots').map((p, i) => nums(p, 3, 'pots[' + i + ']'));
     const powers = arr(L.powers, 'powers').map((p, i) => { const o = nums(p, 3, 'powers[' + i + ']'); if (typeof p[3] === 'string' && p[3].length) o.push(p[3]); return o; });
     const spawns = arr(L.spawns, 'spawns').map((s, i) => nums(s, 3, 'spawns[' + i + ']'));
-    return [q100(L.arena, 'arena'), boxes, ramps, holes, pots, powers, spawns];
+    const puddles = L.puddles === undefined || L.puddles === null ? [] : arr(L.puddles, 'puddles').map((p, i) => nums(p, 3, 'puddles[' + i + ']'));
+    return [q100(L.arena, 'arena'), boxes, ramps, holes, pots, powers, spawns, puddles];
   }
   function canonicalLayout(L) { return 'RM1' + JSON.stringify(canonicalParts(L)); }
   function hashString(s) {
@@ -78,9 +81,11 @@ const RMNetSDK = (() => {
   }
   function layoutHash(L) { return hashString(canonicalLayout(L)); }
   // Build the layout object from the game's own stage arrays. Holes in the game keep 'c' at index 6 and boxes may carry
-  // an extra kind at index 7; this writes them in the layout format above. spawns: [{x,z,yaw}, ...] for the match's players.
-  function layoutFromStage({ arena, boxes, ramps, holes, pots, powers, spawns }) {
+  // an extra kind at index 7; this writes them in the layout format above. spawns: [{x,z,yaw}, ...] for the match's
+  // players; puddles (optional): the game's RIVALS array of boiling-water spots.
+  function layoutFromStage({ arena, boxes, ramps, holes, pots, powers, spawns, puddles }) {
     return {
+      puddles: puddles ? puddles.map(p => [p[0], p[1], p[2]]) : [],
       arena: +arena,
       boxes: boxes.map(b => (b[6] === 'c' ? [b[0], b[1], b[2], b[3], b[4], b[5], 'c'] : [b[0], b[1], b[2], b[3], b[4], b[5]])),
       ramps: ramps.map(r => [r[0], r[1], r[2], r[3], r[4], r[5], r[6]]),

@@ -51,7 +51,7 @@ test('layout canonical form, hash and validation', () => {
   const moved = JSON.parse(JSON.stringify(L)); moved.boxes[0][0] += 0.1; assert.notEqual(layoutHash(moved), layoutHash(L));
   // -0 and 0 agree, extra fields (a box's kind) do not count, shapes only when round
   const z = { arena: 20, boxes: [[-0, 1, 0, 1, 0, 1, 0, 'rpad']], ramps: [], holes: [[1, 2, 1, 2, 0]], pots: [[0, 0, 0]], powers: [[1, 0, 1, undefined]], spawns: [[0, -0.001, 0]] };
-  assert.equal(canonicalLayout(z), 'RM1[2000,[[0,100,0,100,0,100]],[],[[100,200,100,200]],[[0,0,0]],[[100,0,100]],[[0,0,0]]]');
+  assert.equal(canonicalLayout(z), 'RM1[2000,[[0,100,0,100,0,100]],[],[[100,200,100,200]],[[0,0,0]],[[100,0,100]],[[0,0,0]],[]]');
   // a known value, so the game's copy can be checked against this one
   assert.equal(layoutHash(z), hashString(canonicalLayout(z)));
   assert.equal(hashString('RM1'), hashString('RM1')); assert.notEqual(hashString('RM1'), hashString('RM2'));

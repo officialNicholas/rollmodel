@@ -43,6 +43,7 @@ export const DEFAULT_RULES = Object.freeze({
   layoutTimeout: 15, reconnectWindow: 20, afkWarn: 5, afkForfeit: 15, idleForfeit: 40,
   rematchWindow: 15, endLinger: 0,
   weather: true, items: true, zone: true,
+  itemFirst: [6, 9], itemEvery: [9, 13], // seconds: when the first pick-up appears, and the gap between them
   // The spec says a player hidden in a pot is safe from a pound. The current single-player game knocks them out instead
   // ("Nailed!"); set this to false to match the game.
   potShields: true,
@@ -58,7 +59,7 @@ export const LIMITS = Object.freeze({
   maxPayload: 64 * 1024, // ws closes the connection above this (layouts are the largest messages)
   maxJson: 2048, // any JSON message other than a layout
   maxLayoutJson: 60 * 1024,
-  layout: { boxes: 400, ramps: 200, holes: 120, pots: 32, powers: 48, spawns: 8 },
+  layout: { boxes: 400, ramps: 200, holes: 120, pots: 32, powers: 48, spawns: 8, puddles: 48 },
   nameMin: 1, nameMax: 16, lookMax: 512,
   helloTimeoutMs: 5000,
 });

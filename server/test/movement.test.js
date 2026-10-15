@@ -130,6 +130,9 @@ test('teleports, walls, flying and floating are caught', () => {
   // floating: hold 1.2 m up for seconds
   const hover = drive(L, { seconds: 5, start: { x: -20, z: -20, yaw: 0 }, mind: () => straight, cheat: (s, c) => (c.t > 500 ? Object.assign(s, { y: 1.2 }) : s) });
   assert.ok(hover.violations.some(v => v.reason === 'float'));
+  // climbing onto a 1.2 m box without a hop (the box at 8..12, -12..-8)
+  const climb = drive(L, { seconds: 4, start: { x: 10, z: -15, yaw: 0 }, mind: () => straight, cheat: s => (s.z > -12.5 ? Object.assign(s, { z: s.z + 1.2, y: 1.2 }) : s) });
+  assert.ok(climb.violations.some(v => v.reason === 'climb'), JSON.stringify(climb.violations.slice(0, 2)));
   // walking on air over a hole is a fall, not a way across
   const air = drive(L, { seconds: 5, start: { x: -12, z: -8, yaw: 0 }, mind: () => straight, cheat: s => Object.assign(s, { y: 0 }) });
   assert.ok(air.fell > 0 || air.violations.length > 0, 'over the pit with y = 0');

@@ -9,7 +9,8 @@ import { sanitizeName, sanitizeLook } from './names.js';
 import { connectionLimits, noteDrop } from './ratelimit.js';
 import { Matchmaker, Room, uniqueCode } from './lobby.js';
 import { Match } from './match.js';
-import { nowMs, Window } from './util.js';
+import { nowMs, Window, summarize } from './util.js';
+import { performance } from 'node:perf_hooks';
 
 const CLOSE = { NORMAL: 1000, AWAY: 1001, VERSION: 4000, REPLACED: 4001, KICKED: 4003, HELLO: 4004, POLICY: 4008 };
 const JSON_TYPES = new Set(['hello', 'queue', 'cancelQueue', 'createRoom', 'joinRoom', 'leaveRoom', 'ready', 'setName', 'layout', 'act', 'rematch', 'leaveMatch', 'bye']);
@@ -41,20 +42,25 @@ export class GameServer {
 
   // ------------------------------------------------------------------------------------------------ http
   _http(req, res) {
-    const url = (req.url || '/').split('?')[0];
+    const [url, query] = (req.url || '/').split('?');
     if (req.method === 'GET' && url === '/health') {
-      const body = JSON.stringify(this.health());
+      const win = parseInt(new URLSearchParams(query || '').get('window'), 10);
+      const body = JSON.stringify(this.health(Number.isFinite(win) && win > 0 ? win : 0));
       res.writeHead(this.closing ? 503 : 200, { 'content-type': 'application/json', 'cache-control': 'no-store' }); res.end(body); return;
     }
     if (req.method === 'GET' && url === '/') { res.writeHead(200, { 'content-type': 'text/plain' }); res.end('Roll Model game server\n'); return; }
     res.writeHead(404, { 'content-type': 'text/plain' }); res.end('not found\n');
   }
-  health() {
-    const t = this.tickTimes.summary();
+  // window: only the last N ticks (0: all kept). elu: how busy the event loop was since the previous health call.
+  health(window = 0) {
+    const vals = this.tickTimes.values(), t = summarize(window ? vals.slice(-window) : vals);
+    const elu = performance.eventLoopUtilization(this._elu); this._elu = performance.eventLoopUtilization();
+    const mem = process.memoryUsage();
     return {
       ok: !this.closing, proto: PROTOCOL_VERSION, uptime: Math.round((nowMs() - this.startedAt) / 1000),
       connections: this.sessions.size, players: this.online.size, matches: this.matches.size, rooms: this.rooms.size, queues: this.mm.sizes(),
-      tick: { p50: +t.p50.toFixed(3), p99: +t.p99.toFixed(3), max: +t.max.toFixed(3), n: t.n }, stats: this.stats,
+      tick: { p50: +t.p50.toFixed(3), p99: +t.p99.toFixed(3), max: +t.max.toFixed(3), n: t.n }, elu: +elu.utilization.toFixed(3),
+      memMB: Math.round(mem.rss / 1048576), stats: this.stats,
     };
   }
   _ip(req) {

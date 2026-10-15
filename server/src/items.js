@@ -15,7 +15,7 @@ export class Items {
   constructor(match) {
     this.m = match; this.R = rng((match.seed ^ 0x17e85) >>> 0);
     this.items = new Map(); this.traps = new Map();
-    this.nextAt = match.startAt + (6 + this.R() * 3) * 1000;
+    const [a, b] = match.rules.itemFirst; this.nextAt = match.startAt + (a + this.R() * (b - a)) * 1000;
   }
   list() { return [...this.items.values()].map(i => ({ id: i.id, kind: i.kind, x: i.x, y: i.y, z: i.z })); }
   tick(now) {
@@ -35,7 +35,7 @@ export class Items {
     for (const sp of spots) { const sc = Math.hypot(trail.mover.last.x - sp.x, trail.mover.last.z - sp.z) + this.R() * 9; if (sc < bs) { bs = sc; best = sp; } }
     const kind = best.kind && ITEM_KINDS.includes(best.kind) ? best.kind : POOL[Math.floor(this.R() * POOL.length)];
     this._spawn(kind, best.x, best.y, best.z, now, -1);
-    this.nextAt = now + (9 + this.R() * 4) * 1000;
+    const [a, b] = m.rules.itemEvery; this.nextAt = now + (a + this.R() * (b - a)) * 1000;
   }
   _spawn(kind, x, y, z, now, owner) {
     const it = { id: randomId('i_', 6), kind, x, y, z, at: now, owner, grace: owner >= 0 ? now + DROP_GRACE * 1000 : 0 };

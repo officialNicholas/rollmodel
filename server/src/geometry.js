@@ -21,6 +21,7 @@ export class Level {
     this.pots = layout.pots.map(p => ({ x: p[0], y: p[1], z: p[2] }));
     this.powers = layout.powers.map(p => ({ x: p[0], y: p[1], z: p[2], kind: typeof p[3] === 'string' ? p[3] : null }));
     this.spawns = layout.spawns.map(s => ({ x: s[0], z: s[1], yaw: s[2], y: 0 }));
+    this.puddles = (layout.puddles || []).map(p => ({ x: p[0], y: p[1], z: p[2] }));
     this._build();
     for (const s of this.spawns) { const g = this.surfaceUnder(s.x, s.z, 50); s.y = g > -Infinity ? g : 0; }
   }

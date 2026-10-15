@@ -43,6 +43,11 @@ export function validateLayout(raw, expect = {}) {
     for (const s of raw.spawns) {
       if (!fin(s[0]) || !fin(s[1]) || !fin(s[2]) || Math.abs(s[0]) > A || Math.abs(s[1]) > A || Math.abs(s[2]) > 100) return bad('spawn out of range');
     }
+    if (raw.puddles !== undefined && raw.puddles !== null) {
+      if (!Array.isArray(raw.puddles)) return bad('puddles must be an array');
+      if (raw.puddles.length > lim.puddles) return bad('too many puddles');
+      for (const p of raw.puddles) { if (!Array.isArray(p) || p.length > 12) return bad('puddles entries must be short arrays'); xz(p[0], 'puddle'); yv(p[1], 'puddle'); xz(p[2], 'puddle'); }
+    }
     if (expect.players && raw.spawns.length < expect.players) return bad('not enough spawns for the players');
     if (raw.pots.length < 1) return bad('a stage needs at least one pot');
     const canonical = canonicalLayout(raw);
@@ -56,11 +61,11 @@ function bad(error) { return { ok: false, error }; }
 
 // the canonical string back to a layout object (integers of hundredths back to metres)
 export function fromCanonical(c) {
-  const [A, boxes, ramps, holes, pots, powers, spawns] = JSON.parse(c.slice(3));
+  const [A, boxes, ramps, holes, pots, powers, spawns, puddles] = JSON.parse(c.slice(3));
   const m = v => (typeof v === 'number' ? v / 100 : v);
   return {
     arena: A / 100,
     boxes: boxes.map(b => b.map(m)), ramps: ramps.map(r => r.map(m)), holes: holes.map(h => h.map(m)),
-    pots: pots.map(p => p.map(m)), powers: powers.map(p => p.map(m)), spawns: spawns.map(s => s.map(m)),
+    pots: pots.map(p => p.map(m)), powers: powers.map(p => p.map(m)), spawns: spawns.map(s => s.map(m)), puddles: (puddles || []).map(p => p.map(m)),
   };
 }

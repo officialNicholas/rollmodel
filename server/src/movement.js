@@ -103,6 +103,9 @@ export class Mover {
     }
     // vertical
     const support = L.supportAt(s.x, s.z, y), grounded = support > -Infinity && y - support <= MOVE.GROUND_GAP;
+    // standing on something much higher than where you just were, with no launch to get you there: a climb the game
+    // does not allow (you only roll up a ledge of STEP without jumping)
+    if (grounded && support > P.y + G.STEP + 0.12 && support > this.groundY + G.STEP + 0.12 && support > this.ceilingAt(t)) return { ok: false, reason: 'climb', hard: false };
     let fell = false;
     if (!grounded) {
       // leaving the ground going up: a hop (the action may come a moment later; the referee does not need it)

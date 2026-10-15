@@ -403,7 +403,11 @@ export class Match {
     this._all({ t: 'act', slot: p.slot, a: 'slam', ts, x: r2(pos.x), y: r2(pos.y), z: r2(pos.z), r: R }, p);
     if (L) this._ack(p, L.n, 'land', true, null, { x: r2(pos.x), y: r2(pos.y), z: r2(pos.z), candidates: cands });
     if (pd.missile) p.flingOpen = false;
-    p.inkRushUntil = Math.max(p.inkRushUntil, ts + 400); // the game refills you when a pound lands in a puddle
+    this._puddleRefill(p, pos, R, ts);
+  }
+  // the game refills you in a rush when a pound lands in a boiling-water puddle (puddles are 0.85 to 1.25 m across)
+  _puddleRefill(p, pos, R, ts) {
+    if (this.level.puddles.some(q => Math.abs(q.y - pos.y) < 0.4 && Math.hypot(q.x - pos.x, q.z - pos.z) < R * 0.5 + 1.25)) p.inkRushUntil = Math.max(p.inkRushUntil, ts + 600);
   }
   // judged once the target's own dodge has had time to arrive
   _decide(h, now) {
@@ -432,6 +436,7 @@ export class Match {
     this._leavePot(p, ts, 'burst');
     p.mover.launch(13.5, ts, pot.y + 0.35); // the game throws you high out of the pot (and you splat where you land)
     this.cov.stamp(pot.x, pot.y, pot.z, G.SLAM_R * 0.7, p.color);
+    this._puddleRefill(p, pot, G.SLAM_R, ts);
     const now = nowMs(), vtc = Math.max(clamp(vt, ts - this.rules.lagCompMaxMs, ts), now - this.rules.maxRewindMs);
     for (const B of this.P) {
       if (B === p || B.side === p.side || (B.st !== 'play' && B.st !== 'hide')) continue;

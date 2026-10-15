@@ -107,7 +107,12 @@ export class Bot {
     if (b.fell) { this.dead = true; return; }
     this._send();
   }
-  _send() { const b = this.body; this.stats.sent++; this.net.sendState(b.state({ hidden: this.hidden >= 0, paint: this.paint })); }
+  _send() {
+    const b = this.body; this.stats.sent++;
+    let st = b.state({ hidden: this.hidden >= 0, paint: this.paint });
+    if (this.o.cheat) st = this.o.cheat(st, this) || st; // tests: a modded client reports something else
+    this.net.sendState(st);
+  }
 
   // the mind
   _think(dt, sNow) {
