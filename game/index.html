@@ -3899,7 +3899,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 303</p>
+      <p class="ver">Version 304</p>
     </div>
   </div>
 
@@ -13455,7 +13455,7 @@ function fireShot(D) {
   for (let k = 0; k < 24; k++) { const t2 = tf * 1.07, v2 = (ty - y0 + 0.5 * SHOT_G * t2 * t2) / t2; if (vy > 0 && y0 + vy * vy / (2 * SHOT_G) >= top) break; if (v2 > 0 && y0 + v2 * v2 / (2 * SHOT_G) > ceil - 0.3) break; tf = t2; vy = v2; }
   for (let k = 0; k < 20 && vy > 0 && y0 + vy * vy / (2 * SHOT_G) > ceil - 0.3 && tf > 0.22; k++) { tf *= 0.92; vy = (ty - y0 + 0.5 * SHOT_G * tf * tf) / tf; } // flatter and quicker to get under it
   const hv = d / tf;
-  shots.push({ x: x0, y: y0, z: z0, vx: Math.sin(a) * hv, vy, vz: Math.cos(a) * hv, by: D, team: D.team, life: 4, acc: 0, ph: Math.random() * 6.28, spin: (Math.random() < 0.5 ? -1 : 1) * (3 + Math.random() * 4) });
+  shots.push({ x: x0, y: y0, z: z0, vx: Math.sin(a) * hv, vy, vz: Math.cos(a) * hv, by: D, team: D.team, tg: tt.foe, life: 4, acc: 0, ph: Math.random() * 6.28, spin: (Math.random() < 0.5 ? -1 : 1) * (3 + Math.random() * 4) });
   T.kick = 1; D.squash = Math.max(D.squash, 0.2); { const Vs = vOf(D); if (Vs && Vs.slime) Vs.slime.fire(); }
   for (let i = 0; i < 3; i++) spawnPart(x0, y0, z0, Math.sin(a) * (2 + Math.random() * 3) + (Math.random() - 0.5) * 1.5, 0.5 + Math.random() * 1.5, Math.cos(a) * (2 + Math.random() * 3) + (Math.random() - 0.5) * 1.5, 0.22, tmat(D), 0.4);
   if (hearable(D)) AU.shoot();
@@ -13477,7 +13477,7 @@ function updateShots(dt) {
     else if (ballShot(s)) { shotSplat(s, surfaceUnder(s.x, s.z, s.y + 0.3, true), 0.7); gone = true; }
     else if (shotBlocked(s.x, s.z, s.y)) { const g = surfaceUnder(px, pz, py + 0.2, true); s.x = px; s.z = pz; shotSplat(s, g, 0.9); gone = true; }
     else { const g = surfaceUnder(s.x, s.z, py + 0.05, true); if (g > -Infinity && s.y <= g) { s.y = g; shotSplat(s, g, 1); gone = true; } else if (s.y < -6 || s.life <= 0) gone = true; }
-    if (gone) shots.splice(i, 1);
+    if (gone) { if (s.tg && hit !== s.tg && s.tg.tStreak && s.tg.tStreak.by === s.by) s.tg.tStreak = null; shots.splice(i, 1); } // (v304: a shot at someone that missed them breaks their run of hits)
   }
 }
 function shotSplat(s, y, k) {
@@ -13488,16 +13488,31 @@ function shotSplat(s, y, k) {
 }
 function shotHit(B, s) {
   const A = s.by, v = Math.hypot(s.vx, s.vz) || 1, nx = s.vx / v, nz = s.vz / v;
-  if (B.giantT > 0 || B.immuneT > 0 || safe(B)) { B.wob = 1; return; } // a giant just shrugs it off
+  if (B.giantT > 0 || B.immuneT > 0 || safe(B)) { B.wob = 1; if (B.tStreak && B.tStreak.by === A) B.tStreak = null; return; } // a giant just shrugs it off (and a roll dodges it: either way the run of hits is broken)
   if (B.charging) clearCharge(B); if (B === P) { holdCharge = false; slingOff(); }
   // (v256) no stun: the paint tank is the health bar. A hit takes SHOT_DMG of it; a hit with nothing left knocks you out there and then
   if (B.dry || (B.paint || 0) <= 0.01) { B.lastHit = { by: A, t: runT }; shockwave(B.x, B.y + 0.1, B.z, 1.6, TEAMS[A.team].wet); hitStop(0.06, A, B); return knockOut(B, 'shot', A); }
   B.paint = Math.max(0, B.paint - SHOT_DMG); if (B.paint <= 0.001 && !B.dry) { B.paint = 0; goDry(B); }
-  const stunNow = false;
+  let stunNow = false; // (v304: hits in a row. Those while seeing stars, or in the moment after, don't count toward the next stun)
+  if (B.stunT > 0 || B.stunGuard > 0) B.tStreak = null;
+  else { const k = B.tStreak = B.tStreak && B.tStreak.by === A && runT - B.tStreak.t < TURRET_GAP ? B.tStreak : { by: A, n: 0, t: 0 }; k.n++; k.t = runT; if (k.n >= TURRET_STREAK && B.flatT <= 0 && !B.slam && B.st === 'play') { stunNow = true; B.tStreak = null; } }
   B.kx = nx * SHOT_PUSH * 0.45; B.kz = nz * SHOT_PUSH * 0.45; B.squash = 0.85; B.wob = 1; fxKnock(B, nx, nz, 0.35); B.lastHit = { by: A, t: runT };
   emote(B, 'ouch', 0.7); emote(A, 'glee', 0.7); shockwave(B.x, B.y + 0.1, B.z, 1.1, TEAMS[A.team].wet);
   if (hearable(B)) AU.bonk(0.7); hitStop(0.04, A, B);
   if (B === P) { shake = Math.max(shake, 0.22); buzz([15, 20, 15]); pingTank(1.2); } else if (A === P) buzz(10);
+  if (stunNow) turretStun(B, A, nx, nz);
+}
+// (v304) three hits in a row from the same turret: seeing stars where you stand for a second and a half, as a roll stun but shorter
+// (with the same moment after it when it can't happen again). A shot of that turret's at you that misses breaks the run, and so does
+// half a second without a hit
+const TURRET_STREAK = 3, TURRET_STUN = 1.5, TURRET_GAP = 0.5;
+function turretStun(B, A, nx, nz) {
+  if (B.charging) clearCharge(B); if (B === P) { holdCharge = false; slingOff(); }
+  B.stunT = TURRET_STUN; B.spd = 0; B.turn = 0; B.kx = B.kz = 0; B.squash = 0.8; B.wob = 1; fxKnock(B, nx, nz, 0.6);
+  for (let i = 0; i < 12; i++) { const a = i / 12 * 6.283; spawnPart(B.x, B.y + 0.5, B.z, Math.cos(a) * 2.6, 1 + Math.random() * 1.5, Math.sin(a) * 2.6, 0.4, puHaloMat, 0.5); }
+  if (hearable(A) || hearable(B)) { AU.bonk(1); AU.pop(); } emote(A, 'glee', 1.1);
+  if (B === P) { AU.vox('oof'); hitEdge(A); shake = Math.max(shake, 0.3); buzz([25, 30, 25]); banner('Stunned!'); }
+  else if (A === P) { buzz(18); banner('Stunned ' + nameOf(B) + '!'); }
 }
 // a CPU turret: turns toward the nearest foe it can see (where it's heading); nobody about, it swings round painting the ground
 function aiTurret(D, dt) {
@@ -15833,6 +15848,7 @@ function pairContact(P, H) {
 function endMatch() {
   if (state !== 'play') return;
   if (isShow()) return endShowdown(true);
+  if (tut) tutLead(); // (v304: the lesson's a win)
   const you = teamCov(0), cpu = teamCov(1), cpu2 = teamCov(2), id = runId, ry = Math.round(you), rc = Math.round(cpu), rc2 = Math.round(cpu2); // decided on the whole numbers everyone sees
   const kos = [P.kos | 0, H.kos | 0, mode === 'trio' ? H2.kos | 0 : 0], tot = [ry + kos[0] * KO_PCT, rc + kos[1] * KO_PCT, mode === 'trio' ? rc2 + kos[2] * KO_PCT : 0], sy = tot[0], sc = tot[1], sc2 = tot[2];
   const rest = mode === 'trio' ? Math.max(sc, sc2) : sc, win = mode === 'solo' ? 1 : sy > rest ? 1 : rest > sy ? -1 : 0, winner = win > 0 ? P : win < 0 ? (mode === 'trio' && sc2 > sc ? H2 : H) : null;
@@ -15858,9 +15874,9 @@ function endMatch() {
   const fin = commProgress(endInfo); endInfo.xp0 = store.xp || 0; store.xp = endInfo.xp0 + gain; endInfo.xp = gain; endInfo.comms = fin;
   const drops = Math.round(8 + ry * 0.35 + (win > 0 ? 30 : win === 0 && mode !== 'solo' ? 12 : 0) + (newBest ? 10 : 0) + (mode === 'trio' ? 6 : 0)); store.drops = (store.drops || 0) + drops; endInfo.drops = drops;
   save(); tutEndMatch();
-  banner(mode === 'solo' ? "Time's up!" : 'Time!', '', false); buzz([40, 30, 40]); slow = 0.6;
+  if (!tutWinDue) banner(mode === 'solo' ? "Time's up!" : 'Time!', '', false); buzz([40, 30, 40]); slow = 0.6; // (v304: the lesson ends on its own word, Basics Complete)
   if (mode === 'solo' ? newBest : win > 0) celebrating = true;
-  setTimeout(() => { if (id !== runId || state !== 'dead') return; startTally(); }, 1450);
+  setTimeout(() => { if (id !== runId || state !== 'dead') return; startTally(); }, tutWinDue ? 800 : 1450); // (v304: and that comes up a little sooner)
 }
 // percentages for display: always whole numbers
 function fmtPair(a, b) { return [Math.round(a) + '%', Math.round(b) + '%']; }
@@ -16071,10 +16087,10 @@ function stepBlob(D, dt) {
     else { if (Math.abs(g - D.y) > 0.09 + D.spd * dt * 0.8) D.stepOff = clamp(D.stepOff + D.y - g, -0.6, 0.6); D.y = g; }
     if (!D.air) {
       D.turf = turfUnder(D); D.turfK += ((D.turf > 0 ? TURF_OWN : D.turf < 0 ? TURF_FOE : 1) - D.turfK) * Math.min(1, dt * 8);
-      if (D.giantT <= 0 && !D.turret) { if (D.turf > 0 && !D.charging) D.paint = Math.min(1, D.paint + OWN_REFILL * dt); else D.paint -= cfg.drain * dt * (D.charging ? STILL_DRAIN : 1) * (D === P && easyOn() ? EASY_DRAIN : 1) * (D === P && tut2 ? 0.6 : 1); } /* (the first real match after the lesson: your paint lasts longer) */ // rolling on your own color tops you up; holding still barely uses any
+      if (D.giantT <= 0 && !D.turret) { if (D.turf > 0 && !D.charging) D.paint = Math.min(1, D.paint + OWN_REFILL * dt); else D.paint -= cfg.drain * dt * (D.charging ? STILL_DRAIN : 1) * (D === P && easyOn() ? EASY_DRAIN : 1) * (D === P && tut2 ? 0.6 : 1) * (tut && D !== P ? tutRivK() : 1); } /* (v304: and the lesson's rival only uses the paint he lays) */ /* (the first real match after the lesson: your paint lasts longer) */ // rolling on your own color tops you up; holding still barely uses any
       if (D.paint <= 0) { D.paint = 0; if (!D.dry) goDry(D); }
       grooveStep(D); sandKick(D, dt);
-      if (D.flatT <= 0 && !D.dry) { if (D.flowT > 0) { D.flowT -= dt; D.dist = 0; if (D.flowT <= 0) D.stroke++; } /* (a second of crawling clean first) */ else { D.flowK = Math.min(1, (D.flowK === undefined ? 1 : D.flowK) + dt / 0.5); const fk = 0.3 + 0.7 * D.flowK * D.flowK * (3 - 2 * D.flowK); /* (then the stream swells in) */ D.dist += D.spd * dt * (D.strokeK || 1); const fx = D.x + Math.sin(D.yaw) * TRAIL_FWD, fz = D.z + Math.cos(D.yaw) * TRAIL_FWD, fy = hugY(fx, fz, D.y); while (D.dist >= SPACING) { D.dist -= SPACING; addPoint(fx, fy, fz, D.yaw, dryClock, D.stroke, (D.giantT > 0 ? GIANT_K : D.power && D.power.type === 'roller' ? 2.6 : 1) * (D.rollT > ROLL_T - ROLL_DASH ? 0.45 : 1) * fk, tcode(D), D.rb, [D.x, D.y, D.z]); } } }
+      if (D.flatT <= 0 && !D.dry) { if (D.flowT > 0) { D.flowT -= dt; D.dist = 0; if (D.flowT <= 0) D.stroke++; } /* (a second of crawling clean first) */ else { D.flowK = Math.min(1, (D.flowK === undefined ? 1 : D.flowK) + dt / 0.5); const fk = 0.3 + 0.7 * D.flowK * D.flowK * (3 - 2 * D.flowK); /* (then the stream swells in) */ D.dist += D.spd * dt * (D.strokeK || 1); const fx = D.x + Math.sin(D.yaw) * TRAIL_FWD, fz = D.z + Math.cos(D.yaw) * TRAIL_FWD, fy = hugY(fx, fz, D.y), rk = tut && D !== P ? tutRivK() : 1; while (D.dist >= SPACING) { D.dist -= SPACING; if (!rk) { D.stroke++; continue; } /* (v304: the lesson's rival, close to your score) */ addPoint(fx, fy, fz, D.yaw, dryClock, D.stroke, (D.giantT > 0 ? GIANT_K : D.power && D.power.type === 'roller' ? 2.6 : 1) * (D.rollT > ROLL_T - ROLL_DASH ? 0.45 : 1) * fk * rk, tcode(D), D.rb, [D.x, D.y, D.z]); } } }
       // rain puddles water your blood down; hard paint of either color slows you
       D.inBoil = boilNear(D.x, D.z, D.y, 0);
       if (D.inBoil && D.skill !== 'repel') { if (D.dilT <= 0) dilute(D); D.dilT = DIL_T; }
@@ -19142,21 +19158,20 @@ window.addEventListener('resize', () => { if (!$('commModal').hidden) commWallet
 function commCoins(btn, from, to) {
   const m = $('commModal'), w = $('commWallet'), num = w && w.querySelector('b'); if (!w || !num || reduceMotion) { if (num) num.textContent = String(to); if (w) kick(w, 'cbump'); return; }
   const mr = m.getBoundingClientRect(), br = btn.getBoundingClientRect(), dc = w.querySelector('.dcoin') || w, wr = dc.getBoundingClientRect(), svg = (dc.querySelector('svg') || {}).outerHTML || '';
-  const tx = wr.left + wr.width / 2 - mr.left, ty = wr.top + wr.height / 2 - mr.top, sx = br.left + br.width * 0.5 - mr.left, sy = br.top + br.height * 0.5 - mr.top, N = 10, coins = [];
-  w.dataset.fly = '1';
+  const tx = wr.left + wr.width / 2 - mr.left, ty = wr.top + wr.height / 2 - mr.top, sx = br.left + br.width * 0.5 - mr.left, sy = br.top + br.height * 0.5 - mr.top, N = 10;
+  // (v304) each coin's flight is laid down at the start as keyframes along its curve and played by the compositor, so a busy frame
+  // can't make it stutter; only the landings (the count, the bump, the clink) run here
+  w.dataset.fly = '1'; let landed = 0;
+  const land = () => { landed++; const on = !m.hidden; num.textContent = String(Math.round(from + (to - from) * landed / N));
+    if (on) { kick(w, 'cbump'); AU.xplay('coin', { v: 0.5, rate: 0.96 + landed * 0.035 }) || (landed % 3 === 1 && AU.pop()); }
+    if (landed === N) { num.textContent = String(to); delete w.dataset.fly; if (on) { kick(w, 'cbig'); buzz(15); } } };
   for (let i = 0; i < N; i++) { const el = document.createElement('i'); el.className = 'ccoin'; el.innerHTML = svg; el.style.opacity = '0'; m.appendChild(el);
-    const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.6, sp = 60 + Math.random() * 90;
-    coins.push({ el, t0: i * 0.05, dur: 0.6 + Math.random() * 0.25, x0: sx + (Math.random() - 0.5) * br.width * 0.5, y0: sy + (Math.random() - 0.5) * 10, cx: sx + Math.cos(a) * sp * 1.5, cy: sy + Math.sin(a) * sp - 40, s: 0.85 + Math.random() * 0.35, rot: (Math.random() - 0.5) * 540, done: false }); }
-  let T0 = null, landed = 0;
-  const step = ts => {
-    if (T0 === null) T0 = ts; const t = (ts - T0) / 1000, gone = m.hidden;
-    for (const c of coins) { if (c.done) continue; if (t < c.t0 && !gone) continue; const u = gone ? 1 : Math.min(1, (t - c.t0) / c.dur), v = 1 - u;
-      const x = v * v * c.x0 + 2 * v * u * c.cx + u * u * tx, y = v * v * c.y0 + 2 * v * u * c.cy + u * u * ty, s = c.s * (1 - 0.4 * u * u);
-      c.el.style.opacity = '1'; c.el.style.transform = 'translate(' + (x - 17).toFixed(1) + 'px,' + (y - 17).toFixed(1) + 'px) rotate(' + (c.rot * u).toFixed(0) + 'deg) scale(' + s.toFixed(3) + ')';
-      if (u >= 1) { c.done = true; c.el.remove(); landed++; num.textContent = String(Math.round(from + (to - from) * landed / N)); if (!gone) { kick(w, 'cbump'); AU.xplay('coin', { v: 0.5, rate: 0.96 + landed * 0.035 }) || (landed % 3 === 1 && AU.pop()); } } }
-    if (coins.some(c => !c.done)) requestAnimationFrame(step); else { num.textContent = String(to); delete w.dataset.fly; if (!gone) { kick(w, 'cbig'); buzz(15); } }
-  };
-  requestAnimationFrame(step);
+    const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.6, sp = 60 + Math.random() * 90, x0 = sx + (Math.random() - 0.5) * br.width * 0.5, y0 = sy + (Math.random() - 0.5) * 10, cx = sx + Math.cos(a) * sp * 1.5, cy = sy + Math.sin(a) * sp - 40, s0 = 0.85 + Math.random() * 0.35, rot = (Math.random() - 0.5) * 540, kf = [];
+    for (let k = 0; k <= 16; k++) { const u = k / 16, v = 1 - u, x = v * v * x0 + 2 * v * u * cx + u * u * tx, y = v * v * y0 + 2 * v * u * cy + u * u * ty;
+      kf.push({ opacity: 1, transform: 'translate(' + (x - 17).toFixed(1) + 'px,' + (y - 17).toFixed(1) + 'px) rotate(' + (rot * u).toFixed(0) + 'deg) scale(' + (s0 * (1 - 0.4 * u * u)).toFixed(3) + ')' }); }
+    let an = null; try { an = el.animate(kf, { duration: 600 + Math.random() * 250, delay: i * 50, easing: 'linear' }); } catch (e) {}
+    if (!an) { el.remove(); land(); continue; }
+    an.onfinish = () => { el.remove(); land(); }; }
 }
 function commXp(btn) { const m = $('commModal'), mr = m.getBoundingClientRect(), br = btn.getBoundingClientRect(), el = document.createElement('b'); el.className = 'cxpf'; el.textContent = '+' + COMM_XP + ' XP'; el.style.left = (br.right - mr.left - 46).toFixed(0) + 'px'; el.style.top = (br.top - mr.top - 4).toFixed(0) + 'px'; m.appendChild(el); setTimeout(() => el.remove(), 1500); }
 function commClaim(id, btn) {
@@ -21664,6 +21679,7 @@ function paced(raw) {
   return best;
 }
 let booted = false, bootHold = false;
+const commModalEl = $('commModal');
 function frameBody(t) {
   const cpu0 = performance.now();
   if (!booted) { booted = true; if (!bootHold) setTimeout(() => $('boot').classList.add('gone'), 160); }
@@ -21682,7 +21698,7 @@ function frameBody(t) {
   if (ffK > 1) dt = Math.min(dt, 0.05); // (the drawing's own timing no faster than a slow frame's)
   visuals(dt, rdt); flushTrail(); pbarTick(rdt); lockerTick(); dipTick(rdt); if (FL && FL.jin) FL.after(rdt);
   if (shadowLite >= 2) sun.shadow.needsUpdate = (++frameNo & 1) === 0;
-  if (!(state === 'menu' && (menuPage === 'worlds' || menuPage === 'events' || menuPage === 'strokes'))) renderFrame();
+  if (!(state === 'menu' && (menuPage === 'worlds' || menuPage === 'events' || menuPage === 'strokes' || !commModalEl.hidden))) renderFrame(); // (v304: under Commissions the lobby holds still behind the blur)
   lastCpu = (performance.now() - cpu0) / 1000;
 }
 // a frame that throws must not take the game with it: the loop goes on, and the error is put on screen and kept for Settings
@@ -21957,10 +21973,15 @@ function tutPlace() {
 }
 // the lesson, one step at a time: each one says what to do, waits for it (slowed down while it waits), then the next. max: real seconds before it moves on anyway
 const TUT_STEPS = [
-  { id: 'move', max: 40, enter() { tut.moved = 0; tut.steered = false; tut.jumped = false; tut.lx = P.x; tut.lz = P.z; tut.slowK = 1; tutShow(say('*DRAG* to steer, *TAP* to jump!', '*A* and *D* steer, *SPACE* jumps!'), null, 'move', true); },
-    tick() { if (P.st === 'play' && !P.air) tut.moved += Math.hypot(P.x - tut.lx, P.z - tut.lz); tut.lx = P.x; tut.lz = P.z;
-      if (Math.abs(steerIn) > 0.3 || keyL || keyR) tut.steered = true; if ((Math.abs(steerIn) > 0.12 || keyL || keyR) && tutTip && tutTip.key === 'move') tutFade(); // (v285: the callout goes as you start steering) if (P.st === 'play' && P.air && P.vy > 3 && !P.flung && !P.slam) tut.jumped = true; // (a steer and a jump: that is the lesson, done the moment both have happened)
-      return (tut.steered && tut.jumped) || tut.moved > 14; } },
+  { id: 'move', max: 40, enter() { tut.moveFade = -1; tut.moved = 0; tut.steered = false; tut.jumped = false; tut.lx = P.x; tut.lz = P.z; tut.slowK = 1; tutShow(say('*DRAG* to steer, *TAP* to jump!', '*A* and *D* steer, *SPACE* jumps!'), null, 'move', true); },
+    tick(dt) { if (P.st === 'play' && !P.air) tut.moved += Math.hypot(P.x - tut.lx, P.z - tut.lz); tut.lx = P.x; tut.lz = P.z;
+      if (Math.abs(steerIn) > 0.3 || keyL || keyR) tut.steered = true; if (P.st === 'play' && P.air && P.vy > 3 && !P.flung && !P.slam) tut.jumped = true; // (a steer and a jump: that is the lesson. v304: the jump half counts again; it had ended up inside a comment, so only 14 m of crawling ended the step)
+      const done = (tut.steered && tut.jumped) || tut.moved > 14;
+      // (v304) the callout stays 2 seconds longer: from your first steer (it used to go the moment you steered) or from the step being
+      // done, whichever comes first. Then it fades, or, with the step done, goes with its "Nice!"
+      if (tut.moveFade < 0 && (done || ((Math.abs(steerIn) > 0.12 || keyL || keyR) && tutTip && tutTip.key === 'move'))) tut.moveFade = 2;
+      if (tut.moveFade > 0) { tut.moveFade = Math.max(0, tut.moveFade - (dt || 0)); if (tut.moveFade === 0 && !done && tutTip && tutTip.key === 'move') tutFade(); }
+      return done && tut.moveFade === 0; } },
   { id: 'free0', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 1; }, /* (a beat, then the fling: both are ways to get about) */ tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
   { id: 'sling', max: 40, enter() { tut.slowK = TUT_SLOW; tutShow(say('*HOLD*, *PULL DOWN*, then let go to fling!', 'Hold *S*, then let go to fling!'), null, 'sling', true); },
     tick() { return P.st === 'play' && P.air && P.flung && (P.flingC || 0) > 0.1; } },
@@ -22037,10 +22058,8 @@ const TUT_STEPS = [
   { id: 'flower', max: 42, enter() { if (orb.on) tutOrbOff(); orb.spawnT = 1e9; gift.id = 'flower'; gift.at = 1e9; tut.slowK = 1; tutHide(); tut.wait = 2.2; tut.flowerPaint = Math.max(P.paint, 0.5); },
     tick(dt) { if (P.st === 'play' && P.paint < tut.flowerPaint) P.paint = tut.flowerPaint; /* (no paint drain while you go for the flower) */ if (tut.wait > 0) { tut.wait -= dt; if (tut.wait <= 0) { gift.at = runT; tutShow('A gift has appeared on the canvas! *Grab it!*', null, 'flower', true, true); } return false; } return gift.got; }, /* (a breath after the dodge, then the flower and its tip) */
     exit() { if (!gift.got) { gift.got = true; gift.on = false; giftM.visible = giftRing.visible = giftBeam.visible = false; unlockItem('flower'); newItem = 'flower'; } if (!owns('fangs')) unlockItem('fangs'); newItem = ['flower', 'fangs']; orb.spawnT = 8; } },
-  { id: 'rest', max: 1e9, enter() { tutHide(); tut.slowK = 1; tut.noTurret = false; if (matchLeft < 28) matchLeft = 28; tut.cardIn = 1.1; tut.card = false; },
-    tick(dt) { if (tut.cardIn > 0) { tut.cardIn -= dt; if (tut.cardIn <= 0) tutCard(true); }
-      if (tut.fin) tutFinTick(dt);
-      const lead = teamCov(0) - teamCov(1), close = lead < 7; TUT_AI.speed = close ? 0.58 : 0.8; TUT_AI.steal = close ? 0.25 : 0.7; TUT_AI.pound = close ? 0 : 0.45; return false; } } // (a beat for the new item banner, then the card; then the rival eases off whenever it is close, so the first win is yours)
+  { id: 'rest', max: 1e9, enter() { tutHide(); tut.slowK = 1; if (matchLeft < 28) matchLeft = 28; tut.cardIn = 1.1; tut.card = false; },
+    tick(dt) { if (tut.cardIn > 0) { tut.cardIn -= dt; if (tut.cardIn <= 0) matchLeft = 0; } return false; } } // (a beat for the new item banner, then the match is over. v304: no "Now win it!" card and no finale after it: endMatch makes sure you're ahead (tutLead), then the lesson's finish, Basics Complete, then the tally)
 ];
 const TUT_REST = TUT_STEPS.length - 1;
 // the pound handed over ready the moment its tip is up, even mid-cooldown or short of paint
@@ -22308,7 +22327,7 @@ function tutStep(dt) {
   // (v303) back in a tub mid-lesson (knocked out, respawned): the step waits, its clock stopped, while a callout and the swipe finger
   // show the way out; out again, its own tip comes back. (The tub and pound steps deal with the tub themselves; in the free play at the
   // end, finale included, the callout shows only when nothing else is being said, and the match goes on.)
-  const inTub = P.st === 'hide' && !(s.id === 'basin' && tut.basinTip) && s.id !== 'pound' && !(tut.gap > 0) && !tut.card;
+  const inTub = P.st === 'hide' && !(s.id === 'basin' && tut.basinTip) && s.id !== 'pound' && s.id !== 'rest' && !(tut.gap > 0) && !tut.card; // (v304: the rest step is only the beat before the end now)
   tut.tubHold = inTub && s.id !== 'rest';
   if (inTub) {
     if (s.id === 'rest' ? !tutTip : (!tutTip || tutTip.key !== 'tubout')) { if (tutTip && tutTip.key !== 'tubout') tut.tubTip = tutTip; tutShow(say('*SWIPE UP* to roll out of the tub!', 'Press *SHIFT* to roll out of the tub!'), null, 'tubout', true, true); }
@@ -22409,6 +22428,25 @@ function tutBegin() { // (as a match begins)
   wxLeft = 1e9; orb.spawnT = 1e9; Object.assign(gift, { id: 'flower', on: false, got: false, pop: 0, at: 1e9 }); giftM.visible = giftRing.visible = giftBeam.visible = false;
 }
 function tutLeave() { clearTimeout(tutPraiseEl._t0); tutPraiseEl._pend = false; tutPraiseEl.classList.remove('on'); tut2 = null; tut3 = null; tutArrowEl.hidden = true; if (tut) tutCard(false); tut = null; tutHide(); if (tutSlowEl.classList.contains('on')) AU.slow(false, true); tutSlowEl.classList.remove('on'); tutRestore(); tutWinDue = false; const tw = $('tutWin'); tw.classList.remove('on'); tw.hidden = true; }
+// (v304) the lesson ends with the gift now, with no finale to win it in, and your first match is a win. Through the lesson the rival's
+// trail thins out as his score (paint plus the knock-out bonus, as the tally adds them up) comes within four points of yours, and he
+// lays none from about two short of it (his first two points he paints freely). His tank only spends what his trail lays, so he
+// doesn't run dry for it. tutLead, as the match ends: if his pounds or his
+// rocket still have him level or ahead, a burst of your paint round you puts you in front, real splats, so the canvas and the
+// numbers agree
+function tutRivK() { const me = teamCov(0) + (P.kos | 0) * KO_PCT, him = teamCov(1) + (H.kos | 0) * KO_PCT, k = clamp((me - 1 - him) / 3, 0, 1); return him < 2 ? 1 : k < 0.3 ? 0 : k; } // (his trail's width, and the paint it uses up)
+function tutLead() {
+  const short = () => Math.round(teamCov(1)) + (H.kos | 0) * KO_PCT - Math.round(teamCov(0)) - (P.kos | 0) * KO_PCT; // (0 or more: not ahead)
+  if (short() < 0) return;
+  const on = (P.st === 'play' || P.st === 'hide') && Math.abs(P.x) < ARENA && Math.abs(P.z) < ARENA, cx = on ? P.x : 0, cz = on ? P.z : 0, cy = on ? P.y : surfaceUnder(0, 0, 60, true);
+  let n = 0;
+  for (let ring = 0; ring <= 6 && short() >= 0; ring++) { const r = ring * 2.2, m = ring ? 6 * ring : 1;
+    for (let q = 0; q < m && short() >= 0; q++) { const a = (q + 0.5 * (ring & 1)) / m * 6.2832, x = cx + Math.sin(a) * r, z = cz + Math.cos(a) * r; if (Math.abs(x) > ARENA - 0.6 || Math.abs(z) > ARENA - 0.6) continue;
+      const g = surfaceUnder(x, z, cy + 2, true); if (!(g > -Infinity)) continue; addSplat(x, g, z, a, 1.55 + Math.random() * 0.35, dryClock, false, !ring, P.team); n++; } }
+  if (!n) return;
+  shockwave(cx, cy + 0.1, cz, 2.5 + Math.sqrt(n) * 0.9, TEAMS[P.team].wet); AU.burst(1); AU.splat(1.3); shake = Math.max(shake, 0.25);
+  for (let i = 0; i < 24; i++) { const a = i / 24 * 6.2832, v = 3 + Math.random() * 4; spawnPart(cx, cy + 0.3, cz, Math.cos(a) * v, 2 + Math.random() * 3, Math.sin(a) * v, 0.5, tmat(P), 0.6); }
+}
 function tutEndMatch() { // (as a match ends)
   if (tut) {
     const bonus = tut.bonus || 0; if (bonus) { store.drops = (store.drops || 0) + bonus; endInfo.drops = (endInfo.drops || 0) + bonus; } endInfo.tutBonus = bonus; // (the lessons' dabs)
@@ -22467,11 +22505,11 @@ function tutMenuTick() {
     if (shopOpen) return tutShow('Back to the lobby', 'shopBack', 'back');
     if (lookOpen) {
       if (myLook.mouth !== 'fangs') { if (lookCat !== 'face') return tutShow('Open Facial. Your fangs are in there', 'lc-face', 'face'); return tutShow('Tap the fangs to put them on', () => tile('fangs'), 'wear'); }
-      if (bought('flower') && myLook.side !== 'flower') { if (lookCat !== 'head') return tutShow('Now the flower. Open Headgear', 'lc-head', 'headg'); return tutShow('Tap the flower to tuck it in', () => tile('flower'), 'wearf'); } // (and the flower, found in the lesson)
+      // (v304: the flower, found in the lesson, is yours to wear or not: it's in Headgear, nobody makes you)
       tutSet('vote'); tutBrowseAt = performance.now(); return tutShow('Take a look around, squirt. Express yourself!', null, 'browse', false, true, null, true); } /* (dressed: the locker's yours to play with; he steps aside after a few seconds, and closing it goes on with the lesson) */
     if (menuPage === 'worlds') return tutShow('Back to the lobby', 'worldBack', 'back');
     if (menuPage === 'events') return tutShow('Back to the lobby', 'evBack', 'back');
-    return tutShow('Open your locker and try on your fangs and flower', 'lookBtn', 'locker');
+    return tutShow('Open your locker and try on your fangs', 'lookBtn', 'locker');
   }
   if (shopOpen) return tutShow('Back to the lobby', 'shopBack', 'back'); if (lookOpen) { if (tutBrowseAt && performance.now() - tutBrowseAt < 4200) return tutShow('Take a look around, squirt. Express yourself!', null, 'browse', false, true, null, true); return tutHide(); } /* (no nudge at Done: closing the locker is up to you) */
   if (menuPage === 'worlds') return innerWidth > innerHeight && innerHeight < 520 ? tutShow('*SWIPE* to pick your painting, then tap *PLAY*', 'startBtn', 'startS', true, true, null, true) : tutShow('Swipe the paintings and pick one: that\u2019s your vote. Rivals vote too, and most votes wins. Then Play', 'startBtn', 'start', false, true, null, true); /* (a short screen gets a one-line callout, so the paintings stay clear) */

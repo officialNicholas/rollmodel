@@ -340,7 +340,8 @@ player, 30 a second), PONG (17 bytes) and SPING (9 bytes). The exact byte layout
   phones send (one less message, and a faster start).
 - **The other bumps between players.** Pounds, stomps and pot bursts are refereed. The game's rams, roll stuns and
   shoves still need the same treatment (the player who hits sends a claim, the server checks it with the same
-  rewind), as do turret shots and the whirlwind's splats.
+  rewind), as do turret shots and the whirlwind's splats. Turret shots carry a rule since v304: three hits in a row from one
+  turret stun for 1.5 s, so the referee has to count the run of hits per target (a miss or half a second without a hit breaks it).
 - **Puddles that come and go, and moving pots**, if the online game keeps them, need their timings from the server.
 - **The rocket pick-up.** Online, the server hands out the roller, whirlwind, turret, trap, free slam and giant. The
   rocket (straight up over the canvas, steer, then dive) is not handed out yet: the referee needs to know its flight
