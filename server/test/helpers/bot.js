@@ -57,7 +57,10 @@ export class Bot {
     this.layout = this.o.tamper ? this.o.tamper(JSON.parse(JSON.stringify(lay))) : lay;
     this.level = new Level(lay);
     this.pots = lay.pots.map(p => ({ x: p[0], y: p[1], z: p[2], occ: -1 })); this.potUp = lay.pots.map(() => true);
-    if (this.o.sendLayout) setTimeout(() => this.net.sendLayout(this.layout), 5 + this.R() * 20);
+    if (this.o.sendLayout) setTimeout(() => {
+      // the SDK refuses to hash a broken layout; a modded client would send it anyway
+      try { this.net.sendLayout(this.layout); } catch (e) { this.net._sendJ({ t: 'layout', m: m.matchId, hash: 'broken', layout: this.layout }); }
+    }, 5 + this.R() * 20);
   }
   _resume(m) {
     this.match = m; this.startAt = m.startAt; this.rules = m.rules;
@@ -74,6 +77,7 @@ export class Bot {
   }
   _run() { this.stop(); this.lastFrame = performance.now(); this.timer = setInterval(() => this._frame(), 1000 / this.o.hz); }
   _popOut(potIndex, vy, spd) {
+    if (this.hidden < 0) return; // already out (our own exit and the server's eject can cross)
     const p = this.pots[potIndex], b = this.body; if (!p || !b) { this.hidden = -1; return; }
     this.hidden = -1; b.place({ x: p.x, y: p.y + G.POT_POP_Y, z: p.z, yaw: b.yaw }); b.air = true; b.vy = vy; b.spd = spd;
   }
@@ -93,7 +97,11 @@ export class Bot {
     else if (this.o.behavior !== 'still') this._think(dt, sNow);
     else this.input = { speedK: 0 };
     const r = b.step(dt, this.input);
-    if (r.slamLanded) this.net.action('land', { x: b.x, y: b.y, z: b.z }).then(res => { if (!res.ok) this.stats.rejected++; });
+    if (r.slamLanded) {
+      const claim = this.o.onLand ? this.o.onLand(this) : null; // tests look at what this player sees at the moment of landing
+      this.lastLand = this.net.action('land', claim || { x: b.x, y: b.y, z: b.z });
+      this.lastLand.then(res => { if (!res.ok) this.stats.rejected++; });
+    }
     if (!b.air && b.spd > 0.5) this.paint = Math.max(0, this.paint - G.DRAIN * dt);
     if (this.o.record) this.trace.push(now, b.x, b.y, b.z);
     if (b.fell) { this.dead = true; return; }

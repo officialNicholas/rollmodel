@@ -217,22 +217,24 @@ const RMNetSDK = (() => {
     }
   }
 
-  // Clock: ping/pong, offset taken from the lowest round trip among recent samples (the one with the least queuing).
+  // Clock: ping/pong. Each sample gives an offset (server time + half the round trip - our time) whose error is half
+  // the difference between the two directions' delays, which is smallest when the round trip is smallest. So the
+  // estimate averages the offsets of the quickest quarter of the recent samples (min-RTT filtering).
   class ClockSync {
-    constructor() { this.samples = []; this.offset = 0; this.offRtt = Infinity; this.rtt = 0; this.minRtt = 0; this.jitter = 0; this.n = 0; this._last = null; this.locked = false; }
+    constructor() { this.samples = []; this.offset = 0; this.rtt = 0; this.minRtt = 0; this.jitter = 0; this.n = 0; this._last = null; this.locked = false; }
     add(sent, server, recv) {
       const rtt = recv - sent; if (!(rtt >= 0) || rtt > 30000 || !fin(server)) return false;
-      const off = server + rtt / 2 - recv;
-      this.samples.push({ rtt, off }); if (this.samples.length > 16) this.samples.shift();
-      let best = this.samples[0]; for (const s of this.samples) if (s.rtt < best.rtt) best = s;
-      // before a match (or a big disagreement) jump straight to the best estimate; during a match, slew a few ms per sample
+      this.samples.push({ rtt, off: server + rtt / 2 - recv }); if (this.samples.length > 32) this.samples.shift();
+      const best = this.samples.slice().sort((a, b) => a.rtt - b.rtt).slice(0, Math.max(1, Math.min(this.samples.length, Math.max(3, this.samples.length >> 2))));
+      let est = 0; for (const s of best) est += s.off; est /= best.length;
+      // before a match (or a big disagreement) jump straight to the estimate; during a match, slew a few ms per sample
       // so the render clock never jumps under the player's eyes
-      if (!this.locked || this.n < 6 || Math.abs(best.off - this.offset) > 250) this.offset = best.off;
-      else this.offset += clamp(best.off - this.offset, -3, 3);
-      this.offRtt = best.rtt; this.n++;
+      if (!this.locked || this.n < 6 || Math.abs(est - this.offset) > 250) this.offset = est;
+      else this.offset += clamp(est - this.offset, -3, 3);
+      this.n++;
       this.rtt = this.n === 1 ? rtt : this.rtt + (rtt - this.rtt) * 0.2;
       if (this._last !== null) this.jitter += (Math.abs(rtt - this._last) - this.jitter) / 8;
-      this._last = rtt; this.minRtt = best.rtt;
+      this._last = rtt; this.minRtt = best[0].rtt;
       return true;
     }
   }
@@ -351,7 +353,8 @@ const RMNetSDK = (() => {
     serverNow() { return this._now() + this._clock.offset; }
     _startPings() {
       this._stopPings(); this._pingsSent = 0;
-      const tick = () => { this._sendB(codec.encodePing(this._now())); this._pingsSent++; this._pingTimer = setTimeout(tick, this._pingsSent < 6 ? 120 : 1000); };
+      // a quick burst to start with, then two a second (9 bytes each way: cheap, and it keeps a phone's radio awake)
+      const tick = () => { this._sendB(codec.encodePing(this._now())); this._pingsSent++; this._pingTimer = setTimeout(tick, this._pingsSent < 8 ? 100 : 500); };
       tick();
     }
     _stopPings() { clearTimeout(this._pingTimer); this._pingTimer = null; }

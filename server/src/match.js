@@ -554,7 +554,7 @@ export class Match {
   // ------------------------------------------------------------------------------------------------ the clock
   tick(now) {
     const dt = Math.min(0.25, Math.max(0, (now - this.lastTick) / 1000)); this.lastTick = now;
-    if (this.phase === 'consensus') { if (now > this.layoutDeadline) this.cancel('layout_timeout'); return; }
+    if (this.phase === 'consensus') { if (now > this.layoutDeadline) this.cancel('layout_timeout', this.P.filter(q => !q.layout).map(q => q.id)); return; }
     if (this.phase === 'ended') { if (now >= this.rematchUntil) this.close('rematch_timeout'); return; }
     if (this.phase === 'closed') return;
     if (this.phase === 'countdown' && now >= this.startAt) this.phase = 'play';
@@ -622,7 +622,7 @@ export class Match {
     if (p.flatUntil > now) f |= FLAGS.FLAT;
     if (p.st === 'ko') f |= FLAGS.KO;
     if (p.immuneUntil > now) f |= FLAGS.IMMUNE;
-    if (p.st === 'out' || p.st === 'left') f |= FLAGS.OUT;
+    if (p.st === 'out' || p.st === 'left' || (this.showdown && p.hearts <= 0)) f |= FLAGS.OUT;
     if (!p.connected) f |= FLAGS.AWAY;
     if (p.afk) f |= FLAGS.AFK;
     if (p.paint <= 0.001) f |= FLAGS.DRY;
