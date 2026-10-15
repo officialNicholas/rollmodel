@@ -16,6 +16,7 @@ CSS = r"""
    behind each picture, and the stroke button (your paint) for Craft and Equip */
 #mStrokes .stslot{padding:18px 6px 11px;border-radius:3px;background:#FBF8F1 url(art/m_paperbg.webp) center/300px;color:var(--black);box-shadow:0 1px 0 rgba(255,255,255,.7) inset,4px 5px 0 rgba(0,0,0,.42);rotate:-1.4deg;transition:transform .16s ease,box-shadow .2s ease,rotate .2s ease}
 #mStrokes .stslot:nth-child(2){rotate:1.1deg}#mStrokes .stslot:nth-child(3){rotate:-.7deg}
+#mStrokes .stload{padding-top:11px}
 #mStrokes .stslot .stk{position:absolute;left:50%;top:-9px;align-self:auto;width:max-content;padding:5px 12px 6px;background:url(art/m_tape3.webp) center/100% 100% no-repeat;color:#2A2437;font:900 10px/1 var(--font-head);letter-spacing:.12em;transform:translateX(-50%) rotate(-3deg)}
 #mStrokes .stslot:nth-child(2) .stk{transform:translateX(-50%) rotate(2deg)}
 #mStrokes .stslot .stk::before{background:var(--sk-deep)}
@@ -66,7 +67,7 @@ CSS = r"""
 #mStrokes .stskip:active,#stPop .stskip:active{transform:translateY(2px);box-shadow:none}
 /* the card: a sheet of the graph paper with tape across its top edge */
 #stPop .stpop{border-radius:4px 4px 0 0;background:#F6F1E8 url(art/m_paperbg.webp) center/420px;color:var(--black);box-shadow:0 -10px 40px rgba(0,0,0,.45)}
-#stPop .stpop::before{top:-3px;width:112px;height:28px;margin-left:-56px;border-radius:0;background:url(art/m_tape3.webp) center/100% 100% no-repeat;transform:rotate(-2deg)}
+#stPop .stpop::before{top:-3px;width:112px;height:28px;margin-left:-56px;border-radius:0;background:url(art/m_tape3.webp) center/100% 100% no-repeat;transform:rotate(-2deg);filter:drop-shadow(0 1.5px 0 rgba(23,19,32,.16))}
 #stPop .stphead{padding-top:22px}
 #stPop .stphead b{color:var(--sk-deep)}
 #stPop .stpown{background:rgba(23,19,32,.08);color:var(--black)}
@@ -90,7 +91,7 @@ CSS = r"""
 #stPop .stpb.stroke{min-height:60px;padding:10px 26px 14px;border-radius:0;background:none;box-shadow:none;font:900 20px/1 var(--font-head);font-style:normal;letter-spacing:.03em;color:#fff}
 #stPop .stpb.stroke:active:not(:disabled){transform:translateY(3px) scale(.985);box-shadow:none}
 #stPop .stpb.stroke small{padding:4px 8px 3px;border-radius:999px;background:rgba(0,0,0,.24);color:#fff;text-shadow:none}
-#stPop .stpb.stroke:disabled{color:#7D7489;text-shadow:none;cursor:default}
+#stPop .stpb.stroke:disabled,#stPop .stpb.stroke.on:disabled{background:none;box-shadow:none;color:#7D7489;text-shadow:none;cursor:default}
 #stPop .stpb.stroke:disabled::before{background:#D9D0C0}
 #stPop .stpb.stroke.on:disabled{color:var(--black)}
 #stPop .stpb.stroke.on:disabled::before{background:var(--sk)}
