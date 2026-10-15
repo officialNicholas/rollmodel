@@ -43,4 +43,18 @@ The first lesson keeps its own scripted items.
 
 CPU-only matches stepped faster than real time (the player handed to the game's CPU brain), medium CPUs, 5 matches per mode.
 
-__TABLE__
+| Mode | Build | Matches | Time empty-handed | Longest empty spell (mean / worst) | Items per match | Picked up per fighter | Used per fighter |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1v1 | v284 | 5 | 78% | 46 s / 66 s | 1.2 | 0.3 | 2.0 |
+|  | v285 | 5 | 64% | 36 s / 76 s | 6.2 | 1.9 | 2.7 |
+| 3-way | v284 | 5 | 76% | 50 s / 77 s | 3.4 | 0.6 | 1.7 |
+|  | v285 | 5 | 54% | 20 s / 31 s | 10.6 | 2.7 | 3.3 |
+| Showdown, free-for-all | v284 | 5 | 70% | 26 s / 63 s | 2.4 | 0.1 | 1.1 |
+|  | v285 | 5 | 53% | 15 s / 54 s | 4.6 | 0.6 | 1.6 |
+| Showdown, 2v2 | v284 | 5 | 68% | 23 s / 61 s | 2.2 | 0.1 | 1.1 |
+|  | v285 | 5 | 57% | 18 s / 51 s | 5.2 | 0.7 | 1.2 |
+
+Time empty-handed is the share of each fighter's time in play with nothing held, in a pocket or in use; the longest empty spell is
+each fighter's longest stretch of that (the mean over fighters, and the worst one). Every mode spends less time empty-handed and gets
+several times as many items into hands, and the long droughts are shorter on average. A fighter can still go a while without one
+(the worst spells are in matches where one side kept getting there first), which is the competitive edge staying in.
