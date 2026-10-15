@@ -1,0 +1,19 @@
+{
+  "name": "rollmodel-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Roll Model multiplayer server: lobby, matchmaking, server-authoritative referee, and the RMNet client SDK.",
+  "type": "module",
+  "main": "src/index.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node test/run.js",
+    "test:quick": "node test/run.js --quick"
+  },
+  "dependencies": {
+    "ws": "8.21.3"
+  }
+}
