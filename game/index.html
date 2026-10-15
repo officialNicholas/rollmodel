@@ -3899,7 +3899,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 302</p>
+      <p class="ver">Version 303</p>
     </div>
   </div>
 
@@ -15922,6 +15922,7 @@ function moveFlat(D, dt) {
   const back = D.dashDir < 0 && D.air, fx = Math.sin(D.yaw) * (back ? -1 : 1), fz = Math.cos(D.yaw) * (back ? -1 : 1), d = D.spd * dt * (D.air ? 1 : (D.strokeK || 1)) /* (swimming: the pace follows the stroke) */, x0 = D.x, z0 = D.z, kx = D.kx * dt, kz = D.kz * dt;
   let hit = false;
   if (D === P && kcam && !D.air && D.st === 'play' && surfaceUnder(D.x + fx * (0.3 + d), D.z + fz * (0.3 + d), D.y + STEP, true) === -Infinity) return; // (the kill cam: never rolled off a drop you can't see)
+  if (D === P && !D.air && D.st === 'play' && tut && tut.step >= 0 && tut.step < TUT_REST && !kcam && surfaceUnder(D.x + fx * (0.45 + d), D.z + fz * (0.45 + d), D.y + STEP, true) === -Infinity) { D.spd = Math.min(D.spd, 1.2); D.yaw += wrapA(Math.atan2(-D.x, -D.z) - D.yaw) * Math.min(1, dt * 4); D.wob = Math.max(D.wob || 0, 0.25); return; } // (v303: the lesson's taught steps: the edge is a soft rail)
   const nx = D.x + fx * d + kx; if (!blockedAt(nx, D.z, D.y)) D.x = nx; else { hit = true; D.kx = 0; }
   const nz = D.z + fz * d + kz; if (!blockedAt(D.x, nz, D.y)) D.z = nz; else { hit = true; D.kz = 0; }
   // pressed against something and getting nowhere: after a moment, break free
@@ -21508,6 +21509,10 @@ canvas.addEventListener('pointermove', e => {
   if (!t.rolled && (!P.charging || (holdCharge && pullTgt < 0.05)) && state === 'play') { const h0 = t.hist[0], up = h0[1] - e.clientY, side = Math.abs(e.clientX - h0[0]); if (up > 44 && up > side * 1.5) { t.rolled = true; t.moved = true; t.steered = true; dodgeRoll(P); } else if (P.air && P.airSling && P.airBack && -up > 44 && -up > side * 1.5) { t.rolled = true; t.moved = true; t.steered = true; airDash(P, -1); } }
   // pulling straight down from a fresh press stops you and loads the shot in one move
   if (!P.charging && !t.steered && dy > 18 && dy > Math.abs(sx) * 1.4 && state === 'play' && (P.st === 'play' || P.st === 'hide') && !P.air) beginHold(t, t.x, t.y);
+  // (v303) a clear sideways drag out of a hold that hasn't been pulled is a steer: let go of the brake and go (a finger that rested a
+  // moment before dragging used to leave you braked, turning on the spot). Once the band is pulled down, sideways aims the fling.
+  if (P.charging && holdCharge && !t.pulled && Math.abs(sx) > 28 && Math.abs(sx) > Math.abs(dy) * 1.6 && state === 'play') { cancelCharge(P); holdCharge = false; slingOff(); t.moved = true; t.steered = true; }
+  if (P.charging && holdCharge && dy > PULL_DEAD) t.pulled = true;
   if (Math.abs(sx) > 16 && !P.charging) t.steered = true;
   if (P.charging && holdCharge) { setPull(clamp((e.clientY - pullY - PULL_DEAD) / pullRange(), 0, 1)); slingDraw(e.clientX, e.clientY); }
   let dx = e.clientX - anchorX;
@@ -21840,7 +21845,7 @@ const TUT_AI_CALM = { speed: 0.8, pound: 0.45, poundR: 1.5, attack: 0.08, hunt: 
 // a tip: the coach's plate (an explanation, its face and name) or, with call set, a short line for an action, *the words that matter* in red
 // a finger acting out the gesture a tip asks for, on a touch screen: drag across and tap to move and jump, hold and pull down to fling,
 // a flick up to roll out of a pound
-const TUT_GEST = { msling: 'pull', msling2: 'pull', move: 'steertap', sling: 'pull', dodgenow: 'swipe', rdodgenow: 'swipe', rroll: 'swipe', wxhold: 'hold', protip: 'pullslow' };
+const TUT_GEST = { tubout: 'swipe', msling: 'pull', msling2: 'pull', move: 'steertap', sling: 'pull', dodgenow: 'swipe', rdodgenow: 'swipe', rroll: 'swipe', wxhold: 'hold', protip: 'pullslow' };
 const tutGestEl = document.createElement('i'); tutGestEl.className = 'tutgest'; tutGestEl.hidden = true; tutGestEl.setAttribute('aria-hidden', 'true');
 function tutGest(kind) {
   const k = kind && (!keysUI || kind === 'spin') ? kind : ''; if (!tutGestEl.parentNode) stage.appendChild(tutGestEl);
@@ -21966,7 +21971,7 @@ const TUT_STEPS = [
       if (P.st === 'play') P.paint = tut.basinTip ? Math.min(P.paint, 0.02) : Math.max(0, P.paint - dt * 1.1); /* (the tank empties in under a second and stays out till you refill) */
       if (tut.basinTip && !tut.basinSw) { tut.basinT += dt; if (tut.basinT > 2.5 && P.st === 'play') { tut.basinSw = true; tutGest('swipe'); } } /* (not there yet: a finger shows the swipe up, a roll gets you there faster) */
       if (!tut.basinTip && P.paint <= 0.02) { tut.basinTip = true; pingTank(4); tutShow('Out of paint! Roll into a *' + potWord().toUpperCase() + '* to refill', null, 'basin', true, true); }
-      return P.st === 'hide'; } },
+      return P.st === 'hide' && tut.basinTip; } }, // (v303: a tub you rolled into, out of paint)
   { id: 'pound', max: 80, exit() { tut.drive = null; tut.driveMode = null; TUT_AI.speed = 0.8; }, enter() { tut.hidePound = false; tut.keepAway = false; tut.drive = H; tut.driveMode = 'near'; TUT_AI.speed = 0.62; tutGivePound(); tut.kos0 = P.kos; tut.flat0 = P.flatted; tut.slowK = 1; tut.slowT = 0; tut.poundIn = false; tut.poundShown = false; tut.sub = ''; tutHide(); },
     tick(dt) { if (tut.slowT > 0) { tut.slowT -= dt / Math.max(tut.slowK, 0.05); if (tut.slowT <= 0) tut.slowK = 1; }
       if (P.st === 'play' && P.paint < 0.6) P.paint = Math.min(1, P.paint + dt * 1.6); if (P.slamCD > 1.5) P.slamCD = 1.5; // (paint and the pound keep coming back until one lands)
@@ -22300,6 +22305,15 @@ function tutStep(dt) {
   if (!tut || state !== 'play') return;
   if (tut.step < 0) { if (tut.outAt === undefined) { if (P.st === 'play' && !P.air && runT > 0.3) tut.outAt = runT; } else if (runT - tut.outAt >= 1.5) tutNext(); return; } // (a moment at full speed first, so the slow motion isn't taken for your speed) /* (the lesson opens straight on the move tip: its Paint it banner comes later, with the Now win it card) */
   const s = TUT_STEPS[tut.step]; if (tut.step < TUT_REST && matchLeft < 20) matchLeft = 20; // (the lesson does not run out the clock)
+  // (v303) back in a tub mid-lesson (knocked out, respawned): the step waits, its clock stopped, while a callout and the swipe finger
+  // show the way out; out again, its own tip comes back. (The tub and pound steps deal with the tub themselves; in the free play at the
+  // end, finale included, the callout shows only when nothing else is being said, and the match goes on.)
+  const inTub = P.st === 'hide' && !(s.id === 'basin' && tut.basinTip) && s.id !== 'pound' && !(tut.gap > 0) && !tut.card;
+  tut.tubHold = inTub && s.id !== 'rest';
+  if (inTub) {
+    if (s.id === 'rest' ? !tutTip : (!tutTip || tutTip.key !== 'tubout')) { if (tutTip && tutTip.key !== 'tubout') tut.tubTip = tutTip; tutShow(say('*SWIPE UP* to roll out of the tub!', 'Press *SHIFT* to roll out of the tub!'), null, 'tubout', true, true); }
+    if (s.id !== 'rest') { tut.slowK = 1; return; } }
+  else if (tutTip && tutTip.key === 'tubout') { const t0 = tut.tubTip; tut.tubTip = null; tutHide(); if (t0) tutShow(t0.text, t0.at, t0.key, t0.call, t0.nodim, t0.side, t0.loose, t0.low); }
   if (tut.gap > 0) { tut.gap -= dt; if (tut.gap <= 0) { if (tutPraiseEl.classList.contains('on') || tutPraiseEl._pend) tut.gap = 0.25; else { tut.gap = 0; tutNext(); } } return; } // (the praise gone, and a beat after it) // (a lesson done: its praise has the screen to itself, then the next tip)
   if (s.tick(dt)) { if (tut.step < TUT_REST && !s.id.startsWith('free')) { tutReward(s.id, (s.id === 'dodge' || s.id === 'rocketdodge') && tut.hit && !tut.rolled); if (s.exit) s.exit(); tut.exited = true; tutHide(); tut.slowK = 1; tut.gap = 1.2 + Math.max(0, bannerUntil - performance.now()) / 1000; } else tutNext(); }
 }
@@ -22362,7 +22376,7 @@ function tutSpinTick() {
 function tutFrame(rdt) {
   if (tutGestEl.dataset.g === 'spin') tutSpinTick();
   { const bUp = state === 'play' && performance.now() < bannerUntil; if (bUp && tut) tut.bannerSeen = true; const w = bUp || (state === 'play' && P.st === 'ko'); if (tutEl.classList.contains('wait') !== w) { tutEl.classList.toggle('wait', w); tutHandEl.classList.toggle('wait', w); tutGestEl.classList.toggle('wait', w); } } /* (a game banner up, or you knocked out and waiting to come back: the coach waits out of sight) */
-  if (tut) { if (state === 'play' && tut.step >= 0) { tut.st += rdt; if (tut.st > TUT_STEPS[tut.step].max && !(tut.gap > 0)) tutNext(); } const on = state === 'play' && tut.slowK < 1 && !tut.card; if (tutSlowEl.classList.contains('on') !== on) { tutSlowEl.classList.toggle('on', on); AU.slow(on); } const dp = on && tut.slowK < 0.2; if (tutSlowEl.classList.contains('deep') !== dp) tutSlowEl.classList.toggle('deep', dp); }
+  if (tut) { if (state === 'play' && tut.step >= 0 && !tut.tubHold) { tut.st += rdt; if (tut.st > TUT_STEPS[tut.step].max && !(tut.gap > 0)) tutNext(); } const on = state === 'play' && tut.slowK < 1 && !tut.card; if (tutSlowEl.classList.contains('on') !== on) { tutSlowEl.classList.toggle('on', on); AU.slow(on); } const dp = on && tut.slowK < 0.2; if (tutSlowEl.classList.contains('deep') !== dp) tutSlowEl.classList.toggle('deep', dp); }
   else { const on2 = !!tut2 && state === 'play' && tut2.slowK < 1; if (tutSlowEl.classList.contains('on') !== on2) { tutSlowEl.classList.toggle('on', on2); tutSlowEl.classList.toggle('dark', on2); AU.slow(on2); } if (!((tut2 || tut3) && state === 'play')) tutMenuTick(); } // (the first real match runs its own tips)
   tutProTip();
   if (tutTip) tutPlace(); else if (popMoved) { popMoved = false; $('pop').style.top = ''; }
