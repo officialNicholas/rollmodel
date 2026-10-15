@@ -8,8 +8,8 @@
 // any steady excess piles up; a full bucket, or one step far beyond the allowance, is a violation.
 // Solids: the body's centre may not be inside a piece, and a step may not pass through one.
 // Vertical: in the air there is a ceiling. Leaving the ground without a launch it sits just above the ground you left;
-// a launch (a hop, a fling, a pound, a push) raises it to that launch's peak; after the peak it comes down at 2.5 m/s
-// (slower than any real fall, including the slow drop while aiming). Above the ceiling is flying or floating.
+// a launch (a hop, a fling, a pound, a push) raises it to that launch's peak; a moment after the peak it comes down at
+// 2 m/s (slower than any real fall, including the slow drop while aiming). Above the ceiling is flying or floating.
 import { G, launchSpd } from './constants.js';
 
 export const MOVE = Object.freeze({

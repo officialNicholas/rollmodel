@@ -216,7 +216,8 @@ export class Match {
       // differences between the client's paint and ours
       turfOwn: (x, y, z) => this.cov.sideAt(x + fx * 0.55, y, z + fz * 0.55) === p.side || this.cov.sideAt(x + fx, y, z + fz) === p.side,
       giant: (e.giant || 0) > s.t - 300,
-      apexExtra: (e.rocket || 0) > s.t - 1000 ? G.ROCKET_ALT + 2 : 0, airExtra: (e.rocket || 0) > s.t - 1000 ? 8 : 0,
+      // (a hook for the rocket pick-up, which is not handed out online yet: while it flies, the ceiling is that high)
+      ceilExtra: (e.rocket || 0) > s.t - 1000 ? G.ROCKET_ALT + 2 : 0,
       still: false, anchor: null,
     };
     if (s.t < this.startAt - 30) { env.still = true; env.anchor = p.spawn; }

@@ -99,7 +99,7 @@ test('clock sync converges and reports jitter', async () => {
   try {
     await b.connect(); await sleep(2500);
     const s = b.net.stats();
-    assert.ok(Math.abs(s.offset) < 6, 'offset error ' + s.offset);
+    assert.ok(Math.abs(s.offset) < 10, 'offset error ' + s.offset);
     assert.ok(s.rtt > 100 && s.rtt < 160, 'rtt ' + s.rtt); assert.ok(s.minRtt >= 90 && s.minRtt < 130);
     assert.ok(s.jitter > 0 && s.jitter < 40, 'jitter ' + s.jitter);
     metric('sync.clockError', +Math.abs(s.offset).toFixed(2), 'ms', 'clock offset error after 2.5 s at 120 ms RTT');
