@@ -3327,7 +3327,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 @keyframes flwink{0%{transform:scale(0) rotate(-40deg);opacity:0}30%{transform:scale(1.15) rotate(10deg);opacity:1}70%{transform:scale(.95) rotate(0);opacity:1}100%{transform:scale(.4) rotate(30deg);opacity:0}}
 /* the title over the sky at the start: one small line, A Marcelin Game, in the regular weight. Its words come up one after another out
    of a blur while the spacing slowly closes in, then it all fades away as the camera starts down */
-.fltitle{position:absolute;left:0;right:0;top:calc(max(64px,calc(env(safe-area-inset-top) + 16px)) + 18%);z-index:29;margin:0;padding:0 16px;text-align:center;color:#fff;font:400 clamp(14px,4vw,18px)/1.2 var(--font-ui);letter-spacing:.3em;text-indent:.3em;white-space:nowrap;pointer-events:none;text-shadow:0 1px 12px rgba(8,16,70,.6)}
+.fltitle{position:absolute;left:0;right:0;top:max(44%,calc(env(safe-area-inset-top) + 40px));transform:translateY(-50%);z-index:29;margin:0;padding:0 16px;text-align:center;color:#fff;font:400 clamp(14px,4vw,18px)/1.2 var(--font-ui);letter-spacing:.3em;text-indent:.3em;white-space:nowrap;pointer-events:none;text-shadow:0 1px 12px rgba(8,16,70,.6)}
 .fltitle[hidden]{display:none}
 .fltitle span{display:inline-block;opacity:0;filter:blur(6px);transform:translateY(5px)}
 .fltitle.on{animation:fltt 3.4s cubic-bezier(.25,.6,.3,1) both}
@@ -3744,7 +3744,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 287</p>
+      <p class="ver">Version 288</p>
     </div>
   </div>
 
