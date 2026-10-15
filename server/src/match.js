@@ -204,15 +204,17 @@ export class Match {
     }
     const r = p.mover.check(s, s.t, this._env(p, s));
     if (!r.ok) { if (!r.silent) { this.stats.rejected++; this._violation(p, r.reason, r.hard); } return null; }
-    this._accept(p, s, tau, r, s);
+    this._accept(p, s, tau, r, { x: s.x, y: r.y, z: s.z });
     if (r.fell) this._ko(p, null, 'fall');
     return null;
   }
   _env(p, s) {
-    const tS = (s.t - this.startAt) / 1000, fx = Math.sin(s.yaw) * 0.55, fz = Math.cos(s.yaw) * 0.55, e = p.effects;
+    const tS = (s.t - this.startAt) / 1000, fx = Math.sin(s.yaw), fz = Math.cos(s.yaw), e = p.effects;
     const env = {
       rainMul: rainMulAt(this.weather, tS),
-      turfOwn: (x, y, z) => this.cov.sideAt(x + fx, y, z + fz) === p.side,
+      // the game speeds you up when the floor just ahead is your colour; look a little further too, to forgive small
+      // differences between the client's paint and ours
+      turfOwn: (x, y, z) => this.cov.sideAt(x + fx * 0.55, y, z + fz * 0.55) === p.side || this.cov.sideAt(x + fx, y, z + fz) === p.side,
       giant: (e.giant || 0) > s.t - 300,
       apexExtra: (e.rocket || 0) > s.t - 1000 ? G.ROCKET_ALT + 2 : 0, airExtra: (e.rocket || 0) > s.t - 1000 ? 8 : 0,
       still: false, anchor: null,
@@ -308,7 +310,13 @@ export class Match {
     if ((p.effects.turret || 0) > ts + 60) return 'busy';
     return null;
   }
-  _jump(p, ts) { if (p.st === 'hide') { this._leavePot(p, ts, 'jump'); return null; } return this._canAct(p, ts); }
+  _jump(p, ts) {
+    if (p.st === 'hide') { this._leavePot(p, ts, 'jump'); return null; }
+    const no = this._canAct(p, ts); if (no) return no;
+    if (p.pound) return 'busy';
+    if (p.mover.airborne && ts - p.mover.groundT > 250) return 'air'; // (a moment of grace after rolling off a ledge, like the game)
+    p.mover.onJump(ts); return null;
+  }
   _roll(p, ts) {
     if (p.st === 'hide') { this._leavePot(p, ts, 'roll'); return null; }
     const no = this._canAct(p, ts); if (no) return no;
@@ -316,27 +324,29 @@ export class Match {
     if (p.mover.airborne) {
       // a mid-air dash: once per hop, a moment untouchable
       if (p.mover.dashUsed) return 'air';
-      p.mover.dashUsed = true; p.dashStart = ts; p.mover.boost(11.5, 450, ts);
+      p.dashStart = ts; p.mover.onDash(ts);
       return null;
     }
     if (ts < p.rollReadyAt - 80) return 'cooldown';
     p.rollStart = ts; p.rollReadyAt = ts + G.ROLL_CD * 1000;
     if (p.paint > 0) p.paint = Math.max(0.001, p.paint - G.ROLL_COST);
     const env = this._env(p, { t: ts, yaw: p.mover.last.yaw });
-    p.mover.boost(p.mover.rollSpeed(env) * 1.05, G.ROLL_DASH * 1000 + 150, ts);
+    p.mover.onRoll(env, ts);
     return null;
   }
   _fling(p, ts, cIn) {
     const c = clamp(fin(cIn) ? cIn : 1, G.FLING_MIN, 1);
+    let air = false;
     if (p.st === 'hide') this._leavePot(p, ts, 'fling'); // flinging out of a pot works even when dry
     else {
       const no = this._canAct(p, ts); if (no) return no;
+      if (p.pound) return 'busy';
       if (p.paint <= 0.001) return 'no_paint';
       // in the air this is the mid-air sling (after a hop or a pot exit): once per hop, shared with the air dash
-      if (p.mover.airborne) { if (p.mover.dashUsed) return 'air'; p.mover.dashUsed = true; }
+      if (p.mover.airborne && ts - p.mover.groundT > 250) { if (p.mover.dashUsed) return 'air'; p.mover.dashUsed = true; air = true; }
     }
     p.flingC = c; p.flingAt = ts; p.flingOpen = true;
-    p.mover.boost(p.mover.flingSpeed(c) * 1.08 + 0.4, 500, ts);
+    p.mover.onFling(c, ts, air);
     return null;
   }
   _pound(p, ts, vt, recv) {
@@ -358,7 +368,7 @@ export class Match {
     const at = sampleHist(p.vhist, ts) || { x: p.mover.last.x, y: p.mover.last.y, z: p.mover.last.z, grounded: !p.mover.airborne };
     const air = !at.grounded, missile = air && p.flingOpen && p.flingC > 0.15 && ts - p.flingAt < 3000;
     p.pound = { t0: ts, vt0: vt, x: at.x, y: at.y, z: at.z, air, missile, giant: saved || (p.effects.giant || 0) > ts, autoAt: recv + (air ? 3000 : G.POUND_T * 1000 + 700), land: null };
-    if (missile) p.mover.boost(G.SPEED * G.MISSILE_SPD * 1.25, 2500, ts);
+    if (missile) p.mover.onMissile(ts); else p.mover.onPound(ts, air);
     return null;
   }
   _land(p, ts, vt, m, recv, n) {
@@ -420,6 +430,7 @@ export class Match {
   _burst(p, ts, vt) {
     const pot = this.pots[p.pot]; if (!pot) return;
     this._leavePot(p, ts, 'burst');
+    p.mover.launch(13.5, ts, pot.y + 0.35); // the game throws you high out of the pot (and you splat where you land)
     this.cov.stamp(pot.x, pot.y, pot.z, G.SLAM_R * 0.7, p.color);
     const now = nowMs(), vtc = Math.max(clamp(vt, ts - this.rules.lagCompMaxMs, ts), now - this.rules.maxRewindMs);
     for (const B of this.P) {
@@ -434,7 +445,7 @@ export class Match {
   _push(B, by, dx, dz, spd, vy, why) {
     const now = nowMs();
     if (B.st === 'hide') this._eject(B, 'blasted', by);
-    B.mover.boost(spd * 1.1, 1500, now); B.lastHit = { by, t: now }; B.pound = null;
+    B.mover.onPush(spd, vy, now); B.lastHit = { by, t: now }; B.pound = null;
     this._all({ t: 'push', slot: B.slot, by: by ? by.slot : -1, dx: r2(dx), dz: r2(dz), spd: r2(spd), vy: r2(vy), why });
   }
   _stomp(A, ts, vt, target, recv, n) {
@@ -450,6 +461,7 @@ export class Match {
     const d = Math.hypot(a.x - b.x, a.z - b.z), dy = a.y - b.y;
     if (d > 2 * G.PR + 0.25 || dy < 0.1 || dy > 1.3) return 'far';
     if (B.flatUntil > ts) return 'flat';
+    A.mover.launch(6.5, ts, b.y + 0.3); // the stomper bounces off at once on its own screen
     this.hits.push({ kind: 'stomp', by: A, B, ts, vt: vtc, n, decideAt: Math.min(recv + this.rules.dodgeWaitMs, Math.max(recv, ts + B.lagEst + 3 * B.jit + 25)) });
     return 'pending';
   }
@@ -482,8 +494,9 @@ export class Match {
     p.st = 'play'; p.pot = -1; p.potExitAt = ts; p.slamCd = Math.max(p.slamCd, 0.5); p.emptyT = 0;
     if (p.spawnImm) { p.spawnImm = false; p.immuneUntil = ts + G.SPAWN_GRACE * 1000; }
     if (pot) {
-      p.mover.reset({ x: pot.x, y: pot.y + G.POT_POP_Y, z: pot.z, yaw: p.mover.last.yaw }, Math.max(ts, p.mover.last.t), { airborne: true, groundY: pot.y });
-      p.mover.boost(G.SPEED * 1.25, 600, ts);
+      const t0 = Math.max(ts, p.mover.last.t);
+      p.mover.reset({ x: pot.x, y: pot.y + G.POT_POP_Y, z: pot.z, yaw: p.mover.last.yaw }, t0, { airborne: true, groundY: pot.y });
+      p.mover.onPopOut(t0, pot.y);
       this._all({ t: 'pot', i: pot.i, occ: -1, up: pot.up, ink: r2(pot.ink), why });
       if (pot.ink <= 0.02) this._sinkPot(pot);
     }

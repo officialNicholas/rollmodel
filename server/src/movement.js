@@ -1,24 +1,27 @@
 // Movement referee. Each client moves its own blob and reports where it is; this checks every report against what the
 // game's physics allows and keeps the last report that passed. It never moves anyone itself.
 //
-// Horizontal: the step must fit the speed the blob could have had. That allowance starts from the ground speed at that
-// spot (base speed x rain x own colour x ramp) and is raised by moves the server accepted (roll, fling, a push, items).
-// On the ground extra speed fades at about the game's rate; in the air it carries. Small excesses (network jitter,
-// rounding) go into a leaky bucket; a full bucket, or one step far beyond the allowance, is a violation.
-// Solids: the body's centre may not sit inside a piece, and a step may not pass through one.
-// Vertical: in the air you can be at most APEX above the last ground you touched, and only for so long.
+// Horizontal: the distance covered must fit the speed the blob could have had. That allowance starts from the ground
+// speed at that spot (base speed x rain x own colour x ramp) and is raised by moves the server accepted (roll, fling,
+// a push, items). On the ground extra speed fades at about the game's rate; in the air it carries. Each step adds
+// (distance - allowance x time) to a bucket that cannot go below zero, so timing noise between steps cancels out while
+// any steady excess piles up; a full bucket, or one step far beyond the allowance, is a violation.
+// Solids: the body's centre may not be inside a piece, and a step may not pass through one.
+// Vertical: in the air there is a ceiling. Leaving the ground without a launch it sits just above the ground you left;
+// a launch (a hop, a fling, a pound, a push) raises it to that launch's peak; after the peak it comes down at 2.5 m/s
+// (slower than any real fall, including the slow drop while aiming). Above the ceiling is flying or floating.
 import { G, launchSpd } from './constants.js';
 
 export const MOVE = Object.freeze({
-  TOL: 0.10, // 10% over the allowance
-  SLACK_M: 0.10, // and 10 cm per step
-  BUCKET_MAX: 1.6, // metres of excess before it counts as a speed violation
-  BUCKET_LEAK: 1.2, // metres per second drained from the bucket
+  TOL: 0.05, // 5% over the allowance
+  BUCKET_MAX: 1.5, // metres of accumulated excess before it counts as a speed violation
   TELEPORT_M: 3.0, // one step this far beyond the allowance is a teleport
   DECAY: 2.0, // per second, how fast extra speed fades on the ground (the game's own rate is 2.6)
-  APEX: 2.05, // metres above the last ground (the biggest launch in the game is about 1.9)
-  AIR_T: 2.3, // seconds in the air before you must have landed (slow descents while aiming included)
   GROUND_GAP: 0.45, // within this of a surface counts as standing on it
+  LEDGE: 0.3, // the ceiling above the ground you just left, with no launch
+  HOLD_MS: 350, // the ceiling stays at a launch's peak this long after the peak (pound hang, missile hang, aiming)
+  DESCENT: 2.5, // m/s the ceiling comes down afterwards
+  HOP_VY: G.JUMP_V * 1.15, // an implied hop: the biggest jump-like launch (pot exits, the countdown leap, assists)
   FALL_Y: -3, // below this with nothing underneath: fallen
   PATH_STEP: 0.25,
   STILL_M: 0.35, // how far a blob that should not move (countdown, flattened) may drift
@@ -29,10 +32,13 @@ export class Mover {
   constructor(level) { this.L = level; this.reset({ x: 0, y: 0, z: 0, yaw: 0 }, 0); }
   // put the blob somewhere (spawn, respawn, correction target, out of a pot)
   reset(s, t, { airborne = false, groundY } = {}) {
-    this.last = { x: s.x, y: s.y, z: s.z, yaw: s.yaw || 0, t };
-    const sup = this.L.supportAt(s.x, s.z, s.y);
-    this.groundY = groundY !== undefined ? groundY : sup > -Infinity ? sup : s.y;
+    let y = s.y;
+    if (!Number.isFinite(y)) { const g = this.L.surfaceUnder(s.x, s.z, 50); y = g > -Infinity ? g : 0; } // no height given: on the surface there
+    this.last = { x: s.x, y, z: s.z, yaw: s.yaw || 0, t };
+    const sup = this.L.supportAt(s.x, s.z, y);
+    this.groundY = groundY !== undefined ? groundY : sup > -Infinity ? sup : y;
     this.groundT = t; this.airborne = airborne; this.bucket = 0; this.allow = 0; this.holdUntil = 0; this.dashUsed = false;
+    this.ceil = Math.max(this.groundY, y) + MOVE.LEDGE; this.ceilT = t + 250;
   }
   groundCap(x, y, z, env) {
     let c = BASE * (env.rainMul || 1);
@@ -41,13 +47,30 @@ export class Mover {
     if (env.giant) c = Math.min(c * G.GIANT_SPD, G.SPEED * G.GIANT_CAP * G.MOVE_K);
     return c;
   }
-  // raise the allowance (an accepted roll, fling, push or item) and keep it for holdMs before it may fade
+  // raise the speed allowance (an accepted roll, fling, push or item) and keep it for holdMs before it may fade
   boost(speed, holdMs, t) { if (speed > this.allow) this.allow = speed; this.holdUntil = Math.max(this.holdUntil, t + holdMs); }
+  // a launch upward with speed vy from height y0 (gUp: gravity while rising; a pound rises against 1.7 g)
+  launch(vy, t, y0 = this.last.y, gUp = G.GRAV) {
+    const peak = y0 + (vy > 0 ? vy * vy / (2 * gUp) : 0) + 0.15, peakT = t + (vy > 0 ? vy / gUp * 1000 : 0) + MOVE.HOLD_MS;
+    const now = this.ceilingAt(t);
+    if (peak >= now) { this.ceil = peak; this.ceilT = Math.max(peakT, t); } else this.ceilT = Math.max(this.ceilT, peakT - (this.ceil - peak) / MOVE.DESCENT * 1000);
+  }
+  ceilingAt(t) { return t <= this.ceilT ? this.ceil : this.ceil - MOVE.DESCENT * (t - this.ceilT) / 1000; }
   rollSpeed(env) { const b = BASE * (env.rainMul || 1), cur = Math.max(this.allow, this.groundCap(this.last.x, this.last.y, this.last.z, env)); return (Math.max(cur, b) + b * 1.15) * 1.08; }
   flingSpeed(c) { return launchSpd(Math.min(1, Math.max(G.FLING_MIN, c))); }
+  // what an accepted move allows (the match calls these, and so do the tests)
+  onJump(t) { this.launch(MOVE.HOP_VY, t, Math.max(this.groundY, this.last.y)); }
+  onRoll(env, t) { this.boost(this.rollSpeed(env) * 1.05, G.ROLL_DASH * 1000 + 150, t); }
+  onDash(t) { this.dashUsed = true; this.boost(11.5, 450, t); this.launch(2.6, t); }
+  onFling(c, t, air = false) { this.boost(this.flingSpeed(c) * 1.08 + 0.4, 500, t); this.launch(air ? 1.5 + 3 * c : G.JUMP_V * (0.55 + 0.8 * c) * 0.935, t, air ? this.last.y : Math.max(this.groundY, this.last.y)); }
+  onPound(t, air) { this.launch(air ? 3 : 9, t, air ? this.last.y : Math.max(this.groundY, this.last.y), G.GRAV * 1.7); }
+  onMissile(t) { this.boost(G.SPEED * G.MISSILE_SPD * 1.25, 2500, t); }
+  onPush(spd, vy, t) { this.boost(spd * 1.1, 1500, t); this.launch(vy, t); }
+  onPopOut(t, potY, vy = MOVE.HOP_VY) { this.boost(G.SPEED * 1.25, 600, t); this.launch(vy, t, potY + G.POT_POP_Y); }
 
-  // s: { x, y, z, yaw }, t: the client's time for it (ms, server clock), env: { rainMul, turfOwn(x,y,z), giant, still,
-  // apexExtra, airExtra }. Returns { ok: true, grounded, support, fell } or { ok: false, reason, hard }.
+  // s: { x, y, z, yaw, vy }, t: the client's time for it (ms, server clock), env: { rainMul, turfOwn(x,y,z), giant,
+  // still, anchor, ceilExtra }. Returns { ok: true, y, grounded, support, fell } (y may be corrected onto a surface) or
+  // { ok: false, reason, hard }.
   check(s, t, env = {}) {
     const L = this.L, P = this.last, dt = (t - P.t) / 1000;
     if (!(dt > 0)) return { ok: false, reason: 'time', silent: true };
@@ -60,43 +83,48 @@ export class Mover {
       const a = env.anchor || P;
       if (Math.hypot(s.x - a.x, s.z - a.z) > MOVE.STILL_M) return { ok: false, reason: 'moved', hard: false };
     } else {
-      // horizontal speed
       const prev = Math.max(this.allow, this.groundCap(P.x, P.y, P.z, env));
-      const cap = Math.max(prev, this.groundCap(s.x, s.y, s.z, env)) * (1 + MOVE.TOL), budget = cap * dtc + MOVE.SLACK_M;
+      const cap = Math.max(prev, this.groundCap(s.x, s.y, s.z, env)) * (1 + MOVE.TOL), budget = cap * dtc;
       this._prev = prev;
       if (d > budget + MOVE.TELEPORT_M) return { ok: false, reason: 'teleport', hard: true };
-      bucket = Math.max(0, bucket - MOVE.BUCKET_LEAK * dt) + Math.max(0, d - budget);
+      bucket = Math.max(0, bucket + d - budget);
       if (bucket > MOVE.BUCKET_MAX) return { ok: false, reason: 'speed', hard: false };
     }
-    // solids: where you are, and the way you came (at the higher of the two heights, so hopping onto a piece is fine)
-    if (L.insideSolid(s.x, s.z, s.y)) return { ok: false, reason: 'wall', hard: true };
+    // solids. A fast fall can drop through the top of a piece in one frame (the game only looks a step above you when
+    // you land); coming down from above, that is a landing on the top, not a wall.
+    let y = s.y;
+    if (L.insideSolid(s.x, s.z, y)) {
+      const top = L.solidTop(s.x, s.z, y);
+      if (P.y >= top - G.STEP - 0.15) y = top; else return { ok: false, reason: 'wall', hard: true };
+    }
     if (d > MOVE.PATH_STEP) {
-      const n = Math.ceil(d / MOVE.PATH_STEP), y = Math.max(P.y, s.y);
-      for (let i = 1; i < n; i++) if (L.insideSolid(P.x + dx * i / n, P.z + dz * i / n, y)) return { ok: false, reason: 'wall', hard: true };
+      const n = Math.ceil(d / MOVE.PATH_STEP), hy = Math.max(P.y, y);
+      for (let i = 1; i < n; i++) if (L.insideSolid(P.x + dx * i / n, P.z + dz * i / n, hy)) return { ok: false, reason: 'wall', hard: true };
     }
     // vertical
-    const support = L.supportAt(s.x, s.z, s.y), grounded = support > -Infinity && s.y - support <= MOVE.GROUND_GAP;
+    const support = L.supportAt(s.x, s.z, y), grounded = support > -Infinity && y - support <= MOVE.GROUND_GAP;
     let fell = false;
     if (!grounded) {
-      const airT = (t - this.groundT) / 1000;
-      if (support === -Infinity && (s.y < MOVE.FALL_Y || airT > MOVE.AIR_T + (env.airExtra || 0))) fell = true;
-      else {
-        if (s.y > this.groundY + MOVE.APEX + (env.apexExtra || 0)) return { ok: false, reason: 'fly', hard: false };
-        if (airT > MOVE.AIR_T + (env.airExtra || 0) + Math.max(0, this.groundY - s.y) / 3) return { ok: false, reason: 'float', hard: false };
-      }
+      // leaving the ground going up: a hop (the action may come a moment later; the referee does not need it)
+      if (!this.airborne && (s.vy || 0) > 0.5 && t - this.groundT < 250) this.launch(Math.min(s.vy, MOVE.HOP_VY), t, this.groundY);
+      if (support === -Infinity && y < MOVE.FALL_Y) fell = true;
+      else if (y > this.ceilingAt(t) + (env.ceilExtra || 0)) return { ok: false, reason: y > this.groundY + 2.2 ? 'fly' : 'float', hard: false };
     }
     // accepted: move on
     this.bucket = bucket;
     if (!env.still) {
-      const g = this.groundCap(s.x, s.y, s.z, env);
+      const g = this.groundCap(s.x, y, s.z, env);
       if (grounded && t > this.holdUntil) {
         const dd = (t - Math.max(P.t, this.holdUntil)) / 1000;
         this.allow = this._prev > g ? g + (this._prev - g) * Math.exp(-MOVE.DECAY * dd) : g;
       } else this.allow = Math.max(this.allow, this._prev);
     }
-    if (grounded) { this.groundY = support; this.groundT = t; this.airborne = false; this.dashUsed = false; }
-    else this.airborne = true;
-    this.last = { x: s.x, y: s.y, z: s.z, yaw: s.yaw || 0, t };
-    return { ok: true, grounded, support, fell };
+    if (grounded) {
+      this.groundY = support; this.groundT = t; this.airborne = false; this.dashUsed = false;
+      // back to the low ceiling, unless a launch has just raised it (a hop starts within the ground margin)
+      if (this.ceilingAt(t) <= support + MOVE.LEDGE) { this.ceil = support + MOVE.LEDGE; this.ceilT = t + 250; }
+    } else this.airborne = true;
+    this.last = { x: s.x, y, z: s.z, yaw: s.yaw || 0, t };
+    return { ok: true, y, grounded, support, fell };
   }
 }

@@ -64,6 +64,13 @@ export class Level {
     for (const r of this._cell(this.qgR, x, z)) if (inR(x, z, r, -0.06) && y < rampH(r, x, z) - G.STEP - 0.12) return true;
     return false;
   }
+  // the top of whatever solid insideSolid found at this point
+  solidTop(x, z, y) {
+    let top = -Infinity;
+    for (const b of this._cell(this.qgB, x, z)) if (y < b[5] - G.STEP - 0.12 && y + 0.8 > b[4] + 0.1 && inR(x, z, b, -0.06)) top = Math.max(top, b[5]);
+    for (const r of this._cell(this.qgR, x, z)) if (inR(x, z, r, -0.06)) { const h = rampH(r, x, z); if (y < h - G.STEP - 0.12) top = Math.max(top, h); }
+    return top;
+  }
   onRamp(x, z, m = 0.5) { for (const r of this._cell(this.qgR, x, z)) if (inR(x, z, r, m)) return true; return false; }
   // the surface you would be standing on at height y, or -Infinity when you are in the air over nothing
   supportAt(x, z, y) { return this.surfaceUnder(x, z, y + G.STEP + 0.05); }
