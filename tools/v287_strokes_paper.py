@@ -1,7 +1,7 @@
 """v287: the Strokes page in the studio's own look, like the lobby, Commissions and the rest. It had its own dark glossy panels.
 
 - The three loadout slots are cards of the studio's graph paper, a touch crooked, each held down by a strip of masking tape that
-  names it (Special, Skill, Transform). The one you're looking at sits straight, outlined in ink.
+  names it (Special, Skill, Transform). The one you're looking at sits straight and lifted, ringed in its colour; the others sit back a little.
 - The collection's heading is a tape label. Each stroke is a paper tile outlined in ink with a hard shadow, like the Commissions rows;
   its picture sits on a dab of its slot's colour (gold specials, blue skills, red transforms). The equipped one is taped down and
   washed in its colour; ones still to craft or locked are greyed paper; More soon is a dashed outline.
@@ -25,8 +25,9 @@ CSS = r"""
 #mStrokes .stopt .stoi{position:relative}
 #mStrokes .stslot .stic .stimg,#mStrokes .stopt .stoi .stimg{position:relative;filter:drop-shadow(1px 2px 0 rgba(23,19,32,.22))}
 #mStrokes .stslot .stname,#mStrokes .stopt .stn{font:900 14px/1.02 var(--font-head);font-style:normal;letter-spacing:.01em;color:var(--black)}
-#mStrokes .stslot.on{rotate:0deg;background:#fff url(art/m_paperbg.webp) center/300px;box-shadow:0 0 0 3px var(--black),5px 6px 0 rgba(0,0,0,.5)}
-#mStrokes .stslot.on::after{bottom:-10px;background:#fff;box-shadow:3px 3px 0 0 var(--black)}
+#mStrokes .stslot.on{rotate:0deg;translate:0 -3px;background:#fff url(art/m_paperbg.webp) center/300px;box-shadow:0 0 0 3px var(--sk),5px 7px 0 rgba(0,0,0,.5)}
+#mStrokes .stslot:not(.on){filter:brightness(.88)}
+#mStrokes .stslot.on::after{bottom:-10px;background:#fff;box-shadow:3px 3px 0 0 var(--sk)}
 #mStrokes .stslot.fresh::before{box-shadow:0 0 0 2px #FBF8F1}
 #mStrokes .stslot:focus-visible,#mStrokes .stopt:focus-visible{outline:3px solid #FFF1C4;outline-offset:4px}
 /* the heading: a tape label */
