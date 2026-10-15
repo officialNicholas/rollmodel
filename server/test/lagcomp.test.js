@@ -87,6 +87,41 @@ test('a roll that comes too late does not save the target', async () => {
   assert.ok(r.ko, 'knocked out'); assert.equal(r.dodged, null);
 });
 
+test('a stomp: landing on a rival flattens it; it cannot move until it pops back up, then it can', async () => {
+  const srv = await startServer({ matchT: 20, flatT: 1.2 });
+  const [A, B] = makeBots(srv, 2, { profile: 'rtt60', behavior: 'script', layoutFor: stage, prefix: 'stomp' });
+  let claimed = null, jumped = false;
+  // the victim stands still at (-9, 2)... the stomper starts at (0, 0) and runs at it, hops, and claims the stomp as it
+  // comes down on its head
+  B.o.script = bot => { bot.input = bot.body.flatT > 0 || !bot.go ? { speedK: 0 } : { yaw: Math.PI / 2, speedK: 1 }; };
+  A.o.script = (bot, dt, sNow) => {
+    const r = bot.net.remote(B.slot); if (!r || sNow < bot.startAt + 200) { bot.input = { speedK: 0 }; return; }
+    const d = Math.hypot(r.x - bot.body.x, r.z - bot.body.z);
+    bot.input = { yaw: Math.atan2(r.x - bot.body.x, r.z - bot.body.z), speedK: 1 };
+    if (!jumped && !bot.body.air && d < 3.6 && d > 3.0) { jumped = true; if (bot.body.jump()) bot.net.action('jump'); }
+    if (jumped && !claimed && bot.body.air && bot.body.vy < -0.5 && d < 2 * G.PR && bot.body.y > r.y + 0.25) {
+      claimed = bot.net.action('stomp', { target: B.slot }); bot.body.vy = 6.5; // bounce off its head, like the game
+    }
+  };
+  try {
+    await Promise.all([A, B].map(b => b.connect()));
+    await A.net.queue('duel'); await B.net.queue('duel');
+    await Promise.all([A, B].map(b => b.wait('start')));
+    const flat = await B.wait('flat', m => m.slot === B.slot, 12000);
+    assert.equal(flat.by, A.slot); assert.ok((await claimed).ok);
+    const m = matchOf(srv, A.id), pb = m.P[B.slot];
+    assert.ok(pb.flatUntil > 0);
+    // flattened: it stays put (its states keep being accepted, standing still)
+    const at = { ...pb.mover.last };
+    await sleep(600); assert.ok(Math.hypot(pb.mover.last.x - at.x, pb.mover.last.z - at.z) < 0.3);
+    // when it pops back up it runs off, and the server follows it (its states carry the new correction id)
+    await until(() => performance.now() > flat.until + 300, 4000);
+    B.go = true; await sleep(800);
+    assert.ok(Math.hypot(pb.mover.last.x - at.x, pb.mover.last.z - at.z) > 2, 'moving again on the server');
+    assert.equal(B.stats.corrections, 0, JSON.stringify(B.events)); assert.equal(A.stats.corrections, 0, JSON.stringify(A.events));
+  } finally { A.close(); B.close(); await srv.close(); }
+});
+
 test('a landing claimed far from where the attacker really was is refused', async () => {
   const r = await scenario({ target: 5.5, claimFar: true });
   assert.equal(r.ko, null);

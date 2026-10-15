@@ -203,7 +203,7 @@ export class Match {
       return null;
     }
     const r = p.mover.check(s, s.t, this._env(p, s));
-    if (!r.ok) { if (!r.silent) { this.stats.rejected++; this._violation(p, r.reason, r.hard); } return null; }
+    if (!r.ok) { if (!r.silent) { this.stats.rejected++; this._violation(p, r.reason, r.hard, r.detail); } return null; }
     this._accept(p, s, tau, r, { x: s.x, y: r.y, z: s.z });
     if (r.fell) this._ko(p, null, 'fall');
     return null;
@@ -260,12 +260,12 @@ export class Match {
       this.cov.stampPath(a.x, a.y, a.z, b.x, b.y, b.z, G.TW / 2 * w, p.color);
     }
   }
-  _violation(p, reason, hard) {
+  _violation(p, reason, hard, detail) {
     const now = nowMs(), decay = this.rules.strikeDecay * 1000;
     if (p.strikes > 0 && now - p.strikeAt > decay) p.strikes = Math.max(0, p.strikes - Math.floor((now - p.strikeAt) / decay));
     p.strikes += hard ? 2 : 1; p.strikeAt = now; p.violations[reason] = (p.violations[reason] || 0) + 1;
     this.stats.corrections++; this.srv.stats.violations++;
-    this.log.info('violation', { player: p.id, reason, strikes: p.strikes });
+    this.log.info('violation', { player: p.id, reason, strikes: p.strikes, detail, recent: p.recentActs });
     if (p.mover) {
       p.cid = nextCid(p.cid); p.mover.bucket = 0; p.mover.last.t = Math.max(p.mover.last.t, now);
       const L = p.mover.last;
@@ -293,17 +293,21 @@ export class Match {
       case 'roll': why = this._roll(p, ts); break;
       case 'fling': why = this._fling(p, ts, m.c, vt); break;
       case 'pound': why = this._pound(p, ts, vt, recv); break;
-      case 'land': why = this._land(p, ts, vt, m, recv, n); if (why === 'pending') return null; break;
-      case 'stomp': why = this._stomp(p, ts, vt, m.target, recv, n); if (why === 'pending') return null; break;
+      case 'land': why = this._land(p, ts, vt, m, recv, n); break;
+      case 'stomp': why = this._stomp(p, ts, vt, m.target, recv, n); break;
       case 'enterPot': why = this._enterPot(p, ts, m.pot); break;
       case 'exitPot': why = p.st === 'hide' ? (this._leavePot(p, ts, 'exit'), null) : 'not_hidden'; break;
       case 'use': why = this.items ? this.items.use(p, ts, vt, m) : 'no_items'; break;
       case 'selfKo': why = this._selfKo(p, m.reason); break;
     }
+    (p.recentActs = p.recentActs || []).push({ a, why: why || undefined, ts: Math.round(ts), at: Math.round(recv) }); if (p.recentActs.length > 5) p.recentActs.shift(); // (for the logs)
+    if (why === 'pending') return null; // a landing or a stomp: answered once it has been judged
     this._ack(p, n, a, !why, why);
     if (!why && a !== 'selfKo' && a !== 'use') this._all({ t: 'act', slot: p.slot, a, ts, c: a === 'fling' ? p.flingC : undefined, pot: a === 'enterPot' ? p.pot : undefined }, p);
     return null;
   }
+  // still in the air in a pound (once it has landed the player is free, even while the hits are being judged)
+  _inPound(p, ts) { const pd = p.pound; return !!pd && !pd.land && ts < pd.t0 + (pd.air ? 3000 : G.POUND_T * 1000 - 60); }
   _canAct(p, ts) {
     if (p.st !== 'play') return p.st === 'hide' ? 'hidden' : 'state';
     if (p.flatUntil > ts + 60) return 'flat';
@@ -313,14 +317,14 @@ export class Match {
   _jump(p, ts) {
     if (p.st === 'hide') { this._leavePot(p, ts, 'jump'); return null; }
     const no = this._canAct(p, ts); if (no) return no;
-    if (p.pound) return 'busy';
+    if (this._inPound(p, ts)) return 'busy';
     if (p.mover.airborne && ts - p.mover.groundT > 250) return 'air'; // (a moment of grace after rolling off a ledge, like the game)
     p.mover.onJump(ts); return null;
   }
   _roll(p, ts) {
     if (p.st === 'hide') { this._leavePot(p, ts, 'roll'); return null; }
     const no = this._canAct(p, ts); if (no) return no;
-    if (p.pound) return 'busy';
+    if (this._inPound(p, ts)) return 'busy';
     if (p.mover.airborne) {
       // a mid-air dash: once per hop, a moment untouchable
       if (p.mover.dashUsed) return 'air';
@@ -340,7 +344,7 @@ export class Match {
     if (p.st === 'hide') this._leavePot(p, ts, 'fling'); // flinging out of a pot works even when dry
     else {
       const no = this._canAct(p, ts); if (no) return no;
-      if (p.pound) return 'busy';
+      if (this._inPound(p, ts)) return 'busy';
       if (p.paint <= 0.001) return 'no_paint';
       // in the air this is the mid-air sling (after a hop or a pot exit): once per hop, shared with the air dash
       if (p.mover.airborne && ts - p.mover.groundT > 250) { if (p.mover.dashUsed) return 'air'; p.mover.dashUsed = true; air = true; }
@@ -466,7 +470,7 @@ export class Match {
     const d = Math.hypot(a.x - b.x, a.z - b.z), dy = a.y - b.y;
     if (d > 2 * G.PR + 0.25 || dy < 0.1 || dy > 1.3) return 'far';
     if (B.flatUntil > ts) return 'flat';
-    A.mover.launch(6.5, ts, b.y + 0.3); // the stomper bounces off at once on its own screen
+    A.mover.launch(6.5, ts, Math.max(a.y, b.y + 0.3)); // the stomper bounces off at once on its own screen (the game's rule)
     this.hits.push({ kind: 'stomp', by: A, B, ts, vt: vtc, n, decideAt: Math.min(recv + this.rules.dodgeWaitMs, Math.max(recv, ts + B.lagEst + 3 * B.jit + 25)) });
     return 'pending';
   }

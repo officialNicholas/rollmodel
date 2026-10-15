@@ -37,7 +37,7 @@ for (const mode of ['duel', 'trio', 'ffa', 'duo']) {
       assert.equal(starts[0].layoutHash, layoutHash(bots[0].layout), 'the server agrees with the SDK hash');
       assert.equal(starts[0].spawns.length, n);
       // play: snapshots at about 30 a second, coverage a few times a second
-      let cov = 0; bots[0].on('cov', () => cov++);
+      let cov = 0; bots[0].on('coverage', c => { if (c.sides.length === new Set(MODE_INFO[mode].sides).size) cov++; });
       await until(() => bots.every(b => b.net.stats().snapshotsPerSec >= 25), 8000);
       await until(() => cov >= 4, 8000);
       const first = await playOnce(bots, { expectRematch: true });

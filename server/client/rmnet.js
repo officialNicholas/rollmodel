@@ -285,7 +285,7 @@ const RMNetSDK = (() => {
       this.autoReconnect = opts.autoReconnect !== false;
       this.sendInterval = 1000 / (opts.sendHz || 30);
       this.maxExtrapolate = opts.maxExtrapolate === undefined ? 250 : opts.maxExtrapolate;
-      this.id = null; this.rating = null; this.connected = false; this.match = null; this.slot = -1; this.room = null;
+      this.id = null; this.ratings = null; this.connected = false; this.match = null; this.slot = -1; this.room = null;
       this.ws = null; this._h = new Map(); this._closing = false; this._attempt = 0; this._retryTimer = null;
       this._clock = new ClockSync(); this._interp = new InterpDelay(opts.minInterp || 60, opts.maxInterp || 200);
       this._tracks = new Map(); this._seq = 0; this._nextSend = 0; this._corr = 0; this._ack = 0;
@@ -302,7 +302,8 @@ const RMNetSDK = (() => {
     // ---- connection ----
     // resolves with the welcome message; rejects if the server refuses (for example a protocol version mismatch)
     connect() {
-      this._closing = false;
+      this._closing = false; clearTimeout(this._retryTimer);
+      if (this.ws) { const old = this.ws; this.ws = null; try { old.close(1000, 'reconnect'); } catch (e) { /* already closed */ } }
       return new Promise((resolve, reject) => {
         const offW = this.on('welcome', w => { offW(); offE(); resolve(w); });
         const offE = this.on('fatal', e => { offW(); offE(); reject(Object.assign(new Error(e.message || e.code), { code: e.code })); });
@@ -465,9 +466,12 @@ const RMNetSDK = (() => {
         const w = this._waits.get(m.r); this._waits.delete(m.r);
         if (m.t === 'error') w.reject(Object.assign(new Error(m.message || m.code), { code: m.code })); else w.resolve(m);
       }
+      // A message carrying cid places our blob with authority (start, resume, correction, respawn, flat). From now on
+      // our states carry that id, so the server can tell them from the ones we sent before we applied it.
+      if (m.cid !== undefined && (m.slot === undefined || m.slot === this.slot)) this._corr = m.cid & 0xff;
       switch (m.t) {
         case 'welcome':
-          this.id = m.id; this.token = m.token; this.name = m.name; this.rating = m.rating || null; this._noRetry = false;
+          this.id = m.id; this.token = m.token; this.name = m.name; this.ratings = m.ratings || null; this._noRetry = false;
           this._emit('welcome', m); if (m.token) this._emit('token', { token: m.token });
           break;
         case 'error':
@@ -480,21 +484,19 @@ const RMNetSDK = (() => {
         case 'matchFound': case 'resume':
           this.match = { id: m.matchId, mode: m.mode, seed: m.seed, opts: m.opts, players: m.players, layoutHash: null, startAt: m.startAt || null, endAt: m.endAt || null };
           this.slot = m.you; this._tracks.clear(); this._clock.locked = true;
-          if (m.cid !== undefined) this._corr = m.cid & 0xff;
           this._emit(m.t, m);
           break;
         case 'start':
           if (this.match && this.match.id === m.matchId) { this.match.startAt = m.startAt; this.match.endAt = m.endAt; }
-          if (m.cid !== undefined) this._corr = m.cid & 0xff;
           this._emit('start', m);
           break;
-        case 'correction': this._corr = m.cid & 0xff; this._st.corrections++; this._emit('correction', m); break;
-        case 'respawn': if (m.slot === this.slot && m.cid !== undefined) this._corr = m.cid & 0xff; this._emit('respawn', m); break;
+        case 'correction': this._st.corrections++; this._emit('correction', m); break;
         case 'ack': {
           const f = this._acts.get(m.n); if (f) { this._acts.delete(m.n); if (!m.ok) this._st.rejected++; f({ ok: !!m.ok, reason: m.reason, a: m.a, data: m.data }); }
           this._emit('actionResult', m);
           break;
         }
+        case 'cov': this._emit('coverage', { sides: m.s, colors: m.c }); break; // (short on the wire: four a second)
         case 'matchEnd': this._clock.locked = false; this._emit('matchEnd', m); break;
         case 'matchCancelled': case 'matchClosed':
           this._emit(m.t, m); this.match = null; this.slot = -1; this._clock.locked = false; this._tracks.clear();

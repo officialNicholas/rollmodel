@@ -35,7 +35,9 @@ export function genLayout(seed, arena = 26.4, { players = 4 } = {}) {
   want.forEach((n, i) => { let got = 0; for (let t = 0; t < 60 && got < n; t++) if (kinds[i]()) got++; });
   const lv = new Level({ arena: A, boxes, ramps, holes, pots: [[0, 0, 0]], powers: [], spawns: spawnsOf(A) });
   // pots and power spots on open floor, away from the spawns and from each other
-  const open = (x, z, m) => { for (let a = 0; a < 8; a++) { const px = x + Math.sin(a * 0.785) * m, pz = z + Math.cos(a * 0.785) * m; if (lv.surfaceUnder(px, pz, 0.3) !== 0 || lv.blockedAt(px, pz, 0)) return false; } return lv.surfaceUnder(x, z, 0.3) === 0 && !lv.onRamp(x, z, 1); };
+  // open floor: no drop or wall within m, not on a ramp, and nothing overhead (like the game's coffin rule)
+  const overhead = (x, z) => boxes.some(b => b[4] > 0.05 && x > b[0] - 0.7 && x < b[1] + 0.7 && z > b[2] - 0.7 && z < b[3] + 0.7);
+  const open = (x, z, m) => { for (let a = 0; a < 8; a++) { const px = x + Math.sin(a * 0.785) * m, pz = z + Math.cos(a * 0.785) * m; if (lv.surfaceUnder(px, pz, 0.3) !== 0 || lv.blockedAt(px, pz, 0)) return false; } return lv.surfaceUnder(x, z, 0.3) === 0 && !lv.onRamp(x, z, 1) && !overhead(x, z); };
   const spots = (n, minGap, m) => { const out = []; for (let t = 0; t < 2000 && out.length < n; t++) { const x = q(rr(-A + 3, A - 3)), z = q(rr(-A + 3, A - 3)); if (!open(x, z, m) || !open(-x, -z, m)) continue; if (spawnsOf(A).some(s => Math.hypot(s[0] - x, s[1] - z) < 4 || Math.hypot(s[0] + x, s[1] + z) < 4)) continue; if (out.some(p => Math.hypot(p[0] - x, p[2] - z) < minGap || Math.hypot(p[0] + x, p[2] + z) < minGap)) continue; if (Math.hypot(x, z) < 2) continue; out.push([x, 0, z], [-x, 0, -z]); } return out; };
   const pots = spots(8, 6, 1.2), powers = spots(8, 5, 0.9).map((p, i) => (i < 4 ? [...p, 'roller'] : p));
   return { arena: A, boxes, ramps, holes, pots, powers, spawns: spawnsOf(A).slice(0, Math.max(players, 2)) };

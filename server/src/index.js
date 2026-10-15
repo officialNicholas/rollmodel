@@ -4,6 +4,8 @@ import { configFromEnv } from './config.js';
 import { GameServer } from './server.js';
 import { createLogger } from './log.js';
 
+// a closed stdout or stderr (the log reader went away) must not take the server down
+for (const s of [process.stdout, process.stderr]) s.on('error', () => {});
 const cfg = configFromEnv();
 const log = createLogger({ level: cfg.logLevel, base: { svc: 'rollmodel' } });
 const srv = new GameServer(Object.assign({ log }, cfg));

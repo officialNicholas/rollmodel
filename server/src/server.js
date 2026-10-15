@@ -25,7 +25,7 @@ export class GameServer {
     this.sessions = new Set(); this.online = new Map(); this.inMatch = new Map(); this.matches = new Set(); this.rooms = new Map();
     this.mm = new Matchmaker(); this.perIp = new Map(); this.connSeq = 0; this.closing = false;
     this.stats = { connections: 0, messages: 0, violations: 0, kicked: 0, matchesStarted: 0, matchesEnded: 0, matchesCancelled: 0, bytesOut: 0, framesOut: 0 };
-    this.tickTimes = new Window(8192); this.startedAt = nowMs(); this._timer = null; this._nextTick = 0; this._lastMM = 0; this._lastPing = 0;
+    this.tickTimes = new Window(8192); this.tickCpu = new Window(8192); this.startedAt = nowMs(); this._timer = null; this._nextTick = 0; this._lastMM = 0; this._lastPing = 0;
   }
 
   async listen(port = this.opts.port ?? 8080, host = this.opts.host || '0.0.0.0') {
@@ -54,12 +54,18 @@ export class GameServer {
   // window: only the last N ticks (0: all kept). elu: how busy the event loop was since the previous health call.
   health(window = 0) {
     const vals = this.tickTimes.values(), t = summarize(window ? vals.slice(-window) : vals);
+    const cv = this.tickCpu.values(), tc = summarize(window ? cv.slice(-window) : cv);
     const elu = performance.eventLoopUtilization(this._elu); this._elu = performance.eventLoopUtilization();
+    // processor time used since the last health call, as a share of one core (unlike elu, not inflated when the machine
+    // is busy with other work)
+    const cpuNow = process.cpuUsage(), wallNow = nowMs(), c0 = this._cpu || { u: { user: 0, system: 0 }, w: this.startedAt };
+    const cpu = ((cpuNow.user - c0.u.user) + (cpuNow.system - c0.u.system)) / 1000 / Math.max(1, wallNow - c0.w); this._cpu = { u: cpuNow, w: wallNow };
     const mem = process.memoryUsage();
     return {
       ok: !this.closing, proto: PROTOCOL_VERSION, uptime: Math.round((nowMs() - this.startedAt) / 1000),
       connections: this.sessions.size, players: this.online.size, matches: this.matches.size, rooms: this.rooms.size, queues: this.mm.sizes(),
-      tick: { p50: +t.p50.toFixed(3), p99: +t.p99.toFixed(3), max: +t.max.toFixed(3), n: t.n }, elu: +elu.utilization.toFixed(3),
+      tick: { p50: +t.p50.toFixed(3), p99: +t.p99.toFixed(3), max: +t.max.toFixed(3), n: t.n, cpuP50: +tc.p50.toFixed(3), cpuP99: +tc.p99.toFixed(3) },
+      elu: +elu.utilization.toFixed(3), cpu: +cpu.toFixed(3),
       memMB: Math.round(mem.rss / 1048576), stats: this.stats,
     };
   }
@@ -128,7 +134,15 @@ export class GameServer {
   }
 
   // ------------------------------------------------------------------------------------------------ messages
+  // never let one message take the process down: anything unexpected is logged and that client is told
   _message(sess, data, isBinary) {
+    try { this._onMessage(sess, data, isBinary); } catch (e) {
+      this.stats.errors = (this.stats.errors || 0) + 1;
+      this.log.error('message failed', { conn: sess.id, err: e.stack || e.message });
+      this.sendError(sess, 'server', 'server error');
+    }
+  }
+  _onMessage(sess, data, isBinary) {
     if (sess.closed) return;
     const now = nowMs(); sess.lastMsg = now; this.stats.messages++;
     if (isBinary) return this._binary(sess, data, now);
@@ -340,9 +354,9 @@ export class GameServer {
     const hz = this.rules.snapshotHz || 30, step = 1000 / hz;
     const run = () => {
       if (this.closing) return;
-      const t0 = nowMs();
+      const t0 = nowMs(), c0 = process.cpuUsage();
       try { this._tick(t0); } catch (e) { this.log.error('tick failed', { err: e.stack || e.message }); }
-      const t1 = nowMs(); this.tickTimes.push(t1 - t0);
+      const t1 = nowMs(), c1 = process.cpuUsage(c0); this.tickTimes.push(t1 - t0); this.tickCpu.push((c1.user + c1.system) / 1000);
       this._nextTick += step; if (this._nextTick < t1 - step) this._nextTick = t1; // fell far behind: do not race to catch up
       this._timer = setTimeout(run, Math.max(0, this._nextTick - nowMs()));
     };
@@ -357,7 +371,14 @@ export class GameServer {
         for (const p of m.P) p.queuedAt = g.tickets[p.slot].at;
       }
     }
-    for (const m of [...this.matches]) m.tick(now);
+    for (const m of [...this.matches]) {
+      try { m.tick(now); } catch (e) {
+        // one broken match must not stop the others: call it off
+        this.stats.errors = (this.stats.errors || 0) + 1;
+        this.log.error('match tick failed', { match: m.id, err: e.stack || e.message });
+        try { if (m.phase === 'ended') m.close('server_error'); else m.cancel('server_error'); } catch (e2) { this.matches.delete(m); }
+      }
+    }
     if (now - this._lastPing >= 2000) { this._lastPing = now; const b = new Uint8Array(codec.encodeSPing(now)); for (const s of this.sessions) if (s.player) this.sendBinary(s, b, true); }
   }
 
