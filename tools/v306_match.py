@@ -87,15 +87,26 @@ const netBlob = slot => slot === NM.slot ? P : slot === NM.foe ? H : null;
 // your moves go to the referee as they happen
 function netAct(a, data) {
   if (!NM || !NM.net) return; const nm = NM;
-  nm.net.action(a, data || {}).then(r => { if (NM !== nm || r.ok) return; nm.refused++; nm.why.push(a + ':' + r.reason); if (nm.why.length > 8) nm.why.shift(); if (a === 'enterPot' && P.st === 'hide' && r.reason !== 'disconnected' && r.reason !== 'timeout') exitPot(P); }); // (it didn't let you in: out you pop)
+  // where you are right now goes first, so the referee judges the move from here (on a slow frame you may have come
+  // a long way since the last report)
+  if (nm.live && state === 'play' && (P.st === 'play' || P.st === 'hide')) nm.net.sendState(netState(), true);
+  nm.net.action(a, data || {}).then(r => { if (NM !== nm || r.ok) return; nm.refused++; nm.why.push(a + ':' + r.reason); if (nm.why.length > 8) nm.why.shift(); if (a === 'enterPot' && P.st === 'hide' && r.reason !== 'disconnected' && r.reason !== 'timeout') netUnPot(r.reason); });
+}
+// a dive into a pot the referee didn't allow: back where you were, on the ground (no hop out: the server never had you in it)
+function netPre() { NM.pre = { x: P.x, y: P.y, z: P.z, yaw: P.yaw, air: P.air }; }
+function netUnPot(why) {
+  const p = P.pot, q = NM.pre; if (p) { if (p.occ === P) p.occ = null; p.cool = 0.6; p.bounce = 0.6; } P.pot = null; P.st = 'play'; P.stroke++; P.spd = 0; P.vy = 0; P.wob = 1;
+  if (q) { P.x = q.x; P.z = q.z; P.yaw = q.yaw; } const g = surfaceUnder(P.x, P.z, (q ? q.y : P.y) + STEP, true); if (g > -Infinity && (!q || !q.air)) { P.y = g; P.air = false; } else { P.y = q ? q.y : P.y; P.air = true; }
+  if (P.charging) clearCharge(P); if (why === 'occupied') popText('Taken!');
 }
 // each frame: where you are, to the server (after you've landed from the drop at Go)
 function netFrame() {
   if (!NM || !NM.net) return;
   if (state === 'play' && !NM.live && NM.phase !== 'end' && NM.startAt && P.st === 'play' && !P.air && netNow() >= NM.startAt) NM.live = true;
   if (!NM.live || state !== 'play' || (P.st !== 'play' && P.st !== 'hide')) return;
-  NM.net.sendState({ x: P.x, y: P.y, z: P.z, yaw: P.yaw, spd: P.st === 'hide' ? 0 : P.spd, vy: P.vy, air: P.air, rolling: P.rollT > 0, charging: P.charging, slam: !!P.slam, hidden: P.st === 'hide', flung: !!P.flung, dry: !!P.dry, missile: !!P.missile, paint: clamp(P.paint, 0, 1), aim: P.charging ? clamp(P.charge || 0, 0, 1) : 0 });
+  NM.net.sendState(netState());
 }
+const netState = () => ({ x: P.x, y: P.y, z: P.z, yaw: P.yaw, spd: P.st === 'hide' ? 0 : P.spd, vy: P.vy, air: P.air, rolling: P.rollT > 0, charging: P.charging, slam: !!P.slam, hidden: P.st === 'hide', flung: !!P.flung, dry: !!P.dry, missile: !!P.missile, paint: clamp(P.paint, 0, 1), aim: P.charging ? clamp(P.charge || 0, 0, 1) : 0 });
 // at Go: no pick-ups online, the rival's rank on its tag, the weather from the start
 function netGo() { for (const D of ACTIVE) { D.held = null; D.held2 = null; D.heldT = 0; } H.rank = NM.foeRank; NM.wxI = -1; NM.phase = 'play'; }
 // the weather on the server's schedule (the same turns as the game's own: a heat wave and its rain, rain, clear)
@@ -255,12 +266,12 @@ function netCancelled() {
   if (!NM) return; const was = NM.phase; netLeave(); $('vsx').hidden = true; popText(was === 'found' ? 'The match was called off' : 'Match over');
   if (state !== 'menu' || menu.hidden) toMenu();
 }
-function netClosed() { if (!NM) return; NM.closed = true; if (NM.phase === 'end') netEndButtons(); else if (state === 'play') { popText('Match over'); toMenu(); } }
+function netClosed(m) { if (!NM) return; NM.closed = true; NM.closedWhy = m && m.reason; if (NM.phase === 'end') netEndButtons(); else if (state === 'play') { popText('Match over'); toMenu(); } }
 // the end screen: Rematch (the same rival, if they want it too) or Menu
 function netEndButtons() {
   const b = $('endBtn'), wait = NM && NM.voted, gone = !NM || NM.closed; $('replayBtn').hidden = true; $('replayBtn').closest('.row').hidden = false; end.classList.remove('gate');
   if (!b.querySelector('small')) b.innerHTML = '<span>Rematch</span><small></small>';
-  b.querySelector('span').textContent = gone ? 'Rival left' : wait ? 'Waiting…' : 'Rematch'; b.querySelector('small').textContent = gone ? 'Back to the menu' : wait ? 'for ' + nameOf(H) : NM && NM.foeVote ? nameOf(H) + ' wants one!' : 'Same rival, new canvas'; b.disabled = !!(gone || wait);
+  b.querySelector('span').textContent = gone ? (NM && NM.closedWhy === 'rematch_timeout' ? 'Rematch closed' : 'Rival left') : wait ? 'Waiting…' : 'Rematch'; b.querySelector('small').textContent = gone ? 'Back to the menu' : wait ? 'for ' + nameOf(H) : NM && NM.foeVote ? nameOf(H) + ' wants one!' : 'Same rival, new canvas'; b.disabled = !!(gone || wait);
 }
 function netRematch() { if (!NM || NM.closed || NM.voted) return; NM.voted = true; NM.net.rematch(true); netEndButtons(); }
 function netVotes(m) { if (!NM || !Array.isArray(m.votes)) return; NM.foeVote = m.votes[NM.foe] === true; if (m.votes[NM.foe] === false) NM.closed = true; if (NM.phase === 'end') netEndButtons(); }
@@ -303,10 +314,10 @@ def apply(s):
                "if (D.koT <= 0) { if (D.rag) ragEnd(D); if (NM) D.koT = 0; else if (D.elimNow) sdOut(D); else respawnBlob(D); } return; }")
     s = rep(s, "D.yaw = exitYaw(D, D.yaw); D.turn = 0; exitPot(D); } } else D.emptyT = 0;",
                "D.yaw = exitYaw(D, D.yaw); D.turn = 0; exitPot(D); if (NM && D === P) netAct('exitPot'); } } else D.emptyT = 0;")
-    s = rep(s, "{ rollIntoCoffin(D, p); break; }", "{ if (NM) { if (D === P && p.ink > 0.02) { D.rollT = 0; D.dashT = 0; D.flung = false; D.spd = 0; enterPot(D, p); p.cool = 0; netAct('enterPot', { pot: pots.indexOf(p) }); } } else rollIntoCoffin(D, p); break; }")
+    s = rep(s, "{ rollIntoCoffin(D, p); break; }", "{ if (NM) { if (D === P && p.ink > 0.02) { D.rollT = 0; D.dashT = 0; D.flung = false; D.spd = 0; netPre(); enterPot(D, p); p.cool = 0; netAct('enterPot', { pot: pots.indexOf(p) }); } } else rollIntoCoffin(D, p); break; }")
     s = rep(s, "  if (D.flung && D.st === 'play') for (const p of pots)", "  if (D.flung && D.st === 'play' && !NM) for (const p of pots)")
     s = rep(s, "&& Math.hypot(D.x - p.x, D.z - p.z) < 0.5 + PR * 0.95) { enterPot(D, p); break; }",
-               "&& Math.hypot(D.x - p.x, D.z - p.z) < 0.5 + PR * 0.95) { enterPot(D, p); if (NM && D === P) netAct('enterPot', { pot: pots.indexOf(p) }); break; }")
+               "&& Math.hypot(D.x - p.x, D.z - p.z) < 0.5 + PR * 0.95) { if (NM && D === P) netPre(); enterPot(D, p); if (NM && D === P) netAct('enterPot', { pot: pots.indexOf(p) }); break; }")
     s = rep(s, "function jump(D) {\n  if (D.st === 'hide') return exitPot(D);", "function jump(D) {\n  if (D.st === 'hide') { if (NM && D === P) netAct('jump'); return exitPot(D); }")
     s = rep(s, "  D.air = true; D.vy = JUMP_V; D.airSling = true; D.airBack = false; D.stroke++;", "  if (NM && D === P) netAct('jump');\n  D.air = true; D.vy = JUMP_V; D.airSling = true; D.airBack = false; D.stroke++;")
     s = rep(s, "  D.airSling = false; D.airBack = false; D.vy = vy; D.spd = dist / Math.max(0.2, T);", "  if (NM && D === P) netAct('roll');\n  D.airSling = false; D.airBack = false; D.vy = vy; D.spd = dist / Math.max(0.2, T);")
