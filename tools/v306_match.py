@@ -275,9 +275,9 @@ function netClosed(m) { if (!NM) return; NM.closed = true; NM.closedWhy = m && m
 function netEndButtons() {
   const b = $('endBtn'), wait = NM && NM.voted, gone = !NM || NM.closed; $('replayBtn').hidden = true; $('replayBtn').closest('.row').hidden = false; end.classList.remove('gate');
   if (!b.querySelector('small')) b.innerHTML = '<span>Rematch</span><small></small>';
-  b.querySelector('span').textContent = gone ? (NM && NM.closedWhy === 'rematch_timeout' ? 'Rematch closed' : 'Rival left') : wait ? 'Waiting…' : 'Rematch'; b.querySelector('small').textContent = gone ? 'Back to the menu' : wait ? 'for ' + nameOf(H) : NM && NM.foeVote ? nameOf(H) + ' wants one!' : 'Same rival, new canvas'; b.disabled = !!(gone || wait);
+  b.querySelector('span').textContent = gone ? (NM && NM.closedWhy === 'rematch_timeout' ? 'Rematch closed' : 'Rival left') : wait ? 'Waiting…' : 'Rematch'; b.querySelector('small').textContent = gone ? 'Back to the menu' : wait ? 'for ' + nameOf(H) : NM && NM.foeVote ? nameOf(H) + ' wants one!' : 'Same rival, new canvas'; b.disabled = !!wait && !gone; // (when the rival's gone it takes you back to the menu)
 }
-function netRematch() { if (!NM || NM.closed || NM.voted) return; NM.voted = true; NM.net.rematch(true); netEndButtons(); }
+function netRematch() { if (!NM || NM.closed) return toMenu(); if (NM.voted) return; NM.voted = true; NM.net.rematch(true); netEndButtons(); }
 function netVotes(m) { if (!NM || !Array.isArray(m.votes)) return; NM.foeVote = m.votes[NM.foe] === true; if (m.votes[NM.foe] === false) NM.closed = true; if (NM.phase === 'end') netEndButtons(); }
 // out of the match for good (the menu, a forfeit, a cancelled match): tell the server, put the offline game back as it was
 function netLeave() {
