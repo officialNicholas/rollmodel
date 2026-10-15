@@ -173,8 +173,8 @@ vec3 bossDefN(vec3 p, vec3 n) {
   // its own light: richer straight on, a bright pink-white rim at the edges, brighter toward the tentacles' tips
   vec3 deep = base * (base * 1.1 + 0.18);
   float tip = smoothstep(0.55, 1.0, vInfo.y) * step(0.01, vInfo.z) * step(vInfo.z, 0.55);
-  totalEmissiveRadiance += jelly * (deep * (0.55 + 0.25 * tip) * bGlow.x + mix(base, vec3(1.0, 0.82, 0.97), 0.45) * fr * 1.05 * bGlow.y);
-  totalEmissiveRadiance += cuff * base * 0.12 + glove * vec3(0.10, 0.09, 0.14) * (0.5 + fr);
+  totalEmissiveRadiance += jelly * (deep * (0.62 + 0.25 * tip) * bGlow.x + mix(base, vec3(1.0, 0.82, 0.97), 0.45) * fr * 1.05 * bGlow.y);
+  totalEmissiveRadiance += cuff * base * 0.16 + glove * vec3(0.21, 0.2, 0.26) * (0.6 + fr);   // (the gloves stay white in a dark, blue room)
   // the purple charge (pulsing), the hit flash
   totalEmissiveRadiance += vec3(0.62, 0.22, 1.0) * bGlow.z * (0.55 + 0.45 * sin(bGlow.w)) * (0.4 + fr) * (jelly + 0.35 * glove);
   totalEmissiveRadiance += bFlash.rgb * bFlash.a * (0.5 + 0.5 * fr);
