@@ -3657,7 +3657,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 285</p>
+      <p class="ver">Version 286</p>
     </div>
   </div>
 
@@ -18698,7 +18698,7 @@ const SKILLS = [
   { id: 'swim', name: 'Swim faster', desc: 'Built for speed, wet or dry.', does: ['8% more pace every time you glide', 'Twice as fast when the rain comes'] },
   { id: 'repel', name: 'Weather Repel', desc: 'Rain and heat roll right off you.', craft: 15, does: ['Rain and its puddles never water your paint down', 'The sun’s heat can’t burn you'] },
   { id: 'pockets', name: 'Deep Pockets', desc: 'Carry more, use it when you like.', craft: 20, does: ['Hold two power-ups and use either one', 'Your orb stays in its slot until you use it'] }];
-const ST_STARTERS = ['rocket', 'swim']; // (yours from the start: everything else is crafted)
+const ST_STARTERS = ['rocket', 'swim', 'roller']; // (yours from the start: everything else is crafted)
 // (v270) the item you start every match holding: the Roller (till you pick another), the Paint Trap or the Turret. All three are yours
 // from the start: no crafting, just Equip
 const ST_ITEMS = [
@@ -18707,6 +18707,8 @@ const ST_ITEMS = [
   { id: 'turret', name: 'Turret', desc: 'Plant it and it fires paint at rivals.', does: ['Tap it to plant a turret on the ground', 'It fires paint at the nearest rival for 7 seconds', 'Each hit drains their paint: empty, and they\u2019re out'] }];
 const stIsItem = id => ST_ITEMS.some(x => x.id === id), cpuItem = () => { const r = Math.random(); return r < 0.32 ? 'roller' : r < 0.56 ? 'turret' : r < 0.78 ? 'trap' : 'whirl'; };
 ST_ITEMS.push({ id: 'whirl', name: 'Whirlwind', desc: 'Charge ahead in a tornado of paint.', does: ['Tap it: you wind up, then charge ahead wrapped in a tornado of your paint', 'Any rival in its path is splatted and knocked out', 'Leaves a wide trail and ends in a burst. Steer as you go'] }); // (v271)
+// (v286) in the order they open up: the Roller yours from the start, each of the others from a rank and then crafted on the bench
+{ const R = { roller: [1, 0], turret: [3, 10], trap: [5, 15], whirl: [7, 20] }; ST_ITEMS.sort((a, b) => R[a.id][0] - R[b.id][0]); for (const o of ST_ITEMS) { o.rank = R[o.id][0]; if (R[o.id][1]) o.craft = R[o.id][1]; } }
 const FZ_ARM = 'M32 32V7M32 15l-6.5-5.5M32 15l6.5-5.5M32 24l-5-4.2M32 24l5-4.2';
 Object.assign(STROKE_ICON, { repel: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 33v15a5.5 5.5 0 0 1-11 0" fill="none" stroke="#171320" stroke-width="3.6" stroke-linecap="round"/><path d="M7 33a25 23 0 0 1 50 0q-6.25-5-12.5 0-6.25-5-12.5 0-6.25-5-12.5 0Q13.25 28 7 33z" fill="#7CC8FF" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M32 10.5q-9 9-8 22M32 10.5q9 9 8 22" fill="none" stroke="#171320" stroke-width="2.2" opacity=".5"/><path d="M14 22q5-8 13-10" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".85"/><path d="M32 10.5V6" stroke="#171320" stroke-width="3.2" stroke-linecap="round"/><path d="M11 44l-2.5 5M53 41l-2.5 5M47 52l-2 4.4" stroke="#3E9BE0" stroke-width="3" stroke-linecap="round"/></svg>', pockets: '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="23" cy="19" r="9" fill="#B98CFF" stroke="#171320" stroke-width="3.2"/><circle cx="20" cy="16" r="2.6" fill="#fff" opacity=".85"/><rect x="33" y="7" width="20" height="10" rx="5" fill="#F4EEE3" stroke="#171320" stroke-width="3.2"/><path d="M43 17v10" stroke="#171320" stroke-width="3.2" stroke-linecap="round"/><path d="M11 27h42l-4 25a5 5 0 0 1-5 4.4H20a5 5 0 0 1-5-4.4z" fill="#C98B4E" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M11 27h42v6.5H11z" fill="#A86B34" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M20 43h24" stroke="#F4EEE3" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="3 4" opacity=".85"/></svg>',
   freeze: '<svg viewBox="0 0 64 64" aria-hidden="true"><g fill="none" stroke-linecap="round" stroke-linejoin="round">' + [['#171320', 9], ['#7CC8FF', 5], ['#EAF7FF', 1.8]].map(([c, w]) => [0, 60, 120, 180, 240, 300].map(a => '<path d="' + FZ_ARM + '" stroke="' + c + '" stroke-width="' + w + '" transform="rotate(' + a + ' 32 32)"/>').join('')).join('') + '</g><circle cx="32" cy="32" r="6" fill="#EAF7FF" stroke="#171320" stroke-width="3"/></svg>' });
@@ -18725,8 +18727,9 @@ const stReady = id => (stIsSkill(id) ? spName(id) : 'The ' + spName(id)) + ' is 
 const SWIM_BOOST = 1.08, STROKE_LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 10.5V7.8a4.5 4.5 0 0 1 9 0v2.7" fill="none" stroke="currentColor" stroke-width="3"/><rect x="4.5" y="10" width="15" height="12" rx="2.6" fill="currentColor"/></svg>';
 function strokesOf() { const d = store.strokes || (store.strokes = {}); if (!d.special) d.special = 'rocket'; if (!d.skill) d.skill = 'swim'; if (!Array.isArray(d.own)) d.own = ['rocket', 'swim']; for (const k of ST_STARTERS) if (!d.own.includes(k)) d.own.push(k);
   if (!d.sk257) { d.sk257 = 1; d.own = d.own.filter(k => !['repel', 'pockets'].includes(k) || k === d.skill); } // (v257: skills are crafted now; the ones handed out before go back on the bench, all but the one you have on)
-  if (!SKILLS.some(x => x.id === d.skill) || !d.own.includes(d.skill)) d.skill = 'swim'; if (!stIsItem(d.item)) d.item = 'roller'; return d; }
-const strokeOwned = id => stIsItem(id) || strokesOf().own.includes(id), strokeSpecial = () => { const d = strokesOf(); return strokeOwned(d.special) ? d.special : 'rocket'; }, strokeSkill = () => strokesOf().skill, strokeItem = () => strokesOf().item;
+  if (!d.it286) { d.it286 = 1; if (stIsItem(d.item) && d.item !== 'roller' && !d.own.includes(d.item)) d.own.push(d.item); } /* (v286: transforms are crafted now; the one you had on stays yours) */ if (!SKILLS.some(x => x.id === d.skill) || !d.own.includes(d.skill)) d.skill = 'swim'; if (!stIsItem(d.item) || !d.own.includes(d.item)) d.item = 'roller'; return d; }
+const stRank = o => stIsItem(o.id) ? (o.rank || 1) : ABIL_RANK, stDue = o => repOf(store.xp || 0).lv >= stRank(o); // (v286: a transform opens at its own rank)
+const strokeOwned = id => strokesOf().own.includes(id), strokeSpecial = () => { const d = strokesOf(); return strokeOwned(d.special) ? d.special : 'rocket'; }, strokeSkill = () => strokesOf().skill, strokeItem = () => strokesOf().item;
 const strokesOpen = () => menuPage === 'strokes', strokesDue = () => repOf(store.xp || 0).lv >= ABIL_RANK; // (the page opens at rank 3)
 let stTick = 0, stToastT = 0;
 function craftLeft() { const c = strokesOf().craft; return c ? Math.max(0, c.end - Date.now()) : 0; }
@@ -18753,10 +18756,10 @@ function stSetCat(cat, quiet) {
   if (was !== cat && !quiet) { AU.ui(); buzz(5); const r = $(ST_CATS[cat].rail); r.classList.remove('in'); void r.offsetWidth; r.classList.add('in'); }
 }
 function stTile(o, skill) {
-  const d = strokesOf(), item = skill === 'item', own = item || d.own.includes(o.id), on = own && (item ? strokeItem() : skill ? strokeSkill() : strokeSpecial()) === o.id, cr = !!d.craft && d.craft.id === o.id, ready = own && !on && d.fresh === o.id, lock = !own && !cr && !strokesDue();
-  const st = on ? 'equipped' : cr ? 'crafting, ' + mmss(craftLeft()) + ' left' : own ? (item ? 'yours' : 'owned') : lock ? 'locked until rank ' + ABIL_RANK : 'craft it in ' + o.craft + ' minutes';
+  const d = strokesOf(), item = skill === 'item', own = d.own.includes(o.id), on = own && (item ? strokeItem() : skill ? strokeSkill() : strokeSpecial()) === o.id, cr = !!d.craft && d.craft.id === o.id, ready = own && !on && d.fresh === o.id, lock = !own && !cr && !stDue(o);
+  const st = on ? 'equipped' : cr ? 'crafting, ' + mmss(craftLeft()) + ' left' : own ? (item ? 'yours' : 'owned') : lock ? 'locked until rank ' + stRank(o) : 'craft it in ' + o.craft + ' minutes';
   const foot = on ? '<span class="stost on">' + ST_CHECK + 'Equipped</span>' : cr ? '<span class="stost cr"><span class="stcb"><i></i></span><b>' + mmss(craftLeft()) + '</b></span>' : ready ? '<span class="stost new">New</span>'
-    : own ? '<span class="stost own">' + (item || ST_STARTERS.includes(o.id) ? 'Yours' : 'Owned') + '</span>' : lock ? '<span class="stost lk">' + STROKE_LOCK + 'Rank ' + ABIL_RANK + '</span>' : '<span class="stost raw">' + ST_GLASS + o.craft + ' min</span>';
+    : own ? '<span class="stost own">' + (ST_STARTERS.includes(o.id) ? 'Yours' : 'Owned') + '</span>' : lock ? '<span class="stost lk">' + STROKE_LOCK + 'Rank ' + stRank(o) + '</span>' : '<span class="stost raw">' + ST_GLASS + o.craft + ' min</span>';
   return '<button class="stopt' + (on ? ' on' : '') + (cr ? ' crafting' : '') + (ready ? ' ready' : '') + (!own && !cr ? ' raw' : '') + (lock ? ' lock' : '') + '" type="button" data-' + (item ? 'it' : skill ? 'sk' : 'st') + '="' + o.id + '" aria-pressed="' + on + '" aria-haspopup="dialog" aria-label="' + escAttr(o.name + ', ' + st) + '"' + (cr ? ' style="--p:' + stPct(o) + '"' : '') + '>'
     + '<span class="stoi">' + STROKE_ICON[o.id] + '</span><span class="stn">' + o.name + '</span>' + foot + '</button>';
 }
@@ -18765,12 +18768,12 @@ let stPopId = null, stPopT = 0;
 function stPopTick() { if (!stPopId) return; const d = strokesOf(), o = stDef(stPopId); if (!o || !d.craft || d.craft.id !== stPopId) return; $('stPopT').textContent = mmss(craftLeft()); $('stPopBar').style.setProperty('--p', stPct(o)); }
 function stPopRender() {
   if (!stPopId) return; const id = stPopId, o = stDef(id); if (!o) return closeStPop(true);
-  const d = strokesOf(), skill = stIsSkill(id), item = stIsItem(id), own = item || d.own.includes(id), on = own && (item ? strokeItem() : skill ? strokeSkill() : strokeSpecial()) === id, cr = !!d.craft && d.craft.id === id, busy = !!d.craft && !cr, due = strokesDue();
+  const d = strokesOf(), skill = stIsSkill(id), item = stIsItem(id), own = d.own.includes(id), on = own && (item ? strokeItem() : skill ? strokeSkill() : strokeSpecial()) === id, cr = !!d.craft && d.craft.id === id, busy = !!d.craft && !cr, due = stDue(o);
   const card = $('stPop').querySelector('.stpop'); card.classList.toggle('skill', skill || item); card.dataset.cat = stCatOf(id);
   if (card.dataset.id === id && card.dataset.own === '0' && own) { const a = $('stPopArt'); a.style.animation = 'none'; void a.offsetWidth; a.style.animation = ''; } // (just crafted: the picture pops again)
   card.dataset.id = id; card.dataset.own = own ? '1' : '0';
   $('stPopKind').textContent = item ? 'Transform' : skill ? 'Skill' : 'Special stroke';
-  const ow = $('stPopOwn'); ow.hidden = !own; ow.innerHTML = ST_CHECK + (on ? 'Equipped' : item || ST_STARTERS.includes(id) ? 'Yours' : 'Crafted');
+  const ow = $('stPopOwn'); ow.hidden = !own; ow.innerHTML = ST_CHECK + (on ? 'Equipped' : ST_STARTERS.includes(id) ? 'Yours' : 'Crafted');
   if ($('stPopArt').dataset.id !== id) { $('stPopArt').dataset.id = id; $('stPopArt').innerHTML = STROKE_ICON[id]; }
   $('stPopName').textContent = o.name; $('stPopDesc').textContent = o.desc;
   $('stPopDoes').innerHTML = o.does.map(t => '<li>' + t + '</li>').join('');
@@ -18779,7 +18782,7 @@ function stPopRender() {
   $('stPopTimer').hidden = !cr; cb.hidden = own || cr; eb.hidden = !own;
   cb.disabled = busy || !due; cb.classList.remove('done'); cb.innerHTML = (due ? '' : STROKE_LOCK) + 'Craft<small>' + o.craft + ' min</small>';
   eb.disabled = on; eb.classList.toggle('on', on); eb.innerHTML = on ? ST_CHECK + 'Equipped' : 'Equip';
-  const note = own ? '' : busy ? 'One craft at a time: ' + spName(d.craft.id) + ' is on the bench' : !due ? 'Reach rank ' + ABIL_RANK + ' to craft it' : '';
+  const note = own ? '' : busy ? 'One craft at a time: ' + spName(d.craft.id) + ' is on the bench' : !due ? 'Reach rank ' + stRank(o) + ' to craft it' : '';
   $('stPopNote').hidden = !note; $('stPopNote').textContent = note;
   stPopTick();
 }
@@ -18792,12 +18795,12 @@ function openStPop(id) {
 function closeStPop(quiet) { clearTimeout(stPopT); if (!stPopId) return; const id = stPopId; stPopId = null; $('stPop').hidden = true; if (!quiet) AU.ui(); const t = document.querySelector('.stopt[data-st="' + id + '"], .stopt[data-sk="' + id + '"], .stopt[data-it="' + id + '"]'); if (t && strokesOpen()) t.focus({ preventScroll: true }); }
 function skillCard() {}
 function equipSkill(id) { const d = strokesOf(); if (!d.own.includes(id) || d.skill === id) return; d.skill = id; stSkillSel = id; save(); AU.ready && AU.ready(); buzz(8); renderStrokes(); stToast(SKILLS.find(x => x.id === id).name + ' is your skill'); }
-function equipItem(id) { const d = strokesOf(); if (!stIsItem(id) || d.item === id) return; d.item = id; save(); AU.ready && AU.ready(); buzz(8); renderStrokes(); stToast(spName(id) + ' is your starting transform'); }
+function equipItem(id) { const d = strokesOf(); if (!stIsItem(id) || !d.own.includes(id) || d.item === id) return; d.item = id; save(); AU.ready && AU.ready(); buzz(8); renderStrokes(); stToast(spName(id) + ' is your starting transform'); }
 function renderStrokes() {
   const d = strokesOf(); craftTick();
   const now = (id, list, el, k) => { const o = list.find(x => x.id === id) || list[0]; el.innerHTML = '<span class="stic">' + STROKE_ICON[o.id] + '</span><span class="stname">' + o.name + '</span>'; $(ST_CATS[k].slot).setAttribute('aria-label', ST_CATS[k].slot === 'stSpecial' ? 'Special stroke: ' + o.name : (k === 'skill' ? 'Skill: ' : 'Transform: ') + o.name); };
   now(strokeSpecial(), SPECIALS, $('stSpecialNow'), 'special'); now(strokeSkill(), SKILLS, $('stSkillNow'), 'skill'); now(strokeItem(), ST_ITEMS, $('stItemNow'), 'item');
-  for (const k of ['special', 'skill']) $(ST_CATS[k].slot).classList.toggle('fresh', !!d.fresh && stCatOf(d.fresh) === k); // (a dot on the slot with something newly crafted)
+  for (const k of ['special', 'skill', 'item']) $(ST_CATS[k].slot).classList.toggle('fresh', !!d.fresh && stCatOf(d.fresh) === k); // (a dot on the slot with something newly crafted)
   const soon = '<span class="stopt soon" aria-hidden="true"><span class="stoi">' + stImg('soon') + '</span><span class="stn">More soon</span><span class="stost">&nbsp;</span></span>';
   $('stSpecialRail').innerHTML = SPECIALS.map(o => stTile(o, false)).join('') + soon;
   $('stSkillRail').innerHTML = SKILLS.map(o => stTile(o, true)).join('') + soon; $('stItemRail').innerHTML = ST_ITEMS.map(o => stTile(o, 'item')).join('') + soon;
@@ -18824,7 +18827,7 @@ $('stSkillRail').addEventListener('click', e => { const b = e.target.closest('.s
 $('stItemRail').addEventListener('click', e => { const b = e.target.closest('.stopt[data-it]'); if (!b) return; AU.init(); openStPop(b.dataset.it); });
 $('stPopX').addEventListener('click', () => { AU.init(); closeStPop(); });
 $('stPop').addEventListener('click', e => { if (e.target === $('stPop')) { AU.init(); closeStPop(); } });
-$('stPopCraftBtn').addEventListener('click', () => { AU.init(); const id = stPopId, d = strokesOf(); if (!id || d.own.includes(id)) return; if (d.craft) { AU.nope(); stToast('One craft at a time'); return; } if (!strokesDue()) { AU.nope(); stToast('Reach rank ' + ABIL_RANK + ' to craft ' + spName(id)); return; } craftStart(id); });
+$('stPopCraftBtn').addEventListener('click', () => { AU.init(); const id = stPopId, d = strokesOf(); if (!id || d.own.includes(id)) return; if (d.craft) { AU.nope(); stToast('One craft at a time'); return; } if (!stDue(stDef(id))) { AU.nope(); stToast('Reach rank ' + stRank(stDef(id)) + ' to craft ' + spName(id)); return; } craftStart(id); });
 $('stPopSkip').addEventListener('click', () => { AU.init(); craftSkip(); });
 $('stPopEquip').addEventListener('click', () => { AU.init(); const id = stPopId; if (!id || !strokeOwned(id)) return; if (stIsItem(id)) equipItem(id); else if (stIsSkill(id)) equipSkill(id); else equipSpecial(id); clearTimeout(stPopT); stPopT = setTimeout(() => closeStPop(true), 420); }); // (Equipped shows for a beat, then the card goes)
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && stPopId) { e.preventDefault(); e.stopPropagation(); closeStPop(); } }, true);
