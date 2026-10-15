@@ -3884,7 +3884,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 297</p>
+      <p class="ver">Version 298</p>
     </div>
   </div>
 
@@ -14568,7 +14568,8 @@ const STAGE_THEMES = { island: ['island'], blank: ['blank'], sewer: ['sewer'], r
 const inSeason = s => s === 'season' || SEASON.themes.includes(s);
 let stageSel = ['island', 'blank', 'sewer', 'raft', 'crypt', 'cathedral', 'manor'].includes(store.stage) ? store.stage : 'season';
 const stageThemes = () => STAGE_THEMES[stageSel] || SEASON.themes;
-const mapKey = () => (STAGE_KEY[stageSel] || 'sea') + ':' + mode + ':' + (easyOn() ? 1 : 0);
+let tutFlat = false; // (v298) the lesson is on: its Blank Canvas is laid out flat
+const mapKey = () => (STAGE_KEY[stageSel] || 'sea') + ':' + mode + ':' + (easyOn() ? 1 : 0) + (tutFlat ? ':flat' : '');
 function newBlob(team, cpu) {
   return { team, cpu, st: 'play', x: 0, y: 0, z: 0, yaw: 0, vy: 0, air: false, paint: 1, dist: 0, stroke: 1, pot: null, squash: 0, turn: 0, spd: 0, buf: 0, charging: false, charge: 0, pullTgt: 0, power: null, slam: false, slamHang: 0, freeLand: false, coyote: 0, bonkCD: 0, wob: 0, grace: 0, stuck: 0, inkRush: false, exposed: false, slowK: 1, slowed: false, inBoil: false, flatT: 0, immuneT: 0, koT: 0, slamCD: 0, slamMax: SLAM_CD, rb: { stroke: -1 }, steer: 0, kos: 0, flats: 0, outs: 0, outWhy: {}, hearts: 0, selfOuts: 0, elimNow: false, elimAt: -1, elimBy: null, place: 0, slams: 0, smokeAcc: 0, dripAcc: 0, fxAcc: 0, reason: null, spawnImm: false, dilT: 0, giantT: 0, knockT: 0, turf: 0, turfK: 1, slamT: 0, slamEta: 0.6, missile: false, flung: false, flingC: 0, lastHit: null, kx: 0, kz: 0, airSling: false, airBack: false, dashT: 0, dashDir: 0, kod: 0, flatted: 0, focus: null, stunT: 0, stunGuard: 0, rollT: 0, rollCD: 0, rollBuf: 0, rollV: 0, rocket: null, turret: null, tGuard: 0, ai: null, fxK: 0, fxX: 0, fxZ: 0, fxL: 0, fxT: 0, fxSide: 1, stepOff: 0, sprayAcc: 0,
     // (everything a blob ever carries, here from the start, so all three keep one shape and the hot code stays fast)
@@ -16058,7 +16059,7 @@ const rectGap = (a, b) => Math.hypot(Math.max(0, a[0] - b[1], b[0] - a[1]), Math
 function genLayout(seed) {
   const R = rng(seed), rr = (a, b) => a + (b - a) * R(), ri = (a, b) => Math.floor(rr(a, b + 0.999)), pick = a => a[Math.floor(R() * a.length)];
   const q = v => Math.round(v * 20) / 20, shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-  const sym = pick(['rot', 'rot', 'rot', 'mirror', 'mirror', 'free']), TP = genOpt.themes ? THEMES.filter(t => genOpt.themes.includes(t.id)) : THEMES, th0 = pick(TP), theme = th0.id === genOpt.avoid && TP.length > 1 ? TP[(TP.indexOf(th0) + 1 + Math.floor(R() * (TP.length - 1))) % TP.length] : th0, TK = theme.kit;
+  const FLAT = !!genOpt.flat, sym = pick(FLAT ? ['rot', 'rot', 'mirror'] : ['rot', 'rot', 'rot', 'mirror', 'mirror', 'free']), TP = genOpt.themes ? THEMES.filter(t => genOpt.themes.includes(t.id)) : THEMES, th0 = pick(TP), theme = th0.id === genOpt.avoid && TP.length > 1 ? TP[(TP.indexOf(th0) + 1 + Math.floor(R() * (TP.length - 1))) % TP.length] : th0, TK = theme.kit;
   // the symmetry acting on rects and ramps (free-form maps still use the point symmetry for their centerpiece)
   const imgR = r => sym === 'mirror' ? [r[0], r[1], -r[3], -r[2]] : [-r[1], -r[0], -r[3], -r[2]];
   const imgRamp = r => { const m = imgR(r); return sym !== 'mirror' || r[4] === 'z' ? [...m, r[4], r[6], r[5]] : [...m, r[4], r[5], r[6]]; };
@@ -16124,7 +16125,7 @@ function genLayout(seed) {
   };
   // 1) the centerpiece
   const EZ = genOpt.easy; // easy: no holes in the floor and fewer platforms up in the air, so there's less to fall off and into
-  const arch = theme.arch || pick(EZ ? ['plaza', 'plaza', 'spire', 'open', 'open', 'rotunda'] : ['plaza', 'plaza', 'pit', 'spire', 'canopy', 'open', 'rotunda', 'well']);
+  const arch = FLAT ? 'open' : theme.arch || pick(EZ ? ['plaza', 'plaza', 'spire', 'open', 'open', 'rotunda'] : ['plaza', 'plaza', 'pit', 'spire', 'canopy', 'open', 'rotunda', 'well']);
   const mid = comp(); mid.self = true;
   const midSide = () => sym === 'mirror' ? pick(['-z', '+x']) : pick(['-z', '-x']), midAt = s => sym === 'mirror' && s === '+x' ? 0.5 : undefined;
   if (arch === 'plaza') { const w = rr(7.7, 11), d = rr(6.6, 8.8), h = q(rr(1.3, 1.5)), b = B(-w / 2, w / 2, -d / 2, d / 2, 0, h); mid.boxes.push(b); fp(mid, b, 'g', 0, h); const s = midSide(); twinRamp(mid, ramp(mid, b, s, 0.4, rr(2.4, 3.2), midAt(s))); }
@@ -16137,21 +16138,27 @@ function genLayout(seed) {
   // 2) the kit pieces, big ones first so the small ones fill in around them
   const per = sym === 'free' ? 2 : 1, want = [];
   const add = (k, a, b) => { for (let n = ri(a, b) * per; n > 0; n--) want.push(k); };
-  if (EZ) { add('deck', 0, 1); add('tower', 1, 2); add('wall', 0, 1); add('corner', 0, 1); add('pad', 0, 1); add('block', 0, 1); add('plateau', arch === 'plaza' || arch === 'rotunda' ? 0 : 1, 1); }
+  if (FLAT) {}
+  else if (EZ) { add('deck', 0, 1); add('tower', 1, 2); add('wall', 0, 1); add('corner', 0, 1); add('pad', 0, 1); add('block', 0, 1); add('plateau', arch === 'plaza' || arch === 'rotunda' ? 0 : 1, 1); }
   else { add('deck', 1, 2); add('tower', 1, 2); add('wall', 0, 1); add('corner', 0, 1); add('pad', 0, 2); add('block', 0, 1); add('pit', 0, 1); add('island', 0, 1); add('plateau', arch === 'plaza' || arch === 'rotunda' ? 0 : 1, 1); }
-  for (const k in TK) { if (EZ && k === 'rpit') continue; add(k, TK[k][0], EZ && k === 'rpad' ? Math.min(1, TK[k][1]) : TK[k][1]); } // the theme's own pieces
+  if (!FLAT) for (const k in TK) { if (EZ && k === 'rpit') continue; add(k, TK[k][0], EZ && k === 'rpad' ? Math.min(1, TK[k][1]) : TK[k][1]); } // the theme's own pieces
   const order = ['deck', 'plateau', 'rotunda', 'island', 'tower', 'column', 'pit', 'rpit', 'pad', 'rpad', 'corner', 'tombs', 'drum', 'block', 'wall'];
   want.sort((a, b) => order.indexOf(a) - order.indexOf(b));
   const spot = () => [g5(rr(-ARENA + 3, ARENA - 3)), g5(sym === 'mirror' ? rr(-ARENA + 3, -1.5) : rr(-ARENA + 3, ARENA - 3))];
   for (const k of want) for (let t = 0; t < 60; t++) { const [cx, cz] = spot(); if (place(kit[k](cx, cz))) break; }
+  // (v298) the lesson's canvas: open floor with a few round pieces spread well apart (no centrepiece, ramps, holes, decks or clouds)
+  if (FLAT) {
+    const cen = [], far = (x, z) => { const ix = sym === 'mirror' ? x : -x, iz = -z, r = Math.hypot(x, z); return r > 8 && r < ARENA - 6 && Math.hypot(x - ix, z - iz) > 11 && cen.every(p => Math.hypot(x - p[0], z - p[1]) > 11 && Math.hypot(ix - p[0], iz - p[1]) > 11); };
+    for (const k of ['column', 'drum', ...(R() < 0.6 ? ['drum'] : [])]) for (let t = 0; t < 80; t++) { const [cx, cz] = spot(); if (!far(cx, cz) || !place(kit[k](cx, cz))) continue; cen.push([cx, cz], [sym === 'mirror' ? cx : -cx, -cz]); break; }
+  }
   // 3) top up with small pieces until the floor has a decent amount going on
   const area = () => placed.reduce((s, c) => s + c.foot.reduce((t, e) => t + (e.k === 'z' ? 0 : (e.r[1] - e.r[0]) * (e.r[3] - e.r[2])), 0), 0);
-  const target = (2 * ARENA) * (2 * ARENA) * (EZ ? rr(0.11, 0.15) : rr(0.13, 0.19)) * (theme.fillMul || 1), ezFill = theme.fill === 'rpad' ? 'drum' : theme.fill;
+  const target = FLAT ? 0 : (2 * ARENA) * (2 * ARENA) * (EZ ? rr(0.11, 0.15) : rr(0.13, 0.19)) * (theme.fillMul || 1), ezFill = theme.fill === 'rpad' ? 'drum' : theme.fill;
   for (let t = 0, tN = 120 * (theme.fillMul || 1); t < tN && area() < target; t++) { const [cx, cz] = spot(); place(kit[pick(EZ ? ['block', 'corner', 'tower', 'block', ezFill, ezFill] : ['block', 'corner', 'pad', 'pit', 'tower', theme.fill, theme.fill])](cx, cz)); }
   // 4) clouds drift over open floor, preferably where nothing else casts shade
   const tall = [], shady = [];
   for (const c of placed) for (const e of c.foot) { if ((e.k === 'g' && e.y1 > 0.5) || (e.k === 'a' && e.y0 < 1.8)) tall.push(e.r); if ((e.k === 'g' && e.y1 > 1.7) || (e.k === 'a' && e.y0 > 1.8)) shady.push(e.r); }
-  const clouds = [], nC = theme.noClouds ? 0 : sym === 'free' ? ri(2, 4) : ri(1, 2), hw = 1.35;
+  const clouds = [], nC = theme.noClouds || FLAT ? 0 : sym === 'free' ? ri(2, 4) : ri(1, 2), hw = 1.35;
   for (let i = 0; i < nC && clouds.length < MAX_MOVERS; i++) {
     let best = null, bs = -1;
     for (let t = 0; t < 30; t++) {
@@ -16255,7 +16262,7 @@ function placeItems(L, R) {
   const shadeD = navField(nodes.filter(n => n.shade && core[n.id]).map(n => [n.id, 0]));
   const cofs = []; let dC = navField([[sP.id, 3], [sH.id, 3]]);
   const tuckC = new Map(cofC.map(n => [n, tuckOf(n)]));
-  greedy(cofC, VS_CFG.pots, n => { const el = n.h > 0 ? (cofs.filter(p => p.h > 0).length < 2 ? 2.5 : -2) : 0; return Math.min(dC[n.id], 18) + 0.35 * Math.min(shadeD[n.id], 12) + 1.4 * tuckC.get(n) + el + R() * 1.5; }, 5, cofs, () => { dC = navField([[sP.id, 3], [sH.id, 3], ...cofs.map(c => [c.id, 0])]); });
+  greedy(cofC, VS_CFG.pots, n => { const el = n.h > 0 ? (cofs.filter(p => p.h > 0).length < 2 ? 2.5 : -2) : 0; return Math.min(dC[n.id], 18) + 0.35 * Math.min(shadeD[n.id], 12) + (genOpt.flat ? 0 : 1.4) * tuckC.get(n) + el + R() * 1.5; }, 5, cofs, () => { dC = navField([[sP.id, 3], [sH.id, 3], ...cofs.map(c => [c.id, 0])]); });
   if (cofs.length < 6) return false;
   // where the traffic goes: sample a lot of shortest routes and count who passes through
   const traffic = new Float32Array(NN), coreList = nodes.filter(n => core[n.id]);
@@ -16267,7 +16274,7 @@ function placeItems(L, R) {
   // boiling water: pooled against walls and in corners, some along the busy lanes, never right where you spawn and never filling a corridor
   const pudC = nodes.filter(n => inC(n) && !onRampAt(n.x, n.z, 1.8) && n.edge === 0 && !overheadAt(n.x, n.z, n.h, 2.4, 0.9) && dropMask(n.x, n.z, n.h, 1.4) === 0 && wallMask(n.x, n.z, n.h, 1.05) === 0 && !opposite(wallMask(n.x, n.z, n.h, 2.3) | dropMask(n.x, n.z, n.h, 2.3)) && !nearSpawn(n, 6.5) && !cofs.some(c => dist2(c, n) < 3.2));
   const puds = [];
-  greedy(pudC, VS_CFG.rivals, n => { const w = wallMask(n.x, n.z, n.h, 1.9), wb = bits(w), t = traffic[n.id] / tmax; let near = 12; for (const p of puds) near = Math.min(near, dist2(p, n)); return (wb ? (wb >= 2 ? 1.6 : 1.2) : 0) + Math.min(t, 0.6) * 1.8 + (n.h === 0 ? 0.4 : 0) + Math.min(near, 10) * 0.16 + R() * 1.2; }, 4.4, puds);
+  greedy(pudC, VS_CFG.rivals, n => { const w = wallMask(n.x, n.z, n.h, 1.9), wb = bits(w), t = traffic[n.id] / tmax; let near = 12; for (const p of puds) near = Math.min(near, dist2(p, n)); return (wb && !genOpt.flat ? (wb >= 2 ? 1.6 : 1.2) : 0) + Math.min(t, 0.6) * 1.8 + (n.h === 0 ? 0.4 : 0) + Math.min(near, 10) * 0.16 + R() * 1.2; }, 4.4, puds);
   if (puds.length < 8) return false;
   // rollers: up high, out on the jump-only pads and near ledges: worth the trip
   const pwC = nodes.filter(n => { if (onRampAt(n.x, n.z, 0.6) || overheadAt(n.x, n.z, n.h, 2.6, 0.7) || wallMask(n.x, n.z, n.h, 0.8) || nearSpawn(n, 7) || cofs.some(c => dist2(c, n) < 2.6) || puds.some(c => dist2(c, n) < 2.6)) return false; return inC(n) ? true : onFloater(n.x, n.z, n.h) && n.h < 1.6 && dropMask(n.x, n.z, n.h, 0.7) === 0; });
@@ -16283,12 +16290,13 @@ function placeItems(L, R) {
 // a whole new world: lay it out, check it, place everything, build the meshes
 function genWorld(seed, opt) {
   opt = opt || {}; const easy = opt.easy !== undefined ? !!opt.easy : easyOn(), avoid = opt.avoid || null, themes = opt.themes || null;
-  genOpt = { easy, avoid, themes };
+  const flat = opt.flat !== undefined ? !!opt.flat : tutFlat && !!themes && themes.length === 1 && themes[0] === 'blank'; // (v298)
+  genOpt = { easy, avoid, themes, flat };
   const t0 = performance.now(); GEN.n++;
   for (let t = 0; t < 5; t++) {
     const L = genLayout((seed + t * 7919) >>> 0);
     applyLayout(L); rebuildSamples(); buildNav();
-    if (placeItems(L, rng(seed * 31 + t))) { Object.assign(GEN, { seed, sym: L.sym, arch: L.arch, tries: t + 1, fallback: false, easy, avoid, themes, key: mapKey(), std: false }); rebuildStage(); GEN.ms = performance.now() - t0; return; }
+    if (placeItems(L, rng(seed * 31 + t))) { Object.assign(GEN, { seed, sym: L.sym, arch: L.arch, tries: t + 1, fallback: false, easy, avoid, themes, flat, key: mapKey(), std: false }); rebuildStage(); GEN.ms = performance.now() - t0; return; }
   }
   // never seen it happen, but just in case: the original hand-built stage
   applyLayout({ holes: CLASSIC.holes, boxes: CLASSIC.boxes, ramps: CLASSIC.ramps, clouds: CLASSIC.movers });
@@ -16296,7 +16304,7 @@ function genWorld(seed, opt) {
   POTS.length = 0; RIVALS.length = 0; POWER_SPOTS.length = 0; COF_SPOTS.length = 0;
   POTS.push(...CLASSIC.pots); RIVALS.push(...CLASSIC.rivals); POWER_SPOTS.push(...CLASSIC.powers); Object.assign(START, CLASSIC.start); Object.assign(CSTART, CLASSIC.cstart);
   const { core } = navCore(rng(seed)); for (const n of NAV.nodes) if (core[n.id] && cofOK(n)) COF_SPOTS.push([n.x, n.h, n.z, tuckOf(n)]);
-  Object.assign(GEN, { seed, sym: 'classic', arch: 'classic', tries: 5, fallback: true, easy, avoid, themes, key: mapKey(), std: false }); rebuildStage(); GEN.ms = performance.now() - t0;
+  Object.assign(GEN, { seed, sym: 'classic', arch: 'classic', tries: 5, fallback: true, easy, avoid, themes, flat, key: mapKey(), std: false }); rebuildStage(); GEN.ms = performance.now() - t0;
 }
 function aiReset(D) { D.ai = { attackT: 0, attackRoll: 0, om: { readyAt: SLAM_FIRST, pounds: 0, aimed: 0 }, oVis: false, oPot: null, alert: null, poundAt: -1, fleeRolled: false, mode: 'paint', path: null, pi: 0, tgt: -1, tgtScore: 0, thinkT: 0.3, seenT: 0, o: null, plan: null, flight: null, evadeT: 0, evX: 0, evZ: 0, evadeRolled: false, atShelter: false, campT: 0, covT: 0, noisePh: Math.random() * 6, pivotT: 0, puddle: null, warnT: 0, stuckT: 0, lastX: 0, lastZ: 0, exitPlan: null, pivotCD: 0, slams: 0, goPot: null, need: 0.3 }; D.steer = 0; }
 // what the CPU "sees" of you: refreshed after its reaction time, so easier levels respond late
@@ -19764,7 +19772,7 @@ function decorate() {
 let mapUsed = true;
 // play this exact canvas again
 function replay() {
-  if (building || irisBusy) return; const sd = GEN.seed, op = { easy: GEN.easy, avoid: GEN.avoid, themes: GEN.themes }; AU.init(); AU.music('end');
+  if (building || irisBusy) return; const sd = GEN.seed, op = { easy: GEN.easy, avoid: GEN.avoid, themes: GEN.themes, flat: !!GEN.flat }; AU.init(); AU.music('end');
   irisClose(() => { menu.hidden = true; end.hidden = true; pauseEl.hidden = true; hud.classList.add('off'); building = true; genWorld(sd, op); mapUsed = false; warmRender(); building = false; beginMatch(); }, null, 'Same canvas');
 }
 // a different canvas from the menu, if you don't fancy this one
@@ -22162,8 +22170,8 @@ function tutProTip() {
   pt.shown = true; pt.hideAt = runT + 5.5; store.slingTips = (store.slingTips || 0) + 1; save(); tutShow('Pro tip: Slingshotting is much faster to get around!', null, 'protip', false, true);
 }
 // the lesson match plays as a duel on the blank canvas against a gentle CPU, whatever the lobby was set to; it all goes back after
-function tutPrep() { if (!tutMatchDue()) return; if (!tutPrev) tutPrev = { mode, diff, stageSel }; mode = 'duel'; diff = 'easy'; stageSel = 'blank'; applyMode(); }
-function tutRestore() { if (!tutPrev) return; mode = tutPrev.mode; diff = tutPrev.diff; stageSel = tutPrev.stageSel; tutPrev = null; applyMode(); }
+function tutPrep() { if (!tutMatchDue()) return; if (!tutPrev) tutPrev = { mode, diff, stageSel }; mode = 'duel'; diff = 'easy'; stageSel = 'blank'; tutFlat = true; applyMode(); }
+function tutRestore() { tutFlat = false; if (!tutPrev) return; mode = tutPrev.mode; diff = tutPrev.diff; stageSel = tutPrev.stageSel; tutPrev = null; applyMode(); }
 function tutBegin() { // (as a match begins)
   tutHide(); /* (nothing from the lobby carries into the match) */
   if (tutPh() === 'vote') tutSet('match2');
