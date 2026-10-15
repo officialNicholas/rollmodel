@@ -2,5 +2,5 @@
   "_about": "Online settings baked into the game build (tools/v305_friends.py and tools/v306_online.py). All of them are public by design: the Supabase project's address and its publishable key, and the game server's wss:// address. Leave a value empty to build with that part switched off.",
   "supabase_url": "https://nbemerxgukwwtrfgirfl.supabase.co",
   "supabase_key": "sb_publishable_9fux5IpOiTei0HvScvqI1g_iAwSCHPc",
-  "game_server_url": ""
+  "game_server_url": "wss://rollmodel-game.fly.dev/ws"
 }
