@@ -44,7 +44,7 @@ The music is new and is written on the theme (`music/menu.mp3`). It builds a lay
 | barrel 4.2–7.2 | A rope of glossy pearl paint pours from the mouth into a spreading puddle on the sand | air |
 | barrel 6.6–10 | Two bubbles come up where it will surface; the eyes pop up (stretching up and settling, a bloop and ripples), look left and right (the head tips and an ear flicks with each look), blink; the camera moves in. Down in the paint it lies as it does in a basin in the game (v266): along its way out, on the ground of a hole (the game's own crawl-out hole, `CR`), deep under the paint and on back under the sand, so nothing but its head shows (its tail used to poke up through the sand behind) | air |
 | iris (card) | "Those eyes need a color." 5 iris colours, live on the face. Picking one: a curious head tilt, as if admiring them | keys |
-| style (card) | "Now give them some style." Round, Squid, Dot. Picking one: chin up and a smile (v266: no smirk while it's down in the paint, as its lids don't show through the paint and the smirk's wink lost an eye; standing, after *Not yet*, it still smirks) | low |
+| style (card) | "Now give them some style." Round, Aggressive, Dot. Picking one: chin up and a smile (v266: no smirk while it's down in the paint, as its lids don't show through the paint and the smirk's wink lost an eye; standing, after *Not yet*, it still smirks) | low |
 | paint (card) | "Pick your paint." The camera eases back; 6 paints; the puddle, the character, its coat and the game's own colour change live, with a splash and a wag of its ears. Standing (after *Not yet*), the new paint washes up over it and bursts off, the game's own `popIn` | tops |
 | form | It climbs out the way it climbs out of a basin in the game (v266, in place of rising and jumping clear): it hauls itself up the bank of the hole on all fours toward its spot, hands reaching up onto the sand, body pitched up the slope, slowest as its chest goes over the lip (a gloop and a ring of drops there), paint dripping off, hips and tail out last; the hole fills in behind it; it shakes the paint off (the coat bursts into flying drops), then looks up, pleased | tops |
 | name (card) | "What do we call you?" Prefilled with a random name, dice for another (its ears wag) | drive (everything) |
@@ -86,7 +86,7 @@ A shot is either a place and which way it looks (the sky), or what to look at, h
 
 Measured with `tools/cam257_intro.py` (the camera's path through the whole intro at a fixed 30 frames a second), the biggest change in the camera's velocity from one frame to the next went from 7.4 m/s (at the cuts between shots, before) to 0.5 m/s (during the long pull-back for the leap, a smooth ease). The only sharp turns left are the deliberate shakes.
 
-Only the free eye styles are offered (Round, Squid, Dot). Sly eyes are a 545-dab Paint Shop item, so leaving them out keeps the economy as it was.
+Only the free eye styles are offered (Round, Aggressive, Dot). Sly eyes are a 545-dab Paint Shop item, so leaving them out keeps the economy as it was.
 
 ## The music
 
@@ -234,6 +234,23 @@ The hand-over is safe when the iris shuts at once (`window.__instant`, or reduce
 
 If the scene can't be built (for instance neither character pack loaded), the intro stands down: the lobby's song plays and the orientation chooser opens exactly as before. This was tested with both packs pointed at missing files.
 
+## Main's patches over the intro
+
+The main branch's later modules (in `tools/q260.py`) patch lines of the intro's own code after `tools/v257_intro.py` has put it on the page. Each of these must stay exactly as it is in `tools/v257_intro.js` (or `.css`), or main has to be told the new text so it can move its patch. All of them matched exactly once as of v306 (commit 2acda39).
+
+| Module | Lines it hooks |
+|---|---|
+| `v280_ready` | the `iris` and `confirm` branches of `go()`; the move's face hold line (`if (mv.face && I.face) I.face(mv.face, 0.15); ...`) |
+| `v283_skip_sfx_sd` | the wobble, bubbles (`b1`/`b2`), eye pop, `form` and `shake` sound lines in `story()` |
+| `v285_intro_drum` | `C0 = new V3(0.72, 0, 0.26)`; the `t >= 7.6 && t < 8.4` watch line; the drum's `g.add(body, lid)` return |
+| `v285_intro_turn` | `function buildUi() {`; `UI = { el, cur: null };`; the `bob = c.pop > 0 ...` line in `charTick`; the shot distance line in `want()` |
+| `v288_intro_title` | the `.fltitle` rule's opening (`position:absolute;left:0;right:0;top:calc(...) + 18%);`) |
+| `v306_accounts` | the name card note (`It goes up in lights when you win.`); the name input and dice markup; the `flDice` click listener; the `flName` submit listener; the name phase's prefill line |
+
+The boot statement that loads the Google Fonts (`try { const l = document.createElement('link'); ... } catch (e) {}`) is also kept exactly as it is: `tools/ios_pack.py` strips it for the app.
+
+With v306 the name card asks for a username. As it's typed, the line under the input says whether the name can be had, and Next keeps it on the server before `go('confirm')`. Offline the intro goes on and the name is checked later, so a re-record without the game server set up plays through as before.
+
 ## Files
 
 - `tools/v257_intro.py`: the patch module, `apply(s)`. It reads `v257_intro.js`, `v257_intro.css` and `v257_intro_au.js` from beside itself.
@@ -274,6 +291,6 @@ In the test build, `FL.peek()` reports the phase, draw calls and triangles, `FL.
   - the mix balance;
   - the sting;
   - the menu song's entry point: `MENU_AT` 17.627 s is its bar 8 (v263, measured against the intro's beat). If it lands a hair early or late, change `MENU_AT` in `tools/v257_intro_au.js`.
-- **The wink is subtle on the Squid and Dot eyes**, since those styles darken the eye. The sparkle and star sell it.
+- **The wink is subtle on the Aggressive and Dot eyes**, since those styles darken the eye. The sparkle and star sell it.
 - **No skip button.** The intro is about 47 seconds (9 of them the sky and the title), with four choices and a check in it. Quitting halfway shows it again next launch.
 - **Fallback fonts:** if the web fonts haven't arrived when the barrel's label is drawn, it is drawn again once they have.
