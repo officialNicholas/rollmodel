@@ -3872,7 +3872,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 293</p>
+      <p class="ver">Version 294</p>
     </div>
   </div>
 
@@ -12371,7 +12371,7 @@ const whirlLaneM = new THREE.ShaderMaterial({ uniforms: { uCol: { value: new THR
       float ends = smoothstep(0.0, 0.06, u) * (1.0 - smoothstep(0.88, 1.0, u)), flash = uLock;
       float a = (body * (0.14 + 0.24 * filled + 0.18 * flash) + rail * (0.5 + 0.4 * filled) + chev * body * filled * (0.5 + 0.3 * flash)) * ends;
       vec3 c = mix(uCol, vec3(1.0), clamp(max(rail, chev * filled) * 0.8 + 0.25 * flash, 0.0, 1.0));
-      gl_FragColor = vec4(c, clamp(a * uA, 0.0, 1.0)); }`,
+      gl_FragColor = vec4(c, clamp(a * uA, 0.0, 1.0) * 0.5); } // (v294: half strength)`,
   transparent: true, depthWrite: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -8, polygonOffsetUnits: -8 });
 // the glint: a crisp four-point star, gold with a white heart and a thin dark edge (it has to read over a bright tornado and any
 // paint), in a soft gold glow
