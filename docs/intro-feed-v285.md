@@ -1,6 +1,6 @@
 # Notices, the intro's desert and drum, turning it round, the first callout, hiding (v285)
 
-![__IMG_ALT__](intro-feed-v285.jpg)
+![The notice before and now (portrait and landscape, a fighter's colour, an item, the weather); the intro's rocks and agaves before and now; the ear clear of the drum with the paint line inside; turning it round on its spot; the first callout at full speed; hiding as the Roller before and now](intro-feed-v285.jpg)
 
 ## Mid-match notices
 
