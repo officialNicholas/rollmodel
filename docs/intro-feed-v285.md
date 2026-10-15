@@ -60,4 +60,11 @@ Built in `tools/v285_first_steer.py`.
 
 ## Hiding in a basin
 
-__HIDE__
+Built in `tools/v285_hide.py`.
+
+- Hiding with the Roller on showed its body: with the Roller, the body drawn is the jelly roller (with its own face), and that one
+  was never lowered into the basin, so it sat up in it with the basin's pair of eyes on top. Any basin, tub or coffin, any stage.
+- Now in a basin it's always the axolotl, sunk out of sight, so only the eyes show. Climbing out with the Roller still on, it's the
+  roller again.
+- Checked on the Fishing Raft's tub with the Roller on: before, the jelly body stood 20 cm proud of the paint; now nothing but the
+  eyes is above it.
