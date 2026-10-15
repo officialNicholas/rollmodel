@@ -33,14 +33,14 @@ const BASE = G.SPEED * G.MOVE_K;
 export class Mover {
   constructor(level) { this.L = level; this.reset({ x: 0, y: 0, z: 0, yaw: 0 }, 0); }
   // put the blob somewhere (spawn, respawn, correction target, out of a pot)
-  reset(s, t, { airborne = false, groundY } = {}) {
+  reset(s, t, { airborne = false, groundY, hold = 0 } = {}) {
     let y = s.y;
     if (!Number.isFinite(y)) { const g = this.L.surfaceUnder(s.x, s.z, 50); y = g > -Infinity ? g : 0; } // no height given: on the surface there
     this.last = { x: s.x, y, z: s.z, yaw: s.yaw || 0, t };
     const sup = this.L.supportAt(s.x, s.z, y);
     this.groundY = groundY !== undefined ? groundY : sup > -Infinity ? sup : y;
     this.groundT = t; this.airborne = airborne; this.bucket = 0; this.allow = 0; this.holdUntil = 0; this.dashUsed = false;
-    this.ceil = y > this.groundY ? y + 0.15 : -Infinity; this.ceilT = t + MOVE.LEDGE_MS; // (put in the air: that height for a moment)
+    this.ceil = y > this.groundY ? y + 0.15 : -Infinity; this.ceilT = t + MOVE.LEDGE_MS + hold; // (put in the air: that height for a moment)
   }
   groundCap(x, y, z, env) {
     let c = BASE * (env.rainMul || 1);

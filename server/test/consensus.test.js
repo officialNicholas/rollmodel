@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { canonicalLayout } from '../client/rmnet.js';
 import { startServer, makeBots, until, sleep } from './helpers/harness.js';
+import { flatLayout } from './helpers/layouts.js';
 
 async function setup(n, mode, tampers = {}, rules = {}) {
   const srv = await startServer(rules);
@@ -19,6 +20,22 @@ const done = async ({ srv, bots }) => { for (const b of bots) b.close(); await s
 
 test('matching layouts start the match', async () => {
   const ctx = await setup(2, 'duel');
+  try {
+    const s = await Promise.all(ctx.bots.map(b => b.wait('start')));
+    assert.equal(s[0].layoutHash, s[1].layoutHash);
+  } finally { await done(ctx); }
+});
+
+test('a busy stage at full float precision still goes through: it is sent to the centimetre, as it is compared', async () => {
+  // 400 boxes and 198 ramps with long decimals: about 63 KB as raw JSON, over the 60 KB a layout may be
+  const busy = () => {
+    const L = flatLayout(26.4), f = (i, k) => +(Math.sin(i * 12.9898 + k * 78.233) * 0.5 + 0.5).toFixed(15);
+    for (let i = 0; i < 398; i++) { const x = -25 + (i % 20) * 2.5 + f(i, 1), z = -25 + Math.floor(i / 20) * 2.5 + f(i, 2); L.boxes.push([x, x + 0.4 + f(i, 3), z, z + 0.4 + f(i, 4), 0, 0.2 + f(i, 5)]); }
+    for (let i = 0; i < 198; i++) { const x = -25 + (i % 16) * 3.1 + f(i, 6), z = -25 + Math.floor(i / 16) * 3.9 + f(i, 7); L.ramps.push([x, x + 1 + f(i, 8), z, z + 2 + f(i, 9), i % 2 ? 'x' : 'z', f(i, 10), 0.5 + f(i, 11)]); }
+    return L;
+  };
+  assert.ok(JSON.stringify(busy()).length > 60 * 1024, 'the raw layout really is too big to send as it is');
+  const ctx = await setup(2, 'duel', { 0: { layoutFor: busy }, 1: { layoutFor: busy } });
   try {
     const s = await Promise.all(ctx.bots.map(b => b.wait('start')));
     assert.equal(s[0].layoutHash, s[1].layoutHash);

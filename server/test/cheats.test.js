@@ -72,6 +72,22 @@ test('teleport, standing inside a solid, and flying are corrected back to the la
   } finally { await c.close(); }
 });
 
+test('a correction in mid-air: the blob falls from where it was put back, with no further corrections', async () => {
+  const c = await duel({ strikesToKick: 100 });
+  try {
+    await sleep(300);
+    // a hop, then it hangs at 1.3 m (as if on something the server doesn't know about) until it is corrected: it is put
+    // back at the last height that passed, in the air, after its hop's ceiling has come down below it
+    let hop = false; c.A.o.cheat = (st, bot) => { if (hop && !bot.stats.corrections) return Object.assign(st, { y: Math.max(st.y, 1.3) }); };
+    const w = c.A.wait('correction', () => true, 4000);
+    c.A.body.jump(); c.A.net.action('jump'); hop = true;
+    const m = await w; assert.ok(m.reason === 'fly' || m.reason === 'float', m.reason); assert.ok(m.y > 0.5, 'put back where it was, in the air (' + m.y + ')');
+    await until(() => !c.A.body.air, 3000); await sleep(600);
+    assert.equal(c.A.stats.corrections, 1, 'one correction, not one for every report on the way down (' + JSON.stringify(c.A.events) + ')');
+    assert.equal(c.pa.strikes, 1);
+  } finally { await c.close(); }
+});
+
 test('pound during cooldown and pound without paint are refused', async () => {
   const c = await duel({ slamCd: 6 });
   try {

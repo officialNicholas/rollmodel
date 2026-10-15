@@ -4,7 +4,7 @@
 import { G, KO_R, MODE_INFO, DEFAULT_RULES } from './constants.js';
 import { Level } from './geometry.js';
 import { Coverage } from './coverage.js';
-import { Mover } from './movement.js';
+import { Mover, MOVE } from './movement.js';
 import { validateLayout } from './layout.js';
 import { codec, FLAGS, RemoteTrack } from '../client/rmnet.js';
 import { LeakyMin, clamp, fin, nowMs, randomId, seed32 } from './util.js';
@@ -268,8 +268,12 @@ export class Match {
     this.stats.corrections++; this.srv.stats.violations++;
     this.log.info('violation', { player: p.id, reason, strikes: p.strikes, detail, recent: p.recentActs });
     if (p.mover) {
-      p.cid = nextCid(p.cid); p.mover.bucket = 0; p.mover.last.t = Math.max(p.mover.last.t, now);
-      const L = p.mover.last;
+      p.cid = nextCid(p.cid);
+      // back to the last place that passed, and judged afresh from there: put back in the air, the blob falls from that
+      // height (judged against the old launch, every report on the way down would fail again until the kick). It only
+      // starts to fall once the correction reaches it, so that height holds for about a round trip first.
+      const L = p.mover.last, t = Math.max(L.t, now), sup = p.mover.L.supportAt(L.x, L.z, L.y);
+      p.mover.reset({ x: L.x, y: L.y, z: L.z, yaw: L.yaw }, t, { airborne: !(sup > -Infinity && L.y - sup <= MOVE.GROUND_GAP), hold: Math.min(600, 2 * p.lagEst + 4 * p.jit + 100) });
       this._send(p, { t: 'correction', cid: p.cid, x: L.x, y: L.y, z: L.z, yaw: L.yaw, reason });
     }
     if (p.strikes >= this.rules.strikesToKick) {
@@ -462,15 +466,22 @@ export class Match {
     const B = Number.isInteger(target) ? this.P[target] : null;
     if (!B || B === A || B.side === A.side) return 'target';
     const no = this._canAct(A, ts); if (no) return no;
-    if (B.st !== 'play') return 'target_state';
     const a = sampleHist(A.vhist, ts), a0 = sampleHist(A.vhist, ts - 60);
-    if (!a || a.grounded) return 'grounded';
-    if (a0 && a.y > a0.y + 0.02) return 'rising';
     const vtc = Math.max(clamp(vt, ts - this.rules.lagCompMaxMs, ts), recv - this.rules.maxRewindMs), b = B.track.sample(vtc, 250);
+    // The game bounces the stomper off at once, before the ruling. A near miss (the two phones saw it a little
+    // differently) is refused, but its bounce is let through so the stomper is not put back for it: a hop's height,
+    // only from the air close over the rival, at most once every 400 ms.
+    const bounce = why => {
+      if (a && !a.grounded && b && Math.hypot(a.x - b.x, a.z - b.z) < 2 * G.PR + 1 && a.y - b.y > -0.3 && a.y - b.y < 1.8 && !(A.bounceAt > ts - 400)) { A.bounceAt = ts; A.mover.launch(6.5, ts, Math.max(a.y, b.y + 0.3)); }
+      return why;
+    };
+    if (B.st !== 'play') return bounce('target_state');
+    if (!a || a.grounded) return 'grounded';
+    if (a0 && a.y > a0.y + 0.02) return bounce('rising');
     if (!b) return 'far';
     const d = Math.hypot(a.x - b.x, a.z - b.z), dy = a.y - b.y;
-    if (d > 2 * G.PR + 0.25 || dy < 0.1 || dy > 1.3) return 'far';
-    if (B.flatUntil > ts) return 'flat';
+    if (d > 2 * G.PR + 0.25 || dy < 0.1 || dy > 1.3) return bounce('far');
+    if (B.flatUntil > ts) return bounce('flat');
     A.mover.launch(6.5, ts, Math.max(a.y, b.y + 0.3)); // the stomper bounces off at once on its own screen (the game's rule)
     this.hits.push({ kind: 'stomp', by: A, B, ts, vt: vtc, n, decideAt: Math.min(recv + this.rules.dodgeWaitMs, Math.max(recv, ts + B.lagEst + 3 * B.jit + 25)) });
     return 'pending';

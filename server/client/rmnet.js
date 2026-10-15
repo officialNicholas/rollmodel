@@ -387,7 +387,11 @@ const RMNetSDK = (() => {
     sendLayout(layout) {
       if (!this.match) return false;
       const hash = layoutHash(layout); this.match.layoutHash = hash;
-      return this._sendJ({ t: 'layout', m: this.match.id, hash, layout });
+      // sent to the centimetre, as it is compared (the hash is the same): full float precision would make a busy stage
+      // several times bigger than it needs to be
+      const cm = v => (typeof v === 'number' ? Math.round(v * 100) / 100 : Array.isArray(v) ? v.map(cm) : v);
+      const out = {}; for (const k of Object.keys(layout)) out[k] = cm(layout[k]);
+      return this._sendJ({ t: 'layout', m: this.match.id, hash, layout: out });
     }
 
     // ---- play ----

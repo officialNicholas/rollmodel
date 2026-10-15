@@ -122,6 +122,33 @@ test('a stomp: landing on a rival flattens it; it cannot move until it pops back
   } finally { A.close(); B.close(); await srv.close(); }
 });
 
+test('a near-miss stomp is refused, but the bounce the stomper already made on its screen is not corrected', async () => {
+  const srv = await startServer({ matchT: 20, flatT: 1.2 });
+  const [A, B] = makeBots(srv, 2, { profile: 'rtt60', behavior: 'script', layoutFor: stage, prefix: 'nearst' });
+  let claimed = null, jumped = false;
+  // as above, but the stomper claims it when its rival is a little too far to the side (1.2 m, the limit is 0.93 m)
+  B.o.script = bot => { bot.input = { speedK: 0 }; };
+  A.o.script = (bot, dt, sNow) => {
+    const r = bot.net.remote(B.slot); if (!r || sNow < bot.startAt + 200) { bot.input = { speedK: 0 }; return; }
+    const dz = r.z + 1.2 - bot.body.z, d = Math.hypot(r.x - bot.body.x, dz); // (aims 1.2 m beside it)
+    bot.input = claimed ? { speedK: 0 } : { yaw: Math.atan2(r.x - bot.body.x, dz), speedK: 1 };
+    if (!jumped && !bot.body.air && d < 3.6 && d > 3.0) { jumped = true; if (bot.body.jump()) bot.net.action('jump'); }
+    if (jumped && !claimed && bot.body.air && bot.body.vy < -0.5 && d < 0.4 && bot.body.y > r.y + 0.25) {
+      claimed = bot.net.action('stomp', { target: B.slot }); bot.body.vy = 6.5; // bounces anyway, like the game
+    }
+  };
+  try {
+    await Promise.all([A, B].map(b => b.connect()));
+    await A.net.queue('duel'); await B.net.queue('duel');
+    await Promise.all([A, B].map(b => b.wait('start')));
+    await until(() => claimed, 12000);
+    const res = await claimed; assert.equal(res.ok, false); assert.equal(res.reason, 'far');
+    await until(() => !A.body.air, 3000); await sleep(500);
+    assert.equal(A.stats.corrections, 0, 'the bounce stood (' + JSON.stringify(A.events) + ')');
+    assert.equal(matchOf(srv, B.id).P[B.slot].flatUntil, 0, 'and nobody was flattened');
+  } finally { A.close(); B.close(); await srv.close(); }
+});
+
 test('a landing claimed far from where the attacker really was is refused', async () => {
   const r = await scenario({ target: 5.5, claimFar: true });
   assert.equal(r.ko, null);

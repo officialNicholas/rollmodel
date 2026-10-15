@@ -1,8 +1,8 @@
 # Roll Model online play: the multiplayer server
 
-This is the foundation for playing Roll Model against other people over the internet: a game server (in `server/`) and
-a small piece of code for the game, the RMNet SDK (`server/client/rmnet.js`), that talks to it. The game itself has not
-been changed yet; the last part of this page lists exactly what the game needs to do to use it.
+This is how Roll Model is played against other people over the internet: a game server (in `server/`, running on
+Fly.io) and a small piece of code in the game, the RMNet SDK (`server/client/rmnet.js`), that talks to it. Since v306
+the game uses it for online duels (one against one); "In the game" below says how, and what is still off online.
 
 ## How it works
 
@@ -20,6 +20,17 @@ everything that wins or loses a match.
 | | Coverage (the score), by painting its own copy of the floor |
 | | When pick-ups appear, who gets them, and whether a use is allowed |
 | | The match clock, the weather, the Showdown's closing canvas, hearts, results and ratings |
+
+### The rules of an online duel
+
+The same as a versus match against the CPU, with the server keeping score:
+
+- **The score** is the share of the canvas in your colour plus 2 points for each knock-out, as in the game.
+- **A tie at the buzzer** plays on for 10 seconds, once; still level after that, it is a draw.
+- **Pots stay where they are.** A pot that is drained or burst goes down for 4.6 seconds and comes back in the same
+  place (offline, an empty pot moves to a new spot). A burst breaks the pot like a drain does.
+- **After the match** both players have 30 seconds to ask for a rematch; when both do, a new match starts on a new
+  canvas with the same rival.
 
 ### How lag is hidden
 
@@ -133,6 +144,31 @@ Settings are environment variables:
 
 Stopping the server (Ctrl+C, or a SIGTERM from the host) is graceful: running matches are called off without rating
 changes, everyone is told, and the data file is saved.
+
+## Where it runs: Fly.io
+
+The live server is the Fly.io app `rollmodel-game` (in the personal organization, Nicholas Marcelin):
+
+- **Address:** `https://rollmodel-game.fly.dev` (check it at `/health`); the game connects to
+  `wss://rollmodel-game.fly.dev/ws`. The address is baked into the game from `tools/online_config.json`.
+- **Machine:** one shared-cpu-1x machine with 512 MB in Chicago (`ord`), always on (no stopping when idle, so the first
+  player of the day does not wait for a cold start), with a 1 GB volume `rm_data` mounted at `/data` for the data file.
+  One machine handles several hundred players (see the load test above); a second region can come later.
+- **Settings** live in `server/fly.toml`: `TRUST_PROXY=1` (the server reads the player's address from Fly's
+  `Fly-Client-IP`), `DATA_FILE=/data/store.json`, and `RULES={"items":false}`, which keeps pick-ups off online until the
+  game shows the server's pick-ups.
+- **Deploying a new version:** `cd server && fly deploy`. Fly builds the image from `server/Dockerfile` and replaces the
+  machine; a running match is called off without rating changes (the graceful stop above). From a network that
+  inspects TLS (where Fly's remote builder cannot connect), build the image locally and deploy that instead:
+
+  ```
+  cd server
+  docker build -t registry.fly.io/rollmodel-game:v2 .
+  fly auth docker && docker push registry.fly.io/rollmodel-game:v2
+  fly deploy --image registry.fly.io/rollmodel-game:v2 --ha=false
+  ```
+- **Watching it:** `fly logs -a rollmodel-game` (one JSON line per event: matches found, started and ended, violations,
+  kicks) and `fly status -a rollmodel-game`.
 
 ## For the game: the SDK
 
@@ -278,25 +314,33 @@ From the server: `welcome`, `error`, `kicked`, `queued`, `queueLeft`, `room`, `r
 player, 30 a second), PONG (17 bytes) and SPING (9 bytes). The exact byte layouts are written at the top of
 `rmnet.js`.
 
-### What the game needs to change for online matches
+## In the game (v306)
 
-1. Paste the SDK in, connect, keep the token, and add lobby screens (queue, private room with code and ready, rematch).
-   A Quit button during a match calls `leaveMatch()`.
-2. On `matchFound`, build the stage with the seed and fixed options (no per-player choices such as an avoided theme
-   or easy mode), so every phone builds the same one, and send it with `sendLayout`. Everything random in the stage
-   must come from the seed (the generator's `rng(seed)`), never from `Math.random` or the time.
-3. On `start`, place your blob at your spawn and hold still until `startAt`. The pot intro and leap-out at "Go" can stay
-   as long as the leap is sent as a `jump`.
-4. Call `sendState` every frame and `action` for every move in the table above; undo a move the server refuses.
-5. Draw the other players with `remote(slot)`, using the flags for their animations.
-6. Let the server decide: do not knock anyone out, flatten anyone or score anything locally; wait for `ko`, `flat`,
-   `push`, `respawn`, `potEject` and `coverage`, and apply them (for your own blob: stop, launch, or move as told). Apply
-   every `correction` at once.
-7. Use the server's weather schedule and Showdown closing-canvas schedule from `start` instead of the local random
-   ones, and show pick-ups only from the item events.
-8. Pots stay where the layout puts them online (a drained pot goes down for a while and comes back in the same place);
-   the game's moving of an empty pot to a new spot should be switched off online.
-9. Do not pause on losing focus; when the app comes back, the SDK reconnects and `resume` says where you are.
+The online duel lives in three build modules: `tools/v306_accounts.py` (the username and the account),
+`tools/v306_lobby.py` (finding a rival: the Matchmaking card, private rooms and friend invites) and
+`tools/v306_match.py` (the match itself). The match works like this:
+
+1. **The canvas.** When the server finds a match, both phones build the stage from the server's seed with the same fixed
+   options (normal paint, none of the player's own canvas choices, the seven vote canvases) and send it back; the server
+   compares them before the match can start.
+2. **The start.** The versus card stays up until the server says when "Go" is, and the 3, 2, 1 lands on it on both
+   phones. Each blob drops onto its spot (no basin intro online).
+3. **Your blob** moves on your phone at once; every hop, roll, fling, pound, landing, stomp and pot dive goes to the
+   server as it happens, and your position about 30 times a second. A move the server refuses is undone (a pot it did
+   not let you into pops you out).
+4. **Your rival** is drawn from the server's snapshots a moment in the past, with its trail, hops, rolls, flings and
+   pounds, its name, colour (changed on your screen if it is the same as yours), eyes, wearables and rank.
+5. **The server decides** knock-outs, flattenings, pushes, dodges, who is in which pot, pots going down and coming back,
+   coverage (the bar shows the server's numbers), the clock, the weather (the server's schedule), overtime and the
+   result. The game never knocks out, flattens, stuns or rams anyone itself online.
+6. **Real time.** The server runs on real time, so online there is no hit-stop, slow motion or kill cam, and a slow
+   frame catches up (up to a quarter of a second) instead of playing in slow motion as it does offline. Pause shows the
+   menu while the match goes on; Leave match forfeits.
+7. **After the match:** the usual tally and winner screen, then Rematch (both have to say yes) or Menu.
+
+Off online for now: pick-ups (the server can hand them out, but the game does not show the server's yet), orbs and the
+special strokes that come from them, rare finds and gifts, the Swim faster start boost, the easier paint drain of easy
+mode, rams and roll stuns between players, and pots moving to new spots.
 
 ## Decisions needed before going live
 
