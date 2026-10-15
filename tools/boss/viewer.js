@@ -22,6 +22,8 @@ const BV_SEQ = [['intro', {}, 1.2], ['punch', { hand: 'L' }, 0.6], ['punch', { h
   ['sweep', { hand: 'R', dir: 1 }, 0.8], ['zap', {}, 0.8], ['hurt', {}, 0.6], ['stunned', { time: 2.5 }, 0.8], ['taunt', {}, 0.8], ['defeat', {}, 1.0]];
 function bvTick(rdt) {
   if (!BV) return;
+  // (the preview only opens from an idle lobby: keep asking until it does)
+  if (!BV.boss && state === 'menu') { BV.tries = (BV.tries || 0) + 1; if (BV.tries % 20 === 0) conqPreview(); }
   if (!BV.boss && (state === 'play' || state === 'intro')) {
     const b = makeBoss({ scale: BV.o.scale || 1, poolY: -0.14 }); BV.boss = b; scene.add(b.group); b.group.position.set(0, 0, 0);
     b.group.traverse(m => { if (m.isSkinnedMesh && m.castShadow) m.receiveShadow = false; });

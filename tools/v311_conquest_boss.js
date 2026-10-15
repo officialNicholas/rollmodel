@@ -368,7 +368,7 @@ void main() {
   }
 
   // ---------------------------------------------------------------- particles: bubbles, slime drops, jelly drips and sparkles (one draw)
-  const PT_N = 140;
+  const PT_N = 140, STAR0 = PT_N - 5;
   const PT_VS = `attribute vec4 aP; attribute vec3 aC; varying vec4 vP; varying vec3 vC; uniform float ptPx;
 void main() { vP = aP; vC = aC; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; gl_PointSize = aP.x * ptPx * length(modelMatrix[0].xyz) / max(0.1, -mv.z); }`;
   const PT_FS = `varying vec4 vP; varying vec3 vC;
@@ -379,7 +379,9 @@ void main() {
     a = (rim * 0.75 + 0.12 + hl * 0.9) * vP.y; c = mix(vC, vec3(1.0), hl * 0.8 + rim * 0.25); }
   else if (vP.z < 2.5) { float sh = clamp(dot(normalize(vec3(q, sqrt(max(0.0, 1.0 - r * r)))), normalize(vec3(-0.4, 0.5, 0.75))), 0.0, 1.0);
     a = (1.0 - smoothstep(0.85, 1.0, r)) * vP.y; c = vC * (0.55 + 0.6 * sh) + pow(sh, 18.0) * 0.8; }
-  else { a = exp(-r * r * 4.0) * vP.y; c = vC * 1.6; }
+  else if (vP.z < 3.5) { a = exp(-r * r * 4.0) * vP.y; c = vC * 1.6; }
+  else { float th = atan(q.y, q.x), rs = 0.4 + 0.56 * pow(0.5 + 0.5 * cos(5.0 * th - 1.5708), 2.5), e = smoothstep(rs, rs - 0.07, r), ink = e * (1.0 - smoothstep(rs - 0.12, rs - 0.2, r));
+    a = e * vP.y; c = mix(mix(vC, vec3(1.0), 0.3 * (1.0 - r)) * 1.25, vec3(0.16, 0.08, 0.2), ink * 0.85); }
   gl_FragColor = vec4(c, a);
 }`;
   function makeParticles() {
@@ -488,16 +490,17 @@ void main() {
     B.onHit = f => B.on('hit', f);
     const emit = (n, d) => { const L = evs[n]; if (L) for (let i = 0; i < L.length; i++) { try { L[i](d); } catch (e) { console.error(e); } } };
     let queued = [], built = null;
-    B.ready = load(opts.url).then(pack => { built = build(pack); B.isReady = true; const q = queued; queued = null; for (const a of q) B.play(a[0], a[1]); return B; });
+    let gone = false; const NOCTX = {};
+    B.ready = load(opts.url).then(pack => { if (gone) return B; built = build(pack); B.isReady = true; const q = queued; queued = null; for (const a of q) B.play(a[0], a[1]); return B; });
     B.ready.catch(e => console.warn('boss', e));
     B.play = (name, o) => { if (!built) { if (queued) queued.push([name, o]); return 0; } return built.play(name, o || {}); };
-    B.update = (dt, ctx) => { if (built) built.update(dt, ctx || {}); };
-    B.lookAt = (x, y, z) => { if (built) built.lookAt(x, y, z); else if (x === null || x === undefined) {} };
+    B.update = (dt, ctx) => { if (built) built.update(dt, ctx || NOCTX); };
+    B.lookAt = (x, y, z) => { if (built) built.lookAt(x, y, z); };
     B.face = (e, hold) => { if (built) built.face(e, hold); };
     B.hand = (s, p) => { if (built) built.hand(s, p); };
     B.fist = (s, out) => built ? built.fist(s, out) : (out || new V3()).copy(group.position);
     B.bellPoint = out => built ? built.bellPoint(out) : (out || new V3()).copy(group.position);
-    B.dispose = () => { if (built) built.dispose(); group.removeFromParent(); };
+    B.dispose = () => { gone = true; if (built) built.dispose(); group.removeFromParent(); };
     return B;
 
     function build(pack) {
@@ -534,7 +537,7 @@ void main() {
       // ---- state
       const st = {
         t: 0, root: new V3(0, HOVER, 0), rootV: new V3(), rootA: new V3(), yaw: 0, yawV: 0, lean: 0, leanV: 0, roll: 0, rollV: 0,
-        tilt: new V3(), tiltV: new V3(), sq: 1, sqV: 0, wob: [0, 0, 0, 0], wobV: [0, 0], wobAng: [0, 0], ph: Math.random(), c: 0, cLag: 0, cPrev: 0, rip: 0.4,
+        tilt: new V3(), tiltV: new V3(), sq: 1, sqV: 0, stars: 0, wob: [0, 0, 0, 0], wobV: [0, 0], wobAng: [0, 0], ph: Math.random(), c: 0, cLag: 0, cPrev: 0, rip: 0.4,
         gPos: new V3(), gVel: new V3(), gAcc: new V3(), gFirst: true, flash: 0, charge: 0, chargePh: 0,
         look: new V3(0, HOVER, 12), lookSet: false, lookW: new V3(), camM: new V3(0, 6, 20), camOK: false,
       };
@@ -543,7 +546,7 @@ void main() {
         pts: new Array(25).fill(0).map(() => new V3()), cum: new Float32Array(25), J: new Array(7).fill(0).map(() => new V3()), handOverride: null, off: new V3(0, -1, 0), scl: GLOVE, landV: 0 });
       const arms = { L: mkArm('L'), R: mkArm('R') };
       const mkAT = () => ({ w: new V3(), t0: new V3(), t1: new V3(), l0: 1.5, l1: 1.4, k: 1, z: 0.55, hd: new V3(0, 0, 1), hp: new V3(0, -1, 0), hw: 0.8, pose: new Float32Array(5), scale: 1, spark: 0.45, wobK: 1, fcP: new V3(), fcK: 0 });
-      const T = { off: new V3(), yaw: null, lean: 0, roll: 0, pulse: 1, pulseAmp: 1, squash: 1, slump: 0, flash: 0, charge: 0, clipY: -1e4, clipBand: 0, expr: 'angry', lookOv: null, arm: { L: mkAT(), R: mkAT() }, tentW: 1, tentG: 1, rootK: 1, eyeGlow: 0 };
+      const T = { off: new V3(), yaw: null, stars: 0, lean: 0, roll: 0, pulse: 1, pulseAmp: 1, squash: 1, slump: 0, flash: 0, charge: 0, clipY: -1e4, clipBand: 0, expr: 'angry', lookOv: null, arm: { L: mkAT(), R: mkAT() }, tentW: 1, tentG: 1, rootK: 1, eyeGlow: 0 };
       const tents = R.tent.map((c, k) => ({ c, x: new Float32Array((c.n + 1) * 3), xp: new Float32Array((c.n + 1) * 3), init: false, ph: k * 1.37 + 0.3, ph2: k * 2.11 + 1.1, dirA: k * 0.9 + 0.4, hPrev: 1 / 60, anc: new V3(), ancPrev: new V3(),
         stiff: Array.from({ length: c.n + 1 }, (_, j) => j === 0 ? 1 : (c.n > 4 ? (j <= 2 ? 0.22 : 0.05 * Math.pow(1 - (j - 2) / (c.n - 1), 1.5) + 0.006) : 0.08 * Math.pow(1 - (j - 1) / c.n, 1.3) + 0.01)) }));
       const E = {}; for (const k of EKEYS) E[k] = EXPR.angry[k];
@@ -559,7 +562,7 @@ void main() {
       // ---------------------------------------------------------------- idle: the hover (written first every frame; a move writes over it)
       function idle(t) {
         T.off.set(0.05 * wn(t, 0.31, 0.53, 0.89), 0.1 * wn(t, 0.41, 0.23, 0.71), 0.05 * wn(t, 0.27, 0.61, 0.37)); T.yaw = null; T.lean = 0.04 * wn(t, 0.35, 0.57, 0.91); T.roll = 0.035 * wn(t, 0.29, 0.47, 0.83);
-        T.pulse = 1; T.pulseAmp = 1; T.squash = 1; T.slump = 0; T.flash = 0; T.charge = 0; T.expr = 'angry'; T.lookOv = null; T.tentW = 1; T.tentG = 1; T.rootK = 1; T.eyeGlow = 0; T.clipY = -1e4; T.clipBand = 0;
+        T.pulse = 1; T.pulseAmp = 1; T.squash = 1; T.slump = 0; T.flash = 0; T.charge = 0; T.stars = 0; T.expr = "angry"; T.lookOv = null; T.tentW = 1; T.tentG = 1; T.rootK = 1; T.eyeGlow = 0; T.clipY = -1e4; T.clipBand = 0;
         for (const s of SIDES) {
           const a = T.arm[s], g = s === 'L' ? 1 : -1, ph = g > 0 ? 0 : 2.1;
           // (as in the picture: each arm rises up and out from the bell's side in a high arch, then comes down to its cuff; the fists held
@@ -946,9 +949,9 @@ void main() {
       }
 
       // ---------------------------------------------------------------- particles
-      const C_BUB = new THREE.Color(0.7, 0.85, 1.0), C_SLIME = new THREE.Color(0.35, 1.0, 0.3), C_JELLY = new THREE.Color(0.95, 0.4, 0.85), C_SPARK = new THREE.Color(0.75, 0.4, 1.0), C_STAR = new THREE.Color(1.0, 0.92, 0.45);
+      const C_BUB = new THREE.Color(0.7, 0.85, 1.0), C_SLIME = new THREE.Color(0.35, 1.0, 0.3), C_JELLY = new THREE.Color(0.95, 0.4, 0.85), C_SPARK = new THREE.Color(0.75, 0.4, 1.0), C_STAR = new THREE.Color(1.0, 0.86, 0.22);
       function spawn(type, p, vx, vy, vz, size, life, col) {
-        const q = pt.P[pt.next]; pt.next = (pt.next + 1) % PT_N;
+        const q = pt.P[pt.next]; pt.next = (pt.next + 1) % STAR0;   // (the last five are the dizzy stars)
         q.on = true; q.type = type; q.p.copy(p); q.v.set(vx, vy, vz); q.size = size; q.life = life; q.t = 0; q.c.copy(col); q.g = type === 0 ? -0.6 : type === 3 ? -0.2 : 2.2; q.drag = type === 0 ? 1.2 : 0.8;
       }
       let bubT = 0, dripT = 0;
@@ -958,6 +961,10 @@ void main() {
           _v.set(st.root.x + Math.cos(a) * r, st.root.y - 2.5 + Math.random() * 3, st.root.z + Math.sin(a) * r); spawn(0, _v, 0, 0.5 + Math.random() * 0.5, 0, 0.07 + Math.random() * 0.1, 3 + Math.random() * 2, C_BUB); }
         dripT -= dt; if (dripT <= 0 && st.root.y > -2) { dripT = 0.6 + Math.random() * 1.4; const tn = tents[(Math.random() * tents.length) | 0], N = tn.c.n;
           _v.set(tn.x[N * 3], tn.x[N * 3 + 1], tn.x[N * 3 + 2]).applyMatrix4(Gi); spawn(2, _v, 0, -0.2, 0, 0.09 + Math.random() * 0.06, 1.4, C_JELLY); }
+        // the dizzy stars: five orbiting over the bell while it is stunned, in slots of their own
+        st.stars += (T.stars - st.stars) * (1 - Math.exp(-dt * 6));
+        for (let k = 0; k < 5; k++) { const q = pt.P[STAR0 + k], a = st.t * 2.6 + k * 1.2566; q.on = false; q.type = 4; q.c.copy(C_STAR); q.size = 0.62; q.t = 0; q.life = 1;
+          q.p.set(st.root.x + Math.cos(a) * 1.3, st.root.y + 1.8 + 0.12 * Math.sin(a * 2 + k), st.root.z + Math.sin(a) * 1.3); }
         const P = pt.pos, A = pt.aP, Cc = pt.aC;
         for (let i = 0; i < PT_N; i++) {
           const q = pt.P[i];
@@ -965,7 +972,7 @@ void main() {
             q.v.y -= q.g * dt; const dk = Math.exp(-q.drag * dt); q.v.multiplyScalar(dk);
             if (q.type === 0) { q.v.x += Math.sin(st.t * 3 + q.wob) * 0.4 * dt; q.v.z += Math.cos(st.t * 2.6 + q.wob) * 0.4 * dt; }
             q.p.addScaledVector(q.v, dt); if (q.type !== 0 && q.type !== 3 && q.p.y < FLOOR + 0.03) { q.p.y = FLOOR + 0.03; q.v.set(0, 0, 0); } } }
-          const u = q.t / q.life, fade = q.on ? Math.min(1, q.t * 8) * (1 - u * u) : 0;
+          const u = q.t / q.life, fade = q.on ? Math.min(1, q.t * 8) * (1 - u * u) : i >= STAR0 ? st.stars : 0;
           P[i * 3] = q.p.x; P[i * 3 + 1] = q.p.y; P[i * 3 + 2] = q.p.z;
           A[i * 4] = q.size * (q.type === 0 ? 1 + 0.4 * u : 1); A[i * 4 + 1] = fade; A[i * 4 + 2] = q.type; A[i * 4 + 3] = 0;
           Cc[i * 3] = q.c.r; Cc[i * 3 + 1] = q.c.g; Cc[i * 3 + 2] = q.c.b;
@@ -1148,7 +1155,7 @@ void main() {
             const sw = t - 0.9; T.roll += 0.1 * Math.sin(sw * 2.4) * k * w; T.lean += 0.08 * Math.cos(sw * 2.4) * k * w;
             const shake = kU > 0 && kU < 1 ? Math.sin((t - 0.9 - m.hold) * 26) * Math.sin(kU * Math.PI) : 0; T.yaw = st.yaw + 0.0; if (shake) { T.roll += 0.14 * shake; }
             T.expr = k > 0.35 ? 'dizzy' : kU > 0 ? 'angry' : 'surprised';
-            if (k > 0.6 && Math.random() < 0.25) { mA.set(st.root.x + (Math.random() - 0.5) * 2.4, st.root.y + 1.5 + Math.random() * 0.4, st.root.z + (Math.random() - 0.5) * 2.4); spawn(3, mA, 0, 0.25, 0, 0.12 + Math.random() * 0.06, 0.7, C_STAR); }
+            T.stars = sstep(0.35, 0.8, k);   // (the dizzy stars circle over it)
             if (t >= 0.85) fire(1, 'stunStart'); if (t >= 0.9 + m.hold) fire(2, 'stunEnd');
           } },
         // ---- taunt: one glove wags a finger at the player ("no, no, no"), the other beckons (palm up, the fingers curling in twice), a
@@ -1214,7 +1221,7 @@ void main() {
       function syncG() { model.updateWorldMatrix(true, false); G.copy(model.matrixWorld); Gi.copy(G).invert(); G.decompose(Gp, Gq, Gs); }
       function update(dt, ctx) {
         const c0 = performance.now();
-        dt = dt > 0 ? Math.min(dt, 0.1) : 1 / 60;
+        if (!(dt > 0)) return; dt = Math.min(dt, 0.1);   // (paused: it holds still; a long frame is taken as a tenth of a second)
         st.t += dt; syncG();
         // the group's own motion (when the fight moves it): its acceleration, in the model's frame, drags the arms behind it
         if (!gInit) { gLast.copy(Gp); gV.set(0, 0, 0); gInit = true; }
