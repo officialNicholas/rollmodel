@@ -23,8 +23,10 @@ picture, and a stage preview to walk it from Choose Event.
   comes back). The card keeps its look but says Stage preview, since it is the stage only: the boss comes later (the space above the
   pool is left empty for it)."""
 
-import json
+import json, os
 from v309_conquest_tex import TEX
+# the models (tools/glb2pack.py --v2 entries, by name), a JSON block in the page
+MODELS = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'v309_conquest_models.json')).read()
 
 def rep(s, a, b, n=1):
     c = s.count(a); assert c == n, (c, n, a[:160]); return s.replace(a, b)
@@ -63,7 +65,7 @@ SURF_PAINT.keepWall = () => imgSurf(CONQ_TEX.wall, 512, 2.6, 0.55, 0.95);
 SURF_PAINT.keepWood = () => imgSurf(CONQ_TEX.wood, 512, 1.6, 0.6, 0.9);
 SURF_PAINT.keepBed = () => imgSurf(CONQ_TEX.seabed, 512, 2.0, 0.7, 1.0);
 // (made while Choose Event is open, behind it, so a launch doesn't pay for a stage the player may never open, and the preview doesn't wait)
-function conqWarm() { if (conqWarm.done || menuPage !== 'events') return; conqWarm.done = 1; for (const k of ['keepFloor', 'keepWall', 'keepWood', 'keepBed']) surf(k); }
+function conqWarm() { if (conqWarm.done || menuPage !== 'events') return; conqWarm.done = 1; for (const k of ['keepFloor', 'keepWall', 'keepWood', 'keepBed']) surf(k); conqModelsWarm(); }
 // the pirate flag: a skull and crossbones on purple, with a worn edge
 const CONQ_FLAG = makeTex(256, (g, S) => {
   g.fillStyle = '#5A2282'; g.fillRect(0, 0, S, S); const R = rng(307); for (let k = 0; k < 60; k++) { g.fillStyle = 'rgba(30,8,50,' + (0.08 + R() * 0.14) + ')'; g.fillRect(R() * S, R() * S, 6 + R() * 40, 3 + R() * 10); }
@@ -221,7 +223,8 @@ function conqDress(K) {
       // the sea floor beyond the walls, dark, fading into the haze; rubble on it
       put(M.ground, worldUV(new THREE.RingGeometry(W0 - 0.2, 80, SEG(64), 1).rotateX(-Math.PI / 2).translate(0, -0.06, 0), K.us));
       for (let k = 0; k < 40; k++) { const a = R() * 6.2832, d = W0 + 1.5 + R() * 14, s = 0.25 + R() * 0.6; vc(M.vc, SG.ball(s, Math.cos(a) * d, -0.06 + s * 0.35, Math.sin(a) * d, 1, 0.6, 1), SG.shade(STD, 0.6 + R() * 0.5)); }
-      // the parapet: a low wall of stone blocks all round, a cap course on top, square posts with caps every 30 degrees
+      // the parapet and the ruins (the models); without them, the old blocks: a low wall all round with square posts, pillars and two arches
+      if (!conqRuins(K)) {
       put(M.side, cylUV(new THREE.CylinderGeometry(W0, W0, WH + 0.1, SEG(64), 1, true).scale(-1, 1, 1).translate(0, WH / 2 - 0.05, 0), W0, WH, us));
       put(M.side, cylUV(new THREE.CylinderGeometry(W0 + WT, W0 + WT, WH + 0.1, SEG(64), 1, true).translate(0, WH / 2 - 0.05, 0), W0 + WT, WH, us));
       put(M.side, worldUV(new THREE.RingGeometry(W0 - 0.08, W0 + WT + 0.08, SEG(64), 1).rotateX(-Math.PI / 2).translate(0, WH, 0), us));
@@ -234,7 +237,8 @@ function conqDress(K) {
       const arch = (a, b, y) => { const d = V(b.x - a.x, 0, b.z - a.z), L = d.length(); const g = SG.box(L + 1.1, 0.7, 1.2, 0, 0, 0); g.rotateY(-Math.atan2(d.z, d.x)); g.translate((a.x + b.x) / 2, y, (a.z + b.z) / 2); put(M.side, worldUV(g, us)); K.hull(SG.box(L + 1.2, 0.8, 1.3, 0, 0, 0).rotateY(-Math.atan2(d.z, d.x)).translate((a.x + b.x) / 2, y, (a.z + b.z) / 2)); };
       { const a = pillar(160, 20.4, 6.8, true), b = pillar(138, 20.8, 8.4, true), c = pillar(116, 20.2, 5.8, false); arch(a, b, 7.0); pillar(178, 21.6, 4.8, false);
         const d = pillar(22, 20.6, 7.2, true), e = pillar(44, 21.0, 9.0, true), f = pillar(66, 20.4, 5.6, false); arch(d, e, 7.4); pillar(2, 21.6, 4.6, false); pillar(90, 23, 4.0, false); }
-      for (const [deg, r] of [[150, 19.4], [128, 22], [34, 19.6], [56, 22.2], [100, 21]]) { const p = pol(deg, r); chain(V(p.x, 15, p.z), V(p.x, 7.5 + R() * 2, p.z), 0.14); }
+      }
+      for (const [deg, r, y0, y1] of [[24, 21.2, 11.2, 6.4], [29, 21.2, 11.0, 7.6], [156, 21.2, 11.6, 6.8], [151, 21.2, 11.4, 8.2], [272, 21.4, 10.4, 6.6], [96, 22.5, 15, 8.5]]) { const p = pol(deg, r); chain(V(p.x, y0, p.z), V(p.x, y1, p.z), 0.14); }
       // the cages: the pirate skeleton at the left, the little ghost at the right of centre, the gold and the crown at the far right
       hangCage('skeleton', 310, 8.5, 4.0); hangCage('ghost', 112, 13.5, 5.4); hangCage('gold', 234, 8.4, 3.6);
       // lanterns: a big one on a chain at the left, two on brackets on the wall posts
@@ -333,6 +337,111 @@ function conqPreview() {
 window.conqPreview = conqPreview;
 """
 
+KEEP = r"""
+// ---------- (v309) the keep's models: the stone ruins, the cages, the pirate skeleton and the props were made from pictures by an image-to-3D
+// generator and packed small (tools/glb2pack.py --v2: positions and uvs quantized to their boxes, normals in two bytes, the indices as
+// varint steps, the maps as webp). The pack is a JSON block in the page (keepPack) that nothing reads at boot: Choose Event's warm-up or
+// the stage's build decodes it, once ----------
+const CQM = { E: null, G: {}, M: {}, T: {} };
+const cqB64 = t => { if (typeof Uint8Array.fromBase64 === 'function') return Uint8Array.fromBase64(t); const s = atob(t), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; };
+function cqEntries() { if (!CQM.E) { try { const el = document.getElementById('keepPack'); CQM.E = el ? JSON.parse(el.textContent) : {}; } catch (e) { CQM.E = {}; } } return CQM.E; }
+// one model's geometry: positions and uvs out of their boxes, normals out of their two octahedral bytes, the indices out of their steps
+function cqGeo(name) {
+  if (CQM.G[name] !== undefined) return CQM.G[name];
+  const E = cqEntries()[name]; if (!E || !E.b) return CQM.G[name] = null;
+  const buf = cqB64(E.b).buffer, n = E.n, L = E.lay, qp = new Uint16Array(buf, L.pos, n * 3), qu = new Uint16Array(buf, L.uv, n * 2);
+  const P = new Float32Array(n * 3), U = new Float32Array(n * 2), oct = (q, o) => { const N = new Float32Array(n * 3); for (let i = 0; i < n; i++) { let x = q[i * 2] / 127, y = q[i * 2 + 1] / 127; const z = 1 - Math.abs(x) - Math.abs(y);
+    if (z < 0) { const tx = (1 - Math.abs(y)) * (x >= 0 ? 1 : -1); y = (1 - Math.abs(x)) * (y >= 0 ? 1 : -1); x = tx; } const l = Math.hypot(x, y, z) || 1; N[i * 3] = x / l; N[i * 3 + 1] = y / l; N[i * 3 + 2] = z / l; } return N; };
+  for (let i = 0; i < n; i++) { for (let c = 0; c < 3; c++) P[i * 3 + c] = E.mn[c] + qp[i * 3 + c] / 65535 * (E.mx[c] - E.mn[c]); for (let c = 0; c < 2; c++) U[i * 2 + c] = E.umn[c] + qu[i * 2 + c] / 65535 * (E.umx[c] - E.umn[c]); }
+  const ib = new Uint8Array(buf, L.idx, E.ib), I = n > 65535 ? new Uint32Array(E.ni) : new Uint16Array(E.ni); let p = 0, v = 0;
+  for (let k = 0; k < E.ni; k++) { let z = 0, m = 1, c; do { c = ib[p++]; z += (c & 127) * m; m *= 128; } while (c & 128); v += z % 2 ? -(z + 1) / 2 : z / 2; I[k] = v; }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.BufferAttribute(oct(new Int8Array(buf, L.nrm, n * 2)), 3)); g.setAttribute('uv', new THREE.BufferAttribute(U, 2)); g.setIndex(new THREE.BufferAttribute(I, 1));
+  if (L.ink !== undefined) g.setAttribute('inkN', new THREE.BufferAttribute(oct(new Int8Array(buf, L.ink, n * 2)), 3));
+  if (L.joints !== undefined) { g.setAttribute('skinIndex', new THREE.BufferAttribute(new Uint8Array(buf, L.joints, n * 4), 4)); g.setAttribute('skinWeight', new THREE.BufferAttribute(new Uint8Array(buf, L.weights, n * 4), 4, true)); }
+  g.computeBoundingSphere(); g.computeBoundingBox(); E.b = null; return CQM.G[name] = g;
+}
+// a mirror image of a model (x the other way, the triangles wound the other way so they still face out)
+function cqGeoFlip(name) {
+  const id = name + '~'; if (CQM.G[id] !== undefined) return CQM.G[id]; const g0 = cqGeo(name); if (!g0) return CQM.G[id] = null;
+  const g = g0.clone(), P = g.attributes.position.array, N = g.attributes.normal.array, I = g.index.array; for (let i = 0; i < P.length; i += 3) { P[i] = -P[i]; N[i] = -N[i]; }
+  for (let k = 0; k < I.length; k += 3) { const t = I[k + 1]; I[k + 1] = I[k + 2]; I[k + 2] = t; } g.computeBoundingSphere(); g.computeBoundingBox(); return CQM.G[id] = g;
+}
+// a model's map: decoded by the browser off the main thread, the texture uploaded when it lands
+function cqTex(name, key, srgb) {
+  const id = name + '.' + key; if (CQM.T[id]) return CQM.T[id];
+  const E = cqEntries()[name], im = new Image(), t = new THREE.Texture(im); t.flipY = false; t.anisotropy = 4; if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+  im.onload = () => { t.needsUpdate = true; }; im.src = 'data:' + E.mime + ';base64,' + E[key]; return CQM.T[id] = t;
+}
+// a model's look: its own colour map tinted by c; in Graphics mode its relief (normal map) and the stage's baked light and shade too
+function cqMat(name, o) {
+  o = o || {}; const id = name + (o.id || ''); if (CQM.M[id]) return CQM.M[id];
+  const E = cqEntries()[name]; if (!E) return null; const map = E.col ? cqTex(name, 'col', true) : null;
+  const pb = HI ? Object.assign({ roughness: o.rough != null ? o.rough : 0.86, metalness: o.metal || 0 }, E.nrm && o.nk !== 0 ? { normalMap: cqTex(name, 'nrm', false), normalScale: new THREE.Vector2(o.nk || 1, o.nk || 1) } : {}) : null;
+  const m = toon(o.c != null ? o.c : 0xFFFFFF, Object.assign({ map }, o.lift ? { emissive: new THREE.Color(o.lift, o.lift, o.lift * 1.1), emissiveMap: map } : {}, o.extra || {}), pb);
+  const fk = o.fogK != null ? o.fogK : 1, hook = sh => { if (fk !== 1) sh.fragmentShader = sh.fragmentShader.replace('#include <fog_fragment>', '#ifdef USE_FOG\n gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, smoothstep(fogNear, fogFar, vFogDepth) * ' + fk.toFixed(3) + ');\n#endif'); };
+  if (HI) { aoPatch(m); m.onBeforeCompile = sh => { aoHook(sh); hook(sh); }; } else m.onBeforeCompile = hook; m.customProgramCacheKey = () => 'cq' + fk; return CQM.M[id] = m;
+}
+// (warmed while Choose Event is open: the geometry made and the maps decoding before the preview is opened)
+function conqModelsWarm() { const E = cqEntries(); for (const k in E) { cqGeo(k); if (E[k].col) cqTex(k, 'col', true); if (HI && E[k].nrm) cqTex(k, 'nrm', false); } }
+// many copies of one model in one draw: each [x, y, z, turn, sx, sy, sz] (the model stands on y = 0 at its middle); bend: wrap it round
+// the ring (its x along the circle at radius r, its z in and out), so straight wall sections close up into the round parapet
+function cqInstanced(name, list, mat, o) {
+  const g = name.endsWith('~') ? cqGeoFlip(name.slice(0, -1)) : cqGeo(name); if (!g || !list.length || !mat) return null; o = o || {};
+  const im = new THREE.InstancedMesh(g, mat, list.length), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), sv = new THREE.Vector3(), pv = new THREE.Vector3();
+  list.forEach((it, i) => { e.set(it[7] || 0, it[3], it[8] || 0, 'YXZ'); q.setFromEuler(e); m4.compose(pv.set(it[0], it[1], it[2]), q, sv.set(it[4], it[5] != null ? it[5] : it[4], it[6] != null ? it[6] : it[4])); im.setMatrixAt(i, m4); });
+  im.instanceMatrix.needsUpdate = true; im.computeBoundingSphere(); im.receiveShadow = true; im.castShadow = !!o.cast; if (o.mirror !== false) im.layers.enable(3); return im;
+}
+// straight wall sections wrapped round the ring, merged into one mesh: each [deg, sx, sy, sz, flip] puts a copy with its middle at angle deg
+// on the circle of radius R, its length along the circle (x / R is the angle), its depth in and out (its front, +z, toward the middle)
+function cqRing(name, R, list) {
+  const g0 = cqGeo(name); if (!g0) return null; const P0 = g0.attributes.position.array, N0 = g0.attributes.normal.array, n = P0.length / 3, I0 = g0.index.array, out = [];
+  for (const [deg, sx, sy, sz, flip] of list) { const a0 = deg * Math.PI / 180, P = new Float32Array(n * 3), N = new Float32Array(n * 3), f = flip ? -1 : 1;
+    for (let i = 0; i < n; i++) { const x = P0[i * 3] * sx * f, y = P0[i * 3 + 1] * sy, z = P0[i * 3 + 2] * sz, ph = x / R, rho = R - z, nx = N0[i * 3] * f / sx, ny = N0[i * 3 + 1] / sy, nz = N0[i * 3 + 2] / sz;
+      // (local: x along the wall, z toward the middle; the copy's own frame has the middle at +z, so the circle's centre is (0, 0, R))
+      const lx = rho * Math.sin(ph), lz = R - rho * Math.cos(ph), mx = nx * Math.cos(ph) - nz * Math.sin(ph), mz = nx * Math.sin(ph) + nz * Math.cos(ph);
+      // (then turned so that local +z points from the copy's place on the circle to the middle)
+      const c = Math.cos(a0), s = Math.sin(a0), px = R * c, pz = R * s, ix = -c, iz = -s, tx = -s, tz = c; // (inward and along)
+      P[i * 3] = px + tx * lx + ix * lz; P[i * 3 + 1] = y; P[i * 3 + 2] = pz + tz * lx + iz * lz; const ln = Math.hypot(mx, ny, mz) || 1; N[i * 3] = (tx * mx + ix * mz) / ln; N[i * 3 + 1] = ny / ln; N[i * 3 + 2] = (tz * mx + iz * mz) / ln; }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.BufferAttribute(N, 3)); g.setAttribute('uv', g0.attributes.uv);
+    g.setIndex(new THREE.BufferAttribute(flip ? (() => { const J = I0.slice(); for (let k = 0; k < J.length; k += 3) { const t = J[k + 1]; J[k + 1] = J[k + 2]; J[k + 2] = t; } return J; })() : I0, 1)); out.push(g); }
+  return mergeIdx(out, true);
+}
+// the ruins, placed to the picture: the parapet all round (straight sections wrapped round the ring, a capped post at the end of each), and
+// outside it the stonework left to ruin: the two big arches framing the back (left and right of the pool, seen across it from the start),
+// broken half arches, crumbling pillars, wall sections with arched windows, rubble at their feet. Each kind is one draw (instanced); the
+// parapet is four (a quarter of the ring each, so the far side is skipped when it's out of view). Returns false without the models
+function conqRuins(K) {
+  if (!cqGeo('parapet') || !cqGeo('arch')) return false;
+  const W0 = K.T.ring.wall, WT = 0.7, WH = 2.3, D = Math.PI / 180, lo = !HI;
+  const stone = { c: 0xB8B6D0, rough: 0.8, nk: 1.25, lift: 0.22, fogK: 0.55 }, wall = Object.assign({}, stone, { id: 'w', fogK: 0.8, lift: 0.12 });
+  // (the parapet model: 1.0 long, 0.515 high with its post, 0.24 deep, the wall's capstones at 0.377: so WH tall, WT deep, 15 degrees long)
+  const Rm = W0 + WT / 2, seg = 15, sx = Rm * seg * D * 1.035, sy = WH / 0.377, sz = WT / 0.242;
+  for (let q = 0; q < 4; q++) { const list = []; for (let k = 0; k < 24 / 4; k++) list.push([(q * 6 + k) * seg + seg / 2, sx, sy * (1 + 0.025 * Math.sin(q * 6 + k)), sz, 0]);
+    const g = cqRing('parapet', Rm, list); if (!g) continue; const m = new THREE.Mesh(g, cqMat('parapet', wall)); m.receiveShadow = true; m.layers.enable(3); K.add(m); }
+  // the pieces outside the wall: [model, deg, r, height, turn (from facing the middle), flip x]
+  // (each model's front: the arch's faces +x, the rest +z; their heights: arch 1, half arch 1, pillar 1, window wall 1, rubble 0.58)
+  const front = { arch: -Math.PI / 2, halfarch: 0, pillar: 0, wallwin: 0, rubble: 0 }, H0 = { arch: 1, halfarch: 1, pillar: 1, wallwin: 0.844, rubble: 0.57 };
+  const P = [
+    // the back left (seen across the pool from the start): the great arch rising out of the top of the view, a tall broken pillar inside its
+    // reach, a half arch and a window wall stepping down toward the middle, where the wall stays low and the wrecks show through
+    ['arch', 26, 21.4, 14.0, 0.1], ['pillar', 47, 19.8, 9.4, 0.3], ['halfarch', 62, 20.6, 9.0, 0.2, 1], ['wallwin', 77, 21.4, 5.6, 0],
+    // the back right, the same the other way round
+    ['arch', 154, 21.4, 14.4, -0.1], ['pillar', 133, 19.8, 8.8, -0.3], ['halfarch', 118, 20.6, 8.6, -0.2], ['wallwin', 104, 21.6, 5.2, 0.1],
+    // round the sides and the front (behind you at the start): a third great arch, broken pillars, half arches, window walls
+    ['wallwin', 345, 21.0, 5.4, 0.1], ['pillar', 326, 19.8, 7.6, 0.4], ['halfarch', 302, 20.4, 9.2, 0.1, 1], ['arch', 270, 21.6, 15.0, 0],
+    ['halfarch', 238, 20.4, 9.0, -0.1], ['pillar', 214, 19.8, 7.2, -0.4], ['wallwin', 195, 21.0, 5.0, -0.1],
+    // rubble at their feet
+    ['rubble', 25, 19.3, 1.25, 0.6], ['rubble', 44, 19.0, 0.95, 2.1], ['rubble', 60, 19.4, 1.1, 1.0], ['rubble', 120, 19.2, 1.2, 2.6], ['rubble', 139, 19.0, 0.9, 0.4], ['rubble', 157, 19.3, 1.15, 1.7],
+    ['rubble', 206, 19.1, 1.0, 0.9], ['rubble', 240, 19.3, 1.2, 2.2], ['rubble', 300, 19.2, 1.05, 0.2], ['rubble', 331, 19.0, 0.95, 1.4], ['rubble', 92, 19.6, 0.8, 0.7],
+  ];
+  const by = {};
+  for (const [nm, deg, r, h, turn, flip] of P) { if (lo && (nm === 'rubble' || (nm === 'pillar' && (deg > 180)))) continue; const a = deg * D, s = h / H0[nm], face = Math.atan2(-Math.cos(a), -Math.sin(a));
+    (by[nm + (flip ? '~' : '')] = by[nm + (flip ? '~' : '')] || []).push([Math.cos(a) * r, 0, Math.sin(a) * r, face + (flip ? -front[nm] : front[nm]) + (turn || 0), s]); }
+  for (const nm in by) { const m = cqInstanced(nm, by[nm], cqMat(nm.replace('~', ''), stone), { mirror: false }); if (m) K.add(m); }
+  return true;
+}
+"""
+
 MOTES = r"""MOTE_LOOK.conquest = { cols: [0xD0F0FF, 0xFFFFFF, 0xA0E0FF], size: 0.22, rise: 0.9, blink: 0.3, sway: 0.5 }; // (v309: bubbles drifting up)
 """
 
@@ -350,7 +459,9 @@ def apply(s):
     s = rep(s, "['crypt', 'cathedral', 'manor', 'sewer'].includes(id) ? 'spooky'", "['crypt', 'cathedral', 'manor', 'sewer', 'conquest'].includes(id) ? 'spooky'")
     # the theme, its materials, scene and generator
     s = rep(s, "const THEME_BY = Object.fromEntries(THEMES.map(t => [t.id, t]));", THEME.strip('\n') + "\nconst THEME_BY = Object.fromEntries(THEMES.map(t => [t.id, t]));")
-    s = rep(s, "function sewerMats(M, T) {", CORE.replace('__CONQ_TEX__', json.dumps(TEX)).strip('\n') + "\nfunction sewerMats(M, T) {")
+    s = rep(s, "function sewerMats(M, T) {", CORE.replace('__CONQ_TEX__', json.dumps(TEX)).strip('\n') + KEEP.rstrip('\n') + "\nfunction sewerMats(M, T) {")
+    assert '</' not in MODELS
+    s = rep(s, '<script src="three.r186.min.js"></script>', '<script type="application/json" id="keepPack">' + MODELS + '</script>\n<script src="three.r186.min.js"></script>')
     s = rep(s, "let moteLook = MOTE_LOOK.studio;", MOTES + "let moteLook = MOTE_LOOK.studio;")
     s = rep(s, "TP = genOpt.themes ? THEMES.filter(t => genOpt.themes.includes(t.id)) : THEMES,", "TP = genOpt.themes ? THEMES.filter(t => genOpt.themes.includes(t.id)) : THEMES.filter(t => !t.ring),")
     # the stage builder: a round floor the size of the ring, no square rim, no random markings, the plain pieces
