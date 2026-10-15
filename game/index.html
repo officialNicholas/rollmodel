@@ -3643,6 +3643,20 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 #turnPick::-moz-range-thumb{width:30px;height:30px;border:0;border-radius:9px;background:linear-gradient(180deg,#FFE08A 0%,#F2C14E 100%);box-shadow:0 0 0 2.5px #171320,inset 0 3px 0 rgba(255,255,255,.5),inset 0 -4px 0 rgba(0,0,0,.18),0 4px 0 #171320}
 #turnPick:focus-visible::-webkit-slider-thumb{outline:3px solid var(--gold);outline-offset:3px}
 @media (max-height:520px) and (min-aspect-ratio:1/1){.trn{height:40px}}
+/* (v299) the Turning slider in the pause card: a strip like the score's, holding the same gold slider as Settings */
+.pturn{display:grid;gap:2px;padding:10px 14px 4px;border-radius:6px;background:var(--paper-2)}
+.pthd{display:flex;align-items:center;gap:10px}
+.ptlab{font:900 16px/1 var(--font-head);letter-spacing:.02em;text-transform:uppercase;color:var(--black);transform:skewX(-6deg)}
+.pturn .trn{height:40px}
+.pturn .trnl{color:var(--muted)}
+#pTurnPick{--v:30%;-webkit-appearance:none;appearance:none;width:100%;height:30px;margin:0;padding:0;background:none;cursor:pointer;touch-action:pan-y}
+#pTurnPick:focus{outline:none}
+#pTurnPick::-webkit-slider-runnable-track{height:16px;border-radius:9px;background:linear-gradient(90deg,#F2C14E 0,#FFE08A var(--v),#28243A var(--v));box-shadow:0 0 0 2.5px #171320,inset 0 3px 0 rgba(0,0,0,.3)}
+#pTurnPick::-moz-range-track{height:16px;border-radius:9px;background:linear-gradient(90deg,#F2C14E 0,#FFE08A var(--v),#28243A var(--v));box-shadow:0 0 0 2.5px #171320,inset 0 3px 0 rgba(0,0,0,.3)}
+#pTurnPick::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:30px;height:30px;margin-top:-7px;border:0;border-radius:9px;background:linear-gradient(180deg,#FFE08A 0%,#F2C14E 100%);box-shadow:0 0 0 2.5px #171320,inset 0 3px 0 rgba(255,255,255,.5),inset 0 -4px 0 rgba(0,0,0,.18),0 4px 0 #171320;transform:skewX(-6deg)}
+#pTurnPick::-moz-range-thumb{width:30px;height:30px;border:0;border-radius:9px;background:linear-gradient(180deg,#FFE08A 0%,#F2C14E 100%);box-shadow:0 0 0 2.5px #171320,inset 0 3px 0 rgba(255,255,255,.5),inset 0 -4px 0 rgba(0,0,0,.18),0 4px 0 #171320}
+#pTurnPick:focus-visible::-webkit-slider-thumb{outline:3px solid #171320;outline-offset:3px}
+@media (min-aspect-ratio:1/1){#pause .card{width:min(100%,620px);grid-template-columns:repeat(2,minmax(0,1fr))}#pause .card>*{grid-column:1/-1}#pause .card>.pscore{grid-column:1}#pause .card>.pturn{grid-column:2}}
 /* (v293) Time trial: the leaderboard strip on the canvas picker */
 .mworld #soloNote.ttoff{display:none}
 .ttstrip{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;width:min(100%,420px);margin:0 auto 4px;padding:9px 12px 9px 10px;box-sizing:border-box;border:0;border-radius:3px;
@@ -3884,7 +3898,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 298</p>
+      <p class="ver">Version 299</p>
     </div>
   </div>
 
@@ -3906,7 +3920,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="sopt"><p class="slab">Music</p><div class="seg duo tog" id="musPick" role="group" aria-label="Music"><button type="button" data-v="on" aria-pressed="true"><span>On</span></button><button type="button" data-v="off" aria-pressed="false"><span>Off</span></button></div></div>
         <div class="sopt wide"><p class="slab">Screen</p><div class="seg duo tog pick" id="orientPick" role="group" aria-label="Screen"><button type="button" data-o="port" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10.5 18h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Upright</button><button type="button" data-o="land" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6.5" width="19" height="11" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M18 10.5v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Wide</button></div></div>
         <div class="sopt wide"><p class="slab">Visuals</p><div class="seg duo tog pick" id="gfxPick" role="group" aria-label="Visuals"><button type="button" data-g="hi" aria-pressed="false"><span>Graphics</span></button><button type="button" data-g="perf" aria-pressed="false"><span>Performance</span></button></div><p class="gnote" id="gfxNote" aria-live="polite"></p></div>
-        <div class="sopt wide"><p class="slab">Turning <b class="trnv" id="turnVal">100%</b></p><div class="trn"><span class="trnl" aria-hidden="true">Gentle</span><input type="range" id="turnPick" min="50" max="150" step="5" value="100" aria-label="Turning speed" aria-describedby="turnNote"><span class="trnl" aria-hidden="true">Quick</span></div><p class="gnote" id="turnNote">How fast you turn when you swipe.</p></div>
+        <div class="sopt wide"><p class="slab">Turning <b class="trnv" id="turnVal">80%</b></p><div class="trn"><span class="trnl" aria-hidden="true">Gentle</span><input type="range" id="turnPick" min="50" max="150" step="5" value="80" aria-label="Turning speed" aria-describedby="turnNote"><span class="trnl" aria-hidden="true">Quick</span></div><p class="gnote" id="turnNote">How fast you turn when you swipe.</p></div>
         <div class="sopt wide"><p class="slab">Help</p><div class="sbtns"><button class="sbtn" id="howOpen" type="button" aria-haspopup="dialog"><span>How to play</span></button></div><p class="gnote" id="lastErr"></p></div>
         <div class="sopt wide soon"><p class="slab">Play with friends <i class="soontag">Coming soon</i></p><div class="sbtns"><button class="sbtn" type="button" disabled><span>Invite friends</span></button><button class="sbtn" type="button" disabled><span>Link account</span></button></div></div>
         <div class="sopt full"><div class="sbtns three"><button class="sbtn" id="tosBtn" type="button" aria-haspopup="dialog"><span>Terms of Service</span></button><button class="sbtn" id="privBtn" type="button" aria-haspopup="dialog"><span>Privacy Policy</span></button><button class="sbtn" id="credBtn" type="button" aria-haspopup="dialog"><span>Credits</span></button></div></div>
@@ -3921,6 +3935,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
     <div class="card" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
       <h2 class="ctitle" id="pauseTitle">Paused</h2>
       <div class="pscore"><b class="you" id="pauseYou">0%</b><span id="pauseClock">1:30 left</span><b class="cpu" id="pauseCpu">0%</b></div>
+      <div class="pturn" role="group" aria-labelledby="pTurnLab"><div class="pthd"><span class="ptlab" id="pTurnLab">Turning</span><b class="trnv" id="pTurnVal">80%</b></div><div class="trn"><span class="trnl" aria-hidden="true">Gentle</span><input type="range" id="pTurnPick" min="50" max="150" step="5" value="80" aria-label="Turning speed"><span class="trnl" aria-hidden="true">Quick</span></div></div>
       <button class="btn play sm" id="resumeBtn" type="button">Resume</button>
       <div class="row"><button class="btn" id="restartBtn" type="button">Restart</button><button class="btn" id="quitBtn" type="button">Menu</button></div>
     </div>
@@ -4148,7 +4163,8 @@ let ARENA = 26.4; const ARENA_MAX = 33; // half size of the canvas floor (a 3-wa
 const TW = 0.8;            // trail width
 const PR = 0.34;           // drop radius
 const SPACING = 0.12;      // trail point spacing
-const turnPct = () => { const v = +store.turn; return v >= 50 && v <= 150 ? Math.round(v / 5) * 5 : 100; }, turnK = () => 0.89 * turnPct() / 100; // (v295: 100% turns about 10% slower than before; the steering helpers make up a little of it)
+const turnPct = () => { const v = +store.turn; return v >= 50 && v <= 150 ? Math.round(v / 5) * 5 : 80; }, // (v299: 80% unless you've picked something else)
+  turnK = () => 0.89 * turnPct() / 100; // (v295: 100% turns about 10% slower than before; the steering helpers make up a little of it)
 const TURN = 3.9;          // rad/s at full steer (more when slow, and it keeps its arc when fast)
 const STEP = 0.32;         // highest ledge you roll up without jumping
 const JUMP_V = 5.6, GRAV = 15;
@@ -20434,7 +20450,7 @@ const fmtClock = s => { const t = Math.max(0, Math.ceil(s)); return Math.floor(t
 function pause() {
   if (state !== 'play') return; state = 'paused'; if (P.charging) clearCharge(P); kbCharge = false; AU.chargeStop(); AU.roll(0, 0); AU.sizzle(0);
   const [a, b] = fmtPair(teamCov(0), teamCov(1));
-  $('pauseYou').textContent = a; $('pauseCpu').textContent = b; $('pauseClock').textContent = fmtClock(matchLeft) + ' left'; $('quitBtn').textContent = tut ? 'Skip tutorial' : 'Menu'; pauseEl.hidden = false; AU.music('pause'); setTimeout(() => $('resumeBtn').focus({ preventScroll: true }), 30);
+  $('pauseYou').textContent = a; $('pauseCpu').textContent = b; $('pauseClock').textContent = fmtClock(matchLeft) + ' left'; $('quitBtn').textContent = tut ? 'Skip tutorial' : 'Menu'; if (window.__turnShow) window.__turnShow(); pauseEl.hidden = false; AU.music('pause'); setTimeout(() => $('resumeBtn').focus({ preventScroll: true }), 30);
 }
 function resume() { if (state !== 'paused') return; state = 'play'; pauseEl.hidden = true; AU.music('play'); if ($('tutSlow').classList.contains('on')) AU.slow(true, true); }
 const PT_A = ['Prelude', 'Study', 'Impression', 'Sonata', 'Daydream', 'Duel', 'Etude', 'Rhapsody'];
@@ -21241,11 +21257,17 @@ $('orientOk').addEventListener('click', () => { AU.init(); AU.pop(); const el = 
 $('orientPick').addEventListener('click', e => { const t = e.target.closest('button'); if (!t || t.dataset.o === store.orient) return; AU.init(); AU.ui(); setOrient(t.dataset.o); });
 $('rotateSwap').addEventListener('click', () => { AU.init(); AU.ui(); setOrient(viewW > viewH ? 'land' : 'port'); });
 window.addEventListener('resize', () => setTimeout(checkRotate, 0));
-// (v295) the Turning slider in Settings
-{ const el = $('turnPick'), show = () => { const v = turnPct(); el.value = String(v); el.style.setProperty('--v', ((v - 50) / 100 * 100).toFixed(1) + '%'); $('turnVal').textContent = v + '%'; el.setAttribute('aria-valuetext', v + '%'); };
+// (v295) the Turning slider in Settings (v299: and the same one in the pause menu; moving either moves both)
+{ const pairs = [[$('turnPick'), $('turnVal')], [$('pTurnPick'), $('pTurnVal')]];
+  const show = () => { const v = turnPct(); for (const [el, lab] of pairs) { el.value = String(v); el.style.setProperty('--v', ((v - 50) / 100 * 100).toFixed(1) + '%'); lab.textContent = v + '%'; el.setAttribute('aria-valuetext', v + '%'); } };
   let last = turnPct();
-  el.addEventListener('input', () => { const v = Math.round(+el.value / 5) * 5; store.turn = clamp(v, 50, 150); show(); if (v !== last) { last = v; try { AU.tick && AU.tick(0); } catch (e) {} } });
-  el.addEventListener('change', () => { save(); });
+  for (const [el] of pairs) {
+    el.addEventListener('input', () => { const v = Math.round(+el.value / 5) * 5; store.turn = clamp(v, 50, 150); show(); if (v !== last) { last = v; try { AU.tick && AU.tick(0); } catch (e) {} } });
+    el.addEventListener('change', () => { save(); });
+    el.addEventListener('keydown', e => { // (the game's keys skip inputs, so while the slider has focus Escape and P are handled here)
+      if (e.key !== 'Escape' && e.key !== 'p' && e.key !== 'P') return;
+      if (state === 'paused' && !pauseEl.hidden) { e.preventDefault(); resume(); } else if (e.key === 'Escape' && !setModal.hidden) { e.preventDefault(); closeSettings(); } });
+  }
   window.__turnShow = show; show(); }
 $('gfxPick').addEventListener('click', e => { const b = e.target.closest('button[data-g]'); if (!b || b.dataset.g === gfxPick) return; AU.ui(); gfxPick = b.dataset.g; paintSettings(); });
 $('srows').addEventListener('pointerdown', e => { const g = e.target.closest('.sgrp'); if (!g) return; for (const x of $('srows').children) x.classList.toggle('on', x === g); });
