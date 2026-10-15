@@ -184,7 +184,12 @@ const RMNetSDK = (() => {
     constructor(max = 96) { this.s = []; this.max = max; }
     push(st) {
       const s = this.s, last = s[s.length - 1];
-      if (last && st.t <= last.t) return false; // old or duplicate
+      if (last && st.t <= last.t) {
+        // The same state again: that player sent nothing new (dropped, knocked out, out, not sending), but what the
+        // server says about them can still change (AWAY, KO, OUT, IMMUNE...), so keep its latest flags and paint.
+        if (st.t === last.t) { last.flags = st.flags; last.paint = st.paint; }
+        return false; // old or duplicate: not a new position
+      }
       s.push(st); if (s.length > this.max) s.shift();
       return true;
     }

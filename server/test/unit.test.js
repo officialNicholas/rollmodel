@@ -52,8 +52,18 @@ test('layout canonical form, hash and validation', () => {
   // -0 and 0 agree, extra fields (a box's kind) do not count, shapes only when round
   const z = { arena: 20, boxes: [[-0, 1, 0, 1, 0, 1, 0, 'rpad']], ramps: [], holes: [[1, 2, 1, 2, 0]], pots: [[0, 0, 0]], powers: [[1, 0, 1, undefined]], spawns: [[0, -0.001, 0]] };
   assert.equal(canonicalLayout(z), 'RM1[2000,[[0,100,0,100,0,100]],[],[[100,200,100,200]],[[0,0,0]],[[100,0,100]],[[0,0,0]],[]]');
-  // a known value, so the game's copy can be checked against this one
-  assert.equal(layoutHash(z), hashString(canonicalLayout(z)));
+  // known values, so a copy of the hash in the game can be checked against this one
+  assert.equal(layoutHash(z), hashString(canonicalLayout(z))); assert.equal(layoutHash(z), 'ab6e1fc1d8b436cf');
+  assert.equal(hashString(''), 'e3b1a47cab3e7c0b');
+  const ex = { arena: 26.4, boxes: [[-2, 2, -1, 1, 0, 1.5], [5, 7, 5, 7, 0, 2, 'c']], ramps: [[-6, -4, 0, 3, 'z', 0, 1.5]], holes: [[8, 10, -10, -8], [-12, -9, 6, 9, 'c']], pots: [[0, 1.5, 0]], powers: [[4, 0, -4, 'roller'], [-4, 0, 4]], spawns: [[0, -20, 0], [0, 20, Math.PI]], puddles: [[10, 0, 10]] };
+  assert.equal(canonicalLayout(ex), 'RM1[2640,[[-200,200,-100,100,0,150],[500,700,500,700,0,200,"c"]],[[-600,-400,0,300,"z",0,150]],[[800,1000,-1000,-800],[-1200,-900,600,900,"c"]],[[0,150,0]],[[400,0,-400,"roller"],[-400,0,400]],[[0,-2000,0],[0,2000,314]],[[1000,0,1000]]]');
+  assert.equal(layoutHash(ex), '746f9aef3f617241');
+  // puddles (the boiling-water spots) are optional; when sent they are part of the stage
+  const wp = layoutFromStage({ arena: 20, boxes: [], ramps: [], holes: [], pots: [[0, 0, 0]], powers: [], spawns: [[0, -5, 0], [0, 5, 3.14]], puddles: [[3, 0.05, 3, 'extra']] });
+  assert.deepEqual(wp.puddles, [[3, 0.05, 3]]); assert.ok(canonicalLayout(wp).endsWith(',[[300,5,300]]]'));
+  assert.notEqual(layoutHash(wp), layoutHash({ ...wp, puddles: [] })); assert.equal(layoutHash({ ...wp, puddles: [] }), layoutHash({ ...wp, puddles: undefined }));
+  const vp = validateLayout(wp, { arena: 20, players: 2 }); assert.ok(vp.ok, vp.error); assert.deepEqual(vp.layout.puddles, [[3, 0.05, 3]]);
+  assert.match(validateLayout({ ...wp, puddles: new Array(49).fill([0, 0, 0]) }, { arena: 20 }).error, /too many puddles/);
   assert.equal(hashString('RM1'), hashString('RM1')); assert.notEqual(hashString('RM1'), hashString('RM2'));
   // the server's validation
   const v = validateLayout(L, { arena: 26.4, players: 2 }); assert.ok(v.ok, v.error); assert.equal(v.hash, layoutHash(L));
@@ -180,6 +190,9 @@ test('remote sampling interpolates, extrapolates briefly, then holds', () => {
   assert.equal(tr.sample(0).x, 0, 'before the first state: the first state');
   tr.push({ slot: 1, t: 1400, x: 30, y: 0, z: 0, yaw: 0, spd: 0, vy: 0, flags: 0, paint: 1, aim: 0 });
   assert.equal(tr.sample(1365).x, 2, 'never slides across a teleport (a respawn)');
+  // a player who sends nothing new (dropped, knocked out) keeps its last state, but the server's flags still get through
+  assert.equal(tr.push({ slot: 1, t: 1400, x: 30, y: 0, z: 0, yaw: 0, spd: 0, vy: 0, flags: FLAGS.AWAY | FLAGS.KO, paint: 0.5, aim: 0 }), false, 'not a new position');
+  const away = tr.sample(1500); assert.equal(away.flags, FLAGS.AWAY | FLAGS.KO); assert.equal(away.x, 30); assert.equal(away.paint, 0.5);
   // yaw takes the short way round
   const t2 = new RemoteTrack(); t2.push({ t: 0, x: 0, y: 0, z: 0, yaw: 3.1, spd: 0, vy: 0, flags: 0 }); t2.push({ t: 10, x: 0, y: 0, z: 0, yaw: -3.1, spd: 0, vy: 0, flags: 0 });
   assert.ok(Math.abs(Math.abs(t2.sample(5).yaw) - Math.PI) < 0.01);

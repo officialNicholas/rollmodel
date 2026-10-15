@@ -25,7 +25,7 @@ for (const mode of ['duel', 'trio', 'ffa', 'duo']) {
       const t0 = Date.now();
       for (const b of bots) assert.equal((await b.net.queue(mode)).mode, mode);
       const f = await Promise.all(found);
-      metric('lifecycle.' + mode + '.matchmaking', Date.now() - t0, 'ms', 'queue to match found');
+      metric('lifecycle.' + mode + '.matchmaking', Date.now() - t0, 'ms', 'queue to match found, ' + { duel: 'duel', trio: 'trio', ffa: 'Showdown', duo: 'Showdown 2v2' }[mode] + ' (' + n + ' players)');
       const id = f[0].matchId;
       assert.ok(f.every(m => m.matchId === id && m.mode === mode && m.players.length === n));
       assert.deepEqual(f.map(m => m.you).sort(), [...Array(n).keys()], 'each player gets its own slot');
