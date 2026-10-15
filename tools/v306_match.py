@@ -25,6 +25,7 @@ JS = r"""
 // server checks every move; your rival is drawn from the server's snapshots, a moment in the past. The server decides what wins or
 // loses (knock-outs, flattenings, pots, coverage, the clock, the result); this side applies its rulings ----------
 var NM = null; // the online match under way (null offline)
+let netAhead = 0; // (while a frame is stepped in pieces: how much of the frame's time is still to come, in seconds)
 const NET_THEMES = ['island', 'blank', 'sewer', 'raft', 'crypt', 'cathedral', 'manor']; // (the same list on every phone: the stage must come out the same)
 function netMatchFound(m, net) {
   net = net || (typeof ON === 'object' && ON && ON.net); if (!net || !m || !Array.isArray(m.players)) return;
@@ -89,8 +90,10 @@ function netAct(a, data) {
   if (!NM || !NM.net) return; const nm = NM;
   // where you are right now goes first, so the referee judges the move from here (on a slow frame you may have come
   // a long way since the last report)
-  if (nm.live && state === 'play' && (P.st === 'play' || P.st === 'hide')) nm.net.sendState(netState(), true);
-  nm.net.action(a, data || {}).then(r => { if (NM !== nm || r.ok) return; nm.refused++; nm.why.push(a + ':' + r.reason); if (nm.why.length > 8) nm.why.shift(); if (a === 'enterPot' && P.st === 'hide' && r.reason !== 'disconnected' && r.reason !== 'timeout') netUnPot(r.reason); });
+  // (stamped with when it happened: inside a long frame, that's before the frame's end)
+  const back = netAhead * 1000, ts = nm.net.serverNow() - back;
+  if (nm.live && state === 'play' && (P.st === 'play' || P.st === 'hide')) nm.net.sendState(netState(), true, ts);
+  nm.net.action(a, Object.assign({ ts, vt: nm.net.renderTime() - back }, data || {})).then(r => { if (NM !== nm || r.ok) return; nm.refused++; nm.why.push(a + ':' + r.reason); if (nm.why.length > 8) nm.why.shift(); if (a === 'enterPot' && P.st === 'hide' && r.reason !== 'disconnected' && r.reason !== 'timeout') netUnPot(r.reason); });
 }
 // a dive into a pot the referee didn't allow: back where you were, on the ground (no hop out: the server never had you in it)
 function netPre() { NM.pre = { x: P.x, y: P.y, z: P.z, yaw: P.yaw, air: P.air }; }
@@ -306,7 +309,7 @@ def apply(s):
     s = rep(s, "  if (state === 'paused') dt = 0; else if (hold > 0) {", "  if (NM && (state === 'play' || state === 'intro')) { hold = 0; slow = 0; if (rawDt > dt) dt = Math.min(rawDt, 0.25); } // (v306: online the server runs on real time)\n  if (state === 'paused') dt = 0; else if (hold > 0) {")
     s = rep(s, "  if (ffK > 1) dt = Math.min(dt, 0.05); // (the drawing's own timing no faster than a slow frame's)", "  if (ffK > 1 || NM) dt = Math.min(dt, 0.05); // (the drawing's own timing no faster than a slow frame's)")
     s = rep(s, "  if (dt > 0) { const n = Math.ceil(dt / 0.012); for (let i = 0; i < n; i++) step(dt / n); }\n",
-               "  if (dt > 0) { const n = Math.ceil(dt / 0.012); for (let i = 0; i < n; i++) step(dt / n); }\n  if (NM) netFrame();\n")
+               "  if (dt > 0) { const n = Math.ceil(dt / 0.012); for (let i = 0; i < n; i++) { if (NM) netAhead = dt * (n - i) / n; step(dt / n); } netAhead = 0; }\n  if (NM) netFrame();\n")
     s = rep(s, "function goTime() {\n  showCount('Go!', true);", "function goTime() {\n  if (NM && NM.phase === 'end') return; // (v306: the server ended it while this phone was still in the intro)\n  showCount('Go!', true);")
     s = rep(s, "function kcamStart(V) {\n  if (kcamUsed ||", "function kcamStart(V) {\n  if (NM || kcamUsed ||")
     # ---- your blob: its moves go to the referee; a knock-out, a respawn or a flattening only when the server says

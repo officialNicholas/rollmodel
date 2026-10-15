@@ -12,7 +12,7 @@ import { metric } from './helpers/harness.js';
 
 // Drive a blob for `seconds` with uneven frames (12 to 22 ms) and report at about 30 Hz, the way the SDK does.
 // mind(ctx) steers and acts; the referee is told about every accepted move like the match tells it.
-function drive(level, { seconds = 30, seed = 1, rain = 1, mind, start, cheat, frames = [12, 22], hitch = 0 } = {}) {
+function drive(level, { seconds = 30, seed = 1, rain = 1, mind, start, cheat, frames = [12, 22], hitch = 0, sendEvery = 33.33 } = {}) {
   const R = rng(seed), sp = start || level.spawns[0], body = new Body(level, sp); body.rain = rain;
   const mover = new Mover(level); let t = 10000; mover.reset(sp, t);
   const env = { rainMul: rain, turfOwn: () => false };
@@ -31,7 +31,7 @@ function drive(level, { seconds = 30, seed = 1, rain = 1, mind, start, cheat, fr
     const input = mind ? mind(ctx) : {};
     body.step(dt / 1000, input || {});
     if (t >= nextSend) {
-      nextSend = nextSend + 33.33 > t ? nextSend + 33.33 : t + 33.33;
+      nextSend = nextSend + sendEvery > t ? nextSend + sendEvery : t + sendEvery;
       const st = cheat ? cheat(body.state(), ctx) : body.state();
       const r = mover.check(st, t, env); out.states++;
       if (!r.ok) { out.violations.push({ t: el, reason: r.reason, x: st.x, y: st.y, z: st.z }); body.place(mover.last); mover.last.t = t; mover.bucket = 0; }
@@ -96,6 +96,11 @@ test('ramps, ledges, decks: legal ups and downs pass', () => {
   // jump onto the box from a run
   const hop = drive(L, { seconds: 3, start: { x: 9, z: -6, yaw: 0 }, mind: ctx => { if (ctx.t > 650 && !ctx.done) { ctx.done = ctx.act('jump', () => ctx.body.jump()); } return { yaw: 0 }; } });
   assert.deepEqual(hop.violations, []);
+  // a slow phone (four reports a second) walking up a steeper ramp (like the game's): each report is a long stride up
+  // it, 0.6 m higher, not a climb
+  const steep = new Level({ arena: 26.4, boxes: [[-3, 3, 0, 6, 2.3, 2.7]], ramps: [[-2, 2, -6, 0, 'z', 0, 2.7]], holes: [], pots: [[0, 0, -15]], powers: [], spawns: [[0, -16, 0], [9, -6, 0]] });
+  const slow = drive(steep, { seconds: 6, sendEvery: 250, mind: () => ({ yaw: 0 }) });
+  assert.deepEqual(slow.violations, []);
 });
 
 const flat = () => new Level(flatLayout(26.4));

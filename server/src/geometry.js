@@ -17,6 +17,8 @@ export class Level {
     this.arena = layout.arena;
     this.boxes = layout.boxes.map(b => [b[0], b[1], b[2], b[3], b[4], b[5], b[6] === 'c' ? 'c' : 0]);
     this.ramps = layout.ramps.map(r => [r[0], r[1], r[2], r[3], r[4], r[5], r[6]]);
+    // the steepest ramp (rise over run), for walking up one in big steps
+    this.maxSlope = this.ramps.reduce((m, r) => Math.max(m, Math.abs(r[6] - r[5]) / Math.max(0.1, r[4] === 'x' ? r[1] - r[0] : r[3] - r[2])), 0);
     this.holes = layout.holes.map(h => [h[0], h[1], h[2], h[3], 0, 0, h[4] === 'c' ? 'c' : 0]); // the game's own hole format
     this.pots = layout.pots.map(p => ({ x: p[0], y: p[1], z: p[2] }));
     this.powers = layout.powers.map(p => ({ x: p[0], y: p[1], z: p[2], kind: typeof p[3] === 'string' ? p[3] : null }));

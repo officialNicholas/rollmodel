@@ -397,7 +397,9 @@ const RMNetSDK = (() => {
     // ---- play ----
     // state: { x, y, z, yaw, spd, vy, paint, aim, flags } or booleans { air, rolling, charging, slam, hidden, flung, dry, missile }
     // Call every frame; the SDK sends at most sendHz times a second (force = true sends now).
-    sendState(state, force = false) {
+    // t (optional): when the state was true, on the server's clock (default now); a game that steps a long frame in
+    // pieces can say when, inside the frame, a move happened
+    sendState(state, force = false, t) {
       const now = this._now();
       if (!force && now < this._nextSend) return false;
       // keep a steady cadence: the next slot is one interval after this one, unless that is already past (no bursts)
@@ -406,7 +408,7 @@ const RMNetSDK = (() => {
       if (flags === undefined) { flags = 0; for (const k in FLAG_NAMES) if (state[k]) flags |= FLAG_NAMES[k]; }
       if (!fin(state.x) || !fin(state.y) || !fin(state.z)) return false;
       this._seq = (this._seq + 1) & 0xffff;
-      return this._sendB(codec.encodeState(Object.assign({}, state, { flags }), this._seq, this.serverNow(), this._corr));
+      return this._sendB(codec.encodeState(Object.assign({}, state, { flags }), this._seq, fin(t) ? Math.min(t, this.serverNow()) : this.serverNow(), this._corr));
     }
     // type: 'jump' | 'roll' | 'fling' | 'pound' | 'land' | 'stomp' | 'enterPot' | 'exitPot' | 'use' | 'selfKo'
     // data may include ts (when it happened, server clock; default now) and vt (the render time you were seeing).
