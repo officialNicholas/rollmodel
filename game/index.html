@@ -3797,7 +3797,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 291</p>
+      <p class="ver">Version 292</p>
     </div>
   </div>
 
@@ -21628,7 +21628,7 @@ function tutStrokesDue() { return tutPh() === 'done' && !store.tut.strokes && st
 function tutStrokesCard(n) {
   const el = $('tutGo'); el.dataset.mode = 'strokes' + n;
   if (n === 1) tutCardText(['Look at <em>you</em>, rookie!', 'Rank ' + repOf(store.xp || 0).lv + ' already. You’ve come a long way since that first canvas, and I’ve been watching.', 'Aw, thanks', '']);
-  else tutCardText(['Let’s learn <em>some more</em>', 'You’ve unlocked Strokes: your special move, a skill and the transform you start with. Time trial and Showdown are open now too. Strokes first: come see.', 'Show me', '']);
+  else tutCardText(['Let’s learn <em>some more</em>', 'Strokes, Time trial and Showdown are unlocked. Let’s start with Strokes.', 'Show me', '']);
   if (el.hidden) { el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); } tutCardCoach(); if (n === 1) { store.evNew = { solo: 1, showdown: 1 }; AU.fanfare && AU.fanfare(); AU.bloop(0.55); menu.classList.add('tutoring'); } else AU.bloop(0.5); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);
 }
 function tutStrokesGo() { const el = $('tutGo'), m = el.dataset.mode; if (m === 'strokes1') return tutStrokesCard(2); el.classList.remove('on'); el.hidden = true; coachCorner(null); el.dataset.mode = ''; store.tut.strokes = 'on'; tutSet('strokes'); openStrokes(); } /* (straight onto the page: no lobby tip flashing up first) */
