@@ -3,3 +3,4 @@ RollModel-iOS.zip
 __pycache__/
 ios/RollModel/RollModel/Game/
 tools/ios/build/
+server/node_modules/
