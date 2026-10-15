@@ -19,11 +19,12 @@ Plug in your iPhone, pick it as the run destination and press **Run**. The first
 
 ## Good to know
 
-- The game inside is version 305. Settings shows it as "Version 1.1 (305)".
+- The game inside is version 306. Settings shows it as "Version 1.1 (306)".
 - A brand-new player first gets the intro: a paint barrel in a desert scrapyard, then picking eye colour, eye style, paint colour and a name, before the lobby and the lesson. Existing players go straight to the lobby. To see it again, delete and reinstall the app.
 - Saved names, looks and progress carry over from the earlier builds: the game keeps the same save and the same private address inside the app.
 - The app icon is the paint roller. To change it later, drop a new 1024 x 1024 image into **Assets > AppIcon**.
-- The whole game is bundled inside the app, fonts included, so it runs fully offline: nothing is ever fetched from the internet. Building the zip checks this and fails if anything in the game points outside the app or names a file the app doesn't have.
+- The whole game is bundled inside the app, fonts included, so it runs offline: none of it is fetched from the internet. Only online play goes out, to two places: the game server (rollmodel-game.fly.dev) for duels and the game's Supabase project for usernames, accounts and friends. Building the zip checks this and fails if anything else in the game points outside the app or names a file the app doesn't have.
+- Online play and accounts are new in this build, so update **App Privacy** for the app in App Store Connect to match the privacy file inside it (PrivacyInfo.xcprivacy): Name, User ID, Gameplay Content and Other Data (the birthday), all linked to the player, none used for tracking, for App Functionality. A player can delete their account in Settings.
 - Progress is kept twice: in the game's own storage and in a copy the app keeps in its own files (it goes into phone backups). If iOS clears website data, or the app is closed a moment after a save, the newer copy comes back at the next start.
 - If iOS takes the game's graphics away while it's in the background, they come back when you return; if they can't, the game starts again with progress kept. When the phone is short of memory, the game lets go of songs it isn't playing.
 - Pinch and double tap never zoom the game, the page settles back after the keyboard closes, and the home bar fades out while you play.

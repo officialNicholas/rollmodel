@@ -5,9 +5,10 @@ The app is the original Roll Model project (bundle ID studio.primeshots.rollmode
 Store Connect as an update of the app already there. The game goes in ios/RollModel/RollModel/Game: the page, three.js, the character
 pack the page loads, art, music and sounds, plus the bundled fonts and licenses from ios/shared. The page is pointed at those fonts in
 place of Google Fonts (the app runs offline), and its version line shows the app's version with the game's build number. The build
-fails if anything in the page points outside the app or names a file the app doesn't have. The page also gets a fixed zoom and the
-app's copy of the save (native/save.js, served by the app) ahead of the game."""
-import os, re, shutil, zipfile
+fails if anything in the page points outside the app or names a file the app doesn't have; the one exception is online play
+(v306), which may reach the two addresses in tools/online_config.json, the game server and the Supabase project, and nothing else.
+The page also gets a fixed zoom and the app's copy of the save (native/save.js, served by the app) ahead of the game."""
+import json, os, re, shutil, zipfile
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 game, app, shared = os.path.join(root, 'game'), os.path.join(root, 'ios', 'RollModel'), os.path.join(root, 'ios', 'shared')
 dst = os.path.join(app, 'RollModel', 'Game')
@@ -44,8 +45,11 @@ html = html.replace(vp, '<meta name=viewport content="width=device-width,initial
 # the app's own copy of the save goes back in before the game reads its save (the app serves native/save.js; see SaveBridge.swift)
 k = html.find('<script'); assert k > 0
 html = html[:k] + '<script src="native/save.js"></script>\n' + html[k:]
-# fully offline: nothing may point outside the app, and every file the game names must be in it
-ext = [u for u in re.findall(r'(?:https?:)?//[\w.-]+\.[a-z]{2,}[^\s"\'<>)]*', html) if 'www.w3.org/' not in u]
+# fully offline: nothing may point outside the app, and every file the game names must be in it (online play aside: the game server
+# and the Supabase project from tools/online_config.json, by their exact host)
+cfg = json.load(open(os.path.join(root, 'tools', 'online_config.json'), encoding='utf8'))
+online = {re.sub(r'^[a-z]+:', '', cfg[k]).split('/')[2] for k in ('supabase_url', 'game_server_url') if cfg.get(k)}
+ext = [u for u in re.findall(r'(?:https?:)?//[\w.-]+\.[a-z]{2,}[^\s"\'<>)]*', html) if 'www.w3.org/' not in u and u.split('/')[2] not in online]
 assert not ext, ('points outside the app', ext[:5])
 names = set(re.findall(r"['\"(]((?:music|sfx|voice|art|fonts)/[\w.-]+\.(?:mp3|webp|png|jpg|woff2))", html))
 for n in names: assert os.path.isfile(os.path.join(dst, n)), ('missing in the app', n)
@@ -55,7 +59,7 @@ for key, body in re.findall(r"\n    (\w+): \{([^}]*)\}", TRKS):
     assert os.path.isfile(os.path.join(dst, n)), ('song missing in the app', n)
 for n in set(re.findall(r"\.say\('(\w+)'", html)): assert os.path.isfile(os.path.join(dst, 'voice', 'say_%s.mp3' % n)), ('line missing', n)
 for n in ('sfx/m.mp3', 'sfx/s.mp3'): assert os.path.isfile(os.path.join(dst, n)), n
-print('offline check:', len(names), 'named files, every song, line and sheet in the app; nothing outside')
+print('offline check:', len(names), 'named files, every song, line and sheet in the app; nothing outside but online play', sorted(online))
 open(os.path.join(dst, 'index.html'), 'w', encoding='utf8').write(html)
 for ref in re.findall(r'<script src="([^"]+)"', html): assert ref.startswith('native/') or os.path.isfile(os.path.join(dst, ref)), ref
 # the zip: the project folder as RollModel/, the way the app first went out
