@@ -2,7 +2,8 @@ import Foundation
 import WebKit
 
 /// Serves the bundled game from a private address (rollmodel://localhost), so it runs offline and its saved name,
-/// color and best scores stay put between launches. Nothing is ever fetched from the internet.
+/// color and best scores stay put between launches. None of the game is ever fetched from the internet (only online play
+/// goes out, to the game server and the friends service).
 ///
 /// Files are read off the main thread (the songs and the character pack are several MB, and reading them on the main
 /// thread would stall the game), byte ranges are honored (what audio and video elements ask for), and a request the

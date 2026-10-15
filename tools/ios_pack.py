@@ -5,9 +5,10 @@ The app is the original Roll Model project (bundle ID studio.primeshots.rollmode
 Store Connect as an update of the app already there. The game goes in ios/RollModel/RollModel/Game: the page, three.js, the character
 pack the page loads, art, music and sounds, plus the bundled fonts and licenses from ios/shared. The page is pointed at those fonts in
 place of Google Fonts (the app runs offline), and its version line shows the app's version with the game's build number. The build
-fails if anything in the page points outside the app or names a file the app doesn't have. The page also gets a fixed zoom and the
-app's copy of the save (native/save.js, served by the app) ahead of the game."""
-import os, re, shutil, zipfile
+fails if anything in the page points outside the app or names a file the app doesn't have; the one exception is online play
+(v306), which may reach the two addresses in tools/online_config.json, the game server and the Supabase project, and nothing else.
+The page also gets a fixed zoom and the app's copy of the save (native/save.js, served by the app) ahead of the game."""
+import json, os, re, shutil, zipfile
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 game, app, shared = os.path.join(root, 'game'), os.path.join(root, 'ios', 'RollModel'), os.path.join(root, 'ios', 'shared')
 dst = os.path.join(app, 'RollModel', 'Game')
@@ -15,13 +16,14 @@ if os.path.isdir(dst): shutil.rmtree(dst)
 html = open(os.path.join(game, 'index.html'), encoding='utf8').read()
 used = set(re.findall(r"['\"](axo-pack[-\w]*\.txt)['\"]", html))  # (quoted, as the page loads it: a comment naming one doesn't count)
 # (only the character pack the page loads goes in: older packs stay in the repo for older builds, not in the app)
-# (and no local test pages: game/_*.html are probe builds, never part of the game)
-skip = lambda d, names: [n for n in names if n == '.DS_Store' or (d == game and ((n.startswith('axo-pack') and n.endswith('.txt') and n not in used) or (n.startswith('_') and n.endswith('.html'))))]
+# (and no local test pages: the game is index.html, so no other page at the top of game/ goes in, whatever it's called)
+skip = lambda d, names: [n for n in names if n == '.DS_Store' or (d == game and ((n.startswith('axo-pack') and n.endswith('.txt') and n not in used) or (n.endswith('.html') and n != 'index.html')))]
 shutil.copytree(game, dst, ignore=skip)
 for sub in ('fonts', 'licenses'): shutil.copytree(os.path.join(shared, sub), os.path.join(dst, sub))
 # the fonts from the app itself, not Google
-FACES = [('Bowlby One', 400, 'bowlby-one-latin-400-normal.woff2')] + [('Figtree', w, 'figtree-latin-%d-normal.woff2' % w) for w in (400, 600, 700, 800, 900)]
-css = '<style>' + ''.join("@font-face{font-family:'%s';font-style:normal;font-weight:%d;font-display:swap;src:url(fonts/%s) format('woff2')}" % f for f in FACES) + '</style>'
+FACES = [('Bowlby One', 400, 'bowlby-one-latin-400-normal.woff2', 'normal')] + [('Figtree', w, 'figtree-latin-%d-normal.woff2' % w, 'normal') for w in (400, 600, 700, 800, 900)]
+FACES += [('Barlow Condensed', 600, 'barlow-condensed-latin-600-normal.woff2', 'normal')] + [('Barlow Condensed', w, 'barlow-condensed-latin-%d-italic.woff2' % w, 'italic') for w in (700, 800, 900)]  # (v274: the victory screen's words)
+css = '<style>' + ''.join("@font-face{font-family:'%s';font-style:%s;font-weight:%d;font-display:swap;src:url(fonts/%s) format('woff2')}" % (f[0], f[3], f[1], f[2]) for f in FACES) + '</style>'
 link = re.findall(r'<link rel="stylesheet" href="https://fonts\.googleapis\.com/css2[^"]*">', html); assert len(link) == 1, link
 html = html.replace(link[0], css)
 for pc in ('<link rel="preconnect" href="https://fonts.googleapis.com">', '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'):
@@ -43,8 +45,11 @@ html = html.replace(vp, '<meta name=viewport content="width=device-width,initial
 # the app's own copy of the save goes back in before the game reads its save (the app serves native/save.js; see SaveBridge.swift)
 k = html.find('<script'); assert k > 0
 html = html[:k] + '<script src="native/save.js"></script>\n' + html[k:]
-# fully offline: nothing may point outside the app, and every file the game names must be in it
-ext = [u for u in re.findall(r'(?:https?:)?//[\w.-]+\.[a-z]{2,}[^\s"\'<>)]*', html) if 'www.w3.org/' not in u]
+# fully offline: nothing may point outside the app, and every file the game names must be in it (online play aside: the game server
+# and the Supabase project from tools/online_config.json, by their exact host)
+cfg = json.load(open(os.path.join(root, 'tools', 'online_config.json'), encoding='utf8'))
+online = {re.sub(r'^[a-z]+:', '', cfg[k]).split('/')[2] for k in ('supabase_url', 'game_server_url') if cfg.get(k)}
+ext = [u for u in re.findall(r'(?:https?:)?//[\w.-]+\.[a-z]{2,}[^\s"\'<>)]*', html) if 'www.w3.org/' not in u and u.split('/')[2] not in online]
 assert not ext, ('points outside the app', ext[:5])
 names = set(re.findall(r"['\"(]((?:music|sfx|voice|art|fonts)/[\w.-]+\.(?:mp3|webp|png|jpg|woff2))", html))
 for n in names: assert os.path.isfile(os.path.join(dst, n)), ('missing in the app', n)
@@ -54,7 +59,8 @@ for key, body in re.findall(r"\n    (\w+): \{([^}]*)\}", TRKS):
     assert os.path.isfile(os.path.join(dst, n)), ('song missing in the app', n)
 for n in set(re.findall(r"\.say\('(\w+)'", html)): assert os.path.isfile(os.path.join(dst, 'voice', 'say_%s.mp3' % n)), ('line missing', n)
 for n in ('sfx/m.mp3', 'sfx/s.mp3'): assert os.path.isfile(os.path.join(dst, n)), n
-print('offline check:', len(names), 'named files, every song, line and sheet in the app; nothing outside')
+assert sorted(f for f in os.listdir(dst) if f.endswith('.html')) == ['index.html'], 'a page other than the game in the app'
+print('offline check:', len(names), 'named files, every song, line and sheet in the app; nothing outside but online play', sorted(online))
 open(os.path.join(dst, 'index.html'), 'w', encoding='utf8').write(html)
 for ref in re.findall(r'<script src="([^"]+)"', html): assert ref.startswith('native/') or os.path.isfile(os.path.join(dst, ref)), ref
 # the zip: the project folder as RollModel/, the way the app first went out

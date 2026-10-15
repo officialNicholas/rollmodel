@@ -1,0 +1,8 @@
+{
+  "name": "rollmodel-supabase-tests",
+  "private": true,
+  "type": "module",
+  "description": "Tests for the Supabase migration on a local Postgres (see supabase/README.md)",
+  "scripts": { "test": "node --test friends.test.mjs" },
+  "devDependencies": { "pg": "8.13.1" }
+}
