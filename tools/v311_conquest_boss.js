@@ -1,19 +1,21 @@
 // ---------- (v311) the Conquest boss: the owner's jellyfish with boxing gloves, rigged, with physics, a face and a full set of moves ----------
 //
 // The model is the owner's (one welded mesh, 17,100 triangles), rigged offline by tools/boss/build_pack.py into boss-pack.txt (fetched
-// the first time a boss is made, about 0.8 MB of text): 73 bones (a root and the bell; per arm six bones, the hand, its cuff and three
-// bones for each finger and the thumb; seven tentacle chains), four weights a vertex. Nothing here allocates per frame.
+// the first time a boss is made, about 0.95 MB of text): 73 bones (a root and the bell; per arm six bones, the hand, its cuff and three
+// bones for each finger and the thumb; seven tentacle chains), four weights a vertex, and a mesh half as fine for the outline and the
+// shadow. Nothing here makes objects per frame. The whole boss is about 29,900 triangles in 5 draws (and the outline's shadow).
 //
-//   const boss = makeBoss({ scale: 1, hover: 5.6 });    // a Group (boss.group) to add to the scene; it builds itself when the pack is in
-//   boss.ready.then(() => ...)                          // (or boss.isReady)
-//   boss.group.position.set(x, floorY, z)               // its home: the floor (or the pool's surface) under the middle of the bell
-//   boss.update(dt, { player })                         // each frame; player: a Vector3 (world), looked at and turned to unless lookAt says
+//   const boss = makeBoss({ scale: 1, hover: 5.6, floorY: 0, poolY: -0.14, poolR: 4, glove: 1.3, glow: 1 });
+//   boss.ready.then(() => ...)                          // (or boss.isReady); a Group (boss.group) to add to the scene
+//   boss.group.position.set(x, floorY, z)               // its home: the floor under the middle of the bell (the pool's middle)
+//   boss.update(dt, { player, camera })                 // each frame; player: a Vector3 (world), looked at and turned to unless lookAt says;
+//                                                       // camera: the sparks face it (else the camera that last drew the boss)
 //   boss.play(name, opts) -> the move's length (s)      // see MOVES below; plays over idle, returns to idle when done
-//   boss.busy                                           // true while a move other than idle runs
+//   boss.busy, boss.move                                // true while a move other than idle runs, and which
 //   boss.lookAt(x, y, z) / boss.lookAt(null)            // where the eyes (and slowly the body) turn; null: back to the player
 //   boss.face(expr, hold)                               // angry (default), glare, charging, glow, hurt, dizzy, smug, defeated, surprised
-//   boss.hand(side, pose)                               // 'L' | 'R', 'fist' | 'open' | 'relax' | 'point' | 'spread' | null (back to the move's)
-//   boss.onHit(cb)                                      // cb({ move, hand, x, y, z, r }) when a fist (or the zap) lands, in world units
+//   boss.hand(side, pose)                               // 'L' | 'R' | 'both', 'fist' | 'open' | 'relax' | 'point' | 'spread' | null (the move's)
+//   boss.onHit(cb)                                      // cb({ move, hand, x, y, z, r, ring, power }) when a fist (or the zap) lands
 //   boss.on(event, cb) / boss.off(event, cb)            // every event below
 //   boss.fist(side, out) / boss.fistR                   // a fist's centre (world) and radius, for the fight's collisions
 //   boss.bellPoint(out) / boss.bellR                    // the bell's centre (world) and radius (where the player hits it)
@@ -27,10 +29,10 @@
 //   slam     {x, z, speed}        both fists up high, then down onto the target with a big shockwave
 //   sweep    {hand, dir, x, z, speed}  one arm sweeps low across the floor in an arc through the target (dir 1 / -1, default inward)
 //   zap      {x, z, speed}        charges between its fists, then a lightning bolt to the target
-//   hurt     {}                   a flinch, a flash and a wobble
+//   hurt     {x, z}               a flinch away from where the hit came from, a flash and a wobble
 //   stunned  {time}               sinks low, dizzy, fists resting on the floor (the opening), then recovers
-//   taunt    {}                   points at the player, beckons, smug
-//   defeat   {}                   deflates and sinks into the pool in a cloud of bubbles
+//   taunt    {}                   wags a finger, beckons with the other glove, smug
+//   defeat   {}                   deflates and sinks into the pool in a cloud of bubbles (and stays down until the intro)
 //
 // Events (cb gets { move, ... }): start, windup, strike, hit (also to onHit), recover, done (any move ends), sweep (each frame of a
 // sweep's low pass: { x, z } the fist on the floor), zap (the bolt fires), stunStart, stunEnd, introRise, introShake, introBump,
@@ -68,7 +70,18 @@ var BOSS = (() => {
       g.setIndex(new THREE.BufferAttribute(at('idx', Uint16Array, H.ni), 1));
       g.boundingSphere = new THREE.Sphere(new V3(0, -1, 0), 9); g.boundingBox = new THREE.Box3(new V3(-8, -9, -8), new V3(8, 4, 8));
       const tex = (typeof AXO !== 'undefined' && AXO.texFromBytes) ? AXO.texFromBytes(new Uint8Array(buf, base + o.tex, H.texLen), H.texMime) : texFromBytes(new Uint8Array(buf, base + o.tex, H.texLen), H.texMime);
-      S.pack = { H, geo: g, tex }; return S.pack;
+      // the outline's lighter mesh (half the triangles; the shadow is cast from it too), on the same skeleton
+      let hg = g;
+      if (H.hn) {
+        const hn = H.hn, hq = at('hpos', Uint16Array, hn * 3), HP = new Float32Array(hn * 3);
+        for (let i = 0; i < hn * 3; i++) { const k = i % 3; HP[i] = mn[k] + hq[i] / 65535 * (mx[k] - mn[k]); }
+        hg = new THREE.BufferGeometry(); hg.setAttribute('position', new THREE.BufferAttribute(HP, 3));
+        hg.setAttribute('normal', new THREE.InterleavedBufferAttribute(new THREE.InterleavedBuffer(at('hnrm', Int8Array, hn * 4), 4), 3, 0, true));
+        hg.setAttribute('skinIndex', new THREE.BufferAttribute(at('hsi', Uint8Array, hn * 4), 4)); hg.setAttribute('skinWeight', new THREE.BufferAttribute(at('hsw', Uint8Array, hn * 4), 4, true));
+        hg.setAttribute('aInfo', new THREE.BufferAttribute(at('hinfo', Uint8Array, hn * 4), 4, true)); hg.setIndex(new THREE.BufferAttribute(at('hidx', Uint16Array, H.hni), 1));
+        hg.boundingSphere = g.boundingSphere.clone(); hg.boundingBox = g.boundingBox.clone();
+      }
+      S.pack = { H, geo: g, hgeo: hg, tex }; return S.pack;
     })();
     return S.loading;
   }
@@ -158,9 +171,9 @@ vec3 bossDefN(vec3 p, vec3 n) {
   float ndv = clamp(abs(dot(Nn, Vd)), 0.0, 1.0), fr = pow(1.0 - ndv, 2.6);
   vec3 base = diffuseColor.rgb;
   // its own light: richer straight on, a bright pink-white rim at the edges, brighter toward the tentacles' tips
-  vec3 deep = base * base * 1.35;
+  vec3 deep = base * (base * 1.1 + 0.18);
   float tip = smoothstep(0.55, 1.0, vInfo.y) * step(0.01, vInfo.z) * step(vInfo.z, 0.55);
-  totalEmissiveRadiance += jelly * (deep * (0.42 + 0.22 * tip) * bGlow.x + mix(base, vec3(1.0, 0.82, 0.97), 0.45) * fr * 1.05 * bGlow.y);
+  totalEmissiveRadiance += jelly * (deep * (0.55 + 0.25 * tip) * bGlow.x + mix(base, vec3(1.0, 0.82, 0.97), 0.45) * fr * 1.05 * bGlow.y);
   totalEmissiveRadiance += cuff * base * 0.12 + glove * vec3(0.10, 0.09, 0.14) * (0.5 + fr);
   // the purple charge (pulsing), the hit flash
   totalEmissiveRadiance += vec3(0.62, 0.22, 1.0) * bGlow.z * (0.55 + 0.45 * sin(bGlow.w)) * (0.4 + fr) * (jelly + 0.35 * glove);
@@ -227,7 +240,7 @@ vWp = (modelMatrix * vec4(transformed, 1.0)).xyz;`);
     const vert = (p, n, f) => { P.push(p.x, p.y, p.z); N.push(n.x, n.y, n.z); F.push(f[0], f[1], f[2], f[3]); return P.length / 3 - 1; };
     // an eye: the front of an ellipsoid (a little past its equator, so it sinks into the bell all round)
     for (const part of [0, 1]) {
-      const R = 16, A = 26, base = P.length / 3;
+      const R = 12, A = 22, base = P.length / 3;
       for (let i = 0; i <= R; i++) { const ph = i / R * 1.95; for (let j = 0; j <= A; j++) { const th = j / A * Math.PI * 2, sx = Math.sin(ph) * Math.cos(th), sy = Math.sin(ph) * Math.sin(th), sz = Math.cos(ph);
         const p = new V3(sx * EYE.w, sy * EYE.h, (sz - 0.18) * EYE.d), n = new V3(sx / EYE.w, sy / EYE.h, sz / EYE.d).normalize();
         vert(p, n, [part, sx, sy, 0]); } }
@@ -235,7 +248,7 @@ vWp = (modelMatrix * vec4(transformed, 1.0)).xyz;`);
     }
     // a brow: a tube along a shallow arch with rounded ends, fatter in the middle; and its outline (pushed out, faces turned round)
     for (const part of [2, 3]) for (const ink of [0, 1]) {
-      const L = 22, A = 14, base = P.length / 3, out = ink ? 0.026 : 0;
+      const L = 16, A = 10, base = P.length / 3, out = ink ? 0.026 : 0;
       for (let i = 0; i <= L; i++) {
         const u = i / L, x = (u - 0.5) * BROW.len, y = 0.06 * (1 - Math.pow(2 * u - 1, 2)), cap = Math.sin(Math.min(1, Math.min(u, 1 - u) / 0.16) * Math.PI / 2);
         const rad = BROW.r * (0.75 + 0.25 * Math.sin(u * Math.PI)) * Math.max(0.12, cap);
@@ -466,7 +479,7 @@ void main() {
   function makeBoss(opts) {
     opts = opts || {};
     const group = new THREE.Group(), model = new THREE.Group(); group.add(model); group.name = 'boss';
-    const scale = opts.scale || 1, HOVER = opts.hover || 5.6, FLOOR = opts.floorY || 0, FIST_R = 0.5, GLOVE = opts.glove || 1.3;
+    const scale = opts.scale || 1, HOVER = opts.hover || 5.6, FLOOR = opts.floorY || 0, FIST_R = 0.5, GLOVE = opts.glove || 1.3, GLOW = opts.glow || 1;
     group.scale.setScalar(scale);
     const B = { group, isReady: false, busy: false, scale, stats: { tris: 0, draws: 0, cpuMs: 0 }, fistR: 0.6 * scale, bellR: 2.2 * scale, move: 'idle' };
     const evs = {};
@@ -497,8 +510,8 @@ void main() {
       const skel = new THREE.Skeleton(bones, R.binv.map(m => m.clone())); skel.computeBoneTexture(); skel.update = () => {};
       const ident = new M4();
       const body = new THREE.SkinnedMesh(pack.geo, bodyMat(U, pack.tex)); body.bindMode = THREE.DetachedBindMode; body.bind(skel, ident);
-      body.frustumCulled = false; body.castShadow = true; body.customDepthMaterial = depthMat(U); body.renderOrder = 30;
-      const hull = new THREE.SkinnedMesh(pack.geo, inkMat(U)); hull.bindMode = THREE.DetachedBindMode; hull.bind(skel, ident); hull.frustumCulled = false; hull.renderOrder = 29;
+      body.frustumCulled = false; body.castShadow = false; body.renderOrder = 30;
+      const hull = new THREE.SkinnedMesh(pack.hgeo, inkMat(U)); hull.castShadow = true; hull.customDepthMaterial = depthMat(U); hull.bindMode = THREE.DetachedBindMode; hull.bind(skel, ident); hull.frustumCulled = false; hull.renderOrder = 29;
       const FU = { fM: { value: [new M4(), new M4(), new M4(), new M4()] }, fEA: { value: [new THREE.Vector4(), new THREE.Vector4()] }, fEB: { value: [new THREE.Vector4(), new THREE.Vector4()] },
         fEC: { value: [new THREE.Vector4(0, 0, -1, 0), new THREE.Vector4(0, 0, 1, 0)] }, fSkin: { value: new THREE.Color(0xEE6CC9).convertSRGBToLinear() }, fBrow: { value: new THREE.Color(0xF58AD6).convertSRGBToLinear() },
         fInk: { value: new THREE.Color(INK_C).convertSRGBToLinear() }, fT: { value: new THREE.Vector4() }, bClip: U.bClip };
@@ -506,7 +519,7 @@ void main() {
       const face = new THREE.Mesh(pack.faceGeo || (pack.faceGeo = faceGeo()), faceMat(FU)); face.frustumCulled = false; face.renderOrder = 31;
       const fx = makeFX(), pt = makeParticles();
       model.add(hull, body, face, fx.mesh, pt.pts);
-      B.stats.tris = H.ni / 3 * 2 + face.geometry.index.count / 3; B.stats.draws = 5;
+      B.stats.tris = (H.ni + (H.hni || H.ni) + face.geometry.index.count) / 3 + (ARC_N * 2 * (ARC_P - 1) * 2 + (GLOW_N + RING_N) * 2); B.stats.draws = 5;   // (+ the shadow pass)
 
       // ---- the pose: each bone's matrix (model space), then times its inverse bind into the skin's texture
       const Mb = []; for (let i = 0; i < nb; i++) Mb.push(new M4());
@@ -776,7 +789,7 @@ void main() {
         U.bWob.value.set(st.wob[0], st.wobAng[0], st.wob[2], st.wobAng[1]);
         U.bTent.value.set(0.06 * T.tentW, 2.4, 0, 0);
         U.bFlash.value.set(1, 0.6, 0.92, st.flash);
-        U.bGlow.value.set(0.62 + 0.1 * Math.sin(t * 1.3), 1, st.charge, st.chargePh);
+        U.bGlow.value.set(GLOW * (0.75 + 0.1 * Math.sin(t * 1.3)), GLOW, st.charge, st.chargePh);
         U.bClip.value.set(T.clipY < -1e3 ? -1e4 : Gp.y + T.clipY * Gs.x, T.clipBand * Gs.x, 0, 0);   // (the pool's line, in world units)
         for (const s of SIDES) { const A = arms[s], a = T.arm[s]; let sum = 0;
           if (A.handOverride) { A.pwT.fill(0); A.pwT[POSE_NAMES.indexOf(A.handOverride)] = 1; }
@@ -920,11 +933,16 @@ void main() {
           }
         }
         let q = fx.nArcV;
-        const quad = (p, layer, size, inten) => { for (let c = 0; c < 4; c++) { const v = q + c, cx = c === 0 || c === 3 ? -1 : 1, cz = c < 2 ? -1 : 1;
-          P[v * 3] = p.x; P[v * 3 + 1] = p.y; P[v * 3 + 2] = p.z; S2[v * 4] = cx; S2[v * 4 + 1] = layer; S2[v * 4 + 2] = cz; S2[v * 4 + 3] = inten; Tn[v * 3] = size; Tn[v * 3 + 1] = 0; Tn[v * 3 + 2] = 0; } q += 4; };
-        for (const g of fx.glows) quad(g.p, 2, g.on ? g.size : 0, g.on ? g.int : 0);
-        for (const r of fx.rings) { const u = r.on ? r.t / r.life : 1; quad(r.p, 3, r.on ? r.r1 * eOut(Math.min(1, u * 1.15)) : 0, r.on ? r.int * (1 - u) * (1 - u) : 0); }
+        for (let k = 0; k < GLOW_N; k++) { const g = fx.glows[k]; q = fxQuad(q, g.p, 2, g.on ? g.size : 0, g.on ? g.int : 0); }
+        for (let k = 0; k < RING_N; k++) { const r = fx.rings[k], u = r.on ? r.t / r.life : 1; q = fxQuad(q, r.p, 3, r.on ? r.r1 * eOut(Math.min(1, u * 1.15)) : 0, r.on ? r.int * (1 - u) * (1 - u) : 0); }
         fx.pA.needsUpdate = true; fx.sA.needsUpdate = true; fx.tA.needsUpdate = true;
+      }
+      // a glow (layer 2, facing the camera) or a ring on the floor (layer 3): four corners from vertex q on; returns the next free vertex
+      function fxQuad(q, p, layer, size, inten) {
+        const P = fx.pos, S2 = fx.aS, Tn = fx.aT;
+        for (let c = 0; c < 4; c++) { const v = q + c, cx = c === 0 || c === 3 ? -1 : 1, cz = c < 2 ? -1 : 1;
+          P[v * 3] = p.x; P[v * 3 + 1] = p.y; P[v * 3 + 2] = p.z; S2[v * 4] = cx; S2[v * 4 + 1] = layer; S2[v * 4 + 2] = cz; S2[v * 4 + 3] = inten; Tn[v * 3] = size; Tn[v * 3 + 1] = 0; Tn[v * 3 + 2] = 0; }
+        return q + 4;
       }
 
       // ---------------------------------------------------------------- particles
@@ -962,7 +980,7 @@ void main() {
       const mv = { name: 'idle', t: 0, len: 0, sp: 1, o: {}, fired: 0, M: null, P: new V3(), C: new V3(), side: 'L', g: 1, a0: 0, a1: 0, ar: 0, dir: 1, hold: 3, yaw: 0, lunge: 0, dist: 0, dripT: 0 };
       const mA = new V3(), mB = new V3(), mC = new V3(), mE = new V3(), hitW = new V3();
       const evOf = extra => { const d = { move: mv.name }; if (extra) for (const k in extra) d[k] = extra[k]; return d; };
-      function fire(bit, name, extra) { if (mv.fired & bit) return false; mv.fired |= bit; emit(name, evOf(extra)); return true; }
+      function fire(bit, name, hand) { if (mv.fired & bit) return false; mv.fired |= bit; const d = { move: mv.name }; if (hand) d.hand = hand; emit(name, d); return true; }   // (the event's object is made only when it fires)
       const wIO = (t, L, a, b) => sstep(0, a, t) * (1 - sstep(L - b, L, t));
       // the floor point a move aims at (world x, z; the player when not given), in the model's space
       function aim(o, out) { if (o && typeof o.x === 'number' && typeof o.z === 'number') out.set(o.x, Gp.y, o.z).applyMatrix4(Gi); else out.copy(st.look); out.y = FLOOR; return out; }
@@ -1019,9 +1037,9 @@ void main() {
             }
             wrist(o, -g * 2.3, -1.9 + 0.35 * kW, 1.5 - 1.9 * kS, w); grip(o, 'fist', w); turn(o, -g * 0.2, 0.1, 1, 0, -1, 0.2, 0.9, w);
             T.expr = kS > 0.5 ? (kH > 0.5 ? 'glare' : 'angry') : 'charging';
-            fire(1, 'windup', { hand: s }); if (t >= 0.5) fire(2, 'strike', { hand: s });
+            fire(1, 'windup', s); if (t >= 0.5) fire(2, 'strike', s);
             if (!(m.fired & 4) && t > 0.5 && (arms[s].landed || arms[s].fc.distanceTo(mB) < 0.4 || t > 0.8)) land(s, 4, 3.0, 1, 'hit');
-            if (t >= 1.15) fire(8, 'recover', { hand: s });
+            if (t >= 1.15) fire(8, 'recover', s);
           } },
         // ---- double slam: both fists up high (the bell stretches, the eyes glow), then down onto the target together: a shockwave
         slam: { len: 2.7,
@@ -1069,12 +1087,12 @@ void main() {
             grip(s, kS > 0.5 && kF < 0.5 ? 'spread' : 'open', w); T.arm[s].spark = lerp(T.arm[s].spark, 1.2, w);
             wrist(o, -g * 2.8, -1.4, -0.9 + 0.8 * kS, w); grip(o, 'fist', w);
             T.expr = kS > 0.5 ? 'angry' : 'charging';
-            fire(1, 'windup', { hand: s }); if (t >= 0.6) fire(2, 'strike', { hand: s });
+            fire(1, 'windup', s); if (t >= 0.6) fire(2, 'strike', s);
             if (t >= 0.6 && t <= 1.22) {
               const A = arms[s]; hitW.copy(A.fc).applyMatrix4(G); evSweep.x = hitW.x; evSweep.y = hitW.y; evSweep.z = hitW.z; evSweep.r = FIST_R * 1.6 * A.scl * Gs.x; emit('sweep', evSweep);
               if (Math.random() < 0.5) { mA.copy(A.fc); mA.y = FLOOR + 0.1; spawn(3, mA, (Math.random() - 0.5) * 2, 0.6 + Math.random(), (Math.random() - 0.5) * 2, 0.09, 0.5, C_SPARK); }
             }
-            if (t >= 1.25) fire(8, 'recover', { hand: s });
+            if (t >= 1.25) fire(8, 'recover', s);
           } },
         // ---- zap: the fists come together in front, a ball of lightning grows between them (the eyes glow, the bell beats fast), then a bolt
         zap: { len: 2.9,
@@ -1232,7 +1250,7 @@ void main() {
         return mv.len / mv.sp;
       }
       B.fistR = FIST_R * GLOVE * scale; B.bellR = H.bell.rRim * scale; B.moves = Object.keys(MOVES);
-      B._dbg = { FU, U, E, face_, T, st, arms, mv, R, H, tents, Mb, tex: pack.tex, POSE, fillPoses };   // (for the viewer and tests)
+      B._dbg = { FU, U, E, face_, T, st, arms, mv, R, H, tents, Mb, tex: pack.tex, POSE, fillPoses, fns: { update, step, pose, tentacles, faceUpdate, fxUpdate, ptUpdate, frameSetup, idle, writeFX, writeSkin, toModel } };   // (for the viewer and tests)
       return {
         play, update,
         lookAt(x, y, z) { if (x === null || x === undefined) { lookOn = false; return; } if (typeof x === 'object') lookWv.copy(x); else lookWv.set(x, y, z); lookOn = true; },
@@ -1240,7 +1258,7 @@ void main() {
         hand(s, p) { const P = POSE_NAMES.indexOf(p) >= 0 ? p : null; if (s === 'both' || !s) { arms.L.handOverride = arms.R.handOverride = P; } else if (arms[s]) arms[s].handOverride = P; },
         fist(s, out) { return (out || new V3()).copy(arms[s === 'R' ? 'R' : 'L'].fc).applyMatrix4(G); },
         bellPoint(out) { return (out || new V3()).set(0, 0.25, 0).applyMatrix4(Mbell).applyMatrix4(G); },
-        dispose() { for (const m of [body.material, hull.material, face.material, fx.mesh.material, pt.pts.material, body.customDepthMaterial]) m.dispose(); fx.g.dispose(); pt.g.dispose(); skel.dispose(); },
+        dispose() { for (const m of [body.material, hull.material, face.material, fx.mesh.material, pt.pts.material, hull.customDepthMaterial]) m.dispose(); fx.g.dispose(); pt.g.dispose(); skel.dispose(); },
       };
     }
   }

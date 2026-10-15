@@ -11,10 +11,14 @@ What it does, in order:
   bones, blended across each joint, then smoothed over the surface;
 - marks how much of each vertex follows the bell's shader motion (the pulse, the skirt ripple, the wobble), and each tube's length
   coordinate and id (the tentacles' own wave in the shader);
+- finds where the face's eye caps go on the bell's front, and presses the bell back under them (a sculpted lump of the dome would
+  poke through an eye);
+- simplifies the mesh to half for the outline and the shadow (edge collapses within each part, each kept vertex its own weights);
 - fills the texture atlas's empty space (so no dark seams), paints the face patch pink and encodes it as WebP;
 - writes the pack: 'RMB1', the header's length, the header (JSON), the data; raw (boss.pack) and as base64 text (boss-pack.txt).
 
-usage: python3 -I build_pack.py <extracted dir> <out dir> [--debug <dir>] [--tex 1024]"""
+usage: python3 -I build_pack.py <extracted dir> <out dir> [--debug <dir>] [--tex 1024]
+(the extracted dir is what tools/boss/fbx_extract.mjs writes from the owner's FBX; the game's copy is game/boss-pack.txt)"""
 import sys, os, io, json, math, base64, struct
 import numpy as np
 from PIL import Image
@@ -355,6 +359,56 @@ bio = io.BytesIO(); tex.save(bio, 'WEBP', quality=82, method=6); texb = bio.getv
 print('texture', TEX, len(texb), 'bytes')
 if DBG: tex.save(DBG + '/tex.png')
 
+# ---------------------------------------------------------------- the outline's own lighter mesh (and the shadow's)
+# The outline (the back faces pushed out) needs the silhouette, not every detail, so it gets the mesh simplified to half: edges
+# collapse onto one of their ends (so every kept vertex keeps its own weights), cheapest first by the quadric error of the planes
+# round them, never across two parts (an arm stays an arm), never flipping a face or pinching the surface.
+def simplify(V, T, label, target):
+    nv = len(V); F = [list(f) for f in T]; alive = [True] * len(F)
+    vf = [set() for _ in range(nv)]
+    for i, f in enumerate(F):
+        for v in f: vf[v].add(i)
+    Q = np.zeros((nv, 4, 4))
+    for f in F:
+        a, b, c = V[f[0]], V[f[1]], V[f[2]]; n = np.cross(b - a, c - a); ar = np.linalg.norm(n)
+        if ar < 1e-12: continue
+        n /= ar; p = np.append(n, -n.dot(a)); K = np.outer(p, p) * ar
+        for v in f: Q[v] += K
+    import heapq
+    def nbrs(v): return {w for fi in vf[v] for w in F[fi] if w != v}
+    def cost(a, b):
+        q = Q[a] + Q[b]; h = np.append(V[b], 1.0); c = float(h @ q @ h)
+        return c * (1.0 if label[a] == label[b] else 1e6)
+    heap = []; stamp = [0] * nv
+    for a in range(nv):
+        for b in nbrs(a):
+            heapq.heappush(heap, (cost(a, b), a, b, 0, 0))
+    nf = len(F)
+    while nf > target and heap:
+        c, a, b, sa, sb = heapq.heappop(heap)
+        if not vf[a] or not vf[b] or sa != stamp[a] or sb != stamp[b] or b not in nbrs(a): continue
+        if label[a] != label[b]: continue
+        # the link condition (two shared neighbours on a closed surface), so the surface doesn't pinch
+        if len(nbrs(a) & nbrs(b)) != 2: continue
+        shared = [fi for fi in vf[a] if b in F[fi]]; ok = True
+        for fi in vf[a]:
+            if fi in shared: continue
+            f = F[fi]; P0 = [V[x] for x in f]; P1 = [V[b] if x == a else V[x] for x in f]
+            n0 = np.cross(P0[1] - P0[0], P0[2] - P0[0]); n1 = np.cross(P1[1] - P1[0], P1[2] - P1[0])
+            l0, l1 = np.linalg.norm(n0), np.linalg.norm(n1)
+            if l1 < 1e-10 or (l0 > 1e-10 and n0.dot(n1) / (l0 * l1) < 0.25): ok = False; break
+        if not ok: continue
+        for fi in shared: alive[fi] = False; nf -= 1; [vf[x].discard(fi) for x in F[fi]]
+        for fi in list(vf[a]):
+            F[fi] = [b if x == a else x for x in F[fi]]; vf[b].add(fi)
+        vf[a].clear(); Q[b] += Q[a]; stamp[b] += 1
+        for w in nbrs(b):
+            heapq.heappush(heap, (cost(w, b), w, b, stamp[w], stamp[b])); heapq.heappush(heap, (cost(b, w), b, w, stamp[b], stamp[w]))
+    Fk = np.array([F[i] for i in range(len(F)) if alive[i]]); used = np.unique(Fk); remap = -np.ones(nv, int); remap[used] = np.arange(len(used))
+    return used, remap[Fk]
+HV, HF = simplify(V, T, label, int(len(T) * 0.5))
+print('outline mesh', len(HV), 'vertices', len(HF), 'tris')
+
 # ---------------------------------------------------------------- vertices: one per (position, uv); everything in game units from here
 key = np.concatenate([cw[:, None].astype(np.float64), np.round(UVc * 8192)], 1)
 uk, vfirst, vinv = np.unique(key, axis=0, return_index=True, return_inverse=True); vinv = vinv.reshape(-1)
@@ -391,6 +445,13 @@ qp = np.round((Pm - mn) / np.maximum(mx - mn, 1e-9) * 65535).astype(np.uint16)
 qn = np.zeros((n, 4), np.int8); qn[:, :3] = np.clip(np.round(Nm * 127), -127, 127)
 qu = np.round(np.clip(np.stack([UVm[:, 0], 1 - UVm[:, 1]], 1), 0, 1) * 65535).astype(np.uint16)   # (v from the top row, as the game's textures)
 parts = [('pos', qp.tobytes()), ('nrm', qn.tobytes()), ('uv', qu.tobytes()), ('si', SI.tobytes()), ('sw', SW.tobytes()), ('info', INFO.tobytes()), ('idx', IDX.astype(np.uint16).tobytes()), ('tex', texb)]
+# the outline's mesh: its own vertices (a subset of the welded ones, each with its own weights), the same box
+hP = (V[HV] - C0) * S; hq = np.round((hP - mn) / np.maximum(mx - mn, 1e-9) * 65535).astype(np.uint16)
+hn_ = np.zeros((len(HV), 4), np.int8); hn_[:, :3] = np.clip(np.round(NV[HV] * 127), -127, 127)
+hSW = np.round(Wt[HV] * 255).astype(np.int32); hSW[:, 0] += 255 - hSW.sum(1); hSW = np.clip(hSW, 0, 255).astype(np.uint8)
+parts += [('hpos', hq.tobytes()), ('hnrm', hn_.tobytes()), ('hsi', order[HV].astype(np.uint8).tobytes()), ('hsw', hSW.tobytes()),
+          ('hinfo', np.clip(np.round(info[HV] * 255), 0, 255).astype(np.uint8).tobytes()), ('hidx', HF.astype(np.uint16).reshape(-1).tobytes())]
+head['hn'] = int(len(HV)); head['hni'] = int(HF.size)
 blob = b''; off = {}
 for k, b in parts:
     blob += b'\0' * ((-len(blob)) % 8); off[k] = len(blob); blob += b

@@ -10,6 +10,11 @@ window.bossView = (o = {}) => {
   const el = document.createElement('div'); el.id = 'bossLabel';
   el.style.cssText = 'position:fixed;left:10px;top:calc(env(safe-area-inset-top) + 64px);z-index:60;font:700 15px/1.3 system-ui,sans-serif;color:#fff;background:rgba(20,8,40,.62);padding:6px 10px;border-radius:10px;pointer-events:none;white-space:pre';
   document.body.appendChild(el); BV.el = el;
+  // for pictures: frozen (the boss only moves when stepped), stepped exactly (sim), the HUD and the tips hidden (clean)
+  BV.sim = (secs, fps = 60) => { const b = BV.boss, n = Math.round(secs * fps); for (let i = 0; i < n; i++) b.update(1 / fps, { player: BV.P.set(P.x, (P.y || 0) + 0.45, P.z), camera }); return b.stats.cpuMs; };
+  BV.clean = (on = true) => { for (const id of ['hud', 'hint']) { const e = document.getElementById(id); if (e) e.style.visibility = on ? 'hidden' : ''; } if (BV.el) BV.el.style.display = on ? 'none' : ''; };
+  // you, held still at (x, z) facing the pool (the game's own stepping paused; it still draws, and the boss still moves)
+  BV.hold = (x = -1.4, z = 9.6) => { P.x = x; P.z = z; P.spd = 0; P.yaw = Math.atan2(-x, -z); state = 'paused'; };
   return BV;
 };
 // the cycle: each step a move (with its options) and how long to hover after it
@@ -31,7 +36,13 @@ function bvTick(rdt) {
   else if (BV.auto && !BV.frozen && b.move === 'defeat' && b.busy) { BV.wait -= rdt; if (BV.wait < -5.4) { b.play('intro', {}); BV.wait = 1.2; BV.i = 1; } }
   // the camera: the game's own, or the fight's (back and up behind you, looking at a point between you and the boss), or a set one
   const c = BV.cam;
-  if (c === 'fight') { const yaw = Math.atan2(-P.x, -P.z), d = 6.4; camera.position.set(P.x - Math.sin(yaw) * d, 3.1, P.z - Math.cos(yaw) * d); BV.look.set(P.x * 0.35, 3.3, P.z * 0.35); camera.up.set(0, 1, 0); camera.lookAt(BV.look); camera.fov = camera.aspect < 0.8 ? 66 : 54; camera.updateProjectionMatrix(); }
+  if (c === 'fight' || c === 'concept') {
+    // behind you, facing the pool: 'fight' a little up and back (you and the whole boss in one frame), 'concept' low and further back,
+    // looking up at it, as in the owner's picture
+    const yaw = Math.atan2(-P.x, -P.z), d = c === 'fight' ? 6.4 : 5.6, side = c === 'fight' ? 0 : 1.1, cx = Math.cos(yaw), sx = Math.sin(yaw);
+    camera.position.set(P.x - sx * d + cx * side, c === 'fight' ? 3.1 : 1.75, P.z - cx * d - sx * side);
+    BV.look.set(P.x * 0.3, c === 'fight' ? 3.3 : 4.25, P.z * 0.3); camera.up.set(0, 1, 0); camera.lookAt(BV.look);
+    camera.fov = camera.aspect < 0.8 ? 66 : c === 'fight' ? 54 : 50; camera.updateProjectionMatrix(); }
   else if (c && c.p) { camera.position.fromArray(c.p); camera.up.set(0, 1, 0); camera.lookAt(BV.look.fromArray(c.l)); if (c.fov) { camera.fov = c.fov; camera.updateProjectionMatrix(); } }
   camera.updateMatrixWorld();
   if (dt > 0) b.update(dt, { player: BV.P.set(P.x, (P.y || 0) + 0.45, P.z), camera });
