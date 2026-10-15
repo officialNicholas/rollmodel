@@ -30,7 +30,9 @@ The same as a versus match against the CPU, with the server keeping score:
 - **Pots stay where they are.** A pot that is drained or burst goes down for 4.6 seconds and comes back in the same
   place (offline, an empty pot moves to a new spot). A burst breaks the pot like a drain does.
 - **After the match** both players have 30 seconds to ask for a rematch; when both do, a new match starts on a new
-  canvas with the same rival.
+  canvas with the same rival. A player who left takes the rematch with them: the match closes at once.
+- **Private rooms** keep a dropped player's place for 60 seconds (a phone that went to another app to send the code):
+  the code still works, and the same device comes back into the room when it reconnects.
 
 ### How lag is hidden
 
@@ -318,7 +320,8 @@ player, 30 a second), PONG (17 bytes) and SPING (9 bytes). The exact byte layout
 
 The online duel lives in three build modules: `tools/v306_accounts.py` (the username and the account),
 `tools/v306_lobby.py` (finding a rival: the Matchmaking card, private rooms and friend invites) and
-`tools/v306_match.py` (the match itself). The match works like this:
+`tools/v306_match.py` (the match itself). What a player sees, with pictures, is in `docs/online-v306.md`. The match works
+like this:
 
 1. **The canvas.** When the server finds a match, both phones build the stage from the server's seed with the same fixed
    options (normal paint, none of the player's own canvas choices, the seven vote canvases) and send it back; the server
@@ -347,25 +350,18 @@ mode, rams and roll stuns between players, and pots moving to new spots.
 1. **Pound on a hidden player.** The spec for this work says a player hidden in a pot is safe from a pound, and that is
    how the server is set. The single-player game does the opposite: a pound on an occupied pot knocks the player out
    ("Nailed!"). Pick one; it is one setting (`potShields`).
-2. **Hosting and regions.** One server process handles several hundred players on one processor core (see the load test
-   above). A sensible start is one small machine in each of two or three regions (for example US East, US West and
-   Europe), with players sent to the closest by measured ping. Rough monthly costs, to check against current prices:
-   - Budget hosts (Hetzner, OVH): about 5 to 15 dollars per region for a 2 to 4 core machine, with plenty of included
-     traffic.
-   - Mainstream clouds (DigitalOcean, Linode, Vultr, Fly.io): about 15 to 50 dollars per region.
-   - AWS, Google Cloud or Azure: about 30 to 80 dollars per region for the machine, plus traffic out of the cloud at
-     roughly 5 to 9 cents per gigabyte. A player uses about 4.8 KB a second from the server, so about 17 MB per
-     hour played; 1,000 hours of play a day is about 500 GB a month (25 to 45 dollars).
-   - A managed database when real accounts arrive (for example Supabase, which the online plan already mentions): free
-     to start, about 25 dollars a month after that.
-3. **A domain and a TLS certificate.** The game must connect with `wss://` (encrypted). That needs a domain name (about
-   10 to 20 dollars a year) and a certificate, which is free (Let's Encrypt, or the host's load balancer).
+2. **Hosting and regions.** Decided: Fly.io, one machine in Chicago (see "Where it runs" above), a few dollars a month.
+   One server process handles several hundred players on one processor core (see the load test above). When players
+   come from far away, add a machine in a second region (for example Europe) and send each player to the closest.
+3. **A domain and a TLS certificate.** Done for now: Fly gives `rollmodel-game.fly.dev` with a certificate. A domain of
+   your own can point at it later.
 4. **Accounts.** Today a player is a device token: lose the phone or reinstall, lose the rating. Before ranked play
    matters, link it to a real account: Sign in with Apple (required by the App Store if any other sign-in is offered)
    and possibly Game Center. That needs an Apple developer setup and server-side token checks.
-   Since v305 every player also has a Supabase account for friends (anonymous at first; see `supabase/README.md`). The
-   next step is for the game server to accept that account's token in `hello` in place of its own device token, so
-   ratings, friends and invites to private rooms all hang off one identity.
+   Since v305 every player also has a Supabase account for friends (anonymous at first; see `supabase/README.md`), and
+   since v306 a username and a real account (username and password) are needed to play online. The next step is for
+   the game server to accept that account's token in `hello` in place of its own device token, so ratings, friends and
+   invites to private rooms all hang off one identity, and logging in on a new phone brings your rating along.
 5. **Privacy policy and terms.** Online play stores a device token, a display name, ratings, match records and IP
    addresses in logs, and flags suspected cheating. The App Store privacy labels, the privacy policy and the terms need
    to say so, including how long things are kept and how to ask for deletion.
