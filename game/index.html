@@ -4232,6 +4232,43 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 .hud.cqbon .score{visibility:hidden}
 @media (max-height:520px) and (min-aspect-ratio:1/1){.cqbar{top:calc(env(safe-area-inset-top) + 10px);width:min(46vw,420px)}.cqbt{height:18px}.cqbn{font-size:15px}}
 @media (prefers-reduced-motion:reduce){.cqbar.in,.cqbf::before,.cqbe,.cqbd i,.cqbar.hit .cqbt{animation:none}}
+/* (v319) the health bar's entrance after the roar: the name stamps in, a shine runs along the bar as it fills, a flash when it's full */
+.cqbar.in .cqbn b{animation:cqbname .5s cubic-bezier(.2,1.6,.35,1) .12s both}
+@keyframes cqbname{from{opacity:0;transform:scale(1.9) rotate(-4deg)}}
+.cqbar.in .cqbn svg{animation:cqbicon .5s cubic-bezier(.2,1.6,.35,1) .04s both}
+@keyframes cqbicon{from{opacity:0;transform:scale(0) rotate(-40deg)}}
+.cqbt::after{content:'';position:absolute;inset:-3px;border-radius:99px;pointer-events:none;opacity:0}
+.cqbar.in .cqbt::after{background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.85) 50%,transparent 70%);background-size:300% 100%;animation:cqbsheen 1.25s ease-out .3s both}
+@keyframes cqbsheen{0%{opacity:1;background-position:100% 0}80%{opacity:1}100%{opacity:0;background-position:0 0}}
+.cqbt::before{content:'';position:absolute;inset:-5px;border-radius:99px;pointer-events:none;box-shadow:0 0 16px 5px rgba(255,110,215,.9);opacity:0}
+.cqbar.full .cqbt::before{animation:cqbfull .7s ease-out}
+@keyframes cqbfull{20%{opacity:1}100%{opacity:0}}
+/* low on health: a red glow round the tube pulses (a layer of its own fading in and out, nothing repainted; the hurt jolt still plays over it) */
+.cqbar::after{content:'';position:absolute;left:0;right:0;bottom:0;height:22px;border-radius:99px;box-shadow:0 0 14px 4px rgba(255,70,110,.8);opacity:0;pointer-events:none}
+.cqbar.low:not(.hit)::after{animation:cqblow .9s ease-in-out infinite alternate}
+@keyframes cqblow{from{opacity:.08}to{opacity:1}}
+.cqbar.low .cqbn{color:#FFC2D6}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.cqbar::after{height:24px}}
+/* the paint's flow along the bar and the last life's pulse: moved and faded (each a layer of its own), not repainted every frame */
+.cqbf{overflow:hidden}
+.cqbf::before{inset:0 0 0 -44px;border-radius:0;animation-name:cqbflow2}
+@keyframes cqbflow2{to{transform:translateX(44px)}}
+.cqlife .cqlr::after{content:'';position:absolute;inset:-3px;border-radius:50%;box-shadow:0 0 14px 2px rgba(255,74,90,.85);opacity:0;pointer-events:none}
+#cqLife.low .cqlr{animation:none}
+.cqlife.low .cqlr::after{animation:cqlglow .8s ease-in-out infinite alternate}
+@keyframes cqlglow{from{opacity:.1}to{opacity:1}}
+/* the entrance's letterbox: black bars slide in top and bottom as it starts (over the HUD, held anyway while it plays), and snap away on its roar, before the health bar drops in */
+.cqlb{position:absolute;inset:0;z-index:9;pointer-events:none;overflow:hidden}
+.cqlb i{position:absolute;left:0;right:0;top:0;height:clamp(36px,9vh,90px);background:#05030A;transform:translateY(-101%);transition:transform .3s cubic-bezier(.6,0,.9,.45)}
+.cqlb i+i{top:auto;bottom:0;transform:translateY(101%)}
+.cqlb.on i{transform:none;transition:transform .8s cubic-bezier(.2,.8,.3,1)}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.cqlb i{height:clamp(26px,10vh,56px)}}
+/* its defeat: a stamp over the middle */
+.cqwin{position:absolute;z-index:9;left:50%;top:36%;transform:translate(-50%,-50%);pointer-events:none;white-space:nowrap}
+.cqwin b{display:block;padding:14px 26px 12px;border-radius:18px;background:#F04FC0;border:4px solid #171320;box-shadow:0 6px 0 #171320,inset 0 -6px 0 rgba(0,0,0,.16);color:#FFF8EA;font:400 clamp(28px,8.5vw,50px)/1 var(--font-display);letter-spacing:.02em;text-transform:uppercase;text-shadow:0 3px 0 #171320}
+.cqwin.go{animation:cqwin 2.6s cubic-bezier(.2,1.5,.35,1) both}
+@keyframes cqwin{0%{opacity:0;transform:translate(-50%,-50%) scale(2.2) rotate(-9deg)}12%{opacity:1;transform:translate(-50%,-50%) scale(.94) rotate(-3deg)}18%{transform:translate(-50%,-50%) scale(1.04) rotate(-3deg)}24%,84%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-3deg)}100%{opacity:0;transform:translate(-50%,-62%) scale(.96) rotate(-3deg)}}
+@media (prefers-reduced-motion:reduce){.cqlb i,.cqlb.on i{transition:none}.cqbar.in .cqbn b,.cqbar.in .cqbn svg,.cqbar.in .cqbt::after,.cqbar.full .cqbt::before,.cqbar.low:not(.hit)::after,.cqbf::before,.cqlife.low .cqlr::after{animation:none}.cqbar.low::after,.cqlife.low .cqlr::after{opacity:.7}.cqwin.go{animation:cqwinrm 2.6s both}@keyframes cqwinrm{0%,100%{opacity:0}10%,85%{opacity:1}}}
 /* (v315) the boss demo's panel: upright a strip under the top bar (it scrolls sideways), sideways a small panel at the left */
 .cqb{position:absolute;z-index:9;left:calc(env(safe-area-inset-left) + 8px);right:calc(env(safe-area-inset-right) + 8px);top:calc(env(safe-area-inset-top) + 92px);display:flex;align-items:center;gap:6px;padding:5px;border-radius:13px;background:rgba(16,10,34,.72);border:1.5px solid rgba(255,255,255,.12);box-shadow:0 4px 14px rgba(0,0,0,.3);color:#FFF8EA;font:800 12px/1 var(--font-ui);-webkit-user-select:none;user-select:none}
 .cqb .cqbh{flex:none;display:flex;align-items:center;gap:6px;padding-left:4px}
@@ -4290,7 +4327,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
   <div class="count" id="count" aria-live="assertive"><b id="countN"></b></div>
   <div class="kof" id="kof" hidden aria-live="polite"><canvas id="kofC" aria-hidden="true"></canvas><div class="kofb"><small id="kofSmall">Splatted by</small><b id="kofBy"></b><span class="kofn" id="kofN">3</span><i id="kofL">Respawn</i></div></div>
   <div class="ptimer" id="ptimer" hidden aria-hidden="true"><i id="ptRing"></i><b id="ptN"></b></div>
-  <div class="cqb" id="cqbPanel" hidden><div class="cqbh"><b>Boss</b><span id="cqbNow">Floating</span><button id="cqbFold" type="button" aria-expanded="true" aria-label="Fold the boss panel">–</button></div><div class="cqbs"><button type="button" data-m="emerge">Entrance</button><button type="button" data-m="punch">Punch</button><button type="button" data-m="slam">Slam</button><button type="button" data-m="sweep">Sweep</button><button type="button" data-m="zap">Zap</button><button type="button" data-m="rain">Slime rain</button><button type="button" data-m="quake">Shock wave</button><button type="button" data-m="ripple">Ripples</button><button type="button" data-m="strike">Strikes</button><button type="button" data-m="mines">Sea mines</button><button type="button" data-m="hurt">Hurt</button><button type="button" data-m="stunned">Stunned</button><button type="button" data-m="taunt">Taunt</button><button type="button" data-m="defeat">Defeat</button><i class="cqbsep" aria-hidden="true"></i><button type="button" class="cqbtg" id="cqbLock" aria-pressed="true">Boss cam</button><button type="button" class="cqbtg" id="cqbFollow" aria-pressed="true">Follow</button><button type="button" class="cqbtg" id="cqbAuto" aria-pressed="false">Auto attack</button></div></div><div class="cqbar" id="cqbBar" hidden role="img" aria-label="Jellyfish Boss health"><div class="cqbn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12.5a8.5 8 0 0 1 17 0c-1.4.9-2.6.9-4.2 0-1.4.9-2.8.9-4.3 0-1.5.9-2.9.9-4.3 0-1.6.9-2.8.9-4.2 0z" fill="#F04FC0" stroke="#171320" stroke-width="2" stroke-linejoin="round"/><path d="M8 14.5c-.8 2 .6 3.4-.4 5.6M12 14.5c-.8 2.3.7 3.8-.3 6.6M16 14.5c-.8 2 .6 3.4-.4 5.6" fill="none" stroke="#F04FC0" stroke-width="2.4" stroke-linecap="round"/><circle cx="9.3" cy="9.6" r="1.25" fill="#171320"/><circle cx="14.7" cy="9.6" r="1.25" fill="#171320"/></svg><b>Jellyfish Boss</b></div><div class="cqbt"><i class="cqbg"></i><i class="cqbf"></i><i class="cqbe"></i><span class="cqbd"><i style="left:21%"></i><i style="left:47%"></i><i style="left:76%"></i></span><span class="cqbs"><i style="--dx:-10px;--dy:-16px"></i><i style="--dx:9px;--dy:-19px"></i><i style="--dx:14px;--dy:-6px"></i><i style="--dx:-4px;--dy:14px"></i><i style="--dx:11px;--dy:12px"></i></span></div></div><div class="cqlife" id="cqLife" hidden role="img" aria-label="Your life"><b>Life</b><span class="cqlr"><i id="cqLifeN">3</i></span></div><div class="hud off" id="hud">
+  <div class="cqb" id="cqbPanel" hidden><div class="cqbh"><b>Boss</b><span id="cqbNow">Floating</span><button id="cqbFold" type="button" aria-expanded="true" aria-label="Fold the boss panel">–</button></div><div class="cqbs"><button type="button" data-m="emerge">Entrance</button><button type="button" data-m="punch">Punch</button><button type="button" data-m="slam">Slam</button><button type="button" data-m="sweep">Sweep</button><button type="button" data-m="zap">Zap</button><button type="button" data-m="rain">Slime rain</button><button type="button" data-m="quake">Shock wave</button><button type="button" data-m="ripple">Ripples</button><button type="button" data-m="strike">Strikes</button><button type="button" data-m="mines">Sea mines</button><button type="button" data-m="hurt">Hurt</button><button type="button" data-m="stunned">Stunned</button><button type="button" data-m="taunt">Taunt</button><button type="button" data-m="defeat">Defeat</button><i class="cqbsep" aria-hidden="true"></i><button type="button" class="cqbtg" id="cqbLock" aria-pressed="true">Boss cam</button><button type="button" class="cqbtg" id="cqbFollow" aria-pressed="true">Follow</button><button type="button" class="cqbtg" id="cqbAuto" aria-pressed="false">Auto attack</button></div></div><div class="cqbar" id="cqbBar" hidden role="img" aria-label="Jellyfish Boss health"><div class="cqbn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12.5a8.5 8 0 0 1 17 0c-1.4.9-2.6.9-4.2 0-1.4.9-2.8.9-4.3 0-1.5.9-2.9.9-4.3 0-1.6.9-2.8.9-4.2 0z" fill="#F04FC0" stroke="#171320" stroke-width="2" stroke-linejoin="round"/><path d="M8 14.5c-.8 2 .6 3.4-.4 5.6M12 14.5c-.8 2.3.7 3.8-.3 6.6M16 14.5c-.8 2 .6 3.4-.4 5.6" fill="none" stroke="#F04FC0" stroke-width="2.4" stroke-linecap="round"/><circle cx="9.3" cy="9.6" r="1.25" fill="#171320"/><circle cx="14.7" cy="9.6" r="1.25" fill="#171320"/></svg><b>Jellyfish Boss</b></div><div class="cqbt"><i class="cqbg"></i><i class="cqbf"></i><i class="cqbe"></i><span class="cqbd"><i style="left:21%"></i><i style="left:47%"></i><i style="left:76%"></i></span><span class="cqbs"><i style="--dx:-10px;--dy:-16px"></i><i style="--dx:9px;--dy:-19px"></i><i style="--dx:14px;--dy:-6px"></i><i style="--dx:-4px;--dy:14px"></i><i style="--dx:11px;--dy:12px"></i></span></div></div><div class="cqlife" id="cqLife" hidden role="img" aria-label="Your life"><b>Life</b><span class="cqlr"><i id="cqLifeN">3</i></span></div><div class="cqlb" id="cqLb" aria-hidden="true"><i></i><i></i></div><div class="cqwin" id="cqWin" hidden role="status"><b>Boss defeated!</b></div><div class="hud off" id="hud">
     <div class="top">
       <div class="left"><button class="ib" id="pauseBtn" type="button" aria-label="Pause"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/></svg></button><div class="lives" id="lives" aria-label="Lives" hidden></div></div>
       <div class="score">
@@ -4419,7 +4456,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 318</p>
+      <p class="ver">Version 319</p>
     </div>
   </div>
 
@@ -6775,10 +6812,10 @@ function conqCausticTex() {
 // the light on the floor: the web slid over itself two ways (where both are bright, the light gathers into blotches that wander and
 // glisten), brighter in broad patches drifting slowly (the beams), its edges split a little into colour (not on lower settings), fading
 // up the wall and into the distance
-const conqCausticMat = () => new THREE.ShaderMaterial({ uniforms: { uTime: { value: 0 }, uMap: { value: conqCausticTex() }, uK: { value: HI ? 0.36 : 0.3 } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-  defines: HI ? { CQ_RGB: 1 } : {},
+const conqCausticMat = () => new THREE.ShaderMaterial({ uniforms: { uTime: { value: 0 }, uMap: { value: conqCausticTex() }, uK: { value: HI ? 0.36 : 0.3 }, uPool: { value: CQV.pools } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  defines: HI ? { CQ_RGB: 1, CQ_POOLS: 8 } : { CQ_POOLS: 4 }, /* (v319: the light gathering under the shafts) */
   vertexShader: `varying vec3 vW; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`,
-  fragmentShader: `uniform float uTime, uK; uniform sampler2D uMap; varying vec3 vW;
+  fragmentShader: `uniform float uTime, uK; uniform sampler2D uMap; uniform vec4 uPool[8]; varying vec3 vW;
     float cH(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
     float cN(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(cH(i), cH(i + vec2(1.0, 0.0)), f.x), mix(cH(i + vec2(0.0, 1.0)), cH(i + vec2(1.0, 1.0)), f.x), f.y); }
     void main(){ vec2 p = vW.xz * 0.075 + vec2(0.0, vW.y * 0.06), q1 = p + vec2(uTime * 0.019, uTime * 0.011), q2 = p * 1.31 + vec2(-uTime * 0.014, uTime * 0.021) + 0.37;
@@ -6789,8 +6826,9 @@ const conqCausticMat = () => new THREE.ShaderMaterial({ uniforms: { uTime: { val
       vec3 a = vec3(texture2D(uMap, q1).r), b = vec3(texture2D(uMap, q2).r);
       #endif
       vec3 c = min(a, b) * 1.6 + (a + b) * 0.12;
-      float beam = smoothstep(0.2, 0.85, cN(vW.xz * 0.11 + vec2(uTime * 0.03, -uTime * 0.02))), fade = (1.0 - smoothstep(15.0, 30.0, distance(cameraPosition, vW))) * (1.0 - smoothstep(0.25, 2.6, vW.y));
-      gl_FragColor = vec4(vec3(0.6, 0.92, 1.0) * c * uK * (0.45 + 0.85 * beam) * fade, 1.0);
+      float pl = 0.0; for (int i = 0; i < CQ_POOLS; i++) { vec4 q = uPool[i]; vec2 o = vW.xz - q.xy; pl += exp(-dot(o, o) * q.z); } // (v319: under the shafts)
+      float beam = min(1.6, smoothstep(0.2, 0.85, cN(vW.xz * 0.11 + vec2(uTime * 0.03, -uTime * 0.02))) + pl * 0.9), fade = (1.0 - smoothstep(15.0, 30.0, distance(cameraPosition, vW))) * (1.0 - smoothstep(0.25, 2.6, vW.y));
+      gl_FragColor = vec4(vec3(0.6, 0.92, 1.0) * (c * uK * (0.45 + 0.85 * beam) + pl * 0.07) * fade, 1.0);
       #include <tonemapping_fragment>
       #include <colorspace_fragment>
 
@@ -6812,17 +6850,24 @@ function conqMats(M, T) {
   M.kelp = mk(0x2E9A78, { side: THREE.DoubleSide }, { roughness: 0.7 }); M.kelp.onBeforeCompile = sh => { sh.uniforms.uTime = M.kelpT = { value: 0 };
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uTime;').replace('#include <begin_vertex>', '#include <begin_vertex>\n{ float k = clamp(position.y / 2.0, 0.0, 1.0); k *= k; transformed.x += sin(uTime * 1.1 + position.x * 0.8 + position.z * 0.6) * 0.16 * k; transformed.z += cos(uTime * 0.9 + position.z * 0.7) * 0.1 * k; }'); };
   M.void = new THREE.MeshBasicMaterial({ color: 0x0E0420 }); M.silh = new THREE.MeshBasicMaterial({ color: 0x072238, fog: true });
-  M.water = new THREE.ShaderMaterial({ uniforms: { uTime: { value: 0 }, uDeep: { value: new THREE.Color(0x0A2A4E) }, uMid: { value: new THREE.Color(0x11506C) }, uTop: { value: new THREE.Color(0x62CCEC) } }, side: THREE.BackSide, depthWrite: false,
-    vertexShader: `varying vec3 vD; void main(){ vD = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
-    fragmentShader: `uniform float uTime; uniform vec3 uDeep, uMid, uTop; varying vec3 vD;
+  M.water = new THREE.ShaderMaterial({ uniforms: { uTime: { value: 0 }, uDeep: { value: new THREE.Color(0x0A2A4E) }, uMid: { value: new THREE.Color(0x11506C) }, uTop: { value: new THREE.Color(0x62CCEC) }, uMap: { value: conqCausticTex() } }, side: THREE.BackSide, depthWrite: false,
+    defines: { CQ_SURF: HI ? 2 : 1 }, /* (v319: the surface overhead) */
+    vertexShader: `varying vec3 vD, vP; void main(){ vD = normalize(position); vP = (modelMatrix * vec4(position, 1.0)).xyz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `uniform float uTime; uniform vec3 uDeep, uMid, uTop; uniform sampler2D uMap; varying vec3 vD, vP;
       void main(){ vec3 d = normalize(vD); float y = d.y; vec3 c = y < 0.0 ? mix(uMid, uDeep, smoothstep(0.0, -0.4, y)) : mix(uMid, uTop, pow(smoothstep(0.0, 1.0, y), 1.6));
         float sh = sin(d.x * 9.0 + uTime * 0.6) * sin(d.z * 7.0 - uTime * 0.45) + 0.6 * sin(d.x * 17.0 - uTime * 0.9) * sin(d.z * 13.0 + uTime * 0.7); c += uTop * sh * 0.09 * smoothstep(0.1, 0.9, y);
         c += vec3(0.5, 0.85, 1.0) * pow(max(0.0, dot(d, normalize(vec3(0.1, 1.0, 0.35)))), 14.0) * 0.55;
+        { vec3 v = normalize(vP - cameraPosition); if (v.y > 0.03) { vec2 sp = cameraPosition.xz + v.xz * ((30.0 - cameraPosition.y) / v.y); // (v319: the surface overhead)
+          float w = texture2D(uMap, sp * 0.021 + vec2(uTime * 0.008, uTime * 0.005), 2.2).r;
+          #if CQ_SURF > 1
+          w *= 0.4 + 1.2 * texture2D(uMap, sp * 0.029 + vec2(-uTime * 0.006, uTime * 0.009) + 0.31, 2.2).r;
+          #endif
+          c += vec3(0.62, 0.9, 1.0) * w * smoothstep(0.05, 0.7, v.y) * 0.2; } }
         gl_FragColor = vec4(c, 1.0);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }` });
-  M.bubble = new THREE.PointsMaterial({ map: CONQ_BUBBLE, size: 0.3, sizeAttenuation: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: new THREE.Color(0x9CD8F0), fog: true }); M.flag = mk(0xFFFFFF, { map: CONQ_FLAG, side: THREE.DoubleSide }, { roughness: 0.8 }); M.ray = conqRayMat(); M.caustic = conqCausticMat();
+  M.bubble = new THREE.PointsMaterial({ map: CONQ_BUBBLE, size: 0.3, sizeAttenuation: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: new THREE.Color(0x9CD8F0), fog: true }); M.flag = mk(0xFFFFFF, { map: CONQ_FLAG, side: THREE.DoubleSide }, { roughness: 0.8 }); M.ray = conqRayMat(); M.caustic = conqCausticMat(); conqPolishMats(M); // (v319)
 }
 // a cylinder's own uv, scaled to the world (so the courses run round the wall without a seam)
 const cylUV = (g, Rr, H, us) => { const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 6.2832 * Rr * us, uv.getY(i) * H * us); return g; };
@@ -6917,8 +6962,8 @@ function conqDress(K) {
       const pr = RG.pool, rr = RG.rim, rh = RG.rimH;
       put(M.void, new THREE.CircleGeometry(pr + 0.3, SEG(44)).rotateX(-Math.PI / 2).translate(0, -0.72, 0));
       { GOO_U.uK.value = HI ? 1.0 : 0.9; const pm = new THREE.Mesh(gooPool(pr + 0.02), gooMat(GOO_POOL_VS, { uBub: { value: GOO_BUB } })); pm.position.y = -0.16; pm.renderOrder = 2; pm.userData.own = true; K.add(pm);
-        const sm = new THREE.Mesh(gooSpout(), gooMat(GOO_SPOUT_VS)); sm.position.y = -0.1; sm.layers.enable(3); sm.userData.own = true; K.add(sm); K.anim({ tick: gooTick }); gooTick(0, 0); }
-      K.glow(0, 0.35, 0, 2.2, 0x7A30D8); K.glow(0, 1.3, 0, 1.0, 0x9A48F0);
+        K.anim({ tick: gooTick }); gooTick(0, 0); } // (v319: no spout)
+      K.glow(0, 0.35, 0, 2.2, 0x7A30D8);
       K.light(0, 0.3, 0, 7.5, 0xB46CFF, 1.5); K.steam(0, -0.05, 0, 1.0, 1.2, HI ? 0.7 : 0.4, 0.8); for (let k = 0; k < 3; k++) { const a = k * 2.0944 + 0.5; K.steam(Math.cos(a) * 2.2, -0.08, Math.sin(a) * 2.2, 1.0, 1.0, HI ? 0.4 : 0.25, 0.5); }
       // the curb: 20 curved stones, each a little different, dark, over the pit's lip; the pit's inner wall
       put(M.dark, cylUV(new THREE.CylinderGeometry(pr - 0.015, pr - 0.015, rh + 0.72, SEG(44), 1, true).scale(-1, 1, 1).translate(0, (rh - 0.72) / 2, 0), pr, rh + 0.7, us));
@@ -7010,27 +7055,173 @@ function conqDress(K) {
         const hull2 = SG.box(14, 4.0, 3.2, 0, 0, 0); hull2.rotateZ(-0.2); hull2.rotateY(0.6); hull2.translate(Math.cos(55 * DEG) * 30, 2.8, Math.sin(55 * DEG) * 30); put(M.silh, hull2); });
       // the water above: a dome, deep blue-teal below and brighter toward the surface far up, a slow shimmer of light near the top
       { const sk = new THREE.Mesh(new THREE.SphereGeometry(150, 32, 18), M.water); sk.renderOrder = -5; sk.frustumCulled = false; sk.layers.set(2); K.add(sk); }
-      // bubbles rising all through the water, one draw
-      { const N = HI ? 180 : 110, pos = new Float32Array(N * 3), B = []; for (let i = 0; i < N; i++) { const a = R() * 6.2832, d = R() * 22; B.push({ x: Math.cos(a) * d, z: Math.sin(a) * d, y: R() * 14, v: 0.5 + R() * 0.9, p: R() * 6.28, s: 0.6 + R() * 0.8 }); }
-        const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); const m = new THREE.Points(g, M.bubble); m.frustumCulled = false; m.renderOrder = 9; m.layers.set(2); K.add(m);
-        K.anim({ tick(dt, t) { for (let i = 0; i < N; i++) { const b = B[i]; b.y += b.v * dt; if (b.y > 14) b.y = 0.1; pos[i * 3] = b.x + Math.sin(t * 0.8 * b.s + b.p) * 0.3; pos[i * 3 + 1] = b.y; pos[i * 3 + 2] = b.z + Math.cos(t * 0.6 * b.s + b.p) * 0.3; } g.attributes.position.needsUpdate = true; } }); }
-      // light shafts slanting down from the surface, all in one draw; caustic ripples over the floor and the wall
-      { const pos = [], uvs = [], phs = [], idx = []; let o = 0;
-        for (let k = 0; k < 10; k++) { const a = k / 10 * 6.2832 + 0.3, d = (k % 3) * 5 + 3, w = 4.5 + (k % 2) * 3.5, g = new THREE.PlaneGeometry(w, 40, 1, 1); g.translate(0, 20.3, 0); g.rotateZ(0.22); g.rotateY(a * 1.9); g.translate(Math.cos(a) * d, 0, Math.sin(a) * d + 4);
-          const P = g.attributes.position, U = g.attributes.uv, I = g.index.array; for (let i = 0; i < P.count; i++) { pos.push(P.getX(i), P.getY(i), P.getZ(i)); uvs.push(U.getX(i), U.getY(i)); phs.push(k * 1.3); } for (let i = 0; i < I.length; i++) idx.push(I[i] + o); o += P.count; }
-        const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); g.setAttribute('aPh', new THREE.Float32BufferAttribute(phs, 1)); g.setIndex(idx);
-        const rm = new THREE.Mesh(g, M.ray); rm.renderOrder = 8; rm.frustumCulled = false; rm.layers.set(2); K.add(rm);
+      // (v319: the bubbles rise with the specks in conqPolish, one draw moving on the graphics chip)
+      // caustic ripples over the floor and the wall (v319: the light shafts are conqPolish's)
+      {
         const cg = mergeGeos([new THREE.RingGeometry(RG.rim, W0 + 0.2, 64, 1).rotateX(-Math.PI / 2).translate(0, 0.016, 0), new THREE.CylinderGeometry(W0 - 0.03, W0 - 0.03, WH, 48, 1, true).scale(-1, 1, 1).translate(0, WH / 2, 0)], true);
         const cm = new THREE.Mesh(cg, M.caustic); cm.renderOrder = 6; cm.layers.set(2); K.add(cm); }
       if (PM) { const mk = (nm, o) => { const m = cqInstanced(nm, PM[nm], cqMat(nm, Object.assign({ id: 'p' }, o)), { cull: true }); if (m) K.add(m); };
         mk('crate', { rough: 0.74, nk: 1, lift: 0.05, litK: 0.55 }); mk('barrel', { rough: 0.7, nk: 1, lift: 0.05, litK: 0.55 }); mk('lantern', { rough: 0.45, metal: 0.35, nk: 1, pane: 3.6 }); mk('candles', { rough: 0.45, nk: 0.6, lift: 0.04, c: 0xD8D0C8, litK: 0.4 }); mk('candlesF', { rough: 0.45, nk: 0, lift: 0.04, c: 0xD8D0C8, litK: 0.4 });
         for (const [x, y, z, sc, core] of flames) { K.glow(x, y + 0.06 * sc / 0.35, z, 0.06 + sc * 0.16, 0xFFC27A); if (HI && core && M.flameCore) put(M.flameCore, cqFlameG(sc).translate(x, y + 0.005, z)); } }
+      conqPolish(K); // (v319)
       K.glow(1, 21, 26, 8, 0x3A78A4); // (the surface's light, softly at the top of the view)
       K.anim({ tick(dt, t) { M.ray.uniforms.uTime.value = t; M.caustic.uniforms.uTime.value = t; M.water.uniforms.uTime.value = t; if (M.kelpT) M.kelpT.value = t; } });
     },
     props() {},
   };
 }
+// ---------- (v319) the Sunken Keep, polished: light shafts falling through the water (and pooling on the floor where they land),
+// marine snow, glints and streams of bubbles, schools of fish and a manta circling the keep, rock spires and broken towers in the haze
+// beyond. Three draws, all of it moving in the shaders; the looks are the keep's (made and let go with them), the pieces the stage's ----------
+const CQV = { t: { value: 0 }, px: { value: 400 }, bs: new THREE.Vector2(), pools: [], pb: [], dir: new THREE.Vector3(-0.17, -1, -0.43).normalize() };
+for (let i = 0; i < 8; i++) { CQV.pools.push(new THREE.Vector4(0, 0, 0, 0)); CQV.pb.push([0, 0, 0, 0, 0]); } // (where the light gathers on the floor: now, and still)
+// the light shafts: each a ribbon from high above down through the floor, turned to face you round its own line; soft across, brightest
+// high up, a few faint streaks drifting inside, swaying and breathing slowly, fading near the floor and as you come close
+const cqvShaftMat = () => new THREE.ShaderMaterial({ uniforms: { uTime: CQV.t, uK: { value: HI ? 0.55 : 0.4 }, uDir: { value: CQV.dir } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+  vertexShader: `uniform float uTime; uniform vec3 uDir; attribute vec4 aA; attribute vec2 aB; varying vec3 vU; varying float vK;
+    void main(){ float side = position.x, along = position.y, ph = aA.w, t = uTime;
+      vec3 d = normalize(uDir + vec3(0.035 * sin(t * 0.21 + ph), 0.0, 0.035 * sin(t * 0.17 + ph * 1.7)));
+      vec3 P = vec3(aA.x, aB.y, aA.y) + d * ((aB.y + 0.8) / -d.y * along), V = cameraPosition - P, W = cross(d, V);
+      W = dot(W, W) > 1e-6 ? normalize(W) : vec3(1.0, 0.0, 0.0);
+      P += W * (side * aA.z * (0.7 + 0.65 * along) * 0.5);
+      vec4 mv = viewMatrix * vec4(P, 1.0); gl_Position = projectionMatrix * mv;
+      vK = aB.x * (0.6 + 0.4 * sin(t * 0.29 + ph * 2.3)) * smoothstep(2.0, 9.0, -mv.z) * smoothstep(-0.4, 3.2, P.y);
+      vU = vec3(side, along, ph); }`,
+  fragmentShader: `uniform float uTime, uK; varying vec3 vU; varying float vK;
+    void main(){ float x = vU.x, a = 1.0 - x * x; a *= a;
+      float v = vU.y, len = smoothstep(0.0, 0.07, v) * (1.0 - v * 0.72);
+      float st = 0.62 + 0.38 * sin(x * 5.0 + vU.z * 3.0 + uTime * 0.23) * sin(x * 13.0 - uTime * 0.17 + vU.z * 5.0);
+      gl_FragColor = vec4(vec3(0.56, 0.88, 1.0) * (a * len * st * vK * uK), 1.0);
+      #include <tonemapping_fragment>
+      #include <colorspace_fragment>
+    }` });
+// the specks and bubbles, one draw of points, all moving here: 0 marine snow and 1 glints (a box that follows the camera, so some are
+// always near; they drift and sink slowly, the glints twinkling now and then), 2 bubbles rising all through the water, 3 the streams
+// from the cracks at the wall's foot (quick, wobbling, growing as they rise)
+const cqvMoteMat = () => new THREE.ShaderMaterial({ uniforms: Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog), { uTime: CQV.t, uPx: CQV.px, uK: { value: HI ? 1.0 : 0.9 } }), fog: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  vertexShader: `uniform float uTime, uPx, fogNear, fogFar; attribute vec4 aP; attribute vec4 aQ; varying vec4 vC; varying float vT;
+    void main(){ float t = uTime, ty = aQ.x, ph = aP.w, a = 1.0, sz = aQ.y; vec3 p;
+      if (ty < 1.5) { vec3 B = vec3(22.0, 14.0, 22.0), c = vec3(cameraPosition.x, 7.2, cameraPosition.z);
+        vec3 d = vec3(sin(t * 0.13 + ph) * 0.5 + t * 0.06, -t * aQ.z, cos(t * 0.11 + ph * 1.3) * 0.5 + t * 0.03);
+        p = c + mod(aP.xyz * B + d - c + B * 0.5, B) - B * 0.5; vec3 e = abs(p - c) / (B * 0.5); a = 1.0 - smoothstep(0.72, 1.0, max(max(e.x, e.z), e.y));
+        if (ty > 0.5) { float tw = pow(max(0.0, sin(t * aQ.w + ph * 37.0)), 10.0); a *= tw; sz *= 0.5 + 0.7 * tw; } }
+      else if (ty < 2.5) { float y = mod(aP.y + t * aQ.z, 15.0); p = vec3(aP.x + sin(t * 0.8 * aQ.w + ph) * 0.3, y, aP.z + cos(t * 0.6 * aQ.w + ph) * 0.3); a = smoothstep(0.0, 0.6, y) * (1.0 - smoothstep(12.5, 15.0, y)); }
+      else { float f = fract(ph + t * aQ.z / aQ.w), w = 0.04 + 0.13 * f; p = aP.xyz + vec3(sin(t * 3.1 + ph * 23.0) * w, f * aQ.w, cos(t * 2.7 + ph * 19.0) * w); sz *= 0.5 + 0.9 * f; a = smoothstep(0.0, 0.03, f) * (1.0 - smoothstep(0.82, 1.0, f)); }
+      vec4 mv = viewMatrix * vec4(p, 1.0); gl_Position = projectionMatrix * mv; float dz = max(-mv.z, 0.01);
+      gl_PointSize = clamp(sz * uPx / dz, 1.0, 90.0);
+      a *= smoothstep(0.35, 1.8, dz) * (1.0 - 0.85 * smoothstep(fogNear, fogFar, dz));
+      vC = vec4(ty < 0.5 ? vec3(0.66, 0.84, 0.88) * 0.72 : ty < 1.5 ? vec3(1.0, 0.97, 0.88) * 2.0 : vec3(0.61, 0.85, 0.94), a); vT = ty; }`,
+  fragmentShader: `uniform float uK; varying vec4 vC; varying float vT;
+    void main(){ vec2 q = gl_PointCoord * 2.0 - 1.0; float r = length(q), a;
+      if (vT > 1.5) a = smoothstep(0.55, 0.78, r) * (1.0 - smoothstep(0.84, 1.0, r)) * 0.95 + (1.0 - smoothstep(0.6, 0.8, r)) * 0.2 + (1.0 - smoothstep(0.0, 0.26, length(q + vec2(0.3)))) * 0.9;
+      else if (vT > 0.5) a = 1.0 - smoothstep(0.0, 0.32, r) + (max(0.0, 1.0 - abs(q.x) * 7.0) * (1.0 - abs(q.y)) + max(0.0, 1.0 - abs(q.y) * 7.0) * (1.0 - abs(q.x))) * 0.7;
+      else { a = 1.0 - smoothstep(0.1, 1.0, r); a *= a; }
+      if (a * vC.a < 0.003) discard;
+      gl_FragColor = vec4(vC.rgb * (a * vC.a * uK), 1.0);
+      #include <tonemapping_fragment>
+      #include <colorspace_fragment>
+    }` });
+// the fish, the manta and the rocks far off: one look. A fish swims its school's circle round the keep at its place in the school, its
+// tail beating (the manta's wings beat slowly); everything far is lit from above and tinted toward the water behind it with distance
+const cqvFarMat = W => new THREE.ShaderMaterial({ uniforms: Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog), { uTime: CQV.t, uDeep: W.uniforms.uDeep, uMid: W.uniforms.uMid, uTop: W.uniforms.uTop }), fog: true,
+  vertexShader: `uniform float uTime, fogNear, fogFar; attribute vec4 aF; attribute vec4 aG; attribute vec4 aC; varying vec3 vC, vN, vW; varying float vF;
+    void main(){ vec3 p = position, n = normal; float hz = aC.w;
+      if (aG.w != 0.0) { float t = uTime, sp = aF.z, s = abs(aG.w), ang = aF.w + sp * t, r = aF.x + aG.z + sin(t * 0.21 + aF.w * 3.0) * 1.1, y = aF.y + aG.y + sin(t * 0.37 + aF.w * 5.0 + aG.x) * 0.45;
+        ang += aG.x / r * sign(sp);
+        vec3 C = vec3(cos(ang) * r, y, sin(ang) * r), fw = vec3(-sin(ang), 0.0, cos(ang)) * sign(sp), up = vec3(0.0, 1.0, 0.0), sd = cross(fw, up);
+        vec3 q = p * s;
+        if (aG.w > 0.0) q.z += sin(t * 8.0 + aG.x * 2.3 + aF.w * 9.0 - position.x * 6.0) * 0.1 * clamp(-position.x / 0.3, 0.0, 1.0) * s;
+        else { float fl = sin(t * 1.3 + aF.w) * abs(position.z); q.y += fl * 0.32 * s; n = normalize(n + vec3(0.0, 0.0, -sign(position.z) * cos(t * 1.3 + aF.w) * 0.5)); }
+        p = C + fw * q.x + up * q.y + sd * q.z; n = normalize(fw * n.x + up * n.y + sd * n.z); }
+      vec4 w = modelMatrix * vec4(p, 1.0); vW = w.xyz; vN = n; vC = aC.rgb;
+      vec4 mv = viewMatrix * w; gl_Position = projectionMatrix * mv;
+      vF = clamp(smoothstep(fogNear, fogFar * 1.5, -mv.z) + hz, 0.0, 0.96); }`,
+  fragmentShader: `uniform vec3 uDeep, uMid, uTop; varying vec3 vC, vN, vW; varying float vF;
+    vec3 dome(vec3 d){ float y = d.y; return y < 0.0 ? mix(uMid, uDeep, smoothstep(0.0, 0.4, -y)) : mix(uMid, uTop, pow(smoothstep(0.0, 1.0, y), 1.6)); }
+    void main(){ vec3 N = normalize(gl_FrontFacing ? vN : -vN); float l = (0.42 + 0.38 * smoothstep(-0.3, 0.75, N.y) + 0.42 * max(dot(N, vec3(0.37, 0.56, 0.74)), 0.0) + 0.3 * smoothstep(0.6, 0.95, N.y)) * (0.78 + 0.36 * smoothstep(-1.0, 22.0, vW.y));
+      gl_FragColor = vec4(mix(vC * l, dome(normalize(vW - cameraPosition)), vF), 1.0);
+      #include <tonemapping_fragment>
+      #include <colorspace_fragment>
+    }` });
+function conqPolishMats(M) { M.cqvShaft = cqvShaftMat(); M.cqvMote = cqvMoteMat(); M.cqvFar = cqvFarMat(M.water); }
+// a little fish (its nose at +x, about 0.55 long): a chunky body of two rings between the nose and the tail's root, a forked tail and a
+// fin on its back; the manta: a broad flat diamond, its wing tips out along z, a thin tail
+const cqvFishTris = () => { const T = [], r1 = [], r2 = [], n = 6;
+  for (let i = 0; i < n; i++) { const a = i / n * 6.2832; r1.push([0.04, Math.cos(a) * 0.12, Math.sin(a) * 0.07]); r2.push([-0.12, Math.cos(a) * 0.075, Math.sin(a) * 0.042]); }
+  const nose = [0.27, 0.01, 0], root = [-0.19, 0, 0];
+  for (let i = 0; i < n; i++) { const j = (i + 1) % n; T.push([nose, r1[i], r1[j]], [r1[i], r2[j], r1[j]], [r1[i], r2[i], r2[j]], [r2[i], root, r2[j]]); }
+  const fin = (a, b, c) => T.push([a, b, c], [a, c, b]);
+  fin(root, [-0.33, 0.13, 0], [-0.27, 0, 0]); fin(root, [-0.27, 0, 0], [-0.33, -0.13, 0]); fin([0.05, 0.115, 0], [-0.1, 0.19, 0], [-0.11, 0.07, 0]); return T; };
+const cqvMantaTris = () => { const T = [], P = [[0.55, 0.02, 0], [0.12, 0.06, 0.5], [-0.05, 0.02, 1.0], [-0.3, 0.04, 0.35], [-0.42, 0.02, 0], [-0.3, 0.04, -0.35], [-0.05, 0.02, -1.0], [0.12, 0.06, -0.5]], C = [0.06, 0.11, 0], B = [0.06, -0.05, 0];
+  for (let i = 0; i < 8; i++) { const j = (i + 1) % 8; T.push([C, P[j], P[i]], [B, P[i], P[j]]); }
+  T.push([[-0.42, 0.02, 0], [-1.15, 0.0, 0.012], [-0.42, 0.0, -0.03]], [[-0.42, 0.0, -0.03], [-1.15, 0.0, 0.012], [-0.42, 0.02, 0]]); return T; };
+// build the pieces with the stage: the shafts (and where they land, for the light on the floor), the specks and bubbles, the fish and
+// the rocks. Everything is placed the same every time
+function conqPolish(K) {
+  const { M } = K, Rg = rng(3191), lo = !HI, D = Math.PI / 180, W0 = K.T.ring.wall, V3 = THREE.Vector3;
+  // ---- the light shafts: groups of parallel beams; where each lands (the light on the floor gathers there), its top is up the slant
+  { const L = [], kx = CQV.dir.x / CQV.dir.y, kz = CQV.dir.z / CQV.dir.y; // (a beam's top: where it lands, back up the slant)
+    const grp = (x, z, n, w, k) => { for (let i = 0; i < n; i++) L.push([x + (Rg() - 0.5) * 3.4, z + (Rg() - 0.5) * 3.4, w * (0.45 + Rg() * 0.85), k * (0.6 + Rg() * 0.4), L.length * 2.39 + Rg() * 3, 24 + Rg() * 3]); };
+    grp(-6.5, 5.5, 3, 2.3, 0.9); grp(7.5, 8.5, 3, 2.0, 0.85); grp(3.5, -7.5, 2, 2.2, 0.75); grp(-9.5, -5, 2, 1.8, 0.7); grp(11, -2, 2, 1.7, 0.7);
+    for (const [x, z, w, k] of [[-11, 9, 7.5, 0.42], [12.5, -6, 7.0, 0.4], [2, 13, 8.0, 0.38]]) L.push([x, z, w, k, L.length * 2.39 + Rg() * 3, 24 + Rg() * 3]); // (three broad, faint ones: the light from above over all)
+    if (!lo) { grp(-23, 13, 3, 3.2, 1.0); grp(21, 17, 3, 3.4, 1.0); grp(3, 27, 3, 3.6, 1.0); grp(-20, -19, 2, 3.0, 0.9); grp(24, -15, 2, 3.0, 0.9); grp(-29, -2, 2, 3.4, 0.9); }
+    else { grp(-23, 13, 2, 3.2, 1.0); grp(21, 17, 2, 3.4, 1.0); grp(3, 27, 2, 3.6, 1.0); }
+    const S = 6, pos = [], aA = [], aB = [], idx = [];
+    L.forEach(([x, z, w, k, ph, top]) => { const o = pos.length / 3;
+      for (let j = 0; j <= S; j++) for (const sd of [-1, 1]) { pos.push(sd, j / S, 0); aA.push(x + kx * top, z + kz * top, w, ph); aB.push(k, top); }
+      for (let j = 0; j < S; j++) { const a = o + j * 2; idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); } });
+    // (the eight brightest that land on the floor: where, how wide, their phase, for the light gathering under them)
+    const fl = L.filter(b => Math.hypot(b[0], b[1]) < W0 - 1.5 && b[2] < 4.5).sort((a, b) => b[3] * b[2] - a[3] * a[2]).slice(0, 8);
+    CQV.pb.forEach((q, i) => { const b = fl[i]; if (b) { q[0] = b[0]; q[1] = b[1]; q[2] = 1 / (b[2] * b[2] * 0.56); q[3] = b[4]; q[4] = 0.035 / -CQV.dir.y * b[5]; } else q[2] = 0; }); cqvPools(0);
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('aA', new THREE.Float32BufferAttribute(aA, 4)); g.setAttribute('aB', new THREE.Float32BufferAttribute(aB, 2)); g.setIndex(idx);
+    const m = new THREE.Mesh(g, M.cqvShaft); m.renderOrder = 8; m.frustumCulled = false; m.layers.set(2); K.add(m); }
+  // ---- the specks and bubbles
+  { const aP = [], aQ = [], add = (x, y, z, ph, ty, sz, sp, w) => { aP.push(x, y, z, ph); aQ.push(ty, sz, sp, w); };
+    for (let i = 0, n = lo ? 150 : 280; i < n; i++) add(Rg(), Rg(), Rg(), Rg() * 6.28, 0, 0.05 + Rg() * 0.065, 0.05 + Rg() * 0.08, 0);
+    for (let i = 0, n = lo ? 30 : 64; i < n; i++) add(Rg(), Rg(), Rg(), Rg() * 6.28, 1, 0.16 + Rg() * 0.1, 0.03 + Rg() * 0.04, 0.35 + Rg() * 0.5);
+    for (let i = 0, n = lo ? 110 : 180; i < n; i++) { const a = Rg() * 6.2832, d = Rg() * 22; add(Math.cos(a) * d, Rg() * 15, Math.sin(a) * d, Rg() * 6.28, 2, 0.24 + Rg() * 0.12, 0.5 + Rg() * 0.9, 0.6 + Rg() * 0.8); }
+    // the cracks at the wall's foot, between the coral and the kelp, each with its stream
+    for (const deg of lo ? [28, 140, 252, 318] : [28, 88, 140, 200, 252, 318]) { const r = W0 - 0.35, x = Math.cos(deg * D) * r, z = Math.sin(deg * D) * r, H = 9 + Rg() * 4, sp = 1.4 + Rg() * 0.5;
+      for (let i = 0, n = lo ? 10 : 15; i < n; i++) add(x, 0.05, z, i / n + Rg() * 0.04, 3, 0.11 + Rg() * 0.08, sp * (0.85 + Rg() * 0.3), H); }
+    const g = new THREE.BufferGeometry(), N = aP.length / 4; g.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(N * 3), 3)); g.setAttribute('aP', new THREE.Float32BufferAttribute(aP, 4)); g.setAttribute('aQ', new THREE.Float32BufferAttribute(aQ, 4));
+    const m = new THREE.Points(g, M.cqvMote); m.renderOrder = 9; m.frustumCulled = false; m.layers.set(2); K.add(m); }
+  // ---- the fish, the manta and the rocks far off
+  { const pos = [], nrm = [], aF = [], aG = [], aC = [], nv = new V3(), e1 = new V3(), e2 = new V3();
+    const tri = (A, B, C, f, g, ca, cb, hz) => { e1.set(B[0] - A[0], B[1] - A[1], B[2] - A[2]); e2.set(C[0] - A[0], C[1] - A[1], C[2] - A[2]); nv.crossVectors(e1, e2).normalize(); const up = (A[1] + B[1] + C[1]) / 3 > (cb ? 0.0 : -9);
+      for (const P of [A, B, C]) { pos.push(P[0], P[1], P[2]); nrm.push(nv.x, nv.y, nv.z); aF.push(f[0], f[1], f[2], f[3]); aG.push(g[0], g[1], g[2], g[3]); const c = up || !cb ? ca : cb; aC.push(c.r, c.g, c.b, hz || 0); } };
+    // the schools: [radius, height, turn speed (+ one way, - the other), how many, back, belly]
+    const FT = cqvFishTris(), SCH = [[23.8, 8.4, 0.085, 14, 0xFFC23A, 0xFFF2C8], [30.5, 12.5, -0.06, 12, 0x3E86D0, 0xD6ECF6], [24.4, 4.0, -0.075, 10, 0xE878C8, 0xFBE0F2], [28.0, 16.5, 0.05, 9, 0x52C0B0, 0xDCF6EE], [15.8, 9.6, -0.11, 8, 0xFF9450, 0xFFE8D6]];
+    SCH.slice(0, lo ? 2 : 5).forEach(([r, h, sp, n, cb, cl]) => { const a0 = Rg() * 6.2832, ca = new THREE.Color(cb), cc = new THREE.Color(cl); n = lo ? Math.round(n * 0.7) : n;
+      for (let i = 0; i < n; i++) { const g = [(Rg() - 0.5) * (2.2 + n * 0.32), (Rg() - 0.5) * 1.5, (Rg() - 0.5) * 2.2, 1.0 + Rg() * 0.5], f = [r, h, sp * (0.97 + Rg() * 0.06), a0];
+        for (const t of FT) tri(t[0], t[1], t[2], f, g, ca, cc, 0); } });
+    if (!lo) { const MT = cqvMantaTris(), ca = new THREE.Color(0x2C4E66), cc = new THREE.Color(0x9CC4D2), f = [35, 15.5, 0.032, Rg() * 6.28], g = [0, 0, 0, -3.6]; for (const t of MT) tri(t[0], t[1], t[2], f, g, ca, cc, 0); }
+    // the rocks: spires (some leaning, some blunt), low mounds and broken towers, round the whole keep beyond the ruins and the wrecks
+    const Z4 = [0, 0, 0, 0], RC = [new THREE.Color(0x16405A), new THREE.Color(0x1A4862), new THREE.Color(0x123A52)];
+    const solid = (rings, col, hz, cap) => { const n = rings[0].length; for (let j = 0; j + 1 < rings.length; j++) for (let i = 0; i < n; i++) { const a = rings[j][i], b = rings[j][(i + 1) % n], c = rings[j + 1][(i + 1) % n], d = rings[j + 1][i]; tri(a, c, b, Z4, Z4, col, null, hz); tri(a, d, c, Z4, Z4, col, null, hz); }
+      if (cap) { const tp = rings[rings.length - 1], cx = tp.reduce((s, p) => s + p[0], 0) / n, cz = tp.reduce((s, p) => s + p[2], 0) / n, cy = tp.reduce((s, p) => s + p[1], 0) / n + cap; for (let i = 0; i < n; i++) tri(tp[i], [cx, cy, cz], tp[(i + 1) % n], Z4, Z4, col, null, hz); } };
+    const NF = lo ? 15 : 24;
+    for (let k = 0; k < NF; k++) { const deg = (k + Rg() * 0.6) / NF * 360, r = 36 + Rg() * 15, x0 = Math.cos(deg * D) * r, z0 = Math.sin(deg * D) * r, kind = Rg(), col = RC[k % 3], hz = (r - 36) / 15 * 0.12;
+      if (kind < 0.58) { // a spire
+        const H = 13 + Rg() * 17, r0 = 2.2 + Rg() * 2.6, n = 7, NR = 5, la = Rg() * 6.2832, lean = (Rg() - 0.3) * 0.22, rings = [];
+        for (let j = 0; j <= NR; j++) { const f = j / NR, rr = r0 * (1 - f * 0.72) * (0.85 + Rg() * 0.3), cx = x0 + Math.cos(la) * lean * f * H, cz = z0 + Math.sin(la) * lean * f * H, ring = [];
+          for (let i = 0; i < n; i++) { const a = i / n * 6.2832 + j * 0.37, jr = rr * (0.78 + Rg() * 0.44); ring.push([cx + Math.cos(a) * jr, f * H - 1 + (j ? (Rg() - 0.5) * 0.8 : 0), cz + Math.sin(a) * jr]); } rings.push(ring); }
+        solid(rings, col, hz, r0 * (Rg() < 0.5 ? 0.9 : 0.15)); }
+      else if (kind < 0.82) { // a mound
+        const H = 4 + Rg() * 5, r0 = 6 + Rg() * 5, n = 9, rings = [];
+        for (const [f, k2] of [[0, 1], [0.5, 0.82], [0.85, 0.5], [1, 0.22]]) { const ring = []; for (let i = 0; i < n; i++) { const a = i / n * 6.2832 + f, jr = r0 * k2 * (0.8 + Rg() * 0.4); ring.push([x0 + Math.cos(a) * jr, f * H - 0.8, z0 + Math.sin(a) * jr]); } rings.push(ring); }
+        solid(rings, col, hz, 0.4); }
+      else { // a broken tower: round, a little narrower up its height, its top broken off at a slant, a few stones gone
+        const H = 12 + Rg() * 10, r0 = 2.6 + Rg() * 1.4, n = 9, tilt = Rg() * 6.2832, rings = [];
+        for (const f of [0, 0.35, 0.7, 1]) { const ring = []; for (let i = 0; i < n; i++) { const a = i / n * 6.2832, rr = r0 * (1 - f * 0.12), y = f < 1 ? f * H : H * (0.78 + 0.22 * Math.cos(a - tilt)) - (i % 3 === 1 ? 1.4 : 0); ring.push([x0 + Math.cos(a) * rr, y - 1, z0 + Math.sin(a) * rr]); } rings.push(ring); }
+        solid(rings, col, hz, -1.5);
+        // its battlement band, a little wider, two thirds up
+        const yb = H * 0.62, band = []; for (const dy of [0, 0.9]) { const ring = []; for (let i = 0; i < n; i++) { const a = i / n * 6.2832; ring.push([x0 + Math.cos(a) * r0 * 1.12, yb + dy - 1, z0 + Math.sin(a) * r0 * 1.12]); } band.push(ring); } solid(band, col, hz, 0); } }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3)); g.setAttribute('aF', new THREE.Float32BufferAttribute(aF, 4)); g.setAttribute('aG', new THREE.Float32BufferAttribute(aG, 4)); g.setAttribute('aC', new THREE.Float32BufferAttribute(aC, 4));
+    const m = new THREE.Mesh(g, M.cqvFar); m.frustumCulled = false; m.layers.set(2); K.add(m); }
+  K.anim({ tick(dt, t) { CQV.t.value = t; renderer.getDrawingBufferSize(CQV.bs); CQV.px.value = CQV.bs.y * 0.5; cqvPools(t); } });
+}
+// the light gathering on the floor under each beam that lands there follows the beam's sway (as in its shader)
+function cqvPools(t) { for (let i = 0; i < 8; i++) { const q = CQV.pb[i]; CQV.pools[i].set(q[0] + Math.sin(t * 0.21 + q[3]) * q[4], q[1] + Math.sin(t * 0.17 + q[3] * 1.7) * q[4], q[2], 0); } }
 // the arena, laid out by hand: the pool (a hole) in the middle, the crates and barrels in the front corners, the basins, the slime
 // pools that water paint down, the power spots, where you start. Then the usual samples, nav graph and meshes
 function genConquest() {
@@ -7252,7 +7443,7 @@ float poolH(vec2 p){ float t = uTime, h = (gNoise(p * 0.9 + vec2(t * 0.08, -t * 
   for (int i = 0; i < 6; i++) { vec4 b = uBub[i]; if (b.w < 0.0) continue; float d = length(p - b.xy);
     if (b.w < 0.84) { float g = smoothstep(0.0, 0.84, b.w), r = b.z * (0.3 + 0.7 * g), q = 1.0 - d * d / (r * r); if (q > 0.0) h += b.z * 0.8 * g * sqrt(q); }
     else { float u = (b.w - 0.84) / 0.16, rr = b.z * (0.5 + 2.4 * u); h += 0.05 * (1.0 - u) * exp(-pow((d - rr) / 0.1, 2.0)) - 0.04 * (1.0 - u) * exp(-d * d / (b.z * b.z * 0.3)); } }
-  float rc = length(p); return h + 0.24 * exp(-rc * rc / 0.3) + 0.06 * exp(-pow((rc - 0.72) / 0.2, 2.0)) * (0.75 + 0.25 * sin(atan(p.y, p.x) * 7.0 + t * 0.5)); }
+  return h; }
 void main(){ vec4 w = modelMatrix * vec4(position, 1.0); float e = 0.05, h = poolH(w.xz), hx = poolH(w.xz + vec2(e, 0.0)), hz = poolH(w.xz + vec2(0.0, e));
   w.y += h * (1.0 - 0.6 * smoothstep(3.3, 4.0, length(w.xz))); vW = w.xyz; vN = normalize(vec3(-(hx - h) / e, 1.0, -(hz - h) / e)); vThick = clamp(0.55 - h * 4.0, 0.0, 1.0);
   vec4 mvPosition = viewMatrix * w; gl_Position = projectionMatrix * mvPosition;
@@ -13976,16 +14167,19 @@ void main() {
         // taking hold; it hauls itself up between them in two heaves, eyes first, the slime pouring off; it crouches, then shoves off with
         // one great beat of its bell and shoots up past its hover, the gloves trailing under it; it flares out at the top, settles, and
         // bumps its fists in a burst of sparks. Starts out of sight under the pool's middle (the group should be over it)
-        emerge: { len: 7.4,
+        emerge: { len: 11.0,
           init(m) { st.root.set(PCX, POOL_Y - 4.2, PCZ); st.rootV.set(0, 0, 0); st.yaw = yawTo(st.look); m.yaw = st.yaw; snap();
             // where the gloves take hold: the curb on its left and its right (the model's space), a little to the front
             const c = Math.cos(m.yaw), sn = Math.sin(m.yaw), y = FLOOR + RIM_H + FR() * 0.72;
             m.P.set(PCX + c * RIM_R + sn * 0.5, y, PCZ - sn * RIM_R + c * 0.5); m.C.set(PCX - c * RIM_R + sn * 0.5, y, PCZ + sn * RIM_R + c * 0.5); },
           run(m, t) {
-            const w = 1 - sstep(6.7, 7.4, t);
+            const w = 1 - sstep(10.35, 11.0, t);
             const kH = sstep(1.05, 1.4, t), kG = sstep(1.42, 1.62, t), kRel = sstep(4.05, 4.18, t), hold = kG * (1 - kRel);
             const pull1 = sstep(1.85, 2.6, t), sag = sstep(2.6, 2.8, t) * (1 - sstep(2.8, 3.0, t)), pull2 = sstep(2.95, 3.6, t), kC = sstep(3.62, 4.02, t);
-            const kL = clamp01((t - 4.05) / 0.55), up = kL > 0 ? eOut(kL) : 0, kDown = sstep(4.6, 5.8, t), kB = sstep(5.75, 6.05, t), kBump = sstep(6.05, 6.17, t);
+            const kL = clamp01((t - 4.05) / 0.55), up = kL > 0 ? eOut(kL) : 0, kDown = sstep(4.6, 5.8, t), kB = sstep(5.75, 6.05, t) * (1 - sstep(7.5, 7.62, t)), kBump = sstep(6.05, 6.3, t);
+            // (v319) the charge (fists pressed together, gathering), the fling as it breaks, the stare (low, leaning in), rearing back, the roar
+            const kQ = sstep(6.2, 7.45, t), kF = sstep(7.5, 7.62, t) * (1 - sstep(7.9, 8.45, t)), kS = sstep(7.9, 8.45, t) * (1 - sstep(9.02, 9.22, t)),
+              kA = sstep(9.0, 9.22, t) * (1 - sstep(9.28, 9.36, t)), kR = sstep(9.28, 9.38, t) * (1 - sstep(10.1, 10.85, t)), trem = 0.5 * Math.sin(t * 47) + 0.5 * Math.sin(t * 71.3);
             // the root: deep under the slime, hauled up to the surface, a crouch, then shot up past the hover and down onto it
             const y0 = POOL_Y - 4.2, yMid = POOL_Y - 1.15, ySurf = POOL_Y + 0.85, yC = POOL_Y + 0.3, yTop = HOVER + 2.3;
             let y = y0 + (yMid - y0) * pull1 - 0.35 * sag + (ySurf - yMid) * pull2 + (yC - ySurf) * kC;
@@ -14013,12 +14207,28 @@ void main() {
               wrist(s, g * 1.5, -3.9, -0.4, w * kT); springy(s, 0.85, 0.42, w * kT); grip(s, 'relax', w * kT); turn(s, g * 0.1, -1, 0.1, 0, 0, -1, 0.9, w * kT);
               wrist(s, g * 4.1, 0.35, 0.8, w * kW); springy(s, 1.1, 0.5, w * kW); grip(s, 'spread', w * kW); turn(s, g * 0.9, 0.3, 0.4, 0, 0.2, 1, 0.9, w * kW);
               // the bump (as the intro's)
-              boss2m(g * (1.6 - 0.98 * kBump), -1.9, 2.2, mB); fistAt(s, mB, kB * w); turn(s, -g, 0.1, 0.25, 0, -1, 0, 1, kB * w); grip(s, 'fist', kB * w); springy(s, 1.8, 0.62, kB * w);
-              T.arm[s].spark = lerp(T.arm[s].spark, t < 3.6 ? 0.12 + 0.5 * hold : t < 4.7 ? 1.6 : t < 5.9 ? 0.6 : 1.5, w);
+              // (v319) the fists come together and press, raised a little, trembling as it gathers itself
+              boss2m(g * (1.6 - 0.98 * kBump) + g * 0.035 * trem * kQ, -1.9 + 0.75 * kBump, 2.2 - 0.25 * kBump, mB); fistAt(s, mB, kB * w); turn(s, -g, 0.1, 0.25, 0, -1, 0, 1, kB * w); grip(s, 'fist', kB * w); springy(s, 1.8 + 0.5 * kQ, 0.62, kB * w);
+              // flung wide as the charge breaks; low and wide, fists ready, for the stare; drawn back and up; flung wide and high for the roar
+              wrist(s, g * 4.2, 0.6, 0.9, w * kF); grip(s, 'spread', w * kF); springy(s, 1.0, 0.45, w * kF);
+              wrist(s, g * 2.5, -1.35, 1.55, w * kS); turn(s, g * 0.3, 0.6, 0.4, 0, 1, 0, 0.9, w * kS); grip(s, 'fist', w * kS); springy(s, 1.5, 0.6, w * kS);
+              wrist(s, g * 2.2, 1.8, -1.1, w * kA); grip(s, 'fist', w * kA); springy(s, 1.6, 0.55, w * kA);
+              wrist(s, g * (4.3 + 0.12 * trem), 1.35, 0.75, w * kR); grip(s, 'spread', w * kR); springy(s, 0.95, 0.42, w * kR);
+              T.arm[s].spark = lerp(T.arm[s].spark, t < 3.6 ? 0.12 + 0.5 * hold : t < 4.7 ? 1.6 : t < 6.0 ? 0.6 : t < 7.62 ? 0.7 + 1.9 * kQ : t < 7.95 ? 2.4 : t < 9.3 ? 0.45 : 0.3 + 1.7 * (1 - sstep(10.0, 10.8, t)), w);
             }
-            T.charge = lerp(T.charge, 0.9 * kC * (1 - kL), w);
-            T.expr = t < 2.9 ? 'glare' : t < 3.62 ? 'charging' : t < 4.7 ? 'glow' : 'angry';
-            T.eyeGlow = Math.max(T.eyeGlow, (sstep(3.3, 3.6, t) * (1 - sstep(4.8, 5.2, t)) + sstep(6.05, 6.2, t) * (1 - sstep(6.6, 6.9, t))) * w);
+            T.charge = lerp(T.charge, Math.max(0.9 * kC * (1 - kL), kQ * kB), w);
+            T.expr = t < 2.9 ? 'glare' : t < 3.62 ? 'charging' : t < 4.7 ? 'glow' : t < 6.0 ? 'angry' : t < 7.55 ? 'charging' : t < 7.9 ? 'glow' : t < 9.25 ? 'glare' : 'angry';
+            T.eyeGlow = Math.max(T.eyeGlow, (sstep(3.3, 3.6, t) * (1 - sstep(4.8, 5.2, t)) + 0.85 * kQ * kB + sstep(7.5, 7.56, t) * (1 - sstep(7.7, 8.0, t)) + sstep(8.4, 8.5, t) * (1 - sstep(8.6, 8.95, t)) + sstep(9.3, 9.36, t) * (1 - sstep(10.0, 10.6, t))) * w);
+            // (v319) the body: tight and trembling, beating fast as it gathers itself; leaning in, slow beats, for the stare (turned to face you
+            // from then on); rearing back, stretched; then thrown forward and flared, shaking, its tentacles whipping, for the roar
+            if (t > 5.9) { const q = kB * w;
+              T.squash = lerp(T.squash, 1 - 0.09 * kQ + 0.025 * trem * kQ, q); T.lean = lerp(T.lean, -0.07 * kQ, q); T.roll = lerp(T.roll, 0.035 * trem * kQ, q);
+              T.pulse = lerp(T.pulse, 1 + 1.6 * kQ, q); T.pulseAmp = lerp(T.pulseAmp, 1 - 0.55 * kQ, q); T.tentW = lerp(T.tentW, 1 - 0.6 * kQ, q);
+              T.lean = lerp(T.lean, 0.15, kS * w); T.squash = lerp(T.squash, 1, kS * w); T.pulse = lerp(T.pulse, 0.5, kS * w); T.pulseAmp = lerp(T.pulseAmp, 0.8, kS * w); T.tentW = lerp(T.tentW, 0.7, kS * w);
+              T.lean = lerp(T.lean, -0.26, kA * w); T.squash = lerp(T.squash, 1.14, kA * w);
+              T.lean = lerp(T.lean, 0.2 + 0.04 * trem, kR * w); T.squash = lerp(T.squash, 0.88 + 0.03 * trem, kR * w); T.roll = lerp(T.roll, 0.05 * trem, kR * w); T.pulseAmp = lerp(T.pulseAmp, 1.7, kR * w); T.tentW = lerp(T.tentW, 2.3, kR * w);
+              if (t > 7.75) T.yaw = null; else T.yaw = m.yaw + 0.5 * sstep(5.9, 6.5, t); // (turned a little away as it gathers itself, then round to you)
+              if (t > 6.05 && t < 7.55) T.lookOv = mE.set(st.root.x, st.root.y + 6, st.root.z); }
             // the slime: the pool churns and spits (more and more), bursts where the gloves break out, pours off it as it climbs and flies
             if (t < 1.7 && Math.random() < 0.25 + 0.6 * t / 1.7) { const a = Math.random() * 6.283, r = Math.random() * 3.3; mA.set(PCX + Math.cos(a) * r, POOL_Y + 0.04, PCZ + Math.sin(a) * r);
               if (Math.random() < 0.55) spawn(0, mA, 0, 1.2 + Math.random() * 1.6, 0, 0.1 + Math.random() * 0.14, 0.7, C_BUB); else spawn(1, mA, Math.cos(a) * 0.8, 2.2 + Math.random() * 2.8 * t, Math.sin(a) * 0.8, 0.09 + Math.random() * 0.1, 1, C_SLIME); }
@@ -14037,8 +14247,17 @@ void main() {
               for (let i = 0; i < 46; i++) { const a = Math.random() * 6.283, r = 0.6 + Math.random() * 3.2; mA.set(PCX + Math.cos(a) * r, POOL_Y + 0.08, PCZ + Math.sin(a) * r);
                 spawn(i % 5 ? 1 : 0, mA, Math.cos(a) * (1.5 + Math.random() * 3.5), 4 + Math.random() * 6, Math.sin(a) * (1.5 + Math.random() * 3.5), 0.1 + Math.random() * 0.16, 1.4, i % 5 ? C_SLIME : C_BUB); }
             }
-            if (t >= 6.08 && fire(32, 'emergeBump')) { mC.copy(arms.L.fc).add(arms.R.fc).multiplyScalar(0.5); burst(mC, 9, 1.4, false, 0); wobble(1.2); st.flash = Math.max(st.flash, 0.25); arms.L.spark = arms.R.spark = 2; }
-            if (t >= 7.3) fire(64, 'emergeDone');
+            // (v319) the charge: sparks of energy streaming in to its fists from all round; the break (emergeBump); the stare; the roar
+            if (t >= 6.2) fire(128, 'emergeCharge');
+            if (t > 6.2 && t < 7.5 && Math.random() < 0.35 + 0.6 * kQ) { mC.copy(arms.L.fc).add(arms.R.fc).multiplyScalar(0.5); const a = Math.random() * 6.283, e = (Math.random() - 0.3) * 1.6, r = 2.2 + Math.random() * 1.4, sp = r * (1.5 + kQ);
+              mA.set(mC.x + Math.cos(a) * Math.cos(e) * r, mC.y + Math.sin(e) * r, mC.z + Math.sin(a) * Math.cos(e) * r); spawn(3, mA, (mC.x - mA.x) / r * sp, (mC.y - mA.y) / r * sp, (mC.z - mA.z) / r * sp, 0.06 + Math.random() * 0.07, 0.42 + Math.random() * 0.15, C_SPARK); }
+            if (t >= 7.52 && fire(32, 'emergeBump')) { mC.copy(arms.L.fc).add(arms.R.fc).multiplyScalar(0.5); burst(mC, 14, 2.2, false, 0); wobble(1.5); st.flash = Math.max(st.flash, 0.4); st.sqV += 1.1; arms.L.spark = arms.R.spark = 2.4; }
+            if (t >= 7.75) fire(256, 'emergeStare');
+            if (t >= 9.33 && fire(512, 'emergeRoar')) { wobble(2.0); st.flash = Math.max(st.flash, 0.5); st.sqV -= 1.3; tentKick(0, 5, 0, 3.5); arms.L.spark = arms.R.spark = 2.6;
+              mC.set(st.root.x, st.root.y - 0.4, st.root.z); burst(mC, 16, 2.6, false, 0);
+              for (let i = 0; i < 30; i++) { const a = Math.random() * 6.283, e = Math.random() * 0.9, sp = 3 + Math.random() * 4; mA.set(st.root.x + Math.cos(a) * 1.2, st.root.y - 0.6 + Math.random() * 0.8, st.root.z + Math.sin(a) * 1.2);
+                spawn(i % 3 ? 1 : 0, mA, Math.cos(a) * Math.cos(e) * sp, Math.sin(e) * sp + 1.5, Math.sin(a) * Math.cos(e) * sp, 0.08 + Math.random() * 0.12, 1.2, i % 3 ? C_SLIME : C_BUB); } }
+            if (t >= 10.9) fire(64, 'emergeDone');
           } },
         // ---- (v317) rain: it swells with its gloves up to the sky and spits globs of slime high up out of its bell, three hard beats,
         // one after another; the demo rings the floor where they'll come down and drops them (rainSpit: where each one left it)
@@ -14233,7 +14452,7 @@ function cqbStart() {
   if (!Q.boss) {
     const b = makeBoss({ scale: 1, poolY: -0.14, poolR: 4.0, poolC: Q.pool, rimR: 4.35, rimH: 0.22 }); Q.boss = b; scene.add(b.group);
     b.group.traverse(m => { if (m.isSkinnedMesh && m.castShadow) m.receiveShadow = false; });
-    for (const e of ['start', 'done', 'hit', 'sweep', 'stunStart', 'defeated', 'emergeChurn', 'emergeHands', 'grab', 'emergeHaul', 'launch', 'emergeBump']) b.on(e, d => cqbEvent(e, d));
+    for (const e of ['start', 'done', 'hit', 'sweep', 'stunStart', 'defeated', 'emergeChurn', 'emergeHands', 'grab', 'emergeHaul', 'launch', 'emergeBump', 'emergeCharge', 'emergeStare', 'emergeRoar', 'emergeDone']) b.on(e, d => cqbEvent(e, d));
     b.on('windup', d => cqbEvent('windup', d)); // (v316: for its sound)
     for (const e of ['rainSpit', 'quakeHit', 'ripple', 'strikeGo', 'minesThrow']) b.on(e, d => cqbEvent(e, d)); // (v317: the area attacks)
   }
@@ -14243,7 +14462,7 @@ function cqbStart() {
 }
 // leaving the preview: the boss let go, the panel away
 function cqbEnd() {
-  if (!CQB) return; const Q = CQB; cqbSfxOff(); cqxEnd(); cqyEnd(); // (v316: its sounds stopped and let go; v317: the area attacks)
+  if (!CQB) return; const Q = CQB; cqbSfxOff(); cqxEnd(); cqyEnd(); { const w = $('cqWin'); if (w) w.hidden = true; const l = $('cqLb'); if (l) l.classList.remove('on'); } CQF.t = -1; CQF.lb = false; CQB.winT = CQB.winOut = 0; // (v316: its sounds stopped and let go; v317: the area attacks)
   if (Q.paused && state === 'paused') state = 'play'; Q.paused = false;
   if (Q.boss) { try { Q.boss.dispose(); } catch (e) {} Q.boss = null; }
   Q.on = false; Q.cut = null; if (Q.el) Q.el.hidden = true;
@@ -14256,7 +14475,7 @@ function cqbEntrance(cut) {
   b.group.position.copy(Q.pool); Q.v.set(0, 0, 0); Q.home.copy(Q.pool); b.group.visible = true; b.lookAt(null); b.face(null); b.hand('both', null); Q.defT = -1; Q.back = 0;
   b.play('emerge', {});
   if (cut) {
-    Q.cut = { t: 0, len: 7.7, side: Math.atan2(P.x - Q.pool.x, P.z - Q.pool.z), first: cut === 'first' };
+    Q.cut = { t: 0, len: 11.3, side: Math.atan2(P.x - Q.pool.x, P.z - Q.pool.z), first: cut === 'first' };
     if (!Q.cut.first && state === 'play') { state = 'paused'; Q.paused = true; if (P.charging) clearCharge(P); P.spd = 0; P.turn = 0; } // (you're held while it plays)
   }
 }
@@ -14277,38 +14496,41 @@ function cqbBar() {
 function cqbBarHit() { const B = CQB.bar; if (!B) return; B.el.classList.remove('hit'); void B.el.offsetWidth; B.el.classList.add('hit'); B.hitT = 0.5; }
 function cqbBarEv(e, d) {
   const B = cqbBar(); if (!B) return;
-  if (e === 'start' && d.move === 'emerge') { B.vis = false; B.hp = 0; B.gh = 0; B.fillT = -1; B.defIn = 0; }
-  else if (e === 'launch' || (e === 'emergeDone' && !B.vis)) { B.vis = true; B.hp = 1; B.gh = 0; B.fillT = 0; B.el.classList.remove('in'); void B.el.offsetWidth; B.el.classList.add('in'); }
+  if (e === 'start' && d.move === 'emerge') { B.vis = false; B.hp = 0; B.gh = 0; B.fillT = -1; B.defIn = 0; B.inT = 0; }
+  else if (e === 'emergeRoar') B.inT = 0.42; // (v319: after the roar's shake and screen effect)
+  else if (e === 'emergeDone' && !B.vis) cqbBarIn();
   else if (e === 'start' && d.move === 'hurt' && B.vis && B.hp > 0) { if (B.hold <= 0) B.gh = Math.max(B.gh, B.hp); B.hp = Math.max(0, B.hp - 0.12); B.hold = 0.5; B.fillT = -1; cqbBarHit(); if (B.hp <= 0.001) B.defIn = 0.75; }
   else if (e === 'start' && d.move === 'defeat' && B.vis) { if (B.hp > 0) { if (B.hold <= 0) B.gh = Math.max(B.gh, B.hp); B.hp = 0; B.hold = 0.35; B.fillT = -1; cqbBarHit(); } B.defIn = 0; }
 }
+function cqbBarIn() { const B = CQB.bar; if (!B) return; B.inT = 0; B.vis = true; B.hp = 1; B.gh = 0; B.fillT = 0; B.el.classList.remove('in', 'full'); void B.el.offsetWidth; B.el.classList.add('in'); cqbSfx('b_fill', { v: 0.8, d: 0.25 }); }
 function cqbBarTick(rdt) {
   const Q = CQB, B = Q && (Q.bar || (Q.on && cqbBar())); if (!B) return;
-  const hud = !!Q.on; if (B.hud !== hud) { B.hud = hud; const h = $('hud'); if (h) h.classList.toggle('cqbon', hud); B.vis = false; B.hp = 0; B.gh = 0; B.fillT = -1; B.defIn = 0; B.hold = 0; } // (a new demo: no bar until the boss is up)
+  const hud = !!Q.on; if (B.hud !== hud) { B.hud = hud; const h = $('hud'); if (h) h.classList.toggle('cqbon', hud); B.vis = false; B.hp = 0; B.gh = 0; B.fillT = -1; B.defIn = 0; B.hold = 0; B.inT = 0; } // (a new demo: no bar until the boss is up)
+  if (B.inT > 0 && (B.inT -= rdt) <= 0) cqbBarIn(); // (v319)
   const on = !!(Q.on && Q.boss && Q.boss.isReady && B.vis && (state === 'play' || state === 'reveal' || state === 'intro' || state === 'paused'));
   if (B.el.hidden === on) B.el.hidden = !on; if (!on) return;
   if (B.defIn > 0 && (B.defIn -= rdt) <= 0 && Q.boss.move !== 'defeat') cqbPlay('defeat');
   if (B.hitT > 0 && (B.hitT -= rdt) <= 0) B.el.classList.remove('hit');
   if (B.hold > 0) B.hold -= rdt; else if (B.gh > B.hp) B.gh = Math.max(B.hp, B.gh - rdt * 0.8);
-  let f = B.hp; if (B.fillT >= 0) { B.fillT += rdt; const u = Math.min(1, B.fillT / 1.15); f = B.hp * (1 - Math.pow(1 - u, 3)); if (u >= 1) B.fillT = -1; }
+  let f = B.hp; if (B.fillT >= 0) { B.fillT += rdt; const u = Math.min(1, B.fillT / 1.15); f = B.hp * (1 - Math.pow(1 - u, 3)); if (u >= 1) { B.fillT = -1; B.el.classList.remove('full'); void B.el.offsetWidth; B.el.classList.add('full'); } }
   const g = Math.max(f, B.gh), key = f.toFixed(3) + '|' + g.toFixed(3);
-  if (key !== B.key) { B.key = key; B.el.style.setProperty('--hp', f.toFixed(3)); B.el.style.setProperty('--gh', g.toFixed(3)); B.el.classList.toggle('empty', f < 0.01); for (const [e, p] of B.drips) e.classList.toggle('off', p > f - 0.04); }
+  if (key !== B.key) { B.key = key; B.el.style.setProperty('--hp', f.toFixed(3)); B.el.style.setProperty('--gh', g.toFixed(3)); B.el.classList.toggle('empty', f < 0.01); B.el.classList.toggle('low', B.fillT < 0 && B.hp > 0.01 && B.hp < 0.3); for (const [e, p] of B.drips) e.classList.toggle('off', p > f - 0.04); }
 }
 function cqbEvent(e, d) {
-  const Q = CQB; if (!Q || !Q.on) return; const near = Q.cut ? 1 : 0; cqbBarEv(e, d); cqxEv(e, d); cqyEv(e, d); // (v316: the health bar; v317: the area attacks)
+  const Q = CQB; if (!Q || !Q.on) return; const near = Q.cut ? 1 : 0; cqbBarEv(e, d); cqxEv(e, d); cqyEv(e, d); cqiEv(e, d); // (v316: the health bar; v317: the area attacks)
   if (e === 'emergeChurn') { cqbSfx('b_churn') || AU.rumble(); Q.rumble = 1.6; }
   else if (e === 'emergeHands') { cqbSfx('b_burst') || AU.splashWater(); Q.shake = Math.max(Q.shake, 0.12); }
   else if (e === 'grab') { cqbSfx('b_grab', { duck: [0.45, 0.6] }) || AU.slam(); Q.shake = Math.max(Q.shake, 0.32); buzz([20, 30, 20]); }
   else if (e === 'emergeHaul') { cqbSfx('b_haul') || AU.rumble(); Q.rumble = 1.8; }
   else if (e === 'launch') { if (!cqbSfx('b_launch', { duck: [0.7, 1.4] })) { AU.quake(); AU.splashWater(); AU.boost(); } Q.shake = Math.max(Q.shake, 0.7); buzz([30, 30, 60]); }
-  else if (e === 'emergeBump') { if (!cqbSfx('b_bump', { duck: [0.35, 0.5] })) { AU.thunder(); AU.burst(0.7); } cqbSfx('b_roar', { d: 0.4 }); Q.shake = Math.max(Q.shake, 0.22); buzz(18); }
+  else if (e === 'emergeBump') { if (!cqbSfx('b_bump', { duck: [0.35, 0.5] })) { AU.thunder(); AU.burst(0.7); } Q.shake = Math.max(Q.shake, 0.22); buzz(18); }
   else if (e === 'hit') {
     const p = d.power || 1, dd = Math.hypot(P.x - d.x, P.z - d.z); const at = [d.x, d.z]; if (d.hand === 'zap') cqbSfx('b_zap', { at }) || AU.thunder(); else if (p > 1.2) cqbSfx('b_slam', { at, duck: [0.75, 1.4] }) || AU.quake(); else cqbSfx('b_punch', { at, rate: 0.95 + Math.random() * 0.1, duck: [0.45, 0.6] }) || AU.slam();
     shake = Math.max(shake, clamp(0.5 - dd * 0.025, 0.08, 0.5) * Math.min(1.4, p)); if (!near) buzz(12);
     if (dd < (d.r || 0.8) + PR + 0.5 || (d.ring && dd < d.ring * 0.7)) cqbKnock(d.x, d.z, p);
   }
   else if (e === 'sweep') { if (Math.hypot(P.x - d.x, P.z - d.z) < (d.r || 1) + PR + 0.2) cqbKnock(d.x, d.z, 1); }
-  else if (e === 'start') { if (d.move === 'sweep') cqbSfx('b_sweep', { d: 0.4 }) || AU.whoosh(); if (d.move === 'hurt' && !cqbSfx('b_hurt')) { AU.bonk(1); AU.squish(); } if (d.move === 'taunt') cqbSfx('b_taunt') || AU.bloop();
+  else if (e === 'start') { if (d.move === 'hurt' && state === 'play') hold = Math.max(hold, 0.07); if (d.move === 'sweep') cqbSfx('b_sweep', { d: 0.4 }) || AU.whoosh(); if (d.move === 'hurt' && !cqbSfx('b_hurt')) { AU.bonk(1); AU.squish(); } if (d.move === 'taunt') cqbSfx('b_taunt') || AU.bloop();
     if (d.move === 'zap') cqbSfx('b_charge'); if (d.move === 'defeat') { cqbSfx('b_hurt', { v: 0.85 }); cqbSfx('b_defeat', { d: 0.45 }); } cqbNow(d.move); }
   else if (e === 'done') cqbNow('idle');
   else if (e === 'windup') { if (d.move === 'punch' || d.move === 'slam' || d.move === 'zap') cqbSfx('b_windup', { v: d.move === 'zap' ? 0.75 : 1 }); }
@@ -14323,9 +14545,11 @@ function cqbKnock(x, z, power) {
   P.kx = nx * v; P.kz = nz * v; P.spd *= 0.4; if (!P.air) { P.air = true; P.stroke++; P.vy = 4.2 + 1.2 * power; } else P.vy = Math.max(P.vy, 2.5);
   P.knockT = Math.max(P.knockT, 0.6); P.wob = 1; P.squash = Math.max(P.squash, 0.6); P.turn = 0; fxTumble(P, 0.8, Math.random() - 0.5, nx, nz); fxKnock(P, nx, nz, 0.7);
   emote(P, 'ouch', 0.9); AU.bonk(1); shake = Math.max(shake, 0.4); buzz([20, 25, 30]); popText('Bonked!'); cqlHit(); // (v318: a life gone)
+  hold = Math.max(hold, 0.06); fovKick = Math.max(fovKick, 6); cqfGo(3); // (v319: a short freeze, a kick, a jolt of the colour split)
 }
 // each frame (after the game has placed its camera, before the draw)
 function cqbTick(dt, rdt) {
+  cqfTick(rdt); // (v319: the screen's big moments)
   cqlTick(); // (v318: your LIFE)
   cqbBarTick(rdt); // (v316: the health bar)
   const Q = CQB; if (!Q || !Q.on || !Q.boss) return;
@@ -14386,6 +14610,7 @@ function cqbCam(rdt) {
   const ly = 0.1 + 0.9 * kIn + (Math.max(Q.bell.y - 0.5, 1.0) - 1.0) * kUp;
   Q.camP.set(Q.pool.x + sx * d, h, Q.pool.z + sz * d); Q.camL.set(Q.pool.x, ly, Q.pool.z);
   if (kUp > 0) { Q.camL.x += (Q.bell.x - Q.pool.x) * kUp; Q.camL.z += (Q.bell.z - Q.pool.z) * kUp; }
+  cqiCam(c, t, port); // (v319: the charge, the stare, the roar)
   // the shake: a low rumble while it churns and hauls, a jolt on each big moment
   Q.rumble = Math.max(0, Q.rumble - rdt); Q.shake *= Math.exp(-rdt * 5.5); const sk = reduceMotion ? 0 : Q.shake + (Q.rumble > 0 ? 0.035 : 0), tt = performance.now() / 1000;
   Q.camP.x += sk * Math.sin(tt * 61) * 0.6; Q.camP.y += sk * Math.sin(tt * 53 + 1.1) * 0.45; Q.camL.y += sk * Math.sin(tt * 47 + 2.3) * 0.3;
@@ -14406,11 +14631,13 @@ function cqbLock(rdt) {
   const back0 = port ? 8.6 : 7.2; let back = back0, up = port ? 3.2 : 2.6; const lim = 15.4, pu = px * ux + pz * uz, sMax = -pu + Math.sqrt(Math.max(0, pu * pu - (px * px + pz * pz) + lim * lim));
   if (sMax < back) { up -= (back - Math.max(3, sMax)) * 0.2; back = Math.max(3, sMax); } // (near the wall: closer in, and lower, looking up past you)
   const gy = gyCam, k1 = Q.lpOk ? 1 - Math.exp(-rdt * 5) : 1, k2 = Q.lpOk ? 1 - Math.exp(-rdt * 6) : 1;
+  { const rc = Math.hypot(px + ux * back, pz + uz * back); up += clamp(rc - 15.4, 0, 2) * 0.9; up = cqiWall(px, pz, ux, uz, back, up, port ? 7.6 : 6.4); back = Q.wb; } // (v319: by the wall, up over it)
   Q.tmp.set(P.x + ux * back, gy + Math.max(1.7, up), P.z + uz * back); Q.lp.lerp(Q.tmp, k1);
   // the aim, by angle: halfway between you (low) and the bell (high), so both stay in the picture; if they can't both fit, you do
   const cx = Q.lp.x, cy = Q.lp.y, cz = Q.lp.z, hP = Math.max(0.5, Math.hypot(P.x - cx, P.z - cz)), eP = Math.atan2(gy + 0.45 - cy, hP);
   const bx = Q.bell.x - cx, bz = Q.bell.z - cz, eB = Math.atan2(Q.bell.y - cy, Math.max(0.5, Math.hypot(bx, bz))), half = camera.fov * Math.PI / 360;
-  const el = Math.min(eP + (eB - eP) * 0.5, eP + half * 0.8), az = Math.atan2(bx, bz);
+  const fS = port ? 0.62 : 0.8, el = Math.min(eP + (eB - eP) * 0.5, eP + half * fS), az = Math.atan2(bx, bz); // (v319: upright, you clear of the buttons)
+  { const hN = Math.atan(Math.tan(Math.max(0, eB - eP) / 2) / fS), fw = clamp((hN - playFov * Math.PI / 360) * 360 / Math.PI, 0, 10), f0 = Q.fovW || 0; Q.fovW = f0 + (fw * Q.lockK - f0) * (1 - Math.exp(-rdt * 3)); } // (and when you and it can't both fit, the lens widens a little, up to 10 degrees)
   Q.tmp.set(cx + Math.sin(az) * Math.cos(el) * 10, cy + Math.sin(el) * 10, cz + Math.cos(az) * Math.cos(el) * 10); Q.ll.lerp(Q.tmp, k2); Q.lpOk = true;
   const k = Q.lockK * Q.lockK * (3 - 2 * Q.lockK);
   camera.position.lerpVectors(camPos, Q.lp, k); Q.tmp.lerpVectors(camLook, Q.ll, k); camera.up.set(0, 1, 0); camera.lookAt(Q.tmp);
@@ -14465,7 +14692,7 @@ function cqbSfxTick(dt, rdt) {
   if (S.wantT >= 0 && (S.wantT += rdt) > 2.5) { S.wantT = -1; for (const n of CQB_SFX) AU.xwant(n); } // (once more, in case the sound had only just started)
   // the water: lower while paused (not while its entrance holds you); the pool's bubbling by how near you are to its rim (half 3 out,
   // a tenth or so by the wall)
-  const lv = state === 'paused' && !Q.paused ? 0.5 : 1, e = Math.max(0, Math.hypot(P.x - Q.pool.x, P.z - Q.pool.z) - 4.35), bv = CQB_LOOP.bub.v * lv * Math.max(0.08, 1 / (1 + Math.pow(e / 3, 1.5)));
+  const lv = (state === 'paused' && !Q.paused ? 0.5 : 1) * (Q.hush ? 0.22 : 1), e = Math.max(0, Math.hypot(P.x - Q.pool.x, P.z - Q.pool.z) - 4.35), bv = CQB_LOOP.bub.v * lv * Math.max(0.08, 1 / (1 + Math.pow(e / 3, 1.5)));
   if (S.amb && lv !== S.lv) S.amb.set(CQB_LOOP.amb.v * lv, 0.6); S.lv = lv;
   if (S.bub && Math.abs(bv - S.bubV) > 0.008) { S.bub.set(bv, S.bubV < 0 ? 2.5 : 0.3); S.bubV = bv; }
   // each beat of its bell as it swims (the phase wrapping round), quieter the further off it is
@@ -14726,7 +14953,7 @@ function cqyBlast(x, z, r, power) {
   for (let i = 0; i < 7; i++) { const o = cqxSlot(Y.Rr), a = Math.random() * 6.283, el = 0.45 + Math.random() * 0.75; Object.assign(o, { on: true, x, y: 0.3, z, dx: Math.cos(a) * Math.cos(el), dy: Math.sin(el), dz: Math.sin(a) * Math.cos(el), L: 2.4 + Math.random() * 1.8, t0: Y.t }); }
   cqxRing(x, z, 2, 0.5, r * 1.4);
   cqbSfx('b_boom', { at: [x, z], rate: 0.94 + Math.random() * 0.12 }) || AU.quake();
-  const dd = Math.hypot(P.x - x, P.z - z); shake = Math.max(shake, clamp(0.5 - dd * 0.025, 0.1, 0.45)); if (dd < 6) buzz([20, 20, 30]);
+  const dd = Math.hypot(P.x - x, P.z - z); shake = Math.max(shake, clamp(0.5 - dd * 0.025, 0.1, 0.45)); if (dd < 6) buzz([20, 20, 30]); if (dd < 4.5) cqfGo(3); // (v319)
   if (dd < r + PR * 0.5) cqbKnock(x, z, power);
 }
 // where you'll be in a moment, kept on the floor between the pool's curb and the wall
@@ -14843,6 +15070,100 @@ function cqlTick() {
   if (!Q) return; if (Q.on !== Q.lifeOn) { Q.lifeOn = Q.on; Q.life = 3; Q.koSeen = false; cqlShow(); }
   if (!Q.on) return; if (P.st === 'ko') Q.koSeen = true; else if (Q.koSeen) { Q.koSeen = false; Q.life = 3; cqlShow('gain'); }
 }
+// ---------- (v319) the entrance's end (the charge, the stare, the roar) and the screen's big moments ----------
+CQB_SFX.push('b_power', 'b_stare', 'b_impact', 'b_fill');
+// the entrance's events: the power-up and a rumble as it gathers itself; the break; the stare (the water hushed, a heartbeat); the roar
+// (the impact and its roar, the shake, the screen effect, a shock ring over the floor; the bar comes in after it)
+function cqiEv(e, d) {
+  const Q = CQB, b = Q.boss;
+  if (e === 'start' && d.move === 'emerge') { Q.hush = 0; cqfWarm(); }
+  else if (e === 'emergeCharge') { cqbSfx('b_power', { v: 0.95 }) || AU.power(); Q.rumble = Math.max(Q.rumble, 1.35); buzz(10); }
+  else if (e === 'emergeBump') { if (b) { b.bellPoint(Q.bell); cqfGo(2, Q.bell); } }
+  else if (e === 'emergeStare') { Q.hush = 1; cqbSfx('b_stare', { v: 0.9 }); }
+  else if (e === 'emergeRoar') { Q.hush = 0; cqbSfx('b_impact', { v: 1, duck: [0.6, 1.2] }) || AU.quake(); cqbSfx('b_roar', { v: 1, d: 0.03 });
+    Q.shake = Math.max(Q.shake, Q.cut ? 1.0 : 0.6); Q.rumble = Math.max(Q.rumble, 0.7); if (!Q.cut) shake = Math.max(shake, 0.45); buzz([40, 30, 70]);
+    if (b) { b.bellPoint(Q.bell); cqfGo(1, Q.bell); } cqxRing(Q.pool.x, Q.pool.z, 2, 0.95, 16); }
+  // its defeat: its last flinch in slow motion, a flash and the screen effect
+  else if (e === 'start' && d.move === 'defeat' && state === 'play') { if (b) { b.bellPoint(Q.bell); cqfGo(4, Q.bell); } slow = Math.max(slow, 0.7); shake = Math.max(shake, 0.4); buzz([30, 30, 60]); Q.winT = 0.75; }
+}
+// "Boss defeated!" stamped over the middle with a win sting, then away
+function cqiWin() { const el = $('cqWin'); if (!el) return; el.hidden = false; el.classList.remove('go'); void el.offsetWidth; el.classList.add('go'); AU.sting('win'); CQB.winOut = 2.7; }
+// A camera on the line out behind you (u: from the boss through you), as it nears the keep's wall or passes it: up over the wall (higher
+// at one of its pillars), high enough to see you over its top, and no further back than that lets it (nor out among the tall pillars and
+// arches beyond). The height back; CQB.wb the distance back
+function cqiWall(px, pz, ux, uz, back, up, hMax) {
+  const pu = px * ux + pz * uz, p2 = px * px + pz * pz, at = r => -pu + Math.sqrt(Math.max(0, pu * pu - p2 + r * r));
+  back = Math.min(back, at(18.9));
+  const s0 = at(17.42), dg = ((Math.atan2(pz + uz * s0, px + ux * s0) * 57.29578 - 15) % 30 + 30) % 30, pil = clamp((3.6 - Math.min(dg, 30 - dg)) / 1.6, 0, 1);
+  const sE = Math.max(0.1, at(17.42 - 0.17 * pil)), hE = 2.6 + 1.3 * pil, yP = 0.6, bMax = sE * (hMax - yP) / (hE - yP);
+  if (back > bMax) back = Math.max(0.6, bMax);
+  CQB.wb = back; return Math.max(up, Math.min(hMax, yP + (hE - yP) * back / sE));
+}
+// the entrance's camera: for the charge, round in front of it, low, looking up at it and its fists, creeping in; then, for the stare, over your shoulder (on the line from it through
+// you), low, looking up into its face and creeping closer, kept inside the keep's wall or up over it; the roar knocks it back
+function cqiCam(c, t, port) {
+  const Q = CQB, sm = (a, b, x) => { const u = clamp((x - a) / (b - a), 0, 1); return u * u * (3 - 2 * u); };
+  if (t < 7.72) { const k = sm(5.8, 6.55, t); if (k <= 0) return;
+    const fa = c.side + (port ? 0.42 : 0.55), dist = (port ? 8.4 : 6.6) * (1 - 0.12 * sm(6.55, 7.6, t));
+    Q.tmp.set(Q.bell.x + Math.sin(fa) * dist, Math.max(1.2, Q.bell.y - 1.3), Q.bell.z + Math.cos(fa) * dist); Q.camP.lerp(Q.tmp, k);
+    Q.tmp.set(Q.bell.x, Q.bell.y - 0.55, Q.bell.z); Q.camL.lerp(Q.tmp, k); return; }
+  let ux = P.x - Q.bell.x, uz = P.z - Q.bell.z; const ud = Math.hypot(ux, uz); if (ud > 0.05) { ux /= ud; uz /= ud; } else { ux = Math.sin(c.side); uz = Math.cos(c.side); }
+  const dolly = sm(7.72, 9.3, t), kick = t > 9.3 ? Math.min(1, (t - 9.3) / 0.06) * Math.exp(-Math.max(0, t - 9.36) * 3.2) : 0;
+  let back = (port ? 4.6 : 3.7) - 0.8 * dolly + 1.2 * kick, up = (port ? 1.45 : 1.15) + 0.12 * dolly + 0.25 * kick;
+  const px = P.x - Q.pool.x, pz = P.z - Q.pool.z, lim = 16.2, pu = px * ux + pz * uz, sMax = -pu + Math.sqrt(Math.max(0, pu * pu - (px * px + pz * pz) + lim * lim));
+  if (sMax < back) { up += (back - Math.max(1.6, sMax)) * 0.3; back = Math.max(1.6, sMax); }
+  up = cqiWall(px, pz, ux, uz, back, up, port ? 6.4 : 5.4); back = Q.wb;
+  const sd = port ? 0.55 : 0.9; // (a little to one side: you in a corner of the picture, it in the middle)
+  Q.camP.set(P.x + ux * back - uz * sd, Math.max(0, P.y || 0) + up, P.z + uz * back + ux * sd); Q.camL.set(Q.bell.x, Q.bell.y - 0.25, Q.bell.z);
+}
+// The screen's big moments (1 the roar, 2 the charge breaking, 3 a hit or a blast on you, 4 its defeat): a flash, speed lines rushing
+// in toward it, a ring racing out, the edges flushed with its pink; on hi, the picture splits into colour and smears toward it too (the
+// last pass's CQF_FX). Drawn over the frame only while one plays
+var CQF = { t: -1, kind: 0, wp: new THREE.Vector3(), c: new THREE.Vector2(0.5, 0.5), q: new THREE.Vector3(), ov: null, on: false };
+function cqfGo(kind, wp) { const F = CQF; if (F.t >= 0 && F.kind === 1 && kind > 2 && F.t < 0.8) return; F.t = 0; F.kind = kind; if (wp) F.wp.copy(wp); else F.wp.set(NaN, 0, 0); }
+function cqfTick(rdt) { const F = CQF, Q = CQB;
+  if (Q && Q.winT > 0 && (Q.winT -= rdt) <= 0) cqiWin(); if (Q && Q.winOut > 0 && (Q.winOut -= rdt) <= 0) { const w = $('cqWin'); if (w) { w.hidden = true; w.classList.remove('go'); } }
+  { const lb = !!(Q && Q.cut && Q.cut.t < 9.3); if (lb !== F.lb) { F.lb = lb; const el = $('cqLb'); if (el) el.classList.toggle('on', lb); } } // (the entrance's letterbox: in as it starts, away on the roar)
+  if (F.t < 0) return; F.t += rdt; if (F.t > (F.kind === 1 ? 1.3 : F.kind === 4 ? 1.1 : F.kind === 2 ? 0.6 : 0.42)) F.t = -1; }
+function cqfPre() {
+  const F = CQF; F.on = F.t >= 0 && !!CQB && CQB.on; if (!F.on) { CQF_FX.x = CQF_FX.y = 0; return; }
+  if (!isNaN(F.wp.x)) { F.q.copy(F.wp).project(camera); F.c.set(clamp(F.q.x * 0.5 + 0.5, 0.1, 0.9), clamp(F.q.y * 0.5 + 0.5, 0.15, 0.9)); } else F.c.set(0.5, 0.5);
+  const t = F.t, k = F.kind, rm = reduceMotion, sm = (a, b, x) => { const u = clamp((x - a) / (b - a), 0, 1); return u * u * (3 - 2 * u); };
+  const flash = (k === 1 ? 0.6 * Math.exp(-t * 8) : k === 4 ? 0.85 * Math.exp(-t * 5) : k === 2 ? 0.4 * Math.exp(-t * 12) : 0) * (rm ? 0.5 : 1);
+  const lines = rm ? 0 : k === 1 ? sm(0, 0.05, t) * (1 - sm(0.5, 1.15, t)) : k === 4 ? 0.6 * sm(0, 0.05, t) * (1 - sm(0.3, 0.9, t)) : 0;
+  const rT = k === 1 || k === 4 ? 0.75 : 0.45, ringR = (k === 1 || k === 4 ? 1.6 : 0.6) * (1 - Math.pow(1 - Math.min(1, t / rT), 3)) + 0.03, ringA = k === 3 ? 0 : Math.max(0, 1 - t / rT) * (rm ? 0.5 : 1);
+  const vig = k === 1 ? 0.6 * Math.exp(-t * 2.2) : k === 4 ? 0.6 * Math.exp(-t * 2) : k === 3 ? 0.35 * Math.exp(-t * 8) : 0;
+  CQF_FX.set(rm ? 0 : k === 1 ? Math.exp(-t * 3) : k === 4 ? 0.8 * Math.exp(-t * 3) : k === 2 ? 0.55 * Math.exp(-t * 7) : 0.6 * Math.exp(-t * 9), rm ? 0 : k === 1 ? Math.exp(-t * 4.2) : k === 4 ? 0.7 * Math.exp(-t * 3.5) : k === 2 ? 0.25 * Math.exp(-t * 9) : 0, F.c.x, F.c.y);
+  if (!F.ov) cqfMake();
+  const U = F.ov.m.uniforms; U.uA.value.set(flash, lines, ringR, ringA); U.uB.value.set(F.c.x, F.c.y, viewW / Math.max(1, viewH), clock); U.uV.value.set(vig, 0);
+  F.draw = flash > 0.003 || lines > 0.003 || ringA > 0.003 || vig > 0.003;
+}
+function cqfMake() { const F = CQF; if (F.ov) return; const sc = new THREE.Scene(), cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1), tri = new THREE.BufferGeometry(); tri.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
+    const m = new THREE.ShaderMaterial({ uniforms: { uA: { value: new THREE.Vector4() }, uB: { value: new THREE.Vector4() }, uV: { value: new THREE.Vector2() } }, transparent: true, depthTest: false, depthWrite: false,
+      blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor,
+      vertexShader: 'varying vec2 vUv; void main(){ vUv = position.xy * 0.5 + 0.5; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+      fragmentShader: `uniform vec4 uA, uB; uniform vec2 uV; varying vec2 vUv;
+        float h1(float n){ return fract(sin(n * 127.1) * 43758.5453); }
+        void main(){ vec2 d = vUv - uB.xy; d.x *= uB.z; float r = length(d), an = atan(d.y, d.x); vec3 col = vec3(0.0); float a = 0.0;
+          if (uA.y > 0.003) { float u = (an + 3.14159265) / 6.2831853 * 64.0, id = floor(u), f = fract(u), fr = floor(uB.w * 20.0), rnd = h1(id + fr * 3.17), wd = 0.12 + 0.24 * h1(id * 1.7),
+              r0 = 0.24 + 0.36 * h1(id * 2.3 + fr), lk = smoothstep(wd, 0.0, abs(f - 0.5)) * step(0.45, rnd) * smoothstep(r0, r0 + 0.2, r) * uA.y;
+            col += vec3(1.0, 0.97, 1.0) * lk; a = max(a, lk * 0.9); }
+          if (uA.w > 0.003) { float e = (r - uA.z) / 0.035, rg = exp(-e * e) * uA.w; col += vec3(1.0, 0.75, 0.95) * rg; a = max(a, rg * 0.55); }
+          if (uV.x > 0.003) { float v = smoothstep(0.45, 1.25, length((vUv - 0.5) * vec2(uB.z, 1.0)) * 1.1) * uV.x; col = col * (1.0 - v) + vec3(0.85, 0.15, 0.6) * v; a = max(a, v); }
+          if (uA.x > 0.003) { float f = uA.x * (1.0 - 0.35 * smoothstep(0.0, 1.2, r)); col = col * (1.0 - f) + vec3(1.0, 0.92, 0.98) * f; a = a + f * (1.0 - a); }
+          gl_FragColor = vec4(col, a); }` });
+    const q = new THREE.Mesh(tri, m); q.frustumCulled = false; sc.add(q); F.ov = { sc, cam, m }; }
+// the screen effect and the moves' effects (the rain, the shock wave, the ripples, the strikes, the mines), made and their programs built as
+// the entrance starts (in the background where the browser can), rather than each on the frame it first shows: no hitch on the first burst
+// or on each move's first go
+function cqfWarm() { const F = CQF; cqfMake();
+  const go = (o, cam, sc) => { try { if (renderer.compileAsync && renderer.extensions.has('KHR_parallel_shader_compile')) renderer.compileAsync(o, cam, sc).catch(() => {}); else renderer.compile(o, cam, sc); } catch (e) {} };
+  if (!F.warm) { F.warm = true; go(F.ov.sc, F.ov.cam); }
+  // (the moves' effects through the game's own warm-up, drawn through the frame's real passes so the shaders made are the ones play will
+  // ask for; just after this frame, only these drawn)
+  try { const X = cqxInit(), Y = cqyInit(), only = new Set(); for (const g of [X.grp, Y.grp]) g.traverse(o => { if (o.isMesh || o.isPoints || o.isLine || o.isSprite) only.add(o); });
+    setTimeout(() => { try { if (CQB && CQB.on && !vic) warmRender(only, 2); } catch (e) {} }, 0); } catch (e) {} }
+function cqfDraw() { const F = CQF; if (!F.on || !F.draw || !F.ov) return; const ac = renderer.autoClear; renderer.autoClear = false; renderer.setRenderTarget(null); renderer.render(F.ov.sc, F.ov.cam); renderer.autoClear = ac; }
 // ---------- the axolotl in the game: the slime's stand-in, answering the same calls (make, update, headTop, headSize, bodyPoint and each
 // character's own) on the axolotl runtime (AXO). Its two bodies (on all fours to get about, upright in the menus and its big moments)
 // come from axo-pack.txt; if that never arrives the slime carries on as before ----------
@@ -22184,7 +22505,7 @@ function visuals(dt, rdt) {
   if (shake > 0.001 && !reduceMotion) { const s2 = shake * shake * 2.2; camera.position.addScaledVector(tv2.set(Math.random() - 0.5, Math.random() - 0.5, 0).applyQuaternion(camera.quaternion), s2); }
   if (quake.amp > 0) { quake.t += rdt; const q = quake.amp * Math.exp(-quake.t * 3.2); if (!reduceMotion) { camera.position.y += Math.sin(quake.t * 24) * q * 0.85; camera.position.x += Math.sin(quake.t * 17 + 1.3) * q * 0.4; camera.position.z += Math.cos(quake.t * 21) * q * 0.4; camera.rotateZ(Math.sin(quake.t * 13) * q * 0.035); } if (quake.t > 1.8) quake.amp = 0; }
   shake *= Math.exp(-rdt * 9); fovKick *= Math.exp(-rdt * 4);
-  const fovT = state === 'menu' ? heroFov() : (playing ? playFov : baseFov) + (playing ? ((rainFast(P) ? speedMul : 1) - 1) * 12 + fovKick + (P.rocket ? (P.rocket.ph === 'dive' && !P.rocket.slow ? 14 : 7) : 0) + (P.st === 'play' && !P.air ? clamp((P.spd / (cfg.speed * spdK(P)) - 1) * 14, 0, 5) : 0) : 0);
+  const fovT = state === 'menu' ? heroFov() : (playing ? playFov : baseFov) + (playing ? ((rainFast(P) ? speedMul : 1) - 1) * 12 + fovKick + (CQB && CQB.on ? CQB.fovW || 0 : 0) + (P.rocket ? (P.rocket.ph === 'dive' && !P.rocket.slow ? 14 : 7) : 0) + (P.st === 'play' && !P.air ? clamp((P.spd / (cfg.speed * spdK(P)) - 1) * 14, 0, 5) : 0) : 0);
   if (Math.abs(camera.fov - fovT) > 0.05) { camera.fov += (fovT - camera.fov) * Math.min(1, rdt * 6); camera.updateProjectionMatrix(); }
   sky.position.copy(camera.position);
   // in the menu the shot is framed into the space the logo and the controls leave
@@ -22280,7 +22601,7 @@ function setScore() {
       else { tugS.y += (you / tot - tugS.y) * k; tugS.c += (cpu / tot - tugS.c) * k; const snap = v => v > 0.995 ? 1 : v < 0.004 ? 0 : v, yS = snap(tugS.y), cS = snap(tugS.c);
         { const wy = (yS * 100).toFixed(2) + '%', wc = (cS * 100).toFixed(2) + '%', ey = $('tugYou'), ecu = $('tugCpu'); if (ey.style.width !== wy) ey.style.width = wy; if (ecu.style.width !== wc) ecu.style.width = wc; }
         const segs = [{ x0: cS ? Math.max(0, 1 - cS - 0.015) : 1, x1: 1, col: TEAMS[1].css }]; if (mode === 'trio') segs.push({ x0: Math.max(0, yS - 0.015), x1: Math.min(1, 1 - cS + 0.015), col: TEAMS[2].css }); segs.push({ x0: 0, x1: yS, col: TEAMS[0].css });
-        tugLiq.set(segs); tugLiq.tick(now); } }
+        tugLiq.set(segs); if (!(CQB && CQB.on)) tugLiq.tick(now); } } // (v319: not drawn while the boss demo hides it)
     if (mode === 'trio') { const c2 = teamCov(2), t2 = Math.round(c2) + '%', e2 = $('pctC2'); if (e2.textContent !== t2) e2.textContent = t2; const tc2 = $('tugCpu2'); tc2.style.width = (Math.max(0, 1 - tugS.y - tugS.c) * 100).toFixed(2) + '%'; tc2.style.right = (tugS.c * 100).toFixed(2) + '%'; }
   }
   const t = Math.max(0, Math.ceil(matchLeft)), ct = Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0');
@@ -22391,11 +22712,14 @@ function renderFrame() {
   if (vic) return renderVictory();
   if (lobbyOn()) return renderLobby();
   edgeTick();
-  if (post) { post.dofK.copy(state !== 'menu' ? DOF_PLAY : lookOpen ? DOF_LOOK : DOF_MENU); return post.render(); }
+  cqfPre(); // (v319: the screen's big moments)
+  if (post) { post.dofK.copy(state !== 'menu' ? DOF_PLAY : lookOpen ? DOF_LOOK : DOF_MENU); post.render(); cqfDraw(); return; }
   renderer.render(scene, camera);
   if (EDGE.on || heatK > 0.02) edgeOverlay();
+  cqfDraw();
 }
 
+var CQF_FX = new THREE.Vector4(0, 0, 0.5, 0.5); // (v319: the screen's big moments in the last pass: x the colour split, y the smear toward zw)
 // ---------- Graphics mode post: the frame renders into an antialiased target, then a soft bloom from the brightest parts,
 // a gentle grade (contrast and saturation, set per theme), the heat shimmer when the sun burns, a vignette and a dither ----------
 post = HI ? (() => {
@@ -22419,16 +22743,22 @@ post = HI ? (() => {
   const down = sm({ tSrc: { value: null }, uPx: { value: new THREE.Vector2() } }, `uniform sampler2D tSrc; uniform vec2 uPx; varying vec2 vUv;
     vec3 fin3(vec3 c){ return mix(clamp(c, 0.0, 6e4), vec3(0.0), equal(floatBitsToUint(c) & uvec3(0x7f800000u), uvec3(0x7f800000u))); }
     void main(){ gl_FragColor = vec4((fin3(texture2D(tSrc, vUv + uPx * vec2(-0.5, -0.5)).rgb) + fin3(texture2D(tSrc, vUv + uPx * vec2(0.5, -0.5)).rgb) + fin3(texture2D(tSrc, vUv + uPx * vec2(-0.5, 0.5)).rgb) + fin3(texture2D(tSrc, vUv + uPx * vec2(0.5, 0.5)).rgb)) * 0.25, 1.0); }`);
-  const cu = { tScene: { value: null }, tB1: { value: null }, tB2: { value: null }, tDof: { value: null }, uDof: { value: new THREE.Vector4(0.74, 1.0, 0.8, 0.07) }, uBloom: { value: 0.55 }, uSat: { value: 1.08 }, uCon: { value: 1.05 }, uLift: { value: new THREE.Vector3() }, uTint: { value: new THREE.Vector3(1, 1, 1) }, uVig: { value: 0.22 }, uHeat: { value: 0 }, uTime: { value: 0 }, uExpo: { value: 1 }, ...EDGE_U };
+  const cu = { uFx: { value: CQF_FX }, tScene: { value: null }, tB1: { value: null }, tB2: { value: null }, tDof: { value: null }, uDof: { value: new THREE.Vector4(0.74, 1.0, 0.8, 0.07) }, uBloom: { value: 0.55 }, uSat: { value: 1.08 }, uCon: { value: 1.05 }, uLift: { value: new THREE.Vector3() }, uTint: { value: new THREE.Vector3(1, 1, 1) }, uVig: { value: 0.22 }, uHeat: { value: 0 }, uTime: { value: 0 }, uExpo: { value: 1 }, ...EDGE_U };
   const comp = sm(cu, `uniform sampler2D tScene, tB1, tB2, tDof; uniform vec4 uDof; uniform float uBloom, uSat, uCon, uVig, uHeat, uTime, uExpo; uniform vec3 uLift, uTint; varying vec2 vUv;
-    uniform sampler2D tEdge; uniform vec4 uEdgeK, uEdgeV; uniform vec3 uEdgeC, uHitC, uVigC;
+    uniform sampler2D tEdge; uniform vec4 uEdgeK, uEdgeV; uniform vec3 uEdgeC, uHitC, uVigC; uniform vec4 uFx;
     // Khronos PBR Neutral: colors pass through as authored until they near white, then roll off softly and wash toward white
     vec3 neutralTM(vec3 c){ float x = min(c.r, min(c.g, c.b)), off = x < 0.08 ? x - 6.25 * x * x : 0.04; c -= off; float pk = max(c.r, max(c.g, c.b)); if (pk < 0.76) return c; float d = 0.24, np = 1.0 - d * d / (pk + d - 0.76); c *= np / pk; float g = 1.0 - 1.0 / (0.15 * (pk - np) + 1.0); return mix(c, vec3(np), g); }
     vec3 fin3(vec3 c){ return mix(clamp(c, 0.0, 6e4), vec3(0.0), equal(floatBitsToUint(c) & uvec3(0x7f800000u), uvec3(0x7f800000u))); }
     vec3 toSRGB(vec3 c){ c = max(c, 0.0); return mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c)); }
     void main(){ vec2 uv = vUv;
       if (uHeat > 0.01) { float k = uHeat * (0.6 + 0.4 * vUv.y); uv.x += (sin(uv.y * 42.0 + uTime * 5.2) * 0.0026 + sin(uv.y * 97.0 - uTime * 7.7) * 0.0012) * k; uv.y += cos(uv.x * 33.0 + uTime * 4.3) * 0.0016 * k; }
-      vec3 c = fin3(texture2D(tScene, uv).rgb);
+      vec3 c;
+      if (uFx.x + uFx.y > 0.004) { // (v319) a big moment: the picture splits into colour and smears toward its middle
+        vec2 dv = uv - uFx.zw; float dl = length(dv); vec3 acc = vec3(0.0); float ws = 0.0;
+        for (int i = 0; i < 7; i++) { float f = float(i) / 6.0, w = 1.0 - 0.7 * f; vec2 u2 = uFx.zw + dv * (1.0 - uFx.y * 0.09 * f), co = dv * uFx.x * (0.010 + 0.016 * dl);
+          acc += vec3(fin3(texture2D(tScene, u2 + co).rgb).r, fin3(texture2D(tScene, u2).rgb).g, fin3(texture2D(tScene, u2 - co).rgb).b) * w; ws += w; }
+        c = acc / ws;
+      } else c = fin3(texture2D(tScene, uv).rgb);
       // tilt-shift: the far edge of the view (and a touch of the near edge) goes soft, like a miniature
       float dk = (smoothstep(uDof.x, uDof.y, vUv.y) + 0.6 * smoothstep(uDof.w, 0.0, vUv.y)) * uDof.z;
       if (dk > 0.003) c = mix(c, texture2D(tDof, uv).rgb, clamp(dk, 0.0, 1.0));

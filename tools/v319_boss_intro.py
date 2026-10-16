@@ -78,7 +78,7 @@ CQB_SFX.push('b_power', 'b_stare', 'b_impact', 'b_fill');
 // (the impact and its roar, the shake, the screen effect, a shock ring over the floor; the bar comes in after it)
 function cqiEv(e, d) {
   const Q = CQB, b = Q.boss;
-  if (e === 'start' && d.move === 'emerge') Q.hush = 0;
+  if (e === 'start' && d.move === 'emerge') { Q.hush = 0; cqfWarm(); }
   else if (e === 'emergeCharge') { cqbSfx('b_power', { v: 0.95 }) || AU.power(); Q.rumble = Math.max(Q.rumble, 1.35); buzz(10); }
   else if (e === 'emergeBump') { if (b) { b.bellPoint(Q.bell); cqfGo(2, Q.bell); } }
   else if (e === 'emergeStare') { Q.hush = 1; cqbSfx('b_stare', { v: 0.9 }); }
@@ -99,7 +99,7 @@ function cqiWall(px, pz, ux, uz, back, up, hMax) {
   const s0 = at(17.42), dg = ((Math.atan2(pz + uz * s0, px + ux * s0) * 57.29578 - 15) % 30 + 30) % 30, pil = clamp((3.6 - Math.min(dg, 30 - dg)) / 1.6, 0, 1);
   const sE = Math.max(0.1, at(17.42 - 0.17 * pil)), hE = 2.6 + 1.3 * pil, yP = 0.6, bMax = sE * (hMax - yP) / (hE - yP);
   if (back > bMax) back = Math.max(0.6, bMax);
-  CQB.wb = back; return Math.max(up, yP + (hE - yP) * back / sE);
+  CQB.wb = back; return Math.max(up, Math.min(hMax, yP + (hE - yP) * back / sE));
 }
 // the entrance's camera: for the charge, round in front of it, low, looking up at it and its fists, creeping in; then, for the stare, over your shoulder (on the line from it through
 // you), low, looking up into its face and creeping closer, kept inside the keep's wall or up over it; the roar knocks it back
@@ -125,6 +125,7 @@ var CQF = { t: -1, kind: 0, wp: new THREE.Vector3(), c: new THREE.Vector2(0.5, 0
 function cqfGo(kind, wp) { const F = CQF; if (F.t >= 0 && F.kind === 1 && kind > 2 && F.t < 0.8) return; F.t = 0; F.kind = kind; if (wp) F.wp.copy(wp); else F.wp.set(NaN, 0, 0); }
 function cqfTick(rdt) { const F = CQF, Q = CQB;
   if (Q && Q.winT > 0 && (Q.winT -= rdt) <= 0) cqiWin(); if (Q && Q.winOut > 0 && (Q.winOut -= rdt) <= 0) { const w = $('cqWin'); if (w) { w.hidden = true; w.classList.remove('go'); } }
+  { const lb = !!(Q && Q.cut && Q.cut.t < 9.3); if (lb !== F.lb) { F.lb = lb; const el = $('cqLb'); if (el) el.classList.toggle('on', lb); } } // (the entrance's letterbox: in as it starts, away on the roar)
   if (F.t < 0) return; F.t += rdt; if (F.t > (F.kind === 1 ? 1.3 : F.kind === 4 ? 1.1 : F.kind === 2 ? 0.6 : 0.42)) F.t = -1; }
 function cqfPre() {
   const F = CQF; F.on = F.t >= 0 && !!CQB && CQB.on; if (!F.on) { CQF_FX.x = CQF_FX.y = 0; return; }
@@ -135,7 +136,11 @@ function cqfPre() {
   const rT = k === 1 || k === 4 ? 0.75 : 0.45, ringR = (k === 1 || k === 4 ? 1.6 : 0.6) * (1 - Math.pow(1 - Math.min(1, t / rT), 3)) + 0.03, ringA = k === 3 ? 0 : Math.max(0, 1 - t / rT) * (rm ? 0.5 : 1);
   const vig = k === 1 ? 0.6 * Math.exp(-t * 2.2) : k === 4 ? 0.6 * Math.exp(-t * 2) : k === 3 ? 0.35 * Math.exp(-t * 8) : 0;
   CQF_FX.set(rm ? 0 : k === 1 ? Math.exp(-t * 3) : k === 4 ? 0.8 * Math.exp(-t * 3) : k === 2 ? 0.55 * Math.exp(-t * 7) : 0.6 * Math.exp(-t * 9), rm ? 0 : k === 1 ? Math.exp(-t * 4.2) : k === 4 ? 0.7 * Math.exp(-t * 3.5) : k === 2 ? 0.25 * Math.exp(-t * 9) : 0, F.c.x, F.c.y);
-  if (!F.ov) { const sc = new THREE.Scene(), cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1), tri = new THREE.BufferGeometry(); tri.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
+  if (!F.ov) cqfMake();
+  const U = F.ov.m.uniforms; U.uA.value.set(flash, lines, ringR, ringA); U.uB.value.set(F.c.x, F.c.y, viewW / Math.max(1, viewH), clock); U.uV.value.set(vig, 0);
+  F.draw = flash > 0.003 || lines > 0.003 || ringA > 0.003 || vig > 0.003;
+}
+function cqfMake() { const F = CQF; if (F.ov) return; const sc = new THREE.Scene(), cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1), tri = new THREE.BufferGeometry(); tri.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
     const m = new THREE.ShaderMaterial({ uniforms: { uA: { value: new THREE.Vector4() }, uB: { value: new THREE.Vector4() }, uV: { value: new THREE.Vector2() } }, transparent: true, depthTest: false, depthWrite: false,
       blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor,
       vertexShader: 'varying vec2 vUv; void main(){ vUv = position.xy * 0.5 + 0.5; gl_Position = vec4(position.xy, 0.0, 1.0); }',
@@ -150,13 +155,20 @@ function cqfPre() {
           if (uA.x > 0.003) { float f = uA.x * (1.0 - 0.35 * smoothstep(0.0, 1.2, r)); col = col * (1.0 - f) + vec3(1.0, 0.92, 0.98) * f; a = a + f * (1.0 - a); }
           gl_FragColor = vec4(col, a); }` });
     const q = new THREE.Mesh(tri, m); q.frustumCulled = false; sc.add(q); F.ov = { sc, cam, m }; }
-  const U = F.ov.m.uniforms; U.uA.value.set(flash, lines, ringR, ringA); U.uB.value.set(F.c.x, F.c.y, viewW / Math.max(1, viewH), clock); U.uV.value.set(vig, 0);
-  F.draw = flash > 0.003 || lines > 0.003 || ringA > 0.003 || vig > 0.003;
-}
+// the screen effect and the moves' effects (the rain, the shock wave, the ripples, the strikes, the mines), made and their programs built as
+// the entrance starts (in the background where the browser can), rather than each on the frame it first shows: no hitch on the first burst
+// or on each move's first go
+function cqfWarm() { const F = CQF; cqfMake();
+  const go = (o, cam, sc) => { try { if (renderer.compileAsync && renderer.extensions.has('KHR_parallel_shader_compile')) renderer.compileAsync(o, cam, sc).catch(() => {}); else renderer.compile(o, cam, sc); } catch (e) {} };
+  if (!F.warm) { F.warm = true; go(F.ov.sc, F.ov.cam); }
+  // (the moves' effects through the game's own warm-up, drawn through the frame's real passes so the shaders made are the ones play will
+  // ask for; just after this frame, only these drawn)
+  try { const X = cqxInit(), Y = cqyInit(), only = new Set(); for (const g of [X.grp, Y.grp]) g.traverse(o => { if (o.isMesh || o.isPoints || o.isLine || o.isSprite) only.add(o); });
+    setTimeout(() => { try { if (CQB && CQB.on && !vic) warmRender(only, 2); } catch (e) {} }, 0); } catch (e) {} }
 function cqfDraw() { const F = CQF; if (!F.on || !F.draw || !F.ov) return; const ac = renderer.autoClear; renderer.autoClear = false; renderer.setRenderTarget(null); renderer.render(F.ov.sc, F.ov.cam); renderer.autoClear = ac; }
 """
 
-HTML = '<div class="cqwin" id="cqWin" hidden role="status"><b>Boss defeated!</b></div>'
+HTML = '<div class="cqlb" id="cqLb" aria-hidden="true"><i></i><i></i></div><div class="cqwin" id="cqWin" hidden role="status"><b>Boss defeated!</b></div>'
 
 CSS = r"""
 /* (v319) the health bar's entrance after the roar: the name stamps in, a shine runs along the bar as it fills, a flash when it's full */
@@ -184,12 +196,18 @@ CSS = r"""
 #cqLife.low .cqlr{animation:none}
 .cqlife.low .cqlr::after{animation:cqlglow .8s ease-in-out infinite alternate}
 @keyframes cqlglow{from{opacity:.1}to{opacity:1}}
+/* the entrance's letterbox: black bars slide in top and bottom as it starts (over the HUD, held anyway while it plays), and snap away on its roar, before the health bar drops in */
+.cqlb{position:absolute;inset:0;z-index:9;pointer-events:none;overflow:hidden}
+.cqlb i{position:absolute;left:0;right:0;top:0;height:clamp(36px,9vh,90px);background:#05030A;transform:translateY(-101%);transition:transform .3s cubic-bezier(.6,0,.9,.45)}
+.cqlb i+i{top:auto;bottom:0;transform:translateY(101%)}
+.cqlb.on i{transform:none;transition:transform .8s cubic-bezier(.2,.8,.3,1)}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.cqlb i{height:clamp(26px,10vh,56px)}}
 /* its defeat: a stamp over the middle */
 .cqwin{position:absolute;z-index:9;left:50%;top:36%;transform:translate(-50%,-50%);pointer-events:none;white-space:nowrap}
 .cqwin b{display:block;padding:14px 26px 12px;border-radius:18px;background:#F04FC0;border:4px solid #171320;box-shadow:0 6px 0 #171320,inset 0 -6px 0 rgba(0,0,0,.16);color:#FFF8EA;font:400 clamp(28px,8.5vw,50px)/1 var(--font-display);letter-spacing:.02em;text-transform:uppercase;text-shadow:0 3px 0 #171320}
 .cqwin.go{animation:cqwin 2.6s cubic-bezier(.2,1.5,.35,1) both}
 @keyframes cqwin{0%{opacity:0;transform:translate(-50%,-50%) scale(2.2) rotate(-9deg)}12%{opacity:1;transform:translate(-50%,-50%) scale(.94) rotate(-3deg)}18%{transform:translate(-50%,-50%) scale(1.04) rotate(-3deg)}24%,84%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-3deg)}100%{opacity:0;transform:translate(-50%,-62%) scale(.96) rotate(-3deg)}}
-@media (prefers-reduced-motion:reduce){.cqbar.in .cqbn b,.cqbar.in .cqbn svg,.cqbar.in .cqbt::after,.cqbar.full .cqbt::before,.cqbar.low:not(.hit)::after,.cqbf::before,.cqlife.low .cqlr::after{animation:none}.cqbar.low::after,.cqlife.low .cqlr::after{opacity:.7}.cqwin.go{animation:cqwinrm 2.6s both}@keyframes cqwinrm{0%,100%{opacity:0}10%,85%{opacity:1}}}
+@media (prefers-reduced-motion:reduce){.cqlb i,.cqlb.on i{transition:none}.cqbar.in .cqbn b,.cqbar.in .cqbn svg,.cqbar.in .cqbt::after,.cqbar.full .cqbt::before,.cqbar.low:not(.hit)::after,.cqbf::before,.cqlife.low .cqlr::after{animation:none}.cqbar.low::after,.cqlife.low .cqlr::after{opacity:.7}.cqwin.go{animation:cqwinrm 2.6s both}@keyframes cqwinrm{0%,100%{opacity:0}10%,85%{opacity:1}}}
 """
 
 
@@ -224,7 +242,7 @@ def apply(s):
     s = rep(s, a, a + CSS.strip() + "\n")
     s = rep(s, '<div class="hud off" id="hud">', HTML + '<div class="hud off" id="hud">')
     s = rep(s, "B.el.classList.toggle('empty', f < 0.01);", "B.el.classList.toggle('empty', f < 0.01); B.el.classList.toggle('low', B.fillT < 0 && B.hp > 0.01 && B.hp < 0.3);")
-    s = rep(s, "cqbSfxOff(); cqxEnd(); cqyEnd();", "cqbSfxOff(); cqxEnd(); cqyEnd(); { const w = $('cqWin'); if (w) w.hidden = true; } CQF.t = -1; CQB.winT = CQB.winOut = 0;")
+    s = rep(s, "cqbSfxOff(); cqxEnd(); cqyEnd();", "cqbSfxOff(); cqxEnd(); cqyEnd(); { const w = $('cqWin'); if (w) w.hidden = true; const l = $('cqLb'); if (l) l.classList.remove('on'); } CQF.t = -1; CQF.lb = false; CQB.winT = CQB.winOut = 0;")
     # the frame: the screen effect's numbers before the draw (the hi setting's last pass reads them), its pass over the frame after
     s = rep(s, "// ---------- Graphics mode post: the frame renders into an antialiased target,",
                "var CQF_FX = new THREE.Vector4(0, 0, 0.5, 0.5); // (v319: the screen's big moments in the last pass: x the colour split, y the smear toward zw)\n"
@@ -264,4 +282,12 @@ def apply(s):
                "  const gy = gyCam, k1 = Q.lpOk ? 1 - Math.exp(-rdt * 5) : 1, k2 = Q.lpOk ? 1 - Math.exp(-rdt * 6) : 1;\n"
                "  { const rc = Math.hypot(px + ux * back, pz + uz * back); up += clamp(rc - 15.4, 0, 2) * 0.9; up = cqiWall(px, pz, ux, uz, back, up, port ? 7.6 : 6.4); back = Q.wb; } // (v319: by the wall, up over it)\n"
                "  Q.tmp.set(P.x + ux * back, gy + Math.max(1.7, up), P.z + uz * back); Q.lp.lerp(Q.tmp, k1);")
+    # and when you and the boss can't both fit (looking down over the wall at you), you're kept higher in the picture upright, clear of the
+    # buttons along its bottom, and the lens widens a little to keep more of the boss in
+    s = rep(s, "const el = Math.min(eP + (eB - eP) * 0.5, eP + half * 0.8), az = Math.atan2(bx, bz);",
+               "const fS = port ? 0.62 : 0.8, el = Math.min(eP + (eB - eP) * 0.5, eP + half * fS), az = Math.atan2(bx, bz); // (v319: upright, you clear of the buttons)\n"
+               "  { const hN = Math.atan(Math.tan(Math.max(0, eB - eP) / 2) / fS), fw = clamp((hN - playFov * Math.PI / 360) * 360 / Math.PI, 0, 10), f0 = Q.fovW || 0; Q.fovW = f0 + (fw * Q.lockK - f0) * (1 - Math.exp(-rdt * 3)); } // (and when you and it can't both fit, the lens widens a little, up to 10 degrees)")
+    s = rep(s, "fovKick + (P.rocket ?", "fovKick + (CQB && CQB.on ? CQB.fovW || 0 : 0) + (P.rocket ?") # (v319: the boss camera's widening)
+    # (performance) the versus score strip's paint is a canvas drawn some 33 times a second; the boss demo hides the score, so it isn't drawn
+    s = rep(s, "        tugLiq.set(segs); tugLiq.tick(now); } }", "        tugLiq.set(segs); if (!(CQB && CQB.on)) tugLiq.tick(now); } } // (v319: not drawn while the boss demo hides it)")
     return s
