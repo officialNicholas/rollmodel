@@ -3967,10 +3967,10 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 
 /* (v313) the Strokes page as a gear screen: a lime wall, an ink band with a tab card per category, a dark panel of hang-tag cards,
    the stroke you're looking at named on a taped banner, and for a transform a live demo in a window drawn by the game itself.
-   Upright it's a column: the stroke (and its demo) up top, the tabs on the band, the panel, Info and Test */
+   Upright it's a column: the stroke (and its demo) up top, the tabs on the band, the panel (v325: Info beside the stroke's button) */
 #mStrokes.sgp{--lime:#CBE45A;--sel:#FFE23C;--mag:#E8308A;--ink0:#111014;--panel:rgba(28,28,33,.86);--kc:#FFA526;
   --gx:max(14px,env(safe-area-inset-left));--gr:max(14px,env(safe-area-inset-right));--gt:max(12px,env(safe-area-inset-top));--gb:env(safe-area-inset-bottom,0px);
-  --bk:56px;--tabw:104px;--pillh:40px;--panh:min(31vh,262px);
+  --bk:56px;--tabw:104px;--panh:min(31vh,262px);
   display:flex;flex-direction:column;box-sizing:border-box;padding:var(--gt) var(--gr) calc(var(--gb) + 12px) var(--gx);background:none;color:var(--black);overflow:hidden;-webkit-user-select:none;user-select:none}
 #mStrokes.sgp[hidden]{display:none}
 #mStrokes.sgp::before{display:none}
@@ -3994,7 +3994,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 @keyframes sgflag{50%{transform:scaleX(.82) skewY(4deg)}}
 #mStrokes.sgp .sgart{position:absolute;left:0;right:0;top:64px;bottom:76px;display:flex;align-items:center;justify-content:center;pointer-events:none}
 #mStrokes.sgp.sgnoted .sgart{bottom:94px}
-#mStrokes.sgp.sgnoted:not(.sgtest) .sgrot{bottom:100px}
+#mStrokes.sgp.sgnoted .sgrot{bottom:100px}
 #mStrokes.sgp .sgart::after{content:"";position:absolute;left:50%;bottom:0;width:min(46%,200px);height:min(9%,22px);margin-left:calc(min(46%,200px) / -2);border-radius:50%;background:radial-gradient(closest-side,rgba(23,19,32,.24),rgba(23,19,32,0));z-index:0}
 #mStrokes.sgp .sgart .stimg{position:relative;z-index:1;width:auto;height:min(92%,230px);max-width:70%;object-fit:contain;filter:drop-shadow(2px 4px 0 rgba(23,19,32,.18));animation:sgbob 3.2s ease-in-out infinite}
 #mStrokes.sgp .sgart svg{position:relative;z-index:1;width:min(60%,160px);height:auto}
@@ -4002,8 +4002,6 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 #mStrokes.sgp .sgart.sgpopin .stimg{animation:sgpop .42s cubic-bezier(.2,1.6,.4,1) both,sgbob 3.2s .42s ease-in-out infinite}
 @keyframes sgpop{from{transform:scale(.6) rotate(-6deg);opacity:0}}
 #mStrokes.sgp.sgdemo .sgart{display:none}
-#mStrokes.sgp .sgcap{position:absolute;left:50%;bottom:10px;z-index:2;max-width:92%;margin:0;padding:7px 13px 8px;border-radius:10px;background:rgba(17,16,20,.88);color:#fff;font:700 14px/1.25 var(--font-ui);text-align:center;transform:translateX(-50%);opacity:0;transition:opacity .2s;pointer-events:none;text-wrap:balance}
-#mStrokes.sgp.sgtest .sgcap.on{opacity:1}
 #mStrokes.sgp .sgrot{appearance:none;position:absolute;right:0;bottom:84px;z-index:3;display:grid;place-items:center;width:42px;height:42px;margin:0;padding:0;border:0;border-radius:50%;background:radial-gradient(circle at 50% 40%,#3A3A42,#1A1A1F);color:#E9E9EE;box-shadow:0 0 0 2px var(--ink0),inset 0 0 0 3px rgba(255,255,255,.1),0 3px 0 rgba(0,0,0,.35);cursor:pointer}
 #mStrokes.sgp .sgrot[hidden]{display:none}
 #mStrokes.sgp .sgrot svg{width:26px;height:26px}
@@ -4019,6 +4017,10 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 #mStrokes.sgp .sgdo:disabled{background:#E9E4D6;color:#6E6680;cursor:default}
 #mStrokes.sgp .sgdo.on:disabled{background:var(--ink0);color:var(--sel)}
 #mStrokes.sgp .sgdo[hidden],#mStrokes.sgp .sgskip[hidden],#mStrokes.sgp .sgtimer[hidden]{display:none}
+#mStrokes.sgp .sgib{appearance:none;position:relative;flex:none;min-width:72px;height:38px;margin:0;padding:0 15px;border:0;border-radius:10px;background:linear-gradient(#4A4A52,#34343B);color:#fff;font:400 16px/1 var(--font-display);letter-spacing:.01em;transform:skewX(-12deg);box-shadow:0 0 0 2.5px var(--ink0),0 4px 0 var(--ink0);cursor:pointer;-webkit-tap-highlight-color:transparent}
+#mStrokes.sgp .sgib>span{display:inline-block;transform:skewX(12deg)}
+#mStrokes.sgp .sgib:active{transform:skewX(-12deg) translateY(3px);box-shadow:0 0 0 2.5px var(--ink0),0 1px 0 var(--ink0)}
+@media (max-width:379px){#mStrokes.sgp .sgtimer .sgtbar{display:none}} /* (a narrow phone: the bench's row fits with Info; the card keeps its bar) */
 #mStrokes.sgp .sgtimer{display:flex;align-items:center;gap:7px;height:34px;padding:0 12px 0 10px;border-radius:10px;background:var(--ink0);color:#fff;font:400 16px/1 var(--font-display);font-variant-numeric:tabular-nums;box-shadow:0 3px 0 rgba(0,0,0,.3)}
 #mStrokes.sgp .sgtimer i{display:grid;color:var(--sel)}#mStrokes.sgp .sgtimer svg{width:15px;height:15px}
 #mStrokes.sgp .sgtbar{width:54px;height:6px;border-radius:999px;background:rgba(255,255,255,.18);overflow:hidden}
@@ -4049,7 +4051,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 #mStrokes.sgp .sgtab:active{transform:scale(.96)}
 #mStrokes.sgp .sgtab.on:active{transform:scale(1.04)}
 #mStrokes.sgp .sgtab.fresh::after{content:"";position:absolute;right:-4px;top:-4px;width:13px;height:13px;border-radius:50%;background:#FF2D55;box-shadow:0 0 0 2.5px var(--ink0);animation:stdot 1.2s ease-in-out infinite}
-#mStrokes.sgp .sgtab:focus-visible,#mStrokes.sgp .sgcard:focus-visible,#mStrokes.sgp .sgpill:focus-visible,#mStrokes.sgp .sgback:focus-visible,#mStrokes.sgp .sgdo:focus-visible{outline:3px solid #fff;outline-offset:3px}
+#mStrokes.sgp .sgtab:focus-visible,#mStrokes.sgp .sgcard:focus-visible,#mStrokes.sgp .sgib:focus-visible,#mStrokes.sgp .sgback:focus-visible,#mStrokes.sgp .sgdo:focus-visible{outline:3px solid #fff;outline-offset:3px}
 /* the panel: dark and see-through, the tags hung from a bar taped at its top */
 #mStrokes.sgp .sgpanel{position:relative;z-index:3;order:3;flex:0 1 auto;max-height:var(--panh);min-height:0;margin-top:24px;display:flex;flex-direction:column;border-radius:22px;background:var(--panel);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.07),0 8px 22px rgba(23,19,32,.22)}
 #mStrokes.sgp .sghang{position:absolute;left:50%;top:-8px;z-index:2;width:40%;max-width:190px;height:17px;border-radius:999px;background:linear-gradient(#3A3A42,#232328);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.16),0 0 0 2px var(--ink0),0 3px 0 rgba(0,0,0,.35);transform:translateX(-50%)}
@@ -4099,12 +4101,6 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 #mStrokes.sgp .sgback svg{width:46%;height:46%}
 #mStrokes.sgp .sgback span{margin-top:-1px;font:400 11px/1 var(--font-display);letter-spacing:.01em}
 #mStrokes.sgp .sgback:active{transform:translateY(3px);box-shadow:0 0 0 3px var(--ink0),0 2px 0 var(--ink0)}
-#mStrokes.sgp .sgpills{position:relative;z-index:6;order:4;flex:none;align-self:center;display:flex;gap:14px;margin-top:16px}
-#mStrokes.sgp .sgpill{appearance:none;min-width:92px;height:var(--pillh);margin:0;padding:0 18px;border:0;border-radius:10px;background:linear-gradient(#4A4A52,#34343B);color:#fff;font:400 16px/1 var(--font-display);transform:skewX(-14deg);box-shadow:0 0 0 2.5px var(--ink0),0 4px 0 var(--ink0);cursor:pointer;-webkit-tap-highlight-color:transparent}
-#mStrokes.sgp .sgpill>span{display:inline-block;transform:skewX(14deg)}
-#mStrokes.sgp .sgpill:active{transform:skewX(-14deg) translateY(3px);box-shadow:0 0 0 2.5px var(--ink0),0 1px 0 var(--ink0)}
-#mStrokes.sgp .sgpill[hidden]{display:none}
-#mStrokes.sgp.sgtest #sgTest{background:linear-gradient(#FFE97A,#FFD93B);color:var(--ink0)}
 #mStrokes.sgp .sgbadge{appearance:none;position:absolute;z-index:6;right:var(--gr);top:calc(var(--gt) + 4px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:50px;height:50px;margin:0;padding:0 6px;border:0;border-radius:12px;background:var(--ink0);color:#fff;font:400 13px/1 var(--font-display);font-variant-numeric:tabular-nums;box-shadow:0 3px 0 rgba(0,0,0,.3);cursor:pointer}
 #mStrokes.sgp .sgbadge .sgbi{display:grid;place-items:center;width:20px;height:22px;color:var(--sel)}
 #mStrokes.sgp .sgbadge .sgbi svg,#mStrokes.sgp .sgbadge .sgbi .stimg{width:22px;height:22px;object-fit:contain}
@@ -4113,13 +4109,10 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 #mStrokes.sgp .stucode .ulink{color:rgba(255,255,255,.62);font-size:12px}
 #mStrokes.sgp .stucode .uform input{border-color:#fff;background:#fff;color:var(--black)}
 #mStrokes.sgp .sttoast{bottom:auto;top:calc(var(--gt) + 64px);z-index:9}
-/* (Test: the demo bigger, the panel and the tabs out of its way) */
-#mStrokes.sgp.sgtest .sgpanel,#mStrokes.sgp.sgtest .sgtabs,#mStrokes.sgp.sgtest .sgfoot{display:none}
-#mStrokes.sgp.sgtest .sgrot{bottom:12px}
 /* landscape: the panel on the left, the stroke on the right (a transform's demo), the ink band along the bottom with the tabs on it,
-   back at its left and Info and Test at its right */
+   back at its left */
 @media (min-aspect-ratio:1/1){
-  #mStrokes.sgp{--bk:clamp(54px,16vh,72px);--band:clamp(70px,20vh,100px);--tabw:clamp(84px,12vw,116px);--pillh:clamp(32px,9.5vh,40px);--panw:55%;display:block;padding:0}
+  #mStrokes.sgp{--bk:clamp(54px,16vh,72px);--band:clamp(70px,20vh,100px);--tabw:clamp(84px,12vw,116px);--panw:55%;display:block;padding:0}
   #mStrokes.sgp .sgink{display:block;bottom:calc(var(--gb) - var(--band) * .18);height:calc(var(--band) * 1.5)}
   #mStrokes.sgp .sgtabs::before{display:none}
   #mStrokes.sgp .sgback{top:auto;bottom:calc(var(--gb) + 8px)}
@@ -4129,8 +4122,6 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
   #mStrokes.sgp .sgtab .sgti{height:clamp(24px,7.2vh,38px)}
   #mStrokes.sgp .sgtab .sgti .stimg{width:clamp(26px,8vh,40px);height:clamp(26px,8vh,40px)}
   #mStrokes.sgp .sgdots i{width:7px;height:7px}
-  #mStrokes.sgp .sgpills{position:absolute;left:auto;right:var(--gr);bottom:calc(var(--gb) + var(--band) * .26);margin:0;gap:12px}
-  #mStrokes.sgp .sgpill{min-width:clamp(76px,10vw,96px)}
   #mStrokes.sgp .sgpanel{position:absolute;top:calc(var(--gt) + 10px);bottom:calc(var(--gb) + var(--band) + 6px);left:var(--gx);width:calc(var(--panw) - var(--gx));max-height:none;margin:0}
   #mStrokes.sgp .sgscroll{padding:21px 16px 18px}
   #mStrokes.sgp .sggrid{gap:18px}
@@ -4139,7 +4130,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
   #mStrokes.sgp .sgban{left:14px;top:6px;max-width:calc(100% - 100px);transform:skewX(-11deg)}
   #mStrokes.sgp .sgbadge{top:calc(var(--gt) + 10px);flex-direction:row;gap:5px;min-width:0;height:34px;padding:0 10px 0 7px;border-radius:10px;font-size:15px}
   #mStrokes.sgp .sgrot{bottom:52px;right:0}
-  #mStrokes.sgp.sgnoted:not(.sgtest) .sgrot{bottom:72px}
+  #mStrokes.sgp.sgnoted .sgrot{bottom:72px}
   #mStrokes.sgp .sgfoot{bottom:0;flex-direction:row;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:4px 10px}
   #mStrokes.sgp .sgline{flex:1 1 150px;text-align:left;font-size:13px}
   #mStrokes.sgp .sgnote{order:-1;flex-basis:100%;text-align:right}
@@ -4161,9 +4152,6 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
   #mStrokes.sgp.sglearn:not(.sgx) .sgpanel{left:var(--gx);transform:none}
   #mStrokes.sgp.sglearn:not(.sgx) .sgban{left:calc(min(64vw,580px) / 2)}
   #mStrokes.sgp.sglearn:not(.sgx) .sgfoot{left:0;right:0;width:auto;transform:none}
-  #mStrokes.sgp.sgtest .sgshow{left:var(--gx);bottom:calc(var(--gb) + var(--band) * .26 + var(--pillh) + 14px)}
-  #mStrokes.sgp.sgtest .sgban{left:50%;transform:translateX(-50%) skewX(-11deg)}
-  #mStrokes.sgp.sgtest .sgink{display:none}
 }
 @media (min-aspect-ratio:1/1) and (max-height:430px){#mStrokes.sgp .sgcard .sgcf{min-height:18px;padding:3px 4px 4px;font-size:11px}#mStrokes.sgp .sgcard.soon .sgcf{min-height:18px}#mStrokes.sgp .sgban b{font-size:21px}#mStrokes.sgp .sgban{padding:6px 26px 6px 17px}}
 @media (max-aspect-ratio:1/1) and (max-height:700px){#mStrokes.sgp{--panh:min(30vh,210px);--bk:50px}#mStrokes.sgp .sgban b{font-size:20px}}
@@ -4321,11 +4309,11 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
       <button class="sgback" id="stBack" type="button" aria-label="Back to the lobby"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M12.6 7.4 6.2 13.6l6.4 6.2" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.4 13.6h11.2a6.4 6.4 0 0 1 0 12.8h-4.4" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round"/></svg><span>Back</span></button>
       <button class="sgbadge" id="sgBadge" type="button"><span class="sgbi" id="sgBadgeI" aria-hidden="true"></span><b id="sgBadgeT">1</b></button>
       <div class="sgshow" id="sgShow">
-        <div class="sgstage" id="sgStage"><span class="sgart" id="sgArt" aria-hidden="true"></span><p class="sgcap" id="sgCap" aria-live="polite"></p><i class="sgflash" id="sgFlash" aria-hidden="true"></i></div>
+        <div class="sgstage" id="sgStage"><span class="sgart" id="sgArt" aria-hidden="true"></span><i class="sgflash" id="sgFlash" aria-hidden="true"></i></div>
         <div class="sgban" id="sgBan"><small id="sgKind">Special stroke</small><b id="sgName">Rocket</b><i class="sgflag" aria-hidden="true"></i></div>
         <button class="sgrot" id="sgRot" type="button" aria-label="Turn the view" hidden><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="5.2" fill="currentColor"/><path d="M6.6 12.4a10 10 0 0 1 17.6-3.2M25.4 19.6a10 10 0 0 1-17.6 3.2" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M24.6 4.6l.2 5.4-5.4.4M7.4 27.4l-.2-5.4 5.4-.4" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <div class="sgfoot"><p class="sgline" id="sgLine"></p>
-          <div class="sgact"><span class="sgtimer" id="sgTimer" hidden><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6.5 3h11M6.5 21h11M8 3c0 5.2 8 5.6 8 9s-8 3.8-8 9M16 3c0 5.2-8 5.6-8 9s8 3.8 8 9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></i><b id="sgTime">0:00</b><span class="sgtbar" aria-hidden="true"><i id="sgBar"></i></span></span><button class="sgskip" id="sgSkip" type="button" hidden>Skip</button><button class="sgdo" id="sgDo" type="button">Equip</button></div>
+          <div class="sgact"><span class="sgtimer" id="sgTimer" hidden><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6.5 3h11M6.5 21h11M8 3c0 5.2 8 5.6 8 9s-8 3.8-8 9M16 3c0 5.2-8 5.6-8 9s8 3.8 8 9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></i><b id="sgTime">0:00</b><span class="sgtbar" aria-hidden="true"><i id="sgBar"></i></span></span><button class="sgskip" id="sgSkip" type="button" hidden>Skip</button><button class="sgdo" id="sgDo" type="button">Equip</button><button class="sgib" id="sgInfo" type="button" aria-haspopup="dialog"><span>Info</span></button></div>
           <p class="sgnote" id="sgNote" hidden></p></div>
       </div>
       <section class="sgpanel" id="stPanel" aria-labelledby="stCatH"><i class="sghang" aria-hidden="true"></i><h3 class="sgvh" id="stCatH">Special strokes</h3><p class="sgvh" id="stCatS">What the orb gives you</p>
@@ -4341,7 +4329,6 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <button class="sgtab" id="stSkill" type="button" role="tab" data-cat="skill" aria-controls="stSkillRail"><b class="sgtt">Skills</b><span class="sgtb"><span class="sgti" id="stSkillNow"></span><span class="sgdots" id="sgDots_skill" aria-hidden="true"></span></span></button>
         <button class="sgtab" id="stItem" type="button" role="tab" data-cat="item" aria-controls="stItemRail"><b class="sgtt">Transforms</b><span class="sgtb"><span class="sgti" id="stItemNow"></span><span class="sgdots" id="sgDots_item" aria-hidden="true"></span></span></button>
       </div>
-      <div class="sgpills"><button class="sgpill" id="sgInfo" type="button" aria-haspopup="dialog"><span>Info</span></button><button class="sgpill" id="sgTest" type="button"><span>Test</span></button></div>
     </div>
     <div class="mevents" id="mEvents" hidden><div class="evwash" aria-hidden="true"><i></i></div>
       <div class="evhead"><button class="sback" id="evBack" type="button" aria-label="Back to the lobby"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4.5 7.5 12l7.5 7.5" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2 id="evTitle">Choose event</h2></div>
@@ -4389,7 +4376,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 324</p>
+      <p class="ver">Version 325</p>
     </div>
   </div>
 
@@ -20532,7 +20519,7 @@ function stSetCat(cat, quiet) {
   if (!ST_CATS[cat]) cat = 'special'; const was = stCat; stCat = cat;
   for (const k in ST_CATS) { const on = k === cat, sl = $(ST_CATS[k].slot), r = $(ST_CATS[k].rail); sl.classList.toggle('on', on); sl.setAttribute('aria-selected', on ? 'true' : 'false'); sl.tabIndex = on ? 0 : -1; r.hidden = !on; }
   const pg = $('mStrokes'); if (pg.dataset.cat !== cat) pg.dataset.cat = cat; pg.classList.toggle('sgx', cat !== 'skill'); $('stPanel').dataset.cat = cat; $('stCatH').textContent = ST_CATS[cat].h; $('stCatS').textContent = ST_CATS[cat].s;
-  if (was !== cat) { if (SGD.test) sgTestEnd(true); if (!quiet) { AU.ui(); buzz(5); const r = $(ST_CATS[cat].rail); r.classList.remove('in'); void r.offsetWidth; r.classList.add('in'); $('sgScroll').scrollTop = 0; } sgShowRender(); }
+  if (was !== cat) { if (!quiet) { AU.ui(); buzz(5); const r = $(ST_CATS[cat].rail); r.classList.remove('in'); void r.offsetWidth; r.classList.add('in'); $('sgScroll').scrollTop = 0; } sgShowRender(); }
 }
 function stTile(o, skill) {
   const d = strokesOf(), item = skill === 'item', cat = item ? 'item' : skill ? 'skill' : 'special', own = d.own.includes(o.id), on = own && stOnOf(cat) === o.id, cr = !!d.craft && d.craft.id === o.id, ready = own && !on && d.fresh === o.id, lock = !own && !cr && !stDue(o), sel = sgSelId(cat) === o.id;
@@ -20575,7 +20562,7 @@ function stPopRender() {
   $('sgHow').innerHTML = (own ? ST_CHECK : cr ? ST_GLASS : stDue(o) ? ST_HAMMER : STROKE_LOCK) + '<span>' + how + '</span>';
 }
 function openStPop(id) {
-  if (!stDef(id) || !strokesOpen()) return; if (SGD.test) sgTestEnd(true);
+  if (!stDef(id) || !strokesOpen()) return;
   clearTimeout(stPopT); stPopId = id; const m = $('stPop'), was = m.hidden; m.hidden = false; stPopRender(); AU.ui(); buzz(6);
   if (was) { const c = m.querySelector('.stpop'); c.style.animation = 'none'; void c.offsetWidth; c.style.animation = ''; }
   setTimeout(() => { if (stPopId === id) $('stPopX').focus({ preventScroll: true }); }, 40);
@@ -20627,7 +20614,7 @@ function sgShowRender() {
   if (cr) sgBench(o); sgSkipPaint();
   const note = own ? '' : cr ? (adFree() ? '' : 'Watch an ad to finish it now') : !due ? 'Reach rank ' + stRank(o) + ' to craft it' : busy ? 'One craft at a time: ' + spName(d.craft.id) + ' is on the bench' : '';
   $('sgNote').hidden = !note; $('sgNote').textContent = note; $('mStrokes').classList.toggle('sgnoted', !!note);
-  $('sgTest').hidden = cat === 'skill'; SGD.rectDirty = true;
+  SGD.rectDirty = true;
   sgDemoPick(cat !== 'skill' ? id : null); // (v322: specials too)
 }
 function sgFitName() { const nb = $('sgName'); nb.style.fontSize = ''; if (!nb.clientWidth) return; let fs = parseFloat(getComputedStyle(nb).fontSize) || 24, n = 0; while (nb.scrollWidth > nb.clientWidth + 1 && fs > 13 && n++ < 10) { fs -= 1.5; nb.style.fontSize = fs + 'px'; } }
@@ -20659,8 +20646,8 @@ function openStrokes() {
   for (const c of $('mStrokes').querySelectorAll('.sgtab')) { c.style.animation = 'none'; void c.offsetWidth; c.style.animation = ''; } { const r = $('stSpecialRail'); r.classList.remove('in'); void r.offsetWidth; r.classList.add('in'); }
   clearInterval(stTick); stTick = setInterval(strokesFrame, 500); SGD.rectDirty = true; setTimeout(() => $('stBack').focus({ preventScroll: true }), 40);
 }
-function closeStrokes() { if (!strokesOpen()) return; closeStPop(true); sgTestEnd(true); sgStop(); clearInterval(stTick); $('mStrokes').hidden = true; $('mStrokes').classList.remove('sglearn'); document.body.classList.remove('evon', 'stpage'); menuPage = 'home'; menu.dataset.page = 'home'; $('mHome').hidden = false; paintAbil(); renderLobbyUI && renderLobbyUI(); setTimeout(() => $('abilBtn').focus({ preventScroll: true }), 40); }
-$('stBack').addEventListener('click', () => { AU.init(); if (stPopId) return closeStPop(); if (SGD.test) { AU.ui(); return sgTestEnd(); } AU.ui(); closeStrokes(); });
+function closeStrokes() { if (!strokesOpen()) return; closeStPop(true); sgStop(); clearInterval(stTick); $('mStrokes').hidden = true; $('mStrokes').classList.remove('sglearn'); document.body.classList.remove('evon', 'stpage'); menuPage = 'home'; menu.dataset.page = 'home'; $('mHome').hidden = false; paintAbil(); renderLobbyUI && renderLobbyUI(); setTimeout(() => $('abilBtn').focus({ preventScroll: true }), 40); }
+$('stBack').addEventListener('click', () => { AU.init(); if (stPopId) return closeStPop(); AU.ui(); closeStrokes(); });
 $('sgSkip').addEventListener('click', () => { AU.init(); craftSkipAsk(); }); // (v321: an ad first, outside the lesson)
 for (const k of ['special', 'skill', 'item']) $(ST_CATS[k].slot).addEventListener('click', () => { AU.init(); stSetCat(k); });
 $('sgTabs').addEventListener('keydown', e => { const ks = ['special', 'skill', 'item'], i = ks.indexOf(stCat), dl = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0; if (!dl) return; e.preventDefault(); const k = ks[(i + dl + 3) % 3]; stSetCat(k); $(ST_CATS[k].slot).focus(); });
@@ -20669,7 +20656,6 @@ $('sgDo').addEventListener('click', () => { AU.init(); const id = sgSelId(stCat)
   if (d.own.includes(id)) { if (stOnOf(stCat) !== id) sgEquip(id); return; }
   if (d.craft) { AU.nope(); stToast('One craft at a time'); return; } if (!stDue(o)) { AU.nope(); stToast('Reach rank ' + stRank(o) + ' to craft ' + spName(id)); return; } craftStart(id); });
 $('sgInfo').addEventListener('click', () => { AU.init(); openStPop(sgSelId(stCat)); });
-$('sgTest').addEventListener('click', () => { AU.init(); AU.ui(); if (SGD.test) sgTestEnd(); else sgTestStart(); });
 $('sgBadge').addEventListener('click', () => { AU.init(); const d = strokesOf(); if (d.craft) { sgPick(d.craft.id, true); AU.ui(); return; } AU.ui(); stToast('Rank ' + repOf(store.xp || 0).lv); });
 $('stPopX').addEventListener('click', () => { AU.init(); closeStPop(); });
 $('stPop').addEventListener('click', e => { if (e.target === $('stPop')) { AU.init(); closeStPop(); } });
@@ -20688,11 +20674,9 @@ $('sgRot').addEventListener('click', () => { AU.init(); AU.ui(); buzz(4); SGD.ya
 // the app in view); its own code makes no new objects per frame. It lives far off every stage, on a layer of its own (5) that sees the
 // lobby's lights ----------
 const SG_L = 5, SG_X = 640, SG_Z = 640, SG_R = 1.8, SG_YAW0 = 0.42;
-const SGD = { built: false, on: false, ready: false, kind: '', id: null, t: 0, loop: 0, side: 1, yaw: SG_YAW0, yawTo: null, drag: null, test: false, rectDirty: true, rect: { x: 0, y: 0, w: 0, h: 0 }, insT: 0, insB: 0, hole: '', ev: {}, calls: 0, cpu: 0, frames: 0 };
+const SGD = { built: false, on: false, ready: false, kind: '', id: null, t: 0, loop: 0, side: 1, yaw: SG_YAW0, yawTo: null, drag: null, rectDirty: true, rect: { x: 0, y: 0, w: 0, h: 0 }, insT: 0, insB: 0, hole: '', ev: {}, calls: 0, cpu: 0, frames: 0 };
 const sgT1 = new THREE.Vector3(), sgT2 = new THREE.Vector3(), sgT3 = new THREE.Vector3(), sgM = new THREE.Matrix4(), sgQ = new THREE.Quaternion(), sgS = new THREE.Vector3(), sgVp = new THREE.Vector4(), sgSc = new THREE.Vector4(), sgCol = new THREE.Color(), sgHemiC = new THREE.Color(), sgHemiG = new THREE.Color(), sgSunC = new THREE.Color(), sgSunP = new THREE.Vector3(), sgSunT = new THREE.Vector3(), sgRimP = new THREE.Vector3(), sgRimT = new THREE.Vector3(), sgRimC = new THREE.Color(), sgRigC = new THREE.Color(), sgDir = new THREE.Vector3();
 const SG_PAPER = '#F6F0E2';
-// the steps Test captions, from each transform's own lines
-const SG_CAP = { roller: [[0.7, 0], [1.9, 1], [3.6, 2]], turret: [[0.5, 0], [1.0, 1], [2.3, 2]], trap: [[0.8, 0], [2.6, 1], [3.6, 2]], whirl: [[0.3, 0], [1.9, 1], [2.6, 2]], boom: [[0.7, 0], [1.3, 1], [2.3, 2]], rocket: [[0.55, 0], [1.3, 1], [2.7, 2]], giant: [[0.5, 0], [1.05, 1], [2.4, 2]], freeze: [[1.3, 0], [1.9, 1], [3.2, 2]] };
 const SG_T = { roller: 6.2, turret: 5.6, trap: 6.4, whirl: 6.0, boom: 5.4, rocket: 5.8, giant: 5.8, freeze: 6.6 }; // (v322: the specials too)
 function sgLayer(o) { o.traverse(m => { if (m.material && m.material.depthFunc === THREE.GreaterDepth) { m.layers.mask = 0; return; } m.layers.set(SG_L); }); }
 // a character for the demo: the game's own (made as a CPU's is), in a team's colour
@@ -20808,7 +20792,6 @@ function sgLoop() {
   else if (k === 'freeze') { sgAtC(A, -0.9 * s, 0.45); sgAtC(B, 0.85 * s, -0.75); }
   else { sgAt(A, -1.1 * s, 0.33); sgAt(B, 0.9 * s, -0.25); }
   A.D.yaw = sgYawCam(A); B.D.yaw = sgYawTo(B, A); A.V.yawD = B.V.yawD = undefined;
-  SGD.capI = -1; sgCap();
 }
 const sgOnce = k => SGD.ev[k] ? false : (SGD.ev[k] = true);
 function sgStep(dt) {
@@ -20887,7 +20870,6 @@ function sgStep(dt) {
   }
   // (the last moment of each: the paint fades, then the other side)
   const T = SG_T[k] || 6; if (t > T - 0.7) sgPaintFade(Math.min(0.35, dt * 6)); if (t >= T) { sgPaintClear(); sgLoop(); }
-  if (SGD.test) sgCap();
 }
 // ---- (v322) the specials
 const sgShk = k => { SGD.shk = Math.max(SGD.shk || 0, k); };
@@ -21001,8 +20983,6 @@ function sgHit(B, s) {
   D.hits = (D.hits || 0) + 1; if (D.hits === 3) { D.stunT = 1.5; }
   D.squash = 0.85; D.wob = 1; fxKnock(D, nx, nz, 0.35); emote(D, 'ouch', 0.6); D.x += nx * 0.03; D.z += nz * 0.03; sgRing(sgLX(B), sgLZ(B), 0.7, TEAMS[0].wet);
 }
-// the captions Test shows, a line of the transform's own for each step
-function sgCap() { const cap = $('sgCap'), o = stDef(SGD.id); if (!SGD.test || !o || !SG_CAP[SGD.kind]) { cap.classList.remove('on'); return; } let i = -1; for (let j = 0; j < SG_CAP[SGD.kind].length; j++) if (SGD.t >= SG_CAP[SGD.kind][j][0]) i = SG_CAP[SGD.kind][j][1]; if (i === SGD.capI) return; SGD.capI = i; if (i < 0) { cap.classList.remove('on'); return; } cap.textContent = o.does[i] || ''; cap.classList.add('on'); }
 // ---- each frame: the characters drawn by the game's own code (as in a match), then the window drawn
 function sgVis(dt) {
   const ke = 1 - Math.exp(-dt * 10), kf = 1 - Math.exp(-dt * 16), st0 = state, nl = window.__noLod; state = 'play'; window.__noLod = true;
@@ -21035,7 +21015,7 @@ function sgRectUpdate() {
   SGD.rectDirty = false; const el = $('sgStage'), r = el.getBoundingClientRect(), r0 = stage.getBoundingClientRect(), x = Math.round(r.left - r0.left), y = Math.round(r.top - r0.top), w = Math.round(r.width), h = Math.round(r.height);
   SGD.rect.x = x; SGD.rect.y = y; SGD.rect.w = w; SGD.rect.h = h;
   const bn = $('sgBan').getBoundingClientRect(), ft = $('mStrokes').querySelector('.sgfoot').getBoundingClientRect();
-  SGD.insT = bn.height > 0 ? clamp(bn.bottom - r.top + 4, 0, h * 0.4) : 0; SGD.insB = ft.height > 0 ? clamp(r.bottom - ft.top + 2, 0, h * 0.4) : 0;
+  SGD.insT = bn.height > 0 ? clamp(bn.bottom - r.top + 4, 0, h * 0.4) : 0; SGD.insB = ft.height > 0 ? clamp(r.bottom - ft.top + 2, 0, h * 0.4) : 0; $('sgRot').style.bottom = ft.height > 0 ? Math.round(r.bottom - ft.top + 8) + 'px' : '';
   const hole = w > 4 && h > 4 ? 'polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, ' + x + 'px ' + y + 'px, ' + (x + w) + 'px ' + y + 'px, ' + (x + w) + 'px ' + (y + h) + 'px, ' + x + 'px ' + (y + h) + 'px, ' + x + 'px ' + y + 'px)' : '';
   if (hole !== SGD.hole) { SGD.hole = hole; $('sgBg').style.clipPath = hole; }
 }
@@ -21076,15 +21056,13 @@ function sgTick(rdt) {
   if (!SGD.on) { SGD.on = true; sgHole(true); if (!SGD.started || SGD.startedK !== SGD.kind) { SGD.started = true; SGD.startedK = SGD.kind; sgPaintClear(); SGD.loop = 0; sgLoop(); } }
   if (SGD.rectDirty) sgRectUpdate(); if (SGD.rect.w < 8 || SGD.rect.h < 8) return;
   const dt = Math.min(0.05, Math.max(0, rdt));
-  if (!reduceMotion || SGD.test) sgStep(dt);
+  if (!reduceMotion) sgStep(dt);
   sgVis(dt); sgRender();
 }
 // the window in the page's wall: open while the demo draws, shut (the wall whole again) while it doesn't
 function sgHole(on) { const pg = $('mStrokes'); pg.classList.toggle('sghole', on); pg.classList.toggle('sgdemo', on); $('sgRot').hidden = !on; if (on) SGD.rectDirty = true; else { SGD.hole = ''; $('sgBg').style.clipPath = ''; } }
 function sgPause() { if (!SGD.on) return; SGD.on = false; sgHole(false); }
 function sgStop() { sgPause(); SGD.started = false; if (SGD.built) { SGD.root.visible = false; SGD.A.L.drop.visible = SGD.B.L.drop.visible = false; } }
-function sgTestStart() { if (stCat === 'skill' || !SGD.kind) return; SGD.test = true; $('mStrokes').classList.add('sgtest'); SGD.rectDirty = true; SGD.loop = 0; if (SGD.built) { sgPaintClear(); sgLoop(); } $('sgTest').setAttribute('aria-pressed', 'true'); }
-function sgTestEnd(quiet) { if (!SGD.test) return; SGD.test = false; $('mStrokes').classList.remove('sgtest'); $('sgCap').classList.remove('on'); SGD.rectDirty = true; $('sgTest').setAttribute('aria-pressed', 'false'); if (!quiet) $('sgTest').focus({ preventScroll: true }); }
 window.addEventListener('resize', () => { SGD.rectDirty = true; if (strokesOpen()) setTimeout(sgFitName, 60); });
 if (window.ResizeObserver) try { new ResizeObserver(() => { SGD.rectDirty = true; }).observe($('sgStage')); } catch (e) {}
 
@@ -25292,7 +25270,7 @@ function tutStrokesTick() {
   if (!strokesOpen()) return tutShow('Tap Strokes to open it', 'abilBtn', 'sOpen');
   if (stCat !== 'special') stSetCat('special', true); // (v275: the Giant is on the Special tab)
   const d = strokesOf(), giant = () => $('stSpecialRail').querySelector('.sgcard[data-st="giant"]'), onG = sgSelId('special') === 'giant';
-  if (stPopId) closeStPop(true); if (SGD.test) sgTestEnd(true); if (!$('mStrokes').classList.contains('sglearn')) $('mStrokes').classList.add('sglearn'); // (v313: the lesson walks the page itself, laid out to leave him room)
+  if (stPopId) closeStPop(true); if (!$('mStrokes').classList.contains('sglearn')) $('mStrokes').classList.add('sglearn'); // (v313: the lesson walks the page itself, laid out to leave him room)
   if (!d.own.includes('giant')) { if (d.craft) { if (d.craft.id === 'giant' && !onG) sgPick('giant', true); return tutShow('Crafting takes 20 minutes. Tap Skip, this one’s on me', d.craft.id === 'giant' ? 'sgSkip' : 'sgBadge', 'sSkip', false, false, null, false, true); }
     if (onG) return tutShow('Tap Craft to start on it', 'sgDo', 'sCraft', false, false, null, false, true);
     return tutShow('Your Special Stroke is what the orb gives you. The Giant is yours to craft: tap it', giant, 'sGiant', false, false, null, false, true); }
