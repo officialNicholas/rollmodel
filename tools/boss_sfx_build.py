@@ -47,6 +47,12 @@ TAKES = {  # name: (seconds asked for, the prompt), two takes each
     'k_cage': (1.5, 'a rusty iron cage swinging on a chain and rattling, creaking metal and clanking chain' + U),
     'k_laugh': (1.5, 'a cartoon pirate skeleton laughing, a rattly bony cackle with a clacking jaw, spooky but fun, game sound effect, no music'),
     'k_fall': (1.0, 'a small jelly creature falling into a pool of thick slime, a deep gloopy splash and a sinking glug' + U),
+    # (v317) the boss's two new moves, slime rain and shock wave (takes rm317-<name>-<take>)
+    'b_spit': (1.0, 'a giant jellyfish spitting a big glob of thick slime high up into the air, a wet gloopy pop and a rising whoosh' + U),
+    'b_ring': (1.2, 'a magical warning chime as a glowing circle appears on the ground, a soft rising shimmering hum, ominous, cartoon game sound effect, no music'),
+    'b_erupt': (1.2, 'a glob of thick slime crashing down and bursting into a big puffy cloud, a wet boom with a fizzing whoosh and bubbles' + U),
+    'b_glow': (1.0, 'magical golden energy charging up in two giant fists, a rising shimmering hum with sparkles, cartoon game sound effect, no music'),
+    'b_rune': (1.4, 'a magic shockwave racing across a stone floor, a quick rolling series of glowing thumps and sparkling chimes, cartoon game sound effect, no music'),
 }
 # the one-shots: t the take, lu the loudness (LUFS, the loudest 400 ms; the hits, grab, punch and slam, as loud as their peaks allow
 # with 6 dB taken off them: their loudest 100 ms, -11 to -12 LUFS, is in line with the rest's), max the longest it may run (s) before
@@ -82,6 +88,13 @@ ONE = {
     'k_cage': dict(t='k_cage_2', lu=-18),              # 2: more of the iron's clank
     'k_laugh': dict(t='k_laugh_2', lu=-15, fade=0.12),  # 2: straight in, the cackle clearer
     'k_fall': dict(t='k_fall_1', lu=-14),              # 1: a deeper splash (2 thin and bright)
+    # (v317) the new moves
+    'b_spit': dict(t='b_spit_1', lu=-14),              # 1: the pop and the whoosh, 41% of it over 250 Hz (2: a thud all under 250 Hz, silent on a phone)
+    'b_ring': dict(t='b_ring_2', lu=-19),              # 2: a clean shimmer that holds in mono (1: its two channels far apart, lost when mixed down)
+    'b_erupt': dict(t='b_erupt_1', lu=-15),            # both: five land at once, played in turn (1 longer, its fizz tail)
+    'b_erupt2': dict(t='b_erupt_2', lu=-15),
+    'b_glow': dict(t='b_glow_2', lu=-16),              # 2: the hum has body (1 thin, its centre 4.8 kHz)
+    'b_rune': dict(t='b_rune_2', lu=-13),              # 2: longer, brighter (both mostly low; 2 has more over 250 Hz)
 }
 # the loops: the takes and the stretch of each used (s), the crossfade (s), the evening-out window (s) and how far, the loudness
 # (integrated LUFS), the channels and the bit rate
