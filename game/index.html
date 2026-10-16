@@ -3954,6 +3954,9 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 .tykofly.go{transition:transform .3s cubic-bezier(.55,0,.85,.35)}
 .tyko{font-size:22px}
 .tyko svg{width:.9em;height:.9em;fill:var(--gold);stroke:var(--black);stroke-width:1.5px;vertical-align:-.12em;margin-right:2px}
+
+/* (v311) a handle keeps its small letters where names are set in capitals */
+.hd{text-transform:none!important}
 </style>
 
 <div id="stage">
@@ -4092,7 +4095,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 310</p>
+      <p class="ver">Version 311</p>
     </div>
   </div>
 
@@ -15595,11 +15598,18 @@ const sideOf = D => SIDE[D.team], ally = (A, B) => !!A && !!B && A !== B && SIDE
 const NAMES = ['You', 'Smudge', 'Doodle', 'Blot'], nameOf = D => D === P ? playerName() : NAMES[D.team];
 const KO_PCT = 2; // each elimination counts for this much of the canvas at the tally
 const RIVAL_NAMES = ['Smudge', 'Blot', 'Splodge', 'Dribble', 'Doodle', 'Squiggle', 'Speckle', 'Glop', 'Drizzle', 'Swirl', 'Dabs', 'Gloop', 'Sploosh', 'Tinty', 'Smear', 'Daub'];
-function pickRivalNames() { const me = playerName().toLowerCase(), pool = RIVAL_NAMES.filter(n => n.toLowerCase() !== me); const a = pool.splice(Math.floor(Math.random() * pool.length), 1)[0]; NAMES[1] = a; NAMES[2] = pool.splice(Math.floor(Math.random() * pool.length), 1)[0]; NAMES[3] = pool[Math.floor(Math.random() * pool.length)]; rollRivalRanks(); }
+function pickRivalNames() { const me = playerName().replace(/^@/, '').toLowerCase(), pool = RIVAL_NAMES.filter(n => n.toLowerCase() !== me); const a = pool.splice(Math.floor(Math.random() * pool.length), 1)[0]; NAMES[1] = a; NAMES[2] = pool.splice(Math.floor(Math.random() * pool.length), 1)[0]; NAMES[3] = pool[Math.floor(Math.random() * pool.length)]; rollRivalRanks(); }
 // your name: asked for before your first match, changed any time from the nameplate on the menu
 const NAME_MAX = 12, NAME_IDEAS = ['Rollo', 'Spatter', 'Brushy', 'Glossy', 'Pixel', 'Dabble', 'Swatch', 'Sprinkle', 'Mosaic', 'Primer', 'Inky', 'Neon', 'Jelly', 'Marble', 'Gumdrop', 'Picasso Jr'];
 const cleanName = t => String(t || '').replace(/[\u0000-\u001f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, NAME_MAX);
-const playerName = () => cleanName(store.name) || 'You';
+// (v311) a player with an account online shows as a handle: @ and the username in small letters. Your own name is yours once you're
+// signed in; a name that's a handle keeps its small letters where names are set in capitals (the class hd)
+const isHd = n => typeof n === 'string' && n.charAt(0) === '@';
+const hdOf = n => { const t = String(n == null ? '' : n).trim(); return t ? (isHd(t) ? t : '@' + t).toLowerCase() : t; };
+const hdOn = () => { try { return !!(window.acctReady && window.acctReady()); } catch (e) { return false; } };
+const playerName = () => { const n = cleanName(store.name) || 'You'; return store.name && hdOn() ? hdOf(n) : n; };
+const nmHtml = n => isHd(n) ? '<bdi class="hd">' + escAttr(n) + '</bdi>' : escAttr(n);
+function nmSet(el, n) { if (!el) return; el.textContent = n; el.classList.toggle('hd', isHd(n)); }
 const randomName = () => { let n; do { n = NAME_IDEAS[(Math.random() * NAME_IDEAS.length) | 0].replace(/ /g, '_') + (10 + ((Math.random() * 90) | 0)); } while (n === store.name || unWhy(n) || /(69|88)$/.test(n)); return n; }; // (v306: a username: no spaces, two digits so it's likely free)
 // ---------- (v306) usernames: 3 to 16 letters, numbers or _ (at least one letter), one of a kind, nothing rude and no reserved names.
 // The same rules as the server's (_uname_why and _uname_bad in supabase/migrations/*_accounts.sql: change one, change the other), so the
@@ -18084,7 +18094,7 @@ function ntagTick(rdt) {
     if (t.el.hidden) t.el.hidden = false;
     const nm = nameOf(D), rk = rankOf(D), col = TEAMS[D.team].css;
     { const hp = isShow() ? Math.max(0, D.hearts | 0) : -1; if (t.hp !== hp) { t.hp = hp; let hh = ''; if (hp >= 0) for (let i = 0; i < SD_HEARTS; i++) hh += HEART_SVG.replace('<svg', '<svg class="' + (i < hp ? 'on' : 'off') + '"'); t.ht.innerHTML = hh; } const al = ally(D, P); if (t.al !== al) { t.al = al; t.el.classList.toggle('ally', al); } }
-    if (t.name !== nm || t.rank !== rk) { t.name = nm; t.rank = rk; t.nm.textContent = nm; t.rk.textContent = rk; t.w = 0; }
+    if (t.name !== nm || t.rank !== rk) { t.name = nm; t.rank = rk; nmSet(t.nm, nm); t.rk.textContent = rk; t.w = 0; }
     if (t.col !== col) { t.col = col; t.el.style.setProperty('--tc', col); }
     if (!t.w) { t.w = t.el.offsetWidth || 90; t.h = t.el.offsetHeight || 30; } // (measured once per name)
     t.sc = 1 - 0.16 * smoothstep(10, NTAG_FAR, t.d); vis.push(t);
@@ -19465,7 +19475,7 @@ function vicTag(t) { $('vTagTxt').textContent = t; }
 const VIC_FONT = '"Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif', VIC_FACE = 'italic 900 100px "Barlow Condensed"';
 function vicDrawName() {
   if (!vic) return; const W = Math.max(1, viewW), H = Math.max(1, viewH), land = vicLand(), dpr = Math.min(2, window.devicePixelRatio || 1), g = vicNameG;
-  const lines = []; for (const w of vic.name.toUpperCase().split(' ').filter(Boolean)) { if (lines.length && (lines[lines.length - 1] + ' ' + w).length <= (land ? 16 : 9)) lines[lines.length - 1] += ' ' + w; else lines.push(w); }
+  const lines = []; for (const w of vic.name.split(' ').filter(Boolean).map(w => isHd(w) ? w : w.toUpperCase())) { if (lines.length && (lines[lines.length - 1] + ' ' + w).length <= (land ? 16 : 9)) lines[lines.length - 1] += ' ' + w; else lines.push(w); }
   g.font = 'italic 900 100px ' + VIC_FONT; const widest = Math.max(1, ...lines.map(l => g.measureText(l).width)), maxW = land ? W * 0.56 : W - 28, maxH = land ? H * 0.6 : H * 0.34;
   const fs = clamp(Math.min(100 * maxW / (widest * 1.05), maxH / (lines.length * 0.84)), 40, land ? H * 0.46 : 280), lh = fs * 0.84, x0 = land ? Math.max(W * 0.045, 24) : 14;
   const cw = Math.round(W * dpr), ch = Math.round(H * dpr); if (vicNameCv.width !== cw || vicNameCv.height !== ch) { vicNameCv.width = cw; vicNameCv.height = ch; vicNameTex.dispose(); } g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
@@ -19524,7 +19534,7 @@ function startVictory() {
   vicTag(w.kick); vic.name = w.name; vic.ghost = w.ghost; $('vName').textContent = w.name; $('vName').setAttribute('aria-label', w.kick + ': ' + w.name);
   $('vStats').innerHTML = w.stats; [...$('vStats').children].forEach((el, i) => el.style.animationDelay = (0.95 + i * 0.08).toFixed(2) + 's');
   $('vCards').innerHTML = solo ? ttVicRows(info) : board.filter(e => !feat.includes(e.D)).map((e, i) => '<div class="vrow' + (e.D === P ? ' me' : '') + '" style="--cc:' + colVars(e.D)[1] + ';animation-delay:' + (1.2 + i * 0.08).toFixed(2) + 's"><b class="vr">' + String(e.place).padStart(2, '0') + '</b>' + faceIcon(e.D, false)
-    + '<span class="vn">' + escAttr(nameOf(e.D)) + (e.D === P ? '<em>You</em>' : '') + '</span><b class="vp">' + (info.show ? (info.kos[e.D.team] || 0) + '<small>' + ((info.kos[e.D.team] || 0) === 1 ? 'KO' : 'KOs') + '</small>' : e.pct + '<small>%</small>') + '</b></div>').join('');
+    + '<span class="vn">' + nmHtml(nameOf(e.D)) + (e.D === P ? '<em>You</em>' : '') + '</span><b class="vp">' + (info.show ? (info.kos[e.D.team] || 0) + '<small>' + ((info.kos[e.D.team] || 0) === 1 ? 'KO' : 'KOs') + '</small>' : e.pct + '<small>%</small>') + '</b></div>').join('');
   $('vTap').textContent = 'Tap to see the canvas'; $('vStage').textContent = TH.label + ' · ' + (solo ? 'Time trial' : (MODES.find(m => m[0] === mode) || MODES[0])[1]);
   vicEl.classList.remove('out'); vicEl.hidden = false; reAdd.delete(bannerEl); bannerEl.classList.remove('on'); vicFit(); flashScreen();
   if (document.fonts && document.fonts.check && !document.fonts.check(VIC_FACE)) document.fonts.load(VIC_FACE).then(() => { if (vic) vicFit(); }).catch(() => {}); // (drawn again in its own face when it's in)
@@ -19651,7 +19661,7 @@ function kofStart(D, reason, by) {
   const col = by ? TEAMS[by.team].css : reason === 'sun' ? '#F0DDA8' : reason === 'dry' ? '#5E4F5C' : hexCss(new THREE.Color(TEAMS[D.team].wet).multiplyScalar(0.5).getHex());
   kof = { ph: 'wait', t: 0, col, cx: viewW * 0.5, cy: viewH * 0.5, seed: Math.random() * 100 }; // (a beat first: you see yourself splatted, then the paint floods in)
   $('kofSmall').textContent = by ? 'Splatted by' : reason === 'fall' ? 'Fell off' : reason === 'sun' ? 'Baked' : reason === 'dry' ? 'Dried up' : 'Knocked out';
-  $('kofBy').textContent = by ? nameOf(by) : (koLine(reason, true) || 'Out!'); $('kofN').textContent = Math.max(1, Math.ceil(D.koT));
+  nmSet($('kofBy'), by ? nameOf(by) : (koLine(reason, true) || 'Out!')); $('kofN').textContent = Math.max(1, Math.ceil(D.koT));
   kofEl.style.setProperty('--kc', col); kofEl.hidden = false; kofEl.classList.remove('badge', 'out');
   const el = isShow() && D.elimNow; kofEl.classList.toggle('elim', !!el); $('kofL').textContent = el ? (mode === 'duo' && ACTIVE.some(B => ally(B, P) && sdAlive(B)) ? 'Your teammate fights on' : 'Place') : 'Respawn';
   if (el) { $('kofSmall').textContent = by ? 'Eliminated by' : 'Out of hearts'; kof.elim = true; kof.elimTxt = 'Out'; $('kofN').textContent = 'Out'; }
@@ -19879,7 +19889,7 @@ function snapshotPainting() {
 
 // ---------- menus ----------
 const hud = $('hud'), menu = $('menu'), end = $('end'), pauseEl = $('pause'), nameModal = $('nameModal');
-function paintName() { const n = playerName(); NAMES[0] = n; $('nameShow').textContent = store.name ? n : 'Name'; { const pn = $('pbName'); if (pn) pn.textContent = n; } const lt = $('lookNameTxt'); if (lt) lt.textContent = n; }
+function paintName() { const n = playerName(); NAMES[0] = n; nmSet($('nameShow'), store.name ? n : 'Name'); nmSet($('pbName'), n); nmSet($('lookNameTxt'), n); }
 let nameFirst = false;
 function openName(first) {
   nameFirst = !!first; const inp = $('nameInput');
@@ -20712,7 +20722,7 @@ function renderLook() {
   const ES_ICON = ES_ICON_T;
   $('eyeStyles').innerHTML = Object.keys(EYE_STYLES).map(k => { const it = EXTRA.find(x => x.id === k), lk = it && !bought(k); return '<button class="eyes' + (lk ? ' locked' : '') + (it && !lk && (store.fresh || []).includes(k) ? ' fresh' : '') + '" type="button" data-es="' + k + '" aria-label="' + EYE_STYLES[k] + ' eyes' + (lk ? ', ' + PRICE(it) + ' dabs in the Paint Shop' : '') + '" title="' + EYE_STYLES[k] + (lk ? ' (Paint Shop)' : '') + '" aria-pressed="' + (myLook.eyes === k) + '">' + ES_ICON[k] + (lk ? LOCK_ICON : '') + '</button>'; }).join('');
   $('irises').innerHTML = EYE_KEYS.map(k => '<button class="eyec" type="button" data-i="' + k + '" style="--ic:' + EYE_COLS[k].css + '" aria-label="' + EYE_COLS[k].name + ' eyes" title="' + EYE_COLS[k].name + '" aria-pressed="' + (myLook.iris === k) + '"><i></i></button>').join(''); $('irises').classList.toggle('off', NO_IRIS(myLook.eyes)); $('irises').setAttribute('aria-disabled', NO_IRIS(myLook.eyes) ? 'true' : 'false');
-  railEdge(); $('lookNameTxt').textContent = playerName();
+  railEdge(); nmSet($('lookNameTxt'), playerName());
   $('unlockLink').parentNode.hidden = ITEMS.every(w => owns(w.id)); // (nothing left to unlock: no link)
 }
 const DROP_SVG = '<svg class="dropi" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#F2C14E" stroke="#8A5A12" stroke-width="1.6"/><circle cx="10" cy="10" r="6.7" fill="none" stroke="#C98E22" stroke-width="1"/><path d="M10 5.2c.9 0 1.3 1.1 2 1.5 1 .5 2.2-.3 2.6.7.4 1-.9 1.6-.9 2.6s1.2 1.6.7 2.5c-.5.9-1.6.2-2.5.6-.8.4-1 1.7-1.9 1.7s-1.1-1.3-2-1.7c-.9-.4-2 .3-2.5-.6s.7-1.5.7-2.5-1.3-1.6-.9-2.6c.4-1 1.6-.2 2.6-.7.7-.4 1.1-1.5 2.1-1.5z"/></svg>';
@@ -21398,7 +21408,7 @@ function vsSnapTick() {
 function showVS(cb) {
   if (window.__instant || reduceMotion) return cb();
   const el = $('vsx'), md = MODES.find(m => m[0] === mode) || MODES[0];
-  const card = (D, name, cls) => '<div class="vcol ' + cls + '" style="--sc:' + TEAMS[D.team].css + ';--cd:' + mixHex(TEAMS[D.team].wet, 0x0C0620, 0.62) + '">' + (cls === 'me' ? '' : '<i class="vseam" aria-hidden="true"></i>') + '<i class="vsweep" aria-hidden="true"></i><div class="vhead"><small>' + (cls === 'me' ? 'You' : cls === 'me ally' ? 'Teammate' : NM ? 'Online' : 'CPU') + '</small><b>' + escAttr(name) + '</b></div><span class="vbox" id="vbox' + D.team + '"></span>' + Array.from({ length: 9 }, (_, i) => '<i class="pt" style="--x:' + (6 + Math.random() * 88).toFixed(0) + '%;--s:' + (3 + Math.random() * 7).toFixed(0) + 'px;--d:' + (2.2 + Math.random() * 2.4).toFixed(2) + 's;--w:' + (-Math.random() * 4).toFixed(2) + 's;--dx:' + ((Math.random() - 0.5) * 60).toFixed(0) + 'px"></i>').join('') + '</div>';
+  const card = (D, name, cls) => '<div class="vcol ' + cls + '" style="--sc:' + TEAMS[D.team].css + ';--cd:' + mixHex(TEAMS[D.team].wet, 0x0C0620, 0.62) + '">' + (cls === 'me' ? '' : '<i class="vseam" aria-hidden="true"></i>') + '<i class="vsweep" aria-hidden="true"></i><div class="vhead"><small>' + (cls === 'me' ? 'You' : cls === 'me ally' ? 'Teammate' : NM ? 'Online' : 'CPU') + '</small><b' + (isHd(name) ? ' class="hd"' : '') + '>' + escAttr(name) + '</b></div><span class="vbox" id="vbox' + D.team + '"></span>' + Array.from({ length: 9 }, (_, i) => '<i class="pt" style="--x:' + (6 + Math.random() * 88).toFixed(0) + '%;--s:' + (3 + Math.random() * 7).toFixed(0) + 'px;--d:' + (2.2 + Math.random() * 2.4).toFixed(2) + 's;--w:' + (-Math.random() * 4).toFixed(2) + 's;--dx:' + ((Math.random() - 0.5) * 60).toFixed(0) + 'px"></i>').join('') + '</div>';
   let h = card(P, playerName(), 'me'); if (mode === 'duo') h += card(H3, NAMES[3], 'me ally') + card(H, NAMES[1], 'foe') + card(H2, NAMES[2], 'foe2'); else if (mode !== 'solo') { h += card(H, NAMES[1], 'foe'); if (mode === 'trio' || mode === 'ffa') h += card(H2, NAMES[2], 'foe2'); if (mode === 'ffa') h += card(H3, NAMES[3], 'foe3'); }
   $('vsRow').innerHTML = h; $('vsRow').classList.toggle('trio', mode === 'trio'); $('vsRow').classList.toggle('quad', isShow()); $('vsRow').classList.toggle('duo', mode === 'duo'); $('vsRow').classList.toggle('rows', viewH > viewW && mode !== 'solo'); $('vsx').classList.toggle('vvr', viewH > viewW && mode !== 'solo' && !window.__noVote && !tutMatchDue() && !NM); /* (v284: the vote to come) */ /* (upright: one fighter per row, shot on the face) */
   // the rivals step out, dressed, with their game face on; the portraits are taken two frames on, once their bodies have settled
@@ -21579,7 +21589,7 @@ document.addEventListener('visibilitychange', () => { if (!FR.me) return; if (do
 // a new request while you're about the lobby: a note at the top, once
 function frSeen(b) {
   const fresh = FR.seen ? b.incoming.filter(r => !FR.seen.has(r.id)) : []; FR.seen = new Set(b.incoming.map(r => r.id));
-  if (fresh.length && !FR.open && state === 'menu') frToast(fresh.length === 1 ? frFace(fresh[0].look) + '<span><b>' + frEsc(fresh[0].name) + '</b> wants to be friends</span>' : '<span>' + fresh.length + ' new friend requests</span>');
+  if (fresh.length && !FR.open && state === 'menu') frToast(fresh.length === 1 ? frFace(fresh[0].look) + '<span><b>' + frEsc(hdOf(fresh[0].name)) + '</b> wants to be friends</span>' : '<span>' + fresh.length + ' new friend requests</span>');
 }
 function frBadge() {
   const n = FR.box ? FR.box.incoming.length : 0, btn = $('friendsBtn'); let d = btn.querySelector('.frdot');
@@ -21601,9 +21611,9 @@ const FR_X = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17
 const FR_MORE = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="18.5" cy="12" r="2.2" fill="currentColor"/></svg>';
 function frRow(f) {
   const open = FR.menu === f.id, conf = open && FR.confirm;
-  return '<li class="frrow' + (open ? ' open' : '') + '">' + frFace(f.look) + '<span class="frwho"><b>' + frEsc(f.name) + '</b><small><i class="frst ' + (f.online ? f.status : 'off') + '"></i>' + frWhen(f) + ' · Rank ' + (f.rank | 0) + '</small></span>'
-    + '<span class="frbtns">' + onDuelBtn(f) + '<button class="frb ghost ic" data-act="more" data-id="' + f.id + '" type="button" aria-expanded="' + open + '" aria-label="More for ' + frEsc(f.name) + '">' + FR_MORE + '</button></span>'
-    + (!open ? '' : '<div class="frmenu">' + (conf ? '<span>' + (conf === 'remove' ? 'Remove ' : 'Block ') + frEsc(f.name) + '?</span><button class="frb bad" data-act="' + conf + '" data-id="' + f.id + '" type="button">' + (conf === 'remove' ? 'Remove' : 'Block') + '</button><button class="frb ghost" data-act="nvm" type="button">Keep</button>'
+  return '<li class="frrow' + (open ? ' open' : '') + '">' + frFace(f.look) + '<span class="frwho"><b>' + frEsc(hdOf(f.name)) + '</b><small><i class="frst ' + (f.online ? f.status : 'off') + '"></i>' + frWhen(f) + ' · Rank ' + (f.rank | 0) + '</small></span>'
+    + '<span class="frbtns">' + onDuelBtn(f) + '<button class="frb ghost ic" data-act="more" data-id="' + f.id + '" type="button" aria-expanded="' + open + '" aria-label="More for ' + frEsc(hdOf(f.name)) + '">' + FR_MORE + '</button></span>'
+    + (!open ? '' : '<div class="frmenu">' + (conf ? '<span>' + (conf === 'remove' ? 'Remove ' : 'Block ') + frEsc(hdOf(f.name)) + '?</span><button class="frb bad" data-act="' + conf + '" data-id="' + f.id + '" type="button">' + (conf === 'remove' ? 'Remove' : 'Block') + '</button><button class="frb ghost" data-act="nvm" type="button">Keep</button>'
       : '<button class="frb ghost" data-act="askremove" data-id="' + f.id + '" type="button">Remove friend</button><button class="frb ghost" data-act="askblock" data-id="' + f.id + '" type="button">Block</button>') + '</div>') + '</li>';
 }
 const FR_FACES = '<span class="ffaces" aria-hidden="true">' + ['green', 'purple'].map(c => frFace({ c })).join('') + '</span>';
@@ -21623,10 +21633,10 @@ function frRender(fromPoll) {
     h += '<section class="frme"><small>Your friend code</small><div class="frcode"><b>' + frCode(FR.me.code) + '</b><button class="frb" data-act="copy" type="button">Copy</button>' + (NATIVE_SHARE ? '<button class="frb" data-act="share" type="button">Share</button>' : '') + '</div></section>';
     h += '<form class="fradd" id="frAdd" autocomplete="off" novalidate><label for="frIn">Add a friend</label><div><input id="frIn" type="text" inputmode="text" autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="9" placeholder="Their friend code" value="' + frEsc(FR.typed) + '"><button class="frb go" type="submit">Add</button></div><p class="frnote' + (FR.noteOk ? '' : ' bad') + '" aria-live="polite">' + frEsc(FR.note) + '</p></form>';
     if (NET_URL) h += onInvList(); // (v306: duel invites)
-    if (b.incoming.length) h += '<section><h4>Want to be friends <i>' + b.incoming.length + '</i></h4><ul class="frlist">' + b.incoming.map(r => '<li class="frrow">' + frFace(r.look) + '<span class="frwho"><b>' + frEsc(r.name) + '</b><small>Rank ' + (r.rank | 0) + '</small></span><span class="frbtns"><button class="frb go" data-act="acc" data-id="' + r.id + '" type="button">Accept</button><button class="frb ghost ic" data-act="dec" data-id="' + r.id + '" type="button" aria-label="Decline ' + frEsc(r.name) + '">' + FR_X + '</button></span></li>').join('') + '</ul></section>';
+    if (b.incoming.length) h += '<section><h4>Want to be friends <i>' + b.incoming.length + '</i></h4><ul class="frlist">' + b.incoming.map(r => '<li class="frrow">' + frFace(r.look) + '<span class="frwho"><b>' + frEsc(hdOf(r.name)) + '</b><small>Rank ' + (r.rank | 0) + '</small></span><span class="frbtns"><button class="frb go" data-act="acc" data-id="' + r.id + '" type="button">Accept</button><button class="frb ghost ic" data-act="dec" data-id="' + r.id + '" type="button" aria-label="Decline ' + frEsc(hdOf(r.name)) + '">' + FR_X + '</button></span></li>').join('') + '</ul></section>';
     h += '<section><h4>Friends <i>' + b.friends.length + '</i>' + (on ? '<em>· ' + on + ' online</em>' : '') + '</h4>' + (b.friends.length ? '<ul class="frlist">' + b.friends.map(frRow).join('') + '</ul>' : '<p class="frempty">No friends yet. Send them your code, or add theirs above.</p>') + '</section>';
-    if (b.outgoing.length) h += '<section><h4>Waiting on</h4><ul class="frlist">' + b.outgoing.map(r => '<li class="frrow sm">' + frFace(r.look) + '<span class="frwho"><b>' + frEsc(r.name) + '</b><small>Request sent</small></span><span class="frbtns"><button class="frb ghost" data-act="cancel" data-id="' + r.id + '" type="button">Cancel</button></span></li>').join('') + '</ul></section>';
-    if (b.blocked.length) h += '<details class="frblk"' + (FR.blkOpen ? ' open' : '') + '><summary>Blocked (' + b.blocked.length + ')</summary><ul class="frlist">' + b.blocked.map(r => '<li class="frrow sm"><span></span><span class="frwho"><b>' + frEsc(r.name) + '</b></span><span class="frbtns"><button class="frb ghost" data-act="unblock" data-id="' + r.id + '" type="button">Unblock</button></span></li>').join('') + '</ul></details>';
+    if (b.outgoing.length) h += '<section><h4>Waiting on</h4><ul class="frlist">' + b.outgoing.map(r => '<li class="frrow sm">' + frFace(r.look) + '<span class="frwho"><b>' + frEsc(hdOf(r.name)) + '</b><small>Request sent</small></span><span class="frbtns"><button class="frb ghost" data-act="cancel" data-id="' + r.id + '" type="button">Cancel</button></span></li>').join('') + '</ul></section>';
+    if (b.blocked.length) h += '<details class="frblk"' + (FR.blkOpen ? ' open' : '') + '><summary>Blocked (' + b.blocked.length + ')</summary><ul class="frlist">' + b.blocked.map(r => '<li class="frrow sm"><span></span><span class="frwho"><b>' + frEsc(hdOf(r.name)) + '</b></span><span class="frbtns"><button class="frb ghost" data-act="unblock" data-id="' + r.id + '" type="button">Unblock</button></span></li>').join('') + '</ul></details>';
     if (FR.err) h += '<p class="frwarn">' + frEsc(FR.err) + '</p>';
     h += '<p class="frfine">Friends see your name, your paint colour and your rank, and when you’re online.</p>';
   }
@@ -21691,7 +21701,7 @@ function frBoardHtml(sid) {
   const c = FR.board[sid]; if (!c || Date.now() - c.at > 30000) frBoardLoad(sid);
   if (!c) return '<p class="ttnone"><b>Loading your friends’ times…</b></p>';
   let h = c.err && !c.rows.length ? '<p class="ttnone"><b>Can’t load your friends’ times.</b>' + frEsc(c.err) + '</p>' : !c.rows.length ? '<p class="ttnone"><b>No runs from you or your friends here this week.</b>Play a Time trial on this canvas to set the first.</p>'
-    : '<ol class="ttlist">' + c.rows.slice(0, 20).map((r, i) => '<li class="ttrow' + (i < 3 ? ' r' + (i + 1) : '') + (r.me ? ' me' : '') + '"><b class="ttrk" aria-label="' + ttOrd(i + 1) + '">' + (i + 1) + '</b><span class="ttwho">' + frFace(r.look) + frEsc(r.name) + (r.me ? '<em>You</em>' : '') + '</span><b class="ttpc">' + (r.best | 0) + '<small>%</small></b></li>').join('') + '</ol>';
+    : '<ol class="ttlist">' + c.rows.slice(0, 20).map((r, i) => '<li class="ttrow' + (i < 3 ? ' r' + (i + 1) : '') + (r.me ? ' me' : '') + '"><b class="ttrk" aria-label="' + ttOrd(i + 1) + '">' + (i + 1) + '</b><span class="ttwho">' + frFace(r.look) + frEsc(hdOf(r.name)) + (r.me ? '<em>You</em>' : '') + '</span><b class="ttpc">' + (r.best | 0) + '<small>%</small></b></li>').join('') + '</ol>';
   const P3 = TT_PRIZE.friends; h += '<p class="tttease">When the week turns, the top three win ' + P3[0] + ', ' + P3[1] + ' and ' + P3[2] + ' dabs' + (c.rows.length < TT_FRIENDS_MIN ? ', once ' + TT_FRIENDS_MIN + ' or more of you are on the board.' : '.') + '</p>';
   if (!(FR.box && FR.box.friends.length)) h += '<p class="tttease">Add friends from the lobby’s Friends button to race them here.</p>';
   return h;
@@ -21741,7 +21751,7 @@ function netSendLayout() {
 // the rival as they dressed: their name, paint (set apart from yours if it's the same), eyes, wearables and rank
 function netRival(fo) {
   const L = fo.look && typeof fo.look === 'object' ? fo.look : {}, w = L.w && typeof L.w === 'object' ? L.w : {}, ok = (v, slot) => typeof v === 'string' && WEAR.some(x => x.id === v && x.slot === slot) ? v : null;
-  NAMES[1] = String(fo.name || 'Rival').slice(0, 16);
+  NAMES[1] = fo.name ? hdOf(String(fo.name).slice(0, 16)) : 'Rival'; // (v311: a person, by their handle)
   const c = typeof L.c === 'string' && rivalColOf(L.c); if (c) rivalCol[1] = c;
   LH.wearing = { head: ok(w.head, 'head'), back: ok(w.back, 'back'), mouth: ok(w.mouth, 'mouth'), eye: ok(w.eye, 'eye'), side: ok(w.side, 'side'), neck: ok(w.neck, 'neck'), lash: ok(w.lash, 'lash'), arms: ok(w.arms, 'arms'), iris: EYE_KEYS.includes(w.iris) ? w.iris : 'brown', eyes: EYE_STYLES[L.e] ? L.e : 'round' };
   NM.foeRank = clamp(L.r | 0, 1, 999) || 1; teamTint = true; teamHues();
@@ -22215,7 +22225,7 @@ async function onAnswer(id, yes) {
 }
 // (Friends) a Duel button on a friend who's in the lobby
 function onDuelBtn(f) {
-  if (!NET_URL || !f.online || f.status !== 'lobby') return ''; const w = ON.inv && ON.inv.to === f.id, n = frEsc(f.name);
+  if (!NET_URL || !f.online || f.status !== 'lobby') return ''; const w = ON.inv && ON.inv.to === f.id, n = frEsc(hdOf(f.name));
   return '<button class="frb go' + (w ? ' onwt' : '') + '" data-on="duel" data-id="' + frEsc(f.id) + '" type="button" aria-label="' + (w ? 'Waiting for ' : 'Duel ') + n + '">' + (w ? 'Waiting' : 'Duel') + '</button>';
 }
 function onInvRow(i) {
@@ -22251,7 +22261,7 @@ function onRender(soft) {
   else if (v === 'error') h = '<div class="frmsg">' + FR_FACES + '<b>Can’t connect</b><p>' + frEsc(ON.err || 'Can’t reach the game server right now.') + '</p><button class="frb go" data-on="retry" data-f type="button">Try again</button></div>';
   else if (v === 'old') h = '<div class="frmsg">' + FR_FACES + '<b>Update the game to play online</b><p>This version of Roll Model is too old for online play. Update it, then come back.</p></div>';
   else if (v === 'joining') h = '<div class="frmsg"><span class="frspin" aria-hidden="true"></span><p>Joining ' + frEsc(ON.join) + '…</p></div>';
-  else if (v === 'found') { const m = ON.match, o = m && (m.players || []).find(p => p.slot !== m.you); h = '<div class="frmsg onwait">' + onVs(me, o ? frFace(o.look) : ON_MYS) + '<b>Match found!</b><p>' + (o ? 'You vs ' + frEsc(o.name) : 'Get ready') + '</p></div>'; }
+  else if (v === 'found') { const m = ON.match, o = m && (m.players || []).find(p => p.slot !== m.you); h = '<div class="frmsg onwait">' + onVs(me, o ? frFace(o.look) : ON_MYS) + '<b>Match found!</b><p>' + (o ? 'You vs ' + frEsc(hdOf(o.name)) : 'Get ready') + '</p></div>'; }
   else if (v === 'queue') h = note + '<div class="frmsg onwait">' + onVs(me, ON_MYS) + '<b>' + (ON.lost ? 'Reconnecting…' : 'Finding a rival…') + '</b><p class="ontime" id="onTime" role="timer" aria-label="Time looking"></p><p>1v1 against someone at your level.</p><button class="frb ghost" data-on="unq" data-f type="button">Cancel</button></div>' + onInvList();
   else if (v === 'inv') { const i = ON.inv, n = frEsc(i.name), st = ON.lost ? 'Reconnecting…' : i.st === 'sending' ? 'Inviting ' + n + '…' : i.st === 'accepted' ? n + ' is on the way…' : 'Waiting for ' + n + '…';
     h = note + '<div class="frmsg onwait">' + onVs(me, frFace(i.look)) + '<b>' + st + '</b>' + (i.st === 'open' && !ON.lost ? '<p class="ontime" id="onTime" role="timer" aria-label="Time left to answer"></p><p>They’ve got 2 minutes to say yes.</p>' : '<span class="frspin" aria-hidden="true"></span>') + '<button class="frb ghost" data-on="uninv" data-f type="button">Cancel</button></div>' + onInvList(); }
@@ -22271,7 +22281,7 @@ function onRoomHtml(note) {
   const r = ON.room, my = ON.me && ON.me.id, full = r.players.length >= r.need, me = r.players.find(p => p.id === my), o = r.players.find(p => p.id !== my), c = frEsc(r.code);
   let h = note + '<div class="onroomw"><section class="onroom"><small id="onCodeL">Room code</small><div class="frcode oncode"><b aria-hidden="true">' + c + '</b><span class="onsr">' + c.split('').join(' ') + '</span><button class="frb" data-on="copy" data-f type="button" aria-describedby="onCodeL">Copy</button>'
     + (NATIVE_SHARE ? '<button class="frb" data-on="share" type="button">Share</button>' : '') + '</div><p class="frnote" aria-live="polite">' + frEsc(ON.cnote) + '</p></section>';
-  h += '<section class="onwho"><h4>In the room <i>' + r.players.length + '/' + r.need + '</i></h4><ul class="frlist">' + r.players.map(p => '<li class="frrow sm">' + frFace(p.look) + '<span class="frwho"><b>' + frEsc(p.name) + (p.id === my ? '<em class="onyou">You</em>' : '') + '</b><small' + (p.ready ? ' class="onok">Ready' : '>Not ready yet') + '</small></span></li>').join('')
+  h += '<section class="onwho"><h4>In the room <i>' + r.players.length + '/' + r.need + '</i></h4><ul class="frlist">' + r.players.map(p => '<li class="frrow sm">' + frFace(p.look) + '<span class="frwho"><b>' + frEsc(hdOf(p.name)) + (p.id === my ? '<em class="onyou">You</em>' : '') + '</b><small' + (p.ready ? ' class="onok">Ready' : '>Not ready yet') + '</small></span></li>').join('')
     + (full ? '' : '<li class="frrow sm onslot">' + ON_MYS + '<span class="frwho"><b>Your friend</b><small>Not here yet</small></span></li>') + '</ul></section>';
   const st = ON.lost ? 'Reconnecting…' : !full ? 'Waiting for your friend to join…' : me && !me.ready ? '' : 'Waiting for ' + (o ? o.name : 'your friend') + ' to be ready…';
   return h + (st ? '<p class="onstat"><span class="frspin" aria-hidden="true"></span>' + frEsc(st) + '</p>' : '') + '<div class="onbtns">' + (full && me && !me.ready ? '<button class="frb go" data-on="ready" type="button">' + (ON.again ? 'Play again' : 'Ready') + '</button>' : '') + '<button class="frb ghost" data-on="leave" type="button">Leave</button></div></div>';
@@ -22364,7 +22374,7 @@ function acSync(r) {
   if (!r.needs_name && r.name) { store.sbs.name = r.name; if (store.name !== r.name) { store.name = r.name; paintName(); } }
   save();
 }
-function acPaintAll() { if (!$('setModal').hidden) acSetPaint(); if (menuPage === 'events') acMatchPaint(); if (FR.open) { FR.sig = ''; frRender(); } }
+function acPaintAll() { try { paintName(); paintPBar(); } catch (e) {} /* (v311: handle or plain name) */ if (!$('setModal').hidden) acSetPaint(); if (menuPage === 'events') acMatchPaint(); if (FR.open) { FR.sig = ''; frRender(); } }
 
 // ---- the line under a username field: what's wrong at once; then (online, after a pause) whether it's free
 const UN_ONLINE = id => id === 'acUser' || ((id === 'nameInput' || id === 'frUnIn') && acctReady()); // (v308: a name is only checked against everyone's, and held, with an account)
@@ -22523,7 +22533,7 @@ async function acCreate() {
     if (!r || !r.ok) throw acStop(r && r.why, 'save');
     store.sbs = Object.assign({}, store.sbs, { perm: 1, acct: 1, out: 0, lost: 0, name: me.name }); store.name = me.name; save(); paintName();
     if (FR.me) { Object.assign(FR.me, { name: me.name, needs_name: false, account: true, anon: false }); FR.at = 0; } else { FR.retryAt = 0; frStart(); } // (the friends, at once)
-    acDone('<span>Welcome, <b>' + frEsc(me.name) + '</b>! Your account is ready.</span>');
+    acDone('<span>Welcome, <b>' + frEsc(hdOf(me.name)) + '</b>! Your account is ready.</span>');
   } catch (e) { acFail(e); }
 }
 // logging in: the username's sign-in email, then its password. The anonymous player this device had goes (deleted with its own token,
@@ -22543,7 +22553,7 @@ async function acLogin() {
     if (!me || me.ok === false) { FR.need = (me && me.why) || 'bad'; throw acStop('nouser'); }
     FR.me = me; acSync(me); FR.sync = frSig(); FR.at = 0; frPoll(); AC.f.inPass = '';
     if (!me.account) { AC.busy = false; AC.tab = 'new'; AC.f.user = me.name; AC.err = 'Almost there: add your details to finish your account.'; acRender(); return; } // (made but never finished)
-    acDone('<span>Welcome back, <b>' + frEsc(me.name) + '</b>!</span>');
+    acDone('<span>Welcome back, <b>' + frEsc(hdOf(me.name)) + '</b>!</span>');
   } catch (e) { acFail(e); }
 }
 async function acDropAnon(uid) {
@@ -22611,7 +22621,7 @@ $('acX').addEventListener('click', () => { AU.init(); AU.ui(); acClose(); });
 $('acModal').addEventListener('click', e => { if (e.target === $('acModal') && !AC.busy) acClose(); });
 $('acModal').addEventListener('keydown', e => e.stopPropagation()); // (keys are for the form, not the game behind it)
 document.addEventListener('keydown', e => { if (AC.open && e.key === 'Escape' && $('docModal').hidden) { e.preventDefault(); e.stopPropagation(); if (!AC.busy) acClose(); } }, true);
-window.acctReady = acctReady; window.acctOpen = acctOpen;
+window.acctReady = acctReady; window.acctOpen = acctOpen; setTimeout(() => { try { paintName(); paintPBar(); } catch (e) {} }, 0); // (v311: your handle from the first frame)
 
 // ---- Settings: the account (who's signed in, Log out, Delete account with a second tap to be sure), or Make an account / Log in
 function acSetPaint() {
@@ -22620,8 +22630,8 @@ function acSetPaint() {
   row.classList.toggle('soon', !on); $('acSlab').innerHTML = 'Account' + (on ? '' : ' <i class="soontag">Coming soon</i>');
   let t, h;
   if (!on) { t = 'Accounts come with online play.'; h = b('new', 'Make an account') + b('in', 'Log in'); }
-  else if (AC.del && acctReady()) { t = 'Delete <b>' + frEsc(nm) + '</b> for good? Your username, friends and account details all go, and it can’t be undone.'; h = b('delyes', 'Delete for good', 'acdel') + b('delno', 'Keep it'); }
-  else if (acctReady()) { t = (AC.note ? frEsc(AC.note) + ' ' : '') + 'Signed in as <b>' + frEsc(nm) + '</b>'; h = b('out', 'Log out') + b('del', 'Delete account', 'acdel'); }
+  else if (AC.del && acctReady()) { t = 'Delete <b>' + frEsc(hdOf(nm)) + '</b> for good? Your username, friends and account details all go, and it can’t be undone.'; h = b('delyes', 'Delete for good', 'acdel') + b('delno', 'Keep it'); }
+  else if (acctReady()) { t = (AC.note ? frEsc(AC.note) + ' ' : '') + 'Signed in as <b>' + frEsc(hdOf(nm)) + '</b>'; h = b('out', 'Log out') + b('del', 'Delete account', 'acdel'); }
   else { t = AC.note ? frEsc(AC.note) : NET_WALLED ? 'Accounts and online play work in the Roll Model app, not in this preview.' : acOut() ? 'You’re signed out. Log in, or make a new account.' : 'Make an account to add friends and play online.'; h = b('new', 'Make an account') + b('in', 'Log in'); }
   $('acNote').innerHTML = t; $('acBtns').innerHTML = h; setFitSoon();
 }
@@ -22740,7 +22750,7 @@ function startTally() {
   const KO0 = 2.7, KOD = 0.62, KOEND = KO0 + (koq.length ? 0.4 + koq.length * KOD + 0.9 : 0.8); // (v309: a beat for the caption, and each one slow enough to read)
   const DAB0 = KOEND + 0.6, DAB1 = DAB0 + 0.7, DAB2 = DAB1 + 1.5; /* (the dabs: the pill, then the coins fly up to the bar and it counts) */
   tal = { t0: performance.now(), t: 0, ppl, scale, koq, nk: 0, T0: 0.55, T1: 2.3, KO0, KOD, KOEND, DAB0, DAB1, DAB2, END: DAB2 + 0.8, ticks: 0, phase: 0, id: runId, lastTick: 0 };
-  for (const e of ppl) { const u = e.side.toUpperCase(), nm = $('tyName' + u), nu = $('tyNum' + u); nm.hidden = nu.hidden = false; nm.textContent = nameOf(e.D); nm.style.setProperty('--c', e.col); nu.style.setProperty('--c', e.col); nu.className = 'tynum ' + e.side; nu.innerHTML = '<b>0%</b>'; e.nu = nu; }
+  for (const e of ppl) { const u = e.side.toUpperCase(), nm = $('tyName' + u), nu = $('tyNum' + u); nm.hidden = nu.hidden = false; nmSet(nm, nameOf(e.D)); nm.style.setProperty('--c', e.col); nu.style.setProperty('--c', e.col); nu.className = 'tynum ' + e.side; nu.innerHTML = '<b>0%</b>'; e.nu = nu; }
   if (!trio) $('tyNameM').hidden = $('tyNumM').hidden = true;
   $('tyWord').textContent = ''; $('tySub').textContent = TH.label + ' · ' + (MODES.find(m => m[0] === mode) || MODES[0])[1]; talEl.classList.remove('win'); $('tySplash').className = 'tysplash'; $('tyDabs').className = 'tydabs'; $('tyGain').className = 'tygain'; talEl.querySelectorAll('.tyfly,.tykofly').forEach(q => q.remove()); $('tyWord').className = 'tyword';
   if (!tyLiq) tyLiq = makeLiquid($('tyBar')); tyLiq.segs = []; tyLiq.drops.length = 0; tyLiq.set(ppl.map(e => tySeg(e, 0))); tyLiq.clear();
@@ -22845,7 +22855,7 @@ function showEnd(img) {
     jb = '<i style="--c:var(--ink);left:0;width:' + Math.min(100, you).toFixed(2) + '%"></i>' + (best && !info.newBest ? '<u style="left:' + Math.min(100, best) + '%"></u>' : '');
     jLiqFinal = [{ x0: 0, x1: Math.min(1, you / 100), col: TEAMS[0].css, anchor: 'left' }];
     jn = '<b data-to="' + Math.round(you) + '" data-a="left" style="--chi:var(--ink-hi)"><span class="jv">0%</span></b>' + (best ? '<b data-a="right" style="--chi:var(--gold)"><small>' + (info.newBest ? 'Old best' : 'Week best') + '</small><span class="jv">' + best + '%</span></b>' : '');
-    jl = '<span class="jl" data-a="left">' + escAttr(playerName()) + '</span>';
+    jl = '<span class="jl" data-a="left">' + nmHtml(playerName()) + '</span>';
   } else {
     const order = trio ? [P, H2, H] : [P, H], tot = order.reduce((s, D) => s + covOf(D), 0); let x = 0; jLiqFinal = [];
     order.forEach((D, i) => {
@@ -22853,7 +22863,7 @@ function showEnd(img) {
       const sh = tot > 0 ? covOf(D) / tot * 100 : 100 / order.length, [c, hi] = colVars(D), o = i === 0 ? 'left' : i === order.length - 1 ? 'right' : 'center';
       jb += '<i style="--c:' + c + ';--o:' + o + ';left:' + x.toFixed(3) + '%;width:' + sh.toFixed(3) + '%"></i>';
       jn += '<b data-to="' + Math.round(covOf(D)) + '" data-a="' + o + '" data-x="' + (x + sh / 2).toFixed(3) + '" style="--chi:' + hi + '"><span class="jv">0%</span><small class="jko">' + KO_SVG + kosOf(D) + '</small></b>';
-      jl += '<span class="jl' + (D === P ? ' me' : '') + '" data-a="' + o + '" data-x="' + (x + sh / 2).toFixed(3) + '">' + (info.winner === D ? CROWN_SVG : '') + escAttr(D === P ? playerName() : nameOf(D)) + '</span>';
+      jl += '<span class="jl' + (D === P ? ' me' : '') + '" data-a="' + o + '" data-x="' + (x + sh / 2).toFixed(3) + '">' + (info.winner === D ? CROWN_SVG : '') + nmHtml(D === P ? playerName() : nameOf(D)) + '</span>';
       x += sh;
     });
   }
@@ -22872,7 +22882,7 @@ function showEnd(img) {
     const say = ordinal(e.place) + ', ' + nm + (me ? ' (you)' : '') + ', ' + e.pct + (solo ? '% painted' : '% score') + (solo ? '' : ', ' + e.kos + (e.kos === 1 ? ' elimination' : ' eliminations') + (top ? ', most eliminations' : ''));
     says.push(say); h += '<div class="brow' + (me ? ' you' : '') + '" role="listitem" aria-label="' + escAttr(say) + '" style="--c:' + c + ';--chi:' + hi + ';--d:' + (0.22 + i * 0.09).toFixed(2) + 's">'
       + '<b class="brank" aria-hidden="true">' + e.place + '</b>' + faceIcon(D, !solo && info.winner === D)
-      + '<span class="bname" aria-hidden="true"><span class="bn"><b>' + escAttr(nm) + '</b>' + (me && !solo ? '<i>You</i>' : '') + '</span>' + (me && top ? '<em class="medal">' + MEDAL_SVG + 'Most eliminations</em>' : '') + '</span>'
+      + '<span class="bname" aria-hidden="true"><span class="bn"><b>' + nmHtml(nm) + '</b>' + (me && !solo ? '<i>You</i>' : '') + '</span>' + (me && top ? '<em class="medal">' + MEDAL_SVG + 'Most eliminations</em>' : '') + '</span>'
       + (solo ? '' : '<span class="bko' + (top ? ' most' : '') + '" aria-hidden="true">' + KO_SVG + '<b>' + e.kos + '</b></span>')
       + '<b class="bpct" aria-hidden="true">' + e.pct + '%</b></div>';
   });
@@ -23110,7 +23120,7 @@ function paintPBar() {
   const r = repOf(store.xp || 0), cs = getComputedStyle(document.documentElement), n = playerName();
   PB.ink = cs.getPropertyValue('--ink').trim() || '#E3122F'; PB.hi = cs.getPropertyValue('--ink-hi').trim() || PB.ink; PB.lo = cs.getPropertyValue('--ink-lo').trim() || PB.ink;
   PB.lv = r.lv; PB.frac = r.x / r.need; if (!PB.dispLv || PB.dispLv > r.lv) { PB.dispLv = r.lv; PB.shown = PB.frac; PB.v = 0; }
-  $('pbName').textContent = n; $('pbXp').innerHTML = r.x + '<small>/' + r.need + '</small>'; pbNums();
+  nmSet($('pbName'), n); $('pbXp').innerHTML = r.x + '<small>/' + r.need + '</small>'; pbNums();
   pbar.setAttribute('aria-label', n + '. Rank ' + r.lv + ', ' + r.x + ' of ' + r.need + ' XP to rank ' + (r.lv + 1) + '. Your stats');
 }
 function pbNums() { $('pbLvl').textContent = PB.dispLv; $('pbNext').textContent = PB.dispLv + 1; }
@@ -23192,7 +23202,7 @@ function paintStats() {
   for (const k in store.wins || {}) wins += store.wins[k] || 0;
   for (const k in store.played || {}) if (k !== 'solo') vs += store.played[k] || 0;
   for (const k in store.bestCov || {}) best = Math.max(best, store.bestCov[k] || 0);
-  $('stName').textContent = playerName(); $('stLvl').textContent = r.lv; $('stTitle').textContent = r.name; $('stXp').textContent = r.x + ' / ' + r.need + ' XP to rank ' + (r.lv + 1);
+  nmSet($('stName'), playerName()); $('stLvl').textContent = r.lv; $('stTitle').textContent = r.name; $('stXp').textContent = r.x + ' / ' + r.need + ' XP to rank ' + (r.lv + 1);
   $('stFill').style.width = (100 * r.x / r.need).toFixed(1) + '%';
   $('stWins').textContent = wins; $('stPlayed').textContent = store.runs || 0; $('stRate').textContent = (vs ? Math.round(100 * wins / vs) : 0) + '%'; $('stBest').textContent = best + '%';
 }
@@ -23283,7 +23293,7 @@ function sdSpecStart() { spec = { D: null, t: 0, ff: false }; sdSpecPick(P.elimB
 function sdSkipOn() { if (!spec || spec.ff || state !== 'play' || sdEndT > 0) return; spec.ff = true; $('sdSpec').classList.add('ff'); $('sdSkip').disabled = true; $('sdSkipL').textContent = SD_FF + '\u00d7'; $('sdSpecW').textContent = 'Fast-forward'; }
 function sdSpecPick(pref) {
   if (!spec) return; const c = ACTIVE.filter(D => D !== P && sdAlive(D)); let S = c.find(D => ally(D, P)) || (pref && c.includes(pref) ? pref : null) || c[0] || null;
-  spec.D = S; if (S) { camYaw = S.yaw; camYawV = 0; camSnap = true; $('sdSpecN').textContent = nameOf(S); $('sdSpecW').textContent = spec.ff ? 'Fast-forward' : ally(S, P) ? 'Your teammate' : 'Watching'; }
+  spec.D = S; if (S) { camYaw = S.yaw; camYawV = 0; camSnap = true; nmSet($('sdSpecN'), nameOf(S)); $('sdSpecW').textContent = spec.ff ? 'Fast-forward' : ally(S, P) ? 'Your teammate' : 'Watching'; }
 }
 function sdSpecEnd() { spec = null; hud.classList.remove('spec'); $('sdSpec').hidden = true; }
 // the clock ran out, or only one side is left: the standings, the end
@@ -23325,7 +23335,7 @@ function sdHud(force) {
   if (sig === el._sig && !force) return;
   if (!el._built || el._mode !== mode) { el._built = true; el._mode = mode; el._h = new Map();
     const half = Math.ceil(order.length / 2); let h = '<span class="sdside l">'; order.forEach((D, i) => { if (i === half) h += '</span><i class="sdmid" aria-hidden="true"></i><span class="sdside r">'; // (v256: the time sits over the gap)
-      h += '<span class="sdc' + (D === P ? ' me' : ally(D, P) ? ' ally' : '') + '" data-t="' + D.team + '" style="--c:' + TEAMS[D.team].css + '">' + faceIcon(D, false) + '<span class="sdh">' + HEART_SVG.repeat(SD_HEARTS) + '</span><span class="sdn">' + escAttr(sdName(D)) + '</span></span>'; });
+      h += '<span class="sdc' + (D === P ? ' me' : ally(D, P) ? ' ally' : '') + '" data-t="' + D.team + '" style="--c:' + TEAMS[D.team].css + '">' + faceIcon(D, false) + '<span class="sdh">' + HEART_SVG.repeat(SD_HEARTS) + '</span><span class="sdn">' + nmHtml(sdName(D)) + '</span></span>'; });
     el.innerHTML = h + '</span>'; }
   for (const D of order) {
     const c = el.querySelector('.sdc[data-t="' + D.team + '"]'); if (!c) continue;
@@ -23355,7 +23365,7 @@ function sdBoard(info) {
     says.push(say);
     h += '<div class="brow' + (me ? ' you' : '') + '" role="listitem" aria-label="' + escAttr(say) + '" style="--c:' + c + ';--chi:' + hi + ';--d:' + (0.22 + i * 0.09).toFixed(2) + 's">'
       + '<b class="brank" aria-hidden="true">' + e.place + '</b>' + faceIcon(D, win && !info.draw)
-      + '<span class="bname" aria-hidden="true"><span class="bn"><b>' + escAttr(nm) + '</b>' + (me ? '<i>You</i>' : ally(D, P) ? '<i>Team</i>' : '') + '</span>'
+      + '<span class="bname" aria-hidden="true"><span class="bn"><b>' + nmHtml(nm) + '</b>' + (me ? '<i>You</i>' : ally(D, P) ? '<i>Team</i>' : '') + '</span>'
       + '<span class="bhp">' + (e.hp ? HEART_SVG.repeat(e.hp) : '<em>Out</em>') + (top ? '<em class="medal">' + MEDAL_SVG + 'Most KOs</em>' : '') + '</span></span>'
       + '<span class="bko' + (top ? ' most' : '') + '" aria-hidden="true">' + KO_SVG + '<b>' + e.kos + '</b></span>'
       + '<span class="bko bself" aria-hidden="true">' + SELF_SVG + '<b>' + e.self + '</b></span></div>';
