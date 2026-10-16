@@ -3968,194 +3968,194 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 /* (v313) the Strokes page as a gear screen: a lime wall, an ink band with a tab card per category, a dark panel of hang-tag cards,
    the stroke you're looking at named on a taped banner, and for a transform a live demo in a window drawn by the game itself.
    Upright it's a column: the stroke (and its demo) up top, the tabs on the band, the panel (v325: Info beside the stroke's button) */
-#mStrokes.sgp{--lime:#CBE45A;--sel:#FFE23C;--mag:#E8308A;--ink0:#111014;--panel:rgba(28,28,33,.86);--kc:#FFA526;
+:is(#mStrokes,#mLocker).sgp{--lime:#CBE45A;--sel:#FFE23C;--mag:#E8308A;--ink0:#111014;--panel:rgba(28,28,33,.86);--kc:#FFA526;
   --gx:max(14px,env(safe-area-inset-left));--gr:max(14px,env(safe-area-inset-right));--gt:max(12px,env(safe-area-inset-top));--gb:env(safe-area-inset-bottom,0px);
   --bk:56px;--tabw:104px;--panh:min(31vh,262px);
   display:flex;flex-direction:column;box-sizing:border-box;padding:var(--gt) var(--gr) calc(var(--gb) + 12px) var(--gx);background:none;color:var(--black);overflow:hidden;-webkit-user-select:none;user-select:none}
-#mStrokes.sgp[hidden]{display:none}
-#mStrokes.sgp::before{display:none}
-#mStrokes.sgp[data-cat="skill"]{--kc:#1FC4B4}
-#mStrokes.sgp[data-cat="item"]{--kc:#FF5A5F}
-#mStrokes.sgp .sgvh{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
-#mStrokes.sgp .sgbg{position:absolute;inset:0;z-index:0;background:var(--lime) url(art/sg_bg.webp) 0 0/560px 560px repeat}
-#mStrokes.sgp .sgink{display:none;position:absolute;left:-30px;right:-30px;z-index:2;pointer-events:none;background:url(art/sg_ink.webp) 0 50%/auto 100% repeat-x}
+:is(#mStrokes,#mLocker).sgp[hidden]{display:none}
+:is(#mStrokes,#mLocker).sgp::before{display:none}
+:is(#mStrokes,#mLocker).sgp[data-cat="skill"]{--kc:#1FC4B4}
+:is(#mStrokes,#mLocker).sgp[data-cat="item"]{--kc:#FF5A5F}
+:is(#mStrokes,#mLocker).sgp .sgvh{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+:is(#mStrokes,#mLocker).sgp .sgbg{position:absolute;inset:0;z-index:0;background:var(--lime) url(art/sg_bg.webp) 0 0/560px 560px repeat}
+:is(#mStrokes,#mLocker).sgp .sgink{display:none;position:absolute;left:-30px;right:-30px;z-index:2;pointer-events:none;background:url(art/sg_ink.webp) 0 50%/auto 100% repeat-x}
 /* the stroke you're looking at: its stage (the demo's window, or its picture), the banner and the button over it */
-#mStrokes.sgp .sgshow{position:relative;z-index:4;flex:1 1 auto;min-height:170px;pointer-events:none}
-#mStrokes.sgp .sgshow>*{pointer-events:auto}
-#mStrokes.sgp .sgstage{position:absolute;inset:0;touch-action:none}
-#mStrokes.sgp .sgban{position:absolute;left:50%;top:6px;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:3px;max-width:calc(100% - 2 * (var(--bk) + 16px));box-sizing:border-box;padding:7px 28px 8px 18px;background:var(--ink0);color:#fff;transform:translateX(-50%) skewX(-11deg);box-shadow:5px 5px 0 rgba(23,19,32,.22)}
-#mStrokes.sgp .sgban>small,#mStrokes.sgp .sgban>b{transform:skewX(11deg)}
-#mStrokes.sgp .sgban small{font:800 10px/1 var(--font-ui);letter-spacing:.16em;text-transform:uppercase;color:var(--kc);white-space:nowrap}
-#mStrokes.sgp .sgban b{max-width:100%;overflow:hidden;font:400 24px/1.04 var(--font-display);letter-spacing:.01em;white-space:nowrap;text-overflow:ellipsis}
-#mStrokes.sgp .sgban::before{content:"";position:absolute;left:-18px;top:-10px;width:58px;height:20px;background:url(art/m_tape3.webp) center/100% 100% no-repeat;transform:skewX(11deg) rotate(-24deg);filter:drop-shadow(0 1px 0 rgba(23,19,32,.18))}
-#mStrokes.sgp .sgban .sgflag{position:absolute;right:-19px;top:50%;width:22px;height:30px;margin-top:-15px;transform:skewX(11deg)}
-#mStrokes.sgp .sgban .sgflag::before{content:"";position:absolute;left:0;top:0;width:3px;height:30px;border-radius:2px;background:var(--ink0)}
-#mStrokes.sgp .sgban .sgflag::after{content:"";position:absolute;left:3px;top:1px;width:18px;height:14px;background:var(--kc);clip-path:polygon(0 0,100% 50%,0 100%);animation:sgflag 2.4s ease-in-out infinite;transform-origin:0 50%}
+:is(#mStrokes,#mLocker).sgp .sgshow{position:relative;z-index:4;flex:1 1 auto;min-height:170px;pointer-events:none}
+:is(#mStrokes,#mLocker).sgp .sgshow>*{pointer-events:auto}
+:is(#mStrokes,#mLocker).sgp .sgstage{position:absolute;inset:0;touch-action:none}
+:is(#mStrokes,#mLocker).sgp .sgban{position:absolute;left:50%;top:6px;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:3px;max-width:calc(100% - 2 * (var(--bk) + 16px));box-sizing:border-box;padding:7px 28px 8px 18px;background:var(--ink0);color:#fff;transform:translateX(-50%) skewX(-11deg);box-shadow:5px 5px 0 rgba(23,19,32,.22)}
+:is(#mStrokes,#mLocker).sgp .sgban>small,:is(#mStrokes,#mLocker).sgp .sgban>b{transform:skewX(11deg)}
+:is(#mStrokes,#mLocker).sgp .sgban small{font:800 10px/1 var(--font-ui);letter-spacing:.16em;text-transform:uppercase;color:var(--kc);white-space:nowrap}
+:is(#mStrokes,#mLocker).sgp .sgban b{max-width:100%;overflow:hidden;font:400 24px/1.04 var(--font-display);letter-spacing:.01em;white-space:nowrap;text-overflow:ellipsis}
+:is(#mStrokes,#mLocker).sgp .sgban::before{content:"";position:absolute;left:-18px;top:-10px;width:58px;height:20px;background:url(art/m_tape3.webp) center/100% 100% no-repeat;transform:skewX(11deg) rotate(-24deg);filter:drop-shadow(0 1px 0 rgba(23,19,32,.18))}
+:is(#mStrokes,#mLocker).sgp .sgban .sgflag{position:absolute;right:-19px;top:50%;width:22px;height:30px;margin-top:-15px;transform:skewX(11deg)}
+:is(#mStrokes,#mLocker).sgp .sgban .sgflag::before{content:"";position:absolute;left:0;top:0;width:3px;height:30px;border-radius:2px;background:var(--ink0)}
+:is(#mStrokes,#mLocker).sgp .sgban .sgflag::after{content:"";position:absolute;left:3px;top:1px;width:18px;height:14px;background:var(--kc);clip-path:polygon(0 0,100% 50%,0 100%);animation:sgflag 2.4s ease-in-out infinite;transform-origin:0 50%}
 @keyframes sgflag{50%{transform:scaleX(.82) skewY(4deg)}}
-#mStrokes.sgp .sgart{position:absolute;left:0;right:0;top:64px;bottom:76px;display:flex;align-items:center;justify-content:center;pointer-events:none}
-#mStrokes.sgp.sgnoted .sgart{bottom:94px}
-#mStrokes.sgp.sgnoted .sgrot{bottom:100px}
-#mStrokes.sgp .sgart::after{content:"";position:absolute;left:50%;bottom:0;width:min(46%,200px);height:min(9%,22px);margin-left:calc(min(46%,200px) / -2);border-radius:50%;background:radial-gradient(closest-side,rgba(23,19,32,.24),rgba(23,19,32,0));z-index:0}
-#mStrokes.sgp .sgart .stimg{position:relative;z-index:1;width:auto;height:min(92%,230px);max-width:70%;object-fit:contain;filter:drop-shadow(2px 4px 0 rgba(23,19,32,.18));animation:sgbob 3.2s ease-in-out infinite}
-#mStrokes.sgp .sgart svg{position:relative;z-index:1;width:min(60%,160px);height:auto}
+:is(#mStrokes,#mLocker).sgp .sgart{position:absolute;left:0;right:0;top:64px;bottom:76px;display:flex;align-items:center;justify-content:center;pointer-events:none}
+:is(#mStrokes,#mLocker).sgp.sgnoted .sgart{bottom:94px}
+:is(#mStrokes,#mLocker).sgp.sgnoted .sgrot{bottom:100px}
+:is(#mStrokes,#mLocker).sgp .sgart::after{content:"";position:absolute;left:50%;bottom:0;width:min(46%,200px);height:min(9%,22px);margin-left:calc(min(46%,200px) / -2);border-radius:50%;background:radial-gradient(closest-side,rgba(23,19,32,.24),rgba(23,19,32,0));z-index:0}
+:is(#mStrokes,#mLocker).sgp .sgart .stimg{position:relative;z-index:1;width:auto;height:min(92%,230px);max-width:70%;object-fit:contain;filter:drop-shadow(2px 4px 0 rgba(23,19,32,.18));animation:sgbob 3.2s ease-in-out infinite}
+:is(#mStrokes,#mLocker).sgp .sgart svg{position:relative;z-index:1;width:min(60%,160px);height:auto}
 @keyframes sgbob{50%{transform:translateY(-5px) rotate(-1.5deg)}}
-#mStrokes.sgp .sgart.sgpopin .stimg{animation:sgpop .42s cubic-bezier(.2,1.6,.4,1) both,sgbob 3.2s .42s ease-in-out infinite}
+:is(#mStrokes,#mLocker).sgp .sgart.sgpopin .stimg{animation:sgpop .42s cubic-bezier(.2,1.6,.4,1) both,sgbob 3.2s .42s ease-in-out infinite}
 @keyframes sgpop{from{transform:scale(.6) rotate(-6deg);opacity:0}}
-#mStrokes.sgp.sgdemo .sgart{display:none}
-#mStrokes.sgp .sgrot{appearance:none;position:absolute;right:0;bottom:84px;z-index:3;display:grid;place-items:center;width:42px;height:42px;margin:0;padding:0;border:0;border-radius:50%;background:radial-gradient(circle at 50% 40%,#3A3A42,#1A1A1F);color:#E9E9EE;box-shadow:0 0 0 2px var(--ink0),inset 0 0 0 3px rgba(255,255,255,.1),0 3px 0 rgba(0,0,0,.35);cursor:pointer}
-#mStrokes.sgp .sgrot[hidden]{display:none}
-#mStrokes.sgp .sgrot svg{width:26px;height:26px}
-#mStrokes.sgp .sgfoot{position:absolute;left:0;right:0;bottom:4px;z-index:2;display:flex;flex-direction:column;align-items:center;gap:6px}
-#mStrokes.sgp .sgline{margin:0;max-width:min(100%,420px);font:800 14px/1.25 var(--font-ui);color:var(--black);text-align:center;text-wrap:balance;text-shadow:0 1px 0 rgba(255,255,255,.35)}
-#mStrokes.sgp .sgact{display:flex;align-items:center;justify-content:center;gap:10px}
-#mStrokes.sgp .sgdo{appearance:none;position:relative;min-width:120px;height:38px;margin:0;padding:0 20px;border:0;border-radius:10px;background:var(--sel);color:var(--ink0);font:400 16px/1 var(--font-display);letter-spacing:.01em;transform:skewX(-12deg);box-shadow:0 0 0 2.5px var(--ink0),0 4px 0 var(--ink0);cursor:pointer;-webkit-tap-highlight-color:transparent}
-#mStrokes.sgp .sgdo>span{display:inline-flex;align-items:center;gap:6px;transform:skewX(12deg)}
-#mStrokes.sgp .sgdo small{padding:3px 6px 2px;border-radius:6px;background:rgba(17,16,20,.16);font:800 11px/1 var(--font-ui)}
-#mStrokes.sgp .sgdo svg{width:15px;height:15px}
-#mStrokes.sgp .sgdo.craft{background:#5BE07E}
-#mStrokes.sgp .sgdo:active:not(:disabled){transform:skewX(-12deg) translateY(3px);box-shadow:0 0 0 2.5px var(--ink0),0 1px 0 var(--ink0)}
-#mStrokes.sgp .sgdo:disabled{background:#E9E4D6;color:#6E6680;cursor:default}
-#mStrokes.sgp .sgdo.on:disabled{background:var(--ink0);color:var(--sel)}
-#mStrokes.sgp .sgdo[hidden],#mStrokes.sgp .sgskip[hidden],#mStrokes.sgp .sgtimer[hidden]{display:none}
-#mStrokes.sgp .sgib{appearance:none;position:relative;flex:none;min-width:72px;height:38px;margin:0;padding:0 15px;border:0;border-radius:10px;background:linear-gradient(#4A4A52,#34343B);color:#fff;font:400 16px/1 var(--font-display);letter-spacing:.01em;transform:skewX(-12deg);box-shadow:0 0 0 2.5px var(--ink0),0 4px 0 var(--ink0);cursor:pointer;-webkit-tap-highlight-color:transparent}
-#mStrokes.sgp .sgib>span{display:inline-block;transform:skewX(12deg)}
-#mStrokes.sgp .sgib:active{transform:skewX(-12deg) translateY(3px);box-shadow:0 0 0 2.5px var(--ink0),0 1px 0 var(--ink0)}
-@media (max-width:379px){#mStrokes.sgp .sgtimer .sgtbar{display:none}} /* (a narrow phone: the bench's row fits with Info; the card keeps its bar) */
-#mStrokes.sgp .sgtimer{display:flex;align-items:center;gap:7px;height:34px;padding:0 12px 0 10px;border-radius:10px;background:var(--ink0);color:#fff;font:400 16px/1 var(--font-display);font-variant-numeric:tabular-nums;box-shadow:0 3px 0 rgba(0,0,0,.3)}
-#mStrokes.sgp .sgtimer i{display:grid;color:var(--sel)}#mStrokes.sgp .sgtimer svg{width:15px;height:15px}
-#mStrokes.sgp .sgtbar{width:54px;height:6px;border-radius:999px;background:rgba(255,255,255,.18);overflow:hidden}
-#mStrokes.sgp .sgtbar i{display:block;height:100%;width:var(--p,0%);background:var(--sel);transition:width .5s linear}
-#mStrokes.sgp .sgskip{appearance:none;height:36px;margin:0;padding:0 18px 2px;border:0;border-radius:0;background:url(art/m_tape3.webp) center/100% 100% no-repeat;color:#2A2437;font:900 14px/1 var(--font-head);letter-spacing:.06em;text-transform:uppercase;rotate:-3deg;cursor:pointer;filter:drop-shadow(0 2px 0 rgba(23,19,32,.25))}
-#mStrokes.sgp .sgskip:active{transform:translateY(2px)}
-#mStrokes.sgp .sgnote{margin:0;font:700 12px/1.2 var(--font-ui);color:rgba(23,19,32,.72);text-align:center}
-#mStrokes.sgp .sgnote[hidden]{display:none}
+:is(#mStrokes,#mLocker).sgp.sgdemo .sgart{display:none}
+:is(#mStrokes,#mLocker).sgp .sgrot{appearance:none;position:absolute;right:0;bottom:84px;z-index:3;display:grid;place-items:center;width:42px;height:42px;margin:0;padding:0;border:0;border-radius:50%;background:radial-gradient(circle at 50% 40%,#3A3A42,#1A1A1F);color:#E9E9EE;box-shadow:0 0 0 2px var(--ink0),inset 0 0 0 3px rgba(255,255,255,.1),0 3px 0 rgba(0,0,0,.35);cursor:pointer}
+:is(#mStrokes,#mLocker).sgp .sgrot[hidden]{display:none}
+:is(#mStrokes,#mLocker).sgp .sgrot svg{width:26px;height:26px}
+:is(#mStrokes,#mLocker).sgp .sgfoot{position:absolute;left:0;right:0;bottom:4px;z-index:2;display:flex;flex-direction:column;align-items:center;gap:6px}
+:is(#mStrokes,#mLocker).sgp .sgline{margin:0;max-width:min(100%,420px);font:800 14px/1.25 var(--font-ui);color:var(--black);text-align:center;text-wrap:balance;text-shadow:0 1px 0 rgba(255,255,255,.35)}
+:is(#mStrokes,#mLocker).sgp .sgact{display:flex;align-items:center;justify-content:center;gap:10px}
+:is(#mStrokes,#mLocker).sgp .sgdo{appearance:none;position:relative;min-width:120px;height:38px;margin:0;padding:0 20px;border:0;border-radius:10px;background:var(--sel);color:var(--ink0);font:400 16px/1 var(--font-display);letter-spacing:.01em;transform:skewX(-12deg);box-shadow:0 0 0 2.5px var(--ink0),0 4px 0 var(--ink0);cursor:pointer;-webkit-tap-highlight-color:transparent}
+:is(#mStrokes,#mLocker).sgp .sgdo>span{display:inline-flex;align-items:center;gap:6px;transform:skewX(12deg)}
+:is(#mStrokes,#mLocker).sgp .sgdo small{padding:3px 6px 2px;border-radius:6px;background:rgba(17,16,20,.16);font:800 11px/1 var(--font-ui)}
+:is(#mStrokes,#mLocker).sgp .sgdo svg{width:15px;height:15px}
+:is(#mStrokes,#mLocker).sgp .sgdo.craft{background:#5BE07E}
+:is(#mStrokes,#mLocker).sgp .sgdo:active:not(:disabled){transform:skewX(-12deg) translateY(3px);box-shadow:0 0 0 2.5px var(--ink0),0 1px 0 var(--ink0)}
+:is(#mStrokes,#mLocker).sgp .sgdo:disabled{background:#E9E4D6;color:#6E6680;cursor:default}
+:is(#mStrokes,#mLocker).sgp .sgdo.on:disabled{background:var(--ink0);color:var(--sel)}
+:is(#mStrokes,#mLocker).sgp .sgdo[hidden],:is(#mStrokes,#mLocker).sgp .sgskip[hidden],:is(#mStrokes,#mLocker).sgp .sgtimer[hidden]{display:none}
+:is(#mStrokes,#mLocker).sgp .sgib{appearance:none;position:relative;flex:none;min-width:72px;height:38px;margin:0;padding:0 15px;border:0;border-radius:10px;background:linear-gradient(#4A4A52,#34343B);color:#fff;font:400 16px/1 var(--font-display);letter-spacing:.01em;transform:skewX(-12deg);box-shadow:0 0 0 2.5px var(--ink0),0 4px 0 var(--ink0);cursor:pointer;-webkit-tap-highlight-color:transparent}
+:is(#mStrokes,#mLocker).sgp .sgib>span{display:inline-block;transform:skewX(12deg)}
+:is(#mStrokes,#mLocker).sgp .sgib:active{transform:skewX(-12deg) translateY(3px);box-shadow:0 0 0 2.5px var(--ink0),0 1px 0 var(--ink0)}
+@media (max-width:379px){:is(#mStrokes,#mLocker).sgp .sgtimer .sgtbar{display:none}} /* (a narrow phone: the bench's row fits with Info; the card keeps its bar) */
+:is(#mStrokes,#mLocker).sgp .sgtimer{display:flex;align-items:center;gap:7px;height:34px;padding:0 12px 0 10px;border-radius:10px;background:var(--ink0);color:#fff;font:400 16px/1 var(--font-display);font-variant-numeric:tabular-nums;box-shadow:0 3px 0 rgba(0,0,0,.3)}
+:is(#mStrokes,#mLocker).sgp .sgtimer i{display:grid;color:var(--sel)}:is(#mStrokes,#mLocker).sgp .sgtimer svg{width:15px;height:15px}
+:is(#mStrokes,#mLocker).sgp .sgtbar{width:54px;height:6px;border-radius:999px;background:rgba(255,255,255,.18);overflow:hidden}
+:is(#mStrokes,#mLocker).sgp .sgtbar i{display:block;height:100%;width:var(--p,0%);background:var(--sel);transition:width .5s linear}
+:is(#mStrokes,#mLocker).sgp .sgskip{appearance:none;height:36px;margin:0;padding:0 18px 2px;border:0;border-radius:0;background:url(art/m_tape3.webp) center/100% 100% no-repeat;color:#2A2437;font:900 14px/1 var(--font-head);letter-spacing:.06em;text-transform:uppercase;rotate:-3deg;cursor:pointer;filter:drop-shadow(0 2px 0 rgba(23,19,32,.25))}
+:is(#mStrokes,#mLocker).sgp .sgskip:active{transform:translateY(2px)}
+:is(#mStrokes,#mLocker).sgp .sgnote{margin:0;font:700 12px/1.2 var(--font-ui);color:rgba(23,19,32,.72);text-align:center}
+:is(#mStrokes,#mLocker).sgp .sgnote[hidden]{display:none}
 /* the tabs: one card per category on the ink band (upright the band is the tab row's own) */
-#mStrokes.sgp .sgtabs{position:relative;z-index:5;order:2;flex:none;align-self:center;display:flex;align-items:flex-end;gap:16px;margin:12px 0 0}
-#mStrokes.sgp .sgtabs::before{content:"";position:absolute;left:50%;top:50%;z-index:-1;width:100vw;height:calc(100% + 46px);transform:translate(-50%,-48%);background:url(art/sg_ink.webp) 0 50%/auto 100% repeat-x;pointer-events:none}
-#mStrokes.sgp .sgtab{appearance:none;position:relative;display:flex;flex-direction:column;width:var(--tabw);margin:0;padding:0;border:0;border-radius:12px;background:var(--ink0);color:#fff;text-align:center;cursor:pointer;
+:is(#mStrokes,#mLocker).sgp .sgtabs{position:relative;z-index:5;order:2;flex:none;align-self:center;display:flex;align-items:flex-end;gap:16px;margin:12px 0 0}
+:is(#mStrokes,#mLocker).sgp .sgtabs::before{content:"";position:absolute;left:50%;top:50%;z-index:-1;width:100vw;height:calc(100% + 46px);transform:translate(-50%,-48%);background:url(art/sg_ink.webp) 0 50%/auto 100% repeat-x;pointer-events:none}
+:is(#mStrokes,#mLocker).sgp .sgtab{appearance:none;position:relative;display:flex;flex-direction:column;width:var(--tabw);margin:0;padding:0;border:0;border-radius:12px;background:var(--ink0);color:#fff;text-align:center;cursor:pointer;
   box-shadow:0 0 0 2px var(--ink0),0 5px 0 rgba(0,0,0,.4);transform-origin:50% 100%;transition:transform .16s cubic-bezier(.2,1.4,.4,1),box-shadow .16s,filter .16s;-webkit-tap-highlight-color:transparent}
-#mStrokes.sgp .sgtab[data-cat="special"]{--tc:#FFA526;--tc2:#F28C0C}
-#mStrokes.sgp .sgtab[data-cat="skill"]{--tc:#22C9B8;--tc2:#12AE9E}
-#mStrokes.sgp .sgtab[data-cat="item"]{--tc:#FF5F62;--tc2:#EC4248}
-#mStrokes.sgp .sgtab .sgtt{display:block;padding:5px 4px 4px;font:400 12px/1 var(--font-display);letter-spacing:.01em;color:#fff;white-space:nowrap}
-#mStrokes.sgp .sgtab .sgtb{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;margin:0 3px 3px;padding:5px 4px 6px;border-radius:0 0 9px 9px;background:repeating-linear-gradient(135deg,var(--tc) 0 7px,var(--tc2) 7px 14px)}
-#mStrokes.sgp .sgtab .sgti{display:grid;place-items:center;width:44px;height:38px}
-#mStrokes.sgp .sgtab .sgti .stimg{width:40px;height:40px;object-fit:contain;filter:drop-shadow(1px 2px 0 rgba(23,19,32,.3))}
-#mStrokes.sgp .sgtab .sgti svg{width:34px;height:34px}
-#mStrokes.sgp .sgdots{display:flex;gap:4px;justify-content:center}
-#mStrokes.sgp .sgdots i{width:9px;height:9px;border-radius:50%;background:rgba(17,16,20,.28);box-shadow:inset 0 0 0 1.6px rgba(17,16,20,.55)}
-#mStrokes.sgp .sgdots i.own{background:#fff;box-shadow:0 0 0 1.6px var(--ink0)}
-#mStrokes.sgp .sgdots i.cr{background:var(--sel);box-shadow:0 0 0 1.6px var(--ink0)}
-#mStrokes.sgp .sgtab:not(.on){filter:brightness(.8) saturate(.9)}
-#mStrokes.sgp .sgtab.on{transform:scale(1.08);box-shadow:0 0 0 3px var(--sel),0 0 0 5.5px var(--ink0),0 7px 0 rgba(0,0,0,.4);z-index:1}
-#mStrokes.sgp .sgtab:active{transform:scale(.96)}
-#mStrokes.sgp .sgtab.on:active{transform:scale(1.04)}
-#mStrokes.sgp .sgtab.fresh::after{content:"";position:absolute;right:-4px;top:-4px;width:13px;height:13px;border-radius:50%;background:#FF2D55;box-shadow:0 0 0 2.5px var(--ink0);animation:stdot 1.2s ease-in-out infinite}
-#mStrokes.sgp .sgtab:focus-visible,#mStrokes.sgp .sgcard:focus-visible,#mStrokes.sgp .sgib:focus-visible,#mStrokes.sgp .sgback:focus-visible,#mStrokes.sgp .sgdo:focus-visible{outline:3px solid #fff;outline-offset:3px}
+:is(#mStrokes,#mLocker).sgp .sgtab[data-cat="special"]{--tc:#FFA526;--tc2:#F28C0C}
+:is(#mStrokes,#mLocker).sgp .sgtab[data-cat="skill"]{--tc:#22C9B8;--tc2:#12AE9E}
+:is(#mStrokes,#mLocker).sgp .sgtab[data-cat="item"]{--tc:#FF5F62;--tc2:#EC4248}
+:is(#mStrokes,#mLocker).sgp .sgtab .sgtt{display:block;padding:5px 4px 4px;font:400 12px/1 var(--font-display);letter-spacing:.01em;color:#fff;white-space:nowrap}
+:is(#mStrokes,#mLocker).sgp .sgtab .sgtb{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;margin:0 3px 3px;padding:5px 4px 6px;border-radius:0 0 9px 9px;background:repeating-linear-gradient(135deg,var(--tc) 0 7px,var(--tc2) 7px 14px)}
+:is(#mStrokes,#mLocker).sgp .sgtab .sgti{display:grid;place-items:center;width:44px;height:38px}
+:is(#mStrokes,#mLocker).sgp .sgtab .sgti .stimg{width:40px;height:40px;object-fit:contain;filter:drop-shadow(1px 2px 0 rgba(23,19,32,.3))}
+:is(#mStrokes,#mLocker).sgp .sgtab .sgti svg{width:34px;height:34px}
+:is(#mStrokes,#mLocker).sgp .sgdots{display:flex;gap:4px;justify-content:center}
+:is(#mStrokes,#mLocker).sgp .sgdots i{width:9px;height:9px;border-radius:50%;background:rgba(17,16,20,.28);box-shadow:inset 0 0 0 1.6px rgba(17,16,20,.55)}
+:is(#mStrokes,#mLocker).sgp .sgdots i.own{background:#fff;box-shadow:0 0 0 1.6px var(--ink0)}
+:is(#mStrokes,#mLocker).sgp .sgdots i.cr{background:var(--sel);box-shadow:0 0 0 1.6px var(--ink0)}
+:is(#mStrokes,#mLocker).sgp .sgtab:not(.on){filter:brightness(.8) saturate(.9)}
+:is(#mStrokes,#mLocker).sgp .sgtab.on{transform:scale(1.08);box-shadow:0 0 0 3px var(--sel),0 0 0 5.5px var(--ink0),0 7px 0 rgba(0,0,0,.4);z-index:1}
+:is(#mStrokes,#mLocker).sgp .sgtab:active{transform:scale(.96)}
+:is(#mStrokes,#mLocker).sgp .sgtab.on:active{transform:scale(1.04)}
+:is(#mStrokes,#mLocker).sgp .sgtab.fresh::after{content:"";position:absolute;right:-4px;top:-4px;width:13px;height:13px;border-radius:50%;background:#FF2D55;box-shadow:0 0 0 2.5px var(--ink0);animation:stdot 1.2s ease-in-out infinite}
+:is(#mStrokes,#mLocker).sgp .sgtab:focus-visible,:is(#mStrokes,#mLocker).sgp .sgcard:focus-visible,:is(#mStrokes,#mLocker).sgp .sgib:focus-visible,:is(#mStrokes,#mLocker).sgp .sgback:focus-visible,:is(#mStrokes,#mLocker).sgp .sgdo:focus-visible{outline:3px solid #fff;outline-offset:3px}
 /* the panel: dark and see-through, the tags hung from a bar taped at its top */
-#mStrokes.sgp .sgpanel{position:relative;z-index:3;order:3;flex:0 1 auto;max-height:var(--panh);min-height:0;margin-top:24px;display:flex;flex-direction:column;border-radius:22px;background:var(--panel);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.07),0 8px 22px rgba(23,19,32,.22)}
-#mStrokes.sgp .sghang{position:absolute;left:50%;top:-8px;z-index:2;width:40%;max-width:190px;height:17px;border-radius:999px;background:linear-gradient(#3A3A42,#232328);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.16),0 0 0 2px var(--ink0),0 3px 0 rgba(0,0,0,.35);transform:translateX(-50%)}
-#mStrokes.sgp .sghang::after{content:"";position:absolute;left:58%;top:-9px;width:62px;height:21px;background:url(art/m_tape3.webp) center/100% 100% no-repeat;transform:rotate(-7deg);filter:drop-shadow(0 1px 0 rgba(23,19,32,.2))}
-#mStrokes.sgp .sgscroll{flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;padding:22px 16px 18px;-webkit-mask:linear-gradient(transparent,#000 12px,#000 calc(100% - 18px),transparent);mask:linear-gradient(transparent,#000 12px,#000 calc(100% - 18px),transparent);scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.4) transparent;-webkit-overflow-scrolling:touch}
-#mStrokes.sgp .sgscroll::-webkit-scrollbar{width:5px}
-#mStrokes.sgp .sgscroll::-webkit-scrollbar-thumb{border-radius:999px;background:rgba(255,255,255,.38)}
-#mStrokes.sgp .sggrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;padding:2px 2px 4px}
-#mStrokes.sgp .sggrid[hidden]{display:none}
-#mStrokes.sgp .sggrid.in .sgcard{animation:sgin .3s cubic-bezier(.2,1.2,.35,1) both}
-#mStrokes.sgp .sggrid.in .sgcard:nth-child(2){animation-delay:.03s}#mStrokes.sgp .sggrid.in .sgcard:nth-child(3){animation-delay:.06s}#mStrokes.sgp .sggrid.in .sgcard:nth-child(4){animation-delay:.09s}#mStrokes.sgp .sggrid.in .sgcard:nth-child(5){animation-delay:.12s}#mStrokes.sgp .sggrid.in .sgcard:nth-child(6){animation-delay:.15s}
+:is(#mStrokes,#mLocker).sgp .sgpanel{position:relative;z-index:3;order:3;flex:0 1 auto;max-height:var(--panh);min-height:0;margin-top:24px;display:flex;flex-direction:column;border-radius:22px;background:var(--panel);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.07),0 8px 22px rgba(23,19,32,.22)}
+:is(#mStrokes,#mLocker).sgp .sghang{position:absolute;left:50%;top:-8px;z-index:2;width:40%;max-width:190px;height:17px;border-radius:999px;background:linear-gradient(#3A3A42,#232328);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.16),0 0 0 2px var(--ink0),0 3px 0 rgba(0,0,0,.35);transform:translateX(-50%)}
+:is(#mStrokes,#mLocker).sgp .sghang::after{content:"";position:absolute;left:58%;top:-9px;width:62px;height:21px;background:url(art/m_tape3.webp) center/100% 100% no-repeat;transform:rotate(-7deg);filter:drop-shadow(0 1px 0 rgba(23,19,32,.2))}
+:is(#mStrokes,#mLocker).sgp .sgscroll{flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;padding:22px 16px 18px;-webkit-mask:linear-gradient(transparent,#000 12px,#000 calc(100% - 18px),transparent);mask:linear-gradient(transparent,#000 12px,#000 calc(100% - 18px),transparent);scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.4) transparent;-webkit-overflow-scrolling:touch}
+:is(#mStrokes,#mLocker).sgp .sgscroll::-webkit-scrollbar{width:5px}
+:is(#mStrokes,#mLocker).sgp .sgscroll::-webkit-scrollbar-thumb{border-radius:999px;background:rgba(255,255,255,.38)}
+:is(#mStrokes,#mLocker).sgp .sggrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;padding:2px 2px 4px}
+:is(#mStrokes,#mLocker).sgp .sggrid[hidden]{display:none}
+:is(#mStrokes,#mLocker).sgp .sggrid.in .sgcard{animation:sgin .3s cubic-bezier(.2,1.2,.35,1) both}
+:is(#mStrokes,#mLocker).sgp .sggrid.in .sgcard:nth-child(2){animation-delay:.03s}:is(#mStrokes,#mLocker).sgp .sggrid.in .sgcard:nth-child(3){animation-delay:.06s}:is(#mStrokes,#mLocker).sgp .sggrid.in .sgcard:nth-child(4){animation-delay:.09s}:is(#mStrokes,#mLocker).sgp .sggrid.in .sgcard:nth-child(5){animation-delay:.12s}:is(#mStrokes,#mLocker).sgp .sggrid.in .sgcard:nth-child(6){animation-delay:.15s}
 @keyframes sgin{from{opacity:0;transform:translateY(-8px) rotate(-3deg)}}
 /* a hang tag: a hook, the mottled card with the picture, a lime strip with a word or two (v323) */
-#mStrokes.sgp .sgcard{appearance:none;position:relative;display:flex;flex-direction:column;min-width:0;margin:0;padding:10px 0 0;border:0;background:none;color:var(--black);cursor:pointer;transform-origin:50% 0;transition:transform .15s cubic-bezier(.2,1.3,.4,1);-webkit-tap-highlight-color:transparent}
-#mStrokes.sgp .sgcard .sghook{position:absolute;left:50%;top:0;z-index:2;width:14px;height:16px;margin-left:-7px;border-radius:50% 50% 45% 45%;box-shadow:inset 0 0 0 2.6px #A9A9B2,0 1px 0 rgba(0,0,0,.4)}
-#mStrokes.sgp .sgcard .sgcb{position:relative;display:block;aspect-ratio:1/.64;border-radius:11px 11px 3px 3px;background:#F7F1E3 url(art/sg_card.webp) 30% 20%/260% auto;box-shadow:inset 0 0 0 1.5px rgba(23,19,32,.14)}
-#mStrokes.sgp .sgcard:nth-child(3n+2) .sgcb{background-position:70% 60%}#mStrokes.sgp .sgcard:nth-child(3n) .sgcb{background-position:10% 85%}
-#mStrokes.sgp .sgcard .sgcb::before{content:"";position:absolute;left:50%;top:5px;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:#6A6A72;box-shadow:inset 0 1.5px 0 rgba(0,0,0,.35)}
-#mStrokes.sgp .sgcard .sgca{position:absolute;left:13%;right:13%;top:8%;bottom:7%;isolation:isolate}
-#mStrokes.sgp .sgcard .sgca .stimg{position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:contain;filter:drop-shadow(1px 2px 0 rgba(23,19,32,.22))}
-#mStrokes.sgp .sgcard .sgca svg{position:absolute;inset:12%;z-index:1;width:76%;height:76%}
-#mStrokes.sgp .sgcard .sgcf{display:flex;align-items:center;justify-content:center;min-height:21px;padding:4px 4px 5px;border-radius:3px 3px 11px 11px;background:#A9DC2C;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.4),inset 0 -2px 0 rgba(0,0,0,.12);color:var(--ink0);font:400 12px/1 var(--font-display);letter-spacing:.01em;white-space:nowrap;overflow:hidden}
-#mStrokes.sgp .sgcard .sgcf b{font-weight:400;font-variant-numeric:tabular-nums}
-#mStrokes.sgp .sgcard:active{transform:scale(.95)}
+:is(#mStrokes,#mLocker).sgp .sgcard{appearance:none;position:relative;display:flex;flex-direction:column;min-width:0;margin:0;padding:10px 0 0;border:0;background:none;color:var(--black);cursor:pointer;transform-origin:50% 0;transition:transform .15s cubic-bezier(.2,1.3,.4,1);-webkit-tap-highlight-color:transparent}
+:is(#mStrokes,#mLocker).sgp .sgcard .sghook{position:absolute;left:50%;top:0;z-index:2;width:14px;height:16px;margin-left:-7px;border-radius:50% 50% 45% 45%;box-shadow:inset 0 0 0 2.6px #A9A9B2,0 1px 0 rgba(0,0,0,.4)}
+:is(#mStrokes,#mLocker).sgp .sgcard .sgcb{position:relative;display:block;aspect-ratio:1/.64;border-radius:11px 11px 3px 3px;background:#F7F1E3 url(art/sg_card.webp) 30% 20%/260% auto;box-shadow:inset 0 0 0 1.5px rgba(23,19,32,.14)}
+:is(#mStrokes,#mLocker).sgp .sgcard:nth-child(3n+2) .sgcb{background-position:70% 60%}:is(#mStrokes,#mLocker).sgp .sgcard:nth-child(3n) .sgcb{background-position:10% 85%}
+:is(#mStrokes,#mLocker).sgp .sgcard .sgcb::before{content:"";position:absolute;left:50%;top:5px;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:#6A6A72;box-shadow:inset 0 1.5px 0 rgba(0,0,0,.35)}
+:is(#mStrokes,#mLocker).sgp .sgcard .sgca{position:absolute;left:13%;right:13%;top:8%;bottom:7%;isolation:isolate}
+:is(#mStrokes,#mLocker).sgp .sgcard .sgca .stimg{position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:contain;filter:drop-shadow(1px 2px 0 rgba(23,19,32,.22))}
+:is(#mStrokes,#mLocker).sgp .sgcard .sgca svg{position:absolute;inset:12%;z-index:1;width:76%;height:76%}
+:is(#mStrokes,#mLocker).sgp .sgcard .sgcf{display:flex;align-items:center;justify-content:center;min-height:21px;padding:4px 4px 5px;border-radius:3px 3px 11px 11px;background:#A9DC2C;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.4),inset 0 -2px 0 rgba(0,0,0,.12);color:var(--ink0);font:400 12px/1 var(--font-display);letter-spacing:.01em;white-space:nowrap;overflow:hidden}
+:is(#mStrokes,#mLocker).sgp .sgcard .sgcf b{font-weight:400;font-variant-numeric:tabular-nums}
+:is(#mStrokes,#mLocker).sgp .sgcard:active{transform:scale(.95)}
 /* the one you're looking at: a magenta splat behind it, a thick yellow ring, a touch bigger */
-#mStrokes.sgp .sgcard.sel{transform:scale(1.03);transform-origin:50% 55%;z-index:1}
-#mStrokes.sgp .sgcard.sel::after{content:"";position:absolute;left:-3px;right:-3px;top:7px;bottom:-3px;border-radius:13px;box-shadow:0 0 0 3px var(--sel),0 0 0 5.5px var(--ink0);pointer-events:none}
-#mStrokes.sgp .sgcard.sel .sgca::before{content:"";position:absolute;inset:-6% -10%;z-index:0;background:var(--mag);-webkit-mask:url(art/m_splat.webp) center/contain no-repeat;mask:url(art/m_splat.webp) center/contain no-repeat}
+:is(#mStrokes,#mLocker).sgp .sgcard.sel{transform:scale(1.03);transform-origin:50% 55%;z-index:1}
+:is(#mStrokes,#mLocker).sgp .sgcard.sel::after{content:"";position:absolute;left:-3px;right:-3px;top:7px;bottom:-3px;border-radius:13px;box-shadow:0 0 0 3px var(--sel),0 0 0 5.5px var(--ink0);pointer-events:none}
+:is(#mStrokes,#mLocker).sgp .sgcard.sel .sgca::before{content:"";position:absolute;inset:-6% -10%;z-index:0;background:var(--mag);-webkit-mask:url(art/m_splat.webp) center/contain no-repeat;mask:url(art/m_splat.webp) center/contain no-repeat}
 /* what a tag says: the rank it opens at, its craft time, the bench's countdown, New, and a stamp on the one you have on */
-#mStrokes.sgp .sgcard .sgst{position:absolute;left:50%;bottom:6%;z-index:2;display:flex;align-items:center;gap:3px;padding:3px 7px 3px 6px;border-radius:999px;background:var(--ink0);color:#fff;font:800 10px/1 var(--font-ui);letter-spacing:.04em;white-space:nowrap;transform:translateX(-50%)}
-#mStrokes.sgp .sgcard .sgst svg{width:10px;height:10px}
-#mStrokes.sgp .sgcard .sgpb{position:absolute;left:10%;right:10%;bottom:3px;z-index:2;height:4px;border-radius:999px;background:rgba(23,19,32,.15);overflow:hidden}
-#mStrokes.sgp .sgcard .sgpb i{display:block;height:100%;width:var(--p,0%);background:var(--ink0);transition:width .5s linear}
-#mStrokes.sgp .sgcard .sgeq{position:absolute;right:-5px;top:2px;z-index:3;display:grid;place-items:center;width:24px;height:24px;border-radius:7px;background:var(--ink0);color:var(--sel);transform:rotate(8deg);box-shadow:0 2px 0 rgba(0,0,0,.3)}
-#mStrokes.sgp .sgcard .sgeq svg{width:15px;height:15px}
-#mStrokes.sgp .sgcard .sgnew{position:absolute;left:-5px;top:4px;z-index:3;padding:4px 6px 3px;border-radius:6px;background:#FF2D55;color:#fff;font:400 10px/1 var(--font-display);transform:rotate(-8deg);box-shadow:0 0 0 2px var(--ink0)}
-#mStrokes.sgp .sgcard.lock .sgca,#mStrokes.sgp .sgcard.raw .sgca{filter:grayscale(.85) opacity(.6)}
-#mStrokes.sgp .sgcard.lock .sgcb{background-color:#E2DCCF}
-#mStrokes.sgp .sgcard.lock .sgcf{background:#8DA65A}
-#mStrokes.sgp .sgcard.soon{cursor:default}
-#mStrokes.sgp .sgcard.soon .sgcb{background:transparent;box-shadow:inset 0 0 0 2px rgba(255,255,255,.22)}
-#mStrokes.sgp .sgcard.soon .sgca{opacity:.35;filter:grayscale(1)}
-#mStrokes.sgp .sgcard.soon .sgcf{background:rgba(255,255,255,.1);box-shadow:none;color:rgba(255,255,255,.55);font:800 10px/14px var(--font-ui);letter-spacing:.08em;text-transform:uppercase;min-height:21px;align-items:center}
-#mStrokes.sgp .sgcard.soon .sghook{box-shadow:inset 0 0 0 2.6px rgba(255,255,255,.25)}
+:is(#mStrokes,#mLocker).sgp .sgcard .sgst{position:absolute;left:50%;bottom:6%;z-index:2;display:flex;align-items:center;gap:3px;padding:3px 7px 3px 6px;border-radius:999px;background:var(--ink0);color:#fff;font:800 10px/1 var(--font-ui);letter-spacing:.04em;white-space:nowrap;transform:translateX(-50%)}
+:is(#mStrokes,#mLocker).sgp .sgcard .sgst svg{width:10px;height:10px}
+:is(#mStrokes,#mLocker).sgp .sgcard .sgpb{position:absolute;left:10%;right:10%;bottom:3px;z-index:2;height:4px;border-radius:999px;background:rgba(23,19,32,.15);overflow:hidden}
+:is(#mStrokes,#mLocker).sgp .sgcard .sgpb i{display:block;height:100%;width:var(--p,0%);background:var(--ink0);transition:width .5s linear}
+:is(#mStrokes,#mLocker).sgp .sgcard .sgeq{position:absolute;right:-5px;top:2px;z-index:3;display:grid;place-items:center;width:24px;height:24px;border-radius:7px;background:var(--ink0);color:var(--sel);transform:rotate(8deg);box-shadow:0 2px 0 rgba(0,0,0,.3)}
+:is(#mStrokes,#mLocker).sgp .sgcard .sgeq svg{width:15px;height:15px}
+:is(#mStrokes,#mLocker).sgp .sgcard .sgnew{position:absolute;left:-5px;top:4px;z-index:3;padding:4px 6px 3px;border-radius:6px;background:#FF2D55;color:#fff;font:400 10px/1 var(--font-display);transform:rotate(-8deg);box-shadow:0 0 0 2px var(--ink0)}
+:is(#mStrokes,#mLocker).sgp .sgcard.lock .sgca,:is(#mStrokes,#mLocker).sgp .sgcard.raw .sgca{filter:grayscale(.85) opacity(.6)}
+:is(#mStrokes,#mLocker).sgp .sgcard.lock .sgcb{background-color:#E2DCCF}
+:is(#mStrokes,#mLocker).sgp .sgcard.lock .sgcf{background:#8DA65A}
+:is(#mStrokes,#mLocker).sgp .sgcard.soon{cursor:default}
+:is(#mStrokes,#mLocker).sgp .sgcard.soon .sgcb{background:transparent;box-shadow:inset 0 0 0 2px rgba(255,255,255,.22)}
+:is(#mStrokes,#mLocker).sgp .sgcard.soon .sgca{opacity:.35;filter:grayscale(1)}
+:is(#mStrokes,#mLocker).sgp .sgcard.soon .sgcf{background:rgba(255,255,255,.1);box-shadow:none;color:rgba(255,255,255,.55);font:800 10px/14px var(--font-ui);letter-spacing:.08em;text-transform:uppercase;min-height:21px;align-items:center}
+:is(#mStrokes,#mLocker).sgp .sgcard.soon .sghook{box-shadow:inset 0 0 0 2.6px rgba(255,255,255,.25)}
 /* back, Info and Test, and the badge */
-#mStrokes.sgp .sgback{appearance:none;position:absolute;z-index:6;left:var(--gx);top:var(--gt);display:flex;flex-direction:column;align-items:center;justify-content:center;width:var(--bk);height:var(--bk);margin:0;padding:2px 0 0;border:0;border-radius:50%;background:radial-gradient(circle at 38% 28%,#A876FF,#7B3BEA 58%,#5F22C8);color:#fff;box-shadow:0 0 0 3px var(--ink0),0 5px 0 var(--ink0);cursor:pointer;-webkit-tap-highlight-color:transparent}
-#mStrokes.sgp .sgback svg{width:46%;height:46%}
-#mStrokes.sgp .sgback span{margin-top:-1px;font:400 11px/1 var(--font-display);letter-spacing:.01em}
-#mStrokes.sgp .sgback:active{transform:translateY(3px);box-shadow:0 0 0 3px var(--ink0),0 2px 0 var(--ink0)}
-#mStrokes.sgp .sgbadge{appearance:none;position:absolute;z-index:6;right:var(--gr);top:calc(var(--gt) + 4px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:50px;height:50px;margin:0;padding:0 6px;border:0;border-radius:12px;background:var(--ink0);color:#fff;font:400 13px/1 var(--font-display);font-variant-numeric:tabular-nums;box-shadow:0 3px 0 rgba(0,0,0,.3);cursor:pointer}
-#mStrokes.sgp .sgbadge .sgbi{display:grid;place-items:center;width:20px;height:22px;color:var(--sel)}
-#mStrokes.sgp .sgbadge .sgbi svg,#mStrokes.sgp .sgbadge .sgbi .stimg{width:22px;height:22px;object-fit:contain}
-#mStrokes.sgp .sgbadge.cr{background:var(--sel);color:var(--ink0);box-shadow:0 0 0 2px var(--ink0),0 3px 0 rgba(0,0,0,.3)}
-#mStrokes.sgp .stucode{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;margin:16px 0 2px}
-#mStrokes.sgp .stucode .ulink{color:rgba(255,255,255,.62);font-size:12px}
-#mStrokes.sgp .stucode .uform input{border-color:#fff;background:#fff;color:var(--black)}
-#mStrokes.sgp .sttoast{bottom:auto;top:calc(var(--gt) + 64px);z-index:9}
+:is(#mStrokes,#mLocker).sgp .sgback{appearance:none;position:absolute;z-index:6;left:var(--gx);top:var(--gt);display:flex;flex-direction:column;align-items:center;justify-content:center;width:var(--bk);height:var(--bk);margin:0;padding:2px 0 0;border:0;border-radius:50%;background:radial-gradient(circle at 38% 28%,#A876FF,#7B3BEA 58%,#5F22C8);color:#fff;box-shadow:0 0 0 3px var(--ink0),0 5px 0 var(--ink0);cursor:pointer;-webkit-tap-highlight-color:transparent}
+:is(#mStrokes,#mLocker).sgp .sgback svg{width:46%;height:46%}
+:is(#mStrokes,#mLocker).sgp .sgback span{margin-top:-1px;font:400 11px/1 var(--font-display);letter-spacing:.01em}
+:is(#mStrokes,#mLocker).sgp .sgback:active{transform:translateY(3px);box-shadow:0 0 0 3px var(--ink0),0 2px 0 var(--ink0)}
+:is(#mStrokes,#mLocker).sgp .sgbadge{appearance:none;position:absolute;z-index:6;right:var(--gr);top:calc(var(--gt) + 4px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:50px;height:50px;margin:0;padding:0 6px;border:0;border-radius:12px;background:var(--ink0);color:#fff;font:400 13px/1 var(--font-display);font-variant-numeric:tabular-nums;box-shadow:0 3px 0 rgba(0,0,0,.3);cursor:pointer}
+:is(#mStrokes,#mLocker).sgp .sgbadge .sgbi{display:grid;place-items:center;width:20px;height:22px;color:var(--sel)}
+:is(#mStrokes,#mLocker).sgp .sgbadge .sgbi svg,:is(#mStrokes,#mLocker).sgp .sgbadge .sgbi .stimg{width:22px;height:22px;object-fit:contain}
+:is(#mStrokes,#mLocker).sgp .sgbadge.cr{background:var(--sel);color:var(--ink0);box-shadow:0 0 0 2px var(--ink0),0 3px 0 rgba(0,0,0,.3)}
+:is(#mStrokes,#mLocker).sgp .stucode{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;margin:16px 0 2px}
+:is(#mStrokes,#mLocker).sgp .stucode .ulink{color:rgba(255,255,255,.62);font-size:12px}
+:is(#mStrokes,#mLocker).sgp .stucode .uform input{border-color:#fff;background:#fff;color:var(--black)}
+:is(#mStrokes,#mLocker).sgp .sttoast{bottom:auto;top:calc(var(--gt) + 64px);z-index:9}
 /* landscape: the panel on the left, the stroke on the right (a transform's demo), the ink band along the bottom with the tabs on it,
    back at its left */
 @media (min-aspect-ratio:1/1){
-  #mStrokes.sgp{--bk:clamp(54px,16vh,72px);--band:clamp(70px,20vh,100px);--tabw:clamp(84px,12vw,116px);--panw:55%;display:block;padding:0}
-  #mStrokes.sgp .sgink{display:block;bottom:calc(var(--gb) - var(--band) * .18);height:calc(var(--band) * 1.5)}
-  #mStrokes.sgp .sgtabs::before{display:none}
-  #mStrokes.sgp .sgback{top:auto;bottom:calc(var(--gb) + 8px)}
-  #mStrokes.sgp .sgtabs{position:absolute;left:calc(var(--gx) + var(--bk) + 22px);bottom:calc(var(--gb) + 8px);margin:0;gap:14px}
-  #mStrokes.sgp .sgtab .sgtt{padding:4px 4px 3px;font-size:clamp(10px,2.9vh,13px)}
-  #mStrokes.sgp .sgtab .sgtb{gap:3px;padding:4px 4px 5px}
-  #mStrokes.sgp .sgtab .sgti{height:clamp(24px,7.2vh,38px)}
-  #mStrokes.sgp .sgtab .sgti .stimg{width:clamp(26px,8vh,40px);height:clamp(26px,8vh,40px)}
-  #mStrokes.sgp .sgdots i{width:7px;height:7px}
-  #mStrokes.sgp .sgpanel{position:absolute;top:calc(var(--gt) + 10px);bottom:calc(var(--gb) + var(--band) + 6px);left:var(--gx);width:calc(var(--panw) - var(--gx));max-height:none;margin:0}
-  #mStrokes.sgp .sgscroll{padding:21px 16px 18px}
-  #mStrokes.sgp .sggrid{gap:18px}
-  #mStrokes.sgp .sgcard .sgcb{aspect-ratio:auto;height:clamp(52px,18.5vh,96px)}
-  #mStrokes.sgp .sgshow{position:absolute;left:calc(var(--panw) + 12px);right:var(--gr);top:var(--gt);bottom:calc(var(--gb) + var(--band) + 12px);min-height:0}
-  #mStrokes.sgp .sgban{left:14px;top:6px;max-width:calc(100% - 100px);transform:skewX(-11deg)}
-  #mStrokes.sgp .sgbadge{top:calc(var(--gt) + 10px);flex-direction:row;gap:5px;min-width:0;height:34px;padding:0 10px 0 7px;border-radius:10px;font-size:15px}
-  #mStrokes.sgp .sgrot{bottom:52px;right:0}
-  #mStrokes.sgp.sgnoted .sgrot{bottom:72px}
-  #mStrokes.sgp .sgfoot{bottom:0;flex-direction:row;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:4px 10px}
-  #mStrokes.sgp .sgline{flex:1 1 150px;text-align:left;font-size:13px}
-  #mStrokes.sgp .sgnote{order:-1;flex-basis:100%;text-align:right}
-  #mStrokes.sgp .sttoast{top:auto;bottom:calc(var(--gb) + var(--band) + 12px)}
-  #mStrokes.sgp .sgart{top:56px;bottom:52px}
-  #mStrokes.sgp.sgnoted .sgart{bottom:70px}
+  :is(#mStrokes,#mLocker).sgp{--bk:clamp(54px,16vh,72px);--band:clamp(70px,20vh,100px);--tabw:clamp(84px,12vw,116px);--panw:55%;display:block;padding:0}
+  :is(#mStrokes,#mLocker).sgp .sgink{display:block;bottom:calc(var(--gb) - var(--band) * .18);height:calc(var(--band) * 1.5)}
+  :is(#mStrokes,#mLocker).sgp .sgtabs::before{display:none}
+  :is(#mStrokes,#mLocker).sgp .sgback{top:auto;bottom:calc(var(--gb) + 8px)}
+  :is(#mStrokes,#mLocker).sgp .sgtabs{position:absolute;left:calc(var(--gx) + var(--bk) + 22px);bottom:calc(var(--gb) + 8px);margin:0;gap:14px}
+  :is(#mStrokes,#mLocker).sgp .sgtab .sgtt{padding:4px 4px 3px;font-size:clamp(10px,2.9vh,13px)}
+  :is(#mStrokes,#mLocker).sgp .sgtab .sgtb{gap:3px;padding:4px 4px 5px}
+  :is(#mStrokes,#mLocker).sgp .sgtab .sgti{height:clamp(24px,7.2vh,38px)}
+  :is(#mStrokes,#mLocker).sgp .sgtab .sgti .stimg{width:clamp(26px,8vh,40px);height:clamp(26px,8vh,40px)}
+  :is(#mStrokes,#mLocker).sgp .sgdots i{width:7px;height:7px}
+  :is(#mStrokes,#mLocker).sgp .sgpanel{position:absolute;top:calc(var(--gt) + 10px);bottom:calc(var(--gb) + var(--band) + 6px);left:var(--gx);width:calc(var(--panw) - var(--gx));max-height:none;margin:0}
+  :is(#mStrokes,#mLocker).sgp .sgscroll{padding:21px 16px 18px}
+  :is(#mStrokes,#mLocker).sgp .sggrid{gap:18px}
+  :is(#mStrokes,#mLocker).sgp .sgcard .sgcb{aspect-ratio:auto;height:clamp(52px,18.5vh,96px)}
+  :is(#mStrokes,#mLocker).sgp .sgshow{position:absolute;left:calc(var(--panw) + 12px);right:var(--gr);top:var(--gt);bottom:calc(var(--gb) + var(--band) + 12px);min-height:0}
+  :is(#mStrokes,#mLocker).sgp .sgban{left:14px;top:6px;max-width:calc(100% - 100px);transform:skewX(-11deg)}
+  :is(#mStrokes,#mLocker).sgp .sgbadge{top:calc(var(--gt) + 10px);flex-direction:row;gap:5px;min-width:0;height:34px;padding:0 10px 0 7px;border-radius:10px;font-size:15px}
+  :is(#mStrokes,#mLocker).sgp .sgrot{bottom:52px;right:0}
+  :is(#mStrokes,#mLocker).sgp.sgnoted .sgrot{bottom:72px}
+  :is(#mStrokes,#mLocker).sgp .sgfoot{bottom:0;flex-direction:row;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:4px 10px}
+  :is(#mStrokes,#mLocker).sgp .sgline{flex:1 1 150px;text-align:left;font-size:13px}
+  :is(#mStrokes,#mLocker).sgp .sgnote{order:-1;flex-basis:100%;text-align:right}
+  :is(#mStrokes,#mLocker).sgp .sttoast{top:auto;bottom:calc(var(--gb) + var(--band) + 12px)}
+  :is(#mStrokes,#mLocker).sgp .sgart{top:56px;bottom:52px}
+  :is(#mStrokes,#mLocker).sgp.sgnoted .sgart{bottom:70px}
   /* (skills: no demo, everything centred) */
-  #mStrokes.sgp:not(.sgx) .sgpanel{left:50%;width:min(64%,580px);transform:translateX(-50%);top:calc(var(--gt) + 60px);bottom:calc(var(--gb) + var(--band) + 54px)}
-  #mStrokes.sgp:not(.sgx) .sgshow{left:var(--gx)}
-  #mStrokes.sgp:not(.sgx) .sgban{left:50%;transform:translateX(-50%) skewX(-11deg);max-width:calc(100% - 2 * 130px)}
-  #mStrokes.sgp:not(.sgx) .sgstage{display:none}
-  #mStrokes.sgp:not(.sgx) .sgfoot{left:50%;right:auto;width:min(64%,580px);transform:translateX(-50%);bottom:6px}
-  #mStrokes.sgp:not(.sgx) .sgcard .sgcb{height:clamp(52px,21vh,104px)}
-  #mStrokes.sgp:not(.sgx) .sgfoot{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:12px;row-gap:2px;align-items:center}
-  #mStrokes.sgp:not(.sgx) .sgline{grid-column:1;grid-row:1 / 3;align-self:center;max-width:none}
-  #mStrokes.sgp.sgnoted:not(.sgx) .sgline{grid-row:1;align-self:end}
-  #mStrokes.sgp:not(.sgx) .sgact{grid-column:2;grid-row:1 / 3}
-  #mStrokes.sgp:not(.sgx) .sgnote{grid-column:1;grid-row:2;align-self:start;text-align:left}
-  #mStrokes.sgp.sglearn:not(.sgx) .sgpanel{left:var(--gx);transform:none}
-  #mStrokes.sgp.sglearn:not(.sgx) .sgban{left:calc(min(64vw,580px) / 2)}
-  #mStrokes.sgp.sglearn:not(.sgx) .sgfoot{left:0;right:0;width:auto;transform:none}
+  :is(#mStrokes,#mLocker).sgp:not(.sgx) .sgpanel{left:50%;width:min(64%,580px);transform:translateX(-50%);top:calc(var(--gt) + 60px);bottom:calc(var(--gb) + var(--band) + 54px)}
+  :is(#mStrokes,#mLocker).sgp:not(.sgx) .sgshow{left:var(--gx)}
+  :is(#mStrokes,#mLocker).sgp:not(.sgx) .sgban{left:50%;transform:translateX(-50%) skewX(-11deg);max-width:calc(100% - 2 * 130px)}
+  :is(#mStrokes,#mLocker).sgp:not(.sgx) .sgstage{display:none}
+  :is(#mStrokes,#mLocker).sgp:not(.sgx) .sgfoot{left:50%;right:auto;width:min(64%,580px);transform:translateX(-50%);bottom:6px}
+  :is(#mStrokes,#mLocker).sgp:not(.sgx) .sgcard .sgcb{height:clamp(52px,21vh,104px)}
+  :is(#mStrokes,#mLocker).sgp:not(.sgx) .sgfoot{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:12px;row-gap:2px;align-items:center}
+  :is(#mStrokes,#mLocker).sgp:not(.sgx) .sgline{grid-column:1;grid-row:1 / 3;align-self:center;max-width:none}
+  :is(#mStrokes,#mLocker).sgp.sgnoted:not(.sgx) .sgline{grid-row:1;align-self:end}
+  :is(#mStrokes,#mLocker).sgp:not(.sgx) .sgact{grid-column:2;grid-row:1 / 3}
+  :is(#mStrokes,#mLocker).sgp:not(.sgx) .sgnote{grid-column:1;grid-row:2;align-self:start;text-align:left}
+  :is(#mStrokes,#mLocker).sgp.sglearn:not(.sgx) .sgpanel{left:var(--gx);transform:none}
+  :is(#mStrokes,#mLocker).sgp.sglearn:not(.sgx) .sgban{left:calc(min(64vw,580px) / 2)}
+  :is(#mStrokes,#mLocker).sgp.sglearn:not(.sgx) .sgfoot{left:0;right:0;width:auto;transform:none}
 }
-@media (min-aspect-ratio:1/1) and (max-height:430px){#mStrokes.sgp .sgcard .sgcf{min-height:18px;padding:3px 4px 4px;font-size:11px}#mStrokes.sgp .sgcard.soon .sgcf{min-height:18px}#mStrokes.sgp .sgban b{font-size:21px}#mStrokes.sgp .sgban{padding:6px 26px 6px 17px}}
-@media (max-aspect-ratio:1/1) and (max-height:700px){#mStrokes.sgp{--panh:min(30vh,210px);--bk:50px}#mStrokes.sgp .sgban b{font-size:20px}}
-@media (max-width:359px){#mStrokes.sgp{--tabw:90px}#mStrokes.sgp .sgtabs{gap:10px}#mStrokes.sgp .sggrid{gap:16px 14px}}
+@media (min-aspect-ratio:1/1) and (max-height:430px){:is(#mStrokes,#mLocker).sgp .sgcard .sgcf{min-height:18px;padding:3px 4px 4px;font-size:11px}:is(#mStrokes,#mLocker).sgp .sgcard.soon .sgcf{min-height:18px}:is(#mStrokes,#mLocker).sgp .sgban b{font-size:21px}:is(#mStrokes,#mLocker).sgp .sgban{padding:6px 26px 6px 17px}}
+@media (max-aspect-ratio:1/1) and (max-height:700px){:is(#mStrokes,#mLocker).sgp{--panh:min(30vh,210px);--bk:50px}:is(#mStrokes,#mLocker).sgp .sgban b{font-size:20px}}
+@media (max-width:359px){:is(#mStrokes,#mLocker).sgp{--tabw:90px}:is(#mStrokes,#mLocker).sgp .sgtabs{gap:10px}:is(#mStrokes,#mLocker).sgp .sggrid{gap:16px 14px}}
 /* the Info sheet: the stroke's numbers and how you get it */
 #stPop.sginfo .sgnums{display:grid;grid-template-columns:repeat(auto-fit,minmax(76px,1fr));justify-self:stretch;gap:8px;margin:2px 0 0;padding:0;text-align:left}
 #stPop.sginfo .sgnums div{display:flex;flex-direction:column;gap:3px;padding:8px 10px 9px;border:2px solid var(--black);border-radius:6px;background:#fff;box-shadow:3px 3px 0 var(--black)}
@@ -4165,7 +4165,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 #stPop.sginfo .sghow svg{flex:none;width:16px;height:16px}
 #stPop.sginfo .stpbtns,#stPop.sginfo .stptimer,#stPop.sginfo .stpnote{display:none}
 @media (min-aspect-ratio:1/1) and (max-height:600px){#stPop.sginfo .stpop{max-height:calc(100% - 8px)}#stPop.sginfo .stphead{padding-top:10px}#stPop.sginfo .stpbody{grid-template-areas:"art name" "art desc" "art does" "how nums";row-gap:7px}#stPop.sginfo .stpname{font-size:28px}#stPop.sginfo .sgnums{grid-area:nums;grid-template-columns:repeat(auto-fit,minmax(92px,1fr))}#stPop.sginfo .sgnums div{padding:6px 8px 7px}#stPop.sginfo .sgnums dd{font-size:13px}#stPop.sginfo .sghow{grid-area:how;align-self:stretch;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;margin:2px 0 0;padding:7px 9px;font-size:12px}#stPop.sginfo .sghow svg{width:14px;height:14px}}
-@media (prefers-reduced-motion:reduce){#mStrokes.sgp .sgtab,#mStrokes.sgp .sgcard,#mStrokes.sgp .sggrid.in .sgcard,#mStrokes.sgp .sgart .stimg,#mStrokes.sgp .sgban .sgflag::after,#mStrokes.sgp .sgtab.fresh::after{animation:none;transition:none}}
+@media (prefers-reduced-motion:reduce){:is(#mStrokes,#mLocker).sgp .sgtab,:is(#mStrokes,#mLocker).sgp .sgcard,:is(#mStrokes,#mLocker).sgp .sggrid.in .sgcard,:is(#mStrokes,#mLocker).sgp .sgart .stimg,:is(#mStrokes,#mLocker).sgp .sgban .sgflag::after,:is(#mStrokes,#mLocker).sgp .sgtab.fresh::after{animation:none;transition:none}}
 
 /* (v314) the knock-outs: a small row under the bar for each side, a star per knock-out, filled as it's counted */
 .tykos{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;min-height:22px;margin:7px 6px 0;padding:0 2px}
@@ -4189,14 +4189,14 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 @media (prefers-reduced-motion:reduce){.tykos.in,.tykr .tkp.pop{animation:none}.tykr .tkt{transition:none}}
 
 /* (v321) Skip on the bench plays a rewarded ad: a play mark on it, spinning while the ad gets ready */
-#mStrokes.sgp .sgskip.ad{display:inline-flex;align-items:center;gap:6px;padding:0 16px 2px 12px}
-#mStrokes.sgp .sgskip .sgadi{display:grid;place-items:center;width:18px;height:18px;flex:none}
-#mStrokes.sgp .sgskip .sgadi svg{width:18px;height:18px;display:block}
-#mStrokes.sgp .sgskip.busy{cursor:default}
-#mStrokes.sgp .sgskip.busy span{opacity:.55}
-#mStrokes.sgp .sgskip .sgspin{width:14px;height:14px;border-radius:50%;border:2.5px solid currentColor;border-right-color:transparent;animation:sgspin .7s linear infinite}
+:is(#mStrokes,#mLocker).sgp .sgskip.ad{display:inline-flex;align-items:center;gap:6px;padding:0 16px 2px 12px}
+:is(#mStrokes,#mLocker).sgp .sgskip .sgadi{display:grid;place-items:center;width:18px;height:18px;flex:none}
+:is(#mStrokes,#mLocker).sgp .sgskip .sgadi svg{width:18px;height:18px;display:block}
+:is(#mStrokes,#mLocker).sgp .sgskip.busy{cursor:default}
+:is(#mStrokes,#mLocker).sgp .sgskip.busy span{opacity:.55}
+:is(#mStrokes,#mLocker).sgp .sgskip .sgspin{width:14px;height:14px;border-radius:50%;border:2.5px solid currentColor;border-right-color:transparent;animation:sgspin .7s linear infinite}
 @keyframes sgspin{to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion:reduce){#mStrokes.sgp .sgskip .sgspin{animation-duration:1.6s}}
+@media (prefers-reduced-motion:reduce){:is(#mStrokes,#mLocker).sgp .sgskip .sgspin{animation-duration:1.6s}}
 /* (v321) in a browser, the stand-in for the ad */
 .adst{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:24px 16px;background:rgba(12,9,18,.94);color:#F4EEE3;animation:adstin .22s ease both}
 .adst[hidden]{display:none}
@@ -4221,13 +4221,13 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 #docModal .docb .adpriv{justify-self:start}
 
 /* (v322) the specials' demo: the flash of a Flash Freeze (or a rocket's landing) over the window */
-#mStrokes .sgflash{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0}
-#mStrokes .sgflash.ice{background:radial-gradient(ellipse at 50% 60%,rgba(255,255,255,.96) 0,rgba(214,242,255,.82) 40%,rgba(207,239,255,0) 78%)}
-#mStrokes .sgflash.w{background:radial-gradient(ellipse at 50% 64%,rgba(255,255,255,.8) 0,rgba(255,255,255,.3) 36%,rgba(255,255,255,0) 66%)}
-#mStrokes .sgflash.on{animation:sgflash .75s ease-out both}
+:is(#mStrokes,#mLocker) .sgflash{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0}
+:is(#mStrokes,#mLocker) .sgflash.ice{background:radial-gradient(ellipse at 50% 60%,rgba(255,255,255,.96) 0,rgba(214,242,255,.82) 40%,rgba(207,239,255,0) 78%)}
+:is(#mStrokes,#mLocker) .sgflash.w{background:radial-gradient(ellipse at 50% 64%,rgba(255,255,255,.8) 0,rgba(255,255,255,.3) 36%,rgba(255,255,255,0) 66%)}
+:is(#mStrokes,#mLocker) .sgflash.on{animation:sgflash .75s ease-out both}
 @keyframes sgflash{0%{opacity:0}10%{opacity:1}100%{opacity:0}}
 @keyframes sgflashq{0%{opacity:0}20%{opacity:.4}100%{opacity:0}}
-@media (prefers-reduced-motion:reduce){#mStrokes .sgflash.on{animation-name:sgflashq}}
+@media (prefers-reduced-motion:reduce){:is(#mStrokes,#mLocker) .sgflash.on{animation-name:sgflashq}}
 
 /* ---- (v326) Friends as a page: the Strokes page's lime wall, Back and taped banner; your tag, your code and the add box on the wall;
    the locker's graph-paper sheet for invites, requests and your friends. Sideways: the wall on the left, the sheet on the right */
@@ -4313,6 +4313,103 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 /* a narrow phone: a smaller tag and code, so they still sit side by side */
 @media (max-width:359px){#friendsModal .frhtop{gap:12px}#friendsModal .frtag{width:86px}#friendsModal .frtagc .frface{width:44px;height:44px;margin-top:6px}#friendsModal .frtagn b{font-size:11.5px}#friendsModal .frcode b{padding:8px 9px 6px;font-size:18px}#friendsModal .frcbtn{gap:9px}#friendsModal .frcbtn .frb{padding:0 12px}#friendsModal .frsht{font-size:22px}#friendsModal .frban h3{font-size:21px}}
 @media (prefers-reduced-motion:reduce){#friendsModal.frpage{animation:none}#friendsModal .frflag::after{animation:none}}
+
+/* ---- (v327) My Locker and the Paint Shop as one page on the Strokes page's base (its rules above are shared): the lime wall, the window
+   with you in it on the pad, the taped banner, the ink band with a tab for each. The panel is the locker's graph paper: its headings,
+   your paint and eyes, and the hang tags with an inked edge and a strip that says what each is to you */
+#mLocker.sgp{--kc:#2FD1C0;--panh:min(38vh,318px);--tabw:112px}
+#mLocker.sgp[data-tab="shop"]{--kc:#FFC61A}
+#mLocker.sgp .sgtab[data-tab="mine"]{--tc:#22C9B8;--tc2:#12AE9E}
+#mLocker.sgp .sgtab[data-tab="shop"]{--tc:#FFC61A;--tc2:#F2A900}
+#mLocker.sgp .sgtab .sgti .frface{width:38px;height:38px;filter:drop-shadow(1px 2px 0 rgba(23,19,32,.3))}
+#mLocker.sgp .sgtab .sgti>svg{width:34px;height:34px;filter:drop-shadow(1px 2px 0 rgba(23,19,32,.3))}
+#mLocker.sgp .lktn{display:block;padding:3px 7px 2px;border-radius:999px;background:var(--ink0);color:#fff;font:400 11px/1 var(--font-display);letter-spacing:.01em;white-space:nowrap;font-variant-numeric:tabular-nums}
+/* the badge: your dabs (a tap opens the shop) */
+#mLocker.sgp .lkcoin .sgbi svg{width:20px;height:20px}
+#mLocker.sgp .lkcoin.bump,#mLocker.sgp .sgban.bump,#mLocker.sgp .tpop{animation:tilepop .42s cubic-bezier(.2,1.6,.4,1)}
+#mLocker.sgp .sgdo.nope{animation:lknope .35s}
+@keyframes lknope{25%{translate:-5px 0}50%{translate:5px 0}75%{translate:-2px 0}}
+#mLocker.sgp .sgdo small{display:inline-flex;align-items:center;gap:3px;font-size:12px}
+#mLocker.sgp .sgdo .dropi{width:14px;height:14px}
+#mLocker.sgp .sgdo:disabled .dropi{opacity:.8}
+/* the window: before the character is in, your face on the wall */
+#mLocker.sgp .sgart .frface{position:relative;z-index:1;width:min(40%,150px);height:auto;filter:drop-shadow(3px 5px 0 rgba(23,19,32,.18));animation:sgbob 3.2s ease-in-out infinite}
+/* the panel: graph paper, hung from the bar */
+#mLocker.sgp .sgpanel{background:#F6F1E8 url(art/m_paperbg.webp) center/420px;box-shadow:0 0 0 2.5px var(--ink0),0 7px 0 rgba(23,19,32,.28),0 14px 26px rgba(23,19,32,.18)}
+#mLocker.sgp .sgscroll{padding:22px 16px 18px;scrollbar-color:rgba(23,19,32,.35) transparent}
+#mLocker.sgp .sgscroll::-webkit-scrollbar-thumb{background:rgba(23,19,32,.3)}
+#mLocker.sgp .lkpane{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+#mLocker.sgp .lkpane[hidden]{display:none}
+#mLocker.sgp .lkhd{display:flex;align-items:center;gap:10px;min-width:0;padding:2px 2px 0}
+#mLocker.sgp .lkh{margin:0;font:900 24px/.95 var(--font-head);text-transform:uppercase;letter-spacing:0;color:var(--black);white-space:nowrap;transform:skewX(-6deg);text-shadow:.04em .04em 0 #FFF8EA,.08em .08em 0 var(--black)}
+#mLocker.sgp .lkname{appearance:none;display:inline-flex;align-items:center;gap:6px;min-width:0;max-width:56%;height:32px;margin:0 0 0 auto;padding:0 10px 0 12px;border:0;border-radius:8px;background:#fff;color:var(--black);font:400 15px/1 var(--font-display);box-shadow:0 0 0 2px var(--ink0),2px 3px 0 rgba(23,19,32,.22);cursor:pointer;-webkit-tap-highlight-color:transparent}
+#mLocker.sgp .lkname span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-top:1px}
+#mLocker.sgp .lkname svg{flex:none;width:15px;height:15px}
+#mLocker.sgp .lkname:active{transform:translate(1px,2px);box-shadow:0 0 0 2px var(--ink0),1px 1px 0 rgba(23,19,32,.22)}
+#mLocker.sgp .lkcnt{margin-left:auto;padding:4px 9px 3px;border-radius:999px;background:var(--ink0);color:#fff;font:400 13px/1 var(--font-display);white-space:nowrap}
+#mLocker.sgp .lksec{display:flex;align-items:center;gap:8px;margin:8px 0 0;font:800 11px/1 var(--font-ui);letter-spacing:.16em;text-transform:uppercase;color:#5E566E}
+#mLocker.sgp .lksec::after{content:"";flex:1;height:2px;border-radius:2px;background:rgba(23,19,32,.12)}
+#mLocker.sgp .lksec i{font-style:normal;padding:2px 6px 1px;border-radius:999px;background:rgba(23,19,32,.1);letter-spacing:.04em}
+/* your paint: the six splats */
+#mLocker.sgp .lkpaints{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;justify-items:center;padding:2px 0}
+#mLocker.sgp .lkpaints .sw{width:100%;max-width:52px;height:48px}
+/* your eyes: the styles, then their colours */
+#mLocker.sgp .lkeyes{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;padding:2px 2px 4px}
+#mLocker.sgp .lkstyles,#mLocker.sgp .lkirises{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+#mLocker.sgp .lkstyles .eyes{width:44px;height:44px;border-radius:9px;box-shadow:0 0 0 2px var(--ink0),2px 3px 0 rgba(23,19,32,.2)}
+#mLocker.sgp .lkstyles .eyes svg{width:36px;height:36px}
+#mLocker.sgp .lkstyles .eyes[aria-pressed="true"]{box-shadow:0 0 0 3px var(--sel),0 0 0 5.5px var(--ink0);transform:translateY(-2px)}
+#mLocker.sgp .lkstyles .eyes .lk{right:-6px;top:-6px}
+#mLocker.sgp .lkirises .eyec{width:34px;height:34px}
+#mLocker.sgp .lkirises.off{opacity:.32;filter:grayscale(1)}
+#mLocker.sgp .lknone{margin:0;padding:2px 2px 4px;font:700 13px/1.35 var(--font-ui);color:#5E566E}
+#mLocker.sgp .lkgo{appearance:none;margin:0;padding:0;border:0;background:none;color:var(--black);font:800 13px/1.35 var(--font-ui);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;cursor:pointer}
+#mLocker.sgp .lkempty{display:grid;justify-items:center;gap:8px;margin:0;padding:16px 8px 6px;text-align:center;font:800 14px/1.35 var(--font-ui);color:#5E566E}
+#mLocker.sgp .lkempty svg{width:46px;height:46px}
+/* the hang tags on paper */
+#mLocker.sgp .sggrid{gap:18px 14px}
+#mLocker.sgp .sgcard::before{content:"";position:absolute;left:0;right:0;top:10px;bottom:0;border-radius:11px;box-shadow:0 0 0 2px var(--ink0),3px 4px 0 rgba(23,19,32,.16);pointer-events:none}
+#mLocker.sgp .sgcard .sghook{box-shadow:inset 0 0 0 2.6px #55555E,0 1px 0 rgba(0,0,0,.25)}
+#mLocker.sgp .sgcard .sgca .stimg{inset:-4% -6%;width:112%;height:108%}
+#mLocker.sgp .sgcard .sgca svg{inset:6%;width:88%;height:88%}
+#mLocker.sgp .sgcard .sgcf{gap:4px;min-height:21px}
+#mLocker.sgp .sgcard .sgcf b{font-weight:400}
+#mLocker.sgp .sgcard .sgcf .dropi{width:13px;height:13px;flex:none}
+#mLocker.sgp .sgcard .sgcf .lk{display:grid;place-items:center;width:12px;height:12px}
+#mLocker.sgp .sgcard .sgcf .lk svg{width:11px;height:11px}
+#mLocker.sgp .sgcard.sale .sgcf{background:#FFD34D}
+#mLocker.sgp .sgcard.broke .sgcf{background:#E9E4D6;color:#6E6680}
+#mLocker.sgp .sgcard.lock .sgcb{background-color:#E2DCCF}
+#mLocker.sgp .sgcard.lock .sgca{filter:grayscale(.9) opacity(.55)}
+#mLocker.sgp .sgcard.lock .sgcf{background:#CFC8DC;color:#3E3850}
+#mLocker.sgp .sgcard.on .sgcf{background:var(--ink0);color:var(--sel)}
+/* the Spooky SZN finds: a short banner over them */
+#mLocker.sgp .lkszn{position:relative;display:block;min-height:86px;margin:4px 0 4px;border-radius:14px;background:#2A1846;box-shadow:0 0 0 2.5px var(--ink0),0 5px 0 var(--ink0);color:#fff;isolation:isolate;overflow:hidden}
+#mLocker.sgp .lkszn .sbart{position:absolute;inset:0;z-index:-1;background:#2A1846 var(--sbbg) 72% 36%/cover no-repeat}
+#mLocker.sgp .lkszn .sbart::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(22,10,38,.94) 0%,rgba(22,10,38,.72) 46%,rgba(22,10,38,.12) 82%)}
+#mLocker.sgp .lkszt{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:5px;max-width:calc(100% - 86px);padding:10px 14px 11px;box-sizing:border-box}
+#mLocker.sgp .lkszt i{padding:4px 8px 3px;border-radius:5px;background:#FFF1D2;color:#171320;font:800 9.5px/1 var(--font-ui);font-style:normal;letter-spacing:.2em;text-transform:uppercase;transform:rotate(-3deg);box-shadow:2px 2px 0 rgba(0,0,0,.45)}
+#mLocker.sgp .lkszt b{font:400 27px/.95 var(--font-display);letter-spacing:.01em;text-transform:uppercase;white-space:nowrap;background:linear-gradient(180deg,#FFFBE0 0%,#FFE266 30%,#FFB429 62%,#FF6A1A 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 0 #171320)}
+#mLocker.sgp .lkszt small{display:flex;align-items:center;gap:7px;font:800 11px/1 var(--font-ui);color:#FFD27A;text-shadow:0 1px 0 rgba(0,0,0,.5)}
+#mLocker.sgp .lkszt small u{position:relative;display:block;width:62px;height:8px;border-radius:5px;background:rgba(0,0,0,.45);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.12)}
+#mLocker.sgp .lkszt small u::after{content:"";position:absolute;left:2px;top:2px;bottom:2px;width:calc((100% - 4px) * var(--p,0));min-width:4px;border-radius:3px;background:linear-gradient(180deg,#FFD04A,#FF7A1A)}
+#mLocker.sgp .lkszn .lkpump{position:absolute;right:-4px;bottom:-12px;width:94px;height:auto;pointer-events:none;filter:drop-shadow(0 4px 0 rgba(23,19,32,.5))}
+/* the code that unlocks everything, at the foot of the paper */
+#mLocker.sgp .stucode .ulink{color:#6E6680}
+#mLocker.sgp .stucode .uform input{border-color:var(--ink0)}
+/* a word from the page */
+#mLocker .sttoast{position:absolute;left:50%;top:calc(var(--gt) + 64px);z-index:9;transform:translateX(-50%);padding:9px 14px;border-radius:999px;background:#171320;color:#fff;font:800 13px/1 var(--font-ui);box-shadow:0 0 0 2px var(--gold);white-space:nowrap;animation:sttoast 2.2s ease both;pointer-events:none}
+#mLocker.sgp .sgfoot .sgline{min-height:1.25em;text-shadow:0 0 3px #F4FAD8,0 0 7px rgba(244,250,216,.85)}
+@media (min-aspect-ratio:1/1){
+  #mLocker.sgp{--panw:52%}
+  #mLocker.sgp .sttoast{left:calc(var(--panw) + (100% - var(--panw)) / 2);top:calc(var(--gt) + 62px);bottom:auto}
+  #mLocker.sgp .sgtab .sgti .frface{width:clamp(24px,7.4vh,38px);height:clamp(24px,7.4vh,38px)}
+  #mLocker.sgp .sgtab .sgti>svg{width:clamp(22px,7vh,34px);height:clamp(22px,7vh,34px)}
+}
+@media (max-aspect-ratio:1/1) and (max-height:700px){#mLocker.sgp{--panh:min(31vh,236px)}#mLocker.sgp .sgscroll{padding-top:20px}}
+@media (min-aspect-ratio:1/1) and (max-height:430px){#mLocker.sgp .lkh{font-size:20px}#mLocker.sgp .lkszn{min-height:72px}#mLocker.sgp .lkszt b{font-size:22px}#mLocker.sgp .lkszn .lkpump{width:78px}#mLocker.sgp .lktn{font-size:10px}}
+@media (max-width:359px){#mLocker.sgp{--tabw:100px}#mLocker.sgp .lkh{font-size:20px}#mLocker.sgp .lkstyles,#mLocker.sgp .lkirises{gap:8px}#mLocker.sgp .lkstyles .eyes{width:38px;height:38px}#mLocker.sgp .lkstyles .eyes svg{width:30px;height:30px}#mLocker.sgp .lkirises .eyec{width:30px;height:30px}#mLocker.sgp .lkszt b{font-size:23px}}
+@media (prefers-reduced-motion:reduce){#mLocker.sgp .sgart .frface,#mLocker.sgp .lkcoin.bump,#mLocker.sgp .sgban.bump,#mLocker.sgp .tpop,#mLocker.sgp .sgdo.nope{animation:none}}
 </style>
 
 <div id="stage">
@@ -4415,6 +4512,31 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <button class="sgtab" id="stItem" type="button" role="tab" data-cat="item" aria-controls="stItemRail"><b class="sgtt">Transforms</b><span class="sgtb"><span class="sgti" id="stItemNow"></span><span class="sgdots" id="sgDots_item" aria-hidden="true"></span></span></button>
       </div>
     </div>
+    <div class="mevents sgp sgx lkp" id="mLocker" hidden data-tab="mine">
+      <div class="sgbg" id="lkBg" aria-hidden="true"></div><div class="sgink" aria-hidden="true"></div>
+      <h2 class="sgvh" id="lkTitle">My Locker and the Paint Shop</h2>
+      <button class="sgback" id="lkBack" type="button" aria-label="Back to the lobby"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M12.6 7.4 6.2 13.6l6.4 6.2" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.4 13.6h11.2a6.4 6.4 0 0 1 0 12.8h-4.4" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round"/></svg><span>Back</span></button>
+      <button class="sgbadge lkcoin" id="lkCoin" type="button" aria-label="Dabs. Open the Paint Shop"><span class="sgbi" id="lkCoinI" aria-hidden="true"></span><b id="lkCoinN">0</b></button>
+      <div class="sgshow" id="lkShow">
+        <div class="sgstage" id="lkStage"><span class="sgart" id="lkArt" aria-hidden="true"></span><i class="sgflash" id="lkFlash" aria-hidden="true"></i></div>
+        <div class="sgban" id="lkBan"><small id="lkKind">My Locker</small><b id="lkName">You</b><i class="sgflag" aria-hidden="true"></i></div>
+        <button class="sgrot" id="lkRot" type="button" aria-label="Turn around" hidden><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="5.2" fill="currentColor"/><path d="M6.6 12.4a10 10 0 0 1 17.6-3.2M25.4 19.6a10 10 0 0 1-17.6 3.2" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M24.6 4.6l.2 5.4-5.4.4M7.4 27.4l-.2-5.4 5.4-.4" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <div class="sgfoot"><p class="sgline" id="lkLine"></p>
+          <div class="sgact"><button class="sgdo" id="lkDo" type="button" hidden>Equip</button><button class="sgib" id="lkOff" type="button" hidden><span>Take off</span></button></div>
+          <p class="sgnote" id="lkNote" hidden></p></div>
+      </div>
+      <section class="sgpanel" id="lkPanel" aria-labelledby="lkPanH"><i class="sghang" aria-hidden="true"></i><h3 class="sgvh" id="lkPanH">My Locker</h3>
+        <div class="sgscroll" id="lkScroll">
+          <div class="lkpane" id="lkPaneMine" role="tabpanel" aria-labelledby="lkTabMine"></div>
+          <div class="lkpane" id="lkPaneShop" role="tabpanel" aria-labelledby="lkTabShop" hidden></div>
+          <div class="ucode stucode" id="lkUcode"><button class="ulink" id="lkUnlockLink" type="button">Unlock all items</button><form class="uform" id="lkUnlockForm" hidden><input id="lkUnlockCode" type="text" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="Code" aria-label="Unlock code"><button class="ugo" type="submit">Unlock</button></form></div>
+        </div>
+      </section>
+      <div class="sgtabs" id="lkTabs" role="tablist" aria-label="Your locker and the Paint Shop">
+        <button class="sgtab" id="lkTabMine" type="button" role="tab" data-tab="mine" aria-controls="lkPaneMine"><b class="sgtt">My Locker</b><span class="sgtb"><span class="sgti" id="lkTabMineI"></span><span class="lktn" id="lkTabMineN"></span></span></button>
+        <button class="sgtab" id="lkTabShop" type="button" role="tab" data-tab="shop" aria-controls="lkPaneShop"><b class="sgtt">Paint Shop</b><span class="sgtb"><span class="sgti" id="lkTabShopI"></span><span class="lktn" id="lkTabShopN"></span></span></button>
+      </div>
+    </div>
     <div class="mevents" id="mEvents" hidden><div class="evwash" aria-hidden="true"><i></i></div>
       <div class="evhead"><button class="sback" id="evBack" type="button" aria-label="Back to the lobby"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4.5 7.5 12l7.5 7.5" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2 id="evTitle">Choose event</h2></div>
       <button class="evmore" id="evMore" type="button" aria-label="More events below" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9.5l6 6 6-6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="evgrid" id="evGrid" role="group" aria-labelledby="evTitle">
@@ -4461,7 +4583,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 326</p>
+      <p class="ver">Version 327</p>
     </div>
   </div>
 
@@ -20031,7 +20153,7 @@ function showNewItem(id) {
 function hideNewItem() { const el = $('newItem'); el.classList.remove('on'); el.hidden = true; newItem = null; }
 $('niGo').addEventListener('click', () => { AU.init(); AU.ui(); hideNewItem(); if (state === 'dead') showEnd(endImg); });
 $('niTry').addEventListener('click', () => { AU.init(); AU.ui(); const id = [].concat(newItem)[0], w = ITEMS.find(x => x.id === id); hideNewItem(); if (w) { lookCat = w.cat; if (bought(w.id)) { if (w.cat !== 'face') for (const o of WEAR) if (o.cat === w.cat && o.slot !== w.slot) myLook[o.slot] = null; myLook[w.slot] = w.id; store.fresh = (store.fresh || []).filter(x => x !== id); saveLook(); } }
-  irisClose(() => { end.hidden = true; showMenu(); camSnap = true; irisOpen(); if (w && !bought(w.id)) { openShop('lobby'); return; } openLook(); const t = w && $('lookRail').querySelector('[data-w="' + w.id + '"]'); if (t) { const r = $('lookRail'); r.scrollLeft = Math.max(0, t.offsetLeft - (r.clientWidth - t.offsetWidth) / 2); railEdge(); } }); });
+  irisClose(() => { end.hidden = true; showMenu(); camSnap = true; irisOpen(); openLocker(w && !bought(w.id) ? 'shop' : 'mine', w ? w.id : null); }); }); // (v327: tried on in the shop, or picked out in the locker)
 // ---------- knocked out: the paint of whoever got you floods the screen, a badge says who with the count to your comeback, and when
 // you come back the paint parts round a ragged hole to show where ----------
 const kofEl = $('kof'), kofC = $('kofC'), kofG = kofC.getContext('2d'); let kof = null;
@@ -20267,7 +20389,7 @@ function snapshotPainting() {
 
 // ---------- menus ----------
 const hud = $('hud'), menu = $('menu'), end = $('end'), pauseEl = $('pause'), nameModal = $('nameModal');
-function paintName() { const n = playerName(); NAMES[0] = n; nmSet($('nameShow'), store.name ? n : 'Name'); nmSet($('pbName'), n); nmSet($('lookNameTxt'), n); }
+function paintName() { const n = playerName(); NAMES[0] = n; nmSet($('nameShow'), store.name ? n : 'Name'); nmSet($('pbName'), n); nmSet($('lookNameTxt'), n); nmSet($('lkNameT'), n); { const b = $('lkName'); if (b && b.dataset.def === '1') nmSet(b, n); } }
 let nameFirst = false;
 function openName(first) {
   nameFirst = !!first; const inp = $('nameInput');
@@ -20335,7 +20457,7 @@ if (!Array.isArray(store.bought)) { store.bought = [...BOUGHT]; }
 if (!(store.drops >= 0)) store.drops = 0;
 const bought = id => BOUGHT.has(id);
 function buyItem(id) { const w = ITEMS.find(x => x.id === id); if (!w || (!OWNED.has(id) && needFind(w)) || BOUGHT.has(id) || store.drops < PRICE(w)) return false; store.drops -= PRICE(w); OWNED.add(id); store.owned = [...OWNED]; BOUGHT.add(id); store.bought = [...BOUGHT]; store.fresh = [...new Set([...(store.fresh || []), id])]; save(); return true; }
-function showDrops() { const n = store.drops || 0; if ($('statDrops')) $('statDrops').lastChild.nodeValue = String(n); if ($('lkBalN')) $('lkBalN').textContent = String(n); if ($('lkDabsN')) $('lkDabsN').textContent = String(n); }
+function showDrops() { const n = store.drops || 0; if ($('statDrops')) $('statDrops').lastChild.nodeValue = String(n); if ($('lkBalN')) $('lkBalN').textContent = String(n); if ($('lkDabsN')) $('lkDabsN').textContent = String(n); if ($('lkCoinN')) $('lkCoinN').textContent = String(n); }
 const owns = id => OWNED.has(id);
 function unlockItem(id) { if (OWNED.has(id)) return false; OWNED.add(id); store.owned = [...OWNED]; store.fresh = [...new Set([...(store.fresh || []), id])]; store.seen = store.seen || {}; store.seen.look = 0; save(); $('lookBtn').classList.add('hot'); return true; }
 if (typeof store.itemIn !== 'number') store.itemIn = 4 + Math.floor(Math.random() * 5); // matches to go before the next item can turn up
@@ -20448,7 +20570,7 @@ function commClaim(id, btn) {
   setTimeout(() => { if (card.isConnected) { card.classList.remove('claim'); card.classList.add('got'); btn.remove(); } }, 1350); // (the button folds away; the card is a finished one)
 }
 $('commList').addEventListener('click', e => { const b = e.target.closest('.cclaim'); if (!b || b.disabled) return; AU.init(); commClaim(b.dataset.id, b); });
-function openComms() { if (state !== 'menu' || lookOpen || !commsDue()) return;
+function openComms() { if (state !== 'menu' || lookOpen || lkOn() || !commsDue()) return;
   const c = commState(); renderComms(); store.commSeen = c.done.length; save(); $('commModal').hidden = false; commWallet(true); commBadgePaint();
   // each newly finished job: its ribbon slaps on, one after another, with its sound; then its Claim button pops up under it
   let i = 0; for (const card of $('commList').querySelectorAll('.comm.fresh')) { const d = 0.3 + i * 0.45, st = card.querySelector('.cstripe'), b = card.querySelector('.cclaim');
@@ -20727,7 +20849,7 @@ function renderStrokes() {
 }
 function strokesFrame() { if (!strokesOpen() || ADS.hold) return; const d = strokesOf(); if (d.craft) { const id = d.craft.id; if (!craftTick()) { renderStrokes(); stToast(stReady(id)); } else { const sp = stDef(id), p = stPct(sp), t = mmss(craftLeft()); for (const el of document.querySelectorAll('#mStrokes .sgcard.crafting')) { el.style.setProperty('--p', p); const b = el.querySelector('.sgcf b'); if (b) b.textContent = t; } $('sgBadgeT').textContent = t; if (sgSelId(stCat) === id) sgBench(sp); if (stPopId === id) stPopRender(); } } }
 function openStrokes() {
-  if (state !== 'menu' || building || lookOpen || shopOpen || strokesOpen()) return;
+  if (state !== 'menu' || building || lookOpen || shopOpen || strokesOpen() || lkOn()) return;
   if (menuPage === 'worlds') { closeSeason(); $('mWorld').hidden = true; } if (menuPage === 'events') closeEvents();
   if (!store.abilSeen) { store.abilSeen = 1; save(); } /* (v306: having seen it opens Play online) */ stSkillSel = null; stCat = 'special'; SG_PICK.special = SG_PICK.skill = SG_PICK.item = null; SGD.yaw = SG_YAW0; menuPage = 'strokes'; menu.dataset.page = 'strokes'; $('mHome').hidden = true; $('mStrokes').hidden = false; document.body.classList.add('evon', 'stpage'); closeSide(true); renderStrokes(); adWarm();
   for (const c of $('mStrokes').querySelectorAll('.sgtab')) { c.style.animation = 'none'; void c.offsetWidth; c.style.animation = ''; } { const r = $('stSpecialRail'); r.classList.remove('in'); void r.offsetWidth; r.classList.add('in'); }
@@ -20764,6 +20886,9 @@ const SG_L = 5, SG_X = 640, SG_Z = 640, SG_R = 1.8, SG_YAW0 = 0.42;
 const SGD = { built: false, on: false, ready: false, kind: '', id: null, t: 0, loop: 0, side: 1, yaw: SG_YAW0, yawTo: null, drag: null, rectDirty: true, rect: { x: 0, y: 0, w: 0, h: 0 }, insT: 0, insB: 0, hole: '', ev: {}, calls: 0, cpu: 0, frames: 0 };
 const sgT1 = new THREE.Vector3(), sgT2 = new THREE.Vector3(), sgT3 = new THREE.Vector3(), sgM = new THREE.Matrix4(), sgQ = new THREE.Quaternion(), sgS = new THREE.Vector3(), sgVp = new THREE.Vector4(), sgSc = new THREE.Vector4(), sgCol = new THREE.Color(), sgHemiC = new THREE.Color(), sgHemiG = new THREE.Color(), sgSunC = new THREE.Color(), sgSunP = new THREE.Vector3(), sgSunT = new THREE.Vector3(), sgRimP = new THREE.Vector3(), sgRimT = new THREE.Vector3(), sgRimC = new THREE.Color(), sgRigC = new THREE.Color(), sgDir = new THREE.Vector3();
 const SG_PAPER = '#F6F0E2';
+// (v327) the window's page: the Strokes page, or the locker's
+const SGH = { st: { pg: $('mStrokes'), stage: $('sgStage'), ban: $('sgBan'), rot: $('sgRot'), bg: $('sgBg'), flash: $('sgFlash'), foot: $('mStrokes').querySelector('.sgfoot') } };
+const sgH = () => lkOn() ? SGH.lk || (SGH.lk = { pg: $('mLocker'), stage: $('lkStage'), ban: $('lkBan'), rot: $('lkRot'), bg: $('lkBg'), flash: $('lkFlash'), foot: $('mLocker').querySelector('.sgfoot') }) : SGH.st;
 const SG_T = { roller: 6.2, turret: 5.6, trap: 6.4, whirl: 6.0, boom: 5.4, rocket: 5.8, giant: 5.8, freeze: 6.6 }; // (v322: the specials too)
 function sgLayer(o) { o.traverse(m => { if (m.material && m.material.depthFunc === THREE.GreaterDepth) { m.layers.mask = 0; return; } m.layers.set(SG_L); }); }
 // a character for the demo: the game's own (made as a CPU's is), in a team's colour
@@ -20791,7 +20916,7 @@ function sgBuild() {
   const side = new THREE.Mesh(new THREE.CylinderGeometry(SG_R + 0.02, SG_R * 0.96, 0.3, 72, 1, true).translate(0, -0.15, 0), toon(0x2A2437));
   const rim = new THREE.Mesh(new THREE.RingGeometry(SG_R - 0.05, SG_R + 0.025, 72).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x171320 })); rim.position.y = 0.006; rim.renderOrder = 3;
   const gsh = new THREE.Mesh(SGD.shG, lobbyShadow.material); gsh.position.y = -0.31; gsh.scale.set(SG_R * 2.9, 1, SG_R * 2.3); gsh.renderOrder = 0;
-  root.add(top, side, rim, gsh); SGD.pad = top;
+  root.add(top, side, rim, gsh); SGD.pad = top; SGD.padMs = [top, side, rim, gsh].map(m => [m, m.scale.clone()]); SGD.padR2 = SG_R * SG_R; // (v327: the pad's pieces, made smaller in dress mode)
   // the characters: you and a rival
   SGD.A = sgActor(0, true); SGD.B = sgActor(1, false); SGD.AB = [SGD.A, SGD.B];
   // drops of paint (the game's own drop, in one draw), rings (the game's shockwave), shots (the turret's own glob and its outline)
@@ -20846,7 +20971,7 @@ function sgRing(x, z, r, hex) { let f = SGD.rings[0]; for (const q of SGD.rings)
 function sgFx(dt) {
   const P0 = SGD.parts, im = SGD.pim, ca = im.instanceColor.array; let n = 0;
   for (let i = 0; i < P0.length; i++) { const p = P0[i]; if (p.life <= 0) continue; p.life -= dt; if (p.life <= 0) continue;
-    if (!p.rest) { p.vy -= 12 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; if (p.y < 0.04 && p.x * p.x + p.z * p.z < SG_R * SG_R) { p.y = 0.04; p.vx = p.vy = p.vz = 0; p.rest = true; } else if (p.y < -3) p.life = 0; }
+    if (!p.rest) { p.vy -= 12 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; if (p.y < 0.04 && p.x * p.x + p.z * p.z < SGD.padR2) { p.y = 0.04; p.vx = p.vy = p.vz = 0; p.rest = true; } else if (p.y < -3) p.life = 0; }
     const sc = Math.max(0.01, Math.min(1, p.life * 2)) * p.sz * 0.9, sp = p.rest ? 0 : Math.hypot(p.vx, p.vy, p.vz);
     sgT1.set(p.x, p.y, p.z); if (sp > 0.6) { sgT2.set(p.vx, p.vy, p.vz).normalize(); sgQ.setFromUnitVectors(sgT3.set(0, 0, 1), sgT2); sgS.set(sc * 0.85, sc * 0.85, sc * (1 + sp * 0.09)); } else { sgQ.identity(); sgS.set(sc * 1.15, sc * 0.6, sc * 1.15); }
     sgM.compose(sgT1, sgQ, sgS); im.setMatrixAt(n, sgM); ca[n * 3] = p.r; ca[n * 3 + 1] = p.g; ca[n * 3 + 2] = p.b; n++; }
@@ -20867,6 +20992,7 @@ function sgBack(B, x, z, yaw) { sgAt(B, x, z, yaw); const D = B.D; D.st = 'play'
 function sgReset(A) { const D = A.D; D.st = 'play'; D.power = null; D.turret = null; D.rollT = 0; D.flatT = 0; D.stunT = 0; D.paint = 1; D.dry = false; D.squash = 0; D.wob = 0; D.spd = 0; D.turn = 0; D.air = false; D.vy = 0; D.emoT = 0; D.rocket = null; D.giantT = 0; D.frozenT = 0; D.slam = false; D.y = 0; D.iceShk = 0; D.gkMax = SG_GK; A.V.gk = 1; A.show = true; A.ko = 0; ipReset(D); }
 // ---- each transform, start to end, then again from the other side
 function sgLoop() {
+  if (SGD.kind === 'dress') return sgDressStart(); SGD.dk = SGD.fz = 0; for (const [m, sc] of SGD.padMs) m.scale.copy(sc); SGD.padR2 = SG_R * SG_R; SGD.A.col.set(TEAMS[0].wet); SGD.A.L.wearing = myLook; // (v327: the locker's dress mode; the demos in your paint as it is now)
   // (the ones that travel start the next time from the other side)
   const k = SGD.kind, s = SGD.side = k === 'turret' || k === 'boom' ? 1 : SGD.loop++ % 2 ? -1 : 1, A = SGD.A, B = SGD.B; SGD.t = 0; SGD.ev = {};
   sgReset(A); sgReset(B); SGD.trap.visible = SGD.wg.visible = SGD.lane.visible = SGD.boom.visible = false; SGD.mk.visible = SGD.mkF.visible = SGD.mkB.visible = SGD.ice.visible = false; SGD.iceK = 0; SGD.sp = {}; SGD.zk = 0; for (const q of SGD.shots) q.on = false; if (SGD.bm) SGD.bm.on = false; if (SGD.whirl) SGD.whirl.ph = '';
@@ -20963,7 +21089,7 @@ const sgShk = k => { SGD.shk = Math.max(SGD.shk || 0, k); };
 // (the specials' places are in the window's own terms, as the camera first sits: u across it, w toward you; s flips u)
 const sgCS = (u, w) => [Math.cos(SG_YAW0) * u + Math.sin(SG_YAW0) * w, Math.cos(SG_YAW0) * w - Math.sin(SG_YAW0) * u];
 const sgAtC = (A, u, w) => { const p = sgCS(u, w); sgAt(A, p[0], p[1]); };
-function sgFlash(kind) { const f = $('sgFlash'); if (!f) return; f.className = 'sgflash ' + kind; void f.offsetWidth; f.classList.add('on'); }
+function sgFlash(kind) { const f = sgH().flash; if (!f) return; f.className = 'sgflash ' + kind; void f.offsetWidth; f.classList.add('on'); }
 // the rocket's paint jet, from the pack on its back: down on the way up, up on the way down
 function sgJet(A, dir, k, dt) { const D = A.D, fx = Math.sin(D.yaw), fz = Math.cos(D.yaw), sc = PR * 1.25, bx = sgLX(A) - fx * sc, bz = sgLZ(A) - fz * sc, by = D.y + PR * (dir > 0 ? 1.9 : 0.35);
   SGD.jet = (SGD.jet || 0) + dt * 70 * k; while (SGD.jet >= 1) { SGD.jet -= 1; const a = Math.random() * 6.2832, sp = Math.random() * 1.2; sgPart(bx + Math.cos(a) * 0.06, by, bz + Math.sin(a) * 0.06, Math.cos(a) * sp, dir * (4 + Math.random() * 4) + D.vy * 0.3, Math.sin(a) * sp, 0.2 + Math.random() * 0.15, A.col, 0.35 + Math.random() * 0.35); } }
@@ -21089,22 +21215,24 @@ function sgVis(dt) {
     if (m.visible) { const gk = B.V.gk || 1, k = gk * (0.6 + 0.4 * SGD.iceK), sh = D.iceShk || 0; if (sh > 0) D.iceShk = Math.max(0, sh - dt * 5); const jx = sh * 0.07 * Math.sin(SGD.t * 97), jz = sh * 0.07 * Math.cos(SGD.t * 83);
       m.position.set(sgLX(B) + jx, 0.28 * gk, sgLZ(B) + jz); m.rotation.set(0.15 + sh * 0.14 * Math.sin(SGD.t * 71), D.yaw + 0.4, 0.1 + sh * 0.14 * Math.cos(SGD.t * 89)); m.scale.set(k * (1 + 0.05 * sh), 0.66 * k, 1.35 * k); } }
   sgShots(dt); sgFx(dt);
+  if (SGD.popId && SGD.kind === 'dress') { SGD.popT += dt; const u = Math.min(1, SGD.popT / 0.6), k = Math.max(0.001, easeElastic(u)), W = SGD.A.L.wear, o = W[LK_POP[SGD.popId] || SGD.popId]; for (const m of [].concat(o || [])) if (m && m.visible && W.bs && W.bs.has(m)) m.scale.multiplyScalar(k); if (u >= 1) SGD.popId = null; } // (v327)
 }
 // (the pad framed in what the banner above it and the button below it leave clear of the window)
 function sgCamFit() {
   const r = SGD.rect, C = SGD.cam, asp = r.w / Math.max(1, r.h), fh = Math.max(40, r.h - SGD.insT - SGD.insB); C.aspect = asp; C.fov = 30;
   if (SGD.yawTo !== null) { SGD.yaw += (SGD.yawTo - SGD.yaw) * 0.18; if (Math.abs(SGD.yawTo - SGD.yaw) < 0.002) { SGD.yaw = SGD.yawTo; SGD.yawTo = null; } }
-  const vt = Math.tan(C.fov * Math.PI / 360), ht = vt * asp, el = 0.48, R = SG_R * 1.04, dist = Math.max(R / (0.94 * ht), (R * Math.sin(el) + 0.55) / (0.9 * vt * fh / r.h)) * (1 + 0.14 * (SGD.zk || 0)), cy = Math.sin(el) * dist, cz = Math.cos(el) * dist;
-  C.position.set(SG_X + Math.sin(SGD.yaw) * cz, cy + 0.2, SG_Z + Math.cos(SGD.yaw) * cz); if (SGD.shk > 0 && !reduceMotion) { const a = SGD.shk * 0.09; C.position.x += (Math.random() - 0.5) * a; C.position.y += (Math.random() - 0.5) * a; C.position.z += (Math.random() - 0.5) * a; } C.up.set(0, 1, 0); C.lookAt(SG_X, 0.2 + 0.3 * (SGD.zk || 0), SG_Z);
+  const dk = SGD.kind === 'dress' ? SGD.dk || 0 : 0, fz = dk ? SGD.fz || 0 : 0, ty = 0.2 + (0.26 + 0.12 * fz - 0.2) * dk, R0 = SG_R * 1.04, Rd = SG_R * LK_PAD * 1.04 * (1 - fz) + 0.74 * fz; // (v327: dress mode: the small pad whole, or your face)
+  const vt = Math.tan(C.fov * Math.PI / 360), ht = vt * asp, el = 0.48 + (0.38 - 0.1 * fz - 0.48) * dk, R = R0 + (Rd - R0) * dk, hc = 0.55 + (0.62 - 0.3 * fz - 0.55) * dk, dist = Math.max(R / (0.94 * ht), (R * Math.sin(el) + hc) / (0.9 * vt * fh / r.h)) * (1 + 0.14 * (SGD.zk || 0)), cy = Math.sin(el) * dist, cz = Math.cos(el) * dist;
+  C.position.set(SG_X + Math.sin(SGD.yaw) * cz, cy + ty, SG_Z + Math.cos(SGD.yaw) * cz); if (SGD.shk > 0 && !reduceMotion) { const a = SGD.shk * 0.09; C.position.x += (Math.random() - 0.5) * a; C.position.y += (Math.random() - 0.5) * a; C.position.z += (Math.random() - 0.5) * a; } C.up.set(0, 1, 0); C.lookAt(SG_X, ty + 0.3 * (SGD.zk || 0), SG_Z);
   C.setViewOffset(r.w, r.h, 0, -(SGD.insT - SGD.insB) / 2, r.w, r.h); C.updateProjectionMatrix(); C.updateMatrixWorld();
 }
 function sgRectUpdate() {
-  SGD.rectDirty = false; const el = $('sgStage'), r = el.getBoundingClientRect(), r0 = stage.getBoundingClientRect(), x = Math.round(r.left - r0.left), y = Math.round(r.top - r0.top), w = Math.round(r.width), h = Math.round(r.height);
+  SGD.rectDirty = false; const H0 = sgH(), el = H0.stage, r = el.getBoundingClientRect(), r0 = stage.getBoundingClientRect(), x = Math.round(r.left - r0.left), y = Math.round(r.top - r0.top), w = Math.round(r.width), h = Math.round(r.height);
   SGD.rect.x = x; SGD.rect.y = y; SGD.rect.w = w; SGD.rect.h = h;
-  const bn = $('sgBan').getBoundingClientRect(), ft = $('mStrokes').querySelector('.sgfoot').getBoundingClientRect();
-  SGD.insT = bn.height > 0 ? clamp(bn.bottom - r.top + 4, 0, h * 0.4) : 0; SGD.insB = ft.height > 0 ? clamp(r.bottom - ft.top + 2, 0, h * 0.4) : 0; $('sgRot').style.bottom = ft.height > 0 ? Math.round(r.bottom - ft.top + 8) + 'px' : '';
+  const bn = H0.ban.getBoundingClientRect(), ft = H0.foot.getBoundingClientRect();
+  SGD.insT = bn.height > 0 ? clamp(bn.bottom - r.top + 4, 0, h * 0.4) : 0; SGD.insB = ft.height > 0 ? clamp(r.bottom - ft.top + 2, 0, h * 0.4) : 0; H0.rot.style.bottom = ft.height > 0 ? Math.round(r.bottom - ft.top + 8) + 'px' : '';
   const hole = w > 4 && h > 4 ? 'polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, ' + x + 'px ' + y + 'px, ' + (x + w) + 'px ' + y + 'px, ' + (x + w) + 'px ' + (y + h) + 'px, ' + x + 'px ' + (y + h) + 'px, ' + x + 'px ' + y + 'px)' : '';
-  if (hole !== SGD.hole) { SGD.hole = hole; $('sgBg').style.clipPath = hole; }
+  if (hole !== SGD.hole) { SGD.hole = hole; H0.bg.style.clipPath = hole; }
 }
 function sgRender() {
   const r = SGD.rect, H = stage.clientHeight, pr = renderer.getPixelRatio(), t0 = performance.now(); sgCamFit();
@@ -21135,7 +21263,7 @@ function sgRender() {
   SGD.calls = calls; SGD.cpu = performance.now() - t0; SGD.frames++;
 }
 // ---- when it runs: the Transforms tab up, nothing over the page, the app in view
-const sgWant = () => strokesOpen() && stCat !== 'skill' && !!SGD.kind && $('stPop').hidden && !document.hidden && state === 'menu' && !building && !irisBusy && !lobbyCovered() && commModalEl.hidden && friendsModalEl.hidden && onModalEl.hidden && !vic;
+const sgWant = () => (strokesOpen() ? stCat !== 'skill' && !!SGD.kind && $('stPop').hidden : lkOn() && SGD.kind === 'dress') && !document.hidden && state === 'menu' && !building && !irisBusy && !lobbyCovered() && commModalEl.hidden && friendsModalEl.hidden && onModalEl.hidden && !vic;
 function sgDemoPick(id) { const k = id && SG_T[id] ? id : ''; if (k === SGD.kind && id === SGD.id) return; SGD.kind = k; SGD.id = id; if (k && SGD.built) { sgPaintClear(); SGD.loop = 0; sgLoop(); } }
 function sgTick(rdt) {
   if (!sgWant()) { if (SGD.on) sgPause(); return; }
@@ -21143,11 +21271,11 @@ function sgTick(rdt) {
   if (!SGD.on) { SGD.on = true; sgHole(true); if (!SGD.started || SGD.startedK !== SGD.kind) { SGD.started = true; SGD.startedK = SGD.kind; sgPaintClear(); SGD.loop = 0; sgLoop(); } }
   if (SGD.rectDirty) sgRectUpdate(); if (SGD.rect.w < 8 || SGD.rect.h < 8) return;
   const dt = Math.min(0.05, Math.max(0, rdt));
-  if (!reduceMotion) sgStep(dt);
+  if (SGD.kind === 'dress') sgDress(dt); else if (!reduceMotion) sgStep(dt);
   sgVis(dt); sgRender();
 }
 // the window in the page's wall: open while the demo draws, shut (the wall whole again) while it doesn't
-function sgHole(on) { const pg = $('mStrokes'); pg.classList.toggle('sghole', on); pg.classList.toggle('sgdemo', on); $('sgRot').hidden = !on; if (on) SGD.rectDirty = true; else { SGD.hole = ''; $('sgBg').style.clipPath = ''; } }
+function sgHole(on) { const H0 = sgH(), pg = H0.pg; pg.classList.toggle('sghole', on); pg.classList.toggle('sgdemo', on); H0.rot.hidden = !on; if (on) SGD.rectDirty = true; else { SGD.hole = ''; H0.bg.style.clipPath = ''; } }
 function sgPause() { if (!SGD.on) return; SGD.on = false; sgHole(false); }
 function sgStop() { sgPause(); SGD.started = false; if (SGD.built) { SGD.root.visible = false; SGD.A.L.drop.visible = SGD.B.L.drop.visible = false; } }
 window.addEventListener('resize', () => { SGD.rectDirty = true; if (strokesOpen()) setTimeout(sgFitName, 60); });
@@ -21254,7 +21382,7 @@ gallery.addEventListener('scroll', () => { if (galT) return; galT = requestAnima
 let worldDirty = false;
 function worldBuild(s) { if (state !== 'menu') return; if (menuPage === 'worlds') { worldDirty = true; return; } setTimeout(() => { if (state !== 'menu' || building || (s && stageSel !== s)) return; freshMap(); resetRun(); decorate(); menuPose(); renderStages(); kick($('cvName'), 'bump'); }, 40); }
 function openWorlds() {
-  if (state !== 'menu' || building || lookOpen || menuPage === 'worlds') return;
+  if (state !== 'menu' || building || lookOpen || menuPage === 'worlds' || lkOn()) return;
   menuPage = 'worlds'; menu.dataset.page = 'worlds'; $('mHome').hidden = true; $('mWorld').hidden = false; for (const im of $('mWorld').querySelectorAll('img.art')) if (im.decode) im.decode().catch(() => {});
   renderModes(); renderStages(); $('worldTitle').textContent = mode === 'solo' ? 'Pick a canvas' : 'Vote for a canvas';
   centerWorld(worldBtns.find(b => b.dataset.s === stageSel), false); renderWorlds();
@@ -21282,7 +21410,7 @@ function closeWorlds() {
 }
 $('gPrev').addEventListener('click', () => { AU.init(); stepWorld(-1); }); $('gNext').addEventListener('click', () => { AU.init(); stepWorld(1); });
 function stepWorld(dir) { const open = worldBtns.filter(b => b.dataset.s !== 'next'), i = open.findIndex(b => b.dataset.s === stageSel), b = open[clamp(i + dir, 0, open.length - 1)]; if (b) { centerWorld(b, true); selectWorld(b.dataset.s); renderWorlds(); } }
-$('homePlay').addEventListener('click', () => { AU.init(); if (state !== 'menu' || building || lookOpen || shopOpen) return; AU.pop(); if (tutMatchDue()) start(); else openEvents(); });
+$('homePlay').addEventListener('click', () => { AU.init(); if (state !== 'menu' || building || lookOpen || shopOpen || lkOn()) return; AU.pop(); if (tutMatchDue()) start(); else openEvents(); });
 $('stageBtn').addEventListener('click', () => { AU.init(); AU.ui(); openWorlds(); });
 $('worldBack').addEventListener('click', () => { AU.init(); AU.ui(); if (!closeSeason()) closeWorlds(); });
 window.addEventListener('resize', () => { if (menuPage === 'worlds') { centerWorld(worldBtns.find(b => b.dataset.s === stageSel), false); renderWorlds(); } });
@@ -21717,7 +21845,7 @@ function closeLook() { if (!lookOpen) return; if (shopOpen) closeShop(true); loo
 function lookPop() { menuReact = 0.7; AU.pop(); }
 // your name: a button showing it, opening the name card (with its dice)
 $('lookNameBtn').addEventListener('click', () => { AU.init(); AU.ui(); openName(false); });
-$('lookBtn').addEventListener('click', () => { AU.init(); AU.ui(); openLook(); });
+$('lookBtn').addEventListener('click', () => { AU.init(); AU.ui(); openLocker('mine'); });
 $('lkBal').addEventListener('click', () => { AU.init(); AU.ui(); openShop('look'); });
 // the locker's dabs and shop: shown while it's open (not under the shop), the counter centred over the view, the button in the view's
 // bottom right corner just above the panel (or beside it, when the panel stands at the side)
@@ -21740,7 +21868,7 @@ $('evGrid').addEventListener('scroll', evMoreTick, { passive: true });
 addEventListener('resize', () => { if (menuPage === 'events') evMoreTick(); });
 if (window.ResizeObserver) { const ro = new ResizeObserver(() => { if (menuPage === 'events') evMoreTick(); }); for (const c of $('evGrid').children) ro.observe(c); }
 $('evMore').addEventListener('click', () => { AU.init(); AU.ui(); const g = $('evGrid'); g.scrollBy({ top: g.clientHeight * 0.7, behavior: reduceMotion ? 'auto' : 'smooth' }); });
-$('dabsBtn').addEventListener('click', () => { AU.init(); AU.ui(); openShop('lobby'); });
+$('dabsBtn').addEventListener('click', () => { AU.init(); AU.ui(); openLocker('shop'); });
 $('lookDone').addEventListener('click', () => { AU.init(); AU.ui(); closeLook(); });
 const lookNote = $('lookNote'); let noteT = 0; const note = (t, bad) => { lookNote.textContent = t; lookNote.classList.toggle('bad', !!bad);
   const r = stage.getBoundingClientRect(), k = lookEl.getBoundingClientRect(), side = endSideMQ.matches;
@@ -21773,6 +21901,245 @@ canvas.addEventListener('pointerdown', e => { if (lookOpen || lobbyOn()) lookDra
 canvas.addEventListener('pointermove', e => { if ((lookOpen || lobbyOn()) && lookDrag && lookDrag.id === e.pointerId) { { const now = performance.now(), dm = Math.max(4, now - (lookDrag.tm || now - 16)); lookDrag.v = (lookDrag.v || 0) * 0.5 + 0.5 * (e.clientX - lookDrag.x) / dm; lookDrag.tm = now; } lookSwiped += Math.abs(e.clientX - lookDrag.x); shim.tgt += (e.clientX - lookDrag.x) * 0.012; lookDrag.x = e.clientX; idle.t = Math.max(idle.t, 3); } });
 const endLookDrag = e => { if (lookDrag && lookDrag.id === e.pointerId) { if (lookOpen && AXOC.S.ready && e.type === 'pointerup' && performance.now() - (lookDrag.tm || 0) < 90) shim.tgt += clamp((lookDrag.v || 0) * 0.012 * 160, -2.6, 2.6); /* (let go mid-swipe: it glides on round) */ if (e.type === 'pointerup' && !lookOpen && lobbyOn() && Math.abs(e.clientX - lookDrag.x0) < 8 && performance.now() - lookDrag.t < 400 && $('orient').hidden) { AU.init(); menuReact = 0.7; AU.pop(); if (Math.random() < 0.6) AU.vox(['hup', 'whee', 'giggle', 'hoh'][(Math.random() * 4) | 0]); } lookDrag = null; } };
 canvas.addEventListener('pointerup', endLookDrag); canvas.addEventListener('pointercancel', endLookDrag);
+
+// ---------- (v327) My Locker and the Paint Shop, one page on the Strokes page's base. The window shows you (the demo's own character, in
+// your paint, on its pad) wearing what you have on; in the shop, what you're trying on. In the locker a tap puts a thing on; in the shop
+// a tap tries it on and Buy keeps it on. Drag spins you round, and you turn back to face the front after a moment ----------
+const LKR = { tab: 'mine', sel: null, prev: null, got: new Set(), scr: { mine: 0, shop: 0 }, anim: false, from: 'mine', toastT: 0 };
+function lkOn() { return menuPage === 'locker'; }
+const LK_CAT = { head: 'Headgear', face: 'Facial', cloth: 'Clothing', eyes: 'Eyes' };
+const LK_POP = { tophat: 'top', bowtie: 'bow' }; // (the piece a wearable is, where its name isn't the item's)
+const LK_PAD = 0.62; // (the pad in dress mode: a podium, this much of the demo's)
+const LK_PEN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l1-4.2L15.4 5.4a1.9 1.9 0 0 1 2.7 0l.5.5a1.9 1.9 0 0 1 0 2.7L8.7 18.5z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M13.6 7.2l3.2 3.2" stroke="currentColor" stroke-width="2.4"/></svg>';
+const lkItem = id => ITEMS.find(w => w.id === id);
+const lkWorn = w => w.slot === 'eyes' ? myLook.eyes === w.id : myLook[w.slot] === w.id;
+const lkForSale = w => !bought(w.id) && (owns(w.id) || !needFind(w));
+// how you'd look with it on: one thing per category (the face's spots apart), as the locker always had it
+function lkWith(look, w) { const L = Object.assign({}, look); if (w.slot === 'eyes') { L.eyes = w.id; return L; } if (w.cat !== 'face') for (const o of WEAR) if (o.cat === w.cat && o.slot !== w.slot && L[o.slot] === o.id) L[o.slot] = null; L[w.slot] = w.id; return L; }
+// what the window's character wears: the try-on, else what you have on
+function lkDress() { if (SGD.built) SGD.A.L.wearing = LKR.prev || myLook; }
+// (each item's picture once as a short blob link, not its whole image inline: the panel is redrawn on every tap)
+const LK_PICS = new Map();
+function lkPicUrl(w) { if (LK_PICS.has(w.id)) return LK_PICS.get(w.id); let u = ''; try { u = shopPic(w); } catch (e) { u = ''; } if (!u) return '';
+  if (u.startsWith('data:') && window.Blob && window.URL && URL.createObjectURL) try { const b = atob(u.slice(u.indexOf(',') + 1)), a = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); u = URL.createObjectURL(new Blob([a], { type: 'image/png' })); } catch (e) {}
+  LK_PICS.set(w.id, u); return u; }
+function lkPic(w) { if (w.slot === 'eyes') return ES_ICON_T[w.id] || ''; const u = lkPicUrl(w); return u ? '<img class="stimg" src="' + u + '" alt="" draggable="false">' : '<svg viewBox="0 0 40 40" aria-hidden="true">' + WEAR_ICON[w.id] + '</svg>'; }
+// a hang tag: the item's picture, and a strip: Equipped, its price, or Find it
+function lkCard(w, tab) {
+  const own = bought(w.id), found = own || owns(w.id) || !needFind(w), on = own && lkWorn(w), n = store.drops || 0, broke = !own && found && n < PRICE(w), sel = LKR.sel === 'w:' + w.id;
+  const fresh = tab === 'mine' ? own && (store.fresh || []).includes(w.id) : !own && owns(w.id) && needFind(w);
+  const foot = own ? (on ? 'Equipped' : tab === 'shop' ? 'Yours' : '') : found ? DROP_SVG + '<b>' + PRICE(w) + '</b>' : LOCK_ICON + 'Find it';
+  const lab = w.name + (own ? (on ? ', equipped' : ', yours') : found ? ', ' + PRICE(w) + ' dabs' + (broke ? ', ' + (PRICE(w) - n) + ' more needed' : '') : ', locked. Find it on ' + WEAR_WHERE[w.stage]) + (fresh ? ', new' : '');
+  return '<button class="sgcard lkcard' + (sel ? ' sel' : '') + (own ? (on ? ' own on' : ' own') : found ? ' sale' : ' lock') + (broke ? ' broke' : '') + '" type="button" data-k="w:' + w.id + '" aria-pressed="' + sel + '" aria-label="' + escAttr(lab) + '"><i class="sghook"></i><span class="sgcb"><span class="sgca">' + lkPic(w) + '</span></span><span class="sgcf">' + foot + '</span>' + (fresh ? '<span class="sgnew">New</span>' : '') + '</button>';
+}
+// the locker: your paint, your eyes, and what you own (a tap puts it on)
+function lkMineHtml() {
+  const fresh = new Set(store.fresh || []), grid = l => '<div class="sggrid lkgrid' + (LKR.anim ? ' in' : '') + '">' + l + '</div>';
+  let h = '<div class="lkhd"><h4 class="lkh">My Locker</h4><button class="lkname" id="lkNameBtn" type="button" aria-label="Change your name"><span id="lkNameT"></span>' + LK_PEN + '</button></div>';
+  h += '<p class="lksec">Paint</p><div class="lkpaints" role="group" aria-label="Your paint">' + PALETTE.map(c => '<button class="sw" type="button" data-k="c:' + c.id + '" aria-label="' + c.name + ' paint" aria-pressed="' + (c.id === colorId) + '" style="--c:#' + c.hex.toString(16).padStart(6, '0') + '"><i></i></button>').join('') + '</div>';
+  h += '<p class="lksec">Eyes</p><div class="lkeyes"><div class="lkstyles" role="group" aria-label="Eye style">' + Object.keys(EYE_STYLES).map(k => { const it = EXTRA.find(x => x.id === k), lk = !!it && !bought(k);
+    return '<button class="eyes' + (lk ? ' locked' : '') + (it && !lk && fresh.has(k) ? ' fresh' : '') + '" type="button" data-k="e:' + k + '" aria-label="' + EYE_STYLES[k] + ' eyes' + (lk ? ', in the Paint Shop' : '') + '" aria-pressed="' + (myLook.eyes === k) + '">' + ES_ICON_T[k] + (lk ? LOCK_ICON : '') + '</button>'; }).join('') + '</div>';
+  const ni = NO_IRIS(myLook.eyes); h += '<div class="lkirises' + (ni ? ' off' : '') + '" role="group" aria-label="Eye colour"' + (ni ? ' aria-disabled="true"' : '') + '>' + EYE_KEYS.map(k => '<button class="eyec" type="button" data-k="i:' + k + '" style="--ic:' + EYE_COLS[k].css + '" aria-label="' + EYE_COLS[k].name + ' eyes" aria-pressed="' + (myLook.iris === k) + '"><i></i></button>').join('') + '</div></div>';
+  for (const c of ['head', 'face', 'cloth']) { const mine = WEAR.filter(w => w.cat === c && bought(w.id)).sort((a, b) => PRICE(a) - PRICE(b)), sale = WEAR.filter(w => w.cat === c && lkForSale(w)).length;
+    h += '<p class="lksec">' + LK_CAT[c] + (mine.length ? '<i>' + mine.length + '</i>' : '') + '</p>' + (mine.length ? grid(mine.map(w => lkCard(w, 'mine')).join('')) : '<p class="lknone">Nothing here yet.' + (sale ? ' <button class="lkgo" type="button" data-go="shop">The Paint Shop has ' + sale + '</button>' : '') + '</p>'); }
+  return h;
+}
+// the shop: the season's finds first, under their banner, then everything else for sale (what this visit bought stays, as yours)
+function lkShopHtml() {
+  const grid = l => '<div class="sggrid lkgrid' + (LKR.anim ? ' in' : '') + '">' + l + '</div>', list = c => ITEMS.filter(w => (c === 'season' ? !!w.season : !w.season && w.cat === c) && (!bought(w.id) || LKR.got.has(w.id))).sort((a, b) => PRICE(a) - PRICE(b)), cnt = ITEMS.filter(lkForSale).length;
+  let h = '<div class="lkhd"><h4 class="lkh">Paint Shop</h4>' + (cnt ? '<span class="lkcnt">' + cnt + ' in stock</span>' : '') + '</div>', any = false;
+  const sz = list('season'); if (sz.length) { any = true; const all = ITEMS.filter(w => w.season), got = all.filter(w => bought(w.id) || owns(w.id)).length;
+    h += '<div class="lkszn" role="heading" aria-level="4"><span class="sbart" style="--sbbg:url(art/shop_hw_bg.webp)"></span><span class="lkszt"><i>Season One</i><b>Spooky SZN</b><small><u style="--p:' + (all.length ? got / all.length : 0).toFixed(3) + '"></u>' + got + ' of ' + all.length + ' found</small></span><img class="lkpump" src="art/shop_hw_pump.webp" alt="" draggable="false"></div>' + grid(sz.map(w => lkCard(w, 'shop')).join('')); }
+  for (const c of ['head', 'face', 'cloth', 'eyes']) { const l = list(c); if (!l.length) continue; any = true; h += '<p class="lksec">' + LK_CAT[c] + '</p>' + grid(l.map(w => lkCard(w, 'shop')).join('')); }
+  if (!any) h += '<p class="lkempty">' + SHOP_ICON + 'Nothing left to buy.<br>Everything is in your locker.</p>';
+  return h;
+}
+function lkPaneRender() {
+  const sc = $('lkScroll'), top = sc.scrollTop, ae = document.activeElement, fk = ae && ae.dataset && ae.dataset.k && sc.contains(ae) ? ae.dataset.k : '', el = LKR.tab === 'shop' ? $('lkPaneShop') : $('lkPaneMine');
+  el.innerHTML = LKR.tab === 'shop' ? lkShopHtml() : lkMineHtml(); LKR.anim = false; nmSet($('lkNameT'), playerName());
+  sc.scrollTop = top; if (fk) { const f = el.querySelector('[data-k="' + fk + '"]'); if (f) f.focus({ preventScroll: true }); }
+}
+function lkTabs() {
+  for (const b of $('lkTabs').querySelectorAll('.sgtab')) { const on = b.dataset.tab === LKR.tab; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; }
+  const mine = ITEMS.filter(w => bought(w.id)).length, sale = ITEMS.filter(lkForSale).length;
+  $('lkTabMineI').innerHTML = frFace({ c: colorId }); $('lkTabMineN').textContent = mine + (mine === 1 ? ' item' : ' items'); $('lkTabShopN').textContent = sale ? sale + ' to buy' : 'All yours';
+  $('lkTabMine').classList.toggle('fresh', LKR.tab !== 'mine' && (store.fresh || []).some(id => bought(id))); $('lkTabShop').classList.toggle('fresh', LKR.tab !== 'shop' && (store.fresh || []).some(id => !bought(id)));
+  if (LKR.tab === 'shop' && (store.fresh || []).some(id => !bought(id))) { store.fresh = store.fresh.filter(id => bought(id)); save(); } // (seen in the shop: the dot goes; their tags still say New until bought)
+}
+function lkRender() {
+  lkTabs(); const n = store.drops || 0; $('lkCoinN').textContent = String(n); $('lkCoin').setAttribute('aria-label', 'Dabs: ' + n + '. Open the Paint Shop');
+  $('lkPanH').textContent = LKR.tab === 'shop' ? 'Paint Shop' : 'My Locker'; lkPaneRender(); $('lkArt').innerHTML = frFace({ c: colorId });
+  $('lkUcode').hidden = ITEMS.every(w => bought(w.id)); lkShowRender();
+}
+function lkFitName() { const nb = $('lkName'); nb.style.fontSize = ''; if (!nb.clientWidth) return; let fs = parseFloat(getComputedStyle(nb).fontSize) || 24, i = 0; while (nb.scrollWidth > nb.clientWidth + 1 && fs > 13 && i++ < 10) { fs -= 1.5; nb.style.fontSize = fs + 'px'; } }
+// the banner, its line, and the button: Equip, Equipped (and Take off), Buy, the price you can't reach yet, or Find it
+function lkShowRender() {
+  const s = LKR.sel, k = s ? s.slice(0, 1) : '', id = s ? s.slice(2) : '', w = k === 'w' ? lkItem(id) : null, n = store.drops || 0;
+  let kind = '', name = '', line = '', note = '', doH = '', doCls = '', doDis = false, doLab = '', off = false;
+  if (w) { const own = bought(w.id), found = own || owns(w.id) || !needFind(w), on = own && lkWorn(w), where = WEAR_WHERE[w.stage], p = PRICE(w);
+    kind = w.season ? 'Spooky SZN · ' + LK_CAT[w.cat] : LK_CAT[w.cat]; name = w.name;
+    line = own ? (needFind(w) ? 'Found on ' + where : 'From the Paint Shop') : found ? (owns(w.id) && needFind(w) ? 'You found it on ' + where : 'In stock now') : 'Found on ' + where + ' only';
+    if (own) { if (on) { doH = ST_CHECK + 'Equipped'; doCls = 'on'; doDis = true; doLab = w.name + ' is equipped'; off = w.slot !== 'eyes'; } else { doH = 'Equip'; doLab = 'Put on the ' + w.name.toLowerCase(); } }
+    else if (found) { if (n >= p) { doH = 'Buy<small>' + DROP_SVG + p + '</small>'; doCls = 'craft'; doLab = 'Buy the ' + w.name.toLowerCase() + ' for ' + p + ' dabs'; } else { doH = DROP_SVG + p; doDis = true; doLab = w.name + ', ' + p + ' dabs'; note = 'You need ' + (p - n) + ' more dabs. Matches pay in dabs'; } }
+    else { doH = STROKE_LOCK + 'Find it'; doDis = true; doLab = w.name + ' is locked'; note = 'Find it on ' + where + ', then it’s for sale here'; } }
+  else if (k === 'c') { const c = PALETTE.find(q => q.id === id) || colorOf(); kind = 'Your paint'; name = c.name; line = 'Everything you roll over turns ' + c.name.toLowerCase(); }
+  else if (k === 'e') { kind = 'Your eyes'; name = EYE_STYLES[id] || 'Round'; line = NO_IRIS(id) ? 'These eyes keep their own colour' : 'Pick their colour under them'; }
+  else if (k === 'i') { kind = 'Eye colour'; name = (EYE_COLS[id] || EYE_COLS.brown).name; line = 'The colour in the middle of your eyes'; }
+  else if (LKR.tab === 'shop') { kind = 'Paint Shop'; name = 'Try it on'; line = 'Tap anything to see it on you'; }
+  else { kind = 'My Locker'; name = playerName(); line = 'Tap to put it on. Drag to spin around'; }
+  $('lkKind').textContent = kind; nmSet($('lkName'), name); $('lkName').dataset.def = !s && LKR.tab === 'mine' ? '1' : ''; $('lkLine').textContent = line; lkFitName();
+  const b = $('lkDo'); b.hidden = !doH; if (doH) { b.className = 'sgdo' + (doCls ? ' ' + doCls : ''); b.innerHTML = '<span>' + doH + '</span>'; b.disabled = doDis; b.setAttribute('aria-label', doLab); }
+  $('lkOff').hidden = !off; $('lkNote').hidden = !note; $('lkNote').textContent = note; $('mLocker').classList.toggle('sgnoted', !!note); SGD.rectDirty = true;
+}
+function lkToast(msg) { const pg = $('mLocker'), old = pg.querySelector('.sttoast'); if (old) old.remove(); const t = document.createElement('span'); t.className = 'sttoast'; t.setAttribute('role', 'status'); t.textContent = msg; pg.appendChild(t); clearTimeout(LKR.toastT); LKR.toastT = setTimeout(() => t.remove(), 2300); }
+// (the lesson's Buy step: under the button, so you still see yourself in the window: upright Ol' Bloop, sideways just the words)
+function lkBuyTip(t, tc, key) { return innerWidth > innerHeight ? tutShow(tc, 'lkDo', key, true, false, 'below') : tutShow(t, 'lkDo', key, false, false, 'below'); }
+function lkKick(key) { const el = $('lkScroll').querySelector('[data-k="' + key + '"]'); if (el) kick(el, 'tpop'); }
+function lkReveal() { const sc = $('lkScroll'), el = LKR.sel && sc.querySelector('[data-k="' + LKR.sel + '"]'); if (!el) return; const r = el.getBoundingClientRect(), g = sc.getBoundingClientRect(); if (r.top < g.top + 8 || r.bottom > g.bottom - 8) sc.scrollTop += (r.top + r.height / 2) - (g.top + g.height / 2); }
+function lkFreshOff(id) { if (store.fresh && store.fresh.includes(id)) { store.fresh = store.fresh.filter(x => x !== id); save(); } }
+// putting a thing of yours on
+function lkPutOn(w) { Object.assign(myLook, lkWith(myLook, w)); lkFreshOff(w.id); saveLook(); LKR.prev = null; lkDress(); sgDressReact(w); }
+// buying the one you're trying on: paid for, and it stays on
+function lkBuy(w) {
+  if (!owns(w.id) && needFind(w)) { AU.nope(); kick($('lkDo'), 'nope'); lkToast('Find it on ' + WEAR_WHERE[w.stage] + ' first'); return; }
+  const p = PRICE(w); if (!buyItem(w.id)) { AU.nope(); kick($('lkDo'), 'nope'); lkToast('You need ' + Math.max(1, p - (store.drops || 0)) + ' more dabs'); return; }
+  LKR.got.add(w.id); Object.assign(myLook, lkWith(myLook, w)); lkFreshOff(w.id); saveLook(); LKR.prev = null; lkDress();
+  AU.power(); buzz([12, 30, 18]); showDrops(); kick($('lkCoin'), 'bump'); sgDressCheer(); lkToast('Bought! It’s in your locker');
+  lkRender(); lkKick('w:' + w.id);
+}
+// a pick in the panel
+function lkTap(key) {
+  AU.init(); const k = key.slice(0, 1), id = key.slice(2);
+  if (k === 'c') return lkPaint(id);
+  if (k === 'e') return lkEyes(id);
+  if (k === 'i') return lkIris(id);
+  const w = lkItem(id); if (!w) return; const again = LKR.sel === key; LKR.sel = key;
+  if (LKR.tab === 'mine') { if (!lkWorn(w)) { lkPutOn(w); AU.pop(); buzz(5); } else { AU.ui(); buzz(4); kick($('lkBan'), 'bump'); lkFreshOff(w.id); } }
+  else if (!again) { LKR.prev = bought(w.id) ? null : lkWith(myLook, w); lkDress(); sgDressReact(w); AU.pop(); buzz(5); }
+  else { AU.ui(); buzz(4); kick($('lkBan'), 'bump'); }
+  lkTabs(); lkPaneRender(); lkShowRender(); lkKick(key);
+}
+function lkPaint(id) {
+  LKR.sel = 'c:' + id; LKR.prev = null; lkDress();
+  if (id !== colorId) { setColor(id); store.color = colorId; save(); kick($('logo'), 'paint'); AU.pop(); AU.splat(0.8); buzz(6); if (SGD.built) { SGD.A.col.set(TEAMS[0].wet); sgDressPaint(true); } $('lkArt').innerHTML = frFace({ c: colorId }); }
+  else { AU.ui(); buzz(4); }
+  lkTabs(); lkPaneRender(); lkShowRender(); lkKick('c:' + id);
+}
+function lkEyes(id) {
+  const it = EXTRA.find(x => x.id === id);
+  if (it && !bought(id)) { lkSetTab('shop'); lkSelect(id); return; } // (not yours yet: over to the shop, where you can try them on)
+  LKR.sel = 'e:' + id; LKR.prev = null; lkDress();
+  if (myLook.eyes !== id) { myLook.eyes = id; lkFreshOff(id); saveLook(); AU.pop(); buzz(5); sgDressFace(); } else { AU.ui(); buzz(4); }
+  lkPaneRender(); lkShowRender(); lkKick('e:' + id);
+}
+function lkIris(id) {
+  if (NO_IRIS(myLook.eyes)) { AU.nope(); lkToast(EYE_STYLES[myLook.eyes] + ' eyes keep their own colour'); return; }
+  LKR.sel = 'i:' + id; LKR.prev = null; lkDress();
+  if (myLook.iris !== id) { myLook.iris = id; saveLook(); AU.pop(); buzz(5); sgDressFace(); } else { AU.ui(); buzz(4); }
+  lkPaneRender(); lkShowRender(); lkKick('i:' + id);
+}
+// picking one from outside the panel (a new find's "See it in the shop", a locked eye style in the locker): tried on in the shop
+function lkSelect(id, quiet) {
+  const w = lkItem(id); if (!w) return;
+  if (LKR.tab === 'mine' && w.slot === 'eyes') LKR.sel = 'e:' + id;
+  else { LKR.sel = 'w:' + id; LKR.prev = LKR.tab === 'shop' && !bought(id) ? lkWith(myLook, w) : null; lkDress(); if (SGD.on) sgDressReact(w); else SGD.pend = w; }
+  if (!quiet) { AU.pop(); buzz(5); } lkPaneRender(); lkShowRender(); lkReveal();
+}
+function lkSetTab(t, quiet) {
+  t = t === 'shop' ? 'shop' : 'mine'; if (t === LKR.tab) return;
+  LKR.scr[LKR.tab] = $('lkScroll').scrollTop; LKR.tab = t; LKR.sel = null; LKR.prev = null; LKR.anim = true; lkDress(); SGD.fzT = 0;
+  $('mLocker').dataset.tab = t; $('lkPaneMine').hidden = t !== 'mine'; $('lkPaneShop').hidden = t !== 'shop';
+  if (!quiet) { AU.ui(); buzz(4); }
+  lkRender(); $('lkScroll').scrollTop = LKR.scr[t] || 0;
+}
+function openLocker(tab, id) {
+  if (state !== 'menu' || building) return;
+  if (lkOn()) { lkSetTab(tab); if (id) lkSelect(id); return; }
+  if (strokesOpen()) closeStrokes(); if (menuPage === 'worlds') { closeSeason(); $('mWorld').hidden = true; } if (menuPage === 'events') closeEvents();
+  closeSide(true); if (lookOpen) closeLook(); else if (shopOpen) closeShop(true); // (the old sheets, never open now)
+  LKR.tab = LKR.from = tab === 'shop' ? 'shop' : 'mine'; LKR.sel = null; LKR.prev = null; LKR.got.clear(); LKR.scr.mine = LKR.scr.shop = 0; LKR.anim = true;
+  menuPage = 'locker'; menu.dataset.page = 'locker'; $('mHome').hidden = true; const pg = $('mLocker'); pg.dataset.tab = LKR.tab; pg.hidden = false; document.body.classList.add('evon', 'stpage');
+  $('lkPaneMine').hidden = LKR.tab !== 'mine'; $('lkPaneShop').hidden = LKR.tab !== 'shop'; $('lkUnlockForm').hidden = true; $('lkUnlockLink').hidden = false;
+  SGD.kind = 'dress'; SGD.id = null; SGD.started = false; SGD.pend = null; SGD.rectDirty = true;
+  if (!store.seen.look) { store.seen.look = 1; save(); $('lookBtn').classList.remove('hot'); }
+  lkRender(); $('lkScroll').scrollTop = 0; if (id) lkSelect(id, true);
+  for (const c of pg.querySelectorAll('.sgtab')) { c.style.animation = 'none'; void c.offsetWidth; c.style.animation = ''; }
+  AU.music('shop'); setTimeout(() => $('lkBack').focus({ preventScroll: true }), 40);
+}
+function closeLocker(quiet) {
+  if (!lkOn()) return; LKR.prev = null; lkDress(); sgStop(); SGD.kind = ''; SGD.dDrag = null;
+  const pg = $('mLocker'); pg.hidden = true; pg.classList.remove('sgnoted'); { const t = pg.querySelector('.sttoast'); if (t) t.remove(); } $('lkUnlockForm').hidden = true; $('lkUnlockLink').hidden = false;
+  document.body.classList.remove('evon', 'stpage'); menuPage = 'home'; menu.dataset.page = 'home'; $('mHome').hidden = false;
+  if (quiet) return; AU.music('menu'); renderLobbyUI(); setTimeout(() => $(LKR.from === 'shop' ? 'dabsBtn' : 'lookBtn').focus({ preventScroll: true }), 40);
+}
+$('lkCoinI').innerHTML = DROP_SVG; $('lkTabShopI').innerHTML = SHOP_ICON;
+$('lkBack').addEventListener('click', () => { AU.init(); AU.ui(); closeLocker(); });
+$('lkCoin').addEventListener('click', () => { AU.init(); if (LKR.tab !== 'shop') lkSetTab('shop'); else { AU.ui(); kick($('lkCoin'), 'bump'); lkToast((store.drops || 0) + ' dabs to spend. Matches pay in dabs'); } });
+$('lkTabs').addEventListener('click', e => { const b = e.target.closest('.sgtab'); if (b) { AU.init(); lkSetTab(b.dataset.tab); } });
+$('lkTabs').addEventListener('keydown', e => { const dl = e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowUp'; if (!dl) return; e.preventDefault(); e.stopPropagation(); const t = LKR.tab === 'mine' ? 'shop' : 'mine'; AU.init(); lkSetTab(t); $(t === 'shop' ? 'lkTabShop' : 'lkTabMine').focus(); });
+$('lkPanel').addEventListener('click', e => { const t = e.target.closest('[data-k], [data-go], #lkNameBtn'); if (!t || !$('lkPanel').contains(t)) return; AU.init();
+  if (t.id === 'lkNameBtn') { AU.ui(); openName(false); return; } if (t.dataset.go) { lkSetTab(t.dataset.go); return; } lkTap(t.dataset.k); });
+$('lkDo').addEventListener('click', () => { AU.init(); const w = LKR.sel && LKR.sel[0] === 'w' && lkItem(LKR.sel.slice(2)); if (!w) return;
+  if (bought(w.id)) { if (!lkWorn(w)) { lkPutOn(w); AU.pop(); buzz(5); lkTabs(); lkPaneRender(); lkShowRender(); } return; } lkBuy(w); });
+$('lkOff').addEventListener('click', () => { AU.init(); const w = LKR.sel && LKR.sel[0] === 'w' && lkItem(LKR.sel.slice(2)); if (!w || w.slot === 'eyes' || !lkWorn(w)) return;
+  myLook[w.slot] = null; saveLook(); LKR.prev = null; lkDress(); AU.ui(); buzz(4); if (SGD.built) { const D = SGD.A.D; D.squash = Math.max(D.squash, 0.3); SGD.mood = 'pout'; SGD.moodT = 0.9; }
+  lkTabs(); lkPaneRender(); lkShowRender(); setTimeout(() => { if (lkOn() && !$('lkDo').hidden) $('lkDo').focus({ preventScroll: true }); }, 30); });
+$('lkUnlockLink').addEventListener('click', () => { AU.init(); AU.ui(); $('lkUnlockLink').hidden = true; $('lkUnlockForm').hidden = false; setTimeout(() => $('lkUnlockCode').focus(), 30); });
+$('lkUnlockCode').addEventListener('keydown', e => e.stopPropagation());
+$('lkUnlockForm').addEventListener('submit', e => { e.preventDefault(); AU.init(); const v = $('lkUnlockCode').value.trim();
+  if (v === '1234') { for (const w of ITEMS) { OWNED.add(w.id); BOUGHT.add(w.id); } store.owned = [...OWNED]; store.bought = [...BOUGHT]; save(); $('lkUnlockCode').value = ''; $('lkUnlockForm').hidden = true; $('lkUnlockLink').hidden = false; AU.power(); lkRender(); lkToast('Every item is unlocked'); }
+  else { AU.nope(); kick($('lkUnlockForm'), 'nope'); lkToast('That code doesn’t work'); } });
+// the window: a drag spins you round (a flick carries on), a tap gets a hop; the round button turns you to show your back
+{ const st = $('lkStage');
+  st.addEventListener('pointerdown', e => { if (!SGD.on || SGD.kind !== 'dress') return; const now = performance.now(); SGD.dDrag = { id: e.pointerId, x: e.clientX, x0: e.clientX, y0: SGD.dyaw, t: now, tm: now, v: 0 }; SGD.dyawTo = null; SGD.dV = 0; try { st.setPointerCapture(e.pointerId); } catch (x) {} });
+  st.addEventListener('pointermove', e => { const g = SGD.dDrag; if (!g || g.id !== e.pointerId) return; const now = performance.now(), dm = Math.max(4, now - g.tm); g.v = g.v * 0.5 + 0.5 * (e.clientX - g.x) * 0.012 / (dm / 1000); g.tm = now; lookSwiped += Math.abs(e.clientX - g.x); g.x = e.clientX; SGD.dyaw = g.y0 + (e.clientX - g.x0) * 0.012; });
+  const up = e => { const g = SGD.dDrag; if (!g || g.id !== e.pointerId) return; SGD.dDrag = null; const now = performance.now();
+    if (e.type === 'pointerup' && Math.abs(e.clientX - g.x0) < 8 && now - g.t < 400) sgDressPoke(); else { SGD.dV = now - g.tm < 90 ? clamp(g.v, -14, 14) : 0; SGD.dHold = 2.6; } };
+  st.addEventListener('pointerup', up); st.addEventListener('pointercancel', up);
+  if (window.ResizeObserver) try { new ResizeObserver(() => { SGD.rectDirty = true; }).observe(st); } catch (e) {} }
+$('lkRot').addEventListener('click', () => { AU.init(); AU.ui(); buzz(4); const back = Math.abs(wrapA(SGD.dyaw)) > 1.6; SGD.dyaw = wrapA(SGD.dyaw); SGD.dV = 0; SGD.dyawTo = back ? 0 : Math.PI; SGD.dHold = 4; });
+addEventListener('resize', () => { if (lkOn()) setTimeout(lkFitName, 60); });
+// ---- the window in dress mode: you alone in the middle of the pad, facing out, the camera in close (closer still on your face)
+function sgDressStart() {
+  const A = SGD.A, B = SGD.B; SGD.t = 0; SGD.ev = {}; sgReset(A); sgReset(B); B.show = false; B.L.drop.visible = false;
+  SGD.trap.visible = SGD.wg.visible = SGD.lane.visible = SGD.boom.visible = false; SGD.mk.visible = SGD.mkF.visible = SGD.mkB.visible = SGD.ice.visible = false; SGD.iceK = 0; SGD.zk = 0; SGD.sp = {}; for (const q of SGD.shots) q.on = false; if (SGD.bm) SGD.bm.on = false; if (SGD.whirl) SGD.whirl.ph = '';
+  for (const [m, sc] of SGD.padMs) m.scale.set(sc.x * LK_PAD, sc.y, sc.z * LK_PAD); SGD.padR2 = (SG_R * LK_PAD) ** 2;
+  A.col.set(TEAMS[0].wet); lkDress(); sgAt(A, 0, 0); A.D.yaw = sgYawCam(A); A.V.yawD = undefined;
+  SGD.dyaw = 0; SGD.dV = 0; SGD.dyawTo = null; SGD.dHold = 0; SGD.dDrag = null; SGD.fz = 0; SGD.fzT = 0; SGD.dk = 0.6; SGD.popId = null; SGD.mood = 'glee'; SGD.moodT = 0.9; A.D.squash = 0.6; A.D.wob = 0.8;
+  sgDressPaint(false); sgRing(0, 0, 0.7, TEAMS[0].wet);
+  if (SGD.pend) { const w = SGD.pend; SGD.pend = null; sgDressReact(w); }
+}
+function sgDress(dt) {
+  const A = SGD.A, D = A.D; SGD.t += dt; if (SGD.shk > 0) SGD.shk = Math.max(0, SGD.shk - dt * 3);
+  if (!SGD.dDrag) {
+    if (SGD.dV) { SGD.dyaw += SGD.dV * dt; SGD.dV *= Math.exp(-dt * 2.6); if (Math.abs(SGD.dV) < 0.08) SGD.dV = 0; }
+    else if (SGD.dyawTo !== null) { const e = SGD.dyawTo - SGD.dyaw; SGD.dyaw += e * Math.min(1, dt * (reduceMotion ? 30 : 5)); if (Math.abs(e) < 0.01) { SGD.dyaw = SGD.dyawTo; SGD.dyawTo = null; } }
+    else if ((SGD.dHold -= dt) <= 0 && SGD.dyaw) { SGD.dyaw = wrapA(SGD.dyaw); SGD.dyaw -= SGD.dyaw * Math.min(1, dt * (reduceMotion ? 30 : 2.4)); if (Math.abs(SGD.dyaw) < 0.003) SGD.dyaw = 0; }
+  }
+  const y0 = D.yaw, yt = sgYawCam(A) + SGD.dyaw; D.yaw = yt; D.turn = clamp(wrapA(yt - y0) / Math.max(dt, 1e-3) / 9, -1, 1); D.spd = 0;
+  D.ip.expr = null; D.ip.watch = null; if (Math.abs(wrapA(SGD.dyaw)) < 0.55 && !SGD.dDrag) sgWatch(A, null);
+  if (SGD.moodT > 0) { SGD.moodT -= dt; D.ip.expr = SGD.mood; } else D.ip.expr = SGD.dDrag ? 'curious' : 'happy';
+  if (SGD.fzT > 0) SGD.fzT -= dt; SGD.fz += ((SGD.fzT > 0 ? 1 : 0) - SGD.fz) * Math.min(1, dt * 3); SGD.dk += (1 - SGD.dk) * Math.min(1, dt * 3.2);
+}
+// a thing put on or tried on: it pops in, a hop and a happy face; on the face, the camera comes in close; worn at the side or
+// on the back, you turn to show it, then back
+function sgDressReact(w) {
+  if (!SGD.built) return; const D = SGD.A.D;
+  SGD.popId = w.slot === 'eyes' || w.id === 'lashes' || w.id === 'patch' ? null : w.id; SGD.popT = 0;
+  D.squash = Math.max(D.squash, 0.45); D.wob = Math.max(D.wob, 0.7); SGD.mood = w.slot === 'eyes' ? 'smirk' : 'glee'; SGD.moodT = 1.1;
+  SGD.fzT = w.cat === 'face' || w.slot === 'eyes' ? 2.6 : 0;
+  SGD.dV = 0; SGD.dyaw = wrapA(SGD.dyaw); SGD.dyawTo = w.slot === 'back' ? 2.7 : w.slot === 'side' ? -0.8 : w.slot === 'arms' ? 0.75 : 0; SGD.dHold = SGD.dyawTo ? 2.2 : 0;
+  sgRing(0, 0, 0.6, 0xFFFFFF); if (!reduceMotion) sgBurst(0, 0, COL_WHITE, 6, 2.4, 1.2);
+  setTimeout(() => { if (lkOn()) AU.vox(w.cat === 'cloth' ? 'giggle' : 'ooh', 0.9); }, 110);
+}
+function sgDressFace() { if (!SGD.built) return; const D = SGD.A.D; SGD.fzT = 2.4; SGD.mood = ['curious', 'smirk', 'glee'][(Math.random() * 3) | 0]; SGD.moodT = 1.3; D.squash = Math.max(D.squash, 0.3); SGD.dyawTo = 0; SGD.dHold = 0; SGD.dV = 0; }
+// your paint: a splat of it under you; a new one splashes up round you as you hop
+function sgDressPaint(burst) {
+  sgPaintClear(); sgSplat(0, 0, 0.62 / LK_PAD, TEAMS[0].css); // (drawn on the full pad's map: the pad is smaller)
+  if (burst) { const D = SGD.A.D; if (!reduceMotion) sgBurst(0, 0, SGD.A.col, 18, 3.4, 2.0); sgRing(0, 0, 0.75, TEAMS[0].wet); sgRing(0, 0, 0.45, 0xFFFFFF); D.squash = 0.8; D.wob = 1; SGD.mood = 'glee'; SGD.moodT = 1.2; SGD.fzT = 0; }
+}
+function sgDressCheer() { if (!SGD.built) return; const D = SGD.A.D; sgRing(0, 0, 0.75, 0xFFE23C); sgRing(0, 0, 0.5, 0xFFFFFF); if (!reduceMotion) { sgBurst(0, 0, COL_WHITE, 10, 4, 1.8); sgBurst(0, 0, SGD.A.col, 14, 4.4, 2.2); sgShk(0.35); } sgFlash('w'); D.squash = 0.85; D.wob = 1; SGD.mood = 'glee'; SGD.moodT = 1.6; }
+function sgDressPoke() { if (!SGD.built) return; const D = SGD.A.D; D.squash = 0.7; D.wob = 1; SGD.mood = ['glee', 'smirk', 'blep', 'cute'][(Math.random() * 4) | 0]; SGD.moodT = 1; AU.pop(); if (Math.random() < 0.7) AU.vox(['hup', 'whee', 'giggle', 'hoh'][(Math.random() * 4) | 0]); }
 // a few strokes and splats in both colors so the menu canvas looks like a match in progress
 const RBM = { L: null, C: null, R: null, stroke: -1 };
 function paintPath(fn, t, team) {
@@ -22231,7 +22598,7 @@ function start() {
   if (building || irisBusy) return;
   if (menuPage === 'worlds') { menuPage = 'home'; menu.dataset.page = 'home'; $('mWorld').hidden = true; $('mHome').hidden = false; }
   if (menuPage === 'events') { menuPage = 'home'; menu.dataset.page = 'home'; evEl.hidden = true; $('mHome').hidden = false; } evFrom = false; document.body.classList.remove('evon');
-  if (shopOpen) closeShop(true); if (lookOpen) closeLook();
+  if (shopOpen) closeShop(true); if (lookOpen) closeLook(); if (lkOn()) closeLocker(true);
   tutPrep();
   if (!mapUsed && GEN.key !== mapKey()) mapUsed = true; // the canvas waiting in the menu was made for another stage, mode or difficulty
   rollRivalLooks(); AU.init(); AU.music('vs'); menu.classList.add('leaving'); setTimeout(() => menu.classList.remove('leaving'), 900);
@@ -22646,7 +23013,7 @@ function netMatchFound(m, net) {
   NM.unsub = netWire(net);
   if (menuPage === 'worlds') { menuPage = 'home'; menu.dataset.page = 'home'; $('mWorld').hidden = true; $('mHome').hidden = false; }
   if (menuPage === 'events') { menuPage = 'home'; menu.dataset.page = 'home'; evEl.hidden = true; $('mHome').hidden = false; } evFrom = false; document.body.classList.remove('evon');
-  if (shopOpen) closeShop(true); if (lookOpen) closeLook(); if (!$('friendsModal').hidden) closeFriends();
+  if (shopOpen) closeShop(true); if (lookOpen) closeLook(); if (lkOn()) closeLocker(true); if (!$('friendsModal').hidden) closeFriends();
   mode = 'duel'; applyMode(); H.cpu = false; // (the rival is a person: no CPU mind, no CPU pace)
   netRival(fo);
   AU.init(); AU.music('vs'); menu.classList.add('leaving'); setTimeout(() => menu.classList.remove('leaving'), 900);
@@ -23208,7 +23575,7 @@ function onClocks() {
   const a = $('onTime'); if (a && a.textContent !== t) a.textContent = t; const b = $('onChipT'); if (b && b.textContent !== t) b.textContent = t;
 }
 // the lobby with nothing over it: the only place an invite or the chip shows
-const onCalm = () => state === 'menu' && !lookOpen && !shopOpen && !irisBusy && $('sideMenu').hidden && !document.querySelector('#stage > .modal:not([hidden])');
+const onCalm = () => state === 'menu' && !lookOpen && !shopOpen && !lkOn() && !irisBusy && $('sideMenu').hidden && !document.querySelector('#stage > .modal:not([hidden])');
 const ON_ARR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5.5 15.5 12 9 18.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function onCard() {
   const st = $('stage'), calm = onCalm(), i = ON.invites[0], show = !!(i && calm && !ON.match); let c = $('onInvCard');
@@ -24186,7 +24553,7 @@ if (store.perfHud) setTimeout(() => perfHudSet(true), 0);
 let LCOV = null;
 function lobbyCovered() { if (!LCOV) LCOV = ['setModal', 'howModal', 'docModal', 'acModal', 'nameModal', 'ttModal'].map(id => document.getElementById(id)).filter(Boolean); for (let i = 0; i < LCOV.length; i++) if (!LCOV[i].hidden) return true; return false; }
 function paintSettings() { try { $('lastErr').textContent = store.lastErr ? 'Last error: ' + store.lastErr : ''; } catch (e) {} for (const b of $('sfxPick').children) b.setAttribute('aria-pressed', String((b.dataset.v === 'off') === !!store.sfxOff)); for (const b of $('musPick').children) b.setAttribute('aria-pressed', String((b.dataset.v === 'off') === !!store.musicOff)); { const v = document.querySelector('#howModal .ver'); $('setVer').textContent = v ? v.textContent : ''; } for (const b of $('orientPick').children) b.setAttribute('aria-pressed', String(b.dataset.o === (store.orient || ''))); for (const b of $('gfxPick').children) b.setAttribute('aria-pressed', String(b.dataset.g === gfxPick)); $('gfxNote').textContent = GFX_NOTE[gfxPick]; $('setDone').textContent = gfxPick === GFX ? 'Done' : 'Restart to apply'; setFitSoon(); }
-function openSettings() { if (state !== 'menu' || lookOpen || shopOpen) return; gfxPick = GFX; paintSettings(); AC.del = false; AC.note = ''; acSetPaint(); if (window.__turnShow) window.__turnShow(); setModal.hidden = false; setFit(); netProbe(); setTimeout(() => $('gfxPick').querySelector('[aria-pressed="true"]').focus({ preventScroll: true }), 30); }
+function openSettings() { if (state !== 'menu' || lookOpen || shopOpen || lkOn()) return; gfxPick = GFX; paintSettings(); AC.del = false; AC.note = ''; acSetPaint(); if (window.__turnShow) window.__turnShow(); setModal.hidden = false; setFit(); netProbe(); setTimeout(() => $('gfxPick').querySelector('[aria-pressed="true"]').focus({ preventScroll: true }), 30); }
 function closeSettings() { if (setModal.hidden) return; setModal.hidden = true; $('hamBtn').focus({ preventScroll: true }); }
 function doneSettings() { if (gfxPick === GFX) return closeSettings(); store.gfx = gfxPick; save(); $('setDone').disabled = true; $('setDone').textContent = 'Restarting'; setTimeout(() => location.reload(), 120); }
 $('setBtn').addEventListener('click', uiClick(openSettings));
@@ -24290,7 +24657,7 @@ function paintStats() {
   $('stFill').style.width = (100 * r.x / r.need).toFixed(1) + '%';
   $('stWins').textContent = wins; $('stPlayed').textContent = store.runs || 0; $('stRate').textContent = (vs ? Math.round(100 * wins / vs) : 0) + '%'; $('stBest').textContent = best + '%';
 }
-function openStats() { if (state !== 'menu' || lookOpen) return; paintStats(); $('statsModal').hidden = false; setTimeout(() => $('statsClose').focus({ preventScroll: true }), 30); }
+function openStats() { if (state !== 'menu' || lookOpen || lkOn()) return; paintStats(); $('statsModal').hidden = false; setTimeout(() => $('statsClose').focus({ preventScroll: true }), 30); }
 function closeStats() { if ($('statsModal').hidden) return; $('statsModal').hidden = true; pbar.focus({ preventScroll: true }); }
 $('statsClose').addEventListener('click', uiClick(closeStats));
 $('statsModal').addEventListener('click', e => { if (e.target === $('statsModal')) closeStats(); });
@@ -24304,7 +24671,7 @@ $('frX').addEventListener('click', uiClick(closeFriends));
 $('friendsModal').addEventListener('click', e => { if (e.target === $('friendsModal')) closeFriends(); });
 // the menu: slides in from the right (Settings, the sound; more to come)
 function paintSide() { const off = !!store.sfxOff && !!store.musicOff; $('smSndL').textContent = off ? 'Sound off' : 'Sound on'; $('smSndI').innerHTML = off ? SM_SND_OFF : SM_SND_ON; $('smSnd').setAttribute('aria-pressed', String(!off)); }
-function openSide() { if (state !== 'menu' || lookOpen || shopOpen) return; paintSide(); sideMenu.hidden = false; void sideMenu.offsetWidth; sideMenu.classList.add('on'); $('hamBtn').setAttribute('aria-expanded', 'true'); setTimeout(() => $('smSet').focus({ preventScroll: true }), 40); }
+function openSide() { if (state !== 'menu' || lookOpen || shopOpen || lkOn()) return; paintSide(); sideMenu.hidden = false; void sideMenu.offsetWidth; sideMenu.classList.add('on'); $('hamBtn').setAttribute('aria-expanded', 'true'); setTimeout(() => $('smSet').focus({ preventScroll: true }), 40); }
 function closeSide(quiet) { if (sideMenu.hidden) return; sideMenu.classList.remove('on'); $('hamBtn').setAttribute('aria-expanded', 'false'); setTimeout(() => { if (!sideMenu.classList.contains('on')) sideMenu.hidden = true; }, reduceMotion ? 0 : 320); if (!quiet) $('hamBtn').focus({ preventScroll: true }); }
 $('hamBtn').addEventListener('click', uiClick(() => sideMenu.hidden || !sideMenu.classList.contains('on') ? openSide() : closeSide()));
 $('smClose').addEventListener('click', uiClick(() => closeSide()));
@@ -24625,7 +24992,7 @@ function evArt() { const set = (id, sid) => { const im = $(id), src = stageArtOf
 function evFold() { $('evVs').closest('.evcard').classList.remove('open'); $('evVsPick').hidden = true; $('evVs').setAttribute('aria-expanded', 'false'); evFoldShow(); }
 function evFoldShow() { $('evShow').closest('.evcard').classList.remove('open'); $('evShowPick').hidden = true; $('evShow').setAttribute('aria-expanded', 'false'); }
 function openEvents() {
-  if (state !== 'menu' || building || lookOpen || shopOpen || menuPage === 'events') return;
+  if (state !== 'menu' || building || lookOpen || shopOpen || lkOn() || menuPage === 'events') return;
   if (menuPage === 'worlds') { closeSeason(); $('mWorld').hidden = true; }
   menuPage = 'events'; menu.dataset.page = 'events'; $('mHome').hidden = true; evEl.hidden = false; document.body.classList.add('evon'); closeSide(true); evArt(); evFold(); evLockPaint(); acMatchPaint(); requestAnimationFrame(evMoreTick); setTimeout(lateWarmBg, 700); /* (v309: the match's shaders, behind this page) */
   for (const c of evEl.querySelectorAll('.evcard')) { c.style.animation = 'none'; void c.offsetWidth; c.style.animation = ''; }
@@ -24783,6 +25150,7 @@ window.addEventListener('keydown', e => {
   if (!nameModal.hidden) { if (e.key === 'Escape') { e.preventDefault(); closeName(); } return; }
   if (shopOpen) { if (e.key === 'Escape' || e.key === 'Backspace') { e.preventDefault(); closeShop(); } return; }
   if (lookOpen) { if (e.key === 'Escape') { e.preventDefault(); closeLook(); } return; }
+  if (state === 'menu' && lkOn()) { if (e.key === 'Escape') { e.preventDefault(); closeLocker(); } return; } // (v327)
   if (vic) { if (e.key === ' ' || e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); endVictory(); } return; }
   const k = e.key; AU.init();
   if (!howModal.hidden) { if (k === 'Escape') { e.preventDefault(); closeHow(); } return; }
@@ -24811,7 +25179,7 @@ window.addEventListener('keydown', e => {
   else if ((k === ' ' || k === 'Enter' || k === 'ArrowUp' || k === 'w' || k === 'W') && !e.repeat) {
     if (document.activeElement && (document.activeElement.tagName === 'BUTTON' || document.activeElement.tagName === 'SUMMARY') && (k === ' ' || k === 'Enter')) return;
     e.preventDefault();
-    if (state === 'menu') { if (menuPage === 'home') openWorlds(); else if ($('startBtn').disabled) return; else if (!store.name) openName(true); else start(); } else if (state === 'dead' && !end.hidden) $('endBtn').click(); else if (state === 'paused') resume(); else if (state === 'play') jump(P);
+    if (state === 'menu') { if (menuPage === 'home') openWorlds(); else if (menuPage !== 'worlds' || $('startBtn').disabled) return; else if (!store.name) openName(true); else start(); } else if (state === 'dead' && !end.hidden) $('endBtn').click(); else if (state === 'paused') resume(); else if (state === 'play') jump(P);
   }
 });
 window.addEventListener('keyup', e => { const k = e.key; if (k === 'ArrowUp' || k === 'w' || k === 'W' || k === 'ArrowDown' || k === 's' || k === 'S') aimKey = 0; if ((k === 'ArrowDown' || k === 's' || k === 'S') && kbCharge) { kbCharge = false; if (pullTgt >= FLING_MIN) fling(P, pullTgt); else cancelCharge(P); } if (k === 'ArrowLeft' || k === 'a' || k === 'A') keyL = false; if (k === 'ArrowRight' || k === 'd' || k === 'D') keyR = false; });
@@ -24926,7 +25294,7 @@ function frameBody(t) {
   if (ffK > 1 || NM) dt = Math.min(dt, 0.05); // (the drawing's own timing no faster than a slow frame's)
   visuals(dt, rdt); flushTrail(); pbarTick(rdt); lockerTick(); dipTick(rdt); if (FL && FL.jin) FL.after(rdt);
   if (shadowLite >= 2) sun.shadow.needsUpdate = (++frameNo & 1) === 0;
-  if (!(state === 'menu' && (menuPage === 'worlds' || menuPage === 'events' || menuPage === 'strokes' || !commModalEl.hidden || !friendsModalEl.hidden || !onModalEl.hidden || lobbyCovered()))) renderFrame(); else if (state === 'menu' && menuPage === 'strokes') sgTick(rdt); // (v313: the transform demo) // (v308: and behind every screen that covers it) // (v304: under Commissions the lobby holds still behind the blur)
+  if (!(state === 'menu' && (menuPage === 'worlds' || menuPage === 'events' || menuPage === 'strokes' || menuPage === 'locker' || !commModalEl.hidden || !friendsModalEl.hidden || !onModalEl.hidden || lobbyCovered()))) renderFrame(); else if (state === 'menu' && (menuPage === 'strokes' || menuPage === 'locker')) sgTick(rdt); // (v313: the transform demo) // (v308: and behind every screen that covers it) // (v304: under Commissions the lobby holds still behind the blur)
   lastCpu = (performance.now() - cpu0) / 1000;
   if (PH.on) perfHudFrame(rawDt);
 }
@@ -25136,11 +25504,11 @@ function tutShow(text, at, key, call, nodim, side, loose, low) {
   tutTip = { text, at: at || null, key, call: !!call, nodim: !!(nodim || loose), side: side || null, loose: !!loose, low: !!low }; /* (low: down at the page's foot, still) */ /* (loose: up top, a hand on the control, nothing dimmed or blocked) */ tutEl.dataset.style = call ? 'call' : 'coach'; { const fw = key === 'first'; if (tutEl.classList.contains('swipe') !== fw) tutEl.classList.toggle('swipe', fw); if (tutDim.classList.contains('slow') !== fw) tutDim.classList.toggle('slow', fw); } if (call) tutCall.innerHTML = escAttr(text).replace(/\*([^*]+)\*/g, '<em>$1</em>'); else tutTxt.textContent = text; if (!call && coachEl.classList.contains('on')) coachTalk(); tutEl.hidden = false; tutEl.classList.remove('on'); void tutEl.offsetWidth; tutEl.classList.add('on');
   const el = tutAt(); if (el) tutReveal(el);
   tutPlace(); tutDim.classList.toggle('on', !nodim && !loose && state !== 'play'); if (call) AU.plop(); else AU.bloop(); // (no dim in a match: the play must stay clear; Ol' Bloop says his lines, the short callouts just pop)
-  tutGest(state === 'play' ? TUT_GEST[key] : key === 'browse' && lookOpen ? 'spin' : null);
+  tutGest(state === 'play' ? TUT_GEST[key] : key === 'browse' && (lookOpen || lkOn()) ? 'spin' : null);
 }
 // bring a card or tile into the middle of its own scroller (the shop grid down, the locker rail across), and nothing else: scrollIntoView would scroll the page too on a phone
 function tutReveal(el) {
-  const sc = el.closest('.shgrid, .lrail'); if (!sc) return; const r = el.getBoundingClientRect(), g = sc.getBoundingClientRect();
+  const sc = el.closest('.shgrid, .lrail, #lkScroll'); if (!sc) return; const r = el.getBoundingClientRect(), g = sc.getBoundingClientRect();
   if (sc.classList.contains('lrail')) sc.scrollLeft += (r.left + r.width / 2) - (g.left + g.width / 2); else sc.scrollTop += (r.top + r.height / 2) - (g.top + g.height / 2);
 }
 // the loose hand: over a control, fingertip on its top edge
@@ -25203,9 +25571,9 @@ function tutPlace() {
     return;
   }
   tutHandAt(null); if (tutDim.classList.contains('block') !== block) tutDim.classList.toggle('block', block); // (between matches only the instructed control takes a tap)
-  { const nb = shopOpen || lookOpen || strokesOpen(); if (tutDim.classList.contains('noblur') !== nb) tutDim.classList.toggle('noblur', nb); if (tutDim.classList.contains('clear') !== nb) tutDim.classList.toggle('clear', nb); } // (in the shop and the locker: no dim, no blur, the control ringed)
+  { const nb = shopOpen || lookOpen || strokesOpen() || lkOn(); if (tutDim.classList.contains('noblur') !== nb) tutDim.classList.toggle('noblur', nb); if (tutDim.classList.contains('clear') !== nb) tutDim.classList.toggle('clear', nb); } // (in the shop and the locker: no dim, no blur, the control ringed)
   const vis = el && !el.closest('[hidden]') && el.getClientRects().length > 0;
-  if (vis && block) { const sc = el.closest('.shgrid, .lrail'); if (sc) { const a = el.getBoundingClientRect(), g = sc.getBoundingClientRect(), lr = sc.classList.contains('lrail'), lo = lr ? Math.max(a.left, g.left) : Math.max(a.top, g.top), hi = lr ? Math.min(a.right, g.right) : Math.min(a.bottom, g.bottom);
+  if (vis && block) { const sc = el.closest('.shgrid, .lrail, #lkScroll'); if (sc) { const a = el.getBoundingClientRect(), g = sc.getBoundingClientRect(), lr = sc.classList.contains('lrail'), lo = lr ? Math.max(a.left, g.left) : Math.max(a.top, g.top), hi = lr ? Math.min(a.right, g.right) : Math.min(a.bottom, g.bottom);
     if (Math.max(0, hi - lo) < 0.6 * (lr ? a.width : a.height)) tutReveal(el); } } // (what the tip is about, mostly out of its scroller (a turn of the phone, a scroll): back in the middle of it)
   if (!vis) { if (tutEl.dataset.pos !== 'top') { tutEl.dataset.pos = 'top'; tutEl.style.cssText = ''; } tutWindow(viewW / 2, viewH / 2, 0, 0); return; }
   const r = el.getBoundingClientRect(), cx = r.left - r0.left + r.width * (lookOpen && el.classList.contains('lcat') ? 0.28 : 0.5), cw = Math.min(tutEl.offsetWidth, viewW - 24); /* (a locker category card: the hand on its left part, clear of the name pill) */
@@ -25357,7 +25725,7 @@ function tutStrokesGo() { const el = $('tutGo'), m = el.dataset.mode; if (m === 
 function tutStrokesEnd() { $('mStrokes').classList.remove('sglearn'); tutSDone = 0; store.tut.strokes = 1; if (!store.tut.modes) store.tut.modes = 'due'; tutSet('done'); save(); tutHide(); menu.classList.remove('tutoring'); }
 function tutStrokesTick() {
   if (state !== 'menu' || building || irisBusy || !setModal.hidden || !nameModal.hidden || !howModal.hidden) return tutHide();
-  if (shopOpen) return tutShow('Back to the lobby', 'shopBack', 'back'); if (lookOpen) return tutShow('Back to the lobby', 'lkDone', 'back');
+  if (lkOn()) return tutShow('Back to the lobby', 'lkBack', 'back');
   if (menuPage === 'worlds') return tutShow('Back to the lobby', 'worldBack', 'back'); if (menuPage === 'events') return tutShow('Back to the lobby', 'evBack', 'back');
   if (!strokesOpen() && strokeSpecial() === 'giant' && strokesOf().own.includes('giant')) return tutStrokesEnd(); // (v273: done, and back out: the lesson's over)
   if (!strokesOpen()) return tutShow('Tap Strokes to open it', 'abilBtn', 'sOpen');
@@ -25636,7 +26004,8 @@ function tutGuide() {
 // the locker's swipe finger sits on you (wherever the camera has you), and goes once you've had a turn yourself
 let tutSpin0 = 0, lookSwiped = 0; // (lookSwiped: how far fingers have dragged the character round in the locker, in px)
 function tutSpinTick() {
-  if (!lookOpen || lookSwiped - tutSpin0 > 40) return tutGest(null);
+  if (!(lookOpen || lkOn()) || lookSwiped - tutSpin0 > 40) return tutGest(null);
+  if (lkOn()) { if (!SGD.on) return; const r = SGD.rect, D = SGD.A.D; tutGV.set(D.x, 0.35, D.z).project(SGD.cam); tutGestEl.style.left = (r.x + (tutGV.x + 1) / 2 * r.w).toFixed(0) + 'px'; tutGestEl.style.top = (r.y + (1 - tutGV.y) / 2 * r.h).toFixed(0) + 'px'; return; } // (v327: on you in the page's window)
   tutGV.set(P.x, P.y + 0.2, P.z).project(camera); tutGestEl.style.left = ((tutGV.x + 1) / 2 * viewW).toFixed(0) + 'px'; tutGestEl.style.top = ((1 - tutGV.y) / 2 * viewH).toFixed(0) + 'px';
 }
 function tutFrame(rdt) {
@@ -25714,7 +26083,7 @@ function tutSkip() {
   for (const id of ['flower', 'fangs']) { OWNED.add(id); BOUGHT.add(id); } store.owned = [...OWNED]; store.bought = [...BOUGHT]; store.fresh = [...new Set([...(store.fresh || []), 'flower', 'fangs'])];
   newItem = null; delete store.tut.price; store.tut.skipped = 1; tutSet('locker'); save(); toMenu();
 }
-function tutFangsSale() { const t = store.tut.price || (store.tut.price = {}); if (t.fangs >= 0) return; if (!OWNED.has('fangs')) { OWNED.add('fangs'); store.owned = [...OWNED]; } t.fangs = store.drops || 0; save(); if (shopOpen) renderShop(); }
+function tutFangsSale() { const t = store.tut.price || (store.tut.price = {}); if (t.fangs >= 0) return; if (!OWNED.has('fangs')) { OWNED.add('fangs'); store.owned = [...OWNED]; } t.fangs = store.drops || 0; save(); if (shopOpen) renderShop(); if (lkOn()) lkRender(); }
 // between matches the coach points the way: the shop for the flower and the fangs, the locker to wear them, then the canvases to vote
 const tutBootEl = $('boot'), tutOrientEl = $('orient'); let tutStrokesAt = 0, tutSDone = 0, tutCommsAt = 0, tutModesAt = 0, tutTrySdAt = 0;
 function tutMenuTick() {
@@ -25732,33 +26101,33 @@ function tutMenuTick() {
   const ph = tutPh(); if (menu.classList.contains('tutoring') !== (ph !== 'done')) menu.classList.toggle('tutoring', ph !== 'done'); // (the lesson keeps the lobby simple: no commissions, no how-to)
   if (ph === 'match') { if (state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden) { if (!tutFirstAt) tutFirstAt = performance.now(); if (performance.now() - tutFirstAt < 1000) return tutHide(); /* (a second of the lobby first) */ tutShow('Hey, rookie! Ready to roll? Your first match is a little training session.', 'homePlay', 'first'); } else tutHide(); return; }
   if (ph === 'welcome') { if (state === 'dead') { if (!end.hidden) return tutShow('Back to the lobby', 'menuBtn', 'welback'); return tutHide(); }
-    if (state === 'menu' && lookOpen && store.zombieDeal && bought('zombie') && myLook.eyes !== 'zombie') { if (lookCat !== 'eyes') return tutShow('Open Eyes and try them on', 'lc-eyes', 'eyesz'); return tutShow('Tap the zombie eyes to put them on', () => $('eyeStyles').querySelector('[data-es="zombie"]'), 'wearz'); } /* (bought just now: the shop's Back brought you here to put them on) */
+    if (state === 'menu' && lkOn() && store.zombieDeal && bought('zombie') && myLook.eyes !== 'zombie') { if (LKR.tab !== 'mine') return tutShow('Open your locker and put them on', 'lkTabMine', 'eyesz'); return tutShow('Tap the zombie eyes to put them on', () => $('lkPaneMine').querySelector('[data-k="e:zombie"]'), 'wearz'); } /* (v327: bought, they go straight on; taken off again, they're in your locker) */
     tutHide(); if (state === 'menu') tutSet('done'); return; }
   if (ph === 'strokes') { tutStrokesTick(); return; }
   if (ph !== 'shop' && ph !== 'locker' && ph !== 'vote') { if (!(state === 'play' && tutTip && tutTip.key === 'protip')) tutHide(); return; } // (a real match's pro tip runs itself)
   if (state === 'dead') { if (ph === 'shop' && !$('newItem').hidden) { if (!tutNiAt) tutNiAt = performance.now(); if (performance.now() - tutNiAt < 1600) return tutHide(); return innerHeight < 520 && innerWidth > innerHeight ? tutShow('Tap to see them in the *shop*', 'niTry', 'ni', true, false, 'below') : tutShow('Tap to see your flower and fangs in the shop', 'niTry', 'ni', false, false, 'below'); } /* (a short screen gets the short callout, so the button stays clear) */ tutNiAt = 0; if (!end.hidden) return tutShow('Head back to the lobby', 'menuBtn', 'tomenu'); return tutHide(); }
   if (state !== 'menu' || building || irisBusy || !setModal.hidden || !nameModal.hidden || !howModal.hidden) return tutHide();
-  const card = id => $('shopGrid').querySelector('.shitem[data-w="' + id + '"]'), tile = id => $('lookRail').querySelector('.ltile[data-w="' + id + '"]');
+  const card = id => $('lkPaneShop').querySelector('.sgcard[data-k="w:' + id + '"]'), tile = id => $('lkPaneMine').querySelector('.sgcard[data-k="w:' + id + '"]'); // (v327: the page's tags)
   if (ph === 'shop') {
-    if (shopOpen) { if (!bought('flower')) return tutShow('You found a flower! It\u2019s half price today. Buy it', () => card('flower'), 'buyflower');
-      if (!bought('fangs')) { tutFangsSale(); return tutShow('It\u2019s Spooky SZN! Fangs are also on sale! Grab it', () => card('fangs'), 'buyfangs'); }
+    if (lkOn() && LKR.tab === 'shop') { if (!bought('flower')) return LKR.sel !== 'w:flower' ? tutShow('You found a flower! It\u2019s half price today. Tap it to try it on', () => card('flower'), 'buyflower') : lkBuyTip('Looking good! Buy it', 'Looking good! *Buy it*', 'buyflower2');
+      if (!bought('fangs')) { tutFangsSale(); return LKR.sel !== 'w:fangs' ? tutShow('It\u2019s Spooky SZN! Fangs are also on sale! Try them on', () => card('fangs'), 'buyfangs') : lkBuyTip('Grab them! Buy the fangs', '*Grab them!*', 'buyfangs2'); }
       tutSet('locker'); return; }
-    if (lookOpen) return tutShow('Open the Paint Shop', 'lkShop', 'shop');
+    if (lkOn()) return tutShow('Open the Paint Shop', 'lkTabShop', 'shop');
     if (menuPage === 'worlds') return tutShow('Back to the lobby', 'worldBack', 'back');
     if (menuPage === 'events') return tutShow('Back to the lobby', 'evBack', 'back');
     return tutShow('You earned dabs. Open the Paint Shop', 'dabsBtn', 'shop');
   }
   if (ph === 'locker') {
-    if (shopOpen) return tutShow('Back to the lobby', 'shopBack', 'back');
-    if (lookOpen) {
-      if (myLook.mouth !== 'fangs') { if (lookCat !== 'face') return tutShow('Open Facial. Your fangs are in there', 'lc-face', 'face'); return tutShow('Tap the fangs to put them on', () => tile('fangs'), 'wear'); }
+    if (lkOn()) {
+      if (LKR.tab !== 'mine') return tutShow('All yours! Now open your locker', 'lkTabMine', 'tomine');
+      if (myLook.mouth !== 'fangs') return tutShow('Tap the fangs to put them on', () => tile('fangs'), 'wear');
       // (v304: the flower, found in the lesson, is yours to wear or not: it's in Headgear, nobody makes you)
       tutSet('vote'); tutBrowseAt = performance.now(); return tutShow('Take a look around, squirt. Express yourself!', null, 'browse', false, true, null, true); } /* (dressed: the locker's yours to play with; he steps aside after a few seconds, and closing it goes on with the lesson) */
     if (menuPage === 'worlds') return tutShow('Back to the lobby', 'worldBack', 'back');
     if (menuPage === 'events') return tutShow('Back to the lobby', 'evBack', 'back');
     return tutShow('Open your locker and try on your fangs', 'lookBtn', 'locker');
   }
-  if (shopOpen) return tutShow('Back to the lobby', 'shopBack', 'back'); if (lookOpen) { if (tutBrowseAt && performance.now() - tutBrowseAt < 4200) return tutShow('Take a look around, squirt. Express yourself!', null, 'browse', false, true, null, true); return tutHide(); } /* (no nudge at Done: closing the locker is up to you) */
+  if (lkOn()) { if (tutBrowseAt && performance.now() - tutBrowseAt < 4200) return tutShow('Take a look around, squirt. Express yourself!', null, 'browse', false, true, null, true); return tutHide(); } /* (no nudge at Back: closing the page is up to you) */
   if (menuPage === 'worlds') return innerWidth > innerHeight && innerHeight < 520 ? tutShow('*SWIPE* to pick your painting, then tap *PLAY*', 'startBtn', 'startS', true, true, null, true) : tutShow('Swipe the paintings and pick one: that\u2019s your vote. Rivals vote too, and most votes wins. Then Play', 'startBtn', 'start', false, true, null, true); /* (a short screen gets a one-line callout, so the paintings stay clear) */
   if (menuPage === 'events') return $('evVsPick').hidden ? tutShow('Play the CPU: tap *Versus CPU*', 'evVs', 'evvs') : tutShow('Tap *1 v 1*', () => $('evVsPick').querySelector('[data-m="duel"]'), 'ev1v1');
   return tutShow('Time for a real match. Tap *Play*', 'homePlay', 'pick');
