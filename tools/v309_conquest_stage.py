@@ -1,5 +1,6 @@
 """v309 (Season Conquest stage, reworked in the v311 round): the Sunken Keep, a small round boss arena at the bottom of the sea, built by
-hand to the concept picture, and a stage preview to walk it from Choose Event. Kept out of the release list until the owner is happy.
+hand to the concept picture, and a stage preview to walk it from Choose Event. In releases since v315 (with the boss demo,
+tools/v315_boss_demo.py).
 
 - One fixed scene, nothing random in where things stand. A round floor of wet cobbles laid in rough rows; a parapet of chunky stone all
   round with a capped post every 15 degrees; the pool of slime in the middle, sunk inside a curb of bevelled dark stones, its spout

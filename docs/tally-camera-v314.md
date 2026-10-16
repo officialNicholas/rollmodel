@@ -1,6 +1,6 @@
 # v314: a smaller knock-out bonus, a closer sideways view, a calmer giant
 
-![The knock-out row filling in under the bar, step by step](tally-camera-v314.jpg)
+![The knock-out row filling in under the bar, step by step; below, the sideways play view at the old distance and at the new one](tally-camera-v314.jpg)
 
 ## 1. The knock-out bonus in the tally
 
@@ -32,7 +32,9 @@ When the giant wears off, turning is back to normal. The CPUs are unchanged.
   - The stars fill one at a time, the two sides taking turns.
   - Each star adds 2 to that side's number and its paint on the bar.
   - The totals stay to the end.
-- **The camera:** two sideways shots from the very same moment of a match, one at the old distance and one at the new.
+- **The camera:** sideways, at the start of a match on The Crypt, you held still facing in and the camera settled.
+  - At the old distance the camera sits 9.6 from you.
+  - At the new one it sits 8.6, as the 0.9 says.
 - **Turning:** the turn rate at full steer, worked out exactly from the game's own steering, before and after.
   - A normal roll: 2.8 radians a second, the same as before.
   - A giant: 2.5, where it was 4.4.

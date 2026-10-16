@@ -1,5 +1,5 @@
-"""Build a test page with the boss demo (v315) before it joins tools/q260.py's release list: the test build, then the Sunken Keep stage,
-the boss and the demo over it. usage: BASE=<base page> VER=259:315 python3 tools/boss/build_demo.py game/_v315t.html"""
+"""Build a test page with the boss demo (v315): the test build, then the Sunken Keep stage, the boss and the demo over it if
+tools/q260.py doesn't apply them already (since v315 it does). usage: BASE=<base page> VER=259:315 python3 tools/boss/build_demo.py game/_v315t.html"""
 import os, subprocess, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__)); TOOLS = os.path.dirname(HERE)
