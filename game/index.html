@@ -3936,6 +3936,24 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 /* (v308) the performance readout */
 .perfhud{position:fixed;left:max(6px,env(safe-area-inset-left));top:max(6px,env(safe-area-inset-top));z-index:9999;margin:0;padding:6px 8px;border-radius:6px;background:rgba(10,8,16,.72);color:#9DFFB0;font:600 10.5px/1.35 ui-monospace,Menlo,monospace;white-space:pre;pointer-events:none}
 .perfhud[hidden]{display:none}
+
+/* (v309) the turret's way out: an X on the pound button */
+.slamBtn .sbx{display:none;position:absolute;left:50%;top:50%;width:44%;height:44%;transform:translate(-50%,-50%);pointer-events:none}
+.slamBtn .sbx::before,.slamBtn .sbx::after{content:'';position:absolute;left:50%;top:50%;width:100%;height:20%;border-radius:99px;background:#fff;box-shadow:0 0 0 3px #171320;transform:translate(-50%,-50%) rotate(45deg)}
+.slamBtn .sbx::after{transform:translate(-50%,-50%) rotate(-45deg)}
+.slamBtn.tx .sbx{display:block}
+.slamBtn.tx svg,.slamBtn.tx .sbdial{visibility:hidden}
+/* (v309) Strokes: the unlock code at the foot of the page */
+#mStrokes .stucode{grid-column:1/-1;margin:6px 0 4px}
+/* (v309) the knock-out bonus, seen being added */
+.tyword.ko{color:var(--gold);font-size:clamp(28px,8.4vw,54px)}
+.tyword.ko svg{width:.8em;height:.8em;fill:var(--gold);stroke:var(--black);stroke-width:1.5px;vertical-align:-.1em;margin-right:.2em;filter:drop-shadow(2px 2px 0 var(--black))}
+.tykofly{position:absolute;left:0;top:0;z-index:5;display:flex;align-items:center;gap:3px;margin:-18px 0 0 -34px;padding:4px 10px 4px 5px;border-radius:999px;background:var(--gold);border:2.5px solid var(--black);box-shadow:3px 3px 0 var(--black);font:400 21px/1 var(--font-display);color:#171320;pointer-events:none;white-space:nowrap;transition:transform .24s cubic-bezier(.2,1.6,.4,1);will-change:transform}
+.tykofly svg{width:22px;height:22px;fill:#fff;stroke:var(--black);stroke-width:1.6px}
+.tykofly b{font-weight:400}
+.tykofly.go{transition:transform .3s cubic-bezier(.55,0,.85,.35)}
+.tyko{font-size:22px}
+.tyko svg{width:.9em;height:.9em;fill:var(--gold);stroke:var(--black);stroke-width:1.5px;vertical-align:-.12em;margin-right:2px}
 </style>
 
 <div id="stage">
@@ -3987,7 +4005,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
       <div class="lobbyfx" aria-hidden="true"><i></i><i></i></div>
       <div class="ltop" id="lobbyTop">
         <button class="dabs" id="dabsBtn" type="button" title="Dabs. Open the Paint Shop" aria-haspopup="dialog"><span class="dcoin" aria-hidden="true"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18.6" fill="#F2C14E" stroke="#171320" stroke-width="2.6"/><circle cx="20" cy="20" r="14.4" fill="#C98E22"/><circle cx="20" cy="20.6" r="12.8" fill="#EDB43F"/><path class="dabk" transform="scale(2)" d="M10 5.2c.9 0 1.3 1.1 2 1.5 1 .5 2.2-.3 2.6.7.4 1-.9 1.6-.9 2.6s1.2 1.6.7 2.5c-.5.9-1.6.2-2.5.6-.8.4-1 1.7-1.9 1.7s-1.1-1.3-2-1.7c-.9-.4-2 .3-2.5-.6s.7-1.5.7-2.5-1.3-1.6-.9-2.6c.4-1 1.6-.2 2.6-.7.7-.4 1.1-1.5 2.1-1.5z" stroke="#171320" stroke-width=".85"/><path d="M8.6 14.2a13 13 0 0 1 7.6-6.6" fill="none" stroke="#FFF1BF" stroke-width="2.2" stroke-linecap="round" opacity=".85"/></svg></span><span class="dtab"><span class="dsr">Dabs: </span><b id="statDrops">0</b><i class="dshop">Shop</i></span></button>
-        <button class="swatch me nametag" id="nameBtn" type="button" aria-label="Change your name"><span class="swc"><span class="nface" id="nameFace" aria-hidden="true"></span></span><span class="swt"><b id="nameShow">Player</b><small id="repName">Unknown</small><span class="repbar" aria-hidden="true"><i id="repFill"></i></span></span><span class="swlvl" id="repLvl" aria-label="Reputation level">1</span></button>
+        <button class="swatch me nametag" id="nameBtn" type="button" aria-label="Change your name"><span class="swc"><span class="nface" id="nameFace" aria-hidden="true"></span></span><span class="swt"><b id="nameShow">Player</b><small id="repName">Fresh Paint</small><span class="repbar" aria-hidden="true"><i id="repFill"></i></span></span><span class="swlvl" id="repLvl" aria-label="Reputation level">1</span></button>
         <div class="ltools"><span class="tape exhib" id="seasonTag"><b>Season 1</b> Spooky SZN</span><button class="mbtn" id="hamBtn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="sideMenu"><i></i><i></i><i></i></button><button class="ib2 setb" id="setBtn" type="button" aria-label="Settings" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.7 12.6L22.2 13.9L20.6 17.9L17.9 17.0L17.0 17.9L17.9 20.6L13.9 22.2L12.6 19.7L11.4 19.7L10.1 22.2L6.1 20.6L7.0 17.9L6.1 17.0L3.4 17.9L1.8 13.9L4.3 12.6L4.3 11.4L1.8 10.1L3.4 6.1L6.1 7.0L7.0 6.1L6.1 3.4L10.1 1.8L11.4 4.3L12.6 4.3L13.9 1.8L17.9 3.4L17.0 6.1L17.9 7.0L20.6 6.1L22.2 10.1L19.7 11.4ZM15.2 12a3.2 3.2 0 1 0 -6.4 0a3.2 3.2 0 1 0 6.4 0Z" fill="currentColor" fill-rule="evenodd"/></svg></button></div>
       </div>
       <h1 class="logo paint" id="logo"><span class="tcard" role="img" aria-label="Roll Model"></span><span class="season"><b>Season 1</b>Spooky SZN</span></h1>
@@ -4025,6 +4043,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
           <div class="strail" id="stSkillRail" role="tabpanel" aria-labelledby="stSkill" hidden></div>
           <div class="strail" id="stItemRail" role="tabpanel" aria-labelledby="stItem" hidden></div>
         </section>
+        <div class="ucode stucode"><button class="ulink" id="stUnlockLink" type="button">Unlock everything</button><form class="uform" id="stUnlockForm" hidden><input id="stUnlockCode" type="text" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="Code" aria-label="Unlock code"><button class="ugo" type="submit">Unlock</button></form></div>
       </div>
     </div>
     <div class="mevents" id="mEvents" hidden><div class="evwash" aria-hidden="true"><i></i></div>
@@ -4032,7 +4051,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
       <button class="evmore" id="evMore" type="button" aria-label="More events below" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9.5l6 6 6-6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="evgrid" id="evGrid" role="group" aria-labelledby="evTitle">
         <div class="evcard" data-ev="vs" style="--ec:#E3122F"><button class="evmain" id="evVs" type="button" aria-expanded="false" aria-controls="evVsPick"><span class="evbar"><i>Most paint wins</i></span><span class="evtop"><span class="evic" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M32 3l7 12 13-4-3 13 12 7-12 7 3 13-13-4-7 12-7-12-13 4 3-13L3 31l12-7-3-13 13 4z" fill="#fff" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M17 24l5 16 5-16M45 25.5c-1.6-1.6-6-2.2-8 .4-2.4 3 1 5 4 6.4 3.4 1.6 4.4 4.2 1.8 6.6-2.4 2-6.6 1-8.6-.8" fill="none" stroke="#171320" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 24l5 16 5-16M45 25.5c-1.6-1.6-6-2.2-8 .4-2.4 3 1 5 4 6.4 3.4 1.6 4.4 4.2 1.8 6.6-2.4 2-6.6 1-8.6-.8" fill="none" stroke="#E3122F" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="evtx"><b>Versus CPU</b><small>1v1 or a 3-way</small></span></span><span class="evart" aria-hidden="true"><img id="evVsArt" alt=""></span></button><div class="evdrop" id="evVsPick" hidden role="group" aria-label="How many rivals"><button type="button" data-m="duel"><b>1 v 1</b><small>You and one rival</small></button><button type="button" data-m="trio"><b>3-way</b><small>You and two rivals</small></button></div></div>
         <div class="evcard" data-ev="match" style="--ec:#19B7A5"><button class="evmain" id="evMatch" type="button"><span class="evbar"><i>Live online</i></span><span class="evtop"><span class="evic" aria-hidden="true"><svg viewBox="0 0 64 64"><circle cx="32" cy="28" r="22" fill="#8FDCF3" stroke="#171320" stroke-width="3.2"/><path d="M10 28h44M32 6c-8 7-8 37 0 44M32 6c8 7 8 37 0 44M14 16h36M14 40h36" fill="none" stroke="#171320" stroke-width="2.4"/><circle cx="15" cy="49" r="9" fill="#E3122F" stroke="#171320" stroke-width="3"/><circle cx="49" cy="49" r="9" fill="#2E9BFF" stroke="#171320" stroke-width="3"/><circle cx="12.5" cy="47.5" r="1.6" fill="#171320"/><circle cx="17.5" cy="47.5" r="1.6" fill="#171320"/><circle cx="46.5" cy="47.5" r="1.6" fill="#171320"/><circle cx="51.5" cy="47.5" r="1.6" fill="#171320"/></svg></span><span class="evtx"><b>Play online</b><small>1v1 against real people</small></span></span><span class="evart" aria-hidden="true"><img id="evMatchArt" alt=""></span></button><i class="evlock" id="evMatchLock" aria-hidden="true"></i><i class="evnew" aria-hidden="true">New!</i></div>
-        <div class="evcard" data-ev="showdown" style="--ec:#8E5CFF"><button class="evmain" id="evShow" type="button" aria-expanded="false" aria-controls="evShowPick"><span class="evbar"><i>Last one standing</i></span><span class="evtop"><span class="evic" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M32 6C18 6 9 15.5 9 28c0 7 3 12 8 15v7c0 2.5 2 4 4.5 4h21c2.5 0 4.5-1.5 4.5-4v-7c5-3 8-8 8-15C55 15.5 46 6 32 6z" fill="#fff" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M18.5 25l8 8M26.5 25l-8 8M37.5 25l8 8M45.5 25l-8 8" stroke="#171320" stroke-width="4.2" stroke-linecap="round"/><path d="M29 41l3-4 3 4z" fill="#171320" stroke="#171320" stroke-width="2" stroke-linejoin="round"/><path d="M25 54v-5M32 54v-5M39 54v-5" stroke="#171320" stroke-width="2.8" stroke-linecap="round"/><path d="M16 18a17 17 0 0 1 10-7" fill="none" stroke="#D9D2F0" stroke-width="3" stroke-linecap="round"/></svg></span><span class="evtx"><b>Showdown</b><small>Two hearts each</small></span></span><span class="evart" aria-hidden="true"><img id="evShowArt" alt=""></span></button><div class="evdrop" id="evShowPick" hidden role="group" aria-label="Which Showdown"><button type="button" data-m="ffa"><b>Free-for-all</b><small>Four of you, one left</small></button><button type="button" data-m="duo"><b>2 v 2</b><small>You and a teammate</small></button></div></div>
+        <div class="evcard" data-ev="showdown" style="--ec:#8E5CFF"><button class="evmain" id="evShow" type="button" aria-expanded="false" aria-controls="evShowPick"><span class="evbar"><i>Last one standing</i></span><span class="evtop"><span class="evic" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M32 6C18 6 9 15.5 9 28c0 7 3 12 8 15v7c0 2.5 2 4 4.5 4h21c2.5 0 4.5-1.5 4.5-4v-7c5-3 8-8 8-15C55 15.5 46 6 32 6z" fill="#fff" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M18.5 25l8 8M26.5 25l-8 8M37.5 25l8 8M45.5 25l-8 8" stroke="#171320" stroke-width="4.2" stroke-linecap="round"/><path d="M29 41l3-4 3 4z" fill="#171320" stroke="#171320" stroke-width="2" stroke-linejoin="round"/><path d="M25 54v-5M32 54v-5M39 54v-5" stroke="#171320" stroke-width="2.8" stroke-linecap="round"/><path d="M16 18a17 17 0 0 1 10-7" fill="none" stroke="#D9D2F0" stroke-width="3" stroke-linecap="round"/></svg></span><span class="evtx"><b>Showdown</b><small>Three hearts each</small></span></span><span class="evart" aria-hidden="true"><img id="evShowArt" alt=""></span></button><div class="evdrop" id="evShowPick" hidden role="group" aria-label="Which Showdown"><button type="button" data-m="ffa"><b>Free-for-all</b><small>Four of you, one left</small></button><button type="button" data-m="duo"><b>2 v 2</b><small>You and a teammate</small></button></div></div>
         <div class="evcard" data-ev="solo" style="--ec:#F29A3A"><button class="evmain" id="evSolo" type="button"><span class="evbar"><i>Weekly leaderboard</i></span><span class="evtop"><span class="evic" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M40 34v8c0 2-1.5 3-3.5 3H33v13" fill="none" stroke="#171320" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M40 34v8c0 2-1.5 3-3.5 3H33v13" fill="none" stroke="#C9C2E4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><rect x="27.5" y="48" width="11" height="13" rx="4" fill="#5B5580" stroke="#171320" stroke-width="3"/><rect x="6" y="14" width="40" height="20" rx="8" fill="#FFD84A" stroke="#171320" stroke-width="3.2"/><path d="M11 19h30" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"/><path d="M46 24h4c2 0 3 1 3 3v7h-13" fill="none" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M12 34v5a3 3 0 0 0 6 0v-5M26 34v8a3 3 0 0 0 6 0v-8" fill="#FFD84A" stroke="#171320" stroke-width="2.6"/></svg></span><span class="evtx"><b>Time trial</b><small>Just you, 60 seconds</small></span></span><span class="evart" aria-hidden="true"><img id="evSoloArt" alt=""></span></button></div>
         <div class="evcard soon" data-ev="conquest" style="--ec:#F2C14E"><button class="evmain" id="evConq" type="button" aria-disabled="true"><span class="evbar"><i>Coming soon</i></span><span class="evtop"><span class="evic" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M6 54c6-9 14-13 26-13s20 4 26 13z" fill="#7FD36E" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M14 54c3-4 8-6 12-6" fill="none" stroke="#C9F2BF" stroke-width="2.6" stroke-linecap="round"/><path d="M31 43V8" stroke="#171320" stroke-width="4.2" stroke-linecap="round"/><path d="M32.5 9.5c6-3 11 3 17 0 2-1 3 0 3 1.5v15c0 1.5-1 2.5-3 3.5-6 3-11-3-17 0z" fill="#FFD84A" stroke="#171320" stroke-width="3" stroke-linejoin="round"/><path d="M38 17.5l2.2 1.6 2.4-3.4 1.9 4.6 2.6-2.2-.9 5.4h-8.2z" fill="#E3122F" stroke="#171320" stroke-width="1.8" stroke-linejoin="round"/><circle cx="31" cy="7" r="3.4" fill="#fff" stroke="#171320" stroke-width="2.6"/><path d="M44 46c2.5-1.4 6-.8 7.5 1.4 1.2 1.8-.4 3.6-2.8 3.6-3 0-5.6-1.6-4.7-5z" fill="#E3122F" stroke="#171320" stroke-width="2.2"/></svg></span><span class="evtx"><b>Season Conquest</b><small>Claim the season’s canvases</small></span></span><span class="evart" aria-hidden="true"><img id="evConqArt" alt=""></span></button><i class="evsoon">Coming soon</i></div>
       </div>
@@ -4073,7 +4092,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 308</p>
+      <p class="ver">Version 310</p>
     </div>
   </div>
 
@@ -4153,7 +4172,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
     </div>
     <div class="judge" id="judge" role="img" aria-label="Scores"><div class="jnums" id="jNums"></div><div class="jbar" id="jBar"></div><div class="jlab" id="jLab" aria-hidden="true"></div></div>
     <div class="board" id="board" role="list" aria-label="Scores"></div>
-    <div class="reprow" id="repRow" hidden><div class="repl"><small>Reputation</small><b id="repRowName">Unknown</b></div><div class="xpmeter" id="xpMeter" role="meter" aria-label="Reputation"></div><b class="xpgain" id="xpGain">+0<small>XP</small></b><b class="dropgain" id="dropGain" hidden>+0<small>dabs</small></b></div>
+    <div class="reprow" id="repRow" hidden><div class="repl"><small>Reputation</small><b id="repRowName">Fresh Paint</b></div><div class="xpmeter" id="xpMeter" role="meter" aria-label="Reputation"></div><b class="xpgain" id="xpGain">+0<small>XP</small></b><b class="dropgain" id="dropGain" hidden>+0<small>dabs</small></b></div>
     <div class="commdone" id="commDone"></div>
     <button class="btn play two" id="endBtn" type="button"><span>Rematch</span><small>New canvas</small></button>
     <div class="row"><button class="btn" id="replayBtn" type="button">Same canvas</button><button class="btn" id="menuBtn" type="button">Menu</button></div>
@@ -5691,7 +5710,7 @@ const SURF_PAINT = {
   }, 1.4)
 };
 const SURF = {};
-const surf = id => SURF[id] || (SURF[id] = SURF_PAINT[id]());
+const surf = id => { try { if (TH) (TH.sfUsed || (TH.sfUsed = new Set())).add(id); } catch (e) {} return SURF[id] || (SURF[id] = SURF_PAINT[id]()); }; // (v309: which canvas asked, so it can let go)
 // ---------- the Sludge Sewer's and the Fishing Raft's surfaces ----------
 { const rivet = (c, h, r, x, y, rad, col) => { c.fillStyle = 'rgba(0,0,0,0.35)'; c.beginPath(); c.arc(x + 1, y + 1.4, rad + 0.8, 0, 6.2832); c.fill(); c.fillStyle = col; c.beginPath(); c.arc(x, y, rad, 0, 6.2832); c.fill(); c.fillStyle = 'rgba(255,255,255,0.28)'; c.beginPath(); c.arc(x - rad * 0.3, y - rad * 0.35, rad * 0.45, 0, 6.2832); c.fill();
     const gr = h.createRadialGradient(x, y, 0, x, y, rad); gr.addColorStop(0, gray(1)); gr.addColorStop(1, gray(0.82)); h.fillStyle = gr; h.beginPath(); h.arc(x, y, rad, 0, 6.2832); h.fill(); r.fillStyle = gray(0.38); r.beginPath(); r.arc(x, y, rad, 0, 6.2832); r.fill(); };
@@ -6009,8 +6028,37 @@ function paintLight() {
   U.uShK.value.setRGB(tcA.r / Math.max(tcB.r, 1e-3), tcA.g / Math.max(tcB.g, 1e-3), tcA.b / Math.max(tcB.b, 1e-3));
   U.uSunC.value.copy(sun.color).multiplyScalar(sun.intensity / LIGHT_K); U.uSkyT.value.copy(hemi.color).multiplyScalar(0.85); U.uSkyH.value.copy(scene.fog.color);
 }
+// (v309) memory. A phone gives the game only so much, and past that iOS closes it: it starts again from the loading screen. Every
+// canvas played used to keep its surfaces, lighting and floor art for the rest of the session (in Graphics mode tens of MB of pictures
+// each, eight canvases). Now the canvas in play and the one before it keep theirs; an older one lets go of them (made again, as on its
+// first visit, if it comes round again). Going to the background, or a memory warning from the phone, lets go of all but the one in play
+let thLru = [], thQ = 0;
+function themeSoon() { clearTimeout(thQ); thQ = setTimeout(() => themeTrim(2), 0); } // (once the stage is built: a layout can try several canvases)
+function themeTrim(keep) { if (!TH) return; thLru = [TH].concat(thLru.filter(T => T !== TH)); while (thLru.length > keep) themeFree(thLru.pop()); }
+const texIn = (m, out) => { for (const k in m) { const v = m[k]; if (v && v.isTexture) out.add(v); } const u = m.uniforms; if (u) for (const k in u) { const v = u[k] && u[k].value; if (v && v.isTexture) out.add(v); } return out; };
+function themeMatsOf(T, out) {
+  const add = v => { if (!v) return; if (v.isMaterial) out.add(v); else if (Array.isArray(v)) v.forEach(add); else if (v instanceof Map) v.forEach((a, b) => { add(a); add(b); }); };
+  if (T.mats) for (const k in T.mats) add(T.mats[k]); add(T.decal); add(T.scat); return out;
+}
+function themeFree(T) {
+  if (!T || T === TH) return;
+  try {
+    // what's still in use stays: anything in the scene (the canvas in play, the characters, the lobby) and the other canvas kept
+    const keepM = new Set(), keepT = new Set(); for (const K of thLru) if (K !== T) themeMatsOf(K, keepM);
+    scene.traverse(o => { const m = o.material; if (m) for (const x of [].concat(m)) keepM.add(x); }); for (const m of keepM) texIn(m, keepT);
+    const mine = themeMatsOf(T, new Set()), tex = new Set(), own = new Set(); for (const m of mine) texIn(m, tex);
+    if (T.decal && T.decal.map) own.add(T.decal.map); if (T.scat && T.scat.map) own.add(T.scat.map);
+    for (const id of new Set([...(T.sf || []), ...(T.sfUsed || [])])) { const sv = SURF[id]; if (!sv) continue; const ts = Object.values(sv).filter(v => v && v.isTexture);
+      if (ts.some(t => keepT.has(t))) continue; ts.forEach(t => { tex.add(t); own.add(t); }); delete SURF[id]; }
+    for (const m of mine) if (!keepM.has(m)) m.dispose();
+    for (const t of tex) { if (keepT.has(t) || t.isRenderTargetTexture) continue; t.dispose(); const c = t.image; if (own.has(t) && c && c.getContext) c.width = c.height = 0; } // (its own pictures: their pixels go now, not whenever)
+    T.mats = null; T.decal = null; T.scat = null; T.sfUsed = null;
+    if (T.envRT) { T.envRT.dispose(); T.envRT = null; } if (T.charRT) { T.charRT.dispose(); T.charRT = null; }
+  } catch (e) { console.warn('themeFree', e); }
+}
+function memTrim() { try { AU.trim(); } catch (e) {} themeTrim(1); }
 function applyThemeLook(T) {
-  TH = T; MUSIC_STYLE = musicStyleOf(T.id); MUSIC_TRK = T.music || null; try { AU.prep(); } catch (e) {} HOR.set(T.hor); scene.fog.near = T.fog ? T.fog[0] : 70; scene.fog.far = T.fog ? T.fog[1] : 200; cloudMat.color.set(CLOUD_TINT[T.id] || 0xD9D4F2); skyU.top.value.set(T.sky[0]); skyU.mid.value.set(T.sky[1]); skyU.hor.value.set(T.sky[2]); NIGHT.sky.set(T.hemi[0]); NIGHT.gnd.set(T.hemi[1]);
+  TH = T; themeSoon(); MUSIC_STYLE = musicStyleOf(T.id); MUSIC_TRK = T.music || null; try { AU.prep(); } catch (e) {} HOR.set(T.hor); scene.fog.near = T.fog ? T.fog[0] : 70; scene.fog.far = T.fog ? T.fog[1] : 200; cloudMat.color.set(CLOUD_TINT[T.id] || 0xD9D4F2); skyU.top.value.set(T.sky[0]); skyU.mid.value.set(T.sky[1]); skyU.hor.value.set(T.sky[2]); NIGHT.sky.set(T.hemi[0]); NIGHT.gnd.set(T.hemi[1]);
   const B = T.base || BASE_NIGHT; NIGHT.hemi = B.hemiI; NIGHT.key.set(B.key); NIGHT.keyI = B.keyI;
   const DK = T.dusk; sun.position.fromArray(DK ? DK.sun : T.sunPos || [16, 30, 9]); SHX = sun.position.x / sun.position.y; SHZ = sun.position.z / sun.position.y; paintUniforms.uLight.value.copy(sun.position).normalize(); envU.sunDir.value.copy(sun.position).normalize(); grvU.uL.value.copy(sun.position).normalize();
   skyU.sunC.value.set(DK ? DK.sunC : 0xFFF7E0); skyU.starK.value = DK ? DK.stars : 1; skyU.duskK.value = DK ? DK.band : 0;
@@ -13085,10 +13133,18 @@ function updateSprinkle(dt) {
   }
   if (n || sprIM.count) { sprIM.count = n; sprIM.instanceMatrix.needsUpdate = true; if (sprIM.instanceColor) sprIM.instanceColor.needsUpdate = true; }
 }
+// (v309) what leaves the stage (the refills and hot puddles between matches, pick-ups as they're taken or replaced) gives back its GPU
+// copy. They were only taken off the scene, and every match left about 80 meshes' worth behind. Pieces shared with what's still out stay
+const dropQ = []; let dropT = 0;
+function dropTree(list) {
+  for (const r of list) if (r) { if (r.parent) r.parent.remove(r); r.traverse(o => { if (o.geometry) dropQ.push(o.geometry); }); }
+  if (dropQ.length && !dropT) dropT = setTimeout(dropFlush, 0); // (once the new ones are out, so a piece they share is seen in use)
+}
+function dropFlush() { dropT = 0; if (!dropQ.length) return; const live = new Set(); scene.traverse(o => { if (o.geometry) live.add(o.geometry); }); for (const g of dropQ.splice(0)) if (!live.has(g)) g.dispose(); }
 let pots = [], rivals = [];
 function placeObjects(level) {
   orbReset();
-  pots.forEach(p => { scene.remove(p.g); scene.remove(p.tele); }); rivals.forEach(p => scene.remove(p.g)); pots = []; rivals = [];
+  dropTree(pots.flatMap(p => [p.g, p.tele]).concat(rivals.map(p => p.g))); pots = []; rivals = []; // (v309: disposed, not just taken off)
   const cfg = VS_CFG;
   RIVALS.slice(0, cfg.rivals).forEach(([x, y, z], i) => rivals.push(makeBoil(x, y, z, 100 + i)));
   const makePot = TH.pot === 'can' ? makePaintCan : TH.pot === 'tiki' ? makeTiki : TH.pot === 'tank' ? makeTank : TH.pot === 'drum' ? makeDrum : TH.pot === 'barrel' ? makeBarrel : makeCoffin;
@@ -13620,10 +13676,10 @@ function makePowerMesh(type) {
   const bub = new THREE.Mesh(bubbleG, bubbleMat); bub.renderOrder = 8; g.add(bub);
   scene.add(g); return { g, spin, bub, eyes };
 }
-function placePower(pw, type, spot) { if (pw.g) scene.remove(pw.g); const m = makePowerMesh(type); Object.assign(pw, { type, x: spot[0], y: spot[1], z: spot[2], g: m.g, spin: m.spin, bub: m.bub, eyes: m.eyes, gone: 0, pop: 0 }); }
+function placePower(pw, type, spot) { if (pw.g) dropTree([pw.g]); const m = makePowerMesh(type); Object.assign(pw, { type, x: spot[0], y: spot[1], z: spot[2], g: m.g, spin: m.spin, bub: m.bub, eyes: m.eyes, gone: 0, pop: 0 }); }
 const itemSpawn = { t: 7, last: null };
 function placePowers() {
-  clearTraps(); boomClear(); powers.forEach(pw => pw.g && scene.remove(pw.g)); powers = []; itemSpawn.t = 6 + Math.random() * 3; itemSpawn.last = null;
+  clearTraps(); boomClear(); dropTree(powers.map(pw => pw.g)); powers = []; itemSpawn.t = 6 + Math.random() * 3; itemSpawn.last = null;
   itemSpawn.pend = null; itemSpawn.gap = 0; if (itemMarkGet.m) itemMarkGet.m.g.visible = false; for (const D of [P, H, H2, H3]) if (D) D.handT = 0; // (v285)
   if (AU.xwant) { AU.xwant('w_wind'); AU.xwant('w_ting'); }
 }
@@ -13644,7 +13700,7 @@ function itemTickOld(dt) {
   for (const pw of powers) { if (pw.pop < 1) pw.pop = Math.min(1, pw.pop + dt * 3); if (pw.grace > 0) pw.grace -= dt; }
 }
 // ---------- v285: pick-ups by need: who has one and who doesn't decides when the next comes and where ----------
-const ITEM_WARN = 1.2, ITEM_STALE = 25;
+const ITEM_WARN = 1.2, ITEM_STALE = 15; // (v310: was 25)
 const hasItem = D => !!(D.held || D.held2 || D.power || D.turret || D.whirl);
 // ahead (1), behind (-1) or level (0): hearts in a Showdown, the canvas otherwise
 function itemEdge(R) {
@@ -13698,9 +13754,19 @@ function itemMarkTick(q, dt) {
   if (Math.random() < dt * 30) { const a = Math.random() * 6.283, r = 0.25 + Math.random() * 0.5; spawnPart(q.x + Math.cos(a) * r, q.y + 0.2, q.z + Math.sin(a) * r, 0, 2 + Math.random() * 1.5, 0, 0.6, puHaloMat, 0.16 + Math.random() * 0.12, 0); }
 }
 const itemType = () => tut && tut.noTurret ? 'roller' : (tut || tut2 || tut3) ? (itemSpawn.last === 'roller' ? (Math.random() < 0.65 ? 'turret' : 'roller') : (Math.random() < 0.65 ? 'roller' : 'turret')) : (() => { const w = { roller: 0.42, turret: 0.3, trap: 0.28, whirl: 0.3, boom: 0.3 }; if (w[itemSpawn.last]) w[itemSpawn.last] *= 0.45; const ks = Object.keys(w); let r = Math.random() * ks.reduce((q, k) => q + w[k], 0); for (const k of ks) if ((r -= w[k]) <= 0) return k; return 'roller'; })();
+// (v310) nobody took it: a moment later something else comes up instead, a different kind, where whoever has waited longest for one
+// can get to it (or where the old one was)
+function itemTypeNot(t) { for (let k = 0; k < 12; k++) { const q = itemType(); if (q !== t) return q; } return ['roller', 'turret', 'trap', 'whirl', 'boom'].find(q => q !== t); }
+function itemSwap(old) {
+  const IS = itemSpawn; if (IS.pend || matchLeft <= 6) return;
+  let R = null; for (const D of ACTIVE) if (D.st === 'play' && !hasItem(D) && (!R || (D.handT || 0) > (R.handT || 0))) R = D;
+  const sp = (R && itemSpot(R)) || [old.x, old.y, old.z];
+  IS.pend = { x: sp[0], y: sp[1], z: sp[2], t: 0, R, type: itemTypeNot(old.type) }; IS.last = old.type; // (and the kind nobody took is less likely next time)
+  if (state === 'play' && Math.hypot(P.x - sp[0], P.z - sp[2]) < 18) AU.spot();
+}
 // it pops (nobody took it, or the Showdown line closed over it)
 function itemPop(pw) {
-  if (pw.g) { for (let i = 0; i < 10; i++) { const a = i / 10 * 6.283; spawnPart(pw.x, pw.y + 1.05, pw.z, Math.cos(a) * 2.5, 0.5 + Math.random(), Math.sin(a) * 2.5, 0.3, puHaloMat, 0.4); } scene.remove(pw.g); pw.g = null; }
+  if (pw.g) { for (let i = 0; i < 10; i++) { const a = i / 10 * 6.283; spawnPart(pw.x, pw.y + 1.05, pw.z, Math.cos(a) * 2.5, 0.5 + Math.random(), Math.sin(a) * 2.5, 0.3, puHaloMat, 0.4); } dropTree([pw.g]); pw.g = null; }
   const ix = powers.indexOf(pw); if (ix >= 0) powers.splice(ix, 1);
 }
 function itemTick(dt) {
@@ -13708,7 +13774,7 @@ function itemTick(dt) {
   const alive = ACTIVE.filter(D => D.st !== 'out'), IS = itemSpawn;
   for (const D of alive) { if (hasItem(D)) D.handT = 0; else if (D.st === 'play') D.handT = (D.handT || 0) + dt; }
   for (const pw of powers) { if (pw.pop < 1) pw.pop = Math.min(1, pw.pop + dt * 3); if (pw.grace > 0) pw.grace -= dt; pw.age = (pw.age || 0) + dt; }
-  for (let i = powers.length - 1; i >= 0; i--) { const pw = powers[i]; if (pw.g && (pw.age > ITEM_STALE || zoneLost(pw.x, pw.z))) itemPop(pw); }
+  for (let i = powers.length - 1; i >= 0; i--) { const pw = powers[i]; if (pw.g && (pw.age > ITEM_STALE || zoneLost(pw.x, pw.z))) { const stale = pw.age > ITEM_STALE; itemPop(pw); if (stale) { if (state === 'play' && Math.hypot(P.x - pw.x, P.z - pw.z) < 16) AU.pop(); itemSwap(pw); } } } // (v310: swapped)
   IS.gap = (IS.gap || 0) - dt;
   if (IS.pend) { const q = IS.pend; q.t += dt; itemMarkTick(q, dt);
     if (q.t >= ITEM_WARN) { IS.pend = null; itemMarkGet().g.visible = false; const pw = { phase: Math.random() * 6, pop: 0, grace: 0, owner: null, age: 0, forD: q.R }; placePower(pw, q.type, [q.x, q.y, q.z]); powers.push(pw); IS.last = q.type; IS.gap = 2;
@@ -13808,6 +13874,7 @@ function trapPop(T, B, harmless) {
   if (!B) return;
   if (harmless) { B.wob = Math.max(B.wob, 0.7); if (B === P) { popText('Dodged the trap!'); buzz(8); } else if (T.owner === P) popText(nameOf(B) + ' rolled right through'); return; }
   if (B.charging) clearCharge(B); if (B === P) { holdCharge = false; slingOff(); }
+  if (!NM) { emote(T.owner, 'glee', 0.9); hitStop(0.06, T.owner, B); return knockOut(B, 'trap', T.owner); } // (v309: a trap is a knock-out now)
   const l = Math.hypot(B.x - T.x, B.z - T.z), nx = l > 0.05 ? (B.x - T.x) / l : Math.sin(B.yaw), nz = l > 0.05 ? (B.z - T.z) / l : Math.cos(B.yaw);
   B.stunT = Math.max(B.stunT || 0, TRAP_STUN); B.tGuard = TRAP_STUN + 0.9; B.spd = 0; B.turn = 0; B.kx = nx * 3.4; B.kz = nz * 3.4; B.slam = false; B.missile = false; B.rollT = 0;
   B.squash = 0.9; B.wob = 1; fxKnock(B, nx, nz, 0.8); if (!B.air) { B.air = true; B.stroke++; } B.vy = Math.max(B.vy || 0, 5.5); B.lastHit = { by: T.owner, t: runT };
@@ -13987,13 +14054,32 @@ function updateCrowns(dt) {
   }
 }
 function orbReset() { orb.on = false; orb.k = 0; orb.spawnT = 16 + Math.random() * 6; orb.g.visible = false; orb.ring.visible = false; }
+// (v310) can the orb follow this line? Step by step from where it is: each step on a surface it can float up onto (2.2 at the most),
+// never into a wall, never over a hole. (It floats at its surface, so checking only where it's going let it slide into a tall block.)
+function orbPathOk(x0, z0, b0, x1, z1) {
+  const d = Math.hypot(x1 - x0, z1 - z0), n = Math.max(1, Math.ceil(d / 0.3)); let b = b0;
+  for (let i = 1; i <= n; i++) { const t = i / n, x = x0 + (x1 - x0) * t, z = z0 + (z1 - z0) * t, g = surfaceUnder(x, z, b + 2.2, true);
+    if (g === -Infinity || blockedAt(x, z, g + 0.05)) return false; b = g; }
+  return true;
+}
+// (v310) inside something after all (shoved, or a layout it didn't expect): out at the nearest open spot, with a sparkle at both ends
+function orbUnstick() {
+  let best = null, bd = 1e9; const E = zoneEdge() - 3;
+  for (const q of COF_SPOTS) { if (!q || Math.max(Math.abs(q[0]), Math.abs(q[2])) > E || solidThrough(q[0], q[2], q[1] + 0.5) || blockedAt(q[0], q[2], q[1] + 0.05)) continue; const d = Math.hypot(q[0] - orb.x, q[2] - orb.z); if (d < bd) { bd = d; best = q; } }
+  const fx = (x, y, z) => { for (let i = 0; i < 12; i++) { const a = i / 12 * 6.283; spawnPart(x, y, z, Math.cos(a) * 2.2, (Math.random() - 0.3) * 2.5, Math.sin(a) * 2.2, 0.45, orbPartMats[i % orbPartMats.length], 0.45); } };
+  fx(orb.x, orb.y, orb.z);
+  if (!best) { orbReset(); orb.spawnT = 1; return; }
+  orb.x = orb.tx = best[0]; orb.z = orb.tz = best[2]; orb.base = best[1]; orb.y = best[1] + 1.15; orb.pull = 0; orb.inT = 0; fx(orb.x, orb.y, orb.z);
+  if (state === 'play' && Math.hypot(P.x - orb.x, P.z - orb.z) < 18) AU.pop();
+  if (!orb.stay) orbPickTarget();
+}
 // drift toward another reachable spot a few units away, with nothing tall in the way
 function orbPickTarget() {
   let best = null;
   for (let tries = 0; tries < 24 && !best; tries++) {
     const c = COF_SPOTS[(Math.random() * COF_SPOTS.length) | 0]; if (!c) break;
     const d = Math.hypot(c[0] - orb.x, c[2] - orb.z); if (d < 3 || d > 11 || Math.max(Math.abs(c[0]), Math.abs(c[2])) > zoneEdge() - 3) continue;
-    let ok = true; for (let t = 0.1; t <= 1.001 && ok; t += 0.1) { const x = orb.x + (c[0] - orb.x) * t, z = orb.z + (c[2] - orb.z) * t; if (blockedAt(x, z, Math.max(orb.base, c[1]) + 0.9)) ok = false; }
+    let ok = orbPathOk(orb.x, orb.z, orb.base, c[0], c[2]); // (v310: a line it can follow, not just open where it's going)
     if (ok) best = c;
   }
   if (best) { orb.tx = best[0]; orb.tz = best[2]; } else { orb.tx = orb.x; orb.tz = orb.z; }
@@ -14001,7 +14087,7 @@ function orbPickTarget() {
 function orbSpawn() {
   let c = null;
   if ((tut2 || tut3Orb()) && (P.st === 'play' || P.st === 'hide')) { let bd = 1e9; for (const q of COF_SPOTS) { if (!q || Math.max(Math.abs(q[0]), Math.abs(q[2])) >= ARENA - 4) continue; const d = Math.hypot(P.x - q[0], P.z - q[2]); if (d < 5 || ACTIVE.some(D => D !== P && D.st !== 'ko' && Math.hypot(D.x - q[0], D.z - q[2]) < 6)) continue; if (d < bd) { bd = d; c = q; } } } /* (the first real match: the orb comes up near you) */
-  for (let tries = 0; tries < 40 && !c; tries++) { const q = COF_SPOTS[(Math.random() * COF_SPOTS.length) | 0]; if (q && Math.max(Math.abs(q[0]), Math.abs(q[2])) < ARENA - 4 && ACTIVE.every(D => D.st === 'ko' || Math.hypot(D.x - q[0], D.z - q[2]) > 7)) c = q; }
+  for (let tries = 0; tries < 40 && !c; tries++) { const q = COF_SPOTS[(Math.random() * COF_SPOTS.length) | 0]; if (q && Math.max(Math.abs(q[0]), Math.abs(q[2])) < ARENA - 4 && !solidThrough(q[0], q[2], q[1] + 0.5) && !blockedAt(q[0], q[2], q[1] + 0.05) && ACTIVE.every(D => D.st === 'ko' || Math.hypot(D.x - q[0], D.z - q[2]) > 7)) c = q; } // (v310: open ground only)
   if (!c) { orb.spawnT = 2; return; }
   orb.on = true; orb.k = 0; orb.pull = 0; orb.x = c[0]; orb.z = c[2]; orb.base = c[1]; orb.y = c[1] + 1.15; orb.ph = Math.random() * 6.28; orbPickTarget();
   orb.g.visible = true; orb.ring.visible = true; AU.orb(); kick($('orbFlash'), 'on'); popText('Orb!');
@@ -14013,18 +14099,21 @@ function updateOrb(dt) {
   orb.k = Math.min(1, orb.k + dt * 1.8);
   const dx = orb.tx - orb.x, dz = orb.tz - orb.z, d = Math.hypot(dx, dz);
   if (d < 0.4) { if (!orb.stay) orbPickTarget(); } else { const sp = Math.min(d, 1.3 * dt); orb.x += dx / d * sp; orb.z += dz / d * sp; }
-  const g = surfaceUnder(orb.x, orb.z, orb.base + 2.2, true); if (g > -Infinity) orb.base += (g - orb.base) * Math.min(1, dt * 4);
+  let g = surfaceUnder(orb.x, orb.z, orb.base + 2.2, true);
+  if (d > 0.01 && !orb.pull) { const ga = surfaceUnder(orb.x + dx / d * 0.6, orb.z + dz / d * 0.6, orb.base + 2.2, true); if (ga > g) g = ga; } // (v310: up before the edge, not through it)
+  if (g > -Infinity) orb.base += (g - orb.base) * Math.min(1, dt * (g > orb.base ? 7 : 4));
+  if (solidThrough(orb.x, orb.z, orb.base + 0.5) && solidThrough(orb.x, orb.z, orb.y)) { orb.inT = (orb.inT || 0) + dt; if (orb.inT > 0.4) { orbUnstick(); if (!orb.on) return; } } else orb.inT = 0; // (v310)
   orb.y = orb.base + 1.15 + Math.sin(runT * 2.2 + orb.ph) * 0.12;
   if (orb.k < 0.5) return;
   // roll up next to it and it's drawn in: no jump (or paint) needed. The nearest blob in reach, on its level, with nothing between
   let puller = null, pd = ORB_PULL_R;
   for (const D of ACTIVE) { if (D.st !== 'play' || D.giantT > 0 || D.rocket || D.turret || (tut && tut.orbMine && D !== P)) continue; const h = Math.hypot(D.x - orb.x, D.z - orb.z), dy = orb.base - D.y;
-    if (h < pd && dy > -1.1 && dy < 1.3 && !blockedAt((D.x + orb.x) / 2, (D.z + orb.z) / 2, Math.max(D.y, orb.base) + 0.5)) { pd = h; puller = D; } }
+    if (h < pd && dy > -1.1 && dy < 1.3 && orbPathOk(orb.x, orb.z, orb.base, D.x, D.z)) { pd = h; puller = D; } } // (v310: an open way to it, not just the halfway point)
   if (puller) {
     if (!orb.pull) AU.pop && AU.pop();
     orb.pull = Math.min(1, (orb.pull || 0) + dt * 2.6); orb.by = puller;
     const tx = puller.x, ty = puller.y + 0.45, tz = puller.z, k = Math.min(1, dt * (1.5 + 13 * orb.pull * orb.pull));
-    orb.x += (tx - orb.x) * k; orb.z += (tz - orb.z) * k; orb.tx = orb.x; orb.tz = orb.z;
+    { const nx = orb.x + (tx - orb.x) * k, nz = orb.z + (tz - orb.z) * k; if (orbPathOk(orb.x, orb.z, orb.base, nx, nz)) { orb.x = nx; orb.z = nz; } } orb.tx = orb.x; orb.tz = orb.z; // (v310: a wall stops it)
     orb.y += (ty - orb.y) * Math.min(1, orb.pull * 1.4);
     orb.sparkT = (orb.sparkT || 0) + dt * 40;
     while (orb.sparkT >= 1) { orb.sparkT -= 1; const a = Math.random() * 6.283, r = 0.3 + Math.random() * 0.25; spawnPart(orb.x + Math.cos(a) * r, orb.y + (Math.random() - 0.5) * 0.4, orb.z + Math.sin(a) * r, (tx - orb.x) * 4.5, (ty - orb.y) * 4.5 + 0.4, (tz - orb.z) * 4.5, 0.32, orbPartMats[(Math.random() * orbPartMats.length) | 0], 0.28); }
@@ -14137,24 +14226,25 @@ function startTurret(D) {
   D.power = null; D.turret = { t: TURRET_T, cd: 0.45, kick: 0, ph: Math.random() * 6 }; D.inkRush = true; D.squash = 0.8; D.wob = 1; D.rollT = 0; D.dashT = 0; emote(D, 'glee', 0.8);
   shockwave(D.x, D.y, D.z, 1.8, TEAMS[D.team].wet); for (let i = 0; i < 14; i++) { const a = i / 14 * 6.283; spawnPart(D.x, D.y + 0.2, D.z, Math.cos(a) * 3, 1 + Math.random() * 1.6, Math.sin(a) * 3, 0.45, i % 2 ? tmat(D) : puHaloMat, 0.6); }
   if (hearable(D)) AU.turret();
-  if (D === P) { shake = Math.max(shake, 0.2); buzz([15, 25, 15]); banner('Turret!', say('Drag to aim, up and down for range', 'Arrow keys to aim')); }
+  if (D === P) { shake = Math.max(shake, 0.2); buzz([15, 25, 15]); banner('Turret!', say('Drag to turn. It locks onto rivals in front', 'Left and right to turn. It locks onto rivals in front')); }
   else if ((mode !== 'trio' && !isShow()) || other(D) === P) banner('Turret!', 'Keep out of its shots');
 }
 function stepTurret(D, dt) {
   const T = D.turret; T.t -= dt; T.kick = Math.max(0, T.kick - dt * 6);
   if (T.t <= 0) { D.turret = null; graceOut(D); D.squash = 0.7; D.wob = 1; if (hearable(D)) AU.pop(); for (let i = 0; i < 12; i++) { const a = i / 12 * 6.283; spawnPart(D.x, D.y + 0.3, D.z, Math.cos(a) * 2.6, 1.2 + Math.random(), Math.sin(a) * 2.6, 0.4, puHaloMat, 0.5); } return; }
   // your range: drag up (or the up key) to lob further, down to drop them closer
-  if (!D.ai) T.aim = clamp((T.aim === undefined ? 0.4 : T.aim) + (aimKey || rangeIn) * dt * 1.2, 0, 1);
+  // (v309) a rival near your line pulls the turret round onto them (where they're going), less the harder you steer
+  if (!D.ai && D.st === 'play') { const tg = coneFoe(D, 0.75, TURRET_FAR + 1); if (tg) { const O = tg.O, lead = Math.min(0.6, tg.d / SHOT_V), err = wrapA(Math.atan2(O.x + Math.sin(O.yaw) * O.spd * lead - D.x, O.z + Math.cos(O.yaw) * O.spd * lead - D.z) - D.yaw), r = 2.4 * Math.max(0, 1 - Math.abs(steerIn) * 1.6 - (keyL || keyR ? 1 : 0)) * dt; D.yaw += clamp(err, -r, r); } }
   T.cd -= dt; if (T.cd <= 0 && D.st === 'play' && !D.air && D.flatT <= 0 && !(D.stunT > 0) && state === 'play') { T.cd += TURRET_RATE; fireShot(D); }
 }
 // where a turret's next shot is headed: your shots go the range you've set (onto a foe near that spot, if there is one); a CPU's sweep
 // near to far and back, or go for a foe in front
 function turretTarget(D, x0, z0) {
   const T = D.turret; let a = D.yaw, d, ty, foe = null;
-  if (D.ai) d = 7 + 5 * (0.5 + 0.5 * Math.sin(T.ph)); else d = TURRET_NEAR + (TURRET_FAR - TURRET_NEAR) * (T.aim === undefined ? 0.4 : T.aim);
+  if (D.ai) d = 7 + 5 * (0.5 + 0.5 * Math.sin(T.ph)); else d = TURRET_NEAR + 1.5 + (TURRET_FAR - TURRET_NEAR - 4) * (0.5 + 0.5 * Math.sin(T.ph * 0.8)); // (v309: yours sweep near to far too: no range to set)
   { const g = surfaceUnder(x0 + Math.sin(a) * d, z0 + Math.cos(a) * d, D.y + 8, true); ty = g > -Infinity ? g : D.y; }
-  const tg = coneFoe(D, D.ai ? 0.22 : 0.3, TURRET_FAR + 1);
-  if (tg && (D.ai || Math.abs(tg.d - d) < 4.5)) { const O = tg.O, tf = Math.max(tg.d / SHOT_V, 2 * Math.sqrt(2 * (1.1 + 0.07 * tg.d) / SHOT_G)), tx = O.x + Math.sin(O.yaw) * O.spd * tf, tz = O.z + Math.cos(O.yaw) * O.spd * tf; a = Math.atan2(tx - x0, tz - z0); d = Math.max(TURRET_NEAR * 0.7, Math.hypot(tx - x0, tz - z0)); ty = O.y + PR * 0.7; foe = O; }
+  const tg = coneFoe(D, D.ai ? 0.22 : 0.45, TURRET_FAR + 1);
+  if (tg) { /* (v309: yours lock onto a rival in front at any distance in reach) */ const O = tg.O, tf = Math.max(tg.d / SHOT_V, 2 * Math.sqrt(2 * (1.1 + 0.07 * tg.d) / SHOT_G)), tx = O.x + Math.sin(O.yaw) * O.spd * tf, tz = O.z + Math.cos(O.yaw) * O.spd * tf; a = Math.atan2(tx - x0, tz - z0); d = Math.max(TURRET_NEAR * 0.7, Math.hypot(tx - x0, tz - z0)); ty = O.y + PR * 0.7; foe = O; }
   return { a, d, ty, foe };
 }
 function fireShot(D) {
@@ -15498,7 +15588,7 @@ function newBlob(team, cpu) {
 }
 const P = newBlob(0, false), H = newBlob(1, true), H2 = newBlob(2, true), H3 = newBlob(3, true); // you, the holy water, and in a 3-way, wolfsbane
 // modes: solo (just you against the clock), duel (you vs the holy water), trio (all three, everyone for themselves, on a bigger canvas)
-const MODES = [['solo', 'Time trial', 'Just you, 60 seconds'], ['duel', '1v1', 'You and one rival'], ['trio', '3-way', 'You and two rivals'], ['ffa', 'Showdown', 'Four of you, two hearts each'], ['duo', 'Showdown 2v2', 'You and a teammate, two hearts each']];
+const MODES = [['solo', 'Time trial', 'Just you, 60 seconds'], ['duel', '1v1', 'You and one rival'], ['trio', '3-way', 'You and two rivals'], ['ffa', 'Showdown', 'Four of you, three hearts each'], ['duo', 'Showdown 2v2', 'You and a teammate, three hearts each']];
 let mode = MODES.some(m => m[0] === store.mode) ? store.mode : 'duel', ACTIVE = [P, H], SIDE = [0, 1, 2, 3]; // (SIDE: who's with whom, by team; in 2v2 you and your teammate are one side)
 function isShow() { return mode === 'ffa' || mode === 'duo'; }
 const sideOf = D => SIDE[D.team], ally = (A, B) => !!A && !!B && A !== B && SIDE[A.team] === SIDE[B.team];
@@ -15607,7 +15697,7 @@ let keysUI = !!(window.matchMedia && matchMedia('(hover: hover) and (pointer: fi
 const say = (touch, keys) => keysUI ? keys : touch;
 function paintHow() {
   const pw = potWord(), riv = mode === 'trio' ? 'a rival' : 'your rival';
-  $('howGoal').textContent = isShow() ? (mode === 'duo' ? 'Two against two, two hearts each. A knock-out costs a heart and with none left you\'re out. The last pair standing wins.' : 'Four of you, two hearts each. A knock-out costs a heart and with none left you\'re out. The last one standing wins.') : mode === 'solo' ? 'Cover as much of the canvas as you can in 60 seconds, and beat your best.' : mode === 'trio' ? 'Cover more of the canvas than both rivals in 90 seconds. Paint over their colors to take ground back.' : 'Cover more of the canvas than your rival in 90 seconds. Paint over their color to take ground back.';
+  $('howGoal').textContent = isShow() ? (mode === 'duo' ? 'Two against two, three hearts each. A knock-out costs a heart and with none left you\'re out. The last pair standing wins.' : 'Four of you, three hearts each. A knock-out costs a heart and with none left you\'re out. The last one standing wins.') : mode === 'solo' ? 'Cover as much of the canvas as you can in 60 seconds, and beat your best.' : mode === 'trio' ? 'Cover more of the canvas than both rivals in 90 seconds. Paint over their colors to take ground back.' : 'Cover more of the canvas than your rival in 90 seconds. Paint over their color to take ground back.';
   $('howInk').textContent = 'Your color is a fast lane that refills your paint. A rival\'s color slows you down. Run dry and you crawl, except on your own color, and you have 4 seconds to reach a ' + pw + ' or your color before you dry up.';
   $('howRoll').textContent = 'Roll into ' + riv + ' to stun it for 2 seconds. Pound to splat a circle. Anything inside is out for a few seconds. Jump it, or time a roll: rolling makes you untouchable for half a second.';
   $('howFling').textContent = 'Fling into ' + riv + ' to knock it flying, or pound mid-fling to fire a missile that steers toward it. Ram it while you\'re faster, or land on it, to flatten it.';
@@ -16200,7 +16290,8 @@ function goDry(D) {
 }
 function startCharge(D) {
   if (D.st !== 'hide' && (!canAct(D) || D.air)) return;
-  if (D.dry && D.st !== 'hide') { if (D === P) { (kick($('ttrack'), 'nope'), pingTank(1.6)); AU.nope(); popText('No paint'); } return; }
+  D.dryPull = false;
+  if (D.dry && D.st !== 'hide') { if (D !== P || D.ai) return; D.dryPull = true; } // (v309: out of paint the pull is still yours, and letting go rolls you on: dryRoll)
   if (D.slam || D.charging) return;
   D.charging = true; D.charge = 0; D.pullTgt = 0;
   if (D === P) { pullTgt = 0; pullNotch = 0; kbHold = 0; AU.chargeStart(); if (D.st === 'play' && !D.air) { AU.brake(); buzz(6); } }
@@ -16223,9 +16314,19 @@ function cancelCharge(D) {
   clearCharge(D);
   if (D.st === 'play' && !D.air) { D.spd = Math.max(D.spd, cfg.speed * spdK(D) * 0.5); D.grace = 0.35; D.squash = Math.max(D.squash, 0.3); if (D === P) AU.release(); }
 }
+// (v309) out of paint the slingshot can't throw you, but the pull isn't wasted: letting go rolls you forward (the dodge roll, a little
+// shorter for a short pull, never faster than a roll). With the roll still cooling down, a push off instead, so letting go always moves you
+function dryRoll(D, c) {
+  if (!canAct(D) || D.air) return;
+  const k = 0.7 + 0.3 * clamp((c - FLING_MIN) / (1 - FLING_MIN), 0, 1);
+  if (dodgeRoll(D)) { D.rollV *= k; D.spd = D.rollV; }
+  else if (!(D.rollBuf > 0)) { D.spd = Math.max(D.spd, cfg.speed * spdK(D) * (0.5 + 0.3 * k)); D.grace = 0.35; D.squash = Math.max(D.squash, 0.3); if (D === P) AU.release(); }
+  if (D === P) hint('dryroll', 'Out of paint, a pull rolls you on. Refill at a ' + potWord() + ' or on your color', 3);
+}
 function fling(D, cIn) {
   if (!D.charging) return;
   let c = cIn !== undefined ? cIn : D.charge; clearCharge(D);
+  if (D.dryPull) { D.dryPull = false; if (D.dry && D.st === 'play') return dryRoll(D, c); }
   if (D.st === 'play' && D.air && D.airSling && canAct(D)) {
     if (NM && D === P) netAct('fling', { c });
     const s = airShot(D, c, D.yaw); D.airSling = false; D.vy = s.v0; D.spd = s.spd; D.kx = D.kz = 0; D.squash = 0.3; D.wob = 1; D.buf = 0;
@@ -16291,6 +16392,7 @@ const LOW_FLASH = 0.125; // the low-blood flashing starts halfway down the last 
 const DRY_SPD = 0.46, DRY_OWN = 0.88, DRY_OUT = 0.25, DRY_KO = 4; // (DRY_OWN: dried up but on your own color, almost your full speed) // drained: crawl at this fraction of your speed until a refill brings you back to one bar, and dry up if that takes longer than DRY_KO seconds
 const slamReady = D => D.slamCD <= 0 && D.paint >= POUND_MIN && !D.slam && (canAct(D) || D.st === 'hide') && !(NM && D === P && NM.srvPaint !== undefined && NM.srvPaint < POUND_MIN - 0.005);
 function useSlam(D) {
+  if (D.turret && D === P && !D.ai && D.st === 'play') { D.turret.t = 0; AU.pop(); buzz(8); return true; } // (v309: the X: out of the turret now)
   if (D === P && tut && tut.noPound) return false; /* (the dodge lessons: the pound is locked) */
   if (D === P) kick($('slamBtn'), 'press');
   if (D.rocket) return rocketDive(D, false);
@@ -16309,18 +16411,19 @@ function updateSlamBtn() {
   if (b.hidden === show) b.hidden = !show;
   if (!show) { wasReady = false; return; }
   { const lk = !!(tut && tut.noPound); if (b._lk !== lk) { b._lk = lk; b.classList.toggle('locked', lk); } }
-  const rk = P.rocket, ready = rk ? rk.ph === 'hover' || (rk.ph === 'dive' && rk.slow) : slamReady(P), cd = !rk && P.slamCD > 0 ? (P.slamCD / P.slamMax * 360).toFixed(0) + 'deg' : '0deg';
+  const tx = !!P.turret && P.st === 'play'; if (b._tx !== tx) { b._tx = tx; b.classList.toggle('tx', tx); if (tx && !b.querySelector('.sbx')) { const x = document.createElement('i'); x.className = 'sbx'; x.setAttribute('aria-hidden', 'true'); b.appendChild(x); } wasReady = null; } // (v309: in a turret the button is its way out)
+  const rk = P.rocket, ready = tx ? true : rk ? rk.ph === 'hover' || (rk.ph === 'dive' && rk.slow) : slamReady(P), cd = !rk && P.slamCD > 0 ? (P.slamCD / P.slamMax * 360).toFixed(0) + 'deg' : '0deg';
   if (b._boost !== !!rk) { b._boost = !!rk; b.classList.toggle('boost', !!rk); wasReady = null; }
   if (b._cd !== cd) { b._cd = cd; } // (the disc no longer shades with the cooldown)
   { const dl = $('sbDial'); let frac = -1, n = '', kind = ''; // the dial on the button's corner: the cooldown's count (short of paint, nothing: the button is simply off)
-    if (!rk && P.st === 'play' && !P.slam && P.paint >= POUND_MIN && P.slamCD > 0 && P.slamMax > 0) { frac = 1 - P.slamCD / P.slamMax; n = String(Math.ceil(P.slamCD)); kind = 'cd'; }
+    if (!rk && !tx && P.st === 'play' && !P.slam && P.paint >= POUND_MIN && P.slamCD > 0 && P.slamMax > 0) { frac = 1 - P.slamCD / P.slamMax; n = String(Math.ceil(P.slamCD)); kind = 'cd'; }
     if (frac < 0) { if (!dl.hidden) dl.hidden = true; } else { if (dl.hidden) dl.hidden = false; if (dl.dataset.k !== kind) dl.dataset.k = kind; const deg = (clamp(frac, 0, 1) * 360).toFixed(0); if (dl.dataset.d !== deg) { dl.dataset.d = deg; $('sbRing').style.background = 'conic-gradient(var(--pc) ' + deg + 'deg, rgba(23,19,32,.35) 0)'; }
       const v = n; if ($('sbN').dataset.v !== v) { $('sbN').dataset.v = v; $('sbN').innerHTML = v; } } }
   { const as = P.assistT > 0 && !P.slam; if (b._as !== as) { b._as = as; b.classList.toggle('assist', as); } }
   const up = P.st === 'hide', fwd = !up && ((P.air && (P.flingC || 0) > 0.15 && !P.slam) || (P.slam && P.missile));
   if (b._up !== up) { b._up = up; b.classList.toggle('up', up); wasReady = null; }
   if (b._fwd !== fwd) { b._fwd = fwd; b.classList.toggle('fwd', fwd); wasReady = null; }
-  if (ready !== wasReady) { b.classList.toggle('off', !ready); if (ready) restartCls(b, 'ready'); else b.classList.remove('ready'); b.setAttribute('aria-label', rk ? 'Boost down' : ready ? (up ? 'Burst out of the ' + potWord() : fwd ? 'Fire a missile' : 'Ground pound') : P.slamCD > 0 ? 'Ground pound building up' : 'Ground pound needs at least one bar of paint'); wasReady = ready; }
+  if (ready !== wasReady) { b.classList.toggle('off', !ready); if (ready) restartCls(b, 'ready'); else b.classList.remove('ready'); b.setAttribute('aria-label', tx ? 'Leave the turret' : rk ? 'Boost down' : ready ? (up ? 'Burst out of the ' + potWord() : fwd ? 'Fire a missile' : 'Ground pound') : P.slamCD > 0 ? 'Ground pound building up' : 'Ground pound needs at least one bar of paint'); wasReady = ready; }
 }
 // the coffin burst: blood blasts up out of the coffin, the coffin flies apart, and you rocket up out of it.
 // It splats the same circle as a pound, splashes boiling water in it, and knocks out anyone inside that circle.
@@ -16413,7 +16516,7 @@ function slamLand(D) {
 }
 function collectPower(D, pw) {
   const type = pw.type; shockwave(pw.x, pw.y + 1.05, pw.z, 1.2); for (let i = 0; i < 12; i++) { const a = i / 12 * 6.283; spawnPart(pw.x, pw.y + 1.05, pw.z, Math.cos(a) * 4, 1 + Math.random() * 2, Math.sin(a) * 4, 0.35, puHaloMat, 0.6); }
-  scene.remove(pw.g); pw.g = null; const ix = powers.indexOf(pw); if (ix >= 0) powers.splice(ix, 1);
+  dropTree([pw.g]); pw.g = null; const ix = powers.indexOf(pw); if (ix >= 0) powers.splice(ix, 1);
   if (D.skill === 'pockets' && D.held) { if (D.held2) { dropHeld(D); D.held = D.held2; } D.held2 = type; } // (Deep Pockets: a second one goes in the other pocket; a third drops the oldest)
   else { if (D.held) dropHeld(D); D.held = type; }
   D.heldT = 0; emote(D, 'glee', 0.6); itemSpawn.t = Math.max(itemSpawn.t, 8 + Math.random() * 4);
@@ -16421,8 +16524,8 @@ function collectPower(D, pw) {
 }
 const deathColor = (D, r) => r === 'sun' ? (D.cpu ? 0xDDEEFF : 0x4A4052) : r === 'dry' ? 0x5E4F5C : TEAMS[D.team].wet;
 const deathRing = r => r === 'sun' ? 0xFFC46B : r === 'pound' || r === 'coffin' ? 0xFFD86B : 0xFFFFFF;
-const KO_MSG = { zone: 'Caught outside!', shot: 'Shot down!', pound: 'Pounded!', coffin: 'Nailed!', fall: 'Fell off', sun: 'Baked!', crush: 'Crushed!', dry: 'Dried up!', boom: 'Boomeranged!' };
-const CPU_KO_MSG = { zone: n => n + ' got caught outside', shot: n => 'Shot down ' + n + '!', pound: n => 'Got ' + n + '!', coffin: n => 'Nailed ' + n + '!', fall: n => n + ' fell off', sun: n => 'Baked ' + n + '!', crush: n => 'Crushed ' + n + '!', dry: n => n + ' dried up!', boom: n => 'Boomeranged ' + n + '!' };
+const KO_MSG = { trap: 'Trapped!', zone: 'Caught outside!', shot: 'Shot down!', pound: 'Pounded!', coffin: 'Nailed!', fall: 'Fell off', sun: 'Baked!', crush: 'Crushed!', dry: 'Dried up!', boom: 'Boomeranged!' };
+const CPU_KO_MSG = { trap: n => 'Trapped ' + n + '!', zone: n => n + ' got caught outside', shot: n => 'Shot down ' + n + '!', pound: n => 'Got ' + n + '!', coffin: n => 'Nailed ' + n + '!', fall: n => n + ' fell off', sun: n => 'Baked ' + n + '!', crush: n => 'Crushed ' + n + '!', dry: n => n + ' dried up!', boom: n => 'Boomeranged ' + n + '!' };
 const koLine = (reason, mine, n) => reason === 'coffin' && TH.pot === 'can' ? (mine ? 'Canned!' : 'Canned ' + n + '!') : reason === 'coffin' && (TH.pot === 'tiki' || TH.pot === 'tank' || TH.pot === 'drum' || TH.pot === 'barrel') ? (mine ? 'Dunked!' : 'Dunked ' + n + '!') : mine ? KO_MSG[reason] : CPU_KO_MSG[reason] && CPU_KO_MSG[reason](n);
 // out for 5 seconds, then back in a coffin
 // a pound knockout: the one pounded is blasted away limp, tumbling and bouncing, for about a second, and only then pops and is gone
@@ -16673,7 +16776,7 @@ function steerAndTurn(D, dt, scaleBy) {
       scaleBy *= 1 + 0.5 * k + 0.5 * kk * sf; D.spd = Math.max(cfg.speed * 0.55, D.spd - D.spd * (1.8 * k + 4 * kk * sf) * dt); } }
     else if (ahead > 0.25 && sf > 0) D.spd -= Math.max(0, D.spd - cfg.speed) * 6 * sf * ahead * dt; // flying at a drop without steering: bleed off the extra speed so there's time to turn
   }
-  const sr = D.spd / cfg.speed, agile = D.turret && !D.air ? 0.85 : D.air ? 1 : sr < 1 ? Math.min(D.charging ? 1.35 : 1.6, 1 + 0.6 * (1 - Math.max(0, sr))) : Math.min(1.3, sr), want = input * TURN * scaleBy * agile * (D === P && !P.ai && !kcam ? turnK() : 1); // (a turret turns itself round with its stubs: a little steadier)
+  const sr = D.spd / cfg.speed, agile = D.turret && !D.air ? (D === P && !P.ai ? 0.66 * Math.min(1, 0.3 + Math.abs(input)) : 0.85) : D.air ? 1 : sr < 1 ? Math.min(D.charging ? 1.35 : 1.6, 1 + 0.6 * (1 - Math.max(0, sr))) : Math.min(1.3, sr), want = input * TURN * scaleBy * agile * (D === P && !P.ai && !kcam ? turnK() : 1); // (a turret turns itself round with its stubs: a little steadier)
   let lean = 0; if (D === P && !P.ai && !D.air && !D.charging && !kcam && Math.abs(input) > 0.4 && D.spd > 0.8) { const st = steerTarget(D, input); if (st) lean = -clamp(st.err, -1, 1) * TURN * turnK() * 0.6 * Math.min(1, Math.abs(input) * 1.4); } // (the lean the rest of the way, on top of what you asked for)
   const wantL = want + lean; D.turn += (wantL - D.turn) * Math.min(1, dt * (D === P && !P.ai ? (wantL * D.turn < 0 ? 50 : 36) : 20));
   D.yaw -= D.turn * dt;
@@ -18697,7 +18800,11 @@ function visuals(dt, rdt) {
     dropMat.color.copy(tmpCol); dropMat.emissive.copy(tmpCol).multiplyScalar(0.16); xrayMat.color.copy(teamCol); splashMat.color.copy(teamCol);
     // aim ring: slingshot landing spot or slam circle
     const aiming = P.charging && P.charge > 0.03;
-    if (aiming && P.air && P.airSling) {
+    if (aiming && P.dryPull) { // (v309) out of paint: the ring sits about where the roll takes you, on the ground ahead, and no arc
+      const c = Math.max(FLING_MIN, P.charge), L = DRY_RING[0] + DRY_RING[1] * c, fx = Math.sin(P.yaw), fz = Math.cos(P.yaw), gy = surfaceUnder(P.x + fx * L, P.z + fz * L, P.y + STEP, true);
+      aimIn.material.color.setHex(0xFFFFFF); aimRing.position.set(P.x + fx * L, (gy > -Infinity ? gy : P.y) + 0.11, P.z + fz * L); aimRing.scale.setScalar(0.42 + 0.16 * c); aimRing.visible = true;
+      if (arcDots[0].visible) arcDots.forEach(d => { d.visible = false; });
+    } else if (aiming && P.air && P.airSling) {
       aimIn.material.color.setHex(0xFFFFFF);
       const c = Math.max(FLING_MIN, P.charge), s = airShot(P, c, P.yaw), fx = fwdX(), fz = fwdZ(), pop = Math.min(1, P.charge / 0.12);
       aimRing.position.set(s.x, (s.y > -Infinity ? s.y : P.y - 6) + 0.11, s.z); aimRing.scale.setScalar((0.5 + 0.35 * pop) * (0.94 + 0.06 * Math.sin(clock * 10))); aimRing.visible = s.y > -Infinity;
@@ -19890,7 +19997,7 @@ $('modes').addEventListener('click', e => { const t = e.target.closest('button')
 const stageArt = () => { const b = $('stagePick').querySelector('.world[data-s="' + stageSel + '"] img.art') || $('seasonGrid').querySelector('.stg[data-s="' + stageSel + '"] img.art') || $('stagePick').querySelector('.world[data-s="season"] img.art'); return b ? b.src : ''; };
 const CRITICS = { easy: 'Gentle', medium: 'Fair', hard: 'Harsh' };
 // reputation: experience from every exhibition, levels, and a title for the band you're in
-const REP_NAMES = ['Unknown', 'Local talent', 'Rising star', 'Crowd pleaser', 'Headliner', 'Master'];
+const REP_NAMES = ['Fresh Paint', 'Drip Rookie', 'Splat Kid', 'Street Brush', 'Color Bandit', 'Ink Outlaw', 'Canvas Crusher', 'Neon Menace', 'Splash Tyrant', 'Paint Phantom', 'Chroma Legend', 'Masterpiece']; // (v309: a new one every three ranks)
 const xpNeed = lv => 100 + 45 * (lv - 1);
 function repOf(xp) { let lv = 1, x = Math.max(0, xp | 0); while (x >= xpNeed(lv) && lv < 99) { x -= xpNeed(lv); lv++; } return { lv, x, need: xpNeed(lv), name: REP_NAMES[Math.min(REP_NAMES.length - 1, Math.floor((lv - 1) / 3))] }; }
 // commissions: three jobs at a time
@@ -20076,6 +20183,21 @@ function closeStPop(quiet) { clearTimeout(stPopT); if (!stPopId) return; const i
 function skillCard() {}
 function equipSkill(id) { const d = strokesOf(); if (!d.own.includes(id) || d.skill === id) return; d.skill = id; stSkillSel = id; save(); AU.ready && AU.ready(); buzz(8); renderStrokes(); stToast(SKILLS.find(x => x.id === id).name + ' is your skill'); }
 function equipItem(id) { const d = strokesOf(); if (!stIsItem(id) || !d.own.includes(id) || d.item === id) return; d.item = id; save(); AU.ready && AU.ready(); buzz(8); renderStrokes(); stToast(spName(id) + ' is your starting transform'); }
+// (v309) Strokes: the code that unlocks everything, for testing (as Customize's does for items): every stroke owned and nothing on the
+// bench, every item, and the rank every lock asks for (Strokes, the modes, commissions, each transform). A lesson under way is left alone
+function stUnlockAll() {
+  const d = strokesOf(); for (const o of [...SPECIALS, ...SKILLS, ...ST_ITEMS]) if (!d.own.includes(o.id)) d.own.push(o.id); d.craft = null;
+  for (const w of ITEMS) { OWNED.add(w.id); BOUGHT.add(w.id); } store.owned = [...OWNED]; store.bought = [...BOUGHT];
+  const need = Math.max(ABIL_RANK, COMM_RANK, ...ST_ITEMS.map(o => stRank(o))); if (repOf(store.xp || 0).lv < need) { let xp = 0; for (let l = 1; l < need; l++) xp += xpNeed(l); store.xp = xp; }
+  save(); renderStrokes(); try { paintAbil(); paintPBar(); } catch (e) {}
+}
+setTimeout(() => {
+  $('stUnlockLink').addEventListener('click', () => { AU.init(); AU.ui(); $('stUnlockLink').hidden = true; $('stUnlockForm').hidden = false; setTimeout(() => $('stUnlockCode').focus(), 30); });
+  $('stUnlockCode').addEventListener('keydown', e => e.stopPropagation());
+  $('stUnlockForm').addEventListener('submit', e => { e.preventDefault(); const v = $('stUnlockCode').value.trim();
+    if (v === '1234') { stUnlockAll(); $('stUnlockCode').value = ''; $('stUnlockForm').hidden = true; $('stUnlockLink').hidden = false; AU.pop(); stToast('Everything is unlocked'); }
+    else { AU.nope(); kick($('stUnlockForm'), 'nope'); stToast("That code doesn't work"); } });
+}, 0);
 function renderStrokes() {
   const d = strokesOf(); craftTick();
   const now = (id, list, el, k) => { const o = list.find(x => x.id === id) || list[0]; el.innerHTML = '<span class="stic">' + STROKE_ICON[o.id] + '</span><span class="stname">' + o.name + '</span>'; $(ST_CATS[k].slot).setAttribute('aria-label', ST_CATS[k].slot === 'stSpecial' ? 'Special stroke: ' + o.name : (k === 'skill' ? 'Skill: ' : 'Transform: ') + o.name); };
@@ -21174,7 +21296,7 @@ function goTime() {
       continue; }
     D.fT = 1; D.formK = Math.max(D.formK, 0.92); D.vy = -9; D.air = true; D.freeLand = true; D.wob = 0.6; }
   AU.music('play'); AU.go(); AU.say('go'); buzz([12, 30, 18]);
-  setTimeout(() => { if (state === 'play' && !tut && isShow()) banner(mode === 'duo' ? 'Last pair standing!' : 'Last one standing!', 'Two hearts each', true); else if (state === 'play' && !tut) banner('Paint it ' + colorOf().name.toLowerCase() + '!', mode === 'solo' ? '60 seconds' : mode === 'trio' ? 'Everyone for themselves' : TH.label, true, !!tut); }, 900); /* (the lesson: half as long, the first tip right after) */
+  setTimeout(() => { if (state === 'play' && !tut && isShow()) banner(mode === 'duo' ? 'Last pair standing!' : 'Last one standing!', 'Three hearts each', true); else if (state === 'play' && !tut) banner('Paint it ' + colorOf().name.toLowerCase() + '!', mode === 'solo' ? '60 seconds' : mode === 'trio' ? 'Everyone for themselves' : TH.label, true, !!tut); }, 900); /* (the lesson: half as long, the first tip right after) */
   hint('steer', say('Drag to steer', 'A D or arrows to steer'), 3);
   if (!tut && P.held) setTimeout(() => { if (state === 'play' && P.held && P.st === 'play') hint('startitem', say('You start with your ' + PU[P.held].name.toLowerCase() + '. Tap its button to use it', 'You start with your ' + PU[P.held].name.toLowerCase() + '. Press F to use it'), 3.5); }, 4200); // (v270: once)
 }
@@ -21197,6 +21319,7 @@ function start() {
   irisClose(() => {
     menu.hidden = true; end.hidden = true; pauseEl.hidden = true; howModal.hidden = true;
     if (mapUsed) { building = true; freshMap(); clearTimeout(warmQ); warmRender(); building = false; }
+    else if (!LW.done) { clearTimeout(warmQ); warmRender(); } // (v309: the first match makes what launch left for later)
     showVS(beginMatch);
   }, null, mapUsed ? 'New canvas' : '');
 }
@@ -22611,18 +22734,39 @@ function startTally() {
   if (state !== 'dead' || vic || tal) return; const info = endInfo;
   if (info.mode === 'solo' || !info.tot || window.__instant) return startVictory();
   const trio = info.mode === 'trio', order = trio ? [P, H2, H] : [P, H]; // you from the left, the rival from the right (a 3-way: the second rival in the middle)
-  const ppl = order.map((D, i) => ({ D, cov: Math.round([info.you, info.cpu, info.cpu2][D.team] || 0), kos: info.kos[D.team] || 0, tot: info.tot[D.team], side: trio ? 'lmr'[i] : i ? 'r' : 'l', col: TEAMS[D.team].css, hi: colVars(D)[1], shown: 0, num: -1 }));
+  const ppl = order.map((D, i) => ({ D, cov: Math.round([info.you, info.cpu, info.cpu2][D.team] || 0), kos: info.kos[D.team] || 0, tot: info.tot[D.team], side: trio ? 'lmr'[i] : i ? 'r' : 'l', col: TEAMS[D.team].css, hi: colVars(D)[1], shown: 0, landed: 0, num: -1 }));
   const sum = ppl.reduce((q, e) => q + e.tot, 0), scale = Math.max(1, sum), koq = [], maxK = Math.max(0, ...ppl.map(e => e.kos)); { let x = 0; for (const e of ppl) { e.c = (x + e.tot / 2) / scale; x += e.tot; } } // (each one's place in the finished row: the middle one grows from its own)
   for (let k = 0; k < maxK; k++) for (const e of ppl) if (e.kos > k) koq.push(e); // (the eliminations land one at a time, taking turns)
-  const KO0 = 2.7, KOD = 0.46, KOEND = KO0 + (koq.length ? koq.length * KOD + 0.7 : 0.8);
+  const KO0 = 2.7, KOD = 0.62, KOEND = KO0 + (koq.length ? 0.4 + koq.length * KOD + 0.9 : 0.8); // (v309: a beat for the caption, and each one slow enough to read)
   const DAB0 = KOEND + 0.6, DAB1 = DAB0 + 0.7, DAB2 = DAB1 + 1.5; /* (the dabs: the pill, then the coins fly up to the bar and it counts) */
   tal = { t0: performance.now(), t: 0, ppl, scale, koq, nk: 0, T0: 0.55, T1: 2.3, KO0, KOD, KOEND, DAB0, DAB1, DAB2, END: DAB2 + 0.8, ticks: 0, phase: 0, id: runId, lastTick: 0 };
   for (const e of ppl) { const u = e.side.toUpperCase(), nm = $('tyName' + u), nu = $('tyNum' + u); nm.hidden = nu.hidden = false; nm.textContent = nameOf(e.D); nm.style.setProperty('--c', e.col); nu.style.setProperty('--c', e.col); nu.className = 'tynum ' + e.side; nu.innerHTML = '<b>0%</b>'; e.nu = nu; }
   if (!trio) $('tyNameM').hidden = $('tyNumM').hidden = true;
-  $('tyWord').textContent = ''; $('tySub').textContent = TH.label + ' · ' + (MODES.find(m => m[0] === mode) || MODES[0])[1]; talEl.classList.remove('win'); $('tySplash').className = 'tysplash'; $('tyDabs').className = 'tydabs'; $('tyGain').className = 'tygain'; talEl.querySelectorAll('.tyfly').forEach(q => q.remove());
+  $('tyWord').textContent = ''; $('tySub').textContent = TH.label + ' · ' + (MODES.find(m => m[0] === mode) || MODES[0])[1]; talEl.classList.remove('win'); $('tySplash').className = 'tysplash'; $('tyDabs').className = 'tydabs'; $('tyGain').className = 'tygain'; talEl.querySelectorAll('.tyfly,.tykofly').forEach(q => q.remove()); $('tyWord').className = 'tyword';
   if (!tyLiq) tyLiq = makeLiquid($('tyBar')); tyLiq.segs = []; tyLiq.drops.length = 0; tyLiq.set(ppl.map(e => tySeg(e, 0))); tyLiq.clear();
   talEl.classList.remove('out'); talEl.hidden = false; hud.classList.add('off'); hintEl.classList.remove('on'); reAdd.delete(bannerEl); bannerEl.classList.remove('on');
   AU.whoosh();
+}
+// (v309) each knock-out is seen being added: a star with its +2% pops up over that side's number, flies down into the end of its paint
+// on the bar and lands with a splat, the number and the bar going up as it lands
+function talKoFly(e) {
+  e.shown++; buzz(8);
+  if (reduceMotion) return talKoLand(e);
+  const r0 = talEl.getBoundingClientRect(), nr = e.nu.getBoundingClientRect(), br = $('tyBar').getBoundingClientRect();
+  const f = Math.min(1, (e.cov + (e.landed + 1) * KO_PCT) / tal.scale), fx = e.side === 'l' ? f : e.side === 'r' ? 1 - f : (e.c || 0.5) + f / 2;
+  const x0 = nr.left + nr.width / 2 - r0.left, y0 = nr.top - r0.top - 4, x1 = br.left + br.width * fx - r0.left, y1 = br.top + br.height / 2 - r0.top;
+  const q = document.createElement('i'), at = (x, y, s) => 'translate(' + x.toFixed(0) + 'px,' + y.toFixed(0) + 'px) scale(' + s + ')';
+  q.className = 'tykofly'; q.innerHTML = KO_SVG + '<b>+' + KO_PCT + '%</b>'; q.style.transform = at(x0, y0, 0.4); talEl.appendChild(q);
+  requestAnimationFrame(() => requestAnimationFrame(() => { q.style.transform = at(x0, y0 - 30, 1.15); }));
+  const id = tal.id;
+  setTimeout(() => { if (!tal || tal.id !== id) return q.remove(); q.classList.add('go'); q.style.transform = at(x1, y1, 0.55); }, 260);
+  setTimeout(() => { q.remove(); if (tal && tal.id === id && e.landed < e.shown) talKoLand(e); }, 560);
+}
+function talKoLand(e) {
+  e.landed++; AU.tslice(); buzz(12); restartCls(e.nu, 'tick');
+  if (!e.chip) { e.chip = document.createElement('i'); e.chip.className = 'tyko'; e.nu.appendChild(e.chip); }
+  e.chip.innerHTML = KO_SVG + '+' + (e.landed * KO_PCT) + '%'; restartCls(e.chip, 'pop');
+  tySplat(e, Math.min(1, (e.cov + e.landed * KO_PCT) / tal.scale));
 }
 // a splash of its paint where a slice lands on the bar
 function tySplat(e, f) { if (reduceMotion) return; const bar = $('tyBar'), x = e.side === 'l' ? f : e.side === 'r' ? 1 - f : 0.5 + f / 2, i = document.createElement('i'); i.className = 'tysplat'; i.style.cssText = '--c:' + e.col + ';left:' + (x * 100).toFixed(1) + '%'; bar.parentNode.appendChild(i); i.style.top = (bar.offsetTop + bar.offsetHeight / 2) + 'px'; setTimeout(() => i.remove(), 700);
@@ -22639,15 +22783,16 @@ function talFrame() {
   if (k0 > 0 && k0 < 1 && now - tal.lastTick > 85) { tal.lastTick = now; AU.ttick(tal.ticks++); }
   if (k0 >= 1 && tal.phase === 0) { tal.phase = 1; AU.tsettle(); }
   if (t >= tal.KO0 && tal.phase === 1) tal.phase = 2;
-  const nk = t >= tal.KO0 ? clamp(Math.floor((t - tal.KO0) / tal.KOD) + 1, 0, tal.koq.length) : 0;
-  for (let i = tal.nk; i < nk; i++) { const e = tal.koq[i]; e.shown++; AU.tslice(); buzz(12); restartCls(e.nu, 'tick');
-    if (!e.chip) { e.chip = document.createElement('i'); e.chip.className = 'tyko'; e.nu.appendChild(e.chip); } e.chip.textContent = '+' + (e.shown * KO_PCT) + '%'; restartCls(e.chip, 'pop'); }
+  if (t >= tal.KO0 && tal.koq.length && !tal.koCap) { tal.koCap = true; tal.sub0 = $('tySub').innerHTML; const w = $('tyWord'); w.innerHTML = KO_SVG + 'Knock-out bonus'; w.className = 'tyword ko'; restartCls(w, 'in'); $('tySub').innerHTML = '<b>+' + KO_PCT + '%</b> for every knock-out'; AU.pop(); } // (v309: said out loud first)
+  const nk = t >= tal.KO0 + 0.4 ? clamp(Math.floor((t - tal.KO0 - 0.4) / tal.KOD) + 1, 0, tal.koq.length) : 0;
+  for (let i = tal.nk; i < nk; i++) talKoFly(tal.koq[i]);
   tal.nk = nk;
+  if (t >= tal.KOEND) for (const e of tal.ppl) while (e.landed < e.shown) talKoLand(e); // (skipped ahead: what's still in the air lands now)
   const segs = [];
-  for (const e of tal.ppl) { const cov = e.cov * k, f = Math.min(1, (cov + e.shown * KO_PCT) / tal.scale); segs.push(tySeg(e, f));
-    const num = Math.round(cov) + e.shown * KO_PCT; if (num !== e.num) { e.num = num; e.nu.firstChild.textContent = num + '%'; } }
+  for (const e of tal.ppl) { const cov = e.cov * k, f = Math.min(1, (cov + e.landed * KO_PCT) / tal.scale); segs.push(tySeg(e, f));
+    const num = Math.round(cov) + e.landed * KO_PCT; if (num !== e.num) { e.num = num; e.nu.firstChild.textContent = num + '%'; } }
   tyLiq.set(segs); tyLiq.tick(now);
-  if (t >= tal.KOEND && tal.phase === 2) { tal.phase = 3; talWinner(); }
+  if (t >= tal.KOEND && tal.phase === 2) { tal.phase = 3; if (tal.koCap) { const w = $('tyWord'); w.textContent = ''; w.className = 'tyword'; $('tySub').innerHTML = tal.sub0 || ''; } talWinner(); }
   if (t >= tal.DAB0 && tal.phase === 3) { tal.phase = 4; talDabsShow(); }
   if (t >= tal.DAB1 && tal.phase === 4) { tal.phase = 5; talDabsFly(); { const info = endInfo, won = info.mode === 'solo' ? info.newBest : info.winner === P; AU.music(won ? 'win' : 'lost'); } } /* (the song starts as the dabs fly up to your bar) */
   if (tal.phase === 5) talDabsCount(t);
@@ -22937,7 +23082,8 @@ function perfHudFrame(ft) {
   PH.el.textContent = Math.round(n * 1000 / (now - PH.at)) + ' fps   median ' + (n ? a[n >> 1].toFixed(1) : '-') + '   worst ' + (n ? a[n - 1].toFixed(0) : '-') + ' ms\n'
     + 'game ' + (PH.js / f).toFixed(1) + ' ms a frame   ' + (GFX === 'hi' ? 'Graphics' : 'Performance') + (NATIVE ? '   app' : '   web') + '\n'
     + 'quality ' + qLvl + '/' + (Q_LAD.length - 1) + '   x' + curPR + (q.bloom ? ' bloom' : '') + (q.dof ? ' blur' : '') + (q.grab ? ' copy' : '') + (q.mirror ? ' mirror' : '') + ' shadows ' + ['full', 'lite', 'still'][shadowLite || 0] + '\n'
-    + 'draws ' + Math.round(PH.calls / f) + '   triangles ' + Math.round(PH.tris / f / 1000) + 'k';
+    + 'draws ' + Math.round(PH.calls / f) + '   triangles ' + Math.round(PH.tris / f / 1000) + 'k\n'
+    + 'held ' + renderer.info.memory.textures + ' pictures, ' + renderer.info.memory.geometries + ' meshes, ' + thLru.length + ' canvases'; // (v309)
   PH.iv.length = 0; PH.js = 0; PH.frames = 0; PH.calls = 0; PH.tris = 0; PH.at = now;
 }
 $('setVer').addEventListener('click', () => { const now = performance.now(); PH.taps = now - PH.tapAt < 1500 ? PH.taps + 1 : 1; PH.tapAt = now; if (PH.taps >= 5) { PH.taps = 0; perfHudSet(!PH.on); AU.ui(); } });
@@ -23089,7 +23235,7 @@ $('docModal').addEventListener('click', e => { if (e.target === $('docModal')) c
 // ---------- (v254) Showdown: four on the bigger canvas, everyone for themselves or two against two. Two hearts each: a knock-out
 // costs one, and with none left you're out. Paint is fuel, not points. The last one (or the last pair) standing wins; if the clock runs
 // out first, the most hearts left wins, then the most knock-outs ----------
-const SD_HEARTS = 2, SD_T = 180, SD_END_T = 1.7, SD_OUT_T = 2.4, SD_FF = 8; // (SD_FF: how much faster the rest of a match runs once you skip ahead)
+const SD_HEARTS = 3, /* (v309: was 2) */ SD_T = 180, SD_END_T = 1.7, SD_OUT_T = 2.4, SD_FF = 8; // (SD_FF: how much faster the rest of a match runs once you skip ahead)
 const sdAlive = D => (D.hearts || 0) > 0 && D.st !== 'out';
 function sdSides() { const s = new Set(); for (const D of ACTIVE) if (sdAlive(D)) s.add(sideOf(D)); return s; }
 let sdEndT = 0, spec = null;
@@ -23387,7 +23533,7 @@ function evFoldShow() { $('evShow').closest('.evcard').classList.remove('open');
 function openEvents() {
   if (state !== 'menu' || building || lookOpen || shopOpen || menuPage === 'events') return;
   if (menuPage === 'worlds') { closeSeason(); $('mWorld').hidden = true; }
-  menuPage = 'events'; menu.dataset.page = 'events'; $('mHome').hidden = true; evEl.hidden = false; document.body.classList.add('evon'); closeSide(true); evArt(); evFold(); evLockPaint(); acMatchPaint(); requestAnimationFrame(evMoreTick);
+  menuPage = 'events'; menu.dataset.page = 'events'; $('mHome').hidden = true; evEl.hidden = false; document.body.classList.add('evon'); closeSide(true); evArt(); evFold(); evLockPaint(); acMatchPaint(); requestAnimationFrame(evMoreTick); setTimeout(lateWarmBg, 700); /* (v309: the match's shaders, behind this page) */
   for (const c of evEl.querySelectorAll('.evcard')) { c.style.animation = 'none'; void c.offsetWidth; c.style.animation = ''; }
   setTimeout(() => $('evVs').focus({ preventScroll: true }), 40);
 }
@@ -23486,7 +23632,8 @@ function slingDraw(cx, cy) {
   for (const l of [slBandO, slBand]) { l.setAttribute('x1', ax.toFixed(1)); l.setAttribute('y1', ay.toFixed(1)); l.setAttribute('x2', bx.toFixed(1)); l.setAttribute('y2', by.toFixed(1)); l.style.opacity = show; }
   slBand.style.strokeWidth = (7 - 3.5 * k).toFixed(1); slBandO.style.strokeWidth = (12 - 3.5 * k).toFixed(1);
 }
-function slingShow(cx, cy) { slingEl.style.setProperty('--sl', TEAMS[P.team].css); slingDraw(cx, cy); if (!slingOn) { slingOn = true; slingEl.classList.add('on'); } }
+const DRY_RING = [1.5, 1.6]; // (v309: how far the roll goes, at the shortest pull and added at the full one)
+function slingShow(cx, cy) { slingEl.style.setProperty('--sl', P.dryPull ? '#8E899C' : TEAMS[P.team].css); /* (v309: grey with no paint in it) */ slingDraw(cx, cy); if (!slingOn) { slingOn = true; slingEl.classList.add('on'); } }
 function beginHold(t, x, y) { startCharge(P); if (!P.charging) return false; holdCharge = true; pullX = x; pullY = y; slingShow(t.cx, t.cy); return true; }
 // press and hold without dragging: stop
 function checkHold() {
@@ -23733,6 +23880,7 @@ function warmRender(only, piece) {
   try { renderFrame(); } catch (e) {}
   if (!post) try { edgeOverlay(true); } catch (e) {}
   warming = false; if (lobbyOn()) try { renderFrame(); } catch (e) {}
+  if (!only) LW.done = true; // (v309: the whole warm-up has run)
 }
 // (v269) the warm-up at the end of loading, in pieces. In one go it handed the GPU every shader and every first draw at once, and the
 // GPU then took its time over them after "Ready": the page could show nothing new until it was done (the bar sat full, the menu song
@@ -23778,7 +23926,24 @@ async function warmScene(sc, cam, p0, p1, msg) {
   for (let i = 0; i < n; i++) { draw(parts[i]); bootTo(at(i + 1), at(i + 2), 2500, msg); await gpuIdle(5000); }
   draw(null); bootTo(p1, p1, 0, msg); await gpuIdle(5000);
 }
-let warmQ = 0, bootWarm = false; const queueWarm = () => { clearTimeout(warmQ); if (bootWarm) warmQ = setTimeout(warmRender, 30); }; // (v256: not while loading: loading warms up once, at its end)
+// (v309) the shaders a match needs, made after launch: in pieces behind Choose Event (it covers the lobby; leaving it pauses them), or
+// all at once under the wipe into the first match if that comes first (start, a rematch and an online match each make them there)
+var LW = { done: false, busy: false, parts: null, i: 0, asked: false };
+const lateWarmOk = () => state === 'menu' && menuPage === 'events' && !irisBusy && !building && !vic;
+async function lateWarmBg() {
+  if (LW.done || LW.busy || !lateWarmOk()) return; LW.busy = true; let first = true;
+  try {
+    if (!LW.asked) { LW.asked = true; try { await warmCompile(); } catch (e) {} } // (where the browser can build them in the background, it starts on all of them now)
+    if (!LW.parts) { LW.parts = warmPieces(scene, 16); LW.i = 0; }
+    while (LW.i < LW.parts.length && lateWarmOk() && !LW.done) { warmRender(LW.parts[LW.i], first ? 2 : 1); first = false; LW.i++; await gpuIdle(5000); }
+    if (LW.i >= LW.parts.length && lateWarmOk() && !LW.done) {
+      const fl = new Set(), fm = new Set(); for (const f of floaters) for (const m of f.mats) fm.add(m);
+      scene.traverse(o => { if (o.material && [].concat(o.material).some(m => fm.has(m))) fl.add(o); });
+      warmRender(fl); await gpuIdle(5000); LW.done = true;
+    }
+  } catch (e) {} finally { LW.busy = false; }
+}
+let warmQ = 0, bootWarm = false; const queueWarm = () => { clearTimeout(warmQ); if (bootWarm && LW.done) warmQ = setTimeout(warmRender, 30); }; // (v309: until the late warm-up is done, a rebuilt canvas waits for it) // (v256: not while loading: loading warms up once, at its end)
 // compile every shader up front (including the ones only a giant slam, the orb or a burst uses) so nothing hitches mid-game
 (function warmUp() {
   [...teamMats, splashMat, boilPartMat, puHaloMat, ...orbPartMats, steamMat, smokeMat, dustMat, emberMat, sandGrainMat, sandGrainMat2, sandDustMat, ...TEAMS.map(t => colMat(t.wet)), colMat(0xDDEEFF), colMat(0x4A4052), potDrop()].forEach(m => partPool(m));
@@ -24014,9 +24179,9 @@ const TUT_STEPS = [
       return !!(P.power && P.power.type === 'roller'); } },
   // (v270) rolling: the rival comes round onto the line in front of you and walks down it at you. As he comes in range it slows right
   // down, a finger shows the swipe up and the roll is aimed at him. Round again if you miss (the roller holds out) till he's flattened
-  { id: 'rollover', max: 45, enter() { tutHide(); tut.slowK = 1; tut.sub = ''; tut.rAim = true; tut.kos0 = P.kos; tut.drive = H; tut.driveMode = 'line'; if (H.ai) { H.ai.plan = null; H.ai.path = null; } tutRivalIn(7, true); },
+  { id: 'rollover', max: 45, enter() { tutHide(); tut.slowK = 1; tut.sub = ''; tut.rAim = true; tut.kos0 = P.kos; tut.flat0 = P.flatted; tut.drive = H; tut.driveMode = 'line'; if (H.ai) { H.ai.plan = null; H.ai.path = null; } tutRivalIn(7, true); },
     exit() { tut.rAim = false; if (tut.driveMode === 'line') { tut.drive = null; tut.driveMode = null; } TUT_AI.speed = 0.8; tut.items = true; itemSpawn.t = Math.max(itemSpawn.t, 10); },
-    tick(dt) { if (P.kos > tut.kos0) return true;
+    tick(dt) { if (P.kos > tut.kos0 || P.flatted > (tut.flat0 || 0)) return true; /* (v309: flattening him does it too) */
       const have = !!(P.power && P.power.type === 'roller'); if (have) P.power.t = Math.max(P.power.t, 2.5); else if (P.st === 'play' && !P.held) P.held = 'roller'; /* (out of it somehow: it's handed back) */
       if (!have && P.held === 'roller' && P.st === 'play') { if (tut.sub !== 'again') { tut.sub = 'again'; tut.slowK = 0.35; $('itemBtn').classList.add('tutup'); tutShow(say('*TAP* your *ROLLER*!', 'Press *F* for your *ROLLER*!'), 'itemBtn', 'use2', true); } return false; }
       if (tut.sub === 'again') $('itemBtn').classList.remove('tutup');
@@ -24033,10 +24198,11 @@ const TUT_STEPS = [
       const cross = !!P.rocket; if (cross && tut.driveMode !== 'cross') { tut.drive = H; tut.driveMode = 'cross'; if (H.ai) { H.ai.plan = null; H.ai.path = null; } } else if (!cross && tut.driveMode === 'cross') { tut.drive = null; tut.driveMode = null; TUT_AI.speed = 0.8; } /* (the rival walks into your crosshair) */
       return tut.hadRocket && !P.rocket; },
     exit() { tut.orbMine = false; TUT_AI.orb = 0.35; } },
-  { id: 'free3', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 8; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
+  { id: 'free3', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 1.2; } /* (v309: was 8 s) */, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
   { id: 'rocketdodge', max: 60, enter() { tut.noPound = true; tut.drive = null; if (orb.on) tutOrbOff(); orb.spawnT = 1e9; tut.rocketLock = H; tut.rkFrozen = false; tut.rkStarted = false; tut.rolled = false; tut.hit = false; tut.wasKo = false; tut.sub = ''; tut.slowK = 1;
       tutShow(say('The rival has a rocket too. When it drops on you, swipe up to roll clear', 'The rival has a rocket too. When it drops on you, press Shift to roll clear'), null, 'rdodge', false, true); },
-    tick() { if (!tut.rkStarted && H.st === 'play' && !H.rocket) { H.paint = 1; startRocket(H); tut.rkStarted = true; } // (it takes off as soon as it is free to)
+    tick() { if (!tut.rkStarted) { if (H.st === 'ko' && H.koT > 0.9) H.koT = 0.9; if (H.st === 'hide' && H.pot) exitPot(H); } // (v309: back quickly from your rocket's knock-out, and straight out of the basin)
+      if (!tut.rkStarted && H.st === 'play' && !H.rocket) { H.paint = 1; startRocket(H); tut.rkStarted = true; } // (it takes off as soon as it is free to)
       const R = H.rocket, down = !!R && R.ph === 'dive' && !R.slow && H.st === 'play' && P.st === 'play', now = down && tut.rkFrozen;
       if (now && P.rollT <= 0 && !tut.rolled) P.rollCD = 0; if (now && P.rollT > 0) tut.rolled = true; if (tut.rolled && H.rocket && P.rollT > 0 && P.rollT < 0.05) P.rollT = 0.05; if (P.st === 'ko' && !tut.wasKo) tut.hit = true; tut.wasKo = P.st === 'ko';
       tut.slowK = now ? 0.12 : 1;
@@ -25682,9 +25848,11 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
 applyOrient(); showMenu();
 await bootStep(0.82, 0.93, 'Hanging the show');
 await Promise.race([slimeLoad, new Promise(r => setTimeout(r, 12000))]); attachSlimes();
-bootTo(Math.max(0.86, bootPos()), 0.93, 3500, 'Lighting the gallery'); await warmCompile(); // (v256)
-{ const p0 = Math.min(0.93, Math.max(0.86, bootPos())), p1 = FL && FL.due ? 0.96 : 0.99; // (v269: in pieces, the bar moving with them)
-  try { await warmSteps(p0, p1, 'Lighting the gallery'); } catch (e) { try { warmRender(); } catch (x) {} }
+bootTo(Math.max(0.86, bootPos()), 0.93, 1500, 'Lighting the gallery');
+// (v309) only what the lobby shows is made at launch: two lobby frames drawn behind the loading screen (about ten shaders). The
+// other hundred and more, everything a match can need, are made behind Choose Event or under the wipe into the first match (lateWarmBg)
+try { renderFrame(); await gpuIdle(4000); renderFrame(); await gpuIdle(4000); } catch (e) {}
+{ const p1 = FL && FL.due ? 0.96 : 0.99; bootTo(p1, p1, 0, 'Lighting the gallery');
   if (FL && FL.due && FL.prep) try { await FL.prep(p1, 0.99, 'Setting the scene'); } catch (e) {} }
 bootWarm = true;
 bootTo(1, 1, 0, 'Ready');
@@ -25704,7 +25872,7 @@ if (!soundOk) {
 }
 if (FL && FL.due) FL.boot(); else if (!store.orient) { if (bootHold) { const w = setInterval(() => { if (!bootHold) { clearInterval(w); openOrient(); } }, 100); } else openOrient(); }
 for (const ev of ['pointerdown', 'keydown', 'touchend']) window.addEventListener(ev, () => AU.touch(), { capture: true, passive: true });
-window.addEventListener('nativeresume', e => AU.wake(true, !!(e && e.detail && e.detail.away))); window.addEventListener('nativememory', () => AU.trim()); window.addEventListener('pageshow', () => AU.wake()); window.addEventListener('focus', () => AU.wake());
+window.addEventListener('nativeresume', e => AU.wake(true, !!(e && e.detail && e.detail.away))); window.addEventListener('nativememory', () => memTrim()); document.addEventListener('visibilitychange', () => { if (document.hidden) memTrim(); }); /* (v309) */ window.addEventListener('pageshow', () => AU.wake()); window.addEventListener('focus', () => AU.wake());
 requestAnimationFrame(frame);
 };
 // the game is built once the loading screen has been drawn, so its bar is up from the very first moment
