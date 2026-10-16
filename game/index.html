@@ -4181,6 +4181,27 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 #stPop.sginfo .stpbtns,#stPop.sginfo .stptimer,#stPop.sginfo .stpnote{display:none}
 @media (min-aspect-ratio:1/1) and (max-height:600px){#stPop.sginfo .stpop{max-height:calc(100% - 8px)}#stPop.sginfo .stphead{padding-top:10px}#stPop.sginfo .stpbody{grid-template-areas:"art name" "art desc" "art does" "how nums";row-gap:7px}#stPop.sginfo .stpname{font-size:28px}#stPop.sginfo .sgnums{grid-area:nums;grid-template-columns:repeat(auto-fit,minmax(92px,1fr))}#stPop.sginfo .sgnums div{padding:6px 8px 7px}#stPop.sginfo .sgnums dd{font-size:13px}#stPop.sginfo .sghow{grid-area:how;align-self:stretch;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;margin:2px 0 0;padding:7px 9px;font-size:12px}#stPop.sginfo .sghow svg{width:14px;height:14px}}
 @media (prefers-reduced-motion:reduce){#mStrokes.sgp .sgtab,#mStrokes.sgp .sgcard,#mStrokes.sgp .sggrid.in .sgcard,#mStrokes.sgp .sgart .stimg,#mStrokes.sgp .sgban .sgflag::after,#mStrokes.sgp .sgtab.fresh::after{animation:none;transition:none}}
+
+/* (v314) the knock-outs: a small row under the bar for each side, a star per knock-out, filled as it's counted */
+.tykos{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;min-height:22px;margin:7px 6px 0;padding:0 2px}
+.tykos.in{animation:fadein .25s ease-out both}
+.tykr{position:relative;display:flex;align-items:center;gap:3px;min-width:0;white-space:nowrap}
+.tykr.l{grid-column:1;justify-self:start}
+.tykr.m{grid-column:2;justify-self:center}
+.tykr.r{grid-column:3;justify-self:end;flex-direction:row-reverse}
+.tykr small{margin:0 3px;font:800 10.5px/1 var(--font-ui);letter-spacing:.12em;color:#B8B0C8;text-shadow:0 1px 0 rgba(0,0,0,.5)}
+.tykr .tkt{display:block;width:15px;height:15px;transition:transform .2s cubic-bezier(.3,1.8,.5,1)}
+.tykr .tkt svg{display:block;width:100%;height:100%;fill:rgba(255,255,255,.1);stroke:rgba(255,255,255,.38);stroke-width:1.6px}
+.tykr .tkt.on{transform:scale(1.18)}
+.tykr .tkt.on svg{fill:var(--gold);stroke:var(--black);filter:drop-shadow(1px 1px 0 var(--black))}
+.tykr .tkp{margin:0 4px;font:400 15px/1 var(--font-display);color:var(--gold);text-shadow:1.5px 1.5px 0 var(--black);font-variant-numeric:tabular-nums}
+.tykr .tkp:empty{display:none}
+.tykr .tkp.pop{animation:tick .22s ease-out}
+.tykr .tkf{position:absolute;bottom:100%;margin-left:-14px;width:28px;text-align:center;font:400 12px/1 var(--font-display);color:var(--gold);text-shadow:1px 1px 0 var(--black);pointer-events:none;animation:tkf .65s ease-out forwards}
+@keyframes tkf{from{opacity:0;transform:translateY(4px)}25%{opacity:1}to{opacity:0;transform:translateY(-14px)}}
+.tysplat.sm{width:34px;height:34px;margin:-17px 0 0 -17px}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.tykos{min-height:18px;margin-top:5px}.tykr .tkt{width:13px;height:13px}.tykr .tkp{font-size:13px}}
+@media (prefers-reduced-motion:reduce){.tykos.in,.tykr .tkp.pop{animation:none}.tykr .tkt{transition:none}}
 </style>
 
 <div id="stage">
@@ -4330,7 +4351,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 313</p>
+      <p class="ver">Version 314</p>
     </div>
   </div>
 
@@ -4554,7 +4575,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
     <div class="tystory">
       <div class="tynames"><span class="tyname l" id="tyNameL"></span><span class="tyname m" id="tyNameM" hidden></span><span class="tyname r" id="tyNameR"></span></div>
       <div class="tynums"><span class="tynum l" id="tyNumL"><b>0%</b></span><span class="tynum m" id="tyNumM" hidden><b>0%</b></span><span class="tynum r" id="tyNumR"><b>0%</b></span></div>
-      <div class="tybar" id="tyBar" aria-hidden="true"></div>
+      <div class="tybar" id="tyBar" aria-hidden="true"></div><div class="tykos" id="tyKos" hidden></div>
       <p class="tygain" id="tyGain"></p>
       <p class="tytap">Tap to skip</p>
     </div>
@@ -14187,7 +14208,7 @@ function iceFrame(rdt) {
 }
 
 // ---------- the giant orb: a glowing, color-shifting orb that drifts around the canvas. Touch it any way you can to grow three times your size for 4 seconds ----------
-const GIANT_T = 5, GIANT_K = 3, GIANT_SPD = 1.75, GIANT_SLAM = 1.5, ORB_R = 0.42, ORB_PULL_R = 2.4;
+const GIANT_T = 5, GIANT_K = 3, GIANT_SPD = 1.75, GIANT_SLAM = 1.5, GIANT_TURN = 0.7, /* (v314: your turning, as a giant) */ ORB_R = 0.42, ORB_PULL_R = 2.4;
 // the orb's other gift, the rocket: how long the lift-off takes, how high over the canvas it goes, how long it can hang up there,
 // its speed across up there, its boost straight down (and the slower drift down if you leave it), and its blast: a giant's pound
 // and the third, the turret: how long it lasts, its rate of fire, the paint shot's speed, size and fall, the stun and shove a hit gives
@@ -17027,8 +17048,8 @@ function steerAndTurn(D, dt, scaleBy) {
       scaleBy *= 1 + 0.5 * k + 0.5 * kk * sf; D.spd = Math.max(cfg.speed * 0.55, D.spd - D.spd * (1.8 * k + 4 * kk * sf) * dt); } }
     else if (ahead > 0.25 && sf > 0) D.spd -= Math.max(0, D.spd - cfg.speed) * 6 * sf * ahead * dt; // flying at a drop without steering: bleed off the extra speed so there's time to turn
   }
-  const sr = D.spd / cfg.speed, agile = D.turret && !D.air ? (D === P && !P.ai ? 0.66 * Math.min(1, 0.3 + Math.abs(input)) : 0.85) : D.air ? 1 : sr < 1 ? Math.min(D.charging ? 1.35 : 1.6, 1 + 0.6 * (1 - Math.max(0, sr))) : Math.min(1.3, sr), want = input * TURN * scaleBy * agile * (D === P && !P.ai && !kcam ? turnK() : 1); // (a turret turns itself round with its stubs: a little steadier)
-  let lean = 0; if (D === P && !P.ai && !D.air && !D.charging && !kcam && Math.abs(input) > 0.4 && D.spd > 0.8) { const st = steerTarget(D, input); if (st) lean = -clamp(st.err, -1, 1) * TURN * turnK() * 0.6 * Math.min(1, Math.abs(input) * 1.4); } // (the lean the rest of the way, on top of what you asked for)
+  const sr = D.spd / cfg.speed, agile = D.turret && !D.air ? (D === P && !P.ai ? 0.66 * Math.min(1, 0.3 + Math.abs(input)) : 0.85) : D.air ? 1 : sr < 1 ? Math.min(D.charging ? 1.35 : 1.6, 1 + 0.6 * (1 - Math.max(0, sr))) : Math.min(1.3, sr), want = input * TURN * scaleBy * agile * (D === P && !P.ai && !kcam ? turnK() * (D.giantT > 0 ? GIANT_TURN : 1) : 1); // (a turret turns itself round with its stubs: a little steadier)
+  let lean = 0; if (D === P && !P.ai && !D.air && !D.charging && !kcam && Math.abs(input) > 0.4 && D.spd > 0.8) { const st = steerTarget(D, input); if (st) lean = -clamp(st.err, -1, 1) * TURN * turnK() * (D.giantT > 0 ? GIANT_TURN : 1) * 0.6 * Math.min(1, Math.abs(input) * 1.4); } // (the lean the rest of the way, on top of what you asked for)
   const wantL = want + lean; D.turn += (wantL - D.turn) * Math.min(1, dt * (D === P && !P.ai ? (wantL * D.turn < 0 ? 50 : 36) : 20));
   D.yaw -= D.turn * dt;
 }
@@ -19253,7 +19274,7 @@ function visuals(dt, rdt) {
     const F = other(P), fdx = F.x - P.x, fdz = F.z - P.z, fd = Math.hypot(fdx, fdz), foeK = F.st === 'play' && P.st === 'play' ? clamp(1 - (fd - 5) / 9, 0, 1) : 0; camFoe += (foeK - camFoe) * (1 - Math.exp(-rdt * 3));
     camTur += ((P.turret ? 0.5 + (P.turret.aim === undefined ? 0.4 : P.turret.aim) : 0) - camTur) * (1 - Math.exp(-rdt * 3)); // a turret's view pulls up and out with its range
     camPot += ((P.st === 'hide' ? 1 : 0) - camPot) * (1 - Math.exp(-rdt * (P.st === 'hide' ? 2.2 : 4))); // in a refill the view eases out a little, to see what's around
-    const ko = P.st === 'ko' ? 1 : 0, fx = Math.sin(camYaw), fz = Math.cos(camYaw), h = 7.75 + camCharge * 3 + look.roll * 1.2 + (P.slam ? P.y * 0.6 : 0) + ko * 4 + (VP.gk - 1) * 2.6 + camFoe * 0.9 + camTur * 2.4 + camPot * 2.2, back = 5.65 + camCharge * 1.5 + ko * 3 + (VP.gk - 1) * 1.6 + camFoe * 1.2 + camTur * 1.4 + camPot * 1.8;
+    const camIn = viewW > viewH ? 0.9 : 1, ko = P.st === 'ko' ? 1 : 0, fx = Math.sin(camYaw), fz = Math.cos(camYaw), h = (7.75 + camCharge * 3 + look.roll * 1.2 + (P.slam ? P.y * 0.6 : 0) + ko * 4 + (VP.gk - 1) * 2.6 + camFoe * 0.9 + camTur * 2.4 + camPot * 2.2) * camIn, back = (5.65 + camCharge * 1.5 + ko * 3 + (VP.gk - 1) * 1.6 + camFoe * 1.2 + camTur * 1.4 + camPot * 1.8) * camIn; // (v314: sideways, the view sits 10% closer)
     // the view's height: the ground you're on. A hop doesn't lift it (no bob, and the jump reads higher); it follows only the part of a
     // climb past 1.3 above where you left the ground, and follows you straight down when you drop below it
     if (!P.air || P.st !== 'play') camGround = P.y;
@@ -23542,37 +23563,37 @@ function startTally() {
   const ppl = order.map((D, i) => ({ D, cov: Math.round([info.you, info.cpu, info.cpu2][D.team] || 0), kos: info.kos[D.team] || 0, tot: info.tot[D.team], side: trio ? 'lmr'[i] : i ? 'r' : 'l', col: TEAMS[D.team].css, hi: colVars(D)[1], shown: 0, landed: 0, num: -1 }));
   const sum = ppl.reduce((q, e) => q + e.tot, 0), scale = Math.max(1, sum), koq = [], maxK = Math.max(0, ...ppl.map(e => e.kos)); { let x = 0; for (const e of ppl) { e.c = (x + e.tot / 2) / scale; x += e.tot; } } // (each one's place in the finished row: the middle one grows from its own)
   for (let k = 0; k < maxK; k++) for (const e of ppl) if (e.kos > k) koq.push(e); // (the eliminations land one at a time, taking turns)
-  const KO0 = 2.7, KOD = 0.62, KOEND = KO0 + (koq.length ? 0.4 + koq.length * KOD + 0.9 : 0.8); // (v309: a beat for the caption, and each one slow enough to read)
+  const KO0 = 2.6, KOD = 0.34, KOEND = KO0 + (koq.length ? 0.25 + koq.length * KOD + 0.45 : 0.6); // (v314: quick, and small: the paint's the story)
   const DAB0 = KOEND + 0.6, DAB1 = DAB0 + 0.7, DAB2 = DAB1 + 1.5; /* (the dabs: the pill, then the coins fly up to the bar and it counts) */
   tal = { t0: performance.now(), t: 0, ppl, scale, koq, nk: 0, T0: 0.55, T1: 2.3, KO0, KOD, KOEND, DAB0, DAB1, DAB2, END: DAB2 + 0.8, ticks: 0, phase: 0, id: runId, lastTick: 0 };
   for (const e of ppl) { const u = e.side.toUpperCase(), nm = $('tyName' + u), nu = $('tyNum' + u); nm.hidden = nu.hidden = false; nmSet(nm, nameOf(e.D)); nm.style.setProperty('--c', e.col); nu.style.setProperty('--c', e.col); nu.className = 'tynum ' + e.side; nu.innerHTML = '<b>0%</b>'; e.nu = nu; }
   if (!trio) $('tyNameM').hidden = $('tyNumM').hidden = true;
-  $('tyWord').textContent = ''; $('tySub').textContent = TH.label + ' · ' + (MODES.find(m => m[0] === mode) || MODES[0])[1]; talEl.classList.remove('win'); $('tySplash').className = 'tysplash'; $('tyDabs').className = 'tydabs'; $('tyGain').className = 'tygain'; talEl.querySelectorAll('.tyfly,.tykofly').forEach(q => q.remove()); $('tyWord').className = 'tyword';
+  $('tyWord').textContent = ''; $('tySub').textContent = TH.label + ' · ' + (MODES.find(m => m[0] === mode) || MODES[0])[1]; talEl.classList.remove('win'); $('tySplash').className = 'tysplash'; $('tyDabs').className = 'tydabs'; $('tyGain').className = 'tygain'; talEl.querySelectorAll('.tyfly,.tykofly').forEach(q => q.remove()); $('tyWord').className = 'tyword'; $('tyKos').innerHTML = ''; $('tyKos').hidden = true;
   if (!tyLiq) tyLiq = makeLiquid($('tyBar')); tyLiq.segs = []; tyLiq.drops.length = 0; tyLiq.set(ppl.map(e => tySeg(e, 0))); tyLiq.clear();
   talEl.classList.remove('out'); talEl.hidden = false; hud.classList.add('off'); hintEl.classList.remove('on'); reAdd.delete(bannerEl); bannerEl.classList.remove('on');
   AU.whoosh();
 }
-// (v309) each knock-out is seen being added: a star with its +2% pops up over that side's number, flies down into the end of its paint
-// on the bar and lands with a splat, the number and the bar going up as it lands
-function talKoFly(e) {
-  e.shown++; buzz(8);
-  if (reduceMotion) return talKoLand(e);
-  const r0 = talEl.getBoundingClientRect(), nr = e.nu.getBoundingClientRect(), br = $('tyBar').getBoundingClientRect();
-  const f = Math.min(1, (e.cov + (e.landed + 1) * KO_PCT) / tal.scale), fx = e.side === 'l' ? f : e.side === 'r' ? 1 - f : (e.c || 0.5) + f / 2;
-  const x0 = nr.left + nr.width / 2 - r0.left, y0 = nr.top - r0.top - 4, x1 = br.left + br.width * fx - r0.left, y1 = br.top + br.height / 2 - r0.top;
-  const q = document.createElement('i'), at = (x, y, s) => 'translate(' + x.toFixed(0) + 'px,' + y.toFixed(0) + 'px) scale(' + s + ')';
-  q.className = 'tykofly'; q.innerHTML = KO_SVG + '<b>+' + KO_PCT + '%</b>'; q.style.transform = at(x0, y0, 0.4); talEl.appendChild(q);
-  requestAnimationFrame(() => requestAnimationFrame(() => { q.style.transform = at(x0, y0 - 30, 1.15); }));
-  const id = tal.id;
-  setTimeout(() => { if (!tal || tal.id !== id) return q.remove(); q.classList.add('go'); q.style.transform = at(x1, y1, 0.55); }, 260);
-  setTimeout(() => { q.remove(); if (tal && tal.id === id && e.landed < e.shown) talKoLand(e); }, 560);
+// (v314) the knock-outs under the bar: a small row for each side, "KO" and a dim star for each of its knock-outs; in turn each star
+// fills, a little "+2%" rises off it, and that side's paint and number go up at once (a small splat where it lands). The row ends on
+// the total and stays, small, through to the winner
+function talKoRows() {
+  const box = $('tyKos'); box.innerHTML = ''; box.hidden = false; restartCls(box, 'in');
+  for (const e of tal.ppl) {
+    const r = document.createElement('span'); r.className = 'tykr ' + e.side; r.style.setProperty('--c', e.col);
+    if (!e.kos) { r.classList.add('none'); box.appendChild(r); e.kr = null; continue; }
+    let h = '<small>KO</small>'; for (let i = 0; i < e.kos; i++) h += '<i class="tkt">' + KO_SVG + '</i>';
+    r.innerHTML = h + '<b class="tkp"></b>'; box.appendChild(r); e.kr = r;
+  }
 }
-function talKoLand(e) {
-  e.landed++; AU.tslice(); buzz(12); restartCls(e.nu, 'tick');
-  if (!e.chip) { e.chip = document.createElement('i'); e.chip.className = 'tyko'; e.nu.appendChild(e.chip); }
-  e.chip.innerHTML = KO_SVG + '+' + (e.landed * KO_PCT) + '%'; restartCls(e.chip, 'pop');
-  tySplat(e, Math.min(1, (e.cov + e.landed * KO_PCT) / tal.scale));
+function talKoTok(e) {
+  e.shown++; e.landed++; AU.tslice(); buzz(8); restartCls(e.nu, 'tick');
+  const r = e.kr; if (r) { const t = r.querySelectorAll('.tkt')[e.landed - 1]; if (t) { t.classList.add('on');
+      if (!reduceMotion) { const f = document.createElement('i'); f.className = 'tkf'; f.textContent = '+' + KO_PCT + '%'; r.appendChild(f); f.style.left = (t.offsetLeft + t.offsetWidth / 2) + 'px'; setTimeout(() => f.remove(), 700); } }
+    const p = r.querySelector('.tkp'); if (p) { p.textContent = '+' + (e.landed * KO_PCT) + '%'; restartCls(p, 'pop'); } }
+  tyKoSplat(e, Math.min(1, (e.cov + e.landed * KO_PCT) / tal.scale));
 }
+// a small splash of the side's paint where its bar grows
+function tyKoSplat(e, f) { if (reduceMotion) return; const bar = $('tyBar'), x = e.side === 'l' ? f : e.side === 'r' ? 1 - f : (e.c || 0.5) + f / 2, i = document.createElement('i'); i.className = 'tysplat sm'; i.style.cssText = '--c:' + e.col + ';left:' + (x * 100).toFixed(1) + '%'; bar.parentNode.appendChild(i); i.style.top = (bar.offsetTop + bar.offsetHeight / 2) + 'px'; setTimeout(() => i.remove(), 700); }
 // a splash of its paint where a slice lands on the bar
 function tySplat(e, f) { if (reduceMotion) return; const bar = $('tyBar'), x = e.side === 'l' ? f : e.side === 'r' ? 1 - f : 0.5 + f / 2, i = document.createElement('i'); i.className = 'tysplat'; i.style.cssText = '--c:' + e.col + ';left:' + (x * 100).toFixed(1) + '%'; bar.parentNode.appendChild(i); i.style.top = (bar.offsetTop + bar.offsetHeight / 2) + 'px'; setTimeout(() => i.remove(), 700);
   tyBurst(bar.parentNode, x * bar.offsetWidth + bar.offsetLeft, bar.offsetTop + bar.offsetHeight / 2, 150, e.D.team); }
@@ -23588,16 +23609,15 @@ function talFrame() {
   if (k0 > 0 && k0 < 1 && now - tal.lastTick > 85) { tal.lastTick = now; AU.ttick(tal.ticks++); }
   if (k0 >= 1 && tal.phase === 0) { tal.phase = 1; AU.tsettle(); }
   if (t >= tal.KO0 && tal.phase === 1) tal.phase = 2;
-  if (t >= tal.KO0 && tal.koq.length && !tal.koCap) { tal.koCap = true; tal.sub0 = $('tySub').innerHTML; const w = $('tyWord'); w.innerHTML = KO_SVG + 'Knock-out bonus'; w.className = 'tyword ko'; restartCls(w, 'in'); $('tySub').innerHTML = '<b>+' + KO_PCT + '%</b> for every knock-out'; AU.pop(); } // (v309: said out loud first)
-  const nk = t >= tal.KO0 + 0.4 ? clamp(Math.floor((t - tal.KO0 - 0.4) / tal.KOD) + 1, 0, tal.koq.length) : 0;
-  for (let i = tal.nk; i < nk; i++) talKoFly(tal.koq[i]);
+  if (t >= tal.KO0 && tal.koq.length && !tal.koRow) { tal.koRow = true; talKoRows(); } // (v314: a small row under the bar, not a headline)
+  const nk = t >= tal.KO0 + 0.25 ? clamp(Math.floor((t - tal.KO0 - 0.25) / tal.KOD) + 1, 0, tal.koq.length) : 0;
+  for (let i = tal.nk; i < nk; i++) talKoTok(tal.koq[i]);
   tal.nk = nk;
-  if (t >= tal.KOEND) for (const e of tal.ppl) while (e.landed < e.shown) talKoLand(e); // (skipped ahead: what's still in the air lands now)
   const segs = [];
   for (const e of tal.ppl) { const cov = e.cov * k, f = Math.min(1, (cov + e.landed * KO_PCT) / tal.scale); segs.push(tySeg(e, f));
     const num = Math.round(cov) + e.landed * KO_PCT; if (num !== e.num) { e.num = num; e.nu.firstChild.textContent = num + '%'; } }
   tyLiq.set(segs); tyLiq.tick(now);
-  if (t >= tal.KOEND && tal.phase === 2) { tal.phase = 3; if (tal.koCap) { const w = $('tyWord'); w.textContent = ''; w.className = 'tyword'; $('tySub').innerHTML = tal.sub0 || ''; } talWinner(); }
+  if (t >= tal.KOEND && tal.phase === 2) { tal.phase = 3; talWinner(); }
   if (t >= tal.DAB0 && tal.phase === 3) { tal.phase = 4; talDabsShow(); }
   if (t >= tal.DAB1 && tal.phase === 4) { tal.phase = 5; talDabsFly(); { const info = endInfo, won = info.mode === 'solo' ? info.newBest : info.winner === P; AU.music(won ? 'win' : 'lost'); } } /* (the song starts as the dabs fly up to your bar) */
   if (tal.phase === 5) talDabsCount(t);

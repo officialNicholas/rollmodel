@@ -1,6 +1,6 @@
 # v314: a smaller knock-out bonus, a closer sideways view, a calmer giant
 
-![The tally's knock-out row upright and sideways, and the sideways play view before and after](tally-camera-v314.jpg)
+![The knock-out row filling in under the bar, step by step](tally-camera-v314.jpg)
 
 ## 1. The knock-out bonus in the tally
 
@@ -17,12 +17,22 @@ The big "Knock-out bonus" headline is gone. It was as big as the result itself, 
 
 Playing sideways (landscape), the camera sits 10% closer: its height and its distance behind you are both scaled by 0.9. You see less of the stage, and your character is a little bigger. Upright play is unchanged.
 
-## 3. Turning as a giant is 30% gentler
+## 3. Turning as a giant is gentler
 
-A giant rolls 1.75 times as fast. The faster roll also let it turn about 30% quicker than a normal roll, which made it twitchy. Your turning is now 30% gentler while you're a giant, so it turns about like a normal roll does. When the giant wears off, turning is back to normal. The CPUs are unchanged.
+A giant rolls 1.75 times as fast, and the faster roll also made it turn quicker. At full steer, a giant turned about 60% faster than a normal roll, which made it twitchy.
+
+Your turning while you're a giant is now scaled down. At full steer a giant now turns at about the same rate as a normal roll, a touch slower: 2.5 radians a second where it was 4.4. A normal roll is 2.8. Moving faster at that rate, a giant's turns are wider and heavier.
+
+When the giant wears off, turning is back to normal. The CPUs are unchanged.
 
 ## Tested
 
-- **The tally:** checked with 3 knock-outs against 1, upright and sideways, at each step. The rows appear under the bar, the stars fill one by one, the numbers and the bar go up by 2 each time, and the totals stay to the end.
-- **The camera:** sideways shots before and after from the same moment of a match.
-- **Turning:** the turn rate at full steer, worked out exactly from the game's own steering. As a giant it's 0.7 of what it was. A normal roll is the same as before.
+- **The tally:** a real match end with 3 knock-outs against 1, held at each step, upright and sideways.
+  - The rows appear under the bar.
+  - The stars fill one at a time, the two sides taking turns.
+  - Each star adds 2 to that side's number and its paint on the bar.
+  - The totals stay to the end.
+- **The camera:** two sideways shots from the very same moment of a match, one at the old distance and one at the new.
+- **Turning:** the turn rate at full steer, worked out exactly from the game's own steering, before and after.
+  - A normal roll: 2.8 radians a second, the same as before.
+  - A giant: 2.5, where it was 4.4.

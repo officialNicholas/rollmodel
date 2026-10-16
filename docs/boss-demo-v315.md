@@ -24,9 +24,17 @@ Then comes the usual countdown and Go.
 - A slow current keeps it from ever hanging dead still.
 - When it has further to go, it beats faster.
 
-## 3. The panel
+## 3. The boss camera
 
-The panel sits at the top left when upright, and on the left side when sideways.
+While you play, the camera stays behind you on the line from the boss through you, looking between the two of you. You and the boss are both in the picture whichever way you roll.
+
+- Your steering is the same as ever: it turns you, and the camera keeps to the line.
+- Near the wall, the camera comes in closer and a little higher, so it never goes through the wall.
+- It eases in after Go. **Boss cam** in the panel turns it off, and the usual camera comes back.
+
+## 4. The panel
+
+Upright, the panel is a strip under the top bar that scrolls sideways. Sideways, it's a small panel at the left.
 
 - **Entrance** plays the entrance again, with its camera. You're held still while it plays.
 - **Punch, Slam, Sweep, Zap** are aimed at you. A fist, the slam's shockwave, the zap and the sweep knock you back: a bump and a tumble, never a knock-out.

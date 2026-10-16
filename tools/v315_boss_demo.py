@@ -55,7 +55,7 @@ EMERGE = r"""        // ---- (v315) emerge: the entrance. The pool churns; both 
             const pull1 = sstep(1.85, 2.6, t), sag = sstep(2.6, 2.8, t) * (1 - sstep(2.8, 3.0, t)), pull2 = sstep(2.95, 3.6, t), kC = sstep(3.62, 4.02, t);
             const kL = clamp01((t - 4.05) / 0.55), up = kL > 0 ? eOut(kL) : 0, kDown = sstep(4.6, 5.8, t), kB = sstep(5.75, 6.05, t), kBump = sstep(6.05, 6.17, t);
             // the root: deep under the slime, hauled up to the surface, a crouch, then shot up past the hover and down onto it
-            const y0 = POOL_Y - 4.2, yMid = POOL_Y - 1.7, ySurf = POOL_Y + 0.85, yC = POOL_Y + 0.3, yTop = HOVER + 2.3;
+            const y0 = POOL_Y - 4.2, yMid = POOL_Y - 1.15, ySurf = POOL_Y + 0.85, yC = POOL_Y + 0.3, yTop = HOVER + 2.3;
             let y = y0 + (yMid - y0) * pull1 - 0.35 * sag + (ySurf - yMid) * pull2 + (yC - ySurf) * kC;
             if (kL > 0) y = yC + (yTop - yC) * up;
             if (kDown > 0) y = yTop + (HOVER - yTop) * eIO(kDown);
@@ -118,8 +118,9 @@ var CQB = null;
 function cqbInit() {
   if (CQB) return CQB;
   CQB = { boss: null, on: false, played: false, waitT: 0, cut: null, frozen: false, follow: true, auto: false, autoT: 5, defT: -1, back: 0, paused: false,
-    v: new THREE.Vector3(), home: new THREE.Vector3(), tgt: new THREE.Vector3(), pool: new THREE.Vector3(0, 0, 0), pl: new THREE.Vector3(), bell: new THREE.Vector3(),
-    camP: new THREE.Vector3(), camL: new THREE.Vector3(), gP: new THREE.Vector3(), gL: new THREE.Vector3(), tmp: new THREE.Vector3(), shake: 0, rumble: 0, lean: 0, roll: 0, el: null };
+    v: new THREE.Vector3(), home: new THREE.Vector3(), tgt: new THREE.Vector3(), pool: new THREE.Vector3(0, 0, 0), kcd: 0, pl: new THREE.Vector3(), bell: new THREE.Vector3(),
+    camP: new THREE.Vector3(), camL: new THREE.Vector3(), gP: new THREE.Vector3(), gL: new THREE.Vector3(), tmp: new THREE.Vector3(), shake: 0, rumble: 0, lean: 0, roll: 0, el: null,
+    lock: true, lockK: 0, lp: new THREE.Vector3(), ll: new THREE.Vector3(), lpOk: false, gOff: new THREE.Vector3() };
   return CQB;
 }
 // the preview's match begins: the boss (made once, kept while you stay), out of sight until its entrance
@@ -131,7 +132,7 @@ function cqbStart() {
     for (const e of ['start', 'done', 'hit', 'sweep', 'stunStart', 'defeated', 'emergeChurn', 'emergeHands', 'grab', 'emergeHaul', 'launch', 'emergeBump']) b.on(e, d => cqbEvent(e, d));
   }
   const b = Q.boss; b.group.position.copy(Q.pool); b.group.visible = false; Q.v.set(0, 0, 0); Q.home.copy(Q.pool);
-  Q.on = true; Q.played = false; Q.waitT = 0; Q.cut = null; Q.defT = -1; Q.back = 0; Q.autoT = 5; Q.paused = false; Q.shake = Q.rumble = 0;
+  Q.on = true; Q.played = false; Q.waitT = 0; Q.cut = null; Q.defT = -1; Q.back = 0; Q.autoT = 5; Q.paused = false; Q.shake = Q.rumble = 0; Q.lockK = 0; Q.lpOk = false;
   cqbPanel();
 }
 // leaving the preview: the boss let go, the panel away
@@ -182,19 +183,20 @@ function cqbEvent(e, d) {
 }
 // you, knocked back by a hit: a bump and a tumble (the same as a slingshot's splash, a little bigger), never a knock-out
 function cqbKnock(x, z, power) {
-  if (state !== 'play' || P.st !== 'play' || P.immuneT > 0 || safe(P)) return;
+  if (state !== 'play' || P.st !== 'play' || P.immuneT > 0 || safe(P) || CQB.kcd > 0) return; CQB.kcd = 0.9; // (once in a while: a sweep's pass is many frames)
   const dx = P.x - x, dz = P.z - z, d = Math.hypot(dx, dz), nx = d > 0.05 ? dx / d : -Math.sin(P.yaw), nz = d > 0.05 ? dz / d : -Math.cos(P.yaw), v = 6 + 2.5 * Math.min(1.6, power);
   if (P.charging) clearCharge(P); holdCharge = false; slingOff();
   P.kx = nx * v; P.kz = nz * v; P.spd *= 0.4; if (!P.air) { P.air = true; P.stroke++; P.vy = 4.2 + 1.2 * power; } else P.vy = Math.max(P.vy, 2.5);
   P.knockT = Math.max(P.knockT, 0.6); P.wob = 1; P.squash = Math.max(P.squash, 0.6); P.turn = 0; fxTumble(P, 0.8, Math.random() - 0.5, nx, nz); fxKnock(P, nx, nz, 0.7);
-  P.immuneT = Math.max(P.immuneT || 0, 0.8); emote(P, 'ouch', 0.9); AU.bonk(1); shake = Math.max(shake, 0.4); buzz([20, 25, 30]); popText('Bonked!');
+  emote(P, 'ouch', 0.9); AU.bonk(1); shake = Math.max(shake, 0.4); buzz([20, 25, 30]); popText('Bonked!');
 }
 // each frame (after the game has placed its camera, before the draw)
 function cqbTick(dt, rdt) {
   const Q = CQB; if (!Q || !Q.on || !Q.boss) return;
   const b = Q.boss, inMatch = state === 'play' || state === 'intro' || state === 'reveal' || state === 'paused';
   if (!inMatch) return;
-  if (Q.el) Q.el.hidden = !(state === 'play' || (state === 'paused' && Q.paused)) || !b.isReady;
+  if (Q.el) { const hid = !(state === 'play' || (state === 'paused' && Q.paused)) || !b.isReady; if (Q.el.hidden !== hid) Q.el.hidden = hid; }
+  if (Q.kcd > 0) Q.kcd -= rdt;
   // the first entrance, once the reveal's sweep is over (and the pack is in: 5 s at most)
   if (!Q.played && state === 'reveal' && revealT >= REVEAL_T) {
     if (b.isReady) { Q.played = true; cqbEntrance('first'); } else if ((Q.waitT += rdt) > 5) { Q.played = true; }
@@ -205,7 +207,7 @@ function cqbTick(dt, rdt) {
   // back up after a defeat, a few seconds on; the auto attack
   if (Q.defT >= 0 && live > 0) { Q.defT += live; if (Q.defT > 7.2) { Q.defT = -1; cqbEntrance(false); } }
   if (Q.auto && state === 'play' && live > 0 && !b.busy) { Q.autoT -= live; if (Q.autoT <= 0) { Q.autoT = 3.2 + Math.random() * 2.2; const r = Math.random(); cqbPlay(r < 0.34 ? 'punch' : r < 0.54 ? 'slam' : r < 0.74 ? 'sweep' : r < 0.9 ? 'zap' : 'taunt'); } }
-  if (Q.cut) cqbCam(Q.frozen ? 0 : rdt);
+  const cdt = Q.frozen ? 0 : rdt; if (!Q.cut || !Q.cut.first) cqbLock(cdt); if (Q.cut) cqbCam(cdt); // (an entrance played again goes back to the boss camera at its end)
 }
 // the swim: it floats in beats of its bell, each beat a push toward where it wants to be, then a glide the water slows; it keeps near the
 // pool on your side of it, and leans into the way it goes
@@ -220,10 +222,10 @@ function cqbSwim(dt) {
     const dx = P.x - Q.pool.x, dz = P.z - Q.pool.z, d = Math.hypot(dx, dz) || 1, r = Q.follow ? clamp(d - 6.5, 0, 3.4) : 0;
     Q.tgt.set(Q.pool.x + dx / d * r, 0, Q.pool.z + dz / d * r); Q.home.lerp(Q.tgt, 1 - Math.exp(-dt / 1.1));
     const ex = Q.home.x - g.x, ez = Q.home.z - g.z, e = Math.hypot(ex, ez), ph = st ? st.ph : 0, beat = ph < 0.3 ? Math.sin(ph / 0.3 * Math.PI) : 0;
-    const push = (attack ? 0 : 1) * Math.min(1, e / 2.2) * 7 * beat;
+    const push = (attack ? 0 : 1) * Math.min(1, e / 2.2) * 9 * beat;
     if (e > 1e-3) { Q.v.x += ex / e * push * dt; Q.v.z += ez / e * push * dt; }
     if (!attack) { Q.v.x += Math.sin(clock * 0.37 + 1.3) * 0.25 * dt; Q.v.z += Math.cos(clock * 0.29 + 0.4) * 0.25 * dt; } // (a slow current: it never hangs dead still)
-    const drag = Math.exp(-dt * (attack ? 4 : 1.5)); Q.v.x *= drag; Q.v.z *= drag;
+    const drag = Math.exp(-dt * (attack ? 4 : 1.35)); Q.v.x *= drag; Q.v.z *= drag;
     g.x += Q.v.x * dt; g.z += Q.v.z * dt;
     const ox = g.x - Q.pool.x, oz = g.z - Q.pool.z, gr = Math.hypot(ox, oz); if (gr > 4.2) { g.x = Q.pool.x + ox / gr * 4.2; g.z = Q.pool.z + oz / gr * 4.2; const vr = (Q.v.x * ox + Q.v.z * oz) / gr; if (vr > 0) { Q.v.x -= ox / gr * vr; Q.v.z -= oz / gr * vr; } }
     b.swim.pulse += ((attack ? 1 : 1 + 0.55 * Math.min(1, e / 3)) - b.swim.pulse) * (1 - Math.exp(-dt * 2)); // (further to go: it beats faster)
@@ -232,25 +234,46 @@ function cqbSwim(dt) {
   const yw = st ? st.yaw : 0, fw = Q.v.x * Math.sin(yw) + Q.v.z * Math.cos(yw), sd = Q.v.x * Math.cos(yw) - Q.v.z * Math.sin(yw), k = 1 - Math.exp(-dt * 4);
   Q.lean += (clamp(fw * 0.11, -0.2, 0.2) - Q.lean) * k; Q.roll += (clamp(-sd * 0.11, -0.2, 0.2) - Q.roll) * k; b.swim.lean = Q.lean; b.swim.roll = Q.roll;
 }
-// the entrance's camera: low on your side of the pool looking at it, pushing in as it hauls itself up, then tipping up after it as it
-// shoots up, and back to the game's camera at the end (the shake its own)
+// the entrance's camera: on your side of the pool, swung round 50 degrees (the gloves on the curb then sit one near, one far: both in the
+// picture, upright too), looking down at the churning pool, then low as it hauls itself up, tipping up after it as it shoots up, and back
+// to the game's camera at the end (the shake its own)
 function cqbCam(rdt) {
-  const Q = CQB, c = Q.cut; c.t += rdt; const t = c.t, sx = Math.sin(c.side), sz = Math.cos(c.side), px = -sz, pz = sx; // (px, pz: across the line)
+  const Q = CQB, c = Q.cut; c.t += rdt; const t = c.t;
   if (t >= c.len || (c.first && state !== 'reveal' && state !== 'intro')) { Q.cut = null; if (Q.paused) { Q.paused = false; if (state === 'paused') state = 'play'; } return; }
   Q.boss.bellPoint(Q.bell);
   const sm = (a, b, x) => { const u = clamp((x - a) / (b - a), 0, 1); return u * u * (3 - 2 * u); };
-  const kIn = sm(0, 3.6, t), kUp = sm(4.0, 4.9, t), kSet = sm(4.9, 6.4, t);
-  const d = 11.2 - 2.6 * kIn + 3.3 * kUp - 0.9 * kSet, h = 1.3 + 0.25 * kIn + 1.3 * kUp, side = 1.6 - 0.7 * kIn - 0.4 * kUp;
-  const ly = 0.45 + 1.1 * kIn + (Math.max(Q.bell.y - 0.4, 1.6) - 1.55) * kUp;
-  Q.camP.set(Q.pool.x + sx * d + px * side, h, Q.pool.z + sz * d + pz * side); Q.camL.set(Q.pool.x + Q.bell.x * 0 + px * 0.3, ly, Q.pool.z + pz * 0.3);
+  const port = viewW < viewH, kIn = sm(0.3, 3.6, t), kUp = sm(4.0, 4.9, t), kSet = sm(4.9, 6.4, t);
+  const a = c.side + 0.87 - 0.3 * kUp, sx = Math.sin(a), sz = Math.cos(a), D0 = port ? 15.4 : 11.4, D1 = port ? 14.4 : 9.8, D2 = port ? 16.2 : 12.4;
+  const d = D0 + (D1 - D0) * kIn + (D2 - D1) * kUp - (port ? 1.9 : 1.4) * kSet, h = 4.2 - 2.3 * kIn + 1.4 * kUp;
+  const ly = 0.1 + 0.9 * kIn + (Math.max(Q.bell.y - 0.5, 1.0) - 1.0) * kUp;
+  Q.camP.set(Q.pool.x + sx * d, h, Q.pool.z + sz * d); Q.camL.set(Q.pool.x, ly, Q.pool.z);
   if (kUp > 0) { Q.camL.x += (Q.bell.x - Q.pool.x) * kUp; Q.camL.z += (Q.bell.z - Q.pool.z) * kUp; }
   // the shake: a low rumble while it churns and hauls, a jolt on each big moment
-  Q.rumble = Math.max(0, Q.rumble - rdt); Q.shake *= Math.exp(-rdt * 5.5); const sk = Q.shake + (Q.rumble > 0 ? 0.035 : 0), tt = performance.now() / 1000;
+  Q.rumble = Math.max(0, Q.rumble - rdt); Q.shake *= Math.exp(-rdt * 5.5); const sk = reduceMotion ? 0 : Q.shake + (Q.rumble > 0 ? 0.035 : 0), tt = performance.now() / 1000;
   Q.camP.x += sk * Math.sin(tt * 61) * 0.6; Q.camP.y += sk * Math.sin(tt * 53 + 1.1) * 0.45; Q.camL.y += sk * Math.sin(tt * 47 + 2.3) * 0.3;
   // from the game's camera and back to it
   const k = (c.first ? sm(0, 0.7, t) : 1) * (1 - sm(c.len - 0.85, c.len, t));
-  Q.gP.copy(camera.position); camera.getWorldDirection(Q.tmp); Q.gL.copy(camera.position).addScaledVector(Q.tmp, 10);
+  if (Q.lockK > 0.003 && !c.first) { Q.gP.copy(camera.position); camera.getWorldDirection(Q.tmp); Q.gL.copy(camera.position).addScaledVector(Q.tmp, 10); } // (played again: from the boss camera, just placed)
+  else { Q.gP.copy(camPos); Q.gL.copy(camLook); } // (the game's own camera: what it would draw, not what was drawn last)
   camera.position.lerpVectors(Q.gP, Q.camP, k); Q.tmp.lerpVectors(Q.gL, Q.camL, k); camera.up.set(0, 1, 0); camera.lookAt(Q.tmp); camera.updateMatrixWorld();
+}
+// the boss camera (on unless you turn it off): behind you on the line from the boss through you, looking between the two of you, so you
+// and the boss are both in the picture whichever way you roll (your steering is as ever: it turns you, the camera keeps to the line).
+// It eases in after Go and out when it's turned off, keeps inside the keep's wall, and keeps the game's shake
+function cqbLock(rdt) {
+  const Q = CQB, want = Q.lock && (state === 'play' || Q.paused) && Q.boss.group.visible ? 1 : 0;
+  Q.lockK += (want - Q.lockK) * (1 - Math.exp(-rdt * 2.2)); if (Q.lockK < 0.003) { Q.lockK = want ? Q.lockK : 0; Q.lpOk = false; return; }
+  const port = viewW < viewH, px = P.x - Q.pool.x, pz = P.z - Q.pool.z; Q.boss.bellPoint(Q.bell);
+  let ux = P.x - Q.bell.x, uz = P.z - Q.bell.z; const ud = Math.hypot(ux, uz); if (ud > 0.05) { ux /= ud; uz /= ud; } else { ux = Math.sin(P.yaw + Math.PI); uz = Math.cos(P.yaw + Math.PI); }
+  let back = port ? 8.6 : 7.2, up = port ? 3.9 : 3.2; const lim = 16.4, pu = px * ux + pz * uz, sMax = -pu + Math.sqrt(Math.max(0, pu * pu - (px * px + pz * pz) + lim * lim));
+  if (sMax < back) { up += (back - Math.max(2.4, sMax)) * 0.6; back = Math.max(2.4, sMax); } // (near the wall: closer in, a little higher)
+  const gy = gyCam, k1 = Q.lpOk ? 1 - Math.exp(-rdt * 5) : 1, k2 = Q.lpOk ? 1 - Math.exp(-rdt * 6) : 1;
+  Q.tmp.set(P.x + ux * back, gy + up, P.z + uz * back); Q.lp.lerp(Q.tmp, k1);
+  Q.tmp.set(P.x + (Q.bell.x - P.x) * 0.5, gy + 0.9 + (Q.bell.y - gy - 0.9) * 0.5, P.z + (Q.bell.z - P.z) * 0.5); Q.ll.lerp(Q.tmp, k2); Q.lpOk = true;
+  const k = Q.lockK * Q.lockK * (3 - 2 * Q.lockK);
+  camera.position.lerpVectors(camPos, Q.lp, k); Q.tmp.lerpVectors(camLook, Q.ll, k); camera.up.set(0, 1, 0); camera.lookAt(Q.tmp);
+  if (shake > 0.001 && !reduceMotion && state === 'play') camera.position.addScaledVector(Q.gOff.set(Math.random() - 0.5, Math.random() - 0.5, 0).applyQuaternion(camera.quaternion), shake * shake * 2.2); // (the game's shake, as it does it)
+  camera.updateMatrixWorld();
 }
 // the panel: each move on a button, Follow and Auto attack, the move playing; folds to its title
 function cqbPanel() {
@@ -261,6 +284,7 @@ function cqbPanel() {
     if (t.dataset.m) { cqbPlay(t.dataset.m); return; }
     if (t.id === 'cqbFollow') { Q.follow = !Q.follow; t.setAttribute('aria-pressed', Q.follow ? 'true' : 'false'); }
     else if (t.id === 'cqbAuto') { Q.auto = !Q.auto; Q.autoT = 1.2; t.setAttribute('aria-pressed', Q.auto ? 'true' : 'false'); }
+    else if (t.id === 'cqbLock') { Q.lock = !Q.lock; t.setAttribute('aria-pressed', Q.lock ? 'true' : 'false'); }
     else if (t.id === 'cqbFold') { const f = el.classList.toggle('fold'); t.setAttribute('aria-expanded', f ? 'false' : 'true'); } });
   cqbNow('idle');
 }
@@ -272,28 +296,38 @@ function cqbNow(m) {
 """
 
 CSS = r"""
-/* (v315) the boss demo's panel: each move on a button, Follow and Auto attack; top left upright, the left side sideways */
-.cqb{position:absolute;left:calc(env(safe-area-inset-left) + 10px);top:calc(env(safe-area-inset-top) + 96px);z-index:9;width:176px;padding:8px 8px 9px;border-radius:14px;background:rgba(16,10,34,.74);border:1.5px solid rgba(255,255,255,.12);box-shadow:0 6px 18px rgba(0,0,0,.35);color:#FFF8EA;font:700 12px/1.2 var(--font-ui);-webkit-user-select:none;user-select:none;touch-action:manipulation}
-.cqb .cqbh{display:flex;align-items:center;gap:6px;margin:0 0 7px 2px}
-.cqb .cqbh b{font:400 14px/1 var(--font-display);letter-spacing:.02em;color:#F2C14E}
-.cqb .cqbh span{flex:1;min-width:0;color:#C9C1DC;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cqb .cqbh button{flex:none;width:24px;height:24px;border:0;border-radius:8px;background:rgba(255,255,255,.1);color:#FFF8EA;font:800 14px/1 var(--font-ui);cursor:pointer}
-.cqb .cqbg{display:grid;grid-template-columns:1fr 1fr;gap:5px}
-.cqb .cqbg button,.cqb .cqbt button{min-height:30px;padding:0 6px;border:1.5px solid rgba(255,255,255,.16);border-radius:9px;background:rgba(255,255,255,.08);color:#FFF8EA;font:800 12px/1 var(--font-ui);cursor:pointer}
-.cqb .cqbg button[data-m="emerge"]{grid-column:1 / -1;background:rgba(242,193,78,.18);border-color:rgba(242,193,78,.55);color:#FFE7A6}
-.cqb .cqbg button.on{border-color:#F2C14E;background:rgba(242,193,78,.3);color:#FFF8EA}
-.cqb .cqbg button:active,.cqb .cqbt button:active{transform:scale(.96)}
-.cqb .cqbt{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:7px;padding-top:7px;border-top:1px solid rgba(255,255,255,.12)}
-.cqb .cqbt button[aria-pressed="true"]{border-color:#9BE15D;background:rgba(155,225,93,.2);color:#E9FFD6}
-.cqb.fold{width:auto;padding:6px 8px}.cqb.fold .cqbh{margin:0}.cqb.fold .cqbg,.cqb.fold .cqbt,.cqb.fold .cqbh span{display:none}
-@media (max-height:520px) and (min-aspect-ratio:1/1){.cqb{top:calc(env(safe-area-inset-top) + 58px);width:200px}.cqb .cqbg{grid-template-columns:1fr 1fr 1fr}.cqb .cqbg button,.cqb .cqbt button{min-height:27px}}
+/* (v315) the boss demo's panel: upright a strip under the top bar (it scrolls sideways), sideways a small panel at the left */
+.cqb{position:absolute;z-index:9;left:calc(env(safe-area-inset-left) + 8px);right:calc(env(safe-area-inset-right) + 8px);top:calc(env(safe-area-inset-top) + 92px);display:flex;align-items:center;gap:6px;padding:5px;border-radius:13px;background:rgba(16,10,34,.72);border:1.5px solid rgba(255,255,255,.12);box-shadow:0 4px 14px rgba(0,0,0,.3);color:#FFF8EA;font:800 12px/1 var(--font-ui);-webkit-user-select:none;user-select:none}
+.cqb .cqbh{flex:none;display:flex;align-items:center;gap:6px;padding-left:4px}
+.cqb .cqbh b{font:400 13px/1 var(--font-display);letter-spacing:.02em;color:#F2C14E}
+.cqb .cqbh span{display:none}
+.cqb .cqbh button{flex:none;width:26px;height:26px;border:0;border-radius:8px;background:rgba(255,255,255,.1);color:#FFF8EA;font:800 14px/1 var(--font-ui);cursor:pointer}
+.cqb .cqbs{flex:1;min-width:0;display:flex;align-items:center;gap:5px;overflow-x:auto;overscroll-behavior:contain;scrollbar-width:none;touch-action:pan-x;-webkit-mask-image:linear-gradient(90deg,#000 86%,transparent);mask-image:linear-gradient(90deg,#000 86%,transparent);padding-right:18px}
+.cqb .cqbs::-webkit-scrollbar{display:none}
+.cqb .cqbs button{flex:none;height:30px;padding:0 11px;border:1.5px solid rgba(255,255,255,.16);border-radius:9px;background:rgba(255,255,255,.08);color:#FFF8EA;font:800 12px/1 var(--font-ui);white-space:nowrap;cursor:pointer}
+.cqb .cqbs button[data-m="emerge"]{background:rgba(242,193,78,.18);border-color:rgba(242,193,78,.55);color:#FFE7A6}
+.cqb .cqbs button.on{border-color:#F2C14E;background:rgba(242,193,78,.32);color:#FFF8EA}
+.cqb .cqbs .tog[aria-pressed="true"]{border-color:#9BE15D;background:rgba(155,225,93,.2);color:#E9FFD6}
+.cqb .cqbs button:active{transform:scale(.96)}
+.cqb .cqbsep{flex:none;width:1px;height:20px;background:rgba(255,255,255,.18)}
+.cqb.fold{right:auto}.cqb.fold .cqbs{display:none}
+@media (max-height:520px) and (min-aspect-ratio:1/1){
+  .cqb{right:auto;top:calc(env(safe-area-inset-top) + 58px);width:206px;display:block;padding:7px}
+  .cqb .cqbh{padding:0 0 6px 2px}.cqb .cqbh span{display:block;flex:1;min-width:0;color:#C9C1DC;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cqb .cqbs{display:grid;grid-template-columns:1fr 1fr;overflow:visible;-webkit-mask-image:none;mask-image:none;padding:0}
+  .cqb .cqbs button{height:27px;padding:0 6px}
+  .cqb .cqbs button[data-m="emerge"],.cqb .cqbsep{grid-column:1 / -1}
+  .cqb .cqbsep{width:auto;height:1px;margin:2px 0}
+  .cqb.fold{width:auto}.cqb.fold .cqbh{padding:0}.cqb.fold .cqbh span{display:none}
+}
 """
 
-HTML = '<div class="cqb" id="cqbPanel" hidden><div class="cqbh"><b>Boss demo</b><span id="cqbNow">Floating</span><button id="cqbFold" type="button" aria-expanded="true" aria-label="Fold the boss panel">–</button></div>' \
-    '<div class="cqbg"><button type="button" data-m="emerge">Entrance</button><button type="button" data-m="punch">Punch</button><button type="button" data-m="slam">Slam</button>' \
+HTML = '<div class="cqb" id="cqbPanel" hidden><div class="cqbh"><b>Boss</b><span id="cqbNow">Floating</span><button id="cqbFold" type="button" aria-expanded="true" aria-label="Fold the boss panel">–</button></div>' \
+    '<div class="cqbs"><button type="button" data-m="emerge">Entrance</button><button type="button" data-m="punch">Punch</button><button type="button" data-m="slam">Slam</button>' \
     '<button type="button" data-m="sweep">Sweep</button><button type="button" data-m="zap">Zap</button><button type="button" data-m="hurt">Hurt</button>' \
-    '<button type="button" data-m="stunned">Stunned</button><button type="button" data-m="taunt">Taunt</button><button type="button" data-m="defeat">Defeat</button></div>' \
-    '<div class="cqbt"><button type="button" id="cqbFollow" aria-pressed="true">Follow</button><button type="button" id="cqbAuto" aria-pressed="false">Auto attack</button></div></div>'
+    '<button type="button" data-m="stunned">Stunned</button><button type="button" data-m="taunt">Taunt</button><button type="button" data-m="defeat">Defeat</button>' \
+    '<i class="cqbsep" aria-hidden="true"></i><button type="button" class="tog" id="cqbLock" aria-pressed="true">Boss cam</button><button type="button" class="tog" id="cqbFollow" aria-pressed="true">Follow</button>' \
+    '<button type="button" class="tog" id="cqbAuto" aria-pressed="false">Auto attack</button></div></div>'
 
 def apply(s):
     for a, b in RT: s = rep(s, a, b)

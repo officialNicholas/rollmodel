@@ -2,8 +2,9 @@
 
 - Sideways (landscape), the play view sits 10% closer: height and distance behind both scaled by 0.9, so you see less of the stage
   and your character is a little bigger. Upright is as before.
-- As a giant, turning is 30% gentler (a giant rolls 1.75x as fast, which let it turn about 30% quicker than a normal roll: twitchy).
-  It's your own turning only; the CPUs are as before."""
+- As a giant, your turning is scaled by 0.7. A giant rolls 1.75x as fast, and at full steer it turned about 60% faster than a normal
+  roll (4.4 radians a second against 2.8: twitchy). Now it turns at 2.5, about a normal roll's rate, so its turns are wider and
+  heavier. (Measured with the game's own steering, stepped by hand.) It's your own turning only; the CPUs are as before."""
 
 def rep(s, a, b, n=1):
     c = s.count(a); assert c == n, (c, n, a[:160]); return s.replace(a, b)
