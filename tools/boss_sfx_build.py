@@ -53,6 +53,13 @@ TAKES = {  # name: (seconds asked for, the prompt), two takes each
     'b_erupt': (1.2, 'a glob of thick slime crashing down and bursting into a big puffy cloud, a wet boom with a fizzing whoosh and bubbles' + U),
     'b_glow': (1.0, 'magical golden energy charging up in two giant fists, a rising shimmering hum with sparkles, cartoon game sound effect, no music'),
     'b_rune': (1.4, 'a magic shockwave racing across a stone floor, a quick rolling series of glowing thumps and sparkling chimes, cartoon game sound effect, no music'),
+    # (v318) ripples, strikes, sea mines (takes rm318-<name>-<take>)
+    'b_wave': (1.6, 'a big ring of water rushing outward across a stone floor, a deep rolling whoosh with a watery surge' + U),
+    'b_lock': (1.0, 'a targeting lock-on, a tense rising electronic hum with quick ticking beeps, cartoon game sound effect, no music'),
+    'b_beam': (1.0, 'a pillar of magic energy blasting straight down from the sky, a sharp crackling zap into a heavy boom, cartoon game sound effect, no music'),
+    'b_boom': (1.4, 'a sea mine exploding, a deep muffled boom with a burst of bubbles' + U),
+    'b_beep': (0.5, 'a single short warning beep from a blinking bomb, high and urgent, cartoon game sound effect, no music'),
+    'b_toss': (0.8, 'a heavy spiked ball thrown through water, a strong whoosh' + U),
 }
 # the one-shots: t the take, lu the loudness (LUFS, the loudest 400 ms; the hits, grab, punch and slam, as loud as their peaks allow
 # with 6 dB taken off them: their loudest 100 ms, -11 to -12 LUFS, is in line with the rest's), max the longest it may run (s) before
@@ -95,6 +102,13 @@ ONE = {
     'b_erupt2': dict(t='b_erupt_2', lu=-15),
     'b_glow': dict(t='b_glow_2', lu=-16),              # 2: the hum has body (1 thin, its centre 4.8 kHz)
     'b_rune': dict(t='b_rune_2', lu=-13),              # 2: longer, brighter (both mostly low; 2 has more over 250 Hz)
+    # (v318) ripples, strikes, sea mines
+    'b_wave': dict(t='b_wave_1', lu=-14),              # 1: the rush and surge, 39% of it over 250 Hz (2: all under, silent on a phone)
+    'b_lock': dict(t='b_lock_2', lu=-17),              # 2: holds in mono (1 the same hum, its channels a little apart)
+    'b_beam': dict(t='b_beam_1', lu=-12, lay=[('b_zap_1', -3, 0.0, 1.0, 400, 0.45)]),  # 1: the boom (both under 250 Hz, their channels far apart): with the zap's crackle on top
+    'b_boom': dict(t='b_boom_1', lu=-12, lay=[('b_erupt_1', -4, 0.0, 0.9, 250, 0.8)]),  # 1: the deep blast (both all under 250 Hz): with the slime burst's wet boom and fizz on top
+    'b_beep': dict(t='b_beep_2', lu=-18, max=0.3),     # 2: short and clear, its centre 3 kHz (1 longer and duller)
+    'b_toss': dict(t='b_toss_2', lu=-15),              # 2: the whoosh has more over 250 Hz
 }
 # the loops: the takes and the stretch of each used (s), the crossfade (s), the evening-out window (s) and how far, the loudness
 # (integrated LUFS), the channels and the bit rate
