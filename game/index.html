@@ -4054,10 +4054,10 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 #mStrokes.sgp .sgpanel{position:relative;z-index:3;order:3;flex:0 1 auto;max-height:var(--panh);min-height:0;margin-top:24px;display:flex;flex-direction:column;border-radius:22px;background:var(--panel);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.07),0 8px 22px rgba(23,19,32,.22)}
 #mStrokes.sgp .sghang{position:absolute;left:50%;top:-8px;z-index:2;width:40%;max-width:190px;height:17px;border-radius:999px;background:linear-gradient(#3A3A42,#232328);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.16),0 0 0 2px var(--ink0),0 3px 0 rgba(0,0,0,.35);transform:translateX(-50%)}
 #mStrokes.sgp .sghang::after{content:"";position:absolute;left:58%;top:-9px;width:62px;height:21px;background:url(art/m_tape3.webp) center/100% 100% no-repeat;transform:rotate(-7deg);filter:drop-shadow(0 1px 0 rgba(23,19,32,.2))}
-#mStrokes.sgp .sgscroll{flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;padding:22px 14px 18px;-webkit-mask:linear-gradient(transparent,#000 12px,#000 calc(100% - 18px),transparent);mask:linear-gradient(transparent,#000 12px,#000 calc(100% - 18px),transparent);scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.4) transparent;-webkit-overflow-scrolling:touch}
+#mStrokes.sgp .sgscroll{flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;padding:22px 16px 18px;-webkit-mask:linear-gradient(transparent,#000 12px,#000 calc(100% - 18px),transparent);mask:linear-gradient(transparent,#000 12px,#000 calc(100% - 18px),transparent);scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.4) transparent;-webkit-overflow-scrolling:touch}
 #mStrokes.sgp .sgscroll::-webkit-scrollbar{width:5px}
 #mStrokes.sgp .sgscroll::-webkit-scrollbar-thumb{border-radius:999px;background:rgba(255,255,255,.38)}
-#mStrokes.sgp .sggrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 12px;padding:2px 2px 4px}
+#mStrokes.sgp .sggrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;padding:2px 2px 4px}
 #mStrokes.sgp .sggrid[hidden]{display:none}
 #mStrokes.sgp .sggrid.in .sgcard{animation:sgin .3s cubic-bezier(.2,1.2,.35,1) both}
 #mStrokes.sgp .sggrid.in .sgcard:nth-child(2){animation-delay:.03s}#mStrokes.sgp .sggrid.in .sgcard:nth-child(3){animation-delay:.06s}#mStrokes.sgp .sggrid.in .sgcard:nth-child(4){animation-delay:.09s}#mStrokes.sgp .sggrid.in .sgcard:nth-child(5){animation-delay:.12s}#mStrokes.sgp .sggrid.in .sgcard:nth-child(6){animation-delay:.15s}
@@ -4075,8 +4075,8 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 #mStrokes.sgp .sgcard .sgcf b{font-weight:400;font-variant-numeric:tabular-nums}
 #mStrokes.sgp .sgcard:active{transform:scale(.95)}
 /* the one you're looking at: a magenta splat behind it, a thick yellow ring, a touch bigger */
-#mStrokes.sgp .sgcard.sel{transform:scale(1.06);z-index:1}
-#mStrokes.sgp .sgcard.sel::after{content:"";position:absolute;left:-4px;right:-4px;top:7px;bottom:-4px;border-radius:14px;box-shadow:0 0 0 4px var(--sel),0 0 0 6px var(--ink0);pointer-events:none}
+#mStrokes.sgp .sgcard.sel{transform:scale(1.03);transform-origin:50% 55%;z-index:1}
+#mStrokes.sgp .sgcard.sel::after{content:"";position:absolute;left:-3px;right:-3px;top:7px;bottom:-3px;border-radius:13px;box-shadow:0 0 0 3px var(--sel),0 0 0 5.5px var(--ink0);pointer-events:none}
 #mStrokes.sgp .sgcard.sel .sgca::before{content:"";position:absolute;inset:-6% -10%;z-index:0;background:var(--mag);-webkit-mask:url(art/m_splat.webp) center/contain no-repeat;mask:url(art/m_splat.webp) center/contain no-repeat}
 /* what a tag says: the rank it opens at, its craft time, the bench's countdown, New, and a stamp on the one you have on */
 #mStrokes.sgp .sgcard .sgst{position:absolute;left:50%;bottom:6%;z-index:2;display:flex;align-items:center;gap:3px;padding:3px 7px 3px 6px;border-radius:999px;background:var(--ink0);color:#fff;font:800 10px/1 var(--font-ui);letter-spacing:.04em;white-space:nowrap;transform:translateX(-50%)}
@@ -4109,7 +4109,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 #mStrokes.sgp .sgbadge .sgbi{display:grid;place-items:center;width:20px;height:22px;color:var(--sel)}
 #mStrokes.sgp .sgbadge .sgbi svg,#mStrokes.sgp .sgbadge .sgbi .stimg{width:22px;height:22px;object-fit:contain}
 #mStrokes.sgp .sgbadge.cr{background:var(--sel);color:var(--ink0);box-shadow:0 0 0 2px var(--ink0),0 3px 0 rgba(0,0,0,.3)}
-#mStrokes.sgp .stucode{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;margin:12px 0 2px}
+#mStrokes.sgp .stucode{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;margin:16px 0 2px}
 #mStrokes.sgp .stucode .ulink{color:rgba(255,255,255,.62);font-size:12px}
 #mStrokes.sgp .stucode .uform input{border-color:#fff;background:#fff;color:var(--black)}
 #mStrokes.sgp .sttoast{bottom:auto;top:calc(var(--gt) + 64px);z-index:9}
@@ -4132,8 +4132,8 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
   #mStrokes.sgp .sgpills{position:absolute;left:auto;right:var(--gr);bottom:calc(var(--gb) + var(--band) * .26);margin:0;gap:12px}
   #mStrokes.sgp .sgpill{min-width:clamp(76px,10vw,96px)}
   #mStrokes.sgp .sgpanel{position:absolute;top:calc(var(--gt) + 10px);bottom:calc(var(--gb) + var(--band) + 6px);left:var(--gx);width:calc(var(--panw) - var(--gx));max-height:none;margin:0}
-  #mStrokes.sgp .sgscroll{padding:21px 14px 18px}
-  #mStrokes.sgp .sggrid{gap:12px 14px}
+  #mStrokes.sgp .sgscroll{padding:21px 16px 18px}
+  #mStrokes.sgp .sggrid{gap:18px}
   #mStrokes.sgp .sgcard .sgcb{aspect-ratio:auto;height:clamp(52px,18.5vh,96px)}
   #mStrokes.sgp .sgshow{position:absolute;left:calc(var(--panw) + 12px);right:var(--gr);top:var(--gt);bottom:calc(var(--gb) + var(--band) + 12px);min-height:0}
   #mStrokes.sgp .sgban{left:14px;top:6px;max-width:calc(100% - 100px);transform:skewX(-11deg)}
@@ -4167,7 +4167,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 }
 @media (min-aspect-ratio:1/1) and (max-height:430px){#mStrokes.sgp .sgcard .sgcf{min-height:18px;padding:3px 4px 4px;font-size:11px}#mStrokes.sgp .sgcard.soon .sgcf{min-height:18px}#mStrokes.sgp .sgban b{font-size:21px}#mStrokes.sgp .sgban{padding:6px 26px 6px 17px}}
 @media (max-aspect-ratio:1/1) and (max-height:700px){#mStrokes.sgp{--panh:min(30vh,210px);--bk:50px}#mStrokes.sgp .sgban b{font-size:20px}}
-@media (max-width:359px){#mStrokes.sgp{--tabw:90px}#mStrokes.sgp .sgtabs{gap:10px}#mStrokes.sgp .sggrid{gap:12px 9px}}
+@media (max-width:359px){#mStrokes.sgp{--tabw:90px}#mStrokes.sgp .sgtabs{gap:10px}#mStrokes.sgp .sggrid{gap:16px 14px}}
 /* the Info sheet: the stroke's numbers and how you get it */
 #stPop.sginfo .sgnums{display:grid;grid-template-columns:repeat(auto-fit,minmax(76px,1fr));justify-self:stretch;gap:8px;margin:2px 0 0;padding:0;text-align:left}
 #stPop.sginfo .sgnums div{display:flex;flex-direction:column;gap:3px;padding:8px 10px 9px;border:2px solid var(--black);border-radius:6px;background:#fff;box-shadow:3px 3px 0 var(--black)}
@@ -4389,7 +4389,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 323</p>
+      <p class="ver">Version 324</p>
     </div>
   </div>
 
