@@ -31,7 +31,11 @@ Roll Model's own AdMob IDs are in **Info.plist**:
 
 To use a different ad unit later, create it in AdMob (**Apps > RollModel > Ad units > Add ad unit > Rewarded**: leave every **Ad type** box and **Ad pods** on, server-side verification off) and paste its ID over the one above.
 
-Running the game from Xcode always uses Google's test ad unit, so you can try it as much as you like. TestFlight and App Store builds use your ad unit: to see test ads on your own iPhone there too, add it in AdMob under **Settings > Test devices**. Don't tap your own live ads.
+**Which ads show where:**
+- **Run from Xcode, or installed from TestFlight:** Google's test ads, marked "Test mode". They're safe to watch and tap, and there's always one, so you and your testers can try Skip as much as you like without it counting against your AdMob account.
+- **The App Store version:** your real ads, from the "Craft skip" ad unit.
+
+So real ads first show once the update is out on the App Store. Then link the App Store listing in AdMob (**Apps > RollModel > App settings**) so AdMob reviews the app (2 to 3 days); until it's reviewed, AdMob only shows a few ads.
 
 ### Longer and playable ads
 Since the player chooses to watch, the ad can be longer or interactive:

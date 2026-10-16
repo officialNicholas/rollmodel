@@ -30,15 +30,22 @@ final class AdsBridge: NSObject, WKScriptMessageHandler {
     /// Google's sample rewarded ad unit: test ads only, never paid.
     static let testUnitID = "ca-app-pub-3940256099942544/1712485313"
 
-    /// The rewarded ad unit: RollModelRewardedAdUnitID in Info.plist (with the app's own ID, GADApplicationIdentifier, next to it).
-    /// A debug build (run from Xcode) always uses Google's test unit, so trying the game never shows real ads.
+    /// The rewarded ad unit: RollModelRewardedAdUnitID in Info.plist (with the app's own ID, GADApplicationIdentifier, next to it), in
+    /// the App Store build. A build run from Xcode or installed from TestFlight uses Google's test unit instead: its ads are marked
+    /// "Test mode", are safe to tap, and always come, so trying the game never counts against the AdMob account.
     static var unitID: String {
         #if DEBUG
         return testUnitID
         #else
+        if isTestFlight { return testUnitID }
         let id = (Bundle.main.object(forInfoDictionaryKey: "RollModelRewardedAdUnitID") as? String ?? "").trimmingCharacters(in: .whitespaces)
         return id.isEmpty ? testUnitID : id
         #endif
+    }
+
+    /// Installed from TestFlight: its App Store receipt is a sandbox one ("sandboxReceipt"; an App Store install has "receipt").
+    static var isTestFlight: Bool {
+        return Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
     }
 
     /// Runs at document start: whether this build has the ads SDK in it (without it, the game keeps Skip free).
