@@ -4583,7 +4583,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 327</p>
+      <p class="ver">Version 328</p>
     </div>
   </div>
 
@@ -21899,7 +21899,28 @@ $('unlockForm').addEventListener('submit', e => { e.preventDefault(); const v = 
   else { AU.nope(); kick($('unlockForm'), 'nope'); note("That code doesn't work.", true); } });
 canvas.addEventListener('pointerdown', e => { if (lookOpen || lobbyOn()) lookDrag = { id: e.pointerId, x: e.clientX, x0: e.clientX, t: performance.now() }; });
 canvas.addEventListener('pointermove', e => { if ((lookOpen || lobbyOn()) && lookDrag && lookDrag.id === e.pointerId) { { const now = performance.now(), dm = Math.max(4, now - (lookDrag.tm || now - 16)); lookDrag.v = (lookDrag.v || 0) * 0.5 + 0.5 * (e.clientX - lookDrag.x) / dm; lookDrag.tm = now; } lookSwiped += Math.abs(e.clientX - lookDrag.x); shim.tgt += (e.clientX - lookDrag.x) * 0.012; lookDrag.x = e.clientX; idle.t = Math.max(idle.t, 3); } });
-const endLookDrag = e => { if (lookDrag && lookDrag.id === e.pointerId) { if (lookOpen && AXOC.S.ready && e.type === 'pointerup' && performance.now() - (lookDrag.tm || 0) < 90) shim.tgt += clamp((lookDrag.v || 0) * 0.012 * 160, -2.6, 2.6); /* (let go mid-swipe: it glides on round) */ if (e.type === 'pointerup' && !lookOpen && lobbyOn() && Math.abs(e.clientX - lookDrag.x0) < 8 && performance.now() - lookDrag.t < 400 && $('orient').hidden) { AU.init(); menuReact = 0.7; AU.pop(); if (Math.random() < 0.6) AU.vox(['hup', 'whee', 'giggle', 'hoh'][(Math.random() * 4) | 0]); } lookDrag = null; } };
+// (v328) a tap on you in the lobby: one reaction at a time, and taps do nothing until it's done (a run of taps used to start the hop again
+// in mid-air, over and over); and not the same thing each time: the first tap is a hop, then it goes through the moods it already has
+// (a wave, a blep, chin up, a wet-dog shake, peekaboo, a sneeze, a wag, a tilt of the head, a look round, a wiggle), shuffled, never the
+// same one twice running. [name, seconds]
+const POKE_AXO = [['hop', 0.7], ['wave', 1.8], ['blep', 1.6], ['proud', 1.6], ['shake', 1.4], ['peek', 1.9], ['sneeze', 2.0], ['wag', 1.3], ['tilt', 1.25], ['look', 1.5], ['wiggle', 1.2]];
+const POKE_SLIME = [['hop', 0.7], ['wag', 1.3], ['peek', 1.9], ['look', 1.5], ['wiggle', 1.2], ['face', 1.4]]; // (the slime, if the axolotl isn't in: the moods it has)
+// the next in the round: a fresh shuffle when it runs out (not starting with the last one), the hop first the very first time
+function pokeNext(S, acts) {
+  if (!S.q.length) { const a = acts.filter(x => x[0] !== S.last); for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0, t = a[i]; a[i] = a[j]; a[j] = t; }
+    if (!S.n) { const h = a.findIndex(x => x[0] === 'hop'); if (h > 0) a.unshift(a.splice(h, 1)[0]); } S.q = a; }
+  const n = S.q.shift(); S.last = n[0]; S.n++; return n;
+}
+const LOBBY_POKE = { q: [], last: '', n: 0, until: 0 };
+function lobbyPoke() {
+  const now = performance.now(); if (now < LOBBY_POKE.until || menuReact > 0 || lkDip) return; // (still busy with the last one)
+  const [act, dur] = pokeNext(LOBBY_POKE, AXOC.S.ready ? POKE_AXO : POKE_SLIME); LOBBY_POKE.until = now + (dur + 0.3) * 1000;
+  if (act === 'hop') { idle.act = null; menuReact = 0.7; AU.pop(); AU.vox(['hup', 'whee', 'hoh'][(Math.random() * 3) | 0], 0.8); return; }
+  idle.act = act; idle.dur = dur; idle.u = 0; idle.b0 = beatNow(); idle.f1 = idle.f2 = false; idle.side = Math.random() < 0.5 ? -1 : 1;
+  if (act === 'face') emote(P, ['glee', 'smug', 'bonk'][(Math.random() * 3) | 0], dur * 0.8);
+  AU.pop(); const v = { wave: 'hoh', proud: 'hoh', tilt: 'ooh', blep: 'giggle', wag: 'giggle', wiggle: 'giggle', look: 'ooh' }[act]; if (v) setTimeout(() => AU.vox(v, 0.7), 140);
+}
+const endLookDrag = e => { if (lookDrag && lookDrag.id === e.pointerId) { if (lookOpen && AXOC.S.ready && e.type === 'pointerup' && performance.now() - (lookDrag.tm || 0) < 90) shim.tgt += clamp((lookDrag.v || 0) * 0.012 * 160, -2.6, 2.6); /* (let go mid-swipe: it glides on round) */ if (e.type === 'pointerup' && !lookOpen && lobbyOn() && Math.abs(e.clientX - lookDrag.x0) < 8 && performance.now() - lookDrag.t < 400 && $('orient').hidden) { AU.init(); lobbyPoke(); } lookDrag = null; } }; // (v328)
 canvas.addEventListener('pointerup', endLookDrag); canvas.addEventListener('pointercancel', endLookDrag);
 
 // ---------- (v327) My Locker and the Paint Shop, one page on the Strokes page's base. The window shows you (the demo's own character, in
@@ -22092,7 +22113,7 @@ $('lkUnlockForm').addEventListener('submit', e => { e.preventDefault(); AU.init(
 // the window: a drag spins you round (a flick carries on), a tap gets a hop; the round button turns you to show your back
 { const st = $('lkStage');
   st.addEventListener('pointerdown', e => { if (!SGD.on || SGD.kind !== 'dress') return; const now = performance.now(); SGD.dDrag = { id: e.pointerId, x: e.clientX, x0: e.clientX, y0: SGD.dyaw, t: now, tm: now, v: 0 }; SGD.dyawTo = null; SGD.dV = 0; try { st.setPointerCapture(e.pointerId); } catch (x) {} });
-  st.addEventListener('pointermove', e => { const g = SGD.dDrag; if (!g || g.id !== e.pointerId) return; const now = performance.now(), dm = Math.max(4, now - g.tm); g.v = g.v * 0.5 + 0.5 * (e.clientX - g.x) * 0.012 / (dm / 1000); g.tm = now; lookSwiped += Math.abs(e.clientX - g.x); g.x = e.clientX; SGD.dyaw = g.y0 + (e.clientX - g.x0) * 0.012; });
+  st.addEventListener('pointermove', e => { const g = SGD.dDrag; if (!g || g.id !== e.pointerId) return; if (SGD.act && Math.abs(e.clientX - g.x0) > 6) { sgActEnd(); SGD.dyaw = wrapA(SGD.dyaw); g.y0 = SGD.dyaw; g.x0 = e.clientX; } const now = performance.now(), dm = Math.max(4, now - g.tm); g.v = g.v * 0.5 + 0.5 * (e.clientX - g.x) * 0.012 / (dm / 1000); g.tm = now; lookSwiped += Math.abs(e.clientX - g.x); g.x = e.clientX; SGD.dyaw = g.y0 + (e.clientX - g.x0) * 0.012; });
   const up = e => { const g = SGD.dDrag; if (!g || g.id !== e.pointerId) return; SGD.dDrag = null; const now = performance.now();
     if (e.type === 'pointerup' && Math.abs(e.clientX - g.x0) < 8 && now - g.t < 400) sgDressPoke(); else { SGD.dV = now - g.tm < 90 ? clamp(g.v, -14, 14) : 0; SGD.dHold = 2.6; } };
   st.addEventListener('pointerup', up); st.addEventListener('pointercancel', up);
@@ -22105,12 +22126,13 @@ function sgDressStart() {
   SGD.trap.visible = SGD.wg.visible = SGD.lane.visible = SGD.boom.visible = false; SGD.mk.visible = SGD.mkF.visible = SGD.mkB.visible = SGD.ice.visible = false; SGD.iceK = 0; SGD.zk = 0; SGD.sp = {}; for (const q of SGD.shots) q.on = false; if (SGD.bm) SGD.bm.on = false; if (SGD.whirl) SGD.whirl.ph = '';
   for (const [m, sc] of SGD.padMs) m.scale.set(sc.x * LK_PAD, sc.y, sc.z * LK_PAD); SGD.padR2 = (SG_R * LK_PAD) ** 2;
   A.col.set(TEAMS[0].wet); lkDress(); sgAt(A, 0, 0); A.D.yaw = sgYawCam(A); A.V.yawD = undefined;
-  SGD.dyaw = 0; SGD.dV = 0; SGD.dyawTo = null; SGD.dHold = 0; SGD.dDrag = null; SGD.fz = 0; SGD.fzT = 0; SGD.dk = 0.6; SGD.popId = null; SGD.mood = 'glee'; SGD.moodT = 0.9; A.D.squash = 0.6; A.D.wob = 0.8;
+  SGD.dyaw = 0; SGD.dV = 0; SGD.dyawTo = null; SGD.dHold = 0; SGD.dDrag = null; SGD.fz = 0; SGD.fzT = 0; SGD.dk = 0.6; SGD.popId = null; SGD.act = null; SGD.actFace = null; SGD.mood = 'glee'; SGD.moodT = 0.9; A.D.squash = 0.6; A.D.wob = 0.8;
   sgDressPaint(false); sgRing(0, 0, 0.7, TEAMS[0].wet);
   if (SGD.pend) { const w = SGD.pend; SGD.pend = null; sgDressReact(w); }
 }
 function sgDress(dt) {
   const A = SGD.A, D = A.D; SGD.t += dt; if (SGD.shk > 0) SGD.shk = Math.max(0, SGD.shk - dt * 3);
+  sgActStep(dt); // (v328: a tap's reaction)
   if (!SGD.dDrag) {
     if (SGD.dV) { SGD.dyaw += SGD.dV * dt; SGD.dV *= Math.exp(-dt * 2.6); if (Math.abs(SGD.dV) < 0.08) SGD.dV = 0; }
     else if (SGD.dyawTo !== null) { const e = SGD.dyawTo - SGD.dyaw; SGD.dyaw += e * Math.min(1, dt * (reduceMotion ? 30 : 5)); if (Math.abs(e) < 0.01) { SGD.dyaw = SGD.dyawTo; SGD.dyawTo = null; } }
@@ -22119,12 +22141,13 @@ function sgDress(dt) {
   const y0 = D.yaw, yt = sgYawCam(A) + SGD.dyaw; D.yaw = yt; D.turn = clamp(wrapA(yt - y0) / Math.max(dt, 1e-3) / 9, -1, 1); D.spd = 0;
   D.ip.expr = null; D.ip.watch = null; if (Math.abs(wrapA(SGD.dyaw)) < 0.55 && !SGD.dDrag) sgWatch(A, null);
   if (SGD.moodT > 0) { SGD.moodT -= dt; D.ip.expr = SGD.mood; } else D.ip.expr = SGD.dDrag ? 'curious' : 'happy';
+  if (SGD.actFace) D.ip.expr = SGD.actFace;
   if (SGD.fzT > 0) SGD.fzT -= dt; SGD.fz += ((SGD.fzT > 0 ? 1 : 0) - SGD.fz) * Math.min(1, dt * 3); SGD.dk += (1 - SGD.dk) * Math.min(1, dt * 3.2);
 }
 // a thing put on or tried on: it pops in, a hop and a happy face; on the face, the camera comes in close; worn at the side or
 // on the back, you turn to show it, then back
 function sgDressReact(w) {
-  if (!SGD.built) return; const D = SGD.A.D;
+  if (!SGD.built) return; sgActEnd(); const D = SGD.A.D;
   SGD.popId = w.slot === 'eyes' || w.id === 'lashes' || w.id === 'patch' ? null : w.id; SGD.popT = 0;
   D.squash = Math.max(D.squash, 0.45); D.wob = Math.max(D.wob, 0.7); SGD.mood = w.slot === 'eyes' ? 'smirk' : 'glee'; SGD.moodT = 1.1;
   SGD.fzT = w.cat === 'face' || w.slot === 'eyes' ? 2.6 : 0;
@@ -22132,14 +22155,44 @@ function sgDressReact(w) {
   sgRing(0, 0, 0.6, 0xFFFFFF); if (!reduceMotion) sgBurst(0, 0, COL_WHITE, 6, 2.4, 1.2);
   setTimeout(() => { if (lkOn()) AU.vox(w.cat === 'cloth' ? 'giggle' : 'ooh', 0.9); }, 110);
 }
-function sgDressFace() { if (!SGD.built) return; const D = SGD.A.D; SGD.fzT = 2.4; SGD.mood = ['curious', 'smirk', 'glee'][(Math.random() * 3) | 0]; SGD.moodT = 1.3; D.squash = Math.max(D.squash, 0.3); SGD.dyawTo = 0; SGD.dHold = 0; SGD.dV = 0; }
+function sgDressFace() { if (!SGD.built) return; sgActEnd(); const D = SGD.A.D; SGD.fzT = 2.4; SGD.mood = ['curious', 'smirk', 'glee'][(Math.random() * 3) | 0]; SGD.moodT = 1.3; D.squash = Math.max(D.squash, 0.3); SGD.dyawTo = 0; SGD.dHold = 0; SGD.dV = 0; }
 // your paint: a splat of it under you; a new one splashes up round you as you hop
 function sgDressPaint(burst) {
   sgPaintClear(); sgSplat(0, 0, 0.62 / LK_PAD, TEAMS[0].css); // (drawn on the full pad's map: the pad is smaller)
-  if (burst) { const D = SGD.A.D; if (!reduceMotion) sgBurst(0, 0, SGD.A.col, 18, 3.4, 2.0); sgRing(0, 0, 0.75, TEAMS[0].wet); sgRing(0, 0, 0.45, 0xFFFFFF); D.squash = 0.8; D.wob = 1; SGD.mood = 'glee'; SGD.moodT = 1.2; SGD.fzT = 0; }
+  if (burst) { sgActEnd(); const D = SGD.A.D; if (!reduceMotion) sgBurst(0, 0, SGD.A.col, 18, 3.4, 2.0); sgRing(0, 0, 0.75, TEAMS[0].wet); sgRing(0, 0, 0.45, 0xFFFFFF); D.squash = 0.8; D.wob = 1; SGD.mood = 'glee'; SGD.moodT = 1.2; SGD.fzT = 0; }
 }
-function sgDressCheer() { if (!SGD.built) return; const D = SGD.A.D; sgRing(0, 0, 0.75, 0xFFE23C); sgRing(0, 0, 0.5, 0xFFFFFF); if (!reduceMotion) { sgBurst(0, 0, COL_WHITE, 10, 4, 1.8); sgBurst(0, 0, SGD.A.col, 14, 4.4, 2.2); sgShk(0.35); } sgFlash('w'); D.squash = 0.85; D.wob = 1; SGD.mood = 'glee'; SGD.moodT = 1.6; }
-function sgDressPoke() { if (!SGD.built) return; const D = SGD.A.D; D.squash = 0.7; D.wob = 1; SGD.mood = ['glee', 'smirk', 'blep', 'cute'][(Math.random() * 4) | 0]; SGD.moodT = 1; AU.pop(); if (Math.random() < 0.7) AU.vox(['hup', 'whee', 'giggle', 'hoh'][(Math.random() * 4) | 0]); }
+function sgDressCheer() { if (!SGD.built) return; sgActEnd(); const D = SGD.A.D; sgRing(0, 0, 0.75, 0xFFE23C); sgRing(0, 0, 0.5, 0xFFFFFF); if (!reduceMotion) { sgBurst(0, 0, COL_WHITE, 10, 4, 1.8); sgBurst(0, 0, SGD.A.col, 14, 4.4, 2.2); sgShk(0.35); } sgFlash('w'); D.squash = 0.85; D.wob = 1; SGD.mood = 'glee'; SGD.moodT = 1.6; }
+// (v328) a tap on you in the locker's window: the same rule, with what this character can do: a hop, a wave, a hand up, ears up in
+// surprise, a blep, a smirk, a sneeze, a wet-dog shake, a twirl. One at a time; taps do nothing until it's done; never the same twice running
+const POKE_DRESS = [['hop', 0.75], ['wave', 1.6], ['hand', 1.3], ['ears', 1.3], ['blep', 1.4], ['smirk', 1.4], ['sneeze', 1.9], ['shake', 1.3], ['twirl', 1.1]];
+const DRESS_POKE = { q: [], last: '', n: 0, until: 0 };
+function sgActEnd() { const a = SGD.act; SGD.act = null; SGD.actFace = null; if (!a || !SGD.built) return; const ip = SGD.A.D.ip; ip.hop = 0; ip.wave = 0; ip.hand = 0; ip.earUp = 0; ip.sq = null; ip.rise = null; }
+function sgDressPoke() {
+  if (!SGD.built) return; const now = performance.now(); if (now < DRESS_POKE.until) return; // (still busy with the last one)
+  const [k, dur] = pokeNext(DRESS_POKE, reduceMotion ? POKE_DRESS.filter(x => x[0] !== 'twirl') : POKE_DRESS); DRESS_POKE.until = now + (dur + 0.25) * 1000;
+  sgActEnd(); SGD.act = { k, dur, t: 0, f1: false, side: Math.random() < 0.5 ? -1 : 1, y0: wrapA(SGD.dyaw) }; SGD.moodT = 0; SGD.fzT = 0;
+  if (k === 'twirl') { SGD.dyaw = SGD.act.y0; SGD.dyawTo = null; SGD.dV = 0; }
+  AU.pop(); const v = { hop: ['hup', 'whee'], wave: ['hoh'], hand: ['ooh'], ears: ['eep'], blep: ['giggle'], smirk: ['hoh'], twirl: ['whee'] }[k];
+  if (v) setTimeout(() => { if (lkOn()) AU.vox(v[(Math.random() * v.length) | 0], 0.75); }, 90);
+}
+// each frame of it: the body's part here (its pose, a hand, the ears, a twirl); its face goes on over the mood's
+function sgActStep(dt) {
+  const a = SGD.act; if (!a) return; a.t += dt; const u = Math.min(1, a.t / a.dur), D = SGD.A.D, ip = D.ip, k = smoothstep(0.04, 0.2, u) * (1 - smoothstep(0.78, 0.96, u)), I = SGD.A.V.slime, AX = I && I.ax && I.ax.A;
+  ip.hop = 0; ip.wave = 0; ip.hand = 0; ip.earUp = 0; ip.sq = null; ip.rise = null; SGD.actFace = null;
+  if (a.k === 'hop') { ip.hop = Math.sin(u * Math.PI) * 0.42; ip.sq = u > 0.84 ? (u - 0.84) / 0.16 * 0.45 : null; SGD.actFace = 'glee'; if (u > 0.9 && !a.f1) { a.f1 = true; D.wob = Math.max(D.wob, 0.5); } }
+  else if (a.k === 'wave') { ip.wave = k; SGD.actFace = k > 0.2 ? 'happy' : null; }
+  else if (a.k === 'hand') { ip.hand = a.side * k; SGD.actFace = k > 0.2 ? 'curious' : null; }
+  else if (a.k === 'ears') { ip.earUp = k; SGD.actFace = u < 0.55 ? 'startle' : 'cute'; if (!a.f1) { a.f1 = true; if (AX) AX.kickGills(0, 1.0); } }
+  else if (a.k === 'blep') { SGD.actFace = k > 0.25 ? 'blep' : null; if (u > 0.12 && !a.f1) { a.f1 = true; if (AX) AX.twT = 0; } }
+  else if (a.k === 'smirk') { ip.rise = 0.1 * k; SGD.actFace = k > 0.3 ? 'smirk' : null; }
+  else if (a.k === 'sneeze') { const pre = (0.55 * smoothstep(0.08, 0.2, u) + 0.45 * smoothstep(0.27, 0.4, u)) * (u < 0.45 ? 1 : 0), hit = u >= 0.45 ? Math.exp(-(u - 0.45) * 12) : 0;
+    ip.rise = 0.12 * pre; ip.sq = 0.4 * hit; SGD.actFace = u < 0.08 ? null : u < 0.45 ? 'sneeze' : u < 0.62 ? 'dizzy' : 'cute';
+    if (u >= 0.45 && !a.f1) { a.f1 = true; AU.pop(); AU.splat(0.3); if (AX) AX.kickGills(0, -1.3); const fx = Math.sin(D.yaw), fz = Math.cos(D.yaw); // (a puff of paint from its nose)
+      if (!reduceMotion) for (let i = 0; i < 8; i++) sgPart(fx * 0.32, 0.42, fz * 0.32, fx * (1.4 + Math.random()) + (Math.random() - 0.5), 0.5 + Math.random() * 0.8, fz * (1.4 + Math.random()) + (Math.random() - 0.5), 0.32, SGD.A.col, 0.3 + Math.random() * 0.2); } }
+  else if (a.k === 'shake') { if (!a.f1) { a.f1 = true; if (I && I.shake) I.shake(0.9); AU.vox('brr', 0.6); } SGD.actFace = 'shake'; }
+  else if (a.k === 'twirl') { const e = u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2; SGD.dyaw = a.y0 + a.side * 6.2832 * e; SGD.dHold = 0.4; SGD.actFace = 'glee'; if (u >= 1) SGD.dyaw = a.y0; }
+  if (u >= 1) sgActEnd();
+}
 // a few strokes and splats in both colors so the menu canvas looks like a match in progress
 const RBM = { L: null, C: null, R: null, stroke: -1 };
 function paintPath(fn, t, team) {
