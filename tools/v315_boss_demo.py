@@ -36,6 +36,7 @@ RT = [
     ("        syncG(); yawQ.setFromAxisAngle(AX_Y, st.yaw); yawQi.copy(yawQ).invert();",
      "        syncG(); pcSync(); yawQ.setFromAxisAngle(AX_Y, st.yaw); yawQi.copy(yawQ).invert();"),
     ("init(m) { st.root.set(0, POOL_Y - 4.6, 0);", "init(m) { st.root.set(PCX, POOL_Y - 4.6, PCZ);"),
+    ("if (mv.M && mv.name === 'defeat' && name !== 'intro') return 0;", "if (mv.M && mv.name === 'defeat' && name !== 'intro' && name !== 'emerge') return 0;"), # (the entrance brings it back up too)
     ("const r = Math.hypot(mB.x, mB.z), rMin = POOL_R + 1.1; if (r < rMin) { mB.x *= rMin / Math.max(r, 1e-3); mB.z *= rMin / Math.max(r, 1e-3); }",
      "const ex = mB.x - PCX, ez = mB.z - PCZ, r = Math.hypot(ex, ez), rMin = POOL_R + 1.1; if (r < rMin) { const k = rMin / Math.max(r, 1e-3); mB.x = PCX + ex * k; mB.z = PCZ + ez * k; }"),
 ]
@@ -265,11 +266,15 @@ function cqbLock(rdt) {
   Q.lockK += (want - Q.lockK) * (1 - Math.exp(-rdt * 2.2)); if (Q.lockK < 0.003) { Q.lockK = want ? Q.lockK : 0; Q.lpOk = false; return; }
   const port = viewW < viewH, px = P.x - Q.pool.x, pz = P.z - Q.pool.z; Q.boss.bellPoint(Q.bell);
   let ux = P.x - Q.bell.x, uz = P.z - Q.bell.z; const ud = Math.hypot(ux, uz); if (ud > 0.05) { ux /= ud; uz /= ud; } else { ux = Math.sin(P.yaw + Math.PI); uz = Math.cos(P.yaw + Math.PI); }
-  let back = port ? 8.6 : 7.2, up = port ? 3.9 : 3.2; const lim = 16.4, pu = px * ux + pz * uz, sMax = -pu + Math.sqrt(Math.max(0, pu * pu - (px * px + pz * pz) + lim * lim));
-  if (sMax < back) { up += (back - Math.max(2.4, sMax)) * 0.6; back = Math.max(2.4, sMax); } // (near the wall: closer in, a little higher)
+  const back0 = port ? 8.6 : 7.2; let back = back0, up = port ? 3.2 : 2.6; const lim = 15.4, pu = px * ux + pz * uz, sMax = -pu + Math.sqrt(Math.max(0, pu * pu - (px * px + pz * pz) + lim * lim));
+  if (sMax < back) { up -= (back - Math.max(3, sMax)) * 0.2; back = Math.max(3, sMax); } // (near the wall: closer in, and lower, looking up past you)
   const gy = gyCam, k1 = Q.lpOk ? 1 - Math.exp(-rdt * 5) : 1, k2 = Q.lpOk ? 1 - Math.exp(-rdt * 6) : 1;
-  Q.tmp.set(P.x + ux * back, gy + up, P.z + uz * back); Q.lp.lerp(Q.tmp, k1);
-  Q.tmp.set(P.x + (Q.bell.x - P.x) * 0.5, gy + 0.9 + (Q.bell.y - gy - 0.9) * 0.5, P.z + (Q.bell.z - P.z) * 0.5); Q.ll.lerp(Q.tmp, k2); Q.lpOk = true;
+  Q.tmp.set(P.x + ux * back, gy + Math.max(1.7, up), P.z + uz * back); Q.lp.lerp(Q.tmp, k1);
+  // the aim, by angle: halfway between you (low) and the bell (high), so both stay in the picture; if they can't both fit, you do
+  const cx = Q.lp.x, cy = Q.lp.y, cz = Q.lp.z, hP = Math.max(0.5, Math.hypot(P.x - cx, P.z - cz)), eP = Math.atan2(gy + 0.45 - cy, hP);
+  const bx = Q.bell.x - cx, bz = Q.bell.z - cz, eB = Math.atan2(Q.bell.y - cy, Math.max(0.5, Math.hypot(bx, bz))), half = camera.fov * Math.PI / 360;
+  const el = Math.min(eP + (eB - eP) * 0.5, eP + half * 0.8), az = Math.atan2(bx, bz);
+  Q.tmp.set(cx + Math.sin(az) * Math.cos(el) * 10, cy + Math.sin(el) * 10, cz + Math.cos(az) * Math.cos(el) * 10); Q.ll.lerp(Q.tmp, k2); Q.lpOk = true;
   const k = Q.lockK * Q.lockK * (3 - 2 * Q.lockK);
   camera.position.lerpVectors(camPos, Q.lp, k); Q.tmp.lerpVectors(camLook, Q.ll, k); camera.up.set(0, 1, 0); camera.lookAt(Q.tmp);
   if (shake > 0.001 && !reduceMotion && state === 'play') camera.position.addScaledVector(Q.gOff.set(Math.random() - 0.5, Math.random() - 0.5, 0).applyQuaternion(camera.quaternion), shake * shake * 2.2); // (the game's shake, as it does it)
@@ -307,7 +312,7 @@ CSS = r"""
 .cqb .cqbs button{flex:none;height:30px;padding:0 11px;border:1.5px solid rgba(255,255,255,.16);border-radius:9px;background:rgba(255,255,255,.08);color:#FFF8EA;font:800 12px/1 var(--font-ui);white-space:nowrap;cursor:pointer}
 .cqb .cqbs button[data-m="emerge"]{background:rgba(242,193,78,.18);border-color:rgba(242,193,78,.55);color:#FFE7A6}
 .cqb .cqbs button.on{border-color:#F2C14E;background:rgba(242,193,78,.32);color:#FFF8EA}
-.cqb .cqbs .tog[aria-pressed="true"]{border-color:#9BE15D;background:rgba(155,225,93,.2);color:#E9FFD6}
+.cqb .cqbs .cqbtg[aria-pressed="true"]{border-color:#9BE15D;background:rgba(155,225,93,.2);color:#E9FFD6}
 .cqb .cqbs button:active{transform:scale(.96)}
 .cqb .cqbsep{flex:none;width:1px;height:20px;background:rgba(255,255,255,.18)}
 .cqb.fold{right:auto}.cqb.fold .cqbs{display:none}
@@ -326,8 +331,8 @@ HTML = '<div class="cqb" id="cqbPanel" hidden><div class="cqbh"><b>Boss</b><span
     '<div class="cqbs"><button type="button" data-m="emerge">Entrance</button><button type="button" data-m="punch">Punch</button><button type="button" data-m="slam">Slam</button>' \
     '<button type="button" data-m="sweep">Sweep</button><button type="button" data-m="zap">Zap</button><button type="button" data-m="hurt">Hurt</button>' \
     '<button type="button" data-m="stunned">Stunned</button><button type="button" data-m="taunt">Taunt</button><button type="button" data-m="defeat">Defeat</button>' \
-    '<i class="cqbsep" aria-hidden="true"></i><button type="button" class="tog" id="cqbLock" aria-pressed="true">Boss cam</button><button type="button" class="tog" id="cqbFollow" aria-pressed="true">Follow</button>' \
-    '<button type="button" class="tog" id="cqbAuto" aria-pressed="false">Auto attack</button></div></div>'
+    '<i class="cqbsep" aria-hidden="true"></i><button type="button" class="cqbtg" id="cqbLock" aria-pressed="true">Boss cam</button><button type="button" class="cqbtg" id="cqbFollow" aria-pressed="true">Follow</button>' \
+    '<button type="button" class="cqbtg" id="cqbAuto" aria-pressed="false">Auto attack</button></div></div>'
 
 def apply(s):
     for a, b in RT: s = rep(s, a, b)

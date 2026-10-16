@@ -26,10 +26,11 @@ Then comes the usual countdown and Go.
 
 ## 3. The boss camera
 
-While you play, the camera stays behind you on the line from the boss through you, looking between the two of you. You and the boss are both in the picture whichever way you roll.
+While you play, the camera stays behind you on the line from the boss through you. It aims halfway between you (low in the picture) and the boss (high in it). You and the boss are both in the picture whichever way you roll.
 
 - Your steering is the same as ever: it turns you, and the camera keeps to the line.
-- Near the wall, the camera comes in closer and a little higher, so it never goes through the wall.
+- Near the wall, the camera comes in closer and lower, looking up past you, so it stays clear of the wall and the props along it.
+- If you and the boss can't both fit, you're the one kept in the picture.
 - It eases in after Go. **Boss cam** in the panel turns it off, and the usual camera comes back.
 
 ## 4. The panel
