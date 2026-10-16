@@ -10,7 +10,7 @@ quantized to the box (u16), uvs (u16), normals octahedral (2 x i8), indices as z
 the triangles first use them, so the steps are small), an optional smoothed normal for the ink shell (--ink), the maps as webp (or
 jpeg) with an optional normal map (--nrm size) and metal-rough map (--mr size). A rigged GLB keeps its skin (--skin): four joints and
 weights per vertex (u8), the joint names, parents, rest pose and inverse bind matrices.
-  glb2pack.py in.glb out.json --v2 [--floor|--center] [--tex 512] [--nrm 256] [--mr 0] [--ink] [--skin] [--jpeg] [--q 80] [--tint r,g,b]
+  glb2pack.py in.glb out.json --v2 [--floor|--center] [--tex 512] [--nrm 256] [--mr 0] [--ink] [--skin] [--jpeg] [--q 80] [--tint r,g,b] [--sat k]
 Layout of b (v2): pos n*6, pad to 4, uv n*4, nrm n*2, [ink n*2], [joints n*4, weights n*4], then the index bytes (ib long)."""
 import sys, struct, json, base64, io
 import numpy as np
@@ -147,6 +147,18 @@ def enc(idx, size, kind):
     img = Image.open(io.BytesIO(img_bytes(idx))).convert('RGB'); img.thumbnail((size, size), Image.LANCZOS)
     if kind == 'col' and '--tint' in A:
         t = [float(x) for x in opt('--tint', '1,1,1').split(',')]; a = np.asarray(img).astype(np.float64) * np.array(t)[None, None, :]; img = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
+    if kind == 'col' and '--sat' in A:
+        # (quieter colours: the saturation scaled by k)
+        k = float(opt('--sat', '1')); hsv = np.asarray(img.convert('HSV')).astype(np.float64); hsv[..., 1] *= k
+        img = Image.fromarray(np.clip(hsv, 0, 255).astype(np.uint8), 'HSV').convert('RGB')
+    if kind == 'col' and '--tame' in A:
+        # keep a stone's colours in one family: hues outside the greens (moss) and the blues-to-violets are pulled to violet-blue and
+        # quietened (k: how far, 0..1), so no block reads orange, red or pink
+        k = float(opt('--tame', '0.8')); hsv = np.asarray(img.convert('HSV')).astype(np.float64) / 255.0; h, s_, v = hsv[..., 0], hsv[..., 1], hsv[..., 2]
+        moss = (h > 0.15) & (h < 0.45); keep = (h >= 0.5) & (h <= 0.76); pull = ~(moss | keep)
+        d = (0.69 - h + 0.5) % 1.0 - 0.5  # (the short way round the hue circle to violet-blue, never through the greens)
+        h2 = np.where(pull, (h + d * k) % 1.0, h); s2 = np.where(pull, s_ * (1 - 0.7 * k * np.abs(d) / 0.5), s_)
+        img = Image.fromarray(np.clip(np.stack([h2, s2, v], -1) * 255, 0, 255).astype(np.uint8), 'HSV').convert('RGB')
     bo = io.BytesIO()
     if jpeg: img.save(bo, 'JPEG', quality=q, optimize=True)
     else: img.save(bo, 'WEBP', quality=q, method=6)
