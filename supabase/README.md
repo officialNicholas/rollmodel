@@ -1,7 +1,7 @@
 # Roll Model on Supabase
 
-Usernames and accounts (v306), friends (codes, requests, who's online, blocks, invites) and the Friends leaderboard live in
-your Supabase project. The game talks to it directly from the phone over Supabase's REST API. The database only answers
+Usernames and accounts (v306), progress kept with an account (v312), friends (codes, requests, who's online, blocks,
+invites) and the Friends leaderboard live in your Supabase project. The game talks to it directly from the phone over Supabase's REST API. The database only answers
 through a set of functions (`rm_*`) that check who's asking, so a player can never read or change anything they
 shouldn't.
 
@@ -14,9 +14,11 @@ shouldn't.
    email**. A player's account signs in with their username and password; behind the scenes it uses a made-up address
    (`u<account id>@rollmodel.invalid`) that can't receive mail, so a confirmation email could never arrive.
 3. **Create the tables and functions.** Dashboard > SQL Editor > New query. Paste the whole of each file below, in this
-   order, and press **Run** each time. Both are safe to run again later.
+   order, and press **Run** each time. All are safe to run again later.
    1. `supabase/migrations/20261015000000_friends.sql`
    2. `supabase/migrations/20261015010000_accounts.sql`
+   3. `supabase/migrations/20261016000000_saves.sql` (v312: progress kept with the account. Until it's run, logging in
+      on a new phone works but brings no progress back, and Log out keeps this phone's progress, as before)
 4. **Send me two values.** Dashboard > Project Settings > API Keys (or Data API):
    - the **Project URL** (`https://<something>.supabase.co`);
    - the **publishable key** (`sb_publishable_...`), or the older **anon public** key if that's what the project shows.
@@ -32,6 +34,7 @@ the Friends screen says friends are on the way.
 |---|---|
 | `profiles` | Username, look (paint colour, eyes), rank, the 8-character friend code, and when the player was last online |
 | `accounts` | For players who made an account: first and last name, birth year (since v307 the game sends only the year, as its 31 December), and which terms they agreed to and when. Only the player can read it |
+| `saves` | For players who made an account: a copy of their progress (rank, drops, everything bought, crafted and unlocked, lessons done), so logging in on another phone brings it back. Only the player can read it. Since v312 |
 | `friend_requests` | Pending requests (deleted once accepted, declined or cancelled) |
 | `friendships` | One row per pair of friends |
 | `blocks` | Who blocked whom |
@@ -49,7 +52,8 @@ through these functions:
 | `rm_rename(name)` | A new username (clean and free; 10 tries an hour) |
 | `rm_login_email(name)` | The made-up address a username signs in with (nothing for a player without an account) |
 | `rm_account_save(first, last, birthday, terms)`, `rm_account()` | The account details (13 or older; the game passes the birth year as its last day, so a player counts as 13 only once that's certain), and reading your own back |
-| `rm_delete_me()` | Deletes the player and everything of theirs, and frees the username |
+| `rm_save_put(data)`, `rm_save_get()` | Keeps a copy of your progress (accounts only), and reads it back. A copy with less rank than the one kept is refused (`behind`), so a phone left behind can't wipe out progress made on another |
+| `rm_delete_me()` | Deletes the player and everything of theirs (saved progress too), and frees the username |
 | `rm_inbox(status)` | Everything the Friends screen shows, in one call; also marks you online (`lobby` / `match` / `offline`) |
 | `rm_add_friend(code)` | Sends a request, or makes you friends at once if they'd already asked you |
 | `rm_answer_request(from, accept)`, `rm_cancel_request(to)`, `rm_remove_friend(other)` | Requests and friends |
@@ -66,12 +70,19 @@ Accounts: a player starts anonymous. Making an account (when online play unlocks
 so friends and progress stay; then the details are saved with `rm_account_save`. To sign in on another phone the game
 looks up the username's address with `rm_login_email` and signs in with the password.
 
+Progress (v312): while a player is signed in to an account, the game keeps a copy of their progress with it
+(`rm_save_put`, at most every 30 seconds while it changes, and when the app is put away). Logging in, on a new phone
+or from the first loading screen ("I already have an account"), brings it back (`rm_save_get`). Logging out keeps it
+there and starts the phone fresh for the next player. Settings that belong to the phone (sound, graphics, screen
+orientation) stay with the phone.
+
 Limits:
 - 30 friend-code tries an hour (wrong codes count, so codes can't be guessed);
 - 50 pending requests out, 100 in;
 - 200 friends;
 - 40 invites an hour;
-- 120 Time trial runs an hour.
+- 120 Time trial runs an hour;
+- 240 progress saves an hour, each up to 200 kB.
 
 ## Testing it without the real project
 

@@ -3954,6 +3954,16 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 .tykofly.go{transition:transform .3s cubic-bezier(.55,0,.85,.35)}
 .tyko{font-size:22px}
 .tyko svg{width:.9em;height:.9em;fill:var(--gold);stroke:var(--black);stroke-width:1.5px;vertical-align:-.12em;margin-right:2px}
+
+/* (v311) a handle keeps its small letters where names are set in capitals */
+.hd{text-transform:none!important}
+
+/* (v312) "I already have an account": text at the foot of the first loading screen; its sheet over the loading screen, Log in only */
+#boot .bootacct{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:2;transform:translateX(-50%);margin:0;padding:12px 18px;border:0;background:none;font:800 14px/1.2 var(--font-ui);color:#2A2437;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px;white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent;animation:fadein .5s ease-out both}
+#boot .bootacct.wait{text-decoration:none;opacity:.7}
+#boot.gone .bootacct{pointer-events:none}
+#acModal.boot{z-index:45}
+#acModal.boot .actabs{display:none}
 </style>
 
 <div id="stage">
@@ -4092,7 +4102,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 309</p>
+      <p class="ver">Version 312</p>
     </div>
   </div>
 
@@ -4250,7 +4260,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
     </div>
   </div>
   <div class="iris" id="iris" hidden aria-hidden="true"><i></i><b id="irisText"></b></div>
-  <div class="boot" id="boot" role="status"><canvas class="bootc" id="bootC" aria-hidden="true"></canvas><span class="tcard boottc" aria-hidden="true"></span><div class="bootbar" aria-hidden="true"><i id="bootFill"></i><b class="bootpct" id="bootPct">0%</b></div><p class="bootmsg" id="bootMsg">Loading</p></div>
+  <div class="boot" id="boot" role="status"><canvas class="bootc" id="bootC" aria-hidden="true"></canvas><span class="tcard boottc" aria-hidden="true"></span><div class="bootbar" aria-hidden="true"><i id="bootFill"></i><b class="bootpct" id="bootPct">0%</b></div><p class="bootmsg" id="bootMsg">Loading</p><button class="bootacct" id="bootAcct" type="button" hidden>I already have an account</button></div>
 <script>
 // the paint pouring in while the game loads: a stream from the top into the tank, its surface sloshing up to the loading, drops where it lands
 (() => { const c = document.getElementById('bootC'), bar = document.querySelector('.bootbar'), pctEl = document.getElementById('bootPct'); if (!c || !c.getContext || !bar) return; const g = c.getContext('2d'); if (!g) return;
@@ -5018,8 +5028,15 @@ const NSAVE = (() => { try { return (window.webkit && window.webkit.messageHandl
 let saveQ = 0, saveJ = '', saveT = 0;
 const saveSend = () => { if (saveQ) { clearTimeout(saveQ); saveQ = 0; } if (!NSAVE || !saveJ) return; try { NSAVE.postMessage({ t: saveT, save: saveJ }); } catch (e) {} saveJ = ''; };
 const save = () => { let j = ''; try { j = JSON.stringify(store); saveT = Date.now(); localStorage.setItem(KEY, j); localStorage.setItem(KEY + '.t', String(saveT)); } catch (e) {}
-  if (NSAVE && j) { saveJ = j; if (!saveQ) saveQ = setTimeout(saveSend, 400); } };
+  if (NSAVE && j) { saveJ = j; if (!saveQ) saveQ = setTimeout(saveSend, 400); } csMark(); }; // (v312: and, signed in, to your account in a while)
 if (NSAVE) { document.addEventListener('visibilitychange', () => { if (document.hidden) saveSend(); }); window.addEventListener('pagehide', saveSend); }
+
+// (v312) a first launch on a phone that isn't signed in to an account: "I already have an account" under the loading bar, from the first
+// moment. A tap before the account sheet is ready waits for it (BA.ready, below with the accounts)
+var BA = { on: false, want: false, ready: false, me: null };
+function baTap(e) { if (e) { e.preventDefault(); e.stopPropagation(); } try { AU.init(); AU.ui(); } catch (x) {} BA.want = true; if (BA.ready) return baOpen(); const b = $('bootAcct'); if (b) { b.classList.add('wait'); b.textContent = 'One moment…'; } }
+{ const sb = store.sbs, b = $('bootAcct'), first = !!window.__introNow || (!store.introDone && !store.name && !((store.runs || 0) > 0) && (!store.tut || store.tut.ph === 'match'));
+  if (b && first && !(sb && sb.acct && sb.rt && !sb.out)) { BA.on = true; b.hidden = false; b.addEventListener('click', baTap); b.addEventListener('pointerdown', e => e.stopPropagation()); } } // (not "Tap to start")
 
 // ---------- renderer ----------
 const stage = $('stage'), canvas = $('cv');
@@ -13700,7 +13717,7 @@ function itemTickOld(dt) {
   for (const pw of powers) { if (pw.pop < 1) pw.pop = Math.min(1, pw.pop + dt * 3); if (pw.grace > 0) pw.grace -= dt; }
 }
 // ---------- v285: pick-ups by need: who has one and who doesn't decides when the next comes and where ----------
-const ITEM_WARN = 1.2, ITEM_STALE = 25;
+const ITEM_WARN = 1.2, ITEM_STALE = 15; // (v310: was 25)
 const hasItem = D => !!(D.held || D.held2 || D.power || D.turret || D.whirl);
 // ahead (1), behind (-1) or level (0): hearts in a Showdown, the canvas otherwise
 function itemEdge(R) {
@@ -13754,6 +13771,16 @@ function itemMarkTick(q, dt) {
   if (Math.random() < dt * 30) { const a = Math.random() * 6.283, r = 0.25 + Math.random() * 0.5; spawnPart(q.x + Math.cos(a) * r, q.y + 0.2, q.z + Math.sin(a) * r, 0, 2 + Math.random() * 1.5, 0, 0.6, puHaloMat, 0.16 + Math.random() * 0.12, 0); }
 }
 const itemType = () => tut && tut.noTurret ? 'roller' : (tut || tut2 || tut3) ? (itemSpawn.last === 'roller' ? (Math.random() < 0.65 ? 'turret' : 'roller') : (Math.random() < 0.65 ? 'roller' : 'turret')) : (() => { const w = { roller: 0.42, turret: 0.3, trap: 0.28, whirl: 0.3, boom: 0.3 }; if (w[itemSpawn.last]) w[itemSpawn.last] *= 0.45; const ks = Object.keys(w); let r = Math.random() * ks.reduce((q, k) => q + w[k], 0); for (const k of ks) if ((r -= w[k]) <= 0) return k; return 'roller'; })();
+// (v310) nobody took it: a moment later something else comes up instead, a different kind, where whoever has waited longest for one
+// can get to it (or where the old one was)
+function itemTypeNot(t) { for (let k = 0; k < 12; k++) { const q = itemType(); if (q !== t) return q; } return ['roller', 'turret', 'trap', 'whirl', 'boom'].find(q => q !== t); }
+function itemSwap(old) {
+  const IS = itemSpawn; if (IS.pend || matchLeft <= 6) return;
+  let R = null; for (const D of ACTIVE) if (D.st === 'play' && !hasItem(D) && (!R || (D.handT || 0) > (R.handT || 0))) R = D;
+  const sp = (R && itemSpot(R)) || [old.x, old.y, old.z];
+  IS.pend = { x: sp[0], y: sp[1], z: sp[2], t: 0, R, type: itemTypeNot(old.type) }; IS.last = old.type; // (and the kind nobody took is less likely next time)
+  if (state === 'play' && Math.hypot(P.x - sp[0], P.z - sp[2]) < 18) AU.spot();
+}
 // it pops (nobody took it, or the Showdown line closed over it)
 function itemPop(pw) {
   if (pw.g) { for (let i = 0; i < 10; i++) { const a = i / 10 * 6.283; spawnPart(pw.x, pw.y + 1.05, pw.z, Math.cos(a) * 2.5, 0.5 + Math.random(), Math.sin(a) * 2.5, 0.3, puHaloMat, 0.4); } dropTree([pw.g]); pw.g = null; }
@@ -13764,7 +13791,7 @@ function itemTick(dt) {
   const alive = ACTIVE.filter(D => D.st !== 'out'), IS = itemSpawn;
   for (const D of alive) { if (hasItem(D)) D.handT = 0; else if (D.st === 'play') D.handT = (D.handT || 0) + dt; }
   for (const pw of powers) { if (pw.pop < 1) pw.pop = Math.min(1, pw.pop + dt * 3); if (pw.grace > 0) pw.grace -= dt; pw.age = (pw.age || 0) + dt; }
-  for (let i = powers.length - 1; i >= 0; i--) { const pw = powers[i]; if (pw.g && (pw.age > ITEM_STALE || zoneLost(pw.x, pw.z))) itemPop(pw); }
+  for (let i = powers.length - 1; i >= 0; i--) { const pw = powers[i]; if (pw.g && (pw.age > ITEM_STALE || zoneLost(pw.x, pw.z))) { const stale = pw.age > ITEM_STALE; itemPop(pw); if (stale) { if (state === 'play' && Math.hypot(P.x - pw.x, P.z - pw.z) < 16) AU.pop(); itemSwap(pw); } } } // (v310: swapped)
   IS.gap = (IS.gap || 0) - dt;
   if (IS.pend) { const q = IS.pend; q.t += dt; itemMarkTick(q, dt);
     if (q.t >= ITEM_WARN) { IS.pend = null; itemMarkGet().g.visible = false; const pw = { phase: Math.random() * 6, pop: 0, grace: 0, owner: null, age: 0, forD: q.R }; placePower(pw, q.type, [q.x, q.y, q.z]); powers.push(pw); IS.last = q.type; IS.gap = 2;
@@ -14044,13 +14071,32 @@ function updateCrowns(dt) {
   }
 }
 function orbReset() { orb.on = false; orb.k = 0; orb.spawnT = 16 + Math.random() * 6; orb.g.visible = false; orb.ring.visible = false; }
+// (v310) can the orb follow this line? Step by step from where it is: each step on a surface it can float up onto (2.2 at the most),
+// never into a wall, never over a hole. (It floats at its surface, so checking only where it's going let it slide into a tall block.)
+function orbPathOk(x0, z0, b0, x1, z1) {
+  const d = Math.hypot(x1 - x0, z1 - z0), n = Math.max(1, Math.ceil(d / 0.3)); let b = b0;
+  for (let i = 1; i <= n; i++) { const t = i / n, x = x0 + (x1 - x0) * t, z = z0 + (z1 - z0) * t, g = surfaceUnder(x, z, b + 2.2, true);
+    if (g === -Infinity || blockedAt(x, z, g + 0.05)) return false; b = g; }
+  return true;
+}
+// (v310) inside something after all (shoved, or a layout it didn't expect): out at the nearest open spot, with a sparkle at both ends
+function orbUnstick() {
+  let best = null, bd = 1e9; const E = zoneEdge() - 3;
+  for (const q of COF_SPOTS) { if (!q || Math.max(Math.abs(q[0]), Math.abs(q[2])) > E || solidThrough(q[0], q[2], q[1] + 0.5) || blockedAt(q[0], q[2], q[1] + 0.05)) continue; const d = Math.hypot(q[0] - orb.x, q[2] - orb.z); if (d < bd) { bd = d; best = q; } }
+  const fx = (x, y, z) => { for (let i = 0; i < 12; i++) { const a = i / 12 * 6.283; spawnPart(x, y, z, Math.cos(a) * 2.2, (Math.random() - 0.3) * 2.5, Math.sin(a) * 2.2, 0.45, orbPartMats[i % orbPartMats.length], 0.45); } };
+  fx(orb.x, orb.y, orb.z);
+  if (!best) { orbReset(); orb.spawnT = 1; return; }
+  orb.x = orb.tx = best[0]; orb.z = orb.tz = best[2]; orb.base = best[1]; orb.y = best[1] + 1.15; orb.pull = 0; orb.inT = 0; fx(orb.x, orb.y, orb.z);
+  if (state === 'play' && Math.hypot(P.x - orb.x, P.z - orb.z) < 18) AU.pop();
+  if (!orb.stay) orbPickTarget();
+}
 // drift toward another reachable spot a few units away, with nothing tall in the way
 function orbPickTarget() {
   let best = null;
   for (let tries = 0; tries < 24 && !best; tries++) {
     const c = COF_SPOTS[(Math.random() * COF_SPOTS.length) | 0]; if (!c) break;
     const d = Math.hypot(c[0] - orb.x, c[2] - orb.z); if (d < 3 || d > 11 || Math.max(Math.abs(c[0]), Math.abs(c[2])) > zoneEdge() - 3) continue;
-    let ok = true; for (let t = 0.1; t <= 1.001 && ok; t += 0.1) { const x = orb.x + (c[0] - orb.x) * t, z = orb.z + (c[2] - orb.z) * t; if (blockedAt(x, z, Math.max(orb.base, c[1]) + 0.9)) ok = false; }
+    let ok = orbPathOk(orb.x, orb.z, orb.base, c[0], c[2]); // (v310: a line it can follow, not just open where it's going)
     if (ok) best = c;
   }
   if (best) { orb.tx = best[0]; orb.tz = best[2]; } else { orb.tx = orb.x; orb.tz = orb.z; }
@@ -14058,7 +14104,7 @@ function orbPickTarget() {
 function orbSpawn() {
   let c = null;
   if ((tut2 || tut3Orb()) && (P.st === 'play' || P.st === 'hide')) { let bd = 1e9; for (const q of COF_SPOTS) { if (!q || Math.max(Math.abs(q[0]), Math.abs(q[2])) >= ARENA - 4) continue; const d = Math.hypot(P.x - q[0], P.z - q[2]); if (d < 5 || ACTIVE.some(D => D !== P && D.st !== 'ko' && Math.hypot(D.x - q[0], D.z - q[2]) < 6)) continue; if (d < bd) { bd = d; c = q; } } } /* (the first real match: the orb comes up near you) */
-  for (let tries = 0; tries < 40 && !c; tries++) { const q = COF_SPOTS[(Math.random() * COF_SPOTS.length) | 0]; if (q && Math.max(Math.abs(q[0]), Math.abs(q[2])) < ARENA - 4 && ACTIVE.every(D => D.st === 'ko' || Math.hypot(D.x - q[0], D.z - q[2]) > 7)) c = q; }
+  for (let tries = 0; tries < 40 && !c; tries++) { const q = COF_SPOTS[(Math.random() * COF_SPOTS.length) | 0]; if (q && Math.max(Math.abs(q[0]), Math.abs(q[2])) < ARENA - 4 && !solidThrough(q[0], q[2], q[1] + 0.5) && !blockedAt(q[0], q[2], q[1] + 0.05) && ACTIVE.every(D => D.st === 'ko' || Math.hypot(D.x - q[0], D.z - q[2]) > 7)) c = q; } // (v310: open ground only)
   if (!c) { orb.spawnT = 2; return; }
   orb.on = true; orb.k = 0; orb.pull = 0; orb.x = c[0]; orb.z = c[2]; orb.base = c[1]; orb.y = c[1] + 1.15; orb.ph = Math.random() * 6.28; orbPickTarget();
   orb.g.visible = true; orb.ring.visible = true; AU.orb(); kick($('orbFlash'), 'on'); popText('Orb!');
@@ -14070,18 +14116,21 @@ function updateOrb(dt) {
   orb.k = Math.min(1, orb.k + dt * 1.8);
   const dx = orb.tx - orb.x, dz = orb.tz - orb.z, d = Math.hypot(dx, dz);
   if (d < 0.4) { if (!orb.stay) orbPickTarget(); } else { const sp = Math.min(d, 1.3 * dt); orb.x += dx / d * sp; orb.z += dz / d * sp; }
-  const g = surfaceUnder(orb.x, orb.z, orb.base + 2.2, true); if (g > -Infinity) orb.base += (g - orb.base) * Math.min(1, dt * 4);
+  let g = surfaceUnder(orb.x, orb.z, orb.base + 2.2, true);
+  if (d > 0.01 && !orb.pull) { const ga = surfaceUnder(orb.x + dx / d * 0.6, orb.z + dz / d * 0.6, orb.base + 2.2, true); if (ga > g) g = ga; } // (v310: up before the edge, not through it)
+  if (g > -Infinity) orb.base += (g - orb.base) * Math.min(1, dt * (g > orb.base ? 7 : 4));
+  if (solidThrough(orb.x, orb.z, orb.base + 0.5) && solidThrough(orb.x, orb.z, orb.y)) { orb.inT = (orb.inT || 0) + dt; if (orb.inT > 0.4) { orbUnstick(); if (!orb.on) return; } } else orb.inT = 0; // (v310)
   orb.y = orb.base + 1.15 + Math.sin(runT * 2.2 + orb.ph) * 0.12;
   if (orb.k < 0.5) return;
   // roll up next to it and it's drawn in: no jump (or paint) needed. The nearest blob in reach, on its level, with nothing between
   let puller = null, pd = ORB_PULL_R;
   for (const D of ACTIVE) { if (D.st !== 'play' || D.giantT > 0 || D.rocket || D.turret || (tut && tut.orbMine && D !== P)) continue; const h = Math.hypot(D.x - orb.x, D.z - orb.z), dy = orb.base - D.y;
-    if (h < pd && dy > -1.1 && dy < 1.3 && !blockedAt((D.x + orb.x) / 2, (D.z + orb.z) / 2, Math.max(D.y, orb.base) + 0.5)) { pd = h; puller = D; } }
+    if (h < pd && dy > -1.1 && dy < 1.3 && orbPathOk(orb.x, orb.z, orb.base, D.x, D.z)) { pd = h; puller = D; } } // (v310: an open way to it, not just the halfway point)
   if (puller) {
     if (!orb.pull) AU.pop && AU.pop();
     orb.pull = Math.min(1, (orb.pull || 0) + dt * 2.6); orb.by = puller;
     const tx = puller.x, ty = puller.y + 0.45, tz = puller.z, k = Math.min(1, dt * (1.5 + 13 * orb.pull * orb.pull));
-    orb.x += (tx - orb.x) * k; orb.z += (tz - orb.z) * k; orb.tx = orb.x; orb.tz = orb.z;
+    { const nx = orb.x + (tx - orb.x) * k, nz = orb.z + (tz - orb.z) * k; if (orbPathOk(orb.x, orb.z, orb.base, nx, nz)) { orb.x = nx; orb.z = nz; } } orb.tx = orb.x; orb.tz = orb.z; // (v310: a wall stops it)
     orb.y += (ty - orb.y) * Math.min(1, orb.pull * 1.4);
     orb.sparkT = (orb.sparkT || 0) + dt * 40;
     while (orb.sparkT >= 1) { orb.sparkT -= 1; const a = Math.random() * 6.283, r = 0.3 + Math.random() * 0.25; spawnPart(orb.x + Math.cos(a) * r, orb.y + (Math.random() - 0.5) * 0.4, orb.z + Math.sin(a) * r, (tx - orb.x) * 4.5, (ty - orb.y) * 4.5 + 0.4, (tz - orb.z) * 4.5, 0.32, orbPartMats[(Math.random() * orbPartMats.length) | 0], 0.28); }
@@ -15563,11 +15612,18 @@ const sideOf = D => SIDE[D.team], ally = (A, B) => !!A && !!B && A !== B && SIDE
 const NAMES = ['You', 'Smudge', 'Doodle', 'Blot'], nameOf = D => D === P ? playerName() : NAMES[D.team];
 const KO_PCT = 2; // each elimination counts for this much of the canvas at the tally
 const RIVAL_NAMES = ['Smudge', 'Blot', 'Splodge', 'Dribble', 'Doodle', 'Squiggle', 'Speckle', 'Glop', 'Drizzle', 'Swirl', 'Dabs', 'Gloop', 'Sploosh', 'Tinty', 'Smear', 'Daub'];
-function pickRivalNames() { const me = playerName().toLowerCase(), pool = RIVAL_NAMES.filter(n => n.toLowerCase() !== me); const a = pool.splice(Math.floor(Math.random() * pool.length), 1)[0]; NAMES[1] = a; NAMES[2] = pool.splice(Math.floor(Math.random() * pool.length), 1)[0]; NAMES[3] = pool[Math.floor(Math.random() * pool.length)]; rollRivalRanks(); }
+function pickRivalNames() { const me = playerName().replace(/^@/, '').toLowerCase(), pool = RIVAL_NAMES.filter(n => n.toLowerCase() !== me); const a = pool.splice(Math.floor(Math.random() * pool.length), 1)[0]; NAMES[1] = a; NAMES[2] = pool.splice(Math.floor(Math.random() * pool.length), 1)[0]; NAMES[3] = pool[Math.floor(Math.random() * pool.length)]; rollRivalRanks(); }
 // your name: asked for before your first match, changed any time from the nameplate on the menu
 const NAME_MAX = 12, NAME_IDEAS = ['Rollo', 'Spatter', 'Brushy', 'Glossy', 'Pixel', 'Dabble', 'Swatch', 'Sprinkle', 'Mosaic', 'Primer', 'Inky', 'Neon', 'Jelly', 'Marble', 'Gumdrop', 'Picasso Jr'];
 const cleanName = t => String(t || '').replace(/[\u0000-\u001f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, NAME_MAX);
-const playerName = () => cleanName(store.name) || 'You';
+// (v311) a player with an account online shows as a handle: @ and the username in small letters. Your own name is yours once you're
+// signed in; a name that's a handle keeps its small letters where names are set in capitals (the class hd)
+const isHd = n => typeof n === 'string' && n.charAt(0) === '@';
+const hdOf = n => { const t = String(n == null ? '' : n).trim(); return t ? (isHd(t) ? t : '@' + t).toLowerCase() : t; };
+const hdOn = () => { try { return !!(window.acctReady && window.acctReady()); } catch (e) { return false; } };
+const playerName = () => { const n = cleanName(store.name) || 'You'; return store.name && hdOn() ? hdOf(n) : n; };
+const nmHtml = n => isHd(n) ? '<bdi class="hd">' + escAttr(n) + '</bdi>' : escAttr(n);
+function nmSet(el, n) { if (!el) return; el.textContent = n; el.classList.toggle('hd', isHd(n)); }
 const randomName = () => { let n; do { n = NAME_IDEAS[(Math.random() * NAME_IDEAS.length) | 0].replace(/ /g, '_') + (10 + ((Math.random() * 90) | 0)); } while (n === store.name || unWhy(n) || /(69|88)$/.test(n)); return n; }; // (v306: a username: no spaces, two digits so it's likely free)
 // ---------- (v306) usernames: 3 to 16 letters, numbers or _ (at least one letter), one of a kind, nothing rude and no reserved names.
 // The same rules as the server's (_uname_why and _uname_bad in supabase/migrations/*_accounts.sql: change one, change the other), so the
@@ -18052,7 +18108,7 @@ function ntagTick(rdt) {
     if (t.el.hidden) t.el.hidden = false;
     const nm = nameOf(D), rk = rankOf(D), col = TEAMS[D.team].css;
     { const hp = isShow() ? Math.max(0, D.hearts | 0) : -1; if (t.hp !== hp) { t.hp = hp; let hh = ''; if (hp >= 0) for (let i = 0; i < SD_HEARTS; i++) hh += HEART_SVG.replace('<svg', '<svg class="' + (i < hp ? 'on' : 'off') + '"'); t.ht.innerHTML = hh; } const al = ally(D, P); if (t.al !== al) { t.al = al; t.el.classList.toggle('ally', al); } }
-    if (t.name !== nm || t.rank !== rk) { t.name = nm; t.rank = rk; t.nm.textContent = nm; t.rk.textContent = rk; t.w = 0; }
+    if (t.name !== nm || t.rank !== rk) { t.name = nm; t.rank = rk; nmSet(t.nm, nm); t.rk.textContent = rk; t.w = 0; }
     if (t.col !== col) { t.col = col; t.el.style.setProperty('--tc', col); }
     if (!t.w) { t.w = t.el.offsetWidth || 90; t.h = t.el.offsetHeight || 30; } // (measured once per name)
     t.sc = 1 - 0.16 * smoothstep(10, NTAG_FAR, t.d); vis.push(t);
@@ -19433,7 +19489,7 @@ function vicTag(t) { $('vTagTxt').textContent = t; }
 const VIC_FONT = '"Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif', VIC_FACE = 'italic 900 100px "Barlow Condensed"';
 function vicDrawName() {
   if (!vic) return; const W = Math.max(1, viewW), H = Math.max(1, viewH), land = vicLand(), dpr = Math.min(2, window.devicePixelRatio || 1), g = vicNameG;
-  const lines = []; for (const w of vic.name.toUpperCase().split(' ').filter(Boolean)) { if (lines.length && (lines[lines.length - 1] + ' ' + w).length <= (land ? 16 : 9)) lines[lines.length - 1] += ' ' + w; else lines.push(w); }
+  const lines = []; for (const w of vic.name.split(' ').filter(Boolean).map(w => isHd(w) ? w : w.toUpperCase())) { if (lines.length && (lines[lines.length - 1] + ' ' + w).length <= (land ? 16 : 9)) lines[lines.length - 1] += ' ' + w; else lines.push(w); }
   g.font = 'italic 900 100px ' + VIC_FONT; const widest = Math.max(1, ...lines.map(l => g.measureText(l).width)), maxW = land ? W * 0.56 : W - 28, maxH = land ? H * 0.6 : H * 0.34;
   const fs = clamp(Math.min(100 * maxW / (widest * 1.05), maxH / (lines.length * 0.84)), 40, land ? H * 0.46 : 280), lh = fs * 0.84, x0 = land ? Math.max(W * 0.045, 24) : 14;
   const cw = Math.round(W * dpr), ch = Math.round(H * dpr); if (vicNameCv.width !== cw || vicNameCv.height !== ch) { vicNameCv.width = cw; vicNameCv.height = ch; vicNameTex.dispose(); } g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
@@ -19492,7 +19548,7 @@ function startVictory() {
   vicTag(w.kick); vic.name = w.name; vic.ghost = w.ghost; $('vName').textContent = w.name; $('vName').setAttribute('aria-label', w.kick + ': ' + w.name);
   $('vStats').innerHTML = w.stats; [...$('vStats').children].forEach((el, i) => el.style.animationDelay = (0.95 + i * 0.08).toFixed(2) + 's');
   $('vCards').innerHTML = solo ? ttVicRows(info) : board.filter(e => !feat.includes(e.D)).map((e, i) => '<div class="vrow' + (e.D === P ? ' me' : '') + '" style="--cc:' + colVars(e.D)[1] + ';animation-delay:' + (1.2 + i * 0.08).toFixed(2) + 's"><b class="vr">' + String(e.place).padStart(2, '0') + '</b>' + faceIcon(e.D, false)
-    + '<span class="vn">' + escAttr(nameOf(e.D)) + (e.D === P ? '<em>You</em>' : '') + '</span><b class="vp">' + (info.show ? (info.kos[e.D.team] || 0) + '<small>' + ((info.kos[e.D.team] || 0) === 1 ? 'KO' : 'KOs') + '</small>' : e.pct + '<small>%</small>') + '</b></div>').join('');
+    + '<span class="vn">' + nmHtml(nameOf(e.D)) + (e.D === P ? '<em>You</em>' : '') + '</span><b class="vp">' + (info.show ? (info.kos[e.D.team] || 0) + '<small>' + ((info.kos[e.D.team] || 0) === 1 ? 'KO' : 'KOs') + '</small>' : e.pct + '<small>%</small>') + '</b></div>').join('');
   $('vTap').textContent = 'Tap to see the canvas'; $('vStage').textContent = TH.label + ' · ' + (solo ? 'Time trial' : (MODES.find(m => m[0] === mode) || MODES[0])[1]);
   vicEl.classList.remove('out'); vicEl.hidden = false; reAdd.delete(bannerEl); bannerEl.classList.remove('on'); vicFit(); flashScreen();
   if (document.fonts && document.fonts.check && !document.fonts.check(VIC_FACE)) document.fonts.load(VIC_FACE).then(() => { if (vic) vicFit(); }).catch(() => {}); // (drawn again in its own face when it's in)
@@ -19619,7 +19675,7 @@ function kofStart(D, reason, by) {
   const col = by ? TEAMS[by.team].css : reason === 'sun' ? '#F0DDA8' : reason === 'dry' ? '#5E4F5C' : hexCss(new THREE.Color(TEAMS[D.team].wet).multiplyScalar(0.5).getHex());
   kof = { ph: 'wait', t: 0, col, cx: viewW * 0.5, cy: viewH * 0.5, seed: Math.random() * 100 }; // (a beat first: you see yourself splatted, then the paint floods in)
   $('kofSmall').textContent = by ? 'Splatted by' : reason === 'fall' ? 'Fell off' : reason === 'sun' ? 'Baked' : reason === 'dry' ? 'Dried up' : 'Knocked out';
-  $('kofBy').textContent = by ? nameOf(by) : (koLine(reason, true) || 'Out!'); $('kofN').textContent = Math.max(1, Math.ceil(D.koT));
+  nmSet($('kofBy'), by ? nameOf(by) : (koLine(reason, true) || 'Out!')); $('kofN').textContent = Math.max(1, Math.ceil(D.koT));
   kofEl.style.setProperty('--kc', col); kofEl.hidden = false; kofEl.classList.remove('badge', 'out');
   const el = isShow() && D.elimNow; kofEl.classList.toggle('elim', !!el); $('kofL').textContent = el ? (mode === 'duo' && ACTIVE.some(B => ally(B, P) && sdAlive(B)) ? 'Your teammate fights on' : 'Place') : 'Respawn';
   if (el) { $('kofSmall').textContent = by ? 'Eliminated by' : 'Out of hearts'; kof.elim = true; kof.elimTxt = 'Out'; $('kofN').textContent = 'Out'; }
@@ -19847,7 +19903,7 @@ function snapshotPainting() {
 
 // ---------- menus ----------
 const hud = $('hud'), menu = $('menu'), end = $('end'), pauseEl = $('pause'), nameModal = $('nameModal');
-function paintName() { const n = playerName(); NAMES[0] = n; $('nameShow').textContent = store.name ? n : 'Name'; { const pn = $('pbName'); if (pn) pn.textContent = n; } const lt = $('lookNameTxt'); if (lt) lt.textContent = n; }
+function paintName() { const n = playerName(); NAMES[0] = n; nmSet($('nameShow'), store.name ? n : 'Name'); nmSet($('pbName'), n); nmSet($('lookNameTxt'), n); }
 let nameFirst = false;
 function openName(first) {
   nameFirst = !!first; const inp = $('nameInput');
@@ -20680,7 +20736,7 @@ function renderLook() {
   const ES_ICON = ES_ICON_T;
   $('eyeStyles').innerHTML = Object.keys(EYE_STYLES).map(k => { const it = EXTRA.find(x => x.id === k), lk = it && !bought(k); return '<button class="eyes' + (lk ? ' locked' : '') + (it && !lk && (store.fresh || []).includes(k) ? ' fresh' : '') + '" type="button" data-es="' + k + '" aria-label="' + EYE_STYLES[k] + ' eyes' + (lk ? ', ' + PRICE(it) + ' dabs in the Paint Shop' : '') + '" title="' + EYE_STYLES[k] + (lk ? ' (Paint Shop)' : '') + '" aria-pressed="' + (myLook.eyes === k) + '">' + ES_ICON[k] + (lk ? LOCK_ICON : '') + '</button>'; }).join('');
   $('irises').innerHTML = EYE_KEYS.map(k => '<button class="eyec" type="button" data-i="' + k + '" style="--ic:' + EYE_COLS[k].css + '" aria-label="' + EYE_COLS[k].name + ' eyes" title="' + EYE_COLS[k].name + '" aria-pressed="' + (myLook.iris === k) + '"><i></i></button>').join(''); $('irises').classList.toggle('off', NO_IRIS(myLook.eyes)); $('irises').setAttribute('aria-disabled', NO_IRIS(myLook.eyes) ? 'true' : 'false');
-  railEdge(); $('lookNameTxt').textContent = playerName();
+  railEdge(); nmSet($('lookNameTxt'), playerName());
   $('unlockLink').parentNode.hidden = ITEMS.every(w => owns(w.id)); // (nothing left to unlock: no link)
 }
 const DROP_SVG = '<svg class="dropi" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#F2C14E" stroke="#8A5A12" stroke-width="1.6"/><circle cx="10" cy="10" r="6.7" fill="none" stroke="#C98E22" stroke-width="1"/><path d="M10 5.2c.9 0 1.3 1.1 2 1.5 1 .5 2.2-.3 2.6.7.4 1-.9 1.6-.9 2.6s1.2 1.6.7 2.5c-.5.9-1.6.2-2.5.6-.8.4-1 1.7-1.9 1.7s-1.1-1.3-2-1.7c-.9-.4-2 .3-2.5-.6s.7-1.5.7-2.5-1.3-1.6-.9-2.6c.4-1 1.6-.2 2.6-.7.7-.4 1.1-1.5 2.1-1.5z"/></svg>';
@@ -21366,7 +21422,7 @@ function vsSnapTick() {
 function showVS(cb) {
   if (window.__instant || reduceMotion) return cb();
   const el = $('vsx'), md = MODES.find(m => m[0] === mode) || MODES[0];
-  const card = (D, name, cls) => '<div class="vcol ' + cls + '" style="--sc:' + TEAMS[D.team].css + ';--cd:' + mixHex(TEAMS[D.team].wet, 0x0C0620, 0.62) + '">' + (cls === 'me' ? '' : '<i class="vseam" aria-hidden="true"></i>') + '<i class="vsweep" aria-hidden="true"></i><div class="vhead"><small>' + (cls === 'me' ? 'You' : cls === 'me ally' ? 'Teammate' : NM ? 'Online' : 'CPU') + '</small><b>' + escAttr(name) + '</b></div><span class="vbox" id="vbox' + D.team + '"></span>' + Array.from({ length: 9 }, (_, i) => '<i class="pt" style="--x:' + (6 + Math.random() * 88).toFixed(0) + '%;--s:' + (3 + Math.random() * 7).toFixed(0) + 'px;--d:' + (2.2 + Math.random() * 2.4).toFixed(2) + 's;--w:' + (-Math.random() * 4).toFixed(2) + 's;--dx:' + ((Math.random() - 0.5) * 60).toFixed(0) + 'px"></i>').join('') + '</div>';
+  const card = (D, name, cls) => '<div class="vcol ' + cls + '" style="--sc:' + TEAMS[D.team].css + ';--cd:' + mixHex(TEAMS[D.team].wet, 0x0C0620, 0.62) + '">' + (cls === 'me' ? '' : '<i class="vseam" aria-hidden="true"></i>') + '<i class="vsweep" aria-hidden="true"></i><div class="vhead"><small>' + (cls === 'me' ? 'You' : cls === 'me ally' ? 'Teammate' : NM ? 'Online' : 'CPU') + '</small><b' + (isHd(name) ? ' class="hd"' : '') + '>' + escAttr(name) + '</b></div><span class="vbox" id="vbox' + D.team + '"></span>' + Array.from({ length: 9 }, (_, i) => '<i class="pt" style="--x:' + (6 + Math.random() * 88).toFixed(0) + '%;--s:' + (3 + Math.random() * 7).toFixed(0) + 'px;--d:' + (2.2 + Math.random() * 2.4).toFixed(2) + 's;--w:' + (-Math.random() * 4).toFixed(2) + 's;--dx:' + ((Math.random() - 0.5) * 60).toFixed(0) + 'px"></i>').join('') + '</div>';
   let h = card(P, playerName(), 'me'); if (mode === 'duo') h += card(H3, NAMES[3], 'me ally') + card(H, NAMES[1], 'foe') + card(H2, NAMES[2], 'foe2'); else if (mode !== 'solo') { h += card(H, NAMES[1], 'foe'); if (mode === 'trio' || mode === 'ffa') h += card(H2, NAMES[2], 'foe2'); if (mode === 'ffa') h += card(H3, NAMES[3], 'foe3'); }
   $('vsRow').innerHTML = h; $('vsRow').classList.toggle('trio', mode === 'trio'); $('vsRow').classList.toggle('quad', isShow()); $('vsRow').classList.toggle('duo', mode === 'duo'); $('vsRow').classList.toggle('rows', viewH > viewW && mode !== 'solo'); $('vsx').classList.toggle('vvr', viewH > viewW && mode !== 'solo' && !window.__noVote && !tutMatchDue() && !NM); /* (v284: the vote to come) */ /* (upright: one fighter per row, shot on the face) */
   // the rivals step out, dressed, with their game face on; the portraits are taken two frames on, once their bodies have settled
@@ -21547,7 +21603,7 @@ document.addEventListener('visibilitychange', () => { if (!FR.me) return; if (do
 // a new request while you're about the lobby: a note at the top, once
 function frSeen(b) {
   const fresh = FR.seen ? b.incoming.filter(r => !FR.seen.has(r.id)) : []; FR.seen = new Set(b.incoming.map(r => r.id));
-  if (fresh.length && !FR.open && state === 'menu') frToast(fresh.length === 1 ? frFace(fresh[0].look) + '<span><b>' + frEsc(fresh[0].name) + '</b> wants to be friends</span>' : '<span>' + fresh.length + ' new friend requests</span>');
+  if (fresh.length && !FR.open && state === 'menu') frToast(fresh.length === 1 ? frFace(fresh[0].look) + '<span><b>' + frEsc(hdOf(fresh[0].name)) + '</b> wants to be friends</span>' : '<span>' + fresh.length + ' new friend requests</span>');
 }
 function frBadge() {
   const n = FR.box ? FR.box.incoming.length : 0, btn = $('friendsBtn'); let d = btn.querySelector('.frdot');
@@ -21569,9 +21625,9 @@ const FR_X = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17
 const FR_MORE = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="18.5" cy="12" r="2.2" fill="currentColor"/></svg>';
 function frRow(f) {
   const open = FR.menu === f.id, conf = open && FR.confirm;
-  return '<li class="frrow' + (open ? ' open' : '') + '">' + frFace(f.look) + '<span class="frwho"><b>' + frEsc(f.name) + '</b><small><i class="frst ' + (f.online ? f.status : 'off') + '"></i>' + frWhen(f) + ' · Rank ' + (f.rank | 0) + '</small></span>'
-    + '<span class="frbtns">' + onDuelBtn(f) + '<button class="frb ghost ic" data-act="more" data-id="' + f.id + '" type="button" aria-expanded="' + open + '" aria-label="More for ' + frEsc(f.name) + '">' + FR_MORE + '</button></span>'
-    + (!open ? '' : '<div class="frmenu">' + (conf ? '<span>' + (conf === 'remove' ? 'Remove ' : 'Block ') + frEsc(f.name) + '?</span><button class="frb bad" data-act="' + conf + '" data-id="' + f.id + '" type="button">' + (conf === 'remove' ? 'Remove' : 'Block') + '</button><button class="frb ghost" data-act="nvm" type="button">Keep</button>'
+  return '<li class="frrow' + (open ? ' open' : '') + '">' + frFace(f.look) + '<span class="frwho"><b>' + frEsc(hdOf(f.name)) + '</b><small><i class="frst ' + (f.online ? f.status : 'off') + '"></i>' + frWhen(f) + ' · Rank ' + (f.rank | 0) + '</small></span>'
+    + '<span class="frbtns">' + onDuelBtn(f) + '<button class="frb ghost ic" data-act="more" data-id="' + f.id + '" type="button" aria-expanded="' + open + '" aria-label="More for ' + frEsc(hdOf(f.name)) + '">' + FR_MORE + '</button></span>'
+    + (!open ? '' : '<div class="frmenu">' + (conf ? '<span>' + (conf === 'remove' ? 'Remove ' : 'Block ') + frEsc(hdOf(f.name)) + '?</span><button class="frb bad" data-act="' + conf + '" data-id="' + f.id + '" type="button">' + (conf === 'remove' ? 'Remove' : 'Block') + '</button><button class="frb ghost" data-act="nvm" type="button">Keep</button>'
       : '<button class="frb ghost" data-act="askremove" data-id="' + f.id + '" type="button">Remove friend</button><button class="frb ghost" data-act="askblock" data-id="' + f.id + '" type="button">Block</button>') + '</div>') + '</li>';
 }
 const FR_FACES = '<span class="ffaces" aria-hidden="true">' + ['green', 'purple'].map(c => frFace({ c })).join('') + '</span>';
@@ -21591,10 +21647,10 @@ function frRender(fromPoll) {
     h += '<section class="frme"><small>Your friend code</small><div class="frcode"><b>' + frCode(FR.me.code) + '</b><button class="frb" data-act="copy" type="button">Copy</button>' + (NATIVE_SHARE ? '<button class="frb" data-act="share" type="button">Share</button>' : '') + '</div></section>';
     h += '<form class="fradd" id="frAdd" autocomplete="off" novalidate><label for="frIn">Add a friend</label><div><input id="frIn" type="text" inputmode="text" autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="9" placeholder="Their friend code" value="' + frEsc(FR.typed) + '"><button class="frb go" type="submit">Add</button></div><p class="frnote' + (FR.noteOk ? '' : ' bad') + '" aria-live="polite">' + frEsc(FR.note) + '</p></form>';
     if (NET_URL) h += onInvList(); // (v306: duel invites)
-    if (b.incoming.length) h += '<section><h4>Want to be friends <i>' + b.incoming.length + '</i></h4><ul class="frlist">' + b.incoming.map(r => '<li class="frrow">' + frFace(r.look) + '<span class="frwho"><b>' + frEsc(r.name) + '</b><small>Rank ' + (r.rank | 0) + '</small></span><span class="frbtns"><button class="frb go" data-act="acc" data-id="' + r.id + '" type="button">Accept</button><button class="frb ghost ic" data-act="dec" data-id="' + r.id + '" type="button" aria-label="Decline ' + frEsc(r.name) + '">' + FR_X + '</button></span></li>').join('') + '</ul></section>';
+    if (b.incoming.length) h += '<section><h4>Want to be friends <i>' + b.incoming.length + '</i></h4><ul class="frlist">' + b.incoming.map(r => '<li class="frrow">' + frFace(r.look) + '<span class="frwho"><b>' + frEsc(hdOf(r.name)) + '</b><small>Rank ' + (r.rank | 0) + '</small></span><span class="frbtns"><button class="frb go" data-act="acc" data-id="' + r.id + '" type="button">Accept</button><button class="frb ghost ic" data-act="dec" data-id="' + r.id + '" type="button" aria-label="Decline ' + frEsc(hdOf(r.name)) + '">' + FR_X + '</button></span></li>').join('') + '</ul></section>';
     h += '<section><h4>Friends <i>' + b.friends.length + '</i>' + (on ? '<em>· ' + on + ' online</em>' : '') + '</h4>' + (b.friends.length ? '<ul class="frlist">' + b.friends.map(frRow).join('') + '</ul>' : '<p class="frempty">No friends yet. Send them your code, or add theirs above.</p>') + '</section>';
-    if (b.outgoing.length) h += '<section><h4>Waiting on</h4><ul class="frlist">' + b.outgoing.map(r => '<li class="frrow sm">' + frFace(r.look) + '<span class="frwho"><b>' + frEsc(r.name) + '</b><small>Request sent</small></span><span class="frbtns"><button class="frb ghost" data-act="cancel" data-id="' + r.id + '" type="button">Cancel</button></span></li>').join('') + '</ul></section>';
-    if (b.blocked.length) h += '<details class="frblk"' + (FR.blkOpen ? ' open' : '') + '><summary>Blocked (' + b.blocked.length + ')</summary><ul class="frlist">' + b.blocked.map(r => '<li class="frrow sm"><span></span><span class="frwho"><b>' + frEsc(r.name) + '</b></span><span class="frbtns"><button class="frb ghost" data-act="unblock" data-id="' + r.id + '" type="button">Unblock</button></span></li>').join('') + '</ul></details>';
+    if (b.outgoing.length) h += '<section><h4>Waiting on</h4><ul class="frlist">' + b.outgoing.map(r => '<li class="frrow sm">' + frFace(r.look) + '<span class="frwho"><b>' + frEsc(hdOf(r.name)) + '</b><small>Request sent</small></span><span class="frbtns"><button class="frb ghost" data-act="cancel" data-id="' + r.id + '" type="button">Cancel</button></span></li>').join('') + '</ul></section>';
+    if (b.blocked.length) h += '<details class="frblk"' + (FR.blkOpen ? ' open' : '') + '><summary>Blocked (' + b.blocked.length + ')</summary><ul class="frlist">' + b.blocked.map(r => '<li class="frrow sm"><span></span><span class="frwho"><b>' + frEsc(hdOf(r.name)) + '</b></span><span class="frbtns"><button class="frb ghost" data-act="unblock" data-id="' + r.id + '" type="button">Unblock</button></span></li>').join('') + '</ul></details>';
     if (FR.err) h += '<p class="frwarn">' + frEsc(FR.err) + '</p>';
     h += '<p class="frfine">Friends see your name, your paint colour and your rank, and when you’re online.</p>';
   }
@@ -21659,7 +21715,7 @@ function frBoardHtml(sid) {
   const c = FR.board[sid]; if (!c || Date.now() - c.at > 30000) frBoardLoad(sid);
   if (!c) return '<p class="ttnone"><b>Loading your friends’ times…</b></p>';
   let h = c.err && !c.rows.length ? '<p class="ttnone"><b>Can’t load your friends’ times.</b>' + frEsc(c.err) + '</p>' : !c.rows.length ? '<p class="ttnone"><b>No runs from you or your friends here this week.</b>Play a Time trial on this canvas to set the first.</p>'
-    : '<ol class="ttlist">' + c.rows.slice(0, 20).map((r, i) => '<li class="ttrow' + (i < 3 ? ' r' + (i + 1) : '') + (r.me ? ' me' : '') + '"><b class="ttrk" aria-label="' + ttOrd(i + 1) + '">' + (i + 1) + '</b><span class="ttwho">' + frFace(r.look) + frEsc(r.name) + (r.me ? '<em>You</em>' : '') + '</span><b class="ttpc">' + (r.best | 0) + '<small>%</small></b></li>').join('') + '</ol>';
+    : '<ol class="ttlist">' + c.rows.slice(0, 20).map((r, i) => '<li class="ttrow' + (i < 3 ? ' r' + (i + 1) : '') + (r.me ? ' me' : '') + '"><b class="ttrk" aria-label="' + ttOrd(i + 1) + '">' + (i + 1) + '</b><span class="ttwho">' + frFace(r.look) + frEsc(hdOf(r.name)) + (r.me ? '<em>You</em>' : '') + '</span><b class="ttpc">' + (r.best | 0) + '<small>%</small></b></li>').join('') + '</ol>';
   const P3 = TT_PRIZE.friends; h += '<p class="tttease">When the week turns, the top three win ' + P3[0] + ', ' + P3[1] + ' and ' + P3[2] + ' dabs' + (c.rows.length < TT_FRIENDS_MIN ? ', once ' + TT_FRIENDS_MIN + ' or more of you are on the board.' : '.') + '</p>';
   if (!(FR.box && FR.box.friends.length)) h += '<p class="tttease">Add friends from the lobby’s Friends button to race them here.</p>';
   return h;
@@ -21709,7 +21765,7 @@ function netSendLayout() {
 // the rival as they dressed: their name, paint (set apart from yours if it's the same), eyes, wearables and rank
 function netRival(fo) {
   const L = fo.look && typeof fo.look === 'object' ? fo.look : {}, w = L.w && typeof L.w === 'object' ? L.w : {}, ok = (v, slot) => typeof v === 'string' && WEAR.some(x => x.id === v && x.slot === slot) ? v : null;
-  NAMES[1] = String(fo.name || 'Rival').slice(0, 16);
+  NAMES[1] = fo.name ? hdOf(String(fo.name).slice(0, 16)) : 'Rival'; // (v311: a person, by their handle)
   const c = typeof L.c === 'string' && rivalColOf(L.c); if (c) rivalCol[1] = c;
   LH.wearing = { head: ok(w.head, 'head'), back: ok(w.back, 'back'), mouth: ok(w.mouth, 'mouth'), eye: ok(w.eye, 'eye'), side: ok(w.side, 'side'), neck: ok(w.neck, 'neck'), lash: ok(w.lash, 'lash'), arms: ok(w.arms, 'arms'), iris: EYE_KEYS.includes(w.iris) ? w.iris : 'brown', eyes: EYE_STYLES[L.e] ? L.e : 'round' };
   NM.foeRank = clamp(L.r | 0, 1, 999) || 1; teamTint = true; teamHues();
@@ -22183,7 +22239,7 @@ async function onAnswer(id, yes) {
 }
 // (Friends) a Duel button on a friend who's in the lobby
 function onDuelBtn(f) {
-  if (!NET_URL || !f.online || f.status !== 'lobby') return ''; const w = ON.inv && ON.inv.to === f.id, n = frEsc(f.name);
+  if (!NET_URL || !f.online || f.status !== 'lobby') return ''; const w = ON.inv && ON.inv.to === f.id, n = frEsc(hdOf(f.name));
   return '<button class="frb go' + (w ? ' onwt' : '') + '" data-on="duel" data-id="' + frEsc(f.id) + '" type="button" aria-label="' + (w ? 'Waiting for ' : 'Duel ') + n + '">' + (w ? 'Waiting' : 'Duel') + '</button>';
 }
 function onInvRow(i) {
@@ -22219,7 +22275,7 @@ function onRender(soft) {
   else if (v === 'error') h = '<div class="frmsg">' + FR_FACES + '<b>Can’t connect</b><p>' + frEsc(ON.err || 'Can’t reach the game server right now.') + '</p><button class="frb go" data-on="retry" data-f type="button">Try again</button></div>';
   else if (v === 'old') h = '<div class="frmsg">' + FR_FACES + '<b>Update the game to play online</b><p>This version of Roll Model is too old for online play. Update it, then come back.</p></div>';
   else if (v === 'joining') h = '<div class="frmsg"><span class="frspin" aria-hidden="true"></span><p>Joining ' + frEsc(ON.join) + '…</p></div>';
-  else if (v === 'found') { const m = ON.match, o = m && (m.players || []).find(p => p.slot !== m.you); h = '<div class="frmsg onwait">' + onVs(me, o ? frFace(o.look) : ON_MYS) + '<b>Match found!</b><p>' + (o ? 'You vs ' + frEsc(o.name) : 'Get ready') + '</p></div>'; }
+  else if (v === 'found') { const m = ON.match, o = m && (m.players || []).find(p => p.slot !== m.you); h = '<div class="frmsg onwait">' + onVs(me, o ? frFace(o.look) : ON_MYS) + '<b>Match found!</b><p>' + (o ? 'You vs ' + frEsc(hdOf(o.name)) : 'Get ready') + '</p></div>'; }
   else if (v === 'queue') h = note + '<div class="frmsg onwait">' + onVs(me, ON_MYS) + '<b>' + (ON.lost ? 'Reconnecting…' : 'Finding a rival…') + '</b><p class="ontime" id="onTime" role="timer" aria-label="Time looking"></p><p>1v1 against someone at your level.</p><button class="frb ghost" data-on="unq" data-f type="button">Cancel</button></div>' + onInvList();
   else if (v === 'inv') { const i = ON.inv, n = frEsc(i.name), st = ON.lost ? 'Reconnecting…' : i.st === 'sending' ? 'Inviting ' + n + '…' : i.st === 'accepted' ? n + ' is on the way…' : 'Waiting for ' + n + '…';
     h = note + '<div class="frmsg onwait">' + onVs(me, frFace(i.look)) + '<b>' + st + '</b>' + (i.st === 'open' && !ON.lost ? '<p class="ontime" id="onTime" role="timer" aria-label="Time left to answer"></p><p>They’ve got 2 minutes to say yes.</p>' : '<span class="frspin" aria-hidden="true"></span>') + '<button class="frb ghost" data-on="uninv" data-f type="button">Cancel</button></div>' + onInvList(); }
@@ -22239,7 +22295,7 @@ function onRoomHtml(note) {
   const r = ON.room, my = ON.me && ON.me.id, full = r.players.length >= r.need, me = r.players.find(p => p.id === my), o = r.players.find(p => p.id !== my), c = frEsc(r.code);
   let h = note + '<div class="onroomw"><section class="onroom"><small id="onCodeL">Room code</small><div class="frcode oncode"><b aria-hidden="true">' + c + '</b><span class="onsr">' + c.split('').join(' ') + '</span><button class="frb" data-on="copy" data-f type="button" aria-describedby="onCodeL">Copy</button>'
     + (NATIVE_SHARE ? '<button class="frb" data-on="share" type="button">Share</button>' : '') + '</div><p class="frnote" aria-live="polite">' + frEsc(ON.cnote) + '</p></section>';
-  h += '<section class="onwho"><h4>In the room <i>' + r.players.length + '/' + r.need + '</i></h4><ul class="frlist">' + r.players.map(p => '<li class="frrow sm">' + frFace(p.look) + '<span class="frwho"><b>' + frEsc(p.name) + (p.id === my ? '<em class="onyou">You</em>' : '') + '</b><small' + (p.ready ? ' class="onok">Ready' : '>Not ready yet') + '</small></span></li>').join('')
+  h += '<section class="onwho"><h4>In the room <i>' + r.players.length + '/' + r.need + '</i></h4><ul class="frlist">' + r.players.map(p => '<li class="frrow sm">' + frFace(p.look) + '<span class="frwho"><b>' + frEsc(hdOf(p.name)) + (p.id === my ? '<em class="onyou">You</em>' : '') + '</b><small' + (p.ready ? ' class="onok">Ready' : '>Not ready yet') + '</small></span></li>').join('')
     + (full ? '' : '<li class="frrow sm onslot">' + ON_MYS + '<span class="frwho"><b>Your friend</b><small>Not here yet</small></span></li>') + '</ul></section>';
   const st = ON.lost ? 'Reconnecting…' : !full ? 'Waiting for your friend to join…' : me && !me.ready ? '' : 'Waiting for ' + (o ? o.name : 'your friend') + ' to be ready…';
   return h + (st ? '<p class="onstat"><span class="frspin" aria-hidden="true"></span>' + frEsc(st) + '</p>' : '') + '<div class="onbtns">' + (full && me && !me.ready ? '<button class="frb go" data-on="ready" type="button">' + (ON.again ? 'Play again' : 'Ready') + '</button>' : '') + '<button class="frb ghost" data-on="leave" type="button">Leave</button></div></div>';
@@ -22332,7 +22388,7 @@ function acSync(r) {
   if (!r.needs_name && r.name) { store.sbs.name = r.name; if (store.name !== r.name) { store.name = r.name; paintName(); } }
   save();
 }
-function acPaintAll() { if (!$('setModal').hidden) acSetPaint(); if (menuPage === 'events') acMatchPaint(); if (FR.open) { FR.sig = ''; frRender(); } }
+function acPaintAll() { try { paintName(); paintPBar(); } catch (e) {} /* (v311: handle or plain name) */ if (!$('setModal').hidden) acSetPaint(); if (menuPage === 'events') acMatchPaint(); if (FR.open) { FR.sig = ''; frRender(); } }
 
 // ---- the line under a username field: what's wrong at once; then (online, after a pause) whether it's free
 const UN_ONLINE = id => id === 'acUser' || ((id === 'nameInput' || id === 'frUnIn') && acctReady()); // (v308: a name is only checked against everyone's, and held, with an account)
@@ -22432,7 +22488,7 @@ function acInHtml() {
     + '<div class="acf acw"><label for="acInPass">Password</label>' + acPw('acInPass', 'inPass', 'current-password') + '</div>'
     + '<p class="acerr acw" id="acErr" role="alert">' + frEsc(AC.err || (NET_WALLED ? NET_APP : '')) + '</p>'
     + '<button class="frb go acgo acw" id="acGo" type="submit">Log in</button>'
-    + (swap ? '<p class="frfine acw">Logging in swaps <b>' + frEsc(swap) + '</b>, the player on this device, for your account.</p>' : '') + '</form>';
+    + (swap ? '<p class="frfine acw">Logging in swaps <b>' + frEsc(swap) + '</b>, the player on this device, for your account.</p>' : '') + csInNote() + '</form>';
 }
 function acRender() {
   const body = $('acBody'); if (!body) return; const nu = AC.tab === 'new', young = nu && acYoung();
@@ -22491,7 +22547,7 @@ async function acCreate() {
     if (!r || !r.ok) throw acStop(r && r.why, 'save');
     store.sbs = Object.assign({}, store.sbs, { perm: 1, acct: 1, out: 0, lost: 0, name: me.name }); store.name = me.name; save(); paintName();
     if (FR.me) { Object.assign(FR.me, { name: me.name, needs_name: false, account: true, anon: false }); FR.at = 0; } else { FR.retryAt = 0; frStart(); } // (the friends, at once)
-    acDone('<span>Welcome, <b>' + frEsc(me.name) + '</b>! Your account is ready.</span>');
+    acDone('<span>Welcome, <b>' + frEsc(hdOf(me.name)) + '</b>! Your account is ready.</span>'); csSync(); // (v312: this phone's progress, its first copy)
   } catch (e) { acFail(e); }
 }
 // logging in: the username's sign-in email, then its password. The anonymous player this device had goes (deleted with its own token,
@@ -22511,7 +22567,8 @@ async function acLogin() {
     if (!me || me.ok === false) { FR.need = (me && me.why) || 'bad'; throw acStop('nouser'); }
     FR.me = me; acSync(me); FR.sync = frSig(); FR.at = 0; frPoll(); AC.f.inPass = '';
     if (!me.account) { AC.busy = false; AC.tab = 'new'; AC.f.user = me.name; AC.err = 'Almost there: add your details to finish your account.'; acRender(); return; } // (made but never finished)
-    acDone('<span>Welcome back, <b>' + frEsc(me.name) + '</b>!</span>');
+    if (await csPull(me)) return; // (v312: the account's progress, in place of this phone's: the game starts again with it)
+    acDone('<span>Welcome back, <b>' + frEsc(hdOf(me.name)) + '</b>!</span>');
   } catch (e) { acFail(e); }
 }
 async function acDropAnon(uid) {
@@ -22533,7 +22590,7 @@ async function acLogout() { // (this device only: the account stays, to log in t
   try { const s = await Promise.race([sbSession(), new Promise((_, no) => setTimeout(() => no(new Error('slow')), 6000))]); await acFetch('POST', '/auth/v1/logout?scope=local', null, s.access_token); } catch (e) {}
   acSignOut();
 }
-async function acDelete() { const r = await sbRpc('rm_delete_me', {}); if (!r || !r.ok) throw new Error('not deleted'); acSignOut(); } // (the user and everything that hangs off it)
+async function acDelete() { const r = await sbRpc('rm_delete_me', {}); if (!r || !r.ok) throw new Error('not deleted'); csBookSet(null); acSignOut(); } // (the user and everything that hangs off it)
 // Restart Game: this device lets go of its player online too. An anonymous one is deleted (its username's free again); a real account is
 // only logged out here, to log in to again
 function acReset() {
@@ -22553,7 +22610,7 @@ function acctOpen(next, tab) {
   setTimeout(() => { const i = !touchy() && $(AC.tab === 'in' ? 'acInUser' : 'acUser'); (i || $('acX')).focus({ preventScroll: true }); }, 40);
 }
 function acClose(keep) {
-  if (!AC.open) return; AC.open = false; AC.busy = false; if (!keep) AC.next = null; $('acModal').hidden = true; setTimeout(() => window.scrollTo(0, 0), 60);
+  if (!AC.open) return; AC.open = false; AC.busy = false; if (!keep) AC.next = null; $('acModal').hidden = true; baClosed(); setTimeout(() => window.scrollTo(0, 0), 60);
   if (AC.ret && AC.ret.focus && document.body.contains(AC.ret) && !AC.ret.closest('[hidden]')) AC.ret.focus({ preventScroll: true });
 }
 const acBody = $('acBody'), acSet = (e, v) => { const k = e.target.dataset.k; if (!k) return false; AC.f[k] = e.target.type === 'checkbox' ? e.target.checked : e.target.value; if (k === 'user') AC.f.userTyped = true; return true; };
@@ -22579,7 +22636,174 @@ $('acX').addEventListener('click', () => { AU.init(); AU.ui(); acClose(); });
 $('acModal').addEventListener('click', e => { if (e.target === $('acModal') && !AC.busy) acClose(); });
 $('acModal').addEventListener('keydown', e => e.stopPropagation()); // (keys are for the form, not the game behind it)
 document.addEventListener('keydown', e => { if (AC.open && e.key === 'Escape' && $('docModal').hidden) { e.preventDefault(); e.stopPropagation(); if (!AC.busy) acClose(); } }, true);
-window.acctReady = acctReady; window.acctOpen = acctOpen;
+window.acctReady = acctReady; window.acctOpen = acctOpen; setTimeout(() => { try { paintName(); paintPBar(); } catch (e) {} }, 0); // (v311: your handle from the first frame)
+
+// ---- (v312) your progress, kept with your account. While you're signed in to one, a copy goes up (rm_save_put) about half a minute after
+// it changes, and at once when the app is put away; logging in brings it back (rm_save_get). What belongs to the phone is never sent or
+// replaced: the sign-in itself, sound, music, graphics, screen orientation, the readouts.
+// Which copy wins: the phone notes the last copy it sent or took (rm.cs: whose, when the account got it, and its fingerprint). If the
+// account still has that one, this phone's goes up when it differs. If the account moved on (another phone) and this phone didn't, the
+// phone takes the account's, at a start. If both did, more rank wins (the server never lets less replace more; a tie stays with this
+// phone). Logging in on a phone that was never this account's brings the account's copy.
+var CS = { ok: false, off: false, hold: false, dirty: false, t: 0, busy: null, sync: null, bootP: null, reloading: false, want: false, watch: 0 };
+const CS_LOCAL = ['sbs', 'muted', 'sfxOff', 'musicOff', 'gfx', 'orient', 'perfHud', 'acYoung', 'lastErr', 'netTok', 'csHi'], CS_BOOK = 'rm.cs', CS_WAIT = 30000;
+const csUid = () => (FR.s && FR.s.uid) || (store.sbs && store.sbs.uid) || '';
+const csXp = x => Math.max(0, Math.floor(+x || 0));
+const csMissing = e => !!e && (e.status === 404 || /PGRST202|Could not find the function/i.test(String(e.message || ''))); // (the v312 SQL not run yet)
+const csBootUp = () => { const b = $('boot'); return !!b && !b.classList.contains('gone'); }; // (still on the loading screen: safe to start again)
+// a moment the game can start again without taking anything from the player: the loading screen, or the lobby with nothing open
+function csSafe() { try { return csBootUp() || (state === 'menu' && !building && !irisBusy && $('orient').hidden && !document.querySelector('.modal:not([hidden])') && !(FL && FL.busy && FL.busy()) && !menu.classList.contains('tutoring')); } catch (e) { return false; } }
+// the account's copy is ahead but the game's busy: look again (afresh) at the next quiet moment in the lobby
+function csWatch() { CS.want = true; if (CS.watch) return; CS.watch = setInterval(() => { if (!CS.want || CS.hold) { clearInterval(CS.watch); CS.watch = 0; return; } if (!csSafe()) return; CS.want = false; clearInterval(CS.watch); CS.watch = 0; csSync(); }, 3000); }
+function csData() { const o = {}; for (const k of Object.keys(store)) if (!CS_LOCAL.includes(k) && store[k] !== undefined) o[k] = store[k]; return o; }
+// the same progress gives the same fingerprint, whatever order its parts were written in
+const csCanon = v => v === null || typeof v !== 'object' ? (JSON.stringify(v) || 'null') : Array.isArray(v) ? '[' + v.map(csCanon).join(',') + ']'
+  : '{' + Object.keys(v).sort().filter(k => v[k] !== undefined && typeof v[k] !== 'function').map(k => JSON.stringify(k) + ':' + csCanon(v[k])).join(',') + '}';
+function csHash(s) { let h = 0x811c9dc5; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); } return (h >>> 0).toString(36) + '.' + s.length; }
+function csBook() { try { const b = JSON.parse(localStorage.getItem(CS_BOOK) || 'null'); return b && typeof b === 'object' ? b : null; } catch (e) { return null; } }
+function csBookSet(b) { try { if (b) localStorage.setItem(CS_BOOK, JSON.stringify(b)); else localStorage.removeItem(CS_BOOK); } catch (e) {} }
+// every save: signed in, a copy goes up in a while (or, before the account's copy has been checked this time, that check)
+function csMark() { try { if (!CS || CS.hold || CS.off || baSheet()) return; CS.dirty = true; if (!CS.t && acctReady()) CS.t = setTimeout(() => { CS.t = 0; if (CS.ok) csPush(); else csSync(); }, CS_WAIT); } catch (e) {} } // (never in the way of a save)
+function csLater() { if (!CS.t) CS.t = setTimeout(() => { CS.t = 0; if (CS.ok) csPush(); else csSync(); }, 60000); CS.dirty = true; } // (a try that failed: again in a minute)
+// what to do with the account's copy g: 'adopt' it, 'push' this phone's, or nothing ('same'). login: just logged in
+function csDecide(g, login) {
+  if (!g || !g.data) return 'push';
+  const b = csBook(), h = csHash(csCanon(csData())), more = csXp(g.xp) > csXp(store.xp);
+  if (!b || b.u !== csUid()) return login || more ? 'adopt' : 'push'; // (never this account's on this phone)
+  if (+b.at === +g.at) return h === b.h ? 'same' : 'push';            // (the account still has what this phone last sent or took)
+  if (h === b.h) return 'adopt';                                       // (another phone moved the account on; this one didn't move)
+  return more ? 'adopt' : 'push';                                       // (both moved on)
+}
+// this phone's copy up to the account. now: put away, logging out, or just checked (an upload under way finishes first)
+function csPush(now) {
+  if (!CS || CS.off || CS.hold || !CS.ok || !acctReady() || baSheet()) return Promise.resolve('no'); // (the loading screen's sheet open: it decides first)
+  clearTimeout(CS.t); CS.t = 0;
+  if (CS.busy) return CS.busy.then(() => csPush(now));
+  CS.dirty = false;
+  const data = csData(), canon = csCanon(data), h = csHash(canon), uid = csUid(), b = csBook();
+  if (b && b.u === uid && b.h === h) return Promise.resolve('same');
+  return CS.busy = (async () => {
+    try {
+      const r = await sbRpc('rm_save_put', { p_data: data }, !!now && canon.length < 60000); // (put away: sent so it gets there, if it's small enough)
+      if (r && r.ok) { csBookSet({ u: uid, at: r.at, h }); return 'ok'; }
+      if (r && r.why === 'behind') { CS.hold = true; return 'behind'; } // (another phone has more: this one takes it at its next start)
+      if (r && r.why === 'slow_down') { csLater(); return 'fail'; }
+      return 'no';
+    } catch (e) { if (csMissing(e)) { CS.off = true; return 'off'; } csLater(); return 'fail'; }
+    finally { CS.busy = null; }
+  })();
+}
+// the account's copy against this phone's: at the start of the game, after a failed try, before logging out, on a new account
+function csSync() {
+  if (!CS || CS.off || CS.hold || !acctReady() || baSheet()) return Promise.resolve('no');
+  return CS.sync || (CS.sync = (async () => {
+    let g; try { g = await sbRpc('rm_save_get', {}); } catch (e) { if (csMissing(e)) { CS.off = true; return 'off'; } return 'fail'; }
+    if (!g || g.ok === false || !acctReady()) return 'fail';
+    const d = csDecide(g, false);
+    if (d === 'adopt') { if (csSafe()) { csAdopt(g, 'sync'); return 'adopt'; } CS.ok = false; csWatch(); return 'later'; } // (mid-game: at the next quiet moment)
+    CS.ok = true; return d === 'push' ? csPush(true) : d;
+  })().finally(() => { CS.sync = null; }));
+}
+// the account's copy in place of this phone's (the phone's own settings and the sign-in kept), and the game starts again with it
+function csAdopt(g, why) {
+  CS.hold = true; CS.reloading = true; clearTimeout(CS.t); CS.t = 0;
+  const keep = {}, data = {}; for (const k of CS_LOCAL) if (store[k] !== undefined) keep[k] = store[k];
+  for (const k of Object.keys(g.data)) if (!CS_LOCAL.includes(k)) data[k] = g.data[k];
+  for (const k of Object.keys(store)) delete store[k];
+  Object.assign(store, { level: 0, sel: 0, best: {}, stars: {}, seen: {}, muted: false, runs: 0 }, data, keep);
+  csBookSet({ u: csUid(), at: g.at, h: csHash(csCanon(csData())) });
+  store.csHi = { n: acName() || store.name || '', k: why }; save(); saveSend(); // (the app's own copy too, at once)
+  if (csBootUp()) { const m = $('bootMsg'); if (m) m.textContent = 'Bringing back your progress'; }
+  setTimeout(() => location.reload(), 450);
+}
+// the loading screen waits a moment for the account's copy (signed in), so a phone that's behind takes it before the lobby is up
+function csBootWait() {
+  if (CS.reloading) return new Promise(() => {});
+  if (!CS.bootP) return Promise.resolve();
+  return Promise.race([CS.bootP, new Promise(r => setTimeout(r, 2500))]).then(() => CS.reloading ? new Promise(() => {}) : undefined);
+}
+// after the game started again with the account's copy: a welcome, once the loading screen has gone
+function csHello() {
+  const h = store.csHi; if (!h) return; delete store.csHi; save();
+  const w = setInterval(() => { if (csBootUp()) return; clearInterval(w);
+    setTimeout(() => frToast(h.k === 'sync' ? '<span>Your progress from your other phone is here.</span>' : '<span>Welcome back, <b>' + frEsc(hdOf(h.n || 'you')) + '</b>! Your progress is back.</span>'), 700); }, 250);
+}
+// just logged in (acLogin): the account's copy comes to this phone. True when that takes over from the login (the game starts again with
+// it, or the loading screen's sheet says what's what)
+async function csPull(me) {
+  if (!CS || CS.hold) return false;
+  const ba = baSheet(); acBusy(ba ? 'Finding your progress…' : 'Logging in…');
+  let g = null, why = 'net';
+  if (CS.off) why = 'off';
+  else try { g = await sbRpc('rm_save_get', {}); if (!g || g.ok === false) g = null; } catch (e) { if (csMissing(e)) { CS.off = true; why = 'off'; } }
+  if (g && g.data) {
+    const d = csDecide(g, true);
+    if (d === 'adopt') { csAdopt(g, 'back'); if (ba) baSay(me, '<b>Welcome back, ' + frEsc(hdOf(me.name || acName())) + '!</b><p>Bringing back your progress…</p>'); else acBusy('Bringing back your progress…'); return true; }
+    CS.ok = true; if (d === 'push') csPush(true); return false;
+  }
+  if (g && !ba) { CS.ok = true; csPush(true); } // (nothing kept with the account yet: this phone's progress goes with it from now on. From the loading
+  // screen it waits for Start fresh, then goes up with the next save)
+  if (ba) { baEmpty(me, g ? 'none' : why); return true; }
+  return false;
+}
+// Log out (Settings): your progress to your account first, then this phone starts fresh for the next player. If it can't be saved,
+// nothing changes. Without saves on the server (the v312 SQL not run yet): logged out as before, the progress kept here
+async function csLogout() {
+  const r = CS.off ? 'off' : CS.hold ? 'behind' : CS.ok ? await csPush(true) : await csSync();
+  if (r === 'off') { await acLogout(); return 'You’re logged out. This phone keeps its progress.'; }
+  if (!['ok', 'same', 'behind', 'later'].includes(r)) return 'Your progress couldn’t be saved, so you’re still signed in. Try again when you’re online.';
+  CS.hold = true; CS.reloading = true; await acLogout(); csFresh(); setTimeout(() => location.reload(), 300); return 'reload';
+}
+// this phone back to a first launch, as Restart Game does it: sound, music, graphics and orientation kept
+function csFresh() {
+  const keep = {}; for (const k of ['muted', 'sfxOff', 'musicOff', 'gfx', 'orient']) if (store[k] !== undefined) keep[k] = store[k];
+  for (const k of Object.keys(store)) delete store[k];
+  Object.assign(store, { level: 0, sel: 0, best: {}, stars: {}, seen: {}, muted: false, runs: 0, tut: { ph: 'match' } }, keep);
+  csBookSet(null); save(); saveSend(); try { AU.trim && AU.trim(); } catch (e) {}
+}
+// the Log in form's word on progress
+function csInNote() {
+  if (baSheet()) return '<p class="frfine acw">Your rank, drops and everything you’ve unlocked come back to this phone.</p>';
+  if (CS.off || csBook() || !((store.xp || 0) > 0 || (store.runs || 0) > 0)) return '';
+  return '<p class="frfine acw">Logging in brings your account’s progress to this phone, in place of the progress on it now.</p>';
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden && CS.dirty) csPush(true); });
+window.addEventListener('pagehide', () => { if (CS.dirty) csPush(true); });
+try { if (acctReady()) CS.bootP = csSync().catch(() => {}); } catch (e) {} // (signed in: the account's copy, checked while the game loads)
+
+// ---- (v312) "I already have an account" (the loading screen): the account sheet over the loading screen, Log in only. The first launch
+// waits while it's open (baAfter); a login with progress starts the game again with it, one without says so (baEmpty)
+function baSheet() { return AC.open && $('acModal').classList.contains('boot'); } // (declarations: the saves above ask before this line runs)
+function baOn() { return BA.on && (!acctReady() || baSheet() || CS.reloading); } // (the loading screen stays while its sheet is open, or the game's starting again)
+function baOpen() {
+  BA.want = false; const b = $('bootAcct'); if (b) { b.classList.remove('wait'); b.textContent = 'I already have an account'; }
+  if (!SB_CFG || acctReady()) { if (b) b.hidden = true; return; }
+  const m = $('acModal'), sm = m.querySelector('.tthd small'); m.classList.add('boot'); if (sm) sm.textContent = 'Already playing?';
+  acctOpen(null, 'in');
+}
+function baClosed() {
+  const m = $('acModal'); if (!m.classList.contains('boot')) return; m.classList.remove('boot');
+  const sm = m.querySelector('.tthd small'); if (sm) sm.textContent = 'Play with others';
+  if (acctReady()) { const b = $('bootAcct'); if (b) b.hidden = true; }
+}
+function baAfter(fn) { if (!baSheet()) return fn(); const w = setInterval(() => { if (CS.reloading) return clearInterval(w); if (!baSheet()) { clearInterval(w); fn(); } }, 150); }
+function baSay(me, html, btns) { BA.me = me; $('acBody').innerHTML = '<div class="frmsg acmsg">' + FR_FACES + html + (btns ? '<div class="acbtns">' + btns + '</div>' : '') + '</div>'; }
+function baEmpty(me, kind) {
+  AC.busy = false;
+  const p = kind === 'net' ? 'Your progress couldn’t be fetched just now. Check your connection, then try again.'
+    : kind === 'off' ? 'Bringing back progress isn’t switched on yet, so this phone starts fresh for now.'
+    : 'There’s no progress saved with this account yet. Open Roll Model signed in on the phone you played on, and it saves it there. Then try again here.';
+  baSay(me, '<b>Signed in as ' + frEsc(hdOf(me.name || acName())) + '</b><p>' + p + '</p>',
+    (kind === 'off' ? '' : '<button class="frb go" data-ba="retry" type="button">Try again</button>') + '<button class="frb ghost" data-ba="fresh" type="button">Start fresh</button>');
+}
+$('acBody').addEventListener('click', async e => {
+  const b = e.target.closest('[data-ba]'); if (!b || b.disabled || AC.busy) return; AU.init(); AU.ui();
+  if (b.dataset.ba === 'fresh') return acDone('<span>Signed in as <b>' + frEsc(hdOf(acName())) + '</b></span>');
+  AC.busy = true; for (const x of $('acBody').querySelectorAll('[data-ba]')) x.disabled = true; const p = $('acBody').querySelector('.acmsg p'); if (p) p.textContent = 'Looking for your progress…';
+  let took = false; try { took = await csPull(BA.me || {}); } catch (x) {} AC.busy = false;
+  if (!took) acDone('<span>Signed in as <b>' + frEsc(hdOf(acName())) + '</b></span>');
+});
+BA.ready = true; if (BA.on && !SB_CFG) { BA.on = false; const b = $('bootAcct'); if (b) b.hidden = true; } else if (BA.want) baOpen();
 
 // ---- Settings: the account (who's signed in, Log out, Delete account with a second tap to be sure), or Make an account / Log in
 function acSetPaint() {
@@ -22588,19 +22812,20 @@ function acSetPaint() {
   row.classList.toggle('soon', !on); $('acSlab').innerHTML = 'Account' + (on ? '' : ' <i class="soontag">Coming soon</i>');
   let t, h;
   if (!on) { t = 'Accounts come with online play.'; h = b('new', 'Make an account') + b('in', 'Log in'); }
-  else if (AC.del && acctReady()) { t = 'Delete <b>' + frEsc(nm) + '</b> for good? Your username, friends and account details all go, and it can’t be undone.'; h = b('delyes', 'Delete for good', 'acdel') + b('delno', 'Keep it'); }
-  else if (acctReady()) { t = (AC.note ? frEsc(AC.note) + ' ' : '') + 'Signed in as <b>' + frEsc(nm) + '</b>'; h = b('out', 'Log out') + b('del', 'Delete account', 'acdel'); }
+  else if (AC.out && acctReady()) { t = AC.busy ? 'Saving your progress to <b>' + frEsc(hdOf(nm)) + '</b>…' : 'Log out of <b>' + frEsc(hdOf(nm)) + '</b>? Your progress stays with your account, and this phone starts fresh for the next player.'; h = b('outyes', 'Log out') + b('outno', 'Stay'); } // (v312)
+  else if (AC.del && acctReady()) { t = 'Delete <b>' + frEsc(hdOf(nm)) + '</b> for good? Your username, friends and account details all go, and it can’t be undone.'; h = b('delyes', 'Delete for good', 'acdel') + b('delno', 'Keep it'); }
+  else if (acctReady()) { t = (AC.note ? frEsc(AC.note) + ' ' : '') + 'Signed in as <b>' + frEsc(hdOf(nm)) + '</b>'; h = b('out', 'Log out') + b('del', 'Delete account', 'acdel'); }
   else { t = AC.note ? frEsc(AC.note) : NET_WALLED ? 'Accounts and online play work in the Roll Model app, not in this preview.' : acOut() ? 'You’re signed out. Log in, or make a new account.' : 'Make an account to add friends and play online.'; h = b('new', 'Make an account') + b('in', 'Log in'); }
   $('acNote').innerHTML = t; $('acBtns').innerHTML = h; setFitSoon();
 }
 $('acBtns').addEventListener('click', async e => {
   const b = e.target.closest('[data-ac]'); if (!b || b.disabled || AC.busy) return; const a = b.dataset.ac; AU.init(); AU.ui(); AC.note = '';
   if (a === 'new' || a === 'in') return acctOpen(null, a);
-  if (a === 'del' || a === 'delno') { AC.del = a === 'del'; acSetPaint(); return $('acBtns').querySelector('button').focus({ preventScroll: true }); }
+  if (a === 'del' || a === 'delno' || a === 'out' || a === 'outno') { AC.del = a === 'del'; AC.out = a === 'out'; acSetPaint(); return $('acBtns').querySelector('button').focus({ preventScroll: true }); }
   AC.busy = true; acSetPaint();
-  try { if (a === 'out') { await acLogout(); AC.note = 'You’re logged out.'; } else if (a === 'delyes') { await acDelete(); AC.note = 'Your account is deleted.'; } }
+  try { if (a === 'outyes') { const r = await csLogout(); if (r === 'reload') return; AC.note = r; } else if (a === 'delyes') { await acDelete(); AC.note = 'Your account is deleted.'; } }
   catch (err) { AC.note = acErrText(err); }
-  AC.busy = false; AC.del = false; acSetPaint();
+  AC.busy = false; AC.del = false; AC.out = false; acSetPaint();
 });
 
 // ---- Play online (Choose event): open once the Strokes page has been seen (a player who did the Strokes lesson has seen it). Then:
@@ -22708,7 +22933,7 @@ function startTally() {
   const KO0 = 2.7, KOD = 0.62, KOEND = KO0 + (koq.length ? 0.4 + koq.length * KOD + 0.9 : 0.8); // (v309: a beat for the caption, and each one slow enough to read)
   const DAB0 = KOEND + 0.6, DAB1 = DAB0 + 0.7, DAB2 = DAB1 + 1.5; /* (the dabs: the pill, then the coins fly up to the bar and it counts) */
   tal = { t0: performance.now(), t: 0, ppl, scale, koq, nk: 0, T0: 0.55, T1: 2.3, KO0, KOD, KOEND, DAB0, DAB1, DAB2, END: DAB2 + 0.8, ticks: 0, phase: 0, id: runId, lastTick: 0 };
-  for (const e of ppl) { const u = e.side.toUpperCase(), nm = $('tyName' + u), nu = $('tyNum' + u); nm.hidden = nu.hidden = false; nm.textContent = nameOf(e.D); nm.style.setProperty('--c', e.col); nu.style.setProperty('--c', e.col); nu.className = 'tynum ' + e.side; nu.innerHTML = '<b>0%</b>'; e.nu = nu; }
+  for (const e of ppl) { const u = e.side.toUpperCase(), nm = $('tyName' + u), nu = $('tyNum' + u); nm.hidden = nu.hidden = false; nmSet(nm, nameOf(e.D)); nm.style.setProperty('--c', e.col); nu.style.setProperty('--c', e.col); nu.className = 'tynum ' + e.side; nu.innerHTML = '<b>0%</b>'; e.nu = nu; }
   if (!trio) $('tyNameM').hidden = $('tyNumM').hidden = true;
   $('tyWord').textContent = ''; $('tySub').textContent = TH.label + ' · ' + (MODES.find(m => m[0] === mode) || MODES[0])[1]; talEl.classList.remove('win'); $('tySplash').className = 'tysplash'; $('tyDabs').className = 'tydabs'; $('tyGain').className = 'tygain'; talEl.querySelectorAll('.tyfly,.tykofly').forEach(q => q.remove()); $('tyWord').className = 'tyword';
   if (!tyLiq) tyLiq = makeLiquid($('tyBar')); tyLiq.segs = []; tyLiq.drops.length = 0; tyLiq.set(ppl.map(e => tySeg(e, 0))); tyLiq.clear();
@@ -22813,7 +23038,7 @@ function showEnd(img) {
     jb = '<i style="--c:var(--ink);left:0;width:' + Math.min(100, you).toFixed(2) + '%"></i>' + (best && !info.newBest ? '<u style="left:' + Math.min(100, best) + '%"></u>' : '');
     jLiqFinal = [{ x0: 0, x1: Math.min(1, you / 100), col: TEAMS[0].css, anchor: 'left' }];
     jn = '<b data-to="' + Math.round(you) + '" data-a="left" style="--chi:var(--ink-hi)"><span class="jv">0%</span></b>' + (best ? '<b data-a="right" style="--chi:var(--gold)"><small>' + (info.newBest ? 'Old best' : 'Week best') + '</small><span class="jv">' + best + '%</span></b>' : '');
-    jl = '<span class="jl" data-a="left">' + escAttr(playerName()) + '</span>';
+    jl = '<span class="jl" data-a="left">' + nmHtml(playerName()) + '</span>';
   } else {
     const order = trio ? [P, H2, H] : [P, H], tot = order.reduce((s, D) => s + covOf(D), 0); let x = 0; jLiqFinal = [];
     order.forEach((D, i) => {
@@ -22821,7 +23046,7 @@ function showEnd(img) {
       const sh = tot > 0 ? covOf(D) / tot * 100 : 100 / order.length, [c, hi] = colVars(D), o = i === 0 ? 'left' : i === order.length - 1 ? 'right' : 'center';
       jb += '<i style="--c:' + c + ';--o:' + o + ';left:' + x.toFixed(3) + '%;width:' + sh.toFixed(3) + '%"></i>';
       jn += '<b data-to="' + Math.round(covOf(D)) + '" data-a="' + o + '" data-x="' + (x + sh / 2).toFixed(3) + '" style="--chi:' + hi + '"><span class="jv">0%</span><small class="jko">' + KO_SVG + kosOf(D) + '</small></b>';
-      jl += '<span class="jl' + (D === P ? ' me' : '') + '" data-a="' + o + '" data-x="' + (x + sh / 2).toFixed(3) + '">' + (info.winner === D ? CROWN_SVG : '') + escAttr(D === P ? playerName() : nameOf(D)) + '</span>';
+      jl += '<span class="jl' + (D === P ? ' me' : '') + '" data-a="' + o + '" data-x="' + (x + sh / 2).toFixed(3) + '">' + (info.winner === D ? CROWN_SVG : '') + nmHtml(D === P ? playerName() : nameOf(D)) + '</span>';
       x += sh;
     });
   }
@@ -22840,7 +23065,7 @@ function showEnd(img) {
     const say = ordinal(e.place) + ', ' + nm + (me ? ' (you)' : '') + ', ' + e.pct + (solo ? '% painted' : '% score') + (solo ? '' : ', ' + e.kos + (e.kos === 1 ? ' elimination' : ' eliminations') + (top ? ', most eliminations' : ''));
     says.push(say); h += '<div class="brow' + (me ? ' you' : '') + '" role="listitem" aria-label="' + escAttr(say) + '" style="--c:' + c + ';--chi:' + hi + ';--d:' + (0.22 + i * 0.09).toFixed(2) + 's">'
       + '<b class="brank" aria-hidden="true">' + e.place + '</b>' + faceIcon(D, !solo && info.winner === D)
-      + '<span class="bname" aria-hidden="true"><span class="bn"><b>' + escAttr(nm) + '</b>' + (me && !solo ? '<i>You</i>' : '') + '</span>' + (me && top ? '<em class="medal">' + MEDAL_SVG + 'Most eliminations</em>' : '') + '</span>'
+      + '<span class="bname" aria-hidden="true"><span class="bn"><b>' + nmHtml(nm) + '</b>' + (me && !solo ? '<i>You</i>' : '') + '</span>' + (me && top ? '<em class="medal">' + MEDAL_SVG + 'Most eliminations</em>' : '') + '</span>'
       + (solo ? '' : '<span class="bko' + (top ? ' most' : '') + '" aria-hidden="true">' + KO_SVG + '<b>' + e.kos + '</b></span>')
       + '<b class="bpct" aria-hidden="true">' + e.pct + '%</b></div>';
   });
@@ -23078,7 +23303,7 @@ function paintPBar() {
   const r = repOf(store.xp || 0), cs = getComputedStyle(document.documentElement), n = playerName();
   PB.ink = cs.getPropertyValue('--ink').trim() || '#E3122F'; PB.hi = cs.getPropertyValue('--ink-hi').trim() || PB.ink; PB.lo = cs.getPropertyValue('--ink-lo').trim() || PB.ink;
   PB.lv = r.lv; PB.frac = r.x / r.need; if (!PB.dispLv || PB.dispLv > r.lv) { PB.dispLv = r.lv; PB.shown = PB.frac; PB.v = 0; }
-  $('pbName').textContent = n; $('pbXp').innerHTML = r.x + '<small>/' + r.need + '</small>'; pbNums();
+  nmSet($('pbName'), n); $('pbXp').innerHTML = r.x + '<small>/' + r.need + '</small>'; pbNums();
   pbar.setAttribute('aria-label', n + '. Rank ' + r.lv + ', ' + r.x + ' of ' + r.need + ' XP to rank ' + (r.lv + 1) + '. Your stats');
 }
 function pbNums() { $('pbLvl').textContent = PB.dispLv; $('pbNext').textContent = PB.dispLv + 1; }
@@ -23160,7 +23385,7 @@ function paintStats() {
   for (const k in store.wins || {}) wins += store.wins[k] || 0;
   for (const k in store.played || {}) if (k !== 'solo') vs += store.played[k] || 0;
   for (const k in store.bestCov || {}) best = Math.max(best, store.bestCov[k] || 0);
-  $('stName').textContent = playerName(); $('stLvl').textContent = r.lv; $('stTitle').textContent = r.name; $('stXp').textContent = r.x + ' / ' + r.need + ' XP to rank ' + (r.lv + 1);
+  nmSet($('stName'), playerName()); $('stLvl').textContent = r.lv; $('stTitle').textContent = r.name; $('stXp').textContent = r.x + ' / ' + r.need + ' XP to rank ' + (r.lv + 1);
   $('stFill').style.width = (100 * r.x / r.need).toFixed(1) + '%';
   $('stWins').textContent = wins; $('stPlayed').textContent = store.runs || 0; $('stRate').textContent = (vs ? Math.round(100 * wins / vs) : 0) + '%'; $('stBest').textContent = best + '%';
 }
@@ -23192,7 +23417,7 @@ $('setBack').addEventListener('click', uiClick(doneSettings));
 // the pages of words: the terms, the privacy note, the credits (each comes back to Settings)
 const DOCS = {
   tos: ['Terms of Service', '<p>Updated October 15, 2026. Roll Model is still being made, and these terms will grow with it.</p><h3>Play fair</h3><p>No cheating, hacking, or using bugs to win.</p><h3>Be kind</h3><p>Pick a username that’s friendly to everyone: no swearing, nothing hateful, and no pretending to be someone else. We can change or remove a username that breaks these rules, and close an account that keeps breaking them.</p><h3>Your account</h3><p>You need to be 13 or older to make an account and play online. Keep your password to yourself: you’re responsible for what happens on your account. You can delete it any time in Settings.</p><h3>Changes</h3><p>We may update these terms as the game grows. The date at the top says when they last changed.</p>'],
-  priv: ['Privacy Policy', '<p>Updated October 15, 2026.</p><h3>On this device</h3><p>Your progress (your dabs, items, ranks and settings) is saved on this device. You don’t need an account to play.</p><h3>Your username</h3><p>Your username is kept on our server so no one else can take it. Other players can see it, with your paint colour and rank.</p><h3>Your account</h3><p>If you make an account, we keep your username, your first and last name, your birth year, and when you agreed to these terms. Your name and birth year are private: other players never see them. We ask for your birth year because online play is for players 13 and older.</p><p>Your password is handled by our sign-in provider, Supabase. It’s stored scrambled (hashed), never in a form anyone can read, not even us.</p><h3>Playing online</h3><p>To run friends and online matches we keep your friend code, your friends, friend requests and blocks, invites to play, your Time trial scores for the friends board, records of your online matches, and when you were last online.</p><h3>Who has it</h3><p>We don’t sell your information or show you ads. Supabase stores it for us, and online matches run on our game server.</p><h3>Deleting it</h3><p>Settings › Account › Delete account removes your account and everything above from our server for good. Restart Game in Settings clears this device.</p>'],
+  priv: ['Privacy Policy', '<p>Updated October 16, 2026.</p><h3>On this device</h3><p>Your progress (your dabs, items, ranks and settings) is saved on this device. You don’t need an account to play.</p><h3>Your username</h3><p>Your username is kept on our server so no one else can take it. Other players can see it, with your paint colour and rank.</p><h3>Your account</h3><p>If you make an account, we keep your username, your first and last name, your birth year, and when you agreed to these terms. Your name and birth year are private: other players never see them. We ask for your birth year because online play is for players 13 and older.</p><p>While you’re signed in, we also keep a copy of your game progress (your dabs, items, ranks, unlocks and lessons done) with your account, so you can log in on another phone and pick up where you left off. Log out leaves it with your account and starts this device fresh.</p><p>Your password is handled by our sign-in provider, Supabase. It’s stored scrambled (hashed), never in a form anyone can read, not even us.</p><h3>Playing online</h3><p>To run friends and online matches we keep your friend code, your friends, friend requests and blocks, invites to play, your Time trial scores for the friends board, records of your online matches, and when you were last online.</p><h3>Who has it</h3><p>We don’t sell your information or show you ads. Supabase stores it for us, and online matches run on our game server.</p><h3>Deleting it</h3><p>Settings › Account › Delete account removes your account and everything above from our server for good. Restart Game in Settings clears this device.</p>'],
   cred: ['Credits', '<h3>Roll Model</h3><p>Season 1: Spooky SZN</p><h3>Built with</h3><p>three.js (MIT License)</p><h3>Type</h3><p>Bowlby One, Figtree and Barlow Condensed (SIL Open Font License)</p><h3>Sound and voices</h3><p>Made with Ludo.ai</p><h3>3D items</h3><p>Made with Meshy</p><h3>Thanks</h3><p>To everyone who rolls through the paint.</p>']
 };
 function openDoc(k, back) { const d = DOCS[k]; if (!d) return; PB.docFrom = k; PB.docBack = typeof back === 'function' ? back : null; $('docModal').classList.toggle('acup', !!PB.docBack); $('docTitle').textContent = d[0]; $('docBody').innerHTML = d[1]; $('docBody').scrollTop = 0; if (!PB.docBack) setModal.hidden = true; $('docModal').hidden = false; setTimeout(() => $('docClose').focus({ preventScroll: true }), 30); }
@@ -23251,7 +23476,7 @@ function sdSpecStart() { spec = { D: null, t: 0, ff: false }; sdSpecPick(P.elimB
 function sdSkipOn() { if (!spec || spec.ff || state !== 'play' || sdEndT > 0) return; spec.ff = true; $('sdSpec').classList.add('ff'); $('sdSkip').disabled = true; $('sdSkipL').textContent = SD_FF + '\u00d7'; $('sdSpecW').textContent = 'Fast-forward'; }
 function sdSpecPick(pref) {
   if (!spec) return; const c = ACTIVE.filter(D => D !== P && sdAlive(D)); let S = c.find(D => ally(D, P)) || (pref && c.includes(pref) ? pref : null) || c[0] || null;
-  spec.D = S; if (S) { camYaw = S.yaw; camYawV = 0; camSnap = true; $('sdSpecN').textContent = nameOf(S); $('sdSpecW').textContent = spec.ff ? 'Fast-forward' : ally(S, P) ? 'Your teammate' : 'Watching'; }
+  spec.D = S; if (S) { camYaw = S.yaw; camYawV = 0; camSnap = true; nmSet($('sdSpecN'), nameOf(S)); $('sdSpecW').textContent = spec.ff ? 'Fast-forward' : ally(S, P) ? 'Your teammate' : 'Watching'; }
 }
 function sdSpecEnd() { spec = null; hud.classList.remove('spec'); $('sdSpec').hidden = true; }
 // the clock ran out, or only one side is left: the standings, the end
@@ -23293,7 +23518,7 @@ function sdHud(force) {
   if (sig === el._sig && !force) return;
   if (!el._built || el._mode !== mode) { el._built = true; el._mode = mode; el._h = new Map();
     const half = Math.ceil(order.length / 2); let h = '<span class="sdside l">'; order.forEach((D, i) => { if (i === half) h += '</span><i class="sdmid" aria-hidden="true"></i><span class="sdside r">'; // (v256: the time sits over the gap)
-      h += '<span class="sdc' + (D === P ? ' me' : ally(D, P) ? ' ally' : '') + '" data-t="' + D.team + '" style="--c:' + TEAMS[D.team].css + '">' + faceIcon(D, false) + '<span class="sdh">' + HEART_SVG.repeat(SD_HEARTS) + '</span><span class="sdn">' + escAttr(sdName(D)) + '</span></span>'; });
+      h += '<span class="sdc' + (D === P ? ' me' : ally(D, P) ? ' ally' : '') + '" data-t="' + D.team + '" style="--c:' + TEAMS[D.team].css + '">' + faceIcon(D, false) + '<span class="sdh">' + HEART_SVG.repeat(SD_HEARTS) + '</span><span class="sdn">' + nmHtml(sdName(D)) + '</span></span>'; });
     el.innerHTML = h + '</span>'; }
   for (const D of order) {
     const c = el.querySelector('.sdc[data-t="' + D.team + '"]'); if (!c) continue;
@@ -23323,7 +23548,7 @@ function sdBoard(info) {
     says.push(say);
     h += '<div class="brow' + (me ? ' you' : '') + '" role="listitem" aria-label="' + escAttr(say) + '" style="--c:' + c + ';--chi:' + hi + ';--d:' + (0.22 + i * 0.09).toFixed(2) + 's">'
       + '<b class="brank" aria-hidden="true">' + e.place + '</b>' + faceIcon(D, win && !info.draw)
-      + '<span class="bname" aria-hidden="true"><span class="bn"><b>' + escAttr(nm) + '</b>' + (me ? '<i>You</i>' : ally(D, P) ? '<i>Team</i>' : '') + '</span>'
+      + '<span class="bname" aria-hidden="true"><span class="bn"><b>' + nmHtml(nm) + '</b>' + (me ? '<i>You</i>' : ally(D, P) ? '<i>Team</i>' : '') + '</span>'
       + '<span class="bhp">' + (e.hp ? HEART_SVG.repeat(e.hp) : '<em>Out</em>') + (top ? '<em class="medal">' + MEDAL_SVG + 'Most KOs</em>' : '') + '</span></span>'
       + '<span class="bko' + (top ? ' most' : '') + '" aria-hidden="true">' + KO_SVG + '<b>' + e.kos + '</b></span>'
       + '<span class="bko bself" aria-hidden="true">' + SELF_SVG + '<b>' + e.self + '</b></span></div>';
@@ -23935,7 +24160,7 @@ let tut2 = null, tut = null, tutPrev = null, tutTip = null, tutWinDue = false, t
   const disarm = () => { if (armT) clearTimeout(armT); armT = 0; b.classList.remove('arm'); b.textContent = 'Restart Game'; };
   b.addEventListener('click', () => {
     if (!armT) { b.classList.add('arm'); b.textContent = 'Tap again to erase all progress'; AU.nope && AU.nope(); buzz(8); armT = setTimeout(disarm, 4000); return; }
-    disarm(); b.disabled = true; const gone = acReset(); // (v306)
+    disarm(); b.disabled = true; const gone = acReset(); CS.hold = true; csBookSet(null); // (v306; v312)
     const keep = {}; for (const k of ['muted', 'sfxOff', 'musicOff', 'gfx', 'orient']) if (store[k] !== undefined) keep[k] = store[k];
     for (const k of Object.keys(store)) delete store[k];
     Object.assign(store, { level: 0, sel: 0, best: {}, stars: {}, seen: {}, muted: false, runs: 0, tut: { ph: 'match' } }, keep); // (as a first launch starts: the lesson first)
@@ -25823,22 +26048,23 @@ try { renderFrame(); await gpuIdle(4000); renderFrame(); await gpuIdle(4000); } 
 { const p1 = FL && FL.due ? 0.96 : 0.99; bootTo(p1, p1, 0, 'Lighting the gallery');
   if (FL && FL.due && FL.prep) try { await FL.prep(p1, 0.99, 'Setting the scene'); } catch (e) {} }
 bootWarm = true;
+try { await csBootWait(); } catch (e) {} // (v312: signed in, the account's copy first, so a phone that's behind takes it now)
 bootTo(1, 1, 0, 'Ready');
 setTimeout(() => AU.pre(), 1200);
 // sound: in the app it can start straight away; in a browser it starts on the first touch. Any touch also brings it back after the app
 // has been away, and so does the app telling us it's back
 // the menu and its song begin together: sound starts as soon as loading is done, and where a browser won't allow that without a tap,
 // the loading screen ends on "Tap to start" instead, so that tap starts the music and opens the menu in one go
-const soundOk = window.__tapGate === false || store.muted || await AU.tryStart();
+const soundOk = (window.__tapGate === false || store.muted || await AU.tryStart()) && !baOn(); // (v312: a first launch ends on "Tap to start", with "I already have an account" under it)
 if (!soundOk) {
   bootHold = true; const bootEl = $('boot'); bootTo(1, 1, 0, matchMedia('(pointer: fine)').matches ? 'Click to start' : 'Tap to start'); bootEl.classList.add('tap');
   window.__bootP = 1;
   const go = e => { if (!bootHold) return; if (e) { e.preventDefault(); e.stopImmediatePropagation(); } bootHold = false; AU.touch(); AU.ui(); bootEl.classList.add('gone'); };
-  bootEl.addEventListener('pointerdown', go); window.addEventListener('keydown', e => { if (bootHold) go(e); }, true);
+  bootEl.addEventListener('pointerdown', go); window.addEventListener('keydown', e => { if (bootHold && !AC.open) go(e); }, true);
   // a slow sound start (the phone waking its speaker) still counts: the moment it's playing, the menu opens by itself
-  const late = setInterval(() => { if (!bootHold) return clearInterval(late); if (AU.state === 'running') { clearInterval(late); go(); } }, 150);
+  const late = setInterval(() => { if (!bootHold) return clearInterval(late); if (AU.state === 'running' && !baOn()) { clearInterval(late); go(); } }, 150);
 }
-if (FL && FL.due) FL.boot(); else if (!store.orient) { if (bootHold) { const w = setInterval(() => { if (!bootHold) { clearInterval(w); openOrient(); } }, 100); } else openOrient(); }
+try { csHello(); } catch (e) {} if (FL && FL.due) baAfter(() => FL.boot()); else if (!store.orient) { if (bootHold) { const w = setInterval(() => { if (!bootHold) { clearInterval(w); openOrient(); } }, 100); } else openOrient(); }
 for (const ev of ['pointerdown', 'keydown', 'touchend']) window.addEventListener(ev, () => AU.touch(), { capture: true, passive: true });
 window.addEventListener('nativeresume', e => AU.wake(true, !!(e && e.detail && e.detail.away))); window.addEventListener('nativememory', () => memTrim()); document.addEventListener('visibilitychange', () => { if (document.hidden) memTrim(); }); /* (v309) */ window.addEventListener('pageshow', () => AU.wake()); window.addEventListener('focus', () => AU.wake());
 requestAnimationFrame(frame);
