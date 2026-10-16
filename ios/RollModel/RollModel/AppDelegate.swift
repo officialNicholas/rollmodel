@@ -46,7 +46,8 @@ enum GameAudio {
         try? AVAudioSession.sharedInstance().setActive(true)
     }
 
-    private static func apply() {
+    // (also after a rewarded ad, which may have changed it: AdsBridge)
+    static func apply() {
         let session = AVAudioSession.sharedInstance()
         do {
             try session.setCategory(.ambient, mode: .default, options: [])

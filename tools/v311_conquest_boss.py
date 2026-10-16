@@ -1,7 +1,6 @@
-"""v311 (Season Conquest boss, not released yet): the boss rival, the owner's jellyfish with boxing gloves, rigged and animated, as a
-factory a fight can drive. Nothing in the game uses it yet: the fight (and putting it into the Sunken Keep) comes next. Like the stage
-(v309_conquest_stage.py) it stays out of tools/q260.py's release list until the owner is happy with it (it goes last in that list);
-tools/boss/build_viewer.py builds a test page with the stage, the boss and a viewer that runs every move.
+"""v311 (Season Conquest boss): the boss rival, the owner's jellyfish with boxing gloves, rigged and animated, as a factory a fight can
+drive. In releases since v315, where the boss demo (tools/v315_boss_demo.py) puts it into the Sunken Keep (v309_conquest_stage.py)
+and adds its entrance; tools/boss/build_viewer.py builds a test page with a viewer that runs every move.
 
 The model is the owner's (one mesh, 17,100 triangles, its own texture), rigged offline (tools/boss/fbx_extract.mjs, then
 tools/boss/build_pack.py) into game/boss-pack.txt, about 0.76 MB of text, fetched the first time a boss is made. The runtime is
