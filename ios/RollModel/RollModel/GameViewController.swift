@@ -10,6 +10,7 @@ final class GameViewController: UIViewController {
     private let device = DeviceBridge()
     private let orient = OrientBridge()
     private let saves = SaveBridge()
+    private let ads = AdsBridge()
     private var webView: WKWebView!
     private var lastReload = Date.distantPast
     private var reloadWhenActive = false
@@ -29,6 +30,11 @@ final class GameViewController: UIViewController {
         contentController.add(orient, name: OrientBridge.messageName)
         // A copy of the save in the app's own files, put back if the web view's storage loses it.
         contentController.add(saves, name: SaveBridge.messageName)
+        // Rewarded ads, only when the player asks for one: Skip on a stroke being crafted plays one (Google AdMob).
+        contentController.addUserScript(WKUserScript(source: AdsBridge.startScript,
+                                                     injectionTime: .atDocumentStart,
+                                                     forMainFrameOnly: true))
+        contentController.add(ads, name: AdsBridge.messageName)
 
         let configuration = WKWebViewConfiguration()
         configuration.userContentController = contentController
@@ -58,6 +64,8 @@ final class GameViewController: UIViewController {
         device.webView = webView
         device.startObserving()
         orient.viewController = self
+        ads.webView = webView
+        ads.viewController = self
         view = webView
     }
 

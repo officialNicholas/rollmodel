@@ -4202,6 +4202,38 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 .tysplat.sm{width:34px;height:34px;margin:-17px 0 0 -17px}
 @media (max-height:520px) and (min-aspect-ratio:1/1){.tykos{min-height:18px;margin-top:5px}.tykr .tkt{width:13px;height:13px}.tykr .tkp{font-size:13px}}
 @media (prefers-reduced-motion:reduce){.tykos.in,.tykr .tkp.pop{animation:none}.tykr .tkt{transition:none}}
+
+/* (v321) Skip on the bench plays a rewarded ad: a play mark on it, spinning while the ad gets ready */
+#mStrokes.sgp .sgskip.ad{display:inline-flex;align-items:center;gap:6px;padding:0 16px 2px 12px}
+#mStrokes.sgp .sgskip .sgadi{display:grid;place-items:center;width:18px;height:18px;flex:none}
+#mStrokes.sgp .sgskip .sgadi svg{width:18px;height:18px;display:block}
+#mStrokes.sgp .sgskip.busy{cursor:default}
+#mStrokes.sgp .sgskip.busy span{opacity:.55}
+#mStrokes.sgp .sgskip .sgspin{width:14px;height:14px;border-radius:50%;border:2.5px solid currentColor;border-right-color:transparent;animation:sgspin .7s linear infinite}
+@keyframes sgspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){#mStrokes.sgp .sgskip .sgspin{animation-duration:1.6s}}
+/* (v321) in a browser, the stand-in for the ad */
+.adst{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:24px 16px;background:rgba(12,9,18,.94);color:#F4EEE3;animation:adstin .22s ease both}
+.adst[hidden]{display:none}
+@keyframes adstin{from{opacity:0}to{opacity:1}}
+.adst .adsl{position:absolute;left:max(16px,env(safe-area-inset-left));top:max(16px,env(safe-area-inset-top));padding:5px 8px 4px;border-radius:5px;background:#F2C14E;color:#171320;font:900 11px/1 var(--font-ui);letter-spacing:.14em}
+.adst .adsx{position:absolute;right:max(12px,env(safe-area-inset-right));top:max(10px,env(safe-area-inset-top));display:grid;place-items:center;width:40px;height:40px;margin:0;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.12);color:#F4EEE3;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.adst .adsx svg{width:16px;height:16px}
+.adst .adsc{display:flex;flex-direction:column;align-items:center;gap:14px;max-width:290px;text-align:center}
+.adst .adsr{position:relative;display:grid;place-items:center;width:104px;height:104px}
+.adst .adsr svg.ring{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.adst .adsr circle{fill:none;stroke-width:7}
+.adst .adsr .bg{stroke:rgba(255,255,255,.12)}
+.adst .adsr .fg{stroke:#F2C14E;stroke-linecap:round;stroke-dasharray:276.5;stroke-dashoffset:276.5}
+.adst:not([hidden]) .adsr .fg{animation:adsring 5s linear forwards}
+@keyframes adsring{to{stroke-dashoffset:0}}
+.adst.done .adsr .fg{stroke:#5BE07E}
+.adst .adsr b{display:grid;place-items:center;font:400 38px/1 var(--font-display);font-variant-numeric:tabular-nums}
+.adst .adsr b svg{width:44px;height:44px;color:#5BE07E}
+.adst h3{margin:0;font:400 24px/1.05 var(--font-display);letter-spacing:.01em}
+.adst p{margin:0;font:700 14px/1.4 var(--font-ui);color:#CFC8DC;text-wrap:balance}
+/* (v321) the Privacy Policy's button for Google's privacy choices */
+#docModal .docb .adpriv{justify-self:start}
 </style>
 
 <div id="stage">
@@ -4351,7 +4383,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 320</p>
+      <p class="ver">Version 321</p>
     </div>
   </div>
 
@@ -4500,6 +4532,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
     <div class="frbody onbody" id="onBody"></div>
   </div></div>
   <p class="onsr" id="onLive" role="status" aria-live="polite"></p>
+<div class="adst" id="adStand" hidden role="dialog" aria-modal="true" aria-labelledby="adStW"><span class="adsl">AD</span><button class="adsx" id="adStX" type="button" aria-label="Close the ad"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg></button><div class="adsc"><div class="adsr"><svg class="ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="bg" cx="50" cy="50" r="44"/><circle class="fg" cx="50" cy="50" r="44"/></svg><b id="adStN">5</b></div><h3 id="adStW">Ad preview</h3><p>In the app, a rewarded ad plays here. Watch it to the end and the stroke is done.</p></div></div>
   <div class="modal" id="docModal" hidden>
     <div class="card" role="dialog" aria-modal="true" aria-labelledby="docTitle">
       <h2 class="ctitle" id="docTitle"></h2>
@@ -20396,8 +20429,82 @@ const strokesOpen = () => menuPage === 'strokes', strokesDue = () => repOf(store
 let stTick = 0, stToastT = 0;
 function craftLeft() { const c = strokesOf().craft; return c ? Math.max(0, c.end - Date.now()) : 0; }
 function craftTick() { const d = strokesOf(), c = d.craft; if (!c) return false; if (craftLeft() > 0) return true; d.craft = null; if (!d.own.includes(c.id)) d.own.push(c.id); d.fresh = c.id; save(); AU.fanfare && AU.fanfare(); return false; }
-function craftStart(id) { const d = strokesOf(), sp = stDef(id); if (!sp || !sp.craft || d.craft || d.own.includes(id)) return; d.craft = { id, end: Date.now() + sp.craft * 60000 }; save(); AU.pop(); buzz(10); renderStrokes(); }
+function craftStart(id) { const d = strokesOf(), sp = stDef(id); if (!sp || !sp.craft || d.craft || d.own.includes(id)) return; d.craft = { id, end: Date.now() + sp.craft * 60000 }; save(); AU.pop(); buzz(10); renderStrokes(); adWarm(); }
 function craftSkip() { const d = strokesOf(); if (!d.craft) return; const id = d.craft.id; d.craft.end = Date.now(); craftTick(); AU.ui(); buzz([10, 30, 10]); renderStrokes(); stToast(stReady(id)); }
+// (v321) a rewarded ad speeds up crafting. In the app, Skip on a stroke being crafted plays a rewarded ad (AdsBridge.swift: Google
+// AdMob) and the craft finishes once the ad says it was watched; the lesson's Skip stays free (it's on Ol' Bloop). The page asks
+// through nativeSay('ads', ...) and hears back on a "nativead" event: open, reward, close, fail, and state (whether Google wants the
+// "Ad privacy choices" button). A browser has no ads, so a short stand-in shows where it goes
+const ADS = { mode: window.__ADS ? (window.__ADS.sdk ? 'app' : 'none') : 'web', id: null, open: false, earned: false, hold: false, t: 0, ct: 0, si: 0, privacy: false, sent: '' };
+const AD_PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="currentColor"/><path d="M9.8 7.7v8.6l6.9-4.3z" fill="#FFE896"/></svg>';
+const adKid = () => !!store.acYoung && !(store.sbs && store.sbs.acct); // (said they're under 13 at the account form, and no account since)
+const adFree = () => ADS.mode === 'none' || !!(store.tut && store.tut.strokes === 'on' && ((store.strokes || {}).craft || {}).id === 'giant');
+// the app is told who's playing (again if that changes), and when an ad may be wanted soon (a stroke on the bench), so one's ready
+function adHello(warm) { if (ADS.mode !== 'app') return; const kid = adKid(), k = String(kid); if (!warm && ADS.sent === k) return; ADS.sent = k; nativeSay('ads', { init: true, kid, warm: !!warm }); }
+function adWarm() { const d = store.strokes; if (d && d.craft && !adFree()) adHello(true); }
+// Skip on the bench: free in the lesson; otherwise the ad, and the craft's done when it's been watched
+function craftSkipAsk() {
+  const d = strokesOf(); if (!d.craft) return;
+  if (adFree()) return craftSkip();
+  if (ADS.id) return; // (one at a time)
+  ADS.id = d.craft.id; ADS.earned = false; ADS.open = false; AU.ui(); buzz(6); sgSkipPaint();
+  clearTimeout(ADS.t); ADS.t = setTimeout(() => adFail('slow'), 45000); // (the app answers well before this: it's in case it never does)
+  if (ADS.mode === 'app') nativeSay('ads', { show: 'craft', kid: adKid() }); else adStandIn();
+}
+window.addEventListener('nativead', e => adOn((e && e.detail) || {}));
+function adOn(m) {
+  if (m.e === 'state') { ADS.privacy = !!m.privacy; return adPrivPaint(); }
+  if (m.p && m.p !== 'craft') return;
+  if (m.e === 'open') { clearTimeout(ADS.t); ADS.open = ADS.hold = true; if (!ADS.id) { const d = store.strokes; ADS.id = d && d.craft ? d.craft.id : null; } if (ADS.mode === 'app') AU.suspend(true); else AU.muted(true); return; }
+  if (m.e === 'reward') return adReward();
+  if (m.e === 'close') return adClose(!!m.earned);
+  if (m.e === 'fail') return adFail(m.why);
+}
+// the reward: the craft's done now (kept, in case the app is closed mid-ad), and shown off when the ad closes
+function adReward() {
+  if (!ADS.id) return; ADS.earned = true; const d = store.strokes;
+  if (d && d.craft && d.craft.id === ADS.id) { d.craft.end = Math.min(d.craft.end, Date.now()); save(); }
+  if (!ADS.open && !ADS.ct) adPayoff();
+}
+// closed: a beat for the sound to come back (and for a reward that comes just after the close), then the craft's shown off, or not
+function adClose(earned) {
+  ADS.open = false; clearTimeout(ADS.t); if (ADS.mode !== 'app') applyMix(); // (in the app, its "nativeresume" brings the sound back)
+  if (earned) ADS.earned = true;
+  clearTimeout(ADS.ct); ADS.ct = setTimeout(() => { ADS.ct = 0; if (ADS.earned) return adPayoff(); adDone(); stToast('Watch to the end to finish it'); }, 420);
+}
+function adPayoff() { const id = ADS.id; adDone(); const d = strokesOf(); if (id && d.craft && d.craft.id === id) craftSkip(); else if (strokesOpen()) renderStrokes(); }
+function adFail(why) {
+  if (!ADS.id && !ADS.open) return;
+  const was = ADS.open; adDone(); if (was) { if (ADS.mode === 'app') AU.wake(true, true); else applyMix(); }
+  AU.nope && AU.nope(); stToast(why === 'offline' ? 'You’re offline: connect to watch the ad' : 'No ad to show right now. Try again soon');
+}
+function adDone() { clearTimeout(ADS.t); clearTimeout(ADS.ct); clearInterval(ADS.si); ADS.ct = 0; ADS.id = null; ADS.open = ADS.hold = ADS.earned = false; sgSkipPaint(); }
+// Skip on the bench: a play mark when it plays an ad (spinning while the ad gets ready), plain in the lesson
+function sgSkipPaint() {
+  const sk = $('sgSkip'); if (!sk) return; const free = adFree(), busy = !free && !!ADS.id, m = free ? 'free' : busy ? 'busy' : 'ad';
+  if (sk.dataset.m === m) return; sk.dataset.m = m; sk.classList.toggle('ad', !free); sk.classList.toggle('busy', busy); sk.disabled = busy;
+  sk.innerHTML = free ? 'Skip' : '<i class="sgadi" aria-hidden="true">' + (busy ? '<b class="sgspin"></b>' : AD_PLAY) + '</i><span>Skip</span>';
+  sk.setAttribute('aria-label', free ? 'Skip the wait' : busy ? 'Getting the ad ready' : 'Watch an ad to finish it now');
+}
+// (in a browser) a stand-in for the ad: five seconds, then the reward; closed early it earns nothing, as with a real one
+function adStandIn() {
+  const el = $('adStand'); let left = 5; el.classList.remove('done'); $('adStN').textContent = left; $('adStW').textContent = 'Ad preview'; el.hidden = false;
+  adOn({ e: 'open', p: 'craft' }); setTimeout(() => $('adStX').focus({ preventScroll: true }), 40);
+  clearInterval(ADS.si); ADS.si = setInterval(() => {
+    if (--left > 0) { $('adStN').textContent = left; return; }
+    clearInterval(ADS.si); el.classList.add('done'); $('adStN').innerHTML = ST_CHECK; $('adStW').textContent = 'Reward earned'; adOn({ e: 'reward', p: 'craft' }); setTimeout(() => adStandOut(), 900);
+  }, 1000);
+}
+function adStandOut() { const el = $('adStand'); if (el.hidden) return; clearInterval(ADS.si); el.hidden = true; adOn({ e: 'close', p: 'craft', earned: ADS.earned }); }
+$('adStX').addEventListener('click', () => { AU.ui(); adStandOut(); });
+// the Privacy Policy's "Ad privacy choices" button, where Google says the player needs one (in the app only)
+function adPrivPaint() {
+  const body = $('docBody'), p = $('adsP'); let b = $('adPriv'); const want = ADS.mode === 'app' && ADS.privacy && !!p;
+  if (!want) { if (b) b.remove(); return; }
+  if (b) return; b = document.createElement('button'); b.type = 'button'; b.className = 'frb adpriv'; b.id = 'adPriv'; b.textContent = 'Ad privacy choices';
+  b.addEventListener('click', () => { AU.init(); AU.ui(); nativeSay('ads', { privacy: true }); }); p.after(b);
+}
+setTimeout(() => { if (strokesDue()) { adHello(false); adWarm(); } }, 5000); // (once the game's up: the app checks with Google, and readies an ad if one may be wanted)
 function equipSpecial(id) { const d = strokesOf(); if (!d.own.includes(id) || d.special === id) return; d.special = id; if (d.fresh === id) d.fresh = null; save(); AU.ready && AU.ready(); buzz(8); renderStrokes(); stToast(SPECIALS.find(x => x.id === id).name + ' is your special stroke'); }
 function stToast(msg) { const w = $('mStrokes'), old = w.querySelector('.sttoast'); if (old) old.remove(); const t = document.createElement('span'); t.className = 'sttoast'; t.setAttribute('role', 'status'); t.textContent = msg; w.appendChild(t); clearTimeout(stToastT); stToastT = setTimeout(() => t.remove(), 2300); }
 const mmss = ms => { const t = Math.ceil(ms / 1000), m = Math.floor(t / 60), sc = t % 60; return m + ':' + (sc < 10 ? '0' : '') + sc; };
@@ -20529,8 +20636,8 @@ function sgShowRender() {
   tm.hidden = sk.hidden = !cr; b.hidden = cr; b.classList.toggle('craft', !own && !cr && due && !busy); b.classList.toggle('on', on);
   if (own) { b.disabled = on; b.innerHTML = '<span>' + (on ? ST_CHECK + 'Equipped' : 'Equip') + '</span>'; b.setAttribute('aria-label', on ? o.name + ' is equipped' : 'Equip ' + o.name); }
   else if (!cr) { b.disabled = busy || !due; b.innerHTML = '<span>' + (due ? 'Craft<small>' + o.craft + ' min</small>' : STROKE_LOCK + 'Rank ' + stRank(o)) + '</span>'; b.setAttribute('aria-label', due ? 'Craft ' + o.name + ', ' + o.craft + ' minutes' : o.name + ' opens at rank ' + stRank(o)); }
-  if (cr) sgBench(o);
-  const note = own || cr ? '' : !due ? 'Reach rank ' + stRank(o) + ' to craft it' : busy ? 'One craft at a time: ' + spName(d.craft.id) + ' is on the bench' : '';
+  if (cr) sgBench(o); sgSkipPaint();
+  const note = own ? '' : cr ? (adFree() ? '' : 'Watch an ad to finish it now') : !due ? 'Reach rank ' + stRank(o) + ' to craft it' : busy ? 'One craft at a time: ' + spName(d.craft.id) + ' is on the bench' : '';
   $('sgNote').hidden = !note; $('sgNote').textContent = note; $('mStrokes').classList.toggle('sgnoted', !!note);
   $('sgTest').hidden = cat !== 'item'; SGD.rectDirty = true;
   sgDemoPick(cat === 'item' ? id : null);
@@ -20556,17 +20663,17 @@ function renderStrokes() {
   $('stSkillRail').innerHTML = SKILLS.map(o => stTile(o, true)).join('') + (SKILLS.length % 3 ? soon : ''); $('stItemRail').innerHTML = ST_ITEMS.map(o => stTile(o, 'item')).join('') + (ST_ITEMS.length % 3 ? soon : '');
   stSetCat(stCat, true); sgShowRender(); paintAbil(); stPopRender();
 }
-function strokesFrame() { if (!strokesOpen()) return; const d = strokesOf(); if (d.craft) { const id = d.craft.id; if (!craftTick()) { renderStrokes(); stToast(stReady(id)); } else { const sp = stDef(id), p = stPct(sp), t = mmss(craftLeft()); for (const el of document.querySelectorAll('#mStrokes .sgcard.crafting')) { el.style.setProperty('--p', p); const b = el.querySelector('.sgst b'); if (b) b.textContent = t; } $('sgBadgeT').textContent = t; if (sgSelId(stCat) === id) sgBench(sp); if (stPopId === id) stPopRender(); } } }
+function strokesFrame() { if (!strokesOpen() || ADS.hold) return; const d = strokesOf(); if (d.craft) { const id = d.craft.id; if (!craftTick()) { renderStrokes(); stToast(stReady(id)); } else { const sp = stDef(id), p = stPct(sp), t = mmss(craftLeft()); for (const el of document.querySelectorAll('#mStrokes .sgcard.crafting')) { el.style.setProperty('--p', p); const b = el.querySelector('.sgst b'); if (b) b.textContent = t; } $('sgBadgeT').textContent = t; if (sgSelId(stCat) === id) sgBench(sp); if (stPopId === id) stPopRender(); } } }
 function openStrokes() {
   if (state !== 'menu' || building || lookOpen || shopOpen || strokesOpen()) return;
   if (menuPage === 'worlds') { closeSeason(); $('mWorld').hidden = true; } if (menuPage === 'events') closeEvents();
-  if (!store.abilSeen) { store.abilSeen = 1; save(); } /* (v306: having seen it opens Play online) */ stSkillSel = null; stCat = 'special'; SG_PICK.special = SG_PICK.skill = SG_PICK.item = null; SGD.yaw = SG_YAW0; menuPage = 'strokes'; menu.dataset.page = 'strokes'; $('mHome').hidden = true; $('mStrokes').hidden = false; document.body.classList.add('evon', 'stpage'); closeSide(true); renderStrokes();
+  if (!store.abilSeen) { store.abilSeen = 1; save(); } /* (v306: having seen it opens Play online) */ stSkillSel = null; stCat = 'special'; SG_PICK.special = SG_PICK.skill = SG_PICK.item = null; SGD.yaw = SG_YAW0; menuPage = 'strokes'; menu.dataset.page = 'strokes'; $('mHome').hidden = true; $('mStrokes').hidden = false; document.body.classList.add('evon', 'stpage'); closeSide(true); renderStrokes(); adWarm();
   for (const c of $('mStrokes').querySelectorAll('.sgtab')) { c.style.animation = 'none'; void c.offsetWidth; c.style.animation = ''; } { const r = $('stSpecialRail'); r.classList.remove('in'); void r.offsetWidth; r.classList.add('in'); }
   clearInterval(stTick); stTick = setInterval(strokesFrame, 500); SGD.rectDirty = true; setTimeout(() => $('stBack').focus({ preventScroll: true }), 40);
 }
 function closeStrokes() { if (!strokesOpen()) return; closeStPop(true); sgTestEnd(true); sgStop(); clearInterval(stTick); $('mStrokes').hidden = true; $('mStrokes').classList.remove('sglearn'); document.body.classList.remove('evon', 'stpage'); menuPage = 'home'; menu.dataset.page = 'home'; $('mHome').hidden = false; paintAbil(); renderLobbyUI && renderLobbyUI(); setTimeout(() => $('abilBtn').focus({ preventScroll: true }), 40); }
 $('stBack').addEventListener('click', () => { AU.init(); if (stPopId) return closeStPop(); if (SGD.test) { AU.ui(); return sgTestEnd(); } AU.ui(); closeStrokes(); });
-$('sgSkip').addEventListener('click', () => { AU.init(); craftSkip(); });
+$('sgSkip').addEventListener('click', () => { AU.init(); craftSkipAsk(); }); // (v321: an ad first, outside the lesson)
 for (const k of ['special', 'skill', 'item']) $(ST_CATS[k].slot).addEventListener('click', () => { AU.init(); stSetCat(k); });
 $('sgTabs').addEventListener('keydown', e => { const ks = ['special', 'skill', 'item'], i = ks.indexOf(stCat), dl = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0; if (!dl) return; e.preventDefault(); const k = ks[(i + dl + 3) % 3]; stSetCat(k); $(ST_CATS[k].slot).focus(); });
 for (const k of ['special', 'skill', 'item']) $(ST_CATS[k].rail).addEventListener('click', e => { const b = e.target.closest('.sgcard[data-st], .sgcard[data-sk], .sgcard[data-it]'); if (!b) return; AU.init(); sgPick(b.dataset.st || b.dataset.sk || b.dataset.it); });
@@ -23157,7 +23264,7 @@ function acValid() {
 function acBusy(t) { const g = $('acGo'), f = $('acBody').querySelector('.acform'); if (f) f.classList.toggle('busy', !!t); if (!g) return; if (t) { g.dataset.t = g.dataset.t || g.textContent; g.textContent = t; g.disabled = true; } else { if (g.dataset.t) g.textContent = g.dataset.t; g.disabled = false; acValid(); } }
 function acFail(e) {
   AC.busy = false; const w = e && e.why;
-  if (w === 'age') { store.acYoung = Date.now(); save(); return acRender(); }
+  if (w === 'age') { store.acYoung = Date.now(); save(); adHello(false); return acRender(); }
   AC.err = e && e.at === 'user' ? unSay(w, unNorm(AC.f.user)) + '.' : w === 'nouser' ? 'No account has that username.' : w === 'pass' ? 'Wrong password. Try again.'
     : w === 'first' ? 'Check your first name: letters only.' : w === 'last' ? 'Check your last name: letters only.' : w === 'birthday' ? 'Check your birth year.'
     : e && e.code === 'weak_password' ? 'Pick a harder password.' : e && e.out ? 'You’re signed out. Log in again.' : e && e.at === 'save' ? 'Something went wrong. Try again.' : acErrText(e);
@@ -23170,7 +23277,7 @@ function acDone(html) { AC.busy = false; const next = AC.next; AC.next = null; A
 // (no longer anonymous), then the details. Each step is safe to run again, so a try that broke off part way just goes on
 async function acCreate() {
   const f = acForm(); if (AC.busy) return; if (!f.ok) return acValid();
-  if (f.young) { store.acYoung = Date.now(); save(); AU.nope(); return acRender(); } // (under 13: a kind word, and nothing's made)
+  if (f.young) { store.acYoung = Date.now(); save(); adHello(false); AU.nope(); return acRender(); } // (under 13: a kind word, and nothing's made)
   AC.busy = true; AC.err = ''; acBusy('Making your account…');
   try {
     if (acOut()) store.sbs = Object.assign({}, store.sbs, { out: 0, lost: 0 }); // (signed out before: a new player for the new account)
@@ -24052,10 +24159,10 @@ $('setBack').addEventListener('click', uiClick(doneSettings));
 // the pages of words: the terms, the privacy note, the credits (each comes back to Settings)
 const DOCS = {
   tos: ['Terms of Service', '<p>Updated October 15, 2026. Roll Model is still being made, and these terms will grow with it.</p><h3>Play fair</h3><p>No cheating, hacking, or using bugs to win.</p><h3>Be kind</h3><p>Pick a username that’s friendly to everyone: no swearing, nothing hateful, and no pretending to be someone else. We can change or remove a username that breaks these rules, and close an account that keeps breaking them.</p><h3>Your account</h3><p>You need to be 13 or older to make an account and play online. Keep your password to yourself: you’re responsible for what happens on your account. You can delete it any time in Settings.</p><h3>Changes</h3><p>We may update these terms as the game grows. The date at the top says when they last changed.</p>'],
-  priv: ['Privacy Policy', '<p>Updated October 16, 2026.</p><h3>On this device</h3><p>Your progress (your dabs, items, ranks and settings) is saved on this device. You don’t need an account to play.</p><h3>Your username</h3><p>Your username is kept on our server so no one else can take it. Other players can see it, with your paint colour and rank.</p><h3>Your account</h3><p>If you make an account, we keep your username, your first and last name, your birth year, and when you agreed to these terms. Your name and birth year are private: other players never see them. We ask for your birth year because online play is for players 13 and older.</p><p>While you’re signed in, we also keep a copy of your game progress (your dabs, items, ranks, unlocks and lessons done) with your account, so you can log in on another phone and pick up where you left off. Log out leaves it with your account and starts this device fresh.</p><p>Your password is handled by our sign-in provider, Supabase. It’s stored scrambled (hashed), never in a form anyone can read, not even us.</p><h3>Playing online</h3><p>To run friends and online matches we keep your friend code, your friends, friend requests and blocks, invites to play, your Time trial scores for the friends board, records of your online matches, and when you were last online.</p><h3>Who has it</h3><p>We don’t sell your information or show you ads. Supabase stores it for us, and online matches run on our game server.</p><h3>Deleting it</h3><p>Settings › Account › Delete account removes your account and everything above from our server for good. Restart Game in Settings clears this device.</p>'],
+  priv: ['Privacy Policy', '<p>Updated October 16, 2026.</p><h3>On this device</h3><p>Your progress (your dabs, items, ranks and settings) is saved on this device. You don’t need an account to play.</p><h3>Your username</h3><p>Your username is kept on our server so no one else can take it. Other players can see it, with your paint colour and rank.</p><h3>Your account</h3><p>If you make an account, we keep your username, your first and last name, your birth year, and when you agreed to these terms. Your name and birth year are private: other players never see them. We ask for your birth year because online play is for players 13 and older.</p><p>While you’re signed in, we also keep a copy of your game progress (your dabs, items, ranks, unlocks and lessons done) with your account, so you can log in on another phone and pick up where you left off. Log out leaves it with your account and starts this device fresh.</p><p>Your password is handled by our sign-in provider, Supabase. It’s stored scrambled (hashed), never in a form anyone can read, not even us.</p><h3>Playing online</h3><p>To run friends and online matches we keep your friend code, your friends, friend requests and blocks, invites to play, your Time trial scores for the friends board, records of your online matches, and when you were last online.</p><h3>Who has it</h3><p>We don’t sell your information. Supabase stores it for us, and online matches run on our game server.</p><h3>Ads</h3><p id="adsP">In the iPhone app you can choose to watch an ad, for example to finish crafting a stroke right away. An ad only plays when you tap to watch one. Ads come from Google AdMob, which gets some information from your device to show an ad and count it: your IP address (which gives a rough location), the kind of device, an identifier for the device that’s only shared within our apps, and how the ad was watched. The game doesn’t ask to track you across other companies’ apps. If you told us you’re under 13, you only get ads that are fit for children, and they aren’t personalised. Where the law asks for it, Google asks for your consent before your first ad.</p><h3>Deleting it</h3><p>Settings › Account › Delete account removes your account and everything above from our server for good. Restart Game in Settings clears this device.</p>'],
   cred: ['Credits', '<h3>Roll Model</h3><p>Season 1: Spooky SZN</p><h3>Built with</h3><p>three.js (MIT License)</p><h3>Type</h3><p>Bowlby One, Figtree and Barlow Condensed (SIL Open Font License)</p><h3>Sound and voices</h3><p>Made with Ludo.ai</p><h3>3D items</h3><p>Made with Meshy</p><h3>Thanks</h3><p>To everyone who rolls through the paint.</p>']
 };
-function openDoc(k, back) { const d = DOCS[k]; if (!d) return; PB.docFrom = k; PB.docBack = typeof back === 'function' ? back : null; $('docModal').classList.toggle('acup', !!PB.docBack); $('docTitle').textContent = d[0]; $('docBody').innerHTML = d[1]; $('docBody').scrollTop = 0; if (!PB.docBack) setModal.hidden = true; $('docModal').hidden = false; setTimeout(() => $('docClose').focus({ preventScroll: true }), 30); }
+function openDoc(k, back) { const d = DOCS[k]; if (!d) return; PB.docFrom = k; PB.docBack = typeof back === 'function' ? back : null; $('docModal').classList.toggle('acup', !!PB.docBack); $('docTitle').textContent = d[0]; $('docBody').innerHTML = d[1]; $('docBody').scrollTop = 0; if (!PB.docBack) setModal.hidden = true; $('docModal').hidden = false; if (k === 'priv') adPrivPaint(); setTimeout(() => $('docClose').focus({ preventScroll: true }), 30); }
 function closeDoc() { if ($('docModal').hidden) return; $('docModal').hidden = true; if (PB.docBack) { const f = PB.docBack; PB.docBack = null; return f(); } if (state === 'menu') { setModal.hidden = false; setFitSoon(); const b = $({ tos: 'tosBtn', priv: 'privBtn', cred: 'credBtn' }[PB.docFrom]); if (b) b.focus({ preventScroll: true }); } }
 for (const [id, k] of [['tosBtn', 'tos'], ['privBtn', 'priv'], ['credBtn', 'cred']]) $(id).addEventListener('click', uiClick(() => openDoc(k)));
 $('docClose').addEventListener('click', uiClick(closeDoc));
@@ -26700,7 +26807,7 @@ if (!soundOk) {
 }
 try { csHello(); } catch (e) {} if (FL && FL.due) baAfter(() => FL.boot()); else if (!store.orient) { if (bootHold) { const w = setInterval(() => { if (!bootHold) { clearInterval(w); openOrient(); } }, 100); } else openOrient(); }
 for (const ev of ['pointerdown', 'keydown', 'touchend']) window.addEventListener(ev, () => AU.touch(), { capture: true, passive: true });
-window.addEventListener('nativeresume', e => AU.wake(true, !!(e && e.detail && e.detail.away))); window.addEventListener('nativememory', () => memTrim()); document.addEventListener('visibilitychange', () => { if (document.hidden) memTrim(); }); /* (v309) */ window.addEventListener('pageshow', () => AU.wake()); window.addEventListener('focus', () => AU.wake());
+window.addEventListener('nativeresume', e => { if (ADS.open) return; AU.wake(true, !!(e && e.detail && e.detail.away)); }); /* (v321: not under an ad: the close sends its own) */ window.addEventListener('nativememory', () => memTrim()); document.addEventListener('visibilitychange', () => { if (document.hidden) memTrim(); }); /* (v309) */ window.addEventListener('pageshow', () => AU.wake()); window.addEventListener('focus', () => AU.wake());
 requestAnimationFrame(frame);
 };
 // the game is built once the loading screen has been drawn, so its bar is up from the very first moment

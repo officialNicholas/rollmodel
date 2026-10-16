@@ -15,6 +15,9 @@
 		7960095AF77602B7BD1F0F1F /* DeviceBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 640B53D8E6533E39320EB62F /* DeviceBridge.swift */; };
 		55B693A1DE65D315A3F92215 /* OrientBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A1CA1779BD513423912E959 /* OrientBridge.swift */; };
 		EEEB90DC25A14505909657CC /* SaveBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0E0336BB155262FB43B5A53 /* SaveBridge.swift */; };
+		CE1C3961FBC267C0D61B74D7 /* AdsBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A38FE07CC82C4CDBA2888B9 /* AdsBridge.swift */; };
+		FB7B391A3017C1C12D748CB0 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 292BF1B608A236C4DEA324DA /* GoogleMobileAds */; };
+		A043B619F5026958FC266A02 /* GoogleUserMessagingPlatform in Frameworks */ = {isa = PBXBuildFile; productRef = F5A17FA657A97763A67DF9E6 /* GoogleUserMessagingPlatform */; };
 		6D3176202AFAB4025CF1C75D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3C10E1B9663786B5B539DB02 /* Assets.xcassets */; };
 		4E072BE15BBF84F53013FBFF /* Game in Resources */ = {isa = PBXBuildFile; fileRef = CE19A29E3E7364164222C56E /* Game */; };
 		112F619E84753AB3C86A7461 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = FC90AEE7718CFADA84B0EFC1 /* PrivacyInfo.xcprivacy */; };
@@ -30,6 +33,7 @@
 		640B53D8E6533E39320EB62F /* DeviceBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceBridge.swift; sourceTree = "<group>"; };
 		4A1CA1779BD513423912E959 /* OrientBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrientBridge.swift; sourceTree = "<group>"; };
 		A0E0336BB155262FB43B5A53 /* SaveBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveBridge.swift; sourceTree = "<group>"; };
+		4A38FE07CC82C4CDBA2888B9 /* AdsBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdsBridge.swift; sourceTree = "<group>"; };
 		3C10E1B9663786B5B539DB02 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CE19A29E3E7364164222C56E /* Game */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Game; sourceTree = "<group>"; };
 		2FCB0B10CB485B242248A929 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -41,6 +45,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FB7B391A3017C1C12D748CB0 /* GoogleMobileAds in Frameworks */,
+				A043B619F5026958FC266A02 /* GoogleUserMessagingPlatform in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -66,6 +72,7 @@
 				640B53D8E6533E39320EB62F /* DeviceBridge.swift */,
 				4A1CA1779BD513423912E959 /* OrientBridge.swift */,
 				A0E0336BB155262FB43B5A53 /* SaveBridge.swift */,
+				4A38FE07CC82C4CDBA2888B9 /* AdsBridge.swift */,
 				CE19A29E3E7364164222C56E /* Game */,
 				3C10E1B9663786B5B539DB02 /* Assets.xcassets */,
 				FC90AEE7718CFADA84B0EFC1 /* PrivacyInfo.xcprivacy */,
@@ -98,6 +105,10 @@
 			dependencies = (
 			);
 			name = RollModel;
+			packageProductDependencies = (
+				292BF1B608A236C4DEA324DA /* GoogleMobileAds */,
+				F5A17FA657A97763A67DF9E6 /* GoogleUserMessagingPlatform */,
+			);
 			productName = RollModel;
 			productReference = 425FB898927FF33E5E17B680 /* RollModel.app */;
 			productType = "com.apple.product-type.application";
@@ -126,6 +137,10 @@
 				Base,
 			);
 			mainGroup = 187B982111AEF8F3B6131F9D;
+			packageReferences = (
+				243EC3499AA300F98AB46C76 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
+				946ADA3CCDC13CF0B4093AA0 /* XCRemoteSwiftPackageReference "swift-package-manager-google-user-messaging-platform" */,
+			);
 			productRefGroup = B3DB9BE76E9F365D374E939F /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -161,6 +176,7 @@
 				7960095AF77602B7BD1F0F1F /* DeviceBridge.swift in Sources */,
 				55B693A1DE65D315A3F92215 /* OrientBridge.swift in Sources */,
 				EEEB90DC25A14505909657CC /* SaveBridge.swift in Sources */,
+				CE1C3961FBC267C0D61B74D7 /* AdsBridge.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -305,6 +321,10 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.1;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = studio.primeshots.rollmodel;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -334,6 +354,10 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.1;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = studio.primeshots.rollmodel;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -368,6 +392,38 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		243EC3499AA300F98AB46C76 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 13.3.0;
+			};
+		};
+		946ADA3CCDC13CF0B4093AA0 /* XCRemoteSwiftPackageReference "swift-package-manager-google-user-messaging-platform" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-user-messaging-platform.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		292BF1B608A236C4DEA324DA /* GoogleMobileAds */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 243EC3499AA300F98AB46C76 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
+			productName = GoogleMobileAds;
+		};
+		F5A17FA657A97763A67DF9E6 /* GoogleUserMessagingPlatform */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 946ADA3CCDC13CF0B4093AA0 /* XCRemoteSwiftPackageReference "swift-package-manager-google-user-messaging-platform" */;
+			productName = GoogleUserMessagingPlatform;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = FF41D696CCA750FD1F46FCF6 /* Project object */;
 }
