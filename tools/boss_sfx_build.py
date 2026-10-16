@@ -60,6 +60,11 @@ TAKES = {  # name: (seconds asked for, the prompt), two takes each
     'b_boom': (1.4, 'a sea mine exploding, a deep muffled boom with a burst of bubbles' + U),
     'b_beep': (0.5, 'a single short warning beep from a blinking bomb, high and urgent, cartoon game sound effect, no music'),
     'b_toss': (0.8, 'a heavy spiked ball thrown through water, a strong whoosh' + U),
+    # (v319) the entrance's end: the charge, the stare, the roar's impact, the health bar filling
+    'b_power': (2.0, 'a giant sea monster powering up, crackling electric energy and a deep hum rising in pitch to a peak, building tension' + U),
+    'b_stare': (1.6, 'a tense ominous moment, one deep slow heartbeat thud with a low dark drone swelling, suspense before a boss fight, cartoon game sound effect, no music'),
+    'b_impact': (1.6, 'a massive cinematic impact boom with a sub bass drop and a big whoosh, for a boss fight title reveal, cartoon game sound effect, no music'),
+    'b_fill': (1.0, 'a thick liquid paint gushing and filling up a tube quickly, ending in a bright sparkly shimmer, cartoon game sound effect, no music'),
 }
 # the one-shots: t the take, lu the loudness (LUFS, the loudest 400 ms; the hits, grab, punch and slam, as loud as their peaks allow
 # with 6 dB taken off them: their loudest 100 ms, -11 to -12 LUFS, is in line with the rest's), max the longest it may run (s) before
@@ -109,6 +114,12 @@ ONE = {
     'b_boom': dict(t='b_boom_1', lu=-12, lay=[('b_erupt_1', -4, 0.0, 0.9, 250, 0.8)]),  # 1: the deep blast (both all under 250 Hz): with the slime burst's wet boom and fizz on top
     'b_beep': dict(t='b_beep_2', lu=-18, max=0.3),     # 2: short and clear, its centre 3 kHz (1 longer and duller)
     'b_toss': dict(t='b_toss_2', lu=-15),              # 2: the whoosh has more over 250 Hz
+    # (v319) both takes of the power-up die away from a loud start: 1 (the fuller hum) played backward so it swells into the moment the
+    # charge breaks (1.35 s of it), with the zap's crackling charge on top so a phone hears it build
+    'b_power': dict(t='b_power_1', lu=-14, rev=True, skip=0.4, lay=[('b_charge_1', 0, 0.25, 1.0, 300, 1.1)]),
+    'b_stare': dict(t='b_stare_1', lu=-17),            # 1: a heartbeat's two thuds (2 one long fade); all under 250 Hz: felt more than heard on a phone, which the hush wants
+    'b_impact': dict(t='b_impact_1', lu=-10, lay=[('b_punch_2', 0, 0.0, 1.0, 300, 0.45), ('b_erupt_1', -3, 0.02, 0.85, 250, 0.9)]),  # 1: the harder hit (both all under 250 Hz): with the punch's smash and the slime burst's fizz on top
+    'b_fill': dict(t='b_fill_1', lu=-17),              # 1: the longer gush and its shimmer (2 stops short)
 }
 # the loops: the takes and the stretch of each used (s), the crossfade (s), the evening-out window (s) and how far, the loudness
 # (integrated LUFS), the channels and the bit rate
@@ -169,6 +180,8 @@ def fade_out(x, sec):
 
 def one(name, o, src, out):
     x = hp(load(f'{src}/{o["t"]}.mp3'), 35, zero=True)   # (zero phase: a causal one shifts the boom against the smash and adds 2 to 4 dB of peak)
+    if o.get('rev'): x = x[::-1].copy()   # (v319) played backward: a sound that swells up into its loudest moment
+    if o.get('skip'): x = x[int(o['skip'] * SR):]   # (v319) its start dropped
     for t, gdb, at, r, f, ln in o.get('lay', []):
         y = hp(speed(load(f'{src}/{t}.mp3'), r), f, 4)[:int(ln * SR)]; y = fade_out(y, min(0.12, ln / 3)) * 10 ** (gdb / 20)
         i = int(at * SR); n = max(len(x), i + len(y)); z = np.zeros(n); z[:len(x)] += x; z[i:i + len(y)] += y; x = z
