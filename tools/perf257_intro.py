@@ -12,6 +12,8 @@ async def main():
         await ctx.add_init_script("window.__tapGate = false; try { localStorage.clear(); localStorage.setItem('paint-world-red.v1', JSON.stringify({ orient: '%s' })); } catch (e) {}" % MODE)
         pg = await ctx.new_page(); await pg.goto('http://localhost:8765/_intro_test.html', timeout=600000)
         await pg.wait_for_function('typeof __T === "object"', timeout=600000, polling=500)
+        # (v312) a first launch ends on "Tap to start", __tapGate or not: tap it as a player would (a no-op for anyone else)
+        await pg.evaluate("(() => { const b = document.getElementById('boot'); if (b && b.classList.contains('tap') && !b.classList.contains('gone')) b.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true })); })()")
         # sample every frame from the page itself: the stage, the frame's cpu time, the wall time between frames, the draw calls
         await pg.evaluate("""window.__S = []; (function tick(){ try { const p = __T.ev('FL.peek()'); window.__S.push({ ph: p ? p.ph : (__T.ev('FL.jin') ? 'jin' : 'lobby'), cpu: __T.ev('lastCpu') * 1000, calls: __T.ev('renderer.info.render.calls'), tris: __T.ev('renderer.info.render.triangles'), t: performance.now() }); } catch (e) {} requestAnimationFrame(tick); })();""")
         async def ph(): return await pg.evaluate("(() => { const p = __T.ev('FL.peek()'); return p ? p.ph : 'lobby'; })()")

@@ -18,6 +18,8 @@ async def main():
         pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)[:300]))
         await pg.goto('http://localhost:8765/_intro_test.html', timeout=600000)
         await pg.wait_for_function('typeof __T === "object" && FLready()' if False else 'typeof __T === "object"', timeout=600000, polling=500)
+        # (v312) a first launch ends on "Tap to start", __tapGate or not: tap it as a player would (a no-op for anyone else)
+        await pg.evaluate("(() => { const b = document.getElementById('boot'); if (b && b.classList.contains('tap') && !b.classList.contains('gone')) b.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true })); })()")
         await pg.wait_for_timeout(800); await pg.evaluate(SHIM); await pg.wait_for_timeout(300)
         log = []; last = None; n = 0; acts = {}; T = 0.0; after = None; twSeen = set()
         async def st(): return await pg.evaluate("__T.ev('JSON.stringify({ p: FL.peek(), live: FL.live, jin: !!FL.jin, tut: !document.getElementById(\"tut\").hidden })')")

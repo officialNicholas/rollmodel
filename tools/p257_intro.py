@@ -27,6 +27,8 @@ async def main():
         t0 = time.time()
         await pg.goto(f'http://localhost:8765/{PAGE}', timeout=600000)
         await pg.wait_for_function('typeof __T === "object"', timeout=600000, polling=500)
+        # (v312) a first launch ends on "Tap to start", __tapGate or not: tap it as a player would (a no-op for anyone else)
+        await pg.evaluate("(() => { const b = document.getElementById('boot'); if (b && b.classList.contains('tap') && !b.classList.contains('gone')) b.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true })); })()")
         log('booted', round(time.time() - t0, 1), 's')
         tag = MODE + ('_inset' if INSET else '')
         async def shot(name):

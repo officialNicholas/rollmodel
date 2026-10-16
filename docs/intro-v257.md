@@ -273,14 +273,16 @@ With v306 the name card asks for a username. As it's typed, the line under the i
 
 ```
 git show f4663ec^:game/index.html > /tmp/base259.html   # the v259 page, the one main's builder starts from
-BASE=/tmp/base259.html VER=259:309 python3 tools/q260.py game/_intro_test.html --test   # (not committed)
+BASE=/tmp/base259.html VER=259:312 python3 tools/q260.py game/_intro_test.html --test   # (VER: 259 and the version now; not committed)
 python3 -m http.server 8765 --directory game &
 PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers python3 tools/p257_intro.py out port inset
 PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers python3 tools/p257_intro.py out land inset
 SAVE='{"name":"Dusk","runs":9,"orient":"port","tut":{"ph":"done"}}' PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers python3 tools/p257_intro.py out port
 ```
 
-Built without `--test`, that's byte for byte the shipped `game/index.html` (checked at v309), so the test build is the real page with the intro files as they are in `tools/` now. In the test build, `FL.peek()` reports the phase, draw calls and triangles, `FL.go(phase)` jumps to a phase (`sky`, `barrel`, `iris`, `style`, `paint`, `form`, `name`, `confirm`, `wink`), and `FL._x()` is the scene.
+Built without `--test`, that's byte for byte the shipped `game/index.html` (checked at v309, and at v312 apart from this branch's own change to `v257_intro_au.js`), so the test build is the real page with the intro files as they are in `tools/` now. Since v312 a first launch ends on "Tap to start" even with `window.__tapGate = false`, so the probes (`p257`, `r257`, `perf257`, `cam257`) tap `#boot` (a pointerdown) once the page is up; for anyone else that's a no-op. On v312 the portrait probe plays the whole intro through to the coach's first line, with no page errors, and a trip to the background mid-intro still hands over in time.
+
+In the test build, `FL.peek()` reports the phase, draw calls and triangles, `FL.go(phase)` jumps to a phase (`sky`, `barrel`, `iris`, `style`, `paint`, `form`, `name`, `confirm`, `wink`), and `FL._x()` is the scene.
 
 ## Not done or worth a look
 
