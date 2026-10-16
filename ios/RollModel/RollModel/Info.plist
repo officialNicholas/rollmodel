@@ -20,12 +20,12 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
-	<!-- Rewarded ads (AdsBridge.swift). These are Google's sample IDs, which only ever show test ads: put your own AdMob app ID and
-	     rewarded ad unit ID here before release (AdMob > Apps > Roll Model). A debug build always uses the test ad unit. -->
+	<!-- Rewarded ads (AdsBridge.swift): Roll Model's AdMob app ID and its rewarded ad unit, "Craft skip" (AdMob > Apps > RollModel).
+	     A debug build (run from Xcode) always uses Google's test ad unit instead, so trying the game never shows real ads. -->
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<string>ca-app-pub-5968656294161944~1699104716</string>
 	<key>RollModelRewardedAdUnitID</key>
-	<string>ca-app-pub-3940256099942544/1712485313</string>
+	<string>ca-app-pub-5968656294161944/3653605208</string>
 	<!-- Google and the third-party buyers AdMob lists for SKAdNetwork (developers.google.com/admob/ios/3p-skadnetworks, January 30, 2026) -->
 	<key>SKAdNetworkItems</key>
 	<array>

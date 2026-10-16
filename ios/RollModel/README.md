@@ -24,11 +24,12 @@ On the Strokes page, **Skip** on a stroke being crafted now plays a rewarded ad 
 ### The first time you open the project
 Xcode downloads Google's two ad packages, **Google Mobile Ads** and **User Messaging Platform**, by itself. It needs the internet once and takes a minute. If Xcode ever says a package is missing, choose **File > Packages > Resolve Package Versions**. Google's current SDK needs **Xcode 26.2 or newer**; if Xcode is older, update it from the App Store first.
 
-### Put in your own AdMob IDs (before release)
-The project ships with Google's sample IDs. They only show test ads, which pay nothing.
-1. In AdMob (admob.google.com), open **Apps > Add app** and pick **iOS**. Find Roll Model on the App Store, or, if it isn't out yet, add it as not listed and link it once it is. Copy its **App ID** (it looks like `ca-app-pub-1234567890123456~1234567890`).
-2. In that app, open **Ad units > Add ad unit > Rewarded**. Name it something like "Craft skip". For the reward, enter **1** and **Skip** (the game finishes the craft whatever these say). Under **Advanced settings**, leave every **Ad type** box checked (video, display and interactive) and **Ad pods** on, and leave server-side verification off. Copy the **ad unit ID** (it looks like `ca-app-pub-1234567890123456/1234567890`).
-3. In Xcode, open **Info.plist** and paste them over the sample values: the App ID into **GADApplicationIdentifier**, the ad unit ID into **RollModelRewardedAdUnitID**.
+### Your AdMob IDs (already in)
+Roll Model's own AdMob IDs are in **Info.plist**:
+- **GADApplicationIdentifier** (the app): `ca-app-pub-5968656294161944~1699104716`
+- **RollModelRewardedAdUnitID** (the rewarded ad unit, "Craft skip"): `ca-app-pub-5968656294161944/3653605208`
+
+To use a different ad unit later, create it in AdMob (**Apps > RollModel > Ad units > Add ad unit > Rewarded**: leave every **Ad type** box and **Ad pods** on, server-side verification off) and paste its ID over the one above.
 
 Running the game from Xcode always uses Google's test ad unit, so you can try it as much as you like. TestFlight and App Store builds use your ad unit: to see test ads on your own iPhone there too, add it in AdMob under **Settings > Test devices**. Don't tap your own live ads.
 

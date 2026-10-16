@@ -32,7 +32,7 @@ A browser has no ad SDK, so the preview build shows a five-second stand-in where
 `ios/RollModel/RollModel/AdsBridge.swift` uses Google Mobile Ads SDK 13 and the User Messaging Platform 3. Xcode adds both as Swift packages the first time it opens the project.
 - **From the game** ("ads" messages): who's playing, when to have an ad ready, a request to show one, and the privacy choices button.
 - **Back to the game** (a "nativead" event): open, reward, close, fail and state.
-- **IDs:** Info.plist holds Google's sample IDs (test ads only) until the real ones go in: GADApplicationIdentifier and RollModelRewardedAdUnitID. A debug build run from Xcode always uses the test ad unit.
+- **IDs:** Info.plist holds Roll Model's AdMob app ID and its rewarded ad unit ("Craft skip"): GADApplicationIdentifier and RollModelRewardedAdUnitID. A debug build run from Xcode always uses Google's test ad unit instead.
 - **SKAdNetwork:** Info.plist lists the IDs for Google and the 49 third-party buyers AdMob names.
 - The steps for AdMob, Xcode and App Store Connect are in `ios/RollModel/README.md`.
 
