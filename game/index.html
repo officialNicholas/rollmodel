@@ -4583,7 +4583,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 327</p>
+      <p class="ver">Version 329</p>
     </div>
   </div>
 
@@ -8569,7 +8569,7 @@ const splInfo = new THREE.InstancedBufferAttribute(new Float32Array(SPL_MAX * 3)
 splIM.count = 0; splIM.frustumCulled = false; splIM.receiveShadow = true; splIM.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 splIM.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(SPL_MAX * 3), 3); splIM.instanceColor.setUsage(THREE.DynamicDrawUsage); splIM.layers.set(2); scene.add(splIM);
 let splN = 0, splHead = 0;
-const splCol = t => { splTmp.set(TEAMS[t % 4].wet); if (t >= 4) splTmp.lerp(COLW, 0.45); return splTmp; }, COLW = new THREE.Color(0xFFFFFF);
+const splCol = t => { splTmp.set(TEAMS[t % 4].fl || TEAMS[t % 4].wet); if (t >= 4) splTmp.lerp(COLW, 0.45); return splTmp; }, COLW = new THREE.Color(0xFFFFFF);
 function putSplash(x, y, z, nx, nz, sc, t) {
   const i = splHead; splHead = (splHead + 1) % SPL_MAX; if (splN < SPL_MAX) splN++;
   const lay = 0.012 + (i % 12) * 0.0016; splDummy.position.set(x + nx * lay, y, z + nz * lay); splDummy.rotation.set(0, Math.atan2(nx, nz), (Math.random() - 0.5) * 0.45);
@@ -11799,6 +11799,7 @@ const SKIN_FS = `
   ch = mix(ch, res + a * uTint.z * uTintTo.xy, w); Y *= mix(1.0, uTintTo.z, w * 0.35);
   float cr = Y + ch.x, cb = Y + ch.y; col = max(vec3(cr, (Y - 0.2126 * cr - 0.0722 * cb) / 0.7152, cb), vec3(0.0));
   col = max(mix(vec3(dot(col, vec3(0.2126, 0.7152, 0.0722))), col, 1.14), vec3(0.0));
+  if (uTintTo.w > 0.0) { float Yc = dot(col, vec3(0.2126, 0.7152, 0.0722)); col = mix(col, Yc * uTeam / max(dot(uTeam, vec3(0.2126, 0.7152, 0.0722)), 1e-3), 0.85 * uTintTo.w); col = mix(col, col * 0.6 + 0.4, 0.5 * uTintTo.w); } // (v329: a grey paint: the texture in the paint's own pearl, a little lighter)
   float bk = smoothstep(0.1, 0.85, belly); sBelly = bk;
   float core = tail * exp(-pow((finh - 0.4) / 0.19, 2.0)), glowE = tail * (1.0 - smoothstep(0.0, 0.24, finh)); sFin = max(core, glowE);
   col = mix(col, uFinGlow, 0.1 * glowE); sSpot = 0.0;
@@ -12094,10 +12095,13 @@ if (uDebug > 0.5) {
 const _c = new THREE.Color(), _hsl = {};
 function hsl(h, s, l) { return new THREE.Color().setHSL(((h % 1) + 1) % 1, Math.max(0, Math.min(1, s)), Math.max(0, Math.min(1, l))); }
 function mixHue(a, b, t) { let d = b - a; d -= Math.round(d); return a + d * t; }
+// (v329) how near grey a colour is: 1 for a pale grey like the intro's pearl, 0 for every bright paint (by its spread in linear RGB)
+function paleK(c) { const t = Math.min(1, Math.max(0, (Math.max(c.r, c.g, c.b) - Math.min(c.r, c.g, c.b) - 0.2) / 0.25)); return 1 - t * t * (3 - 2 * t); }
+const PALE = { skin: [0.1, 0.6], belly: [0.08, 0.8], spot: [0.1, 0.26], gill: [0.16, 0.5], gillTip: [0.12, 0.8], finCore: [0.1, 0.24], finGlow: [0.18, 0.68] }; // (saturation, lightness)
 function palette(team) {
-  _c.set(team); _c.getHSL(_hsl); const h = _hsl.h, s = _hsl.s, l = _hsl.l;
+  _c.set(team); _c.getHSL(_hsl); const h = _hsl.h, s = _hsl.s, l = _hsl.l, g = paleK(_c);
   const slate = 0.64;   // blue-grey
-  return {
+  const p = {
     skin: hsl(h, 0.5 + 0.2 * s, 0.55 + 0.04 * (l - 0.5)),
     belly: hsl(mixHue(h, 0.09, 0.78), 0.6, 0.72),
     spot: hsl(mixHue(h, slate, 0.72), 0.26, 0.26),
@@ -12106,6 +12110,8 @@ function palette(team) {
     finCore: hsl(mixHue(h, slate, 0.75), 0.3, 0.25),
     finGlow: hsl(mixHue(h, 0.04, 0.45), 0.85, 0.58),
   };
+  if (g > 0) for (const k in PALE) p[k].lerp(hsl(h, PALE[k][0], PALE[k][1]), g); // (v329: a grey paint, a grey axolotl)
+  return p;
 }
 // the texture's own pink (sRGB 0.98, 0.60, 0.66: the sculpt's flanks and limbs), in linear, and a colour's place in the opponent plane
 const NATIVE_SKIN = new THREE.Color().setRGB(0.98, 0.60, 0.66, THREE.SRGBColorSpace), NATIVE_HUE = 0.975;
@@ -12146,7 +12152,7 @@ class Look {
     // detail; the red and pink teams sit on the native hue and get the texture as baked
     _c.set(c); _c.getHSL(_hsl); const c0 = chroma(NATIVE_SKIN), m0 = Math.hypot(c0[0], c0[1]), d0 = [c0[0] / m0, c0[1] / m0];
     const ang = h => { const q = chroma(hsl(h, 0.7, 0.6)); return Math.atan2(q[1], q[0]); }, th = ang(_hsl.h) - ang(NATIVE_HUE), cs = Math.cos(th), sn = Math.sin(th);
-    U.uTint.value.set(d0[0], d0[1], 1, 1); U.uTintTo.value.set(cs * d0[0] - sn * d0[1], sn * d0[0] + cs * d0[1], 1, 0);
+    { const g = paleK(_c); U.uTint.value.set(d0[0], d0[1], 1 - 0.85 * g, 1); U.uTintTo.value.set(cs * d0[0] - sn * d0[1], sn * d0[0] + cs * d0[1], 1 + 1.1 * g, g); } // (v329: a grey paint: the pink goes grey, and lighter)
     return this; }
   setIris(k) { const e = EYE_COLS[k]; if (e) this.U.fIris.value.set(...e.lin); else { const c = new THREE.Color(k); this.U.fIris.value.set(c.r, c.g, c.b); } this.iris = k; return this; }
   setEyeStyle(k) { this.U.fStyle.value = typeof k === 'string' ? (EYE_STYLE_K[k] || 0) : k; return this; }
@@ -12289,7 +12295,7 @@ const AXOC = (() => {
     // (it's made on all fours: the change from the upright body it's built in is run through ahead, out of sight)
     A.update(1 / 60); A.set('crawl'); for (let i = 0; i < 44 && A.state !== 'crawl'; i++) A.update(1 / 20); for (let i = 0; i < 10; i++) A.update(1 / 20);
     const X = I.ax; X.state = 'crawl';
-    const ink0 = new THREE.Color(C.outline), inkHSL = {}, inkTint = c => { c.getHSL(inkHSL, THREE.SRGBColorSpace); for (const M of [Sm, Cm]) M.ink.material.color.setHSL(inkHSL.h, Math.min(0.8, 0.3 + 0.55 * inkHSL.s), 0.12, THREE.SRGBColorSpace).lerp(ink0, 0.3); }; inkTint(col); // (v250: the ink a deep shade of its colour)
+    const ink0 = new THREE.Color(C.outline), inkHSL = {}, inkTint = c => { c.getHSL(inkHSL, THREE.SRGBColorSpace); for (const M of [Sm, Cm]) M.ink.material.color.setHSL(inkHSL.h, Math.min(0.8, 0.3 + 0.55 * inkHSL.s) * (0.3 + 0.7 * Math.min(1, Math.max(0, (Math.max(c.r, c.g, c.b) - Math.min(c.r, c.g, c.b) - 0.2) / 0.25))), 0.12, THREE.SRGBColorSpace).lerp(ink0, 0.3); }; inkTint(col); // (v250: the ink a deep shade of its colour)
     I.setColor = c => { if (I.color.equals(c)) return; I.color.copy(c); look.setColor(c.getHex()); for (const gh of ghosts) gh.material.color.copy(c); inkTint(c); };
     I.setPaint = c => { look.U.uPaint.value.copy(c); };
     I.setWade = w => { X.wade = w; };
@@ -20411,12 +20417,15 @@ function starRow(n, cls) { let h = ''; for (let i = 0; i < 3; i++) h += '<span c
 // your color: six paints, and the holy water is always blue
 const PALETTE = [
   { id: 'red', name: 'Red', hex: 0xE3122F, hi: '#FF6175', lo: '#99091F', dry: 0x7A1522, words: ['Crimson', 'Scarlet', 'Garnet'] },
-  { id: 'orange', name: 'Orange', hex: 0xFF6A13, hi: '#FFA463', lo: '#B5440A', dry: 0x8A3A0E, words: ['Amber', 'Tangerine', 'Embers'] },
+  { id: 'grey', name: 'Grey', hex: 0xE6DEF2, hi: '#F4F0FA', lo: '#6E6688', dry: 0x9A92B0, ui: '#9A92B3', floor: 0xCCC4E0, words: ['Pearl', 'Silver', 'Ash'], noCpu: 1 }, // (v329: the intro's pearl, in orange's place)
   { id: 'gold', name: 'Gold', hex: 0xFFC61A, hi: '#FFDB6E', lo: '#A97B00', dry: 0x8E6A0E, words: ['Gold', 'Saffron', 'Honey'] },
   { id: 'green', name: 'Green', hex: 0x2FD15A, hi: '#7DEB98', lo: '#178A36', dry: 0x1C6B32, words: ['Emerald', 'Jade', 'Absinthe'] },
   { id: 'purple', name: 'Purple', hex: 0xA03CFF, hi: '#C99BFF', lo: '#6A1FB8', dry: 0x52217F, words: ['Violet', 'Amethyst', 'Plum'] },
   { id: 'pink', name: 'Pink', hex: 0xFF3FA4, hi: '#FF8CC8', lo: '#B81F6E', dry: 0x8A2259, words: ['Rose', 'Fuchsia', 'Blush'] },
 ];
+// (v329) orange, no longer one of yours: still a rival's, and how a friend's or an online rival's old pick is shown
+const PAL_ORANGE = { id: 'orange', name: 'Orange', hex: 0xFF6A13, hi: '#FFA463', lo: '#B5440A', dry: 0x8A3A0E, words: ['Amber', 'Tangerine', 'Embers'] };
+const palOf = id => PALETTE.find(p => p.id === id) || (id === 'orange' ? PAL_ORANGE : null);
 let colorId = 'red', menuReact = 0;
 // your look: color (above), eye shape, and this season's accessories: one on your head, one on your back, one in your mouth
 const EYES = [['round', 'Round'], ['googly', 'Googly'], ['sleepy', 'Sleepy'], ['angry', 'Angry'], ['happy', 'Happy'], ['cyclops', 'Cyclops']];
@@ -20467,7 +20476,7 @@ function setColor(id) {
   const c = PALETTE.find(p => p.id === id) || PALETTE[0], css = '#' + c.hex.toString(16).padStart(6, '0').toUpperCase(); colorId = c.id;
   TEAMS[0].wet = c.hex; TEAMS[0].dry = c.dry; TEAMS[0].css = css; C.ink = c.hex;
   COL_INK.setHex(c.hex); TEAM_COLS[0].setHex(c.hex);
-  paintUniforms.uWetA.value[0].setHex(c.hex); paintUniforms.uDryA.value[0].setHex(c.dry);
+  paintUniforms.uWetA.value[0].setHex(c.floor || c.hex); paintUniforms.uDryA.value[0].setHex(c.dry); TEAMS[0].fl = c.floor || c.hex;
   teamMats[0].color.setHex(c.hex); splashMat.color.setHex(c.hex); xrayMat.color.setHex(c.hex); dropMat.color.setHex(c.hex);
   crownMats[0].color.setHex(c.hex); crownMats[0].emissive.setHex(c.hex).multiplyScalar(0.18);
   arrowMat.color.setHex(c.hex); puIconMat.color.setHex(c.hex); confMats[0].color.setHex(c.hex);
@@ -20475,7 +20484,7 @@ function setColor(id) {
   partPool(colMat(c.hex));
   teamHues();
   const r = document.documentElement.style;
-  r.setProperty('--ink', css); edgeRGB(css, EDGE.ink); r.setProperty('--ink-hi', c.hi); r.setProperty('--ink-lo', c.lo); r.setProperty('--ink-rgb', [(c.hex >> 16) & 255, (c.hex >> 8) & 255, c.hex & 255].join(','));
+  { const u = c.ui || css, uh = parseInt(u.slice(1), 16); r.setProperty('--ink', u); edgeRGB(u, EDGE.ink); r.setProperty('--ink-hi', c.hi); r.setProperty('--ink-lo', c.lo); r.setProperty('--ink-rgb', [(uh >> 16) & 255, (uh >> 8) & 255, uh & 255].join(',')); }
   document.title = 'Roll Model';
   document.querySelectorAll('#swatches .sw').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.c === c.id))); const lc = $('lookColor'); if (lc) lc.textContent = c.name;
 }
@@ -21899,7 +21908,28 @@ $('unlockForm').addEventListener('submit', e => { e.preventDefault(); const v = 
   else { AU.nope(); kick($('unlockForm'), 'nope'); note("That code doesn't work.", true); } });
 canvas.addEventListener('pointerdown', e => { if (lookOpen || lobbyOn()) lookDrag = { id: e.pointerId, x: e.clientX, x0: e.clientX, t: performance.now() }; });
 canvas.addEventListener('pointermove', e => { if ((lookOpen || lobbyOn()) && lookDrag && lookDrag.id === e.pointerId) { { const now = performance.now(), dm = Math.max(4, now - (lookDrag.tm || now - 16)); lookDrag.v = (lookDrag.v || 0) * 0.5 + 0.5 * (e.clientX - lookDrag.x) / dm; lookDrag.tm = now; } lookSwiped += Math.abs(e.clientX - lookDrag.x); shim.tgt += (e.clientX - lookDrag.x) * 0.012; lookDrag.x = e.clientX; idle.t = Math.max(idle.t, 3); } });
-const endLookDrag = e => { if (lookDrag && lookDrag.id === e.pointerId) { if (lookOpen && AXOC.S.ready && e.type === 'pointerup' && performance.now() - (lookDrag.tm || 0) < 90) shim.tgt += clamp((lookDrag.v || 0) * 0.012 * 160, -2.6, 2.6); /* (let go mid-swipe: it glides on round) */ if (e.type === 'pointerup' && !lookOpen && lobbyOn() && Math.abs(e.clientX - lookDrag.x0) < 8 && performance.now() - lookDrag.t < 400 && $('orient').hidden) { AU.init(); menuReact = 0.7; AU.pop(); if (Math.random() < 0.6) AU.vox(['hup', 'whee', 'giggle', 'hoh'][(Math.random() * 4) | 0]); } lookDrag = null; } };
+// (v328) a tap on you in the lobby: one reaction at a time, and taps do nothing until it's done (a run of taps used to start the hop again
+// in mid-air, over and over); and not the same thing each time: the first tap is a hop, then it goes through the moods it already has
+// (a wave, a blep, chin up, a wet-dog shake, peekaboo, a sneeze, a wag, a tilt of the head, a look round, a wiggle), shuffled, never the
+// same one twice running. [name, seconds]
+const POKE_AXO = [['hop', 0.7], ['wave', 1.8], ['blep', 1.6], ['proud', 1.6], ['shake', 1.4], ['peek', 1.9], ['sneeze', 2.0], ['wag', 1.3], ['tilt', 1.25], ['look', 1.5], ['wiggle', 1.2]];
+const POKE_SLIME = [['hop', 0.7], ['wag', 1.3], ['peek', 1.9], ['look', 1.5], ['wiggle', 1.2], ['face', 1.4]]; // (the slime, if the axolotl isn't in: the moods it has)
+// the next in the round: a fresh shuffle when it runs out (not starting with the last one), the hop first the very first time
+function pokeNext(S, acts) {
+  if (!S.q.length) { const a = acts.filter(x => x[0] !== S.last); for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0, t = a[i]; a[i] = a[j]; a[j] = t; }
+    if (!S.n) { const h = a.findIndex(x => x[0] === 'hop'); if (h > 0) a.unshift(a.splice(h, 1)[0]); } S.q = a; }
+  const n = S.q.shift(); S.last = n[0]; S.n++; return n;
+}
+const LOBBY_POKE = { q: [], last: '', n: 0, until: 0 };
+function lobbyPoke() {
+  const now = performance.now(); if (now < LOBBY_POKE.until || menuReact > 0 || lkDip) return; // (still busy with the last one)
+  const [act, dur] = pokeNext(LOBBY_POKE, AXOC.S.ready ? POKE_AXO : POKE_SLIME); LOBBY_POKE.until = now + (dur + 0.3) * 1000;
+  if (act === 'hop') { idle.act = null; menuReact = 0.7; AU.pop(); AU.vox(['hup', 'whee', 'hoh'][(Math.random() * 3) | 0], 0.8); return; }
+  idle.act = act; idle.dur = dur; idle.u = 0; idle.b0 = beatNow(); idle.f1 = idle.f2 = false; idle.side = Math.random() < 0.5 ? -1 : 1;
+  if (act === 'face') emote(P, ['glee', 'smug', 'bonk'][(Math.random() * 3) | 0], dur * 0.8);
+  AU.pop(); const v = { wave: 'hoh', proud: 'hoh', tilt: 'ooh', blep: 'giggle', wag: 'giggle', wiggle: 'giggle', look: 'ooh' }[act]; if (v) setTimeout(() => AU.vox(v, 0.7), 140);
+}
+const endLookDrag = e => { if (lookDrag && lookDrag.id === e.pointerId) { if (lookOpen && AXOC.S.ready && e.type === 'pointerup' && performance.now() - (lookDrag.tm || 0) < 90) shim.tgt += clamp((lookDrag.v || 0) * 0.012 * 160, -2.6, 2.6); /* (let go mid-swipe: it glides on round) */ if (e.type === 'pointerup' && !lookOpen && lobbyOn() && Math.abs(e.clientX - lookDrag.x0) < 8 && performance.now() - lookDrag.t < 400 && $('orient').hidden) { AU.init(); lobbyPoke(); } lookDrag = null; } }; // (v328)
 canvas.addEventListener('pointerup', endLookDrag); canvas.addEventListener('pointercancel', endLookDrag);
 
 // ---------- (v327) My Locker and the Paint Shop, one page on the Strokes page's base. The window shows you (the demo's own character, in
@@ -22092,7 +22122,7 @@ $('lkUnlockForm').addEventListener('submit', e => { e.preventDefault(); AU.init(
 // the window: a drag spins you round (a flick carries on), a tap gets a hop; the round button turns you to show your back
 { const st = $('lkStage');
   st.addEventListener('pointerdown', e => { if (!SGD.on || SGD.kind !== 'dress') return; const now = performance.now(); SGD.dDrag = { id: e.pointerId, x: e.clientX, x0: e.clientX, y0: SGD.dyaw, t: now, tm: now, v: 0 }; SGD.dyawTo = null; SGD.dV = 0; try { st.setPointerCapture(e.pointerId); } catch (x) {} });
-  st.addEventListener('pointermove', e => { const g = SGD.dDrag; if (!g || g.id !== e.pointerId) return; const now = performance.now(), dm = Math.max(4, now - g.tm); g.v = g.v * 0.5 + 0.5 * (e.clientX - g.x) * 0.012 / (dm / 1000); g.tm = now; lookSwiped += Math.abs(e.clientX - g.x); g.x = e.clientX; SGD.dyaw = g.y0 + (e.clientX - g.x0) * 0.012; });
+  st.addEventListener('pointermove', e => { const g = SGD.dDrag; if (!g || g.id !== e.pointerId) return; if (SGD.act && Math.abs(e.clientX - g.x0) > 6) { sgActEnd(); SGD.dyaw = wrapA(SGD.dyaw); g.y0 = SGD.dyaw; g.x0 = e.clientX; } const now = performance.now(), dm = Math.max(4, now - g.tm); g.v = g.v * 0.5 + 0.5 * (e.clientX - g.x) * 0.012 / (dm / 1000); g.tm = now; lookSwiped += Math.abs(e.clientX - g.x); g.x = e.clientX; SGD.dyaw = g.y0 + (e.clientX - g.x0) * 0.012; });
   const up = e => { const g = SGD.dDrag; if (!g || g.id !== e.pointerId) return; SGD.dDrag = null; const now = performance.now();
     if (e.type === 'pointerup' && Math.abs(e.clientX - g.x0) < 8 && now - g.t < 400) sgDressPoke(); else { SGD.dV = now - g.tm < 90 ? clamp(g.v, -14, 14) : 0; SGD.dHold = 2.6; } };
   st.addEventListener('pointerup', up); st.addEventListener('pointercancel', up);
@@ -22105,12 +22135,13 @@ function sgDressStart() {
   SGD.trap.visible = SGD.wg.visible = SGD.lane.visible = SGD.boom.visible = false; SGD.mk.visible = SGD.mkF.visible = SGD.mkB.visible = SGD.ice.visible = false; SGD.iceK = 0; SGD.zk = 0; SGD.sp = {}; for (const q of SGD.shots) q.on = false; if (SGD.bm) SGD.bm.on = false; if (SGD.whirl) SGD.whirl.ph = '';
   for (const [m, sc] of SGD.padMs) m.scale.set(sc.x * LK_PAD, sc.y, sc.z * LK_PAD); SGD.padR2 = (SG_R * LK_PAD) ** 2;
   A.col.set(TEAMS[0].wet); lkDress(); sgAt(A, 0, 0); A.D.yaw = sgYawCam(A); A.V.yawD = undefined;
-  SGD.dyaw = 0; SGD.dV = 0; SGD.dyawTo = null; SGD.dHold = 0; SGD.dDrag = null; SGD.fz = 0; SGD.fzT = 0; SGD.dk = 0.6; SGD.popId = null; SGD.mood = 'glee'; SGD.moodT = 0.9; A.D.squash = 0.6; A.D.wob = 0.8;
+  SGD.dyaw = 0; SGD.dV = 0; SGD.dyawTo = null; SGD.dHold = 0; SGD.dDrag = null; SGD.fz = 0; SGD.fzT = 0; SGD.dk = 0.6; SGD.popId = null; SGD.act = null; SGD.actFace = null; SGD.mood = 'glee'; SGD.moodT = 0.9; A.D.squash = 0.6; A.D.wob = 0.8;
   sgDressPaint(false); sgRing(0, 0, 0.7, TEAMS[0].wet);
   if (SGD.pend) { const w = SGD.pend; SGD.pend = null; sgDressReact(w); }
 }
 function sgDress(dt) {
   const A = SGD.A, D = A.D; SGD.t += dt; if (SGD.shk > 0) SGD.shk = Math.max(0, SGD.shk - dt * 3);
+  sgActStep(dt); // (v328: a tap's reaction)
   if (!SGD.dDrag) {
     if (SGD.dV) { SGD.dyaw += SGD.dV * dt; SGD.dV *= Math.exp(-dt * 2.6); if (Math.abs(SGD.dV) < 0.08) SGD.dV = 0; }
     else if (SGD.dyawTo !== null) { const e = SGD.dyawTo - SGD.dyaw; SGD.dyaw += e * Math.min(1, dt * (reduceMotion ? 30 : 5)); if (Math.abs(e) < 0.01) { SGD.dyaw = SGD.dyawTo; SGD.dyawTo = null; } }
@@ -22119,12 +22150,13 @@ function sgDress(dt) {
   const y0 = D.yaw, yt = sgYawCam(A) + SGD.dyaw; D.yaw = yt; D.turn = clamp(wrapA(yt - y0) / Math.max(dt, 1e-3) / 9, -1, 1); D.spd = 0;
   D.ip.expr = null; D.ip.watch = null; if (Math.abs(wrapA(SGD.dyaw)) < 0.55 && !SGD.dDrag) sgWatch(A, null);
   if (SGD.moodT > 0) { SGD.moodT -= dt; D.ip.expr = SGD.mood; } else D.ip.expr = SGD.dDrag ? 'curious' : 'happy';
+  if (SGD.actFace) D.ip.expr = SGD.actFace;
   if (SGD.fzT > 0) SGD.fzT -= dt; SGD.fz += ((SGD.fzT > 0 ? 1 : 0) - SGD.fz) * Math.min(1, dt * 3); SGD.dk += (1 - SGD.dk) * Math.min(1, dt * 3.2);
 }
 // a thing put on or tried on: it pops in, a hop and a happy face; on the face, the camera comes in close; worn at the side or
 // on the back, you turn to show it, then back
 function sgDressReact(w) {
-  if (!SGD.built) return; const D = SGD.A.D;
+  if (!SGD.built) return; sgActEnd(); const D = SGD.A.D;
   SGD.popId = w.slot === 'eyes' || w.id === 'lashes' || w.id === 'patch' ? null : w.id; SGD.popT = 0;
   D.squash = Math.max(D.squash, 0.45); D.wob = Math.max(D.wob, 0.7); SGD.mood = w.slot === 'eyes' ? 'smirk' : 'glee'; SGD.moodT = 1.1;
   SGD.fzT = w.cat === 'face' || w.slot === 'eyes' ? 2.6 : 0;
@@ -22132,14 +22164,44 @@ function sgDressReact(w) {
   sgRing(0, 0, 0.6, 0xFFFFFF); if (!reduceMotion) sgBurst(0, 0, COL_WHITE, 6, 2.4, 1.2);
   setTimeout(() => { if (lkOn()) AU.vox(w.cat === 'cloth' ? 'giggle' : 'ooh', 0.9); }, 110);
 }
-function sgDressFace() { if (!SGD.built) return; const D = SGD.A.D; SGD.fzT = 2.4; SGD.mood = ['curious', 'smirk', 'glee'][(Math.random() * 3) | 0]; SGD.moodT = 1.3; D.squash = Math.max(D.squash, 0.3); SGD.dyawTo = 0; SGD.dHold = 0; SGD.dV = 0; }
+function sgDressFace() { if (!SGD.built) return; sgActEnd(); const D = SGD.A.D; SGD.fzT = 2.4; SGD.mood = ['curious', 'smirk', 'glee'][(Math.random() * 3) | 0]; SGD.moodT = 1.3; D.squash = Math.max(D.squash, 0.3); SGD.dyawTo = 0; SGD.dHold = 0; SGD.dV = 0; }
 // your paint: a splat of it under you; a new one splashes up round you as you hop
 function sgDressPaint(burst) {
   sgPaintClear(); sgSplat(0, 0, 0.62 / LK_PAD, TEAMS[0].css); // (drawn on the full pad's map: the pad is smaller)
-  if (burst) { const D = SGD.A.D; if (!reduceMotion) sgBurst(0, 0, SGD.A.col, 18, 3.4, 2.0); sgRing(0, 0, 0.75, TEAMS[0].wet); sgRing(0, 0, 0.45, 0xFFFFFF); D.squash = 0.8; D.wob = 1; SGD.mood = 'glee'; SGD.moodT = 1.2; SGD.fzT = 0; }
+  if (burst) { sgActEnd(); const D = SGD.A.D; if (!reduceMotion) sgBurst(0, 0, SGD.A.col, 18, 3.4, 2.0); sgRing(0, 0, 0.75, TEAMS[0].wet); sgRing(0, 0, 0.45, 0xFFFFFF); D.squash = 0.8; D.wob = 1; SGD.mood = 'glee'; SGD.moodT = 1.2; SGD.fzT = 0; }
 }
-function sgDressCheer() { if (!SGD.built) return; const D = SGD.A.D; sgRing(0, 0, 0.75, 0xFFE23C); sgRing(0, 0, 0.5, 0xFFFFFF); if (!reduceMotion) { sgBurst(0, 0, COL_WHITE, 10, 4, 1.8); sgBurst(0, 0, SGD.A.col, 14, 4.4, 2.2); sgShk(0.35); } sgFlash('w'); D.squash = 0.85; D.wob = 1; SGD.mood = 'glee'; SGD.moodT = 1.6; }
-function sgDressPoke() { if (!SGD.built) return; const D = SGD.A.D; D.squash = 0.7; D.wob = 1; SGD.mood = ['glee', 'smirk', 'blep', 'cute'][(Math.random() * 4) | 0]; SGD.moodT = 1; AU.pop(); if (Math.random() < 0.7) AU.vox(['hup', 'whee', 'giggle', 'hoh'][(Math.random() * 4) | 0]); }
+function sgDressCheer() { if (!SGD.built) return; sgActEnd(); const D = SGD.A.D; sgRing(0, 0, 0.75, 0xFFE23C); sgRing(0, 0, 0.5, 0xFFFFFF); if (!reduceMotion) { sgBurst(0, 0, COL_WHITE, 10, 4, 1.8); sgBurst(0, 0, SGD.A.col, 14, 4.4, 2.2); sgShk(0.35); } sgFlash('w'); D.squash = 0.85; D.wob = 1; SGD.mood = 'glee'; SGD.moodT = 1.6; }
+// (v328) a tap on you in the locker's window: the same rule, with what this character can do: a hop, a wave, a hand up, ears up in
+// surprise, a blep, a smirk, a sneeze, a wet-dog shake, a twirl. One at a time; taps do nothing until it's done; never the same twice running
+const POKE_DRESS = [['hop', 0.75], ['wave', 1.6], ['hand', 1.3], ['ears', 1.3], ['blep', 1.4], ['smirk', 1.4], ['sneeze', 1.9], ['shake', 1.3], ['twirl', 1.1]];
+const DRESS_POKE = { q: [], last: '', n: 0, until: 0 };
+function sgActEnd() { const a = SGD.act; SGD.act = null; SGD.actFace = null; if (!a || !SGD.built) return; const ip = SGD.A.D.ip; ip.hop = 0; ip.wave = 0; ip.hand = 0; ip.earUp = 0; ip.sq = null; ip.rise = null; }
+function sgDressPoke() {
+  if (!SGD.built) return; const now = performance.now(); if (now < DRESS_POKE.until) return; // (still busy with the last one)
+  const [k, dur] = pokeNext(DRESS_POKE, reduceMotion ? POKE_DRESS.filter(x => x[0] !== 'twirl') : POKE_DRESS); DRESS_POKE.until = now + (dur + 0.25) * 1000;
+  sgActEnd(); SGD.act = { k, dur, t: 0, f1: false, side: Math.random() < 0.5 ? -1 : 1, y0: wrapA(SGD.dyaw) }; SGD.moodT = 0; SGD.fzT = 0;
+  if (k === 'twirl') { SGD.dyaw = SGD.act.y0; SGD.dyawTo = null; SGD.dV = 0; }
+  AU.pop(); const v = { hop: ['hup', 'whee'], wave: ['hoh'], hand: ['ooh'], ears: ['eep'], blep: ['giggle'], smirk: ['hoh'], twirl: ['whee'] }[k];
+  if (v) setTimeout(() => { if (lkOn()) AU.vox(v[(Math.random() * v.length) | 0], 0.75); }, 90);
+}
+// each frame of it: the body's part here (its pose, a hand, the ears, a twirl); its face goes on over the mood's
+function sgActStep(dt) {
+  const a = SGD.act; if (!a) return; a.t += dt; const u = Math.min(1, a.t / a.dur), D = SGD.A.D, ip = D.ip, k = smoothstep(0.04, 0.2, u) * (1 - smoothstep(0.78, 0.96, u)), I = SGD.A.V.slime, AX = I && I.ax && I.ax.A;
+  ip.hop = 0; ip.wave = 0; ip.hand = 0; ip.earUp = 0; ip.sq = null; ip.rise = null; SGD.actFace = null;
+  if (a.k === 'hop') { ip.hop = Math.sin(u * Math.PI) * 0.42; ip.sq = u > 0.84 ? (u - 0.84) / 0.16 * 0.45 : null; SGD.actFace = 'glee'; if (u > 0.9 && !a.f1) { a.f1 = true; D.wob = Math.max(D.wob, 0.5); } }
+  else if (a.k === 'wave') { ip.wave = k; SGD.actFace = k > 0.2 ? 'happy' : null; }
+  else if (a.k === 'hand') { ip.hand = a.side * k; SGD.actFace = k > 0.2 ? 'curious' : null; }
+  else if (a.k === 'ears') { ip.earUp = k; SGD.actFace = u < 0.55 ? 'startle' : 'cute'; if (!a.f1) { a.f1 = true; if (AX) AX.kickGills(0, 1.0); } }
+  else if (a.k === 'blep') { SGD.actFace = k > 0.25 ? 'blep' : null; if (u > 0.12 && !a.f1) { a.f1 = true; if (AX) AX.twT = 0; } }
+  else if (a.k === 'smirk') { ip.rise = 0.1 * k; SGD.actFace = k > 0.3 ? 'smirk' : null; }
+  else if (a.k === 'sneeze') { const pre = (0.55 * smoothstep(0.08, 0.2, u) + 0.45 * smoothstep(0.27, 0.4, u)) * (u < 0.45 ? 1 : 0), hit = u >= 0.45 ? Math.exp(-(u - 0.45) * 12) : 0;
+    ip.rise = 0.12 * pre; ip.sq = 0.4 * hit; SGD.actFace = u < 0.08 ? null : u < 0.45 ? 'sneeze' : u < 0.62 ? 'dizzy' : 'cute';
+    if (u >= 0.45 && !a.f1) { a.f1 = true; AU.pop(); AU.splat(0.3); if (AX) AX.kickGills(0, -1.3); const fx = Math.sin(D.yaw), fz = Math.cos(D.yaw); // (a puff of paint from its nose)
+      if (!reduceMotion) for (let i = 0; i < 8; i++) sgPart(fx * 0.32, 0.42, fz * 0.32, fx * (1.4 + Math.random()) + (Math.random() - 0.5), 0.5 + Math.random() * 0.8, fz * (1.4 + Math.random()) + (Math.random() - 0.5), 0.32, SGD.A.col, 0.3 + Math.random() * 0.2); } }
+  else if (a.k === 'shake') { if (!a.f1) { a.f1 = true; if (I && I.shake) I.shake(0.9); AU.vox('brr', 0.6); } SGD.actFace = 'shake'; }
+  else if (a.k === 'twirl') { const e = u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2; SGD.dyaw = a.y0 + a.side * 6.2832 * e; SGD.dHold = 0.4; SGD.actFace = 'glee'; if (u >= 1) SGD.dyaw = a.y0; }
+  if (u >= 1) sgActEnd();
+}
 // a few strokes and splats in both colors so the menu canvas looks like a match in progress
 const RBM = { L: null, C: null, R: null, stroke: -1 };
 function paintPath(fn, t, team) {
@@ -22876,7 +22938,7 @@ function frBadge() {
 function frToast(html) { const t = document.createElement('div'); t.className = 'frtoast'; t.setAttribute('role', 'status'); t.innerHTML = html; document.body.appendChild(t); AU.pop(); setTimeout(() => t.classList.add('out'), 3200); setTimeout(() => t.remove(), 3700); }
 // a friend's face: the axolotl head in their paint
 function frFace(look) {
-  const p = PALETTE.find(q => q.id === (look && look.c)) || PALETTE[0], g = '#' + p.hex.toString(16).padStart(6, '0'), gills = 'M9.5 17 4.5 12.5M8.5 21.5 2.5 20.5M9.5 26 4.5 28.5M30.5 17l5-4.5M31.5 21.5l6-1M30.5 26l5 2.5';
+  const p = palOf(look && look.c) || PALETTE[0], g = '#' + p.hex.toString(16).padStart(6, '0'), gills = 'M9.5 17 4.5 12.5M8.5 21.5 2.5 20.5M9.5 26 4.5 28.5M30.5 17l5-4.5M31.5 21.5l6-1M30.5 26l5 2.5';
   return '<svg class="frface" viewBox="0 0 40 40" aria-hidden="true"><g fill="none" stroke-linecap="round"><path d="' + gills + '" stroke="#171320" stroke-width="5.4"/><path d="' + gills + '" stroke="' + g + '" stroke-width="3"/></g><ellipse cx="20" cy="23.5" rx="13" ry="11.2" fill="' + p.hi + '" stroke="#171320" stroke-width="2.3"/><ellipse cx="15" cy="17.6" rx="4.6" ry="2.2" fill="#fff" opacity=".42"/><ellipse cx="15.2" cy="22.6" rx="1.9" ry="2.4" fill="#171320"/><ellipse cx="24.8" cy="22.6" rx="1.9" ry="2.4" fill="#171320"/><circle cx="14.6" cy="21.8" r=".7" fill="#fff"/><circle cx="24.2" cy="21.8" r=".7" fill="#fff"/><path d="M16.6 27.2q3.4 4.4 6.8 0z" fill="#5A0C1E" stroke="#171320" stroke-width="1.3" stroke-linejoin="round"/></svg>';
 }
 function frWhen(f) {
@@ -24861,13 +24923,13 @@ const hexCss6 = h => '#' + h.toString(16).padStart(6, '0').toUpperCase();
 function mkCol(hex) { const [L, C, H] = hexLch(hex); return { id: 'mix', hex, dry: lchHex(L * 0.6, C * 0.62, H), hi: hexCss6(lchHex(Math.min(0.94, L + 0.17), C * 0.72, H)), lo: hexCss6(lchHex(L * 0.68, C * 0.95, H)) }; }
 // (how far apart two colours have to be: a rival against you or another rival, and one 2v2 team against the other)
 const COL_SEP = 0.16, TEAM_SEP = 0.22;
-const RIVAL_COLS = [...PALETTE.map(p => ({ id: p.id, hex: p.hex, dry: p.dry, hi: p.hi, lo: p.lo })),
+const RIVAL_COLS = [...PALETTE.map(p => ({ id: p.id, hex: p.hex, dry: p.dry, hi: p.hi, lo: p.lo, floor: p.floor, noCpu: p.noCpu })), { id: 'orange', hex: 0xFF6A13, dry: 0x8A3A0E, hi: '#FFA463', lo: '#B5440A' },
   { id: 'blue', hex: 0x2E9BFF, dry: 0x1C5592, hi: '#7CC4FF', lo: '#1C5592', classic: 1 }, { id: 'violet', hex: 0x8E5CFF, dry: 0x46297F, hi: '#C4A8FF', lo: '#46297F', classic: 1 }, { id: 'teal', hex: 0x19C9A6, dry: 0x0E6B58, hi: '#7FE8D3', lo: '#0E6B58', classic: 1 }];
 const rivalColOf = id => RIVAL_COLS.find(c => c.id === id);
 let rivalCol = [null, rivalColOf('blue'), rivalColOf('violet'), rivalColOf('teal')], teamTint = false; // (each rival's own colour; teamTint: a match is on, so 2v2's team colours apply)
-function rollRivalCols() { const pool = RIVAL_COLS.slice(); for (const i of [1, 2, 3]) rivalCol[i] = pool.splice((Math.random() * pool.length) | 0, 1)[0]; }
+function rollRivalCols() { const pool = RIVAL_COLS.filter(c => !c.noCpu); for (const i of [1, 2, 3]) rivalCol[i] = pool.splice((Math.random() * pool.length) | 0, 1)[0]; }
 // a rival in your colour (or one too like it, or too like another rival's): the colour that stands furthest from all the others
-function standApart(c, taken, sep = COL_SEP) { if (taken.every(t => colDist(t, c.hex) >= sep)) return c; let best = c, bd = -1; for (const o of RIVAL_COLS) { const d = Math.min(...taken.map(t => colDist(t, o.hex))) + (o.classic ? 0.015 : 0); if (d > bd) { bd = d; best = o; } } return best; }
+function standApart(c, taken, sep = COL_SEP) { if (taken.every(t => colDist(t, c.hex) >= sep)) return c; let best = c, bd = -1; for (const o of RIVAL_COLS) { if (o.noCpu) continue; const d = Math.min(...taken.map(t => colDist(t, o.hex))) + (o.classic ? 0.015 : 0); if (d > bd) { bd = d; best = o; } } return best; }
 // two colours mixed the way paint looks mixed: halfway round the colour wheel, as rich as the richer of the two
 function mixCol(a, b) { if (a.hex === b.hex) return a; const [L1, C1, H1] = hexLch(a.hex), [L2, C2, H2] = hexLch(b.hex), d = Math.atan2(Math.sin(H2 - H1), Math.cos(H2 - H1)); return mkCol(lchHex(clamp((L1 + L2) / 2, 0.56, 0.8), Math.max(C1, C2) * 0.96, H1 + d / 2)); }
 // a 2v2 team's colour. Two people on one team (online, later) mix theirs; a team with a CPU on it wears its person's colour, and a team
@@ -24881,14 +24943,14 @@ function inkApply(c) {
   const css = hexCss6(c.hex);
   TEAMS[0].wet = c.hex; TEAMS[0].dry = c.dry; TEAMS[0].css = css; C.ink = c.hex;
   COL_INK.setHex(c.hex); TEAM_COLS[0].setHex(c.hex);
-  paintUniforms.uWetA.value[0].setHex(c.hex); paintUniforms.uDryA.value[0].setHex(c.dry);
+  paintUniforms.uWetA.value[0].setHex(c.floor || c.hex); paintUniforms.uDryA.value[0].setHex(c.dry); TEAMS[0].fl = c.floor || c.hex;
   teamMats[0].color.setHex(c.hex); splashMat.color.setHex(c.hex); xrayMat.color.setHex(c.hex); dropMat.color.setHex(c.hex);
   crownMats[0].color.setHex(c.hex); crownMats[0].emissive.setHex(c.hex).multiplyScalar(0.18);
   arrowMat.color.setHex(c.hex); puIconMat.color.setHex(c.hex); confMats[0].color.setHex(c.hex);
   CAN_INK_TOP.setHex(c.hex).multiplyScalar(0.86); CAN_EMPTY_TOP.setHex(c.hex).multiplyScalar(0.25);
   partPool(colMat(c.hex));
   const r = document.documentElement.style;
-  r.setProperty('--ink', css); edgeRGB(css, EDGE.ink); r.setProperty('--ink-hi', c.hi); r.setProperty('--ink-lo', c.lo); r.setProperty('--ink-rgb', [(c.hex >> 16) & 255, (c.hex >> 8) & 255, c.hex & 255].join(','));
+  { const u = c.ui || css, uh = parseInt(u.slice(1), 16); r.setProperty('--ink', u); edgeRGB(u, EDGE.ink); r.setProperty('--ink-hi', c.hi); r.setProperty('--ink-lo', c.lo); r.setProperty('--ink-rgb', [(uh >> 16) & 255, (uh >> 8) & 255, uh & 255].join(',')); }
 }
 function teamHues() {
   const mine = colorOf(), show = [mine];
@@ -24897,7 +24959,7 @@ function teamHues() {
   if (TEAMS[0].wet !== show[0].hex) inkApply(show[0]);
   const Ls = [null, LH, L2, L3];
   for (const i of [1, 2, 3]) { const t = show[i], L = Ls[i];
-    TEAMS[i].wet = t.hex; TEAMS[i].dry = t.dry; TEAMS[i].css = hexCss6(t.hex); TEAM_COLS[i].setHex(t.hex); paintUniforms.uWetA.value[i].setHex(t.hex); paintUniforms.uDryA.value[i].setHex(t.dry);
+    TEAMS[i].wet = t.hex; TEAMS[i].dry = t.dry; TEAMS[i].css = hexCss6(t.hex); TEAM_COLS[i].setHex(t.hex); paintUniforms.uWetA.value[i].setHex(t.floor || t.hex); TEAMS[i].fl = t.floor || t.hex; paintUniforms.uDryA.value[i].setHex(t.dry);
     teamMats[i].color.setHex(t.hex); crownMats[i].color.setHex(t.hex); crownMats[i].emissive.setHex(t.hex).multiplyScalar(0.18); L.col.setHex(t.hex); L.xrayMat.color.setHex(t.hex);
     const wc = new THREE.Color(t.hex).lerp(COL_WHITE, 0.5); L.warn.material.color.copy(wc); L.warnFill.material.color.copy(wc); if (L.warnBase) L.warnBase.copy(wc); partPool(colMat(t.hex)); }
   const r = document.documentElement.style; for (const [i, k] of [[1, 'holy'], [2, 'wolf'], [3, 'fox']]) { r.setProperty('--' + k, hexCss6(show[i].hex)); r.setProperty('--' + k + '-hi', show[i].hi); }
@@ -25414,6 +25476,7 @@ let warmQ = 0, bootWarm = false; const queueWarm = () => { clearTimeout(warmQ); 
   if (!HI) try { renderer.compile(scene, camera); } catch (e) {}
   [SLAM_R * GIANT_SLAM, MISSILE_R * 0.9, MISSILE_R * GIANT_SLAM * 0.9].forEach(R => { for (let i = 0; i < 3; i++) crownGeoFor(R); }); // impact crowns ready before the first one
 })();
+if (store.color === 'orange') store.color = 'grey'; // (v329)
 colorId = PALETTE.some(p => p.id === store.color) ? store.color : 'red'; renderSwatches(); if (store.seen && store.seen.look) $('lookBtn').classList.remove('hot'); setColor(colorId); applyMode(); if (ARENA !== 26.4) mapUsed = true; paintName();
 // ---------- onboarding ----------
 // Your first match is a lesson on the blank canvas: a coach's tips, the game slowed right down while one is up, the rival keeping its
@@ -26925,7 +26988,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     X.I.flutter && X.I.flutter(3); X.ch.pop = 1.4; snd('pop'); if (!X.stood) ripple(C0.x, C0.z, 0.5); move('proud');
   }
   function pickPaint(id) {
-    const c = PALETTE.find(p => p.id === id); if (!c) return; X.paintTo = new THREE.Color(c.hex); X.paintId = id; X.pearlTo = 0;
+    const c = PALETTE.find(p => p.id === id); if (!c) return; X.paintTo = new THREE.Color(c.hex); X.paintId = id; X.pearlTo = id === 'grey' ? 1 : 0; // (v329: the grey is the pearl)
     setColor(id); X.I.setColor && X.I.setColor(new THREE.Color(c.hex)); pressed('flPaintO', 'data-c', id); $('flPaintGo').disabled = false;
     // a splash of it: the puddle heaves and throws up a few drops
     const cx = C0.x, cz = C0.z;
@@ -26996,7 +27059,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     if (ph === 'sky') shot('sky', true);
     else if (ph === 'iris') { shot(look || 'eyes'); card('flIris'); AU.flm.layer(1); if (was === 'confirm') { move('look'); if (X.I && X.I.setExpression) X.I.setExpression('happy'); } }
     else if (ph === 'style') { shot(look || 'eyes'); card('flStyle'); AU.flm.layer(2); }
-    else if (ph === 'paint') { shot(look || 'paint'); card('flPaint'); AU.flm.layer(3); }
+    else if (ph === 'paint') { if (!X.paintId) { X.paintId = 'grey'; setColor('grey'); pressed('flPaintO', 'data-c', 'grey'); $('flPaintGo').disabled = false; } shot(look || 'paint'); card('flPaint'); AU.flm.layer(3); } // (v329: what you came up in, picked for you)
     else if (ph === 'form') { if (!X.paintId) pickPaint(colorId); card(null); AU.flm.layer(3); shot('form'); }
     else if (ph === 'name') { X.stood = true; shot('name'); card('flName'); const i = $('flNameIn'); if (!i.value) i.value = cleanName(store.name) || randomName(); i.dispatchEvent(new Event('input')); AU.flm.layer(4); }
     else if (ph === 'confirm') { shot('stood'); card('flAsk'); move('perk'); if (X.I && X.I.setExpression) X.I.setExpression('ready'); } // (v280: ready for action, not happy)
@@ -27304,7 +27367,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
   api.go = ph => go(ph); // (for tests: straight to a phase)
   api.move = (k, side) => { if (X) move(k, side); }; // (for tests: one of its moves, now)
   api._x = () => X; // (for tests: the scene itself)
-  api.peek = () => X ? { ph: X.ph, pt: X.pt, t: X.t, hit: X.hitIn || 0, lay: AU.flm ? AU.flm.lay : 0, drops: X.drop.length, tw: X.tw.n, twx: X.tw.on ? X.tw.x : null, dust: X.dust.P.length, calls: renderer.info.render.calls, tris: renderer.info.render.triangles } : null; // (for tests: where it's got to)
+  api.peek = () => X ? { ph: X.ph, pt: X.pt, t: X.t, hit: X.hitIn || 0, lay: AU.flm ? AU.flm.lay : 0, drops: X.drop.length, tw: X.tw.n, twx: X.tw.on ? X.tw.x : null, dust: X.dust.P.length, paintId: X.paintId || null, pearl: X.pearl, calls: renderer.info.render.calls, tris: renderer.info.render.triangles } : null; // (for tests: where it's got to)
   return api;
 })();
 applyOrient(); showMenu();
