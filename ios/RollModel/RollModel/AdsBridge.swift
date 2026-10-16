@@ -65,7 +65,9 @@ final class AdsBridge: NSObject, WKScriptMessageHandler {
     #endif
     private var loadedAt = Date.distantPast
     private var loading = false
+    private var loadGen = 0              // (bumped when the player turns out to be a child: a load already on its way is dropped)
     private var waiting: String?         // the player tapped for an ad and is waiting for one to load
+    private var waitingSince = Date.distantPast
     private var waitID = 0               // (which wait the 12-second limit belongs to)
     private var showing: String?         // the ad on screen now was for this
     private var earned = false
@@ -196,7 +198,8 @@ final class AdsBridge: NSObject, WKScriptMessageHandler {
         guard started else { return }
         configure()
         #if canImport(GoogleMobileAds)
-        ready = nil // (one loaded before isn't shown to a child)
+        ready = nil // (one loaded before isn't shown to a child, nor one still on its way)
+        loadGen += 1
         #endif
     }
 
@@ -216,10 +219,16 @@ final class AdsBridge: NSObject, WKScriptMessageHandler {
         guard started, !loading, !fresh else { return }
         ready = nil
         loading = true
+        let gen = loadGen
         RewardedAd.load(with: AdsBridge.unitID, request: GoogleMobileAds.Request()) { [weak self] loaded, error in
             onMain {
                 guard let self = self else { return }
                 self.loading = false
+                guard gen == self.loadGen else {
+                    // Asked for before the game said this player is a child: dropped, and asked for again if the player's waiting.
+                    if self.waiting != nil { self.load() }
+                    return
+                }
                 guard let loaded = loaded else {
                     if let place = self.waiting {
                         self.stopWaiting()
@@ -239,13 +248,17 @@ final class AdsBridge: NSObject, WKScriptMessageHandler {
     /// The player tapped to watch: the ad plays now if one is loaded, or as soon as one loads (up to 12 seconds).
     private func show(_ place: String) {
         #if canImport(GoogleMobileAds)
-        guard waiting == nil, showing == nil else {
+        let stale = waiting != nil && Date().timeIntervalSince(waitingSince) > 60
+        guard waiting == nil || stale, showing == nil else {
             send(["e": "fail", "p": place, "why": "busy"])
             return
         }
+        if stale { stopWaiting() }
         waiting = place
+        waitingSince = Date()
+        let id = waitID // (this wait's own: an answer for one given up on isn't taken for this one)
         prepare(asking: true) { [weak self] ok in
-            guard let self = self, self.waiting == place else { return }
+            guard let self = self, self.waitID == id, self.waiting == place else { return }
             guard ok else {
                 self.stopWaiting()
                 self.send(["e": "fail", "p": place, "why": "noads"])
@@ -255,7 +268,6 @@ final class AdsBridge: NSObject, WKScriptMessageHandler {
                 self.present(place)
                 return
             }
-            let id = self.waitID
             DispatchQueue.main.asyncAfter(deadline: .now() + 12) { [weak self] in
                 guard let self = self, self.waitID == id, self.waiting == place else { return }
                 self.stopWaiting()
@@ -362,6 +374,9 @@ extension AdsBridge: FullScreenContentDelegate {
         GameAudio.apply()
         send(["e": "close", "p": place, "earned": earned])
         webView?.evaluateJavaScript("window.dispatchEvent(new CustomEvent('nativeresume', { detail: { away: true } }));", completionHandler: nil)
+        // (and again just after, in case the SDK sets its own back once this callback is done)
+        DispatchQueue.main.async { GameAudio.apply() }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { GameAudio.apply() }
     }
 }
 #endif

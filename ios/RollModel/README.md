@@ -40,7 +40,7 @@ Since the player chooses to watch, the ad can be longer or interactive:
 ### Privacy and consent
 - **The EEA, the UK and Switzerland:** in AdMob, open **Privacy & messaging** and create a **European regulations** message for Roll Model. The game shows it the first time a player there asks for an ad, before the ad plays. Where Google says a player needs it, **Settings > Privacy Policy** gets an **Ad privacy choices** button.
 - **Children:** a player who said they're under 13 at the account form gets only child-safe ads, none of them personalised (Google's child age treatment), and no consent message. Every ad is capped at the **Parental Guidance** rating. You can block more ad categories in AdMob under **Blocking controls**.
-- The app doesn't ask to track players (no tracking prompt), so Google can't use the advertising identifier.
+- The app doesn't ask to track players (no tracking prompt), so Google can't use the advertising identifier. So in Privacy & messaging, **don't** add an **IDFA explainer** message: it leads into Apple's tracking prompt, which the app doesn't have (and would need a line in Info.plist to ask for).
 - **App Store Connect > App Privacy:** add what Google's ad SDK collects, besides what's already there. Google lists: **Coarse Location** (from the IP address), **Device ID**, **Product Interaction**, **Advertising Data**, **Crash Data**, **Performance Data** and **Other Diagnostic Data**, used for **Third-Party Advertising** and **Analytics**. Google's guide to answering these questions: developers.google.com/admob/ios/privacy/data-disclosure
 - The game's Privacy Policy (Settings) now says this too, and no longer says the game has no ads.
 

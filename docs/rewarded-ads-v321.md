@@ -20,7 +20,7 @@ The player chose to watch, so the ad unit can allow more than a normal ad. Both 
 
 ## Who sees what
 - **Every ad** is capped at the Parental Guidance content rating.
-- **A player who said they're under 13** at the account form (and hasn't made an account since) gets Google's child treatment: child-safe ads only, none personalised, and no consent message.
+- **A player who said they're under 13** at the account form (and hasn't made an account since) gets Google's child treatment: child-safe ads only, none personalised, and no consent message. An ad loaded or still loading from before is dropped, not shown.
 - **The EEA, the UK and Switzerland:** Google's consent message (set up in AdMob under Privacy & messaging) shows the first time a player there asks for an ad, before it plays. If Google says the player needs it, the Privacy Policy page gets an **Ad privacy choices** button.
 - **No tracking prompt:** the app doesn't ask to track players, so the advertising identifier isn't used.
 - **The Privacy Policy** in Settings has a new Ads section. It no longer says the game shows no ads.
@@ -48,4 +48,4 @@ In the preview build, upright and sideways, 19 checks, all passing:
   - The Ad privacy choices button appears when the app says it's needed, and opens Google's form.
 - **The lesson:** plain Skip with no line, and the Giant is done at once with no ad asked for.
 
-No page errors in any run. The Swift couldn't be built here (no Xcode on this machine). It was checked line by line against Google's current docs; the first build in Xcode is its real test.
+No page errors in any run. The Swift couldn't be built here (no Xcode on this machine). A second check went through it line by line against Google's current docs and the package listings, and found nothing that would stop the build. The first build in Xcode is its real test.
