@@ -4,7 +4,7 @@ The page is the release list + CQ below, not a test build. A first visit starts 
 intro and the lessons done), so Choose Event > Season Conquest is two taps away. The assets are game/'s own files, published beside it."""
 import os, subprocess, sys
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(os.path.dirname(HERE))
-CQ = ['cq01_conquest_restore']
+CQ = ['cq01_conquest_restore', 'cq02_level']
 out = sys.argv[1]; label = sys.argv[2] if len(sys.argv) > 2 else '335 + Conquest'
 base = os.environ.get('BASE') or sys.exit('BASE=<the v259 page> (git show 28d9d54:game/index.html)')
 subprocess.run([sys.executable, os.path.join(ROOT, 'tools', 'q260.py'), out], check=True, cwd=ROOT,

@@ -15,6 +15,7 @@ for (const s of (process.env.STEPS || '').split(' ~ ').filter(Boolean)) {
   if (k === 'e') console.log('ev', v.slice(0, 60), '=>', await ev(v).catch(e => 'ERR ' + e.message));
   else if (k === 'f') console.log('ff', v, await ev(`(() => { const R = renderFrame; renderFrame = () => {}; let t = last; try { for (let i = 0; i < ${+v} * 20; i++) { t += 50; frameBody(t); } } finally { renderFrame = R; last = performance.now(); } return state + ' ' + (CQB && CQB.boss ? CQB.boss.state : ''); })()`).catch(e => 'ERR ' + e.message));
   else if (k === 't') { const [x, y] = v.split(',').map(Number); await p.mouse.click(x, y); }
+  else if (k === 'p') { const [x, z, yaw] = v.split(',').map(Number); console.log('tp', v, await ev(`(() => { P.x = ${x}; P.z = ${z}; P.yaw = ${yaw}; P.y = Math.max(0, surfaceUnder(P.x, P.z, 12, true)); P.st = 'play'; P.pot = null; camYaw = ${yaw}; camSnap = true; return state; })()`).catch(e => 'ERR ' + e.message)); }
   else if (k === 'w') await p.waitForTimeout(+v);
   else if (k === 's') await shot(v);
   else if (k === 'c') await p.click(v).catch(e => console.log('click fail', v, e.message.slice(0, 80)));
