@@ -4650,7 +4650,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 336</p>
+      <p class="ver">Version 337</p>
     </div>
   </div>
 
@@ -21396,8 +21396,8 @@ function sgVis(dt) {
 function sgCamFit() {
   const r = SGD.rect, C = SGD.cam, asp = r.w / Math.max(1, r.h), fh = Math.max(40, r.h - SGD.insT - SGD.insB); C.aspect = asp; C.fov = 30;
   if (SGD.yawTo !== null) { SGD.yaw += (SGD.yawTo - SGD.yaw) * 0.18; if (Math.abs(SGD.yawTo - SGD.yaw) < 0.002) { SGD.yaw = SGD.yawTo; SGD.yawTo = null; } }
-  const dk = SGD.kind === 'dress' ? SGD.dk || 0 : 0, fz = dk ? SGD.fz || 0 : 0, ty = 0.2 + (0.26 + 0.12 * fz - 0.2) * dk, R0 = SG_R * 1.04, Rd = SG_R * LK_PAD * 1.04 * (1 - fz) + 0.74 * fz; // (v327: dress mode: the small pad whole, or your face)
-  const vt = Math.tan(C.fov * Math.PI / 360), ht = vt * asp, el = 0.48 + (0.38 - 0.1 * fz - 0.48) * dk, R = R0 + (Rd - R0) * dk, hc = 0.55 + (0.62 - 0.3 * fz - 0.55) * dk, dist = Math.max(R / (0.94 * ht), (R * Math.sin(el) + hc) / (0.9 * vt * fh / r.h)) * (1 + 0.14 * (SGD.zk || 0)), cy = Math.sin(el) * dist, cz = Math.cos(el) * dist;
+  const dk = SGD.kind === 'dress' ? SGD.dk || 0 : 0, fz = dk ? SGD.fz || 0 : 0, ty = 0.2 + (LK_TY + (0.38 - LK_TY) * fz - 0.2) * dk + (dk ? LK_HOPF * (SGD.A.D.ip.hop || 0) * dk * (1 - fz) : 0), R0 = SG_R * 1.04, Rd = SG_R * LK_PAD * 1.04 * (1 - fz) + 0.74 * fz; // (v327: dress mode: the small pad whole, or your face)
+  const vt = Math.tan(C.fov * Math.PI / 360), ht = vt * asp, el = 0.48 + (0.38 - 0.1 * fz - 0.48) * dk, R = R0 + (Rd - R0) * dk, hc = 0.55 + (0.62 - 0.3 * fz - 0.55) * dk, dist = Math.max(R / (0.94 * ht), (R * Math.sin(el) + hc) / (0.9 * vt * fh / r.h)) * (1 + 0.14 * (SGD.zk || 0)) / (1 + (LK_ZOOM - 1 + (LK_FZOOM - LK_ZOOM) * fz) * dk), cy = Math.sin(el) * dist, cz = Math.cos(el) * dist;
   C.position.set(SG_X + Math.sin(SGD.yaw) * cz, cy + ty, SG_Z + Math.cos(SGD.yaw) * cz); if (SGD.shk > 0 && !reduceMotion) { const a = SGD.shk * 0.09; C.position.x += (Math.random() - 0.5) * a; C.position.y += (Math.random() - 0.5) * a; C.position.z += (Math.random() - 0.5) * a; } C.up.set(0, 1, 0); C.lookAt(SG_X, ty + 0.3 * (SGD.zk || 0), SG_Z);
   C.setViewOffset(r.w, r.h, 0, -(SGD.insT - SGD.insB) / 2, r.w, r.h); C.updateProjectionMatrix(); C.updateMatrixWorld();
 }
@@ -22106,6 +22106,9 @@ function lkOn() { return menuPage === 'locker'; }
 const LK_CAT = { head: 'Headgear', face: 'Facial', cloth: 'Clothing', eyes: 'Eyes' };
 const LK_POP = { tophat: 'top', bowtie: 'bow' }; // (the piece a wearable is, where its name isn't the item's)
 const LK_PAD = 0.62; // (the pad in dress mode: a podium, this much of the demo's)
+// (v337) the dress view this much closer than one that fits the pad, aimed this high (the middle of you, a hat included); the
+// close-up on your face this much closer than before; it rises this much of a hop with you, so a hop stays in the window
+const LK_ZOOM = 2, LK_FZOOM = 1.7, LK_TY = 0.4, LK_HOPF = 0.6;
 const LK_PEN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l1-4.2L15.4 5.4a1.9 1.9 0 0 1 2.7 0l.5.5a1.9 1.9 0 0 1 0 2.7L8.7 18.5z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M13.6 7.2l3.2 3.2" stroke="currentColor" stroke-width="2.4"/></svg>';
 const lkItem = id => ITEMS.find(w => w.id === id);
 const lkWorn = w => w.slot === 'eyes' ? myLook.eyes === w.id : myLook[w.slot] === w.id;
