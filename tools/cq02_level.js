@@ -126,12 +126,12 @@ function cqlvKeepExtend() {
 }
 // the Aqueduct Run: one path, a stone causeway half a metre above a sea of slime, round the keep; off the path is the
 // slime, and the slime is death. Gaps to jump, a basin a leg (at the lane's edge, or on a ledge a hop off it)
-const CQL_RUN_PATH = [[0, -11], [0, -30], [-40, -30], [-40, 30], [40, 30], [40, -30], [57, -30]]; // (out of the south breach, round the keep, east to the gate)
+const CQL_RUN_PATH = [[0, -11], [0, -52], [-40, -52], [-40, 30], [40, 30], [40, -30], [57, -30]]; // (out of the south breach, round the keep, east to the gate)
 function cqlvRunLayout() {
   const H = 0.3, W = 4, boxes = [], leg = (x0, x1, z0, z1) => boxes.push([x0, x1, z0, z1, 0, H]);
-  leg(-W, W, -34, -16.5);                                   // out through the breach
-  leg(-44, 4, -34, -26);                                    // west along the south
-  leg(-44, -36, -34, -10); leg(-44, -36, -7, 8); leg(-44, -36, 11, 34);   // north up the west side (gaps at -8.5 and 9.5)
+  leg(-W, W, -41, -16.5); leg(-W, W, -56, -44);              // out through the breach: a 40 m straight, one gap to jump at -42.5
+  leg(-44, 4, -56, -48);                                    // west along the south
+  leg(-44, -36, -56, -10); leg(-44, -36, -7, 8); leg(-44, -36, 11, 34);   // north up the west side (gaps at -8.5 and 9.5)
   leg(-44, -20, 26, 34); leg(-17, 12, 26, 34); leg(15, 44, 26, 34);       // east along the north (gaps at -18.5 and 13.5)
   leg(36, 44, 12, 26); leg(36, 44, -12, 9); leg(36, 44, -34, -15);        // south down the east side (gaps at 10.5 and -13.5)
   leg(36, 60, -34, -26);                                    // east to the gate
@@ -152,7 +152,7 @@ Object.assign(CQL_SECS[1], { layout: cqlvPlazaLayout });
 function cqlvRunSetup() {
   const X = CQL.S;
   X.path = CQL_RUN_PATH; X.len = cqlvProg(X.path, 57, -30); X.front = -10; X.grace = CQLV.frontGrace; X.atkT = 5; X.atkN = 0; X.diveT = 9; X.jelT = 7; X.boss = { y: 3, low: 0 }; X.waves = []; X.run = true;
-  for (const [x, z, yaw] of [[-40, -30, 0], [-40, 30, Math.PI / 2], [40, 30, Math.PI], [40, -30, Math.PI / 2]]) cqlvBuoy(x, z, yaw, cqlvProg(X.path, x, z)); cqlvGate(57, -30, Math.PI / 2, 1);
+  for (const [x, z, yaw] of [[-40, -52, 0], [-40, 30, Math.PI / 2], [40, 30, Math.PI], [40, -30, Math.PI / 2]]) cqlvBuoy(x, z, yaw, cqlvProg(X.path, x, z)); cqlvGate(57, -30, Math.PI / 2, 1);
   const fr = new THREE.Mesh(new THREE.BoxGeometry(12, 9, 1.2), cqlvMat('front')); fr.position.y = 3; CQL.g.add(fr); X.frontM = fr; CQL.cp = { x: 0, z: -12, yaw: Math.PI, prog: 0 };
   X.boxes0 = BOXES.map(b => b.slice()); X.breaks = [];
 }
