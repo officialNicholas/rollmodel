@@ -1,8 +1,8 @@
 """sh02: a sculpted mustache and fuzzy antennae, made on Ludo.ai (an image of each, then image to 3D), in place of the tube-and-ball builds.
 
 - The models are in models/shop/ (the GLBs as they came, and their pack entries made with tools/glb2pack.py: 256px color maps). They
-  go in the page's wear pack beside the hockey mask, the bunny ears and the skull, and are drawn like them (their own color and
-  metal-rough maps; the smoothed-normal shell for the outline).
+  go in the page's wear pack beside the hockey mask, the bunny ears and the skull, and are drawn like them (their own maps, with
+  their normal maps added by tools/sh_nrm.py; the smoothed-normal shell for the outline).
 - The mustache: a full handlebar with hair grooves and curled tips (about 2,400 triangles). It's scaled to the old one's width and
   bent round to follow the face, and it keeps the old one's place under the nose (STACHE_FIT) and its tilt with the head.
 - The antennae: each one a smooth curved stalk on a little round base with a fuzzy pink pom-pom (about 1,400 triangles each), no
@@ -15,7 +15,8 @@ def rep(s, a, b, n=1):
 
 HERE = os.path.dirname(os.path.abspath(__file__)); M = os.path.join(os.path.dirname(HERE), 'models', 'shop')
 # how the new pieces fit (tuned on the character in the locker)
-STACHE = dict(s=0.74, bend=0.7, y=0.0, z=0.0)   # (scale from the model's unit width, how far the tips curve back to follow the face)
+STACHE_MAT = dict(col='0x6B3F22', nk=1.2)  # (its brown, how deep the grooves look)
+STACHE = dict(s=0.9, bend=0.7, y=0.0, z=0.0)   # (scale from the model's unit width, how far the tips curve back to follow the face)
 ANT = dict(h=0.66, ry=0.0)                      # (each antenna's height in the old piece's units, its turn about its stalk)
 
 def apply(s):
@@ -23,9 +24,10 @@ def apply(s):
     s = rep(s, '<script type="application/json" id="wearPack">{"skull":', '<script type="application/json" id="wearPack">{"stache":' + json.dumps(pk['stache'], separators=(',', ':')) + ',"antenna":' + json.dumps(pk['antenna'], separators=(',', ':')) + ',"skull":')
     s = rep(s, "for (const k of ['witch', 'pirate', 'top', 'bow', 'patch', 'tiara', 'glasses', 'hockey', 'bunny', 'skull'])", "for (const k of ['witch', 'pirate', 'top', 'bow', 'patch', 'tiara', 'glasses', 'hockey', 'bunny', 'skull', 'stache', 'antenna'])")
     s = rep(s, "// the patch and its strap: dark leather, a little sheen\n",
-        "if (WEAR_PACK && WEAR_PACK.stache) WEAR_AM.stache = assetMat(WEAR_PACK.stache, { clearcoat: 0.35, clearcoatRoughness: 0.3 }); // (sh02: the sculpted mustache)\n"
-        "if (WEAR_PACK && WEAR_PACK.antenna) WEAR_AM.antenna = assetMat(WEAR_PACK.antenna, { clearcoat: 0.3, clearcoatRoughness: 0.35 }); // (sh02: the fuzzy antennae)\n"
-        "// the patch and its strap: dark leather, a little sheen\n")
+        ("// (sh02) the mustache is one brown all over (its grooves are in its normal map); the antennae keep their own colors, with their fuzz in theirs\n"
+        "if (WEAR_PACK && WEAR_PACK.stache) WEAR_AM.stache = HI ? charMat(new THREE.MeshPhysicalMaterial({ color: %(col)s, normalMap: assetTex(WEAR_PACK.stache.nrm, false), normalScale: new THREE.Vector2(%(nk)s, %(nk)s), roughness: 0.5, metalness: 0, clearcoat: 0.35, clearcoatRoughness: 0.3, envMapIntensity: 1.1 })) : toon(%(col)s);\n"
+        "if (WEAR_PACK && WEAR_PACK.antenna) { WEAR_AM.antenna = assetMat(WEAR_PACK.antenna, { clearcoat: 0.3, clearcoatRoughness: 0.35 }); if (HI && WEAR_PACK.antenna.nrm) WEAR_AM.antenna.normalMap = assetTex(WEAR_PACK.antenna.nrm, false); }\n"
+        "// the patch and its strap: dark leather, a little sheen\n") % STACHE_MAT)
     # a packed piece brings its own outline shell (smoothed normals)
     s = rep(s, "const m = new THREE.Mesh(geo, mat), o = new THREE.Mesh(geo, inkMat);", "const m = new THREE.Mesh(geo, mat), o = new THREE.Mesh(geo.userData.ink || geo, inkMat);")
     # (the packed positions are shared by the model and its shell, so reshaping them once reshapes both)
