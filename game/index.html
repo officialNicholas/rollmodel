@@ -3742,6 +3742,10 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 .ttneed{font-style:italic}
 .ttfoot{display:flex;align-items:center;justify-content:center;gap:6px;margin:2px 0 0 -10px;font:700 12.5px/1 var(--font-ui);color:#5E566E}
 .ttfoot svg{width:16px;height:16px}.ttfoot b{color:var(--black)}
+/* (v351) Game Center's own view of this canvas's leaderboard (the iPhone app, once the leaderboard exists) */
+.ttgc{appearance:none;position:relative;margin-left:10px;padding:7px 12px;border:0;border-radius:999px;background:#171320;color:#fff;font:800 12px/1 var(--font-ui);letter-spacing:.01em;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ttgc::after{content:"";position:absolute;inset:-9px -6px}
+.ttgc:active{transform:translateY(1px)}
 @media (min-aspect-ratio:1/1) and (max-height:600px){.ttcard{padding-top:16px;gap:7px}.ttrow{min-height:36px}.tthd h3{font-size:20px}}
 @media (prefers-reduced-motion:reduce){.ttcard{animation:none}.tttabs button{transition:none}}
 /* (v305) Friends: the same taped notebook sheet as the leaderboard */
@@ -3954,10 +3958,16 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 img,svg{-webkit-user-drag:none}
 /* (v350) the iPhone app: no test unlocks unless it was run from Xcode (the browser keeps them) */
 html.appstore .ucode{display:none!important}
+/* (v351) nor error lines on screen or in Settings (they're still kept, for an Xcode build) */
+html.appstore #errLine,html.appstore #lastErr{display:none!important}
 /* (v349) Delete account: a link at the foot of Settings beside Restart Game; it asks first in a card of its own over Settings, Keep it to
    the fore and Delete for good under it in red */
 #setModal .sfoot .sfacts{display:flex;flex-wrap:wrap;align-items:center;gap:4px 18px;min-width:0}
 #delModal{z-index:13}
+/* (v351) Get a nudge? (the first long craft, in the iPhone app) */
+#noteModal{z-index:13}
+#noteModal .card{width:min(100%,360px)}
+#noteModal .cnote b{font-weight:900;color:inherit}
 #delModal .card{width:min(100%,380px)}
 #delModal .cnote b{font-weight:900;color:inherit}
 #delModal .delerr{margin:0;color:#C93A4C}
@@ -4683,7 +4693,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 350</p>
+      <p class="ver">Version 351</p>
     </div>
   </div>
 
@@ -4722,6 +4732,15 @@ i.ptwait>*{display:none}
       <p class="cnote delerr" id="delErr" role="alert"></p>
       <button class="btn play sm" id="delNo" type="button">Keep it</button>
       <button class="btn delyes" id="delYes" type="button">Delete for good</button>
+    </div>
+  </div>
+
+  <div class="modal" id="noteModal" hidden>
+    <div class="card" role="dialog" aria-modal="true" aria-labelledby="noteTitle" aria-describedby="noteNote">
+      <h2 class="ctitle" id="noteTitle">Get a nudge?</h2>
+      <p class="cnote" id="noteNote"></p>
+      <button class="btn play sm" id="noteYes" type="button">Nudge me</button>
+      <button class="btn" id="noteNo" type="button">Not now</button>
     </div>
   </div>
 
@@ -4813,7 +4832,7 @@ i.ptwait>*{display:none}
     <div class="ttstage"><button class="ttarr" id="ttPrev" type="button" aria-label="Previous canvas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5.5 8.5 12 15 18.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button><b class="ttplq" id="ttStage" aria-live="polite">Blank Canvas</b><button class="ttarr" id="ttNext" type="button" aria-label="Next canvas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5.5 15.5 12 9 18.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
     <div class="tttabs" role="tablist" aria-label="Whose times"><button type="button" role="tab" data-tt="you" aria-selected="true">You</button><button type="button" role="tab" data-tt="friends" aria-selected="false">Friends<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.4" fill="currentColor"/><path d="M8.2 10.5V8a3.8 3.8 0 0 1 7.6 0v2.5" fill="none" stroke="currentColor" stroke-width="2.4"/></svg></button><button type="button" role="tab" data-tt="global" aria-selected="false">Global<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.4" fill="currentColor"/><path d="M8.2 10.5V8a3.8 3.8 0 0 1 7.6 0v2.5" fill="none" stroke="currentColor" stroke-width="2.4"/></svg></button></div>
     <div class="ttbody" id="ttBody" role="tabpanel"></div>
-    <p class="ttfoot"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.6" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M12 7.4V12l3.2 2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span>New week in <b id="ttLeft">7d</b></span></p>
+    <p class="ttfoot"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.6" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M12 7.4V12l3.2 2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span>New week in <b id="ttLeft">7d</b></span><button class="ttgc" id="ttGc" type="button" hidden>Game Center</button></p>
   </div></div>
   <div class="modal" id="statsModal" hidden>
     <div class="card" role="dialog" aria-modal="true" aria-labelledby="statsTitle">
@@ -5560,6 +5579,10 @@ const smoothstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); retu
 const inR = (x, z, r, m) => (m = m || 0, r[6] === 'c' ? (x - (r[0] + r[1]) * 0.5) ** 2 + (z - (r[2] + r[3]) * 0.5) ** 2 < Math.max(0, (r[1] - r[0]) * 0.5 + m) ** 2 : x > r[0] - m && x < r[1] + m && z > r[2] - m && z < r[3] + m);
 const rampH = (r, x, z) => { const t = r[4] === 'x' ? (x - r[0]) / (r[1] - r[0]) : (z - r[2]) / (r[3] - r[2]); return r[5] + (r[6] - r[5]) * clamp(t, 0, 1); };
 const buzz = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
+// (v351) a moment named the way iOS names it: "success" (a win, a purchase, a reward), "error" (it didn't work), "select" (a choice
+// changed). The iPhone app plays iOS's own feel for each; a browser gets a short buzz
+const HAP_WEB = { success: [12, 50, 18], warning: [20, 40, 20], error: [26, 40, 26, 40, 26], select: 5 };
+const hap = k => { try { const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.haptic; if (h) { h.postMessage(k); return; } } catch (e) {} buzz(HAP_WEB[k] || 8); };
 
 // ---------- stage queries ----------
 // a coarse grid over the stage: each cell lists the boxes, ramps and holes within reach of it, so a point query checks a handful
@@ -5644,6 +5667,11 @@ const NATIVE = window.__NATIVE || null;
 // (v350) the iPhone app: no test unlocks unless it was run from Xcode (the shell's tester). TestFlight goes without, as App Review
 // installs look just like TestFlight ones. A browser keeps them
 if (NATIVE && NATIVE.platform === 'ios' && !NATIVE.tester) document.documentElement.classList.add('appstore');
+const APPSTORE = document.documentElement.classList.contains('appstore');
+// (v351) game sound mixes with the player's own music and follows the ring/silent switch, as iOS games do (the app asks the same)
+try { if (navigator.audioSession) navigator.audioSession.type = 'ambient'; } catch (e) {}
+// (v351) no long-press menu, but in text boxes
+document.addEventListener('contextmenu', e => { if (!(e.target && e.target.closest && e.target.closest('input, textarea'))) e.preventDefault(); });
 const nativeSay = (name, body) => { try { const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers[name]; if (h) { h.postMessage(body); return true; } if (window.RollNative && window.RollNative.post) { window.RollNative.post(name, JSON.stringify(body)); return true; } } catch (e) {} return false; };
 const DEV_TIER = NATIVE && typeof NATIVE.tier === 'number' ? NATIVE.tier : MOBILE ? 2 : 3;
 // the visuals: what was picked in Settings, or (until then) what suits this device
@@ -17387,7 +17415,7 @@ function endMatch() {
   const key = mode === 'duel' ? '' : mode; // a best and a win count per mode (and per skill, against CPUs)
   store.wins = store.wins || {}; store.played = store.played || {}; store.bestCov = store.bestCov || {};
   const slot = NM ? 'online' : mode === 'solo' ? 'solo' : key + diff, prev = mode === 'solo' ? ttBest(TH.id) : store.bestCov[slot] || 0, newBest = ry > prev; endInfo.best = Math.max(prev, ry); endInfo.prevBest = prev;
-  if (mode === 'solo') { endInfo.sid = TH.id; endInfo.tt = ttAdd(TH.id, ry); frTrial(TH.id, ry); } // (v293: on this week's board for the canvas)
+  if (mode === 'solo') { endInfo.sid = TH.id; endInfo.tt = ttAdd(TH.id, ry); frTrial(TH.id, ry); gcScore(TH.id, ry); } // (v293: on this week's board for the canvas)
   store.played[slot] = (store.played[slot] || 0) + 1; if (win > 0 && mode !== 'solo') store.wins[slot] = (store.wins[slot] || 0) + 1;
   store.runs = (store.runs || 0) + 1; if (store.itemIn > 0) store.itemIn--;
   if (mode !== 'solo') { store.kos = (store.kos || 0) + (P.kos | 0); store.outs = (store.outs || 0) + (P.outs | 0); } // (v342: for Stats' K/D)
@@ -20736,7 +20764,7 @@ function commClaim(id, btn) {
   const c = commState(); if (!c.done.includes(id) || c.claimed.includes(id)) return;
   c.claimed.push(id); const from = store.drops || 0; store.drops = from + COMM_DABS; store.xp = (store.xp || 0) + COMM_XP; save();
   const card = btn.closest('.comm'); btn.disabled = true; btn.classList.add('took'); btn.innerHTML = '<span>' + COMM_CHECK + 'Claimed</span>';
-  AU.xplay('coins', { v: 0.8 }) || AU.power(); buzz([12, 40, 12]);
+  AU.xplay('coins', { v: 0.8 }) || AU.power(); hap('success');
   commXp(btn); commCoins(btn, from, store.drops); commBadgePaint();
   setTimeout(() => { if (card.isConnected) { card.classList.remove('claim'); card.classList.add('got'); btn.remove(); } }, 1350); // (the button folds away; the card is a finished one)
 }
@@ -20801,9 +20829,9 @@ const strokeOwned = id => strokesOf().own.includes(id), strokeSpecial = () => { 
 const strokesOpen = () => menuPage === 'strokes', strokesDue = () => repOf(store.xp || 0).lv >= ABIL_RANK; // (the page opens at rank 3)
 let stTick = 0, stToastT = 0;
 function craftLeft() { const c = strokesOf().craft; return c ? Math.max(0, c.end - Date.now()) : 0; }
-function craftTick() { const d = strokesOf(), c = d.craft; if (!c) return false; if (craftLeft() > 0) return true; d.craft = null; if (!d.own.includes(c.id)) d.own.push(c.id); d.fresh = c.id; save(); AU.fanfare && AU.fanfare(); return false; }
-function craftStart(id) { const d = strokesOf(), sp = stDef(id); if (!sp || !sp.craft || d.craft || d.own.includes(id)) return; d.craft = { id, end: Date.now() + sp.craft * 60000 }; save(); AU.pop(); buzz(10); renderStrokes(); adWarm(); }
-function craftSkip() { const d = strokesOf(); if (!d.craft) return; const id = d.craft.id; d.craft.end = Date.now(); craftTick(); AU.ui(); buzz([10, 30, 10]); renderStrokes(); stToast(stReady(id)); }
+function craftTick() { const d = strokesOf(), c = d.craft; if (!c) return false; if (craftLeft() > 0) return true; d.craft = null; if (!d.own.includes(c.id)) d.own.push(c.id); d.fresh = c.id; save(); AU.fanfare && AU.fanfare(); craftDoneNative(); return false; }
+function craftStart(id) { const d = strokesOf(), sp = stDef(id); if (!sp || !sp.craft || d.craft || d.own.includes(id)) return; d.craft = { id, end: Date.now() + sp.craft * 60000 }; save(); AU.pop(); buzz(10); renderStrokes(); adWarm(); noteSync(); noteOffer(id); }
+function craftSkip() { const d = strokesOf(); if (!d.craft) return; const id = d.craft.id; d.craft.end = Date.now(); craftTick(); AU.ui(); renderStrokes(); stToast(stReady(id)); } // (v351: craftTick gives the success feel)
 // (v321) a rewarded ad speeds up crafting. In the app, Skip on a stroke being crafted plays a rewarded ad (AdsBridge.swift: Google
 // AdMob) and the craft finishes once the ad says it was watched; (v340: the lesson's too, which finishes anyway if no ad can come). The page asks
 // through nativeSay('ads', ...) and hears back on a "nativead" event: open, reward, close, fail, and state (whether Google wants the
@@ -20822,13 +20850,16 @@ function craftSkipAsk() {
   if (adFree()) return craftSkip();
   if (ADS.id) { if (ADS.mode === 'app' && !ADS.open) adWaitShow(); return; } // (one at a time: tapped again, the wait shows)
   ADS.id = d.craft.id; ADS.earned = false; ADS.open = false; AU.ui(); buzz(6); sgSkipPaint();
-  clearTimeout(ADS.t); ADS.t = setTimeout(() => adFail('slow', true), AD_WAIT_MS + 15000); // (the app answers well before this: it's in case it never does)
+  clearTimeout(ADS.t); ADS.t = setTimeout(() => { if (ADS.mode === 'app') nativeSay('ads', { cancel: true }); adFail('slow', true); }, AD_WAIT_MS + 15000); // (the app answers well before this: it's in case it never does; v351: and the app stops waiting too)
   if (ADS.mode !== 'app') return adStandIn();
   ADW.t0 = performance.now(); ADW.tries = 1; clearTimeout(ADW.rt); clearTimeout(ADW.popT); // (v335: an ad that's ready opens before the card would come up)
   if (!$('adWait').hidden) adWaitShow(); else ADW.popT = setTimeout(adWaitShow, 450);
   nativeSay('ads', { show: 'craft', kid: adKid() });
 }
 window.addEventListener('nativead', e => adOn((e && e.detail) || {}));
+// (v351) a choice changing gives the light tick of a picker: Settings' switches, the difficulty, the tabs, the shop's filters, a paint
+document.addEventListener('click', e => { const b = e.target && e.target.closest && e.target.closest('.seg button, [role="tab"], .lkchip, .sw');
+  if (b && !b.disabled && b.getAttribute('aria-pressed') !== 'true' && b.getAttribute('aria-selected') !== 'true') hap('select'); }, true);
 function adOn(m) {
   if (m.e === 'state') { ADS.privacy = !!m.privacy; return adPrivPaint(); }
   if (m.p && m.p !== 'craft') return;
@@ -20839,7 +20870,8 @@ function adOn(m) {
 }
 // the reward: the craft's done now (kept, in case the app is closed mid-ad), and shown off when the ad closes
 function adReward() {
-  if (!ADS.id) return; ADS.earned = true; const d = store.strokes;
+  if (!ADS.id) { const d = store.strokes; ADS.id = d && d.craft ? d.craft.id : null; if (!ADS.id) return; } // (v351: a page started over under the ad)
+  ADS.earned = true; const d = store.strokes;
   if (d && d.craft && d.craft.id === ADS.id) { d.craft.end = Math.min(d.craft.end, Date.now()); save(); }
   if (!ADS.open && !ADS.ct) adPayoff();
 }
@@ -20858,6 +20890,31 @@ function adFail(why, last) {
   if (adLesson()) { adWaitHide(); craftSkip(); return stToast((why === 'offline' ? 'You’re offline' : 'No ad right now') + ', so this one’s on Ol’ Bloop'); } // (v340: the lesson never gets stuck)
   AU.nope && AU.nope(); if (ADS.mode === 'app') adWaitFail(why); else stToast(why === 'offline' ? 'You’re offline: connect to watch the ad' : 'No ad to show right now. Try again soon');
 }
+// ---------- (v351) a nudge when a craft is done: a notification from the iPhone app (NotifyBridge.swift). The first craft long enough
+// for one asks first in the game's own card, and only a yes brings up iOS's permission prompt. Once allowed, each craft schedules
+// one for when it's done, called off when it's finished in the game first ----------
+const NOTE = { status: '' };
+const noteApp = () => !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.notify);
+window.addEventListener('nativenotify', e => { const d = (e && e.detail) || {}; if (d.status) { NOTE.status = d.status; noteSync(); } });
+function noteSync() { try {
+  if (!noteApp() || NOTE.status !== 'allowed') return; const c = (store.strokes || {}).craft;
+  if (c && c.end - Date.now() > 60000) nativeSay('notify', { id: 'craft', at: c.end, title: stReady(c.id), body: 'Crafting’s done. Come and try it out.' });
+  else nativeSay('notify', { cancel: 'craft' });
+} catch (e) {} }
+// a craft done in the game: the success feel if the Abilities page is up to show it, and its nudge called off
+function craftDoneNative() { try { if (strokesOpen()) hap('success'); noteSync(); } catch (e) {} }
+function noteOffer(id) { try {
+  if (!noteApp() || NOTE.status !== 'ask' || store.noteAsked || tutPh() !== 'done' || (store.tut && store.tut.strokes === 'on') || craftLeft() < 60000) return;
+  store.noteAsked = 1; save();
+  setTimeout(() => { if (state !== 'menu' || !strokesOpen()) return; $('noteNote').innerHTML = 'Get a nudge when ' + (stIsSkill(id) ? '' : 'the ') + '<b>' + frEsc(spName(id)) + '</b> is ready, even with the game closed? Only when something you’re crafting is done.';
+    $('noteModal').hidden = false; setTimeout(() => $('noteYes').focus({ preventScroll: true }), 30); }, 700);
+} catch (e) {} }
+function noteClose() { const m = $('noteModal'); if (m.hidden) return; m.hidden = true; }
+$('noteYes').addEventListener('click', () => { AU.init(); AU.ui(); noteClose(); nativeSay('notify', { ask: true }); });
+$('noteNo').addEventListener('click', () => { AU.init(); AU.ui(); noteClose(); });
+$('noteModal').addEventListener('click', e => { if (e.target === $('noteModal')) noteClose(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('noteModal').hidden) { e.preventDefault(); e.stopPropagation(); noteClose(); } }, true);
+if (noteApp()) nativeSay('notify', { status: true });
 // ---------- (v335) the ad on its way. The app readies an ad as the Abilities page opens (and again once one's been watched), so Skip
 // plays one at once. Tapped before it's ready, a card waits for it: the ad plays the moment it loads (over the card); while it's slow
 // the game asks again (one that turns up late is kept for this), up to AD_WAIT_MS; Cancel tells the app to stop waiting. If none
@@ -20872,7 +20929,7 @@ function adWaitShow() {
 }
 function adWaitHide() { clearTimeout(ADW.popT); clearTimeout(ADW.rt); ADW.popT = ADW.rt = 0; $('adWait').hidden = true; }
 function adWaitFail(why) {
-  clearTimeout(ADW.popT); clearTimeout(ADW.rt); ADW.popT = ADW.rt = 0; const w = $('adWait'), t = AD_WHY[why] || AD_WHY.noads;
+  clearTimeout(ADW.popT); clearTimeout(ADW.rt); ADW.popT = ADW.rt = 0; const w = $('adWait'), t = AD_WHY[why] || AD_WHY.noads; hap('error');
   w.classList.add('fail'); $('adWaitH').textContent = t[0]; $('adWaitP').textContent = t[1]; $('adWaitGo').hidden = false; $('adWaitNo').textContent = 'Close';
   w.hidden = false; setTimeout(() => { if (!w.hidden) $('adWaitGo').focus({ preventScroll: true }); }, 40);
 }
@@ -21615,7 +21672,7 @@ gallery.addEventListener('click', e => {
   if (t.dataset.s === 'next') { AU.init(); AU.nope(); t.classList.remove('nudge'); void t.offsetWidth; t.classList.add('nudge'); centerWorld(t, true); return; }
   centerWorld(t, true); selectWorld(t.dataset.s); renderWorlds();
 });
-gallery.addEventListener('scroll', () => { if (galT) return; galT = requestAnimationFrame(() => { galT = 0; const b = worldAt(); if (b && b.dataset.s !== 'next' && b.dataset.s !== stageSel) selectWorld(b.dataset.s); else renderGo(); }); }, { passive: true });
+gallery.addEventListener('scroll', () => { if (galT) return; galT = requestAnimationFrame(() => { galT = 0; const b = worldAt(); if (b && b.dataset.s !== 'next' && b.dataset.s !== stageSel) { hap('select'); selectWorld(b.dataset.s); } else renderGo(); }); }, { passive: true });
 let worldDirty = false;
 function worldBuild(s) { if (state !== 'menu') return; if (menuPage === 'worlds') { worldDirty = true; return; } setTimeout(() => { if (state !== 'menu' || building || (s && stageSel !== s)) return; freshMap(); resetRun(); decorate(); menuPose(); renderStages(); kick($('cvName'), 'bump'); }, 40); }
 function openWorlds() {
@@ -21645,7 +21702,7 @@ function closeWorlds() {
   setTimeout(() => $('homePlay').focus({ preventScroll: true }), 30);
   if (evFrom) { evFrom = false; openEvents(); } // (picked from the events: back to them)
 }
-$('gPrev').addEventListener('click', () => { AU.init(); stepWorld(-1); }); $('gNext').addEventListener('click', () => { AU.init(); stepWorld(1); });
+$('gPrev').addEventListener('click', () => { AU.init(); hap('select'); stepWorld(-1); }); $('gNext').addEventListener('click', () => { AU.init(); hap('select'); stepWorld(1); });
 function stepWorld(dir) { const open = worldBtns.filter(b => b.dataset.s !== 'next'), i = open.findIndex(b => b.dataset.s === stageSel), b = open[clamp(i + dir, 0, open.length - 1)]; if (b) { centerWorld(b, true); selectWorld(b.dataset.s); renderWorlds(); } }
 $('homePlay').addEventListener('click', () => { AU.init(); if (state !== 'menu' || building || lookOpen || shopOpen || lkOn()) return; AU.pop(); if (tutMatchDue()) start(); else openEvents(); });
 $('stageBtn').addEventListener('click', () => { AU.init(); AU.ui(); openWorlds(); });
@@ -22307,10 +22364,10 @@ function lkFreshOff(id) { if (store.fresh && store.fresh.includes(id)) { store.f
 function lkPutOn(w) { Object.assign(myLook, lkWith(myLook, w)); lkFreshOff(w.id); saveLook(); LKR.prev = null; lkDress(); sgDressReact(w); }
 // buying the one you're trying on: paid for, and it stays on
 function lkBuy(w) {
-  if (!owns(w.id) && needFind(w)) { AU.nope(); kick($('lkDo'), 'nope'); lkToast('Find it on ' + WEAR_WHERE[w.stage] + ' first'); return; }
-  const p = PRICE(w); if (!buyItem(w.id)) { AU.nope(); kick($('lkDo'), 'nope'); lkToast('You need ' + Math.max(1, p - (store.drops || 0)) + ' more dabs'); return; }
+  if (!owns(w.id) && needFind(w)) { AU.nope(); hap('error'); kick($('lkDo'), 'nope'); lkToast('Find it on ' + WEAR_WHERE[w.stage] + ' first'); return; }
+  const p = PRICE(w); if (!buyItem(w.id)) { AU.nope(); hap('error'); kick($('lkDo'), 'nope'); lkToast('You need ' + Math.max(1, p - (store.drops || 0)) + ' more dabs'); return; }
   LKR.got.add(w.id); Object.assign(myLook, lkWith(myLook, w)); lkFreshOff(w.id); saveLook(); LKR.prev = null; lkDress();
-  AU.power(); buzz([12, 30, 18]); showDrops(); kick($('lkCoin'), 'bump'); sgDressCheer(); lkToast('Bought! It’s in your locker');
+  AU.power(); hap('success'); showDrops(); kick($('lkCoin'), 'bump'); sgDressCheer(); lkToast('Bought! It’s in your locker');
   lkRender(); lkKick('w:' + w.id);
 }
 // a pick in the panel
@@ -23093,7 +23150,7 @@ function ttRender() {
       + '<ol class="ttprize" aria-label="Prizes for the week’s top three">' + P3.map((v, i) => '<li class="r' + (i + 1) + '"><i>' + ttOrd(i + 1) + '</i><b>' + v + '</b>' + '<svg class="ttdab" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.6" fill="#F2C14E" stroke="#171320" stroke-width="2.6"/><circle cx="20" cy="20" r="14.4" fill="#C98E22"/><circle cx="20" cy="20.6" r="12.8" fill="#EDB43F"/><path class="dabk" transform="scale(2)" d="M10 5.2c.9 0 1.3 1.1 2 1.5 1 .5 2.2-.3 2.6.7.4 1-.9 1.6-.9 2.6s1.2 1.6.7 2.5c-.5.9-1.6.2-2.5.6-.8.4-1 1.7-1.9 1.7s-1.1-1.3-2-1.7c-.9-.4-2 .3-2.5-.6s.7-1.5.7-2.5-1.3-1.6-.9-2.6c.4-1 1.6-.2 2.6-.7.7-.4 1.1-1.5 2.1-1.5z" stroke="#171320" stroke-width=".85"/><path d="M8.6 14.2a13 13 0 0 1 7.6-6.6" fill="none" stroke="#FFF1BF" stroke-width="2.2" stroke-linecap="round" opacity=".85"/></svg>' + '<span>dabs</span></li>').join('') + '</ol>'
       + (ttTab === 'friends' ? '<p class="ttneed">Needs ' + TT_FRIENDS_MIN + ' friends or more on the board to pay out.</p>' : '<p class="ttneed">Paid out when the week turns.</p>') + '</div>';
   }
-  $('ttBody').innerHTML = h;
+  $('ttBody').innerHTML = h; gcPaint();
 }
 function openTT(sid, hiT) {
   ttSel = TT_STAGES.includes(sid) ? sid : ttSid(); ttTab = 'you'; ttHi = hiT || 0; const m = $('ttModal'), was = m.hidden; m.hidden = false; ttRender(); AU.ui(); buzz(6);
@@ -23103,6 +23160,16 @@ function openTT(sid, hiT) {
 }
 function closeTT() { const m = $('ttModal'); if (m.hidden) return; m.hidden = true; clearInterval(ttTick); AU.ui(); const s = $('ttStrip'); if (s && !s.hidden) s.focus({ preventScroll: true }); }
 $('ttStrip').addEventListener('click', () => { AU.init(); openTT(ttSid()); });
+// (v351) Game Center (GameCenterBridge.swift): the player's signed in from the lobby once the first lesson's done (never mid-match); a
+// Time trial's score goes on its canvas's leaderboard (rm.trial. and the canvas's id), and the board gets a Game Center button once
+// that leaderboard exists (made in App Store Connect)
+const GC = { asked: false, on: false, boards: [] }, gcBoard = sid => 'rm.trial.' + sid;
+const gcApp = () => !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.gamecenter);
+window.addEventListener('nativegc', e => { const d = (e && e.detail) || {}; GC.on = !!d.signedIn; GC.boards = Array.isArray(d.boards) ? d.boards : []; gcPaint(); });
+if (gcApp()) { const iv = setInterval(() => { if (GC.asked) return clearInterval(iv); if (state === 'menu' && lobbyOn() && !irisBusy && tutPh() === 'done') { GC.asked = true; clearInterval(iv); nativeSay('gamecenter', { start: true }); } }, 2500); }
+function gcScore(sid, p) { if (GC.on) nativeSay('gamecenter', { board: gcBoard(sid), score: Math.max(0, Math.round(p)) }); }
+function gcPaint() { try { const b = $('ttGc'); if (b) b.hidden = !(GC.on && ttSel && GC.boards.includes(gcBoard(ttSel))); } catch (e) {} }
+$('ttGc').addEventListener('click', () => { AU.init(); AU.ui(); if (GC.on && ttSel) nativeSay('gamecenter', { show: gcBoard(ttSel) }); });
 $('ttX').addEventListener('click', closeTT);
 $('ttModal').addEventListener('click', e => { if (e.target === $('ttModal')) closeTT(); });
 $('ttPrev').addEventListener('click', () => { const i = TT_STAGES.indexOf(ttSel); ttSel = TT_STAGES[(i - 1 + TT_STAGES.length) % TT_STAGES.length]; AU.ui(); ttRender(); kick($('ttStage'), 'bump'); });
@@ -24803,6 +24870,7 @@ function showEnd(img) {
   $('endWord').textContent = word; t.className = 'rtitle' + (solo ? (info.newBest ? '' : ' lose') : info.win < 0 ? ' lose' : info.win === 0 ? ' draw' : '');
   t.setAttribute('aria-label', solo ? word : info.win > 0 ? 'Victory! You win' : info.win < 0 ? 'Defeat. ' + nameOf(info.winner) + ' wins' : 'Draw');
   paintName(); showRep(info);
+  if (solo ? info.newBest : info.win > 0) setTimeout(() => hap('success'), 420); // (v351: as the verdict lands)
   const PT_B = ['in ' + w[0] + ' and Blue', 'in ' + w[1], 'in Two Colors', 'for One Blob', 'in Light and ' + w[2], 'in ' + w[2]];
   $('pTitle').textContent = PT_A[(n * 7) % PT_A.length] + ' ' + PT_B[(n * 3) % PT_B.length] + ', No. ' + n;
   $('pMeta').textContent = TH.label + ', ' + fmtTime(info.time); $('gpT').textContent = $('pTitle').textContent; $('gpM').textContent = 'Paint on canvas. ' + TH.label + ', ' + fmtTime(info.time);
@@ -24992,7 +25060,18 @@ $('startBtn').addEventListener('click', uiClick(() => { if (!store.name) openNam
 $('shuffleBtn').addEventListener('click', uiClick(shuffleCanvas));
 $('endBtn').addEventListener('click', uiClick(rematchVote));
 $('replayBtn').addEventListener('click', uiClick(replay));
-$('menuBtn').addEventListener('click', uiClick(toMenu));
+$('menuBtn').addEventListener('click', uiClick(() => { const won = !!(endInfo && endInfo.win > 0 && endInfo.mode !== 'solo'); toMenu(); if (won) reviewAfterWin(); }));
+// (v351) the App Store's rating prompt, at a good moment: back in the lobby from a win, once the player has 3 wins and 8 matches, once
+// per game build. iOS decides whether it shows (at most three times a year; never in TestFlight)
+const verTag = () => { const m = /(\d+)\)?\s*$/.exec(((document.querySelector('p.ver') || {}).textContent || '').trim()); return m ? m[1] : ''; };
+function reviewAfterWin() {
+  if (!NATIVE || NATIVE.platform !== 'ios' || tutPh() !== 'done') return;
+  const wins = Object.values(store.wins || {}).reduce((a, b) => a + (+b || 0), 0), v = verTag();
+  if (wins < 3 || (store.runs | 0) < 8 || !v || store.revAsk === v) return;
+  // (once the lobby's calm: back from the match, no card or transition up; it gives up after 10 seconds)
+  let n = 0; const t = setInterval(() => { if (++n > 20) return clearInterval(t); if (n < 3 || state !== 'menu' || !lobbyOn() || irisBusy || document.querySelector('.modal:not([hidden])')) return;
+    clearInterval(t); store.revAsk = v; save(); nativeSay('device', { review: true }); }, 500);
+}
 $('pauseBtn').addEventListener('click', uiClick(pause));
 $('slamBtn').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); AU.init(); if (state === 'play') useSlam(P); });
 const ITEM_ICON = { roller: '<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="5" y="9" width="30" height="13" rx="6.5"/><path d="M20 22v7h7" fill="none" stroke-width="3.2" stroke-linecap="round"/><rect x="25" y="27" width="7" height="9" rx="2"/></svg>', turret: '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M7 30a13 13 0 0 1 26 0z"/><path d="M20 20L33 9" fill="none" stroke-width="5" stroke-linecap="round"/><circle cx="20" cy="21" r="4.5"/></svg>' };
@@ -25055,8 +25134,8 @@ function perfHudFrame(ft) {
     + 'held ' + renderer.info.memory.textures + ' pictures, ' + renderer.info.memory.geometries + ' meshes, ' + thLru.length + ' canvases'; // (v309)
   PH.iv.length = 0; PH.js = 0; PH.frames = 0; PH.calls = 0; PH.tris = 0; PH.at = now;
 }
-$('setVer').addEventListener('click', () => { const now = performance.now(); PH.taps = now - PH.tapAt < 1500 ? PH.taps + 1 : 1; PH.tapAt = now; if (PH.taps >= 5) { PH.taps = 0; perfHudSet(!PH.on); AU.ui(); } });
-if (store.perfHud) setTimeout(() => perfHudSet(true), 0);
+$('setVer').addEventListener('click', () => { if (APPSTORE) return; /* (v351: not in the App Store build) */ const now = performance.now(); PH.taps = now - PH.tapAt < 1500 ? PH.taps + 1 : 1; PH.tapAt = now; if (PH.taps >= 5) { PH.taps = 0; perfHudSet(!PH.on); AU.ui(); } });
+if (store.perfHud && !APPSTORE) setTimeout(() => perfHudSet(true), 0);
 // (v308) screens that cover the lobby: the 3D lobby holds still behind them instead of drawing every frame for nobody
 let LCOV = null;
 function lobbyCovered() { if (!LCOV) LCOV = ['setModal', 'howModal', 'docModal', 'acModal', 'nameModal', 'ttModal'].map(id => document.getElementById(id)).filter(Boolean); for (let i = 0; i < LCOV.length; i++) if (!LCOV[i].hidden) return true; return false; }
