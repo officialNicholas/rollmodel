@@ -4650,7 +4650,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 339</p>
+      <p class="ver">Version 340</p>
     </div>
   </div>
 
@@ -20745,17 +20745,18 @@ function craftTick() { const d = strokesOf(), c = d.craft; if (!c) return false;
 function craftStart(id) { const d = strokesOf(), sp = stDef(id); if (!sp || !sp.craft || d.craft || d.own.includes(id)) return; d.craft = { id, end: Date.now() + sp.craft * 60000 }; save(); AU.pop(); buzz(10); renderStrokes(); adWarm(); }
 function craftSkip() { const d = strokesOf(); if (!d.craft) return; const id = d.craft.id; d.craft.end = Date.now(); craftTick(); AU.ui(); buzz([10, 30, 10]); renderStrokes(); stToast(stReady(id)); }
 // (v321) a rewarded ad speeds up crafting. In the app, Skip on a stroke being crafted plays a rewarded ad (AdsBridge.swift: Google
-// AdMob) and the craft finishes once the ad says it was watched; the lesson's Skip stays free (it's on Ol' Bloop). The page asks
+// AdMob) and the craft finishes once the ad says it was watched; (v340: the lesson's too, which finishes anyway if no ad can come). The page asks
 // through nativeSay('ads', ...) and hears back on a "nativead" event: open, reward, close, fail, and state (whether Google wants the
 // "Ad privacy choices" button). A browser has no ads, so a short stand-in shows where it goes
 const ADS = { mode: window.__ADS ? (window.__ADS.sdk ? 'app' : 'none') : 'web', id: null, open: false, earned: false, hold: false, t: 0, ct: 0, si: 0, privacy: false, sent: '' };
 const AD_PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="currentColor"/><path d="M9.8 7.7v8.6l6.9-4.3z" fill="#FFE896"/></svg>';
 const adKid = () => !!store.acYoung && !(store.sbs && store.sbs.acct); // (said they're under 13 at the account form, and no account since)
-const adFree = () => ADS.mode === 'none' || !!(store.tut && store.tut.strokes === 'on' && ((store.strokes || {}).craft || {}).id === 'giant');
+const adFree = () => ADS.mode === 'none'; // (v340: the lesson's Skip plays one too)
+const adLesson = () => !!(store.tut && store.tut.strokes === 'on' && ((store.strokes || {}).craft || {}).id === 'giant'); // (v340: Ol' Bloop's craft: it never waits on an ad)
 // the app is told who's playing (again if that changes), and when an ad may be wanted soon (a stroke on the bench), so one's ready
 function adHello(warm) { if (ADS.mode !== 'app') return; const kid = adKid(), k = String(kid); if (!warm && ADS.sent === k) return; ADS.sent = k; nativeSay('ads', { init: true, kid, warm: !!warm }); }
 function adWarm() { const d = store.strokes; if (d && d.craft && !adFree()) adHello(true); }
-// Skip on the bench: free in the lesson; otherwise the ad, and the craft's done when it's been watched
+// Skip on the bench: the ad, and the craft's done when it's been watched (free only in an app without ads)
 function craftSkipAsk() {
   const d = strokesOf(); if (!d.craft) return;
   if (adFree()) return craftSkip();
@@ -20794,6 +20795,7 @@ function adFail(why, last) {
   // (v335) still waiting and online: ask the app again, at once if it was only slow (a late one is kept for this), in a moment if not
   if (!ADS.open && !last && ADS.mode === 'app' && why !== 'offline' && ADW.tries < 4 && performance.now() - ADW.t0 < AD_WAIT_MS) { adWaitShow(); clearTimeout(ADW.rt); ADW.rt = setTimeout(adRetry, why === 'slow' ? 60 : 2500); return; }
   const was = ADS.open; adDone(); if (was) { if (ADS.mode === 'app') AU.wake(true, true); else applyMix(); }
+  if (adLesson()) { adWaitHide(); craftSkip(); return stToast((why === 'offline' ? 'You’re offline' : 'No ad right now') + ', so this one’s on Ol’ Bloop'); } // (v340: the lesson never gets stuck)
   AU.nope && AU.nope(); if (ADS.mode === 'app') adWaitFail(why); else stToast(why === 'offline' ? 'You’re offline: connect to watch the ad' : 'No ad to show right now. Try again soon');
 }
 // ---------- (v335) the ad on its way. The app readies an ad as the Abilities page opens (and again once one's been watched), so Skip
@@ -20823,7 +20825,7 @@ $('adWaitI').innerHTML = AD_PLAY;
 $('adWaitNo').addEventListener('click', () => { AU.init(); AU.ui(); adWaitCancel(); });
 $('adWaitGo').addEventListener('click', () => { AU.init(); if (!strokesOf().craft) { AU.ui(); return adWaitHide(); } craftSkipAsk(); });
 function adDone() { clearTimeout(ADS.t); clearTimeout(ADS.ct); clearInterval(ADS.si); ADS.ct = 0; ADS.id = null; ADS.open = ADS.hold = ADS.earned = false; sgSkipPaint(); }
-// Skip on the bench: a play mark when it plays an ad (spinning while the ad gets ready), plain in the lesson
+// Skip on the bench: a play mark when it plays an ad (spinning while the ad gets ready), plain in an app without ads
 function sgSkipPaint() {
   const sk = $('sgSkip'); if (!sk) return; const free = adFree(), busy = !free && !!ADS.id, m = free ? 'free' : busy ? 'busy' : 'ad';
   if (sk.dataset.m === m) return; sk.dataset.m = m; sk.classList.toggle('ad', !free); sk.classList.toggle('busy', busy); sk.disabled = busy;
@@ -26200,7 +26202,7 @@ function tutStrokesTick() {
   if (stCat !== 'special') stSetCat('special', true); // (v275: the Giant is on the Special tab)
   const d = strokesOf(), giant = () => $('stSpecialRail').querySelector('.sgcard[data-st="giant"]'), onG = sgSelId('special') === 'giant';
   if (stPopId) closeStPop(true); if (!$('mStrokes').classList.contains('sglearn')) $('mStrokes').classList.add('sglearn'); // (v313: the lesson walks the page itself, laid out to leave him room)
-  if (!d.own.includes('giant')) { if (d.craft) { if (d.craft.id === 'giant' && !onG) sgPick('giant', true); return tutShow('Crafting takes 20 minutes. Tap Skip, this one’s on me', d.craft.id === 'giant' ? 'sgSkip' : 'sgBadge', 'sSkip', false, false, null, false, true); }
+  if (!d.own.includes('giant')) { if (d.craft) { if (d.craft.id === 'giant' && !onG) sgPick('giant', true); return tutShow('Crafting takes 20 minutes. Tap Skip and watch a quick ad', d.craft.id === 'giant' ? 'sgSkip' : 'sgBadge', 'sSkip', false, false, null, false, true); }
     if (onG) return tutShow('Tap Craft to start on it', 'sgDo', 'sCraft', false, false, null, false, true);
     return tutShow('Your Special Stroke is what the orb gives you. The Giant is yours to craft: tap it', giant, 'sGiant', false, false, null, false, true); }
   if (strokeSpecial() !== 'giant') { if (onG) return tutShow('It’s ready! Tap Equip to make it your special stroke', 'sgDo', 'sEquip', false, false, null, false, true);
