@@ -10,7 +10,7 @@ const CQL_SECS = [
   { id: 'plaza', label: 'Sunken Plaza', sub: 'Season Conquest · its babies', arena: 26.4, theme: 'conq2' },
 ];
 // the keep's materials and light on a square floor (no ring, no wall, no pool): the runner and the plaza stand on it
-THEMES.push(Object.assign({}, THEME_BY.conquest, { id: 'conq2', label: 'Sunken Ruins', ring: undefined, dress: null, base: { hemiI: 1.45, key: 0xC8DCF4, keyI: 0.95 }, lk: { hemi: 0.85, key: 1.5 }, envRT: null, charRT: null })); THEME_BY.conq2 = THEMES[THEMES.length - 1];
+THEMES.push(Object.assign({}, THEME_BY.conquest, { id: 'conq2', label: 'Sunken Ruins', ring: undefined, dress: null, noSea: false, slime: false, sea: true, seaCol: [0x2A0A48, 0x8E3CF0], base: { hemiI: 1.45, key: 0xC8DCF4, keyI: 0.95 }, lk: { hemi: 0.85, key: 1.5 }, envRT: null, charRT: null })); THEME_BY.conq2 = THEMES[THEMES.length - 1];
 const cqlvM = {}; // shared placeholder materials
 function cqlvMat(k) { if (cqlvM[k]) return cqlvM[k]; const c = { jel: 0xB25CFF, jelArm: 0x6A3AA8, gate: 0xFFE070, front: 0x120818, pad: 0x2E9BFF, padOn: 0xFFE070, pin: 0xE8ECEE }[k];
   return cqlvM[k] = k === 'front' ? new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.78, depthWrite: false }) : k === 'gate' ? new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.85 }) : new THREE.MeshStandardMaterial({ color: c, roughness: 0.55, emissive: k === 'jel' ? 0x401070 : 0x000000 }); }
@@ -41,12 +41,12 @@ function cqlvBuild(S) {
 }
 function cqlvPurple() { const t = { hex: 0xB25CFF, dry: 0x5A2A80, floor: 0xB25CFF }; TEAMS[1].wet = t.hex; TEAMS[1].dry = t.dry; TEAMS[1].css = '#B25CFF'; TEAM_COLS[1].setHex(t.hex); paintUniforms.uWetA.value[1].setHex(t.hex); paintUniforms.uDryA.value[1].setHex(t.dry); teamMats[1].color.setHex(t.hex); }
 function cqlvEnter(i) {
-  const S = CQL_SECS[i]; if (!S || !CQL) return; CQL.sec = i; CQL.t = 0; CQL.S = {}; CQL.cpSec = i;
+  const S = CQL_SECS[i]; if (!S || !CQL) return; CQL.sec = i; CQL.t = 0; CQL.S = {}; CQL.cpSec = i; CQL.loading = true;
   irisClose(() => {
     building = true; cqlvBuild(S); cqlvPlace(START.x, START.z, START.yaw); CQL.cp = { x: START.x, z: START.z, yaw: START.yaw, prog: 0 };
     const Q = CQB; if (Q && Q.boss) { Q.follow = false; Q.lock = false; Q.cut = null; Q.boss.group.visible = true; Q.boss.lookAt(null); if (S.id === 'plaza') Q.auto = false; }
     if (Q && Q.el && !Q.el.classList.contains('fold')) { Q.el.classList.add('fold'); const f = $('cqbFold'); if (f) f.setAttribute('aria-expanded', 'false'); } // (the panel out of the way; its fold button opens it)
-    cqlvSetup(S); clearTimeout(warmQ); warmRender(); building = false; irisOpen(); banner(S.label, S.sub, true); AU.whoosh();
+    cqlvSetup(S); CQL.loading = false; clearTimeout(warmQ); warmRender(); building = false; irisOpen(); banner(S.label, S.sub, true); AU.whoosh();
   }, null, S.label);
 }
 // a gate: a glowing ring on the floor with a beam of light; rolling into it takes you on
@@ -109,26 +109,21 @@ function cqlvProg(path, x, z) { let best = 0, bd = 1e9, acc = 0; for (let i = 0;
 function cqlvPathAt(path, s) { let acc = 0; for (let i = 0; i + 1 < path.length; i++) { const [ax, az] = path[i], [bx, bz] = path[i + 1], L = Math.hypot(bx - ax, bz - az) || 1; if (s <= acc + L || i + 2 === path.length) { const t = clamp((s - acc) / L, 0, 1); return { x: ax + (bx - ax) * t, z: az + (bz - az) * t, dx: (bx - ax) / L, dz: (bz - az) / L }; } acc += L; } return { x: path[0][0], z: path[0][1], dx: 0, dz: 1 }; }
 
 // ---- the sections ----
-// the Aqueduct Run: a causeway 2.6 up, 8 wide, in an S across the square; gaps to jump (the canal below, slimed, is the slow way
-// back up a ramp); basins on it and off it; the collapse behind you; the boss ahead
+// the Aqueduct Run: one path, a stone causeway half a metre above a sea of slime, in an S across the square; off the path is the
+// slime, and the slime is death. Gaps to jump, a basin a leg (at the lane's edge, or on a ledge a hop off it)
 const CQL_RUN_PATH = [[-24, -31], [-24, 26], [0, 26], [0, -26], [24, -26], [24, 30]];
 function cqlvRunLayout() {
-  const H = 2.6, W = 4, boxes = [], pots = [], ramps = [], leg = (x0, x1, z0, z1) => boxes.push([x0, x1, z0, z1, 0, H]);
+  const H = 0.5, W = 4, boxes = [], leg = (x0, x1, z0, z1) => boxes.push([x0, x1, z0, z1, 0, H]);
   // leg 1 up the left (gaps at z 2 and 14), the top cross, leg 3 down the middle (gaps at 8 and -6), the bottom cross, leg 5 up the right (gaps at -8, 4, 16)
-  leg(-24 - W, -24 + W, -33, -0.5); leg(-24 - W, -24 + W, 2.5, 12.5); leg(-24 - W, -24 + W, 15.5, 30);
+  leg(-24 - W, -24 + W, -33, -0.5); leg(-24 - W, -24 + W, 2.5, 12.5); leg(-24 - W, -24 + W, 15.5, 22);
   leg(-24 - W, 4, 22, 30);
-  leg(-W, W, 11, 22); leg(-W, W, -3.5, 8); leg(-W, W, -30, -6.5);
+  leg(-W, W, 11, 22); leg(-W, W, -3.5, 8); leg(-W, W, -22, -6.5);
   leg(-W, 28, -30, -22);
   leg(20, 28, -22, -10.5); leg(20, 28, -7.5, 1); leg(20, 28, 4, 13); leg(20, 28, 16, 33);
-  // side ledges with a basin each, off the lane (a hop across)
-  boxes.push([-33, -29.5, -14, -10, 0, H], [8, 11.5, 14, 18, 0, H], [10, 13.5, -18, -14, 0, H]);
-  // cracked slabs over three of the gaps: pound them through, into the canal below
-  boxes.push([-24 - W + 1, -24 + W - 1, 12.6, 15.4, H - 0.22, H, undefined, 'cracked'], [-W + 1, W - 1, -6.4, -3.6, H - 0.22, H, undefined, 'cracked'], [21, 27, 13.1, 15.9, H - 0.22, H, undefined, 'cracked']);
-  // ramps back up out of the canal, one a leg
-  ramps.push([-20, -16, -8, -1, 'z', 0, H], [4, 8, 2, 9, 'z', 0, H], [16, 20, -5, 2, 'z', 0, H]);
-  pots.push([-26.8, H, -16], [-33 + 1.75, H, -12], [-21.2, H, 19], [-12, H, 28.8], [2.8, H, 16], [9.75, H, 16], [-2.8, H, -16], [11.75, H, -16], [12, H, -28.8], [26.8, H, -4], [21.2, H, 8]);
-  const slime = []; for (let z = -31; z <= 31; z += 2.4) for (const x of [-13, 12]) slime.push([x + Math.sin(z) * 2, z, 2.2]); for (let x = -31; x <= 31; x += 2.4) for (const z of [10, -12]) slime.push([x, z + Math.cos(x) * 2, 2.0]);
-  return { boxes, ramps, holes: [], pots, slime, start: { x: -24, z: -29, yaw: 0 } };
+  // ledges with a basin, a hop off the lane
+  boxes.push([-33, -29.5, -14, -10, 0, H], [10, 13.5, -18, -14, 0, H]);
+  const pots = [[-31.25, H, -12], [-12, H, 28.8], [11.75, H, -16], [26.8, H, 6]];
+  return { boxes, ramps: [], holes: [[-32.9, 32.9, -32.9, 32.9, 0, 0]], pots, slime: [], start: { x: -24, z: -29, yaw: 0 } };
 }
 // the Sunken Plaza: a square court, blocks to hop, four valve pads up on plinths at the corners (only the turret's lobs reach them)
 function cqlvPlazaLayout() {
@@ -213,7 +208,7 @@ function cqlvUnpin(done) { const X = CQL.S, b = CQB.boss; X.pinned = false; if (
 
 // ---- the frame ----
 function cqlvTick(dt, rdt) {
-  const L = CQL; if (!L || !CQP) return; L.dt = dt; L.t += dt; const Q = CQB, b = Q && Q.boss;
+  const L = CQL; if (!L || !CQP || L.loading) return; L.dt = dt; L.t += dt; const Q = CQB, b = Q && Q.boss;
   if (!L.hooked && b) { L.hooked = true; b.on('emergeDone', () => { if (CQL && CQL.sec <= 0) { CQL.S.fleeT = 1.6; } }); }
   // the keep: once the entrance is over, the boss taunts and flees over the wall; the gate lights where it went
   if (L.sec <= 0) { const X = L.S; if (X.fleeT != null && state === 'play') { X.fleeT -= dt; if (!X.taunted && b) { X.taunted = true; b.play('taunt', {}); }
