@@ -241,6 +241,7 @@ function cqlvCutStart() {
   const X = CQL.S, Q = CQB; state = 'play'; hud.classList.remove('off'); if (P.pot) { P.pot.occ = null; P.pot = null; }
   P.st = 'play'; P.x = 0; P.z = -16; P.y = 0; P.yaw = 0; P.air = false; P.vy = 0; P.spd = 0; P.immuneT = 99; camYaw = 0; camYawV = 0; camSnap = true; drop.visible = true; shadowBlob.visible = true;
   X.cut = { ph: 'crawl', t: 0, paintT: 0 }; if (Q) { Q.follow = false; Q.lock = false; }
+  if (Q && Q.el && !Q.el.classList.contains('fold')) { Q.el.classList.add('fold'); const f = $('cqbFold'); if (f) f.setAttribute('aria-expanded', 'false'); } // (the panel out of the way)
 }
 function cqlvCutPh(ph) { const X = CQL.S; if (!X.cut) return; X.cut.ph = ph; X.cut.t = 0; }
 function cqlvCutTick(rdt) {
