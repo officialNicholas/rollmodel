@@ -4659,7 +4659,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 347</p>
+      <p class="ver">Version 348</p>
     </div>
   </div>
 
@@ -14266,7 +14266,7 @@ function makePowerMesh(type) {
 function placePower(pw, type, spot) { if (pw.g) dropTree([pw.g]); const m = makePowerMesh(type); Object.assign(pw, { type, x: spot[0], y: spot[1], z: spot[2], g: m.g, spin: m.spin, bub: m.bub, eyes: m.eyes, gone: 0, pop: 0 }); }
 const itemSpawn = { t: 7, last: null };
 function placePowers() {
-  clearTraps(); boomClear(); dropTree(powers.map(pw => pw.g)); powers = []; itemSpawn.t = 6 + Math.random() * 3; itemSpawn.last = null; itemSpawn.bag = []; // (v347)
+  clearTraps(); boomClear(); dropTree(powers.map(pw => pw.g)); powers = []; itemSpawn.t = 6 + Math.random() * 3; itemSpawn.last = null; // (v348: the turns of pick-ups run on from one match to the next)
   itemSpawn.pend = null; itemSpawn.gap = 0; if (itemMarkGet.m) itemMarkGet.m.g.visible = false; for (const D of [P, H, H2, H3]) if (D) D.handT = 0; // (v285)
   if (AU.xwant) { AU.xwant('w_wind'); AU.xwant('w_ting'); }
 }
@@ -14340,13 +14340,16 @@ function itemMarkTick(q, dt) {
   M.beam.material.opacity = (0.3 + 0.55 * e) * (0.85 + 0.15 * Math.sin(clock * 18)); M.beam.scale.set(1, 0.35 + 0.65 * e, 1);
   if (Math.random() < dt * 30) { const a = Math.random() * 6.283, r = 0.25 + Math.random() * 0.5; spawnPart(q.x + Math.cos(a) * r, q.y + 0.2, q.z + Math.sin(a) * r, 0, 2 + Math.random() * 1.5, 0, 0.6, puHaloMat, 0.16 + Math.random() * 0.12, 0); }
 }
-// (v347) which kind comes up next: outside the first lesson, all five in turn, shuffled, so each one comes up before any comes again
+// (v347) which kind comes up next: outside the first lesson, in turns, shuffled, so each one in a turn comes up before any comes again
 // (and never the same kind twice in a row); not: the next in the turn that isn't that kind. The first lesson keeps to rollers, and
-// turrets once the flower's found
-const ITEM_KINDS = ['roller', 'turret', 'trap', 'whirl', 'boom'];
+// turrets once the flower's found. (v348) The Roller, the Turret and the Paint Trap are in every turn, the Whirlwind and the Boomerang
+// each in a turn with a chance p (ITEM_RARE_P): a turn holds 3 + 2p kinds on average, so each of the two makes up p / (3 + 2p) of what
+// comes up, 12% (it was 20%), and the other three about 25%. The turns run on from one match to the next, so the shares hold
+const ITEM_KINDS = ['roller', 'turret', 'trap', 'whirl', 'boom'], ITEM_RARE = ['whirl', 'boom'], ITEM_RARE_SHARE = 0.12,
+  ITEM_RARE_P = (ITEM_KINDS.length - ITEM_RARE.length) * ITEM_RARE_SHARE / (1 - ITEM_RARE.length * ITEM_RARE_SHARE);
 function itemTurn(not) {
   const IS = itemSpawn, B = IS.bag || (IS.bag = []);
-  const more = () => { const ks = ITEM_KINDS.slice(); for (let i = ks.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)), t = ks[i]; ks[i] = ks[j]; ks[j] = t; }
+  const more = () => { const ks = ITEM_KINDS.filter(k => !ITEM_RARE.includes(k) || Math.random() < ITEM_RARE_P); for (let i = ks.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)), t = ks[i]; ks[i] = ks[j]; ks[j] = t; }
     if (ks[0] === (B.length ? B[B.length - 1] : IS.last)) ks.push(ks.shift()); B.push(...ks); };
   if (!B.length) more(); let i = not ? B.findIndex(k => k !== not) : 0; if (i < 0) { more(); i = B.findIndex(k => k !== not); }
   return B.splice(i, 1)[0];
