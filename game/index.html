@@ -4414,6 +4414,35 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 @media (max-width:359px){#mLocker.sgp{--tabw:100px}#mLocker.sgp .lkh{font-size:20px}#mLocker.sgp .lkstyles,#mLocker.sgp .lkirises{gap:8px}#mLocker.sgp .lkstyles .eyes{width:38px;height:38px}#mLocker.sgp .lkstyles .eyes svg{width:30px;height:30px}#mLocker.sgp .lkirises .eyec{width:30px;height:30px}#mLocker.sgp .lkszt b{font-size:23px}}
 @media (prefers-reduced-motion:reduce){#mLocker.sgp .sgart .frface,#mLocker.sgp .lkcoin.bump,#mLocker.sgp .sgban.bump,#mLocker.sgp .tpop,#mLocker.sgp .sgdo.nope{animation:none}}
 #mLocker.sgp .sgnote{justify-self:center;width:fit-content;max-width:calc(100% - 12px);margin:0 auto;padding:4px 10px;border-radius:9px;background:rgba(255,250,238,.95);box-shadow:0 2px 0 rgba(23,19,32,.2);color:#3A3048}
+/* ---- (v333) the Paint Shop's filters: a row of paper chips under its heading (ink when picked), held at the top of the panel as the
+   cards scroll under it; and the locker page's wall in your paint (a tint of it, the Strokes wall's pattern over it in white) */
+#mLocker.sgp .lkchips{position:sticky;top:0;z-index:4;margin:-10px -16px 0;padding:6px 0 3px;border-radius:22px 22px 0 0}
+#mLocker.sgp .lkchipr{position:relative;display:flex;gap:7px;padding:6px 16px 5px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+#mLocker.sgp .lkchipr::-webkit-scrollbar{display:none}
+#mLocker.sgp .lkchipr.mr{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent)}
+#mLocker.sgp .lkchipr.ml{-webkit-mask-image:linear-gradient(90deg,transparent,#000 44px);mask-image:linear-gradient(90deg,transparent,#000 44px)}
+#mLocker.sgp .lkchipr.ml.mr{-webkit-mask-image:linear-gradient(90deg,transparent,#000 44px,#000 calc(100% - 44px),transparent);mask-image:linear-gradient(90deg,transparent,#000 44px,#000 calc(100% - 44px),transparent)}
+#mLocker.sgp .lkchips.stuck{background:#F6F1E8;box-shadow:0 2px 0 rgba(23,19,32,.08),0 9px 12px -8px rgba(23,19,32,.28)}
+#mLocker.sgp .lkchip{appearance:none;position:relative;flex:none;display:inline-flex;align-items:center;gap:5px;height:32px;margin:0;padding:0 11px 0 9px;border:0;border-radius:999px;background:#fff;color:var(--black);font:400 13px/1 var(--font-display);letter-spacing:.01em;white-space:nowrap;box-shadow:0 0 0 2px var(--ink0),2px 3px 0 rgba(23,19,32,.2);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s cubic-bezier(.2,1.3,.4,1)}
+#mLocker.sgp .lkchip svg{flex:none;width:17px;height:17px}
+#mLocker.sgp .lkchip span{padding-top:1px}
+#mLocker.sgp .lkchip i{font-style:normal;padding:3px 5px 2px;border-radius:999px;background:rgba(23,19,32,.1);font-size:11px;font-variant-numeric:tabular-nums}
+#mLocker.sgp .lkchip[aria-pressed="true"]{background:var(--ink0);color:#fff;transform:translateY(-1px)}
+#mLocker.sgp .lkchip[aria-pressed="true"] svg{color:var(--sel)}
+#mLocker.sgp .lkchip[aria-pressed="true"] i{background:rgba(255,255,255,.18)}
+#mLocker.sgp .lkchip:active{transform:translate(1px,2px);box-shadow:0 0 0 2px var(--ink0),1px 1px 0 rgba(23,19,32,.2)}
+#mLocker.sgp .lkchip.fresh::after{content:"";position:absolute;right:-3px;top:-4px;width:10px;height:10px;border-radius:50%;background:#FF2D55;box-shadow:0 0 0 2px var(--ink0)}
+#mLocker.sgp.lkchipped .sgscroll{padding-top:0;-webkit-mask:linear-gradient(#000,#000 calc(100% - 18px),transparent);mask:linear-gradient(#000,#000 calc(100% - 18px),transparent)}
+#mLocker.sgp.lkchipped #lkPaneShop{padding-top:22px}
+@media (max-aspect-ratio:1/1) and (max-height:700px){#mLocker.sgp.lkchipped #lkPaneShop{padding-top:20px}}
+#mLocker.sgp .lksec svg{flex:none;width:15px;height:15px;margin:-3px -2px -3px 0;color:#171320}
+@media (max-width:359px){#mLocker.sgp .lkchip{height:30px;padding:0 9px 0 8px;font-size:12px}#mLocker.sgp .lkchip svg{width:15px;height:15px}}
+#mLocker.sgp .sgbg{background:var(--wall,#CBE45A)}
+#mLocker.sgp .sgbg::before,#mLocker.sgp .lkwx::before{content:"";position:absolute;inset:0;background:url(art/lk_wall.webp) 0 0/560px 560px repeat;opacity:var(--wk,.34)}
+#mLocker.sgp .lkwx{position:absolute;inset:0;background:var(--wall1,#CBE45A);opacity:0;pointer-events:none}
+#mLocker.sgp .lkwx::before{opacity:var(--wk1,.34)}
+#mLocker.sgp .lkwx.go{will-change:opacity}
+#mLocker.sgp .sgfoot .sgline{text-shadow:0 0 3px var(--wallhi,#F4FAD8),0 0 7px var(--wallhi2,rgba(244,250,216,.85))}
 /* (v331) the portraits, and the soft round placeholder that holds a portrait's place till it's made */
 img.ptimg{object-fit:cover;-webkit-user-drag:none;user-select:none;-webkit-user-select:none;pointer-events:none}
 .ptin{animation:ptin .3s ease-out both}
@@ -4526,7 +4555,7 @@ i.ptwait>*{display:none}
       </div>
     </div>
     <div class="mevents sgp sgx lkp" id="mLocker" hidden data-tab="mine">
-      <div class="sgbg" id="lkBg" aria-hidden="true"></div><div class="sgink" aria-hidden="true"></div>
+      <div class="sgbg" id="lkBg" aria-hidden="true"><i class="lkwx" id="lkWx"></i></div><div class="sgink" aria-hidden="true"></div>
       <h2 class="sgvh" id="lkTitle">My Locker and the Paint Shop</h2>
       <button class="sgback" id="lkBack" type="button" aria-label="Back to the lobby"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M12.6 7.4 6.2 13.6l6.4 6.2" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.4 13.6h11.2a6.4 6.4 0 0 1 0 12.8h-4.4" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round"/></svg><span>Back</span></button>
       <button class="sgbadge lkcoin" id="lkCoin" type="button" aria-label="Dabs. Open the Paint Shop"><span class="sgbi" id="lkCoinI" aria-hidden="true"></span><b id="lkCoinN">0</b></button>
@@ -4596,7 +4625,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 332</p>
+      <p class="ver">Version 333</p>
     </div>
   </div>
 
@@ -20939,6 +20968,38 @@ const sgT1 = new THREE.Vector3(), sgT2 = new THREE.Vector3(), sgT3 = new THREE.V
 const SG_PAPER = '#F6F0E2';
 // (v327) the window's page: the Strokes page, or the locker's
 const SGH = { st: { pg: $('mStrokes'), stage: $('sgStage'), ban: $('sgBan'), rot: $('sgRot'), bg: $('sgBg'), flash: $('sgFlash'), foot: $('mStrokes').querySelector('.sgfoot') } };
+// (v333) the locker page's wall in your paint: a light tint of it (LK_WALL), with the Strokes wall's chevrons and axolotls over it in
+// white (art/lk_wall.webp: its alpha is how much lighter than the lime each spot of that wall is, over LK_WALL_AS, so it's drawn at
+// LK_WALL_AS times the strength). The strength is evened out so the pattern stands out from each tint as much as from the lime. The
+// window draws its part of the wall with the same layer and the same sums; a new paint fades the wall over, the page and the window in step
+const LK_WALL = { red: 0xFFAAA4, grey: 0xC4B6D9, gold: 0xFFE19E, green: 0x8FEB9C, purple: 0xCCABFE, pink: 0xFFAFCF }, LK_WALL_AS = 0.34;
+const LKW = { w: null, w1: null, t0: 0, mix: 0 };
+function lkWallOf(id) {
+  const hx = LK_WALL[id] || 0xCBE45A, r = (hx >> 16) & 255, g = (hx >> 8) & 255, b = hx & 255, y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  const hi = c => Math.round(c + (255 - c) * 0.8), gr = c => Math.round(c * 0.55 + 90), H = hi(r) + ',' + hi(g) + ',' + hi(b);
+  return { id, hx, css: '#' + hx.toString(16).padStart(6, '0'), k: Math.min(1, 42.3 / Math.max(1, 255 - y)) * LK_WALL_AS, rgb: [r / 255, g / 255, b / 255], hi: 'rgb(' + H + ')', hi2: 'rgba(' + H + ',.85)', gr: (gr(r) << 16) | (gr(g) << 8) | gr(b) };
+}
+// straight to it (the page opening, a fade done)
+function lkWallSet(id) {
+  const w = lkWallOf(id), pg = $('mLocker'), x = $('lkWx'); LKW.w = w; LKW.w1 = null; LKW.mix = 0;
+  pg.style.setProperty('--wall', w.css); pg.style.setProperty('--wk', w.k.toFixed(4)); pg.style.setProperty('--wallhi', w.hi); pg.style.setProperty('--wallhi2', w.hi2);
+  x.style.opacity = '0'; x.classList.remove('go');
+}
+// fading over to a new paint's (only while the window draws, to keep the two in step; else straight to it)
+function lkWallTo(id) {
+  if (LKW.w1) lkWallSet(LKW.w1.id);
+  if (!LKW.w || !SGD.on || reduceMotion) return lkWallSet(id);
+  const w = lkWallOf(id), x = $('lkWx'), pg = $('mLocker'); if (w.hx === LKW.w.hx) return lkWallSet(id);
+  LKW.w1 = w; LKW.t0 = performance.now(); LKW.mix = 0;
+  x.style.setProperty('--wall1', w.css); x.style.setProperty('--wk1', w.k.toFixed(4)); x.style.opacity = '0'; x.classList.add('go');
+  pg.style.setProperty('--wallhi', w.hi); pg.style.setProperty('--wallhi2', w.hi2);
+}
+function lkWallTick() { if (!LKW.w1) return; const u = Math.min(1, (performance.now() - LKW.t0) / 560); if (u >= 1) return lkWallSet(LKW.w1.id); LKW.mix = u * u * (3 - 2 * u); $('lkWx').style.opacity = LKW.mix.toFixed(4); }
+// the window's part of it (the Strokes page: its own lime picture)
+function lkWallU() {
+  const U = SGD.bgU, w = lkOn() && LKW.w; U.uMode.value = w ? 1 : 0; if (!w) return; const w1 = LKW.w1 || w;
+  U.uW0.value.fromArray(w.rgb); U.uW1.value.fromArray(w1.rgb); U.uK0.value = w.k; U.uK1.value = w1.k; U.uMix.value = LKW.w1 ? LKW.mix : 0;
+}
 const sgH = () => lkOn() ? SGH.lk || (SGH.lk = { pg: $('mLocker'), stage: $('lkStage'), ban: $('lkBan'), rot: $('lkRot'), bg: $('lkBg'), flash: $('lkFlash'), foot: $('mLocker').querySelector('.sgfoot') }) : SGH.st;
 const SG_T = { roller: 6.2, turret: 5.6, trap: 6.4, whirl: 6.0, boom: 5.4, rocket: 5.8, giant: 5.8, freeze: 6.6 }; // (v322: the specials too)
 function sgLayer(o) { o.traverse(m => { if (m.material && m.material.depthFunc === THREE.GreaterDepth) { m.layers.mask = 0; return; } m.layers.set(SG_L); }); }
@@ -20991,10 +21052,11 @@ function sgBuild() {
   // the camera, and the wall's picture drawn in screen space (the same tile, the same size, from the same corner as the page's)
   SGD.cam = new THREE.PerspectiveCamera(30, 1, 0.1, 60); SGD.cam.layers.set(SG_L);
   const tex = new THREE.TextureLoader().load('art/sg_bg.webp', () => { SGD.bgU.uOk.value = 1; }); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.colorSpace = THREE.NoColorSpace; tex.generateMipmaps = true; tex.minFilter = THREE.LinearMipmapLinearFilter;
-  SGD.bgU = { uTex: { value: tex }, uOk: { value: 0 }, uTile: { value: 560 }, uH: { value: 800 }, uBase: { value: new THREE.Vector3(0xCB / 255, 0xE4 / 255, 0x5A / 255) } };
+  const pat = new THREE.TextureLoader().load('art/lk_wall.webp', () => { SGD.bgU.uPOk.value = 1; }); pat.wrapS = pat.wrapT = THREE.RepeatWrapping; pat.colorSpace = THREE.NoColorSpace; pat.generateMipmaps = true; pat.minFilter = THREE.LinearMipmapLinearFilter; // (v333: the locker's wall)
+  SGD.bgU = { uPat: { value: pat }, uPOk: { value: 0 }, uMode: { value: 0 }, uW0: { value: new THREE.Vector3(0.8, 0.9, 0.35) }, uW1: { value: new THREE.Vector3(0.8, 0.9, 0.35) }, uK0: { value: 0.34 }, uK1: { value: 0.34 }, uMix: { value: 0 }, uTex: { value: tex }, uOk: { value: 0 }, uTile: { value: 560 }, uH: { value: 800 }, uBase: { value: new THREE.Vector3(0xCB / 255, 0xE4 / 255, 0x5A / 255) } };
   const tri = new THREE.BufferGeometry(); tri.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
   const bm = new THREE.ShaderMaterial({ uniforms: SGD.bgU, depthTest: false, depthWrite: false, vertexShader: 'void main(){ gl_Position = vec4(position.xy, 0.0, 1.0); }',
-    fragmentShader: 'precision highp float; uniform sampler2D uTex; uniform float uOk, uTile, uH; uniform vec3 uBase; void main(){ vec2 p = vec2(gl_FragCoord.x, uH - gl_FragCoord.y) / uTile; vec3 c = uOk > 0.5 ? texture2D(uTex, vec2(p.x, 1.0 - p.y)).rgb : uBase; gl_FragColor = vec4(c, 1.0); }' });
+    fragmentShader: 'precision highp float; uniform sampler2D uTex, uPat; uniform float uOk, uTile, uH, uMode, uPOk, uK0, uK1, uMix; uniform vec3 uBase, uW0, uW1; void main(){ vec2 p = vec2(gl_FragCoord.x, uH - gl_FragCoord.y) / uTile, q = vec2(p.x, 1.0 - p.y); vec3 c; if (uMode > 0.5) { float a = uPOk > 0.5 ? texture2D(uPat, q).a : 0.0; c = mix(mix(uW0, vec3(1.0), a * uK0), mix(uW1, vec3(1.0), a * uK1), uMix); } else c = uOk > 0.5 ? texture2D(uTex, q).rgb : uBase; gl_FragColor = vec4(c, 1.0); }' });
   const q = new THREE.Mesh(tri, bm); q.frustumCulled = false; SGD.bgS = new THREE.Scene(); SGD.bgS.add(q); SGD.bgC = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   hemi.layers.enable(SG_L); sun.layers.enable(SG_L); vicRim.layers.enable(SG_L); // (the lobby's lights: the shaders the lobby made fit)
   if (HI && TH) try { themeEnv(TH); } catch (e) {}
@@ -21296,10 +21358,10 @@ function sgRender() {
     // (a quality step can drop the sun's shadow map, and the lobby that makes it again isn't drawn under the page. The lit shaders draw
     // nothing without one, so it's made here: empty, from the lobby's sun, with nothing of the demo in it)
     if (sun.castShadow && !sun.shadow.map) { renderer.shadowMap.needsUpdate = true; sun.shadow.needsUpdate = true; renderer.render(scene, SGD.cam); }
-    SGD.bgU.uTile.value = 560 * pr; SGD.bgU.uH.value = H * pr; renderer.render(SGD.bgS, SGD.bgC); calls += renderer.info.render.calls;
+    SGD.bgU.uTile.value = 560 * pr; SGD.bgU.uH.value = H * pr; lkWallU(); renderer.render(SGD.bgS, SGD.bgC); calls += renderer.info.render.calls;
     renderer.clearDepth(); renderer.setViewport(r.x, y0, r.w, r.h);
     // (the lobby's lights, turned for the pad: a warm key from the front, a cool rim from behind)
-    const yw = SGD.yaw; hemi.intensity = 0.95 * LIGHT_K; hemi.color.setHex(0xFFFFFF); hemi.groundColor.setHex(0xC9DB86); sun.intensity = 1.25 * LIGHT_K; sun.color.setHex(0xFFF1E2);
+    const yw = SGD.yaw; hemi.intensity = 0.95 * LIGHT_K; hemi.color.setHex(0xFFFFFF); hemi.groundColor.setHex(lkOn() && LKW.w ? LKW.w.gr : 0xC9DB86); sun.intensity = 1.25 * LIGHT_K; sun.color.setHex(0xFFF1E2);
     sun.position.set(SG_X + Math.sin(yw - 0.7) * 4, 6.5, SG_Z + Math.cos(yw - 0.7) * 4); sun.target.position.set(SG_X, 0.3, SG_Z); sun.target.updateMatrixWorld();
     vicRim.intensity = 0.7 * LIGHT_K; vicRim.color.setHex(0xE4ECFF); vicRim.position.set(SG_X - Math.sin(yw) * 4, 3, SG_Z - Math.cos(yw) * 4); vicRim.target.position.set(SG_X, 0.3, SG_Z); vicRim.target.updateMatrixWorld();
     RIG.uRigRimC.value.set(0xE8F0FF); RIG.uGrabK.value = 0; JELLY_GRAB.fn = null;
@@ -21327,7 +21389,7 @@ function sgTick(rdt) {
 }
 // the window in the page's wall: open while the demo draws, shut (the wall whole again) while it doesn't
 function sgHole(on) { const H0 = sgH(), pg = H0.pg; pg.classList.toggle('sghole', on); pg.classList.toggle('sgdemo', on); H0.rot.hidden = !on; if (on) SGD.rectDirty = true; else { SGD.hole = ''; H0.bg.style.clipPath = ''; } }
-function sgPause() { if (!SGD.on) return; SGD.on = false; sgHole(false); }
+function sgPause() { if (LKW.w1) lkWallSet(LKW.w1.id); if (!SGD.on) return; SGD.on = false; sgHole(false); }
 function sgStop() { sgPause(); SGD.started = false; if (SGD.built) { SGD.root.visible = false; SGD.A.L.drop.visible = SGD.B.L.drop.visible = false; } }
 window.addEventListener('resize', () => { SGD.rectDirty = true; if (strokesOpen()) setTimeout(sgFitName, 60); });
 if (window.ResizeObserver) try { new ResizeObserver(() => { SGD.rectDirty = true; }).observe($('sgStage')); } catch (e) {}
@@ -21977,7 +22039,7 @@ canvas.addEventListener('pointerup', endLookDrag); canvas.addEventListener('poin
 // ---------- (v327) My Locker and the Paint Shop, one page on the Strokes page's base. The window shows you (the demo's own character, in
 // your paint, on its pad) wearing what you have on; in the shop, what you're trying on. In the locker a tap puts a thing on; in the shop
 // a tap tries it on and Buy keeps it on. Drag spins you round, and you turn back to face the front after a moment ----------
-const LKR = { tab: 'mine', sel: null, prev: null, got: new Set(), scr: { mine: 0, shop: 0 }, anim: false, from: 'mine', toastT: 0 };
+const LKR = { filt: 'all', stickY: 0, tab: 'mine', sel: null, prev: null, got: new Set(), scr: { mine: 0, shop: 0 }, anim: false, from: 'mine', toastT: 0 };
 function lkOn() { return menuPage === 'locker'; }
 const LK_CAT = { head: 'Headgear', face: 'Facial', cloth: 'Clothing', eyes: 'Eyes' };
 const LK_POP = { tophat: 'top', bowtie: 'bow' }; // (the piece a wearable is, where its name isn't the item's)
@@ -22013,23 +22075,67 @@ function lkMineHtml() {
     return '<button class="eyes' + (lk ? ' locked' : '') + (it && !lk && fresh.has(k) ? ' fresh' : '') + '" type="button" data-k="e:' + k + '" aria-label="' + EYE_STYLES[k] + ' eyes' + (lk ? (it.gift ? ', a free gift on the Spooky SZN stages' : ', in the Paint Shop') : '') + '" aria-pressed="' + (myLook.eyes === k) + '">' + ES_ICON_T[k] + (lk ? LOCK_ICON : '') + '</button>'; }).join('') + '</div>';
   const ni = NO_IRIS(myLook.eyes); h += '<div class="lkirises' + (ni ? ' off' : '') + '" role="group" aria-label="Eye colour"' + (ni ? ' aria-disabled="true"' : '') + '>' + EYE_KEYS.map(k => '<button class="eyec" type="button" data-k="i:' + k + '" style="--ic:' + EYE_COLS[k].css + '" aria-label="' + EYE_COLS[k].name + ' eyes" aria-pressed="' + (myLook.iris === k) + '"><i></i></button>').join('') + '</div></div>';
   for (const c of ['head', 'face', 'cloth']) { const mine = WEAR.filter(w => w.cat === c && bought(w.id)).sort((a, b) => PRICE(a) - PRICE(b)), sale = WEAR.filter(w => w.cat === c && lkForSale(w)).length;
-    h += '<p class="lksec">' + LK_CAT[c] + (mine.length ? '<i>' + mine.length + '</i>' : '') + '</p>' + (mine.length ? grid(mine.map(w => lkCard(w, 'mine')).join('')) : '<p class="lknone">Nothing here yet.' + (sale ? ' <button class="lkgo" type="button" data-go="shop">The Paint Shop has ' + sale + '</button>' : '') + '</p>'); }
+    h += '<p class="lksec">' + LK_CAT[c] + (mine.length ? '<i>' + mine.length + '</i>' : '') + '</p>' + (mine.length ? grid(mine.map(w => lkCard(w, 'mine')).join('')) : '<p class="lknone">Nothing here yet.' + (sale ? ' <button class="lkgo" type="button" data-go="shop" data-f="' + c + '">The Paint Shop has ' + sale + '</button>' : '') + '</p>'); }
   return h;
 }
 // the shop: the season's finds first, under their banner, then everything else for sale (what this visit bought stays, as yours)
+// ---------- (v333) the Paint Shop's filters: All, the season, and each kind (the season's own of that kind first, under a heading) ----------
+const LK_FILT = [['all', 'All'], ['season', 'Spooky SZN'], ['head', 'Headgear'], ['face', 'Facial'], ['cloth', 'Clothing'], ['eyes', 'Eyes']];
+const LK_FI = {'all': '<rect x="4" y="4" width="7" height="7" rx="2" fill="currentColor"/><rect x="13" y="4" width="7" height="7" rx="2" fill="currentColor"/><rect x="4" y="13" width="7" height="7" rx="2" fill="currentColor"/><rect x="13" y="13" width="7" height="7" rx="2" fill="currentColor"/>', 'season': '<path d="M12 8.2c-1.3-.9-3.4-1-4.9-.1C5 9.3 4.2 11.6 4.2 13.6c0 3.3 2.2 5.9 5 5.9.9 0 1.9-.3 2.8-.8.9.5 1.9.8 2.8.8 2.8 0 5-2.6 5-5.9 0-2-.8-4.3-2.9-5.5-1.5-.9-3.6-.8-4.9.1z" fill="#FF8A2A"/><path d="M12 8.8v9.6M12 8.3c0-1.8.6-3.1 2-3.9"/>', 'head': '<path d="M3.5 18.2h17"/><path d="M7.2 18.2V8.4c0-1.1.9-2 2-2h5.6c1.1 0 2 .9 2 2v9.8"/><path d="M7.2 14.6h9.6"/>', 'face': '<circle cx="7.3" cy="13.4" r="3.7"/><circle cx="16.7" cy="13.4" r="3.7"/><path d="M11 12.8c.7-.6 1.3-.6 2 0M3.7 12.4 2.6 9.8M20.3 12.4l1.1-2.6"/>', 'cloth': '<path d="M10.2 12 4.2 8.3v7.4zM13.8 12l6-3.7v7.4z"/><rect x="10.2" y="10.2" width="3.6" height="3.6" rx="1" fill="currentColor"/>', 'eyes': '<path d="M2.8 12.2s3.4-5.4 9.2-5.4 9.2 5.4 9.2 5.4-3.4 5.4-9.2 5.4-9.2-5.4-9.2-5.4z"/><circle cx="12" cy="12.2" r="2.7" fill="currentColor"/>'}, LK_FSVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">';
+const lkInF = (w, f) => f === 'all' || (f === 'season' ? !!w.season : w.cat === f);
+const lkFound = w => !bought(w.id) && owns(w.id) && needFind(w); // (a find that's for sale now: its tag says New)
+// the row: shown with more than one way to look (not in the lesson's shop, where the tips point at the flower and the fangs)
+function lkChipsHtml(listed, f) {
+  return '<div class="lkchips"><div class="lkchipr" role="group" aria-label="Show in the shop">' + LK_FILT.filter(([k]) => k === 'all' || listed.some(w => lkInF(w, k))).map(([k, n]) => {
+    const c = listed.filter(w => lkInF(w, k)), on = k === f, fresh = !on && k !== 'all' && c.some(lkFound);
+    return '<button class="lkchip' + (fresh ? ' fresh' : '') + '" type="button" data-f="' + k + '" aria-pressed="' + on + '" aria-label="' + n + (k === 'all' ? '' : ', ' + c.length) + (fresh ? ', something new' : '') + '">' + LK_FSVG + LK_FI[k] + '</svg><span>' + n + '</span>' + (k === 'all' ? '' : '<i>' + c.length + '</i>') + '</button>'; }).join('') + '</div></div>';
+}
+// the shop: the season's finds first, under their banner, then everything else for sale (what this visit bought stays, as yours);
+// or just the season's, or one kind
 function lkShopHtml() {
-  const grid = l => '<div class="sggrid lkgrid' + (LKR.anim ? ' in' : '') + '">' + l + '</div>', list = c => ITEMS.filter(w => (c === 'season' ? !!w.season : !w.season && w.cat === c) && (!bought(w.id) || LKR.got.has(w.id))).sort((a, b) => PRICE(a) - PRICE(b)), cnt = ITEMS.filter(lkForSale).length;
-  let h = '<div class="lkhd"><h4 class="lkh">Paint Shop</h4>' + (cnt ? '<span class="lkcnt">' + cnt + ' in stock</span>' : '') + '</div>', any = false;
-  const sz = list('season'); if (sz.length) { any = true; const all = ITEMS.filter(w => w.season), got = all.filter(w => bought(w.id) || owns(w.id)).length;
-    h += '<div class="lkszn" role="heading" aria-level="4"><span class="sbart" style="--sbbg:url(art/shop_hw_bg.webp)"></span><span class="lkszt"><i>Season One</i><b>Spooky SZN</b><small><u style="--p:' + (all.length ? got / all.length : 0).toFixed(3) + '"></u>' + got + ' of ' + all.length + ' found</small></span><img class="lkpump" src="art/shop_hw_pump.webp" alt="" draggable="false"></div>' + grid(sz.map(w => lkCard(w, 'shop')).join('')); }
-  for (const c of ['head', 'face', 'cloth', 'eyes']) { const l = list(c); if (!l.length) continue; any = true; h += '<p class="lksec">' + LK_CAT[c] + '</p>' + grid(l.map(w => lkCard(w, 'shop')).join('')); }
-  if (!any) h += '<p class="lkempty">' + SHOP_ICON + 'Nothing left to buy.<br>Everything is in your locker.</p>';
+  const grid = l => '<div class="sggrid lkgrid' + (LKR.anim ? ' in' : '') + '">' + l.map(w => lkCard(w, 'shop')).join('') + '</div>', by = (a, b) => PRICE(a) - PRICE(b), cnt = ITEMS.filter(lkForSale).length;
+  const listed = ITEMS.filter(w => !bought(w.id) || LKR.got.has(w.id)), kinds = LK_FILT.filter(([k]) => k !== 'all' && listed.some(w => lkInF(w, k))).length, chips = tutPh() !== 'shop' && kinds > 1;
+  const f = chips && listed.some(w => lkInF(w, LKR.filt)) ? LKR.filt : 'all';
+  let h = '<div class="lkhd"><h4 class="lkh">Paint Shop</h4>' + (cnt ? '<span class="lkcnt">' + cnt + ' in stock</span>' : '') + '</div>';
+  if (chips) h += lkChipsHtml(listed, f);
+  if (f === 'all' || f === 'season') {
+    const sz = listed.filter(w => w.season).sort(by);
+    if (sz.length) { const all = ITEMS.filter(w => w.season), got = all.filter(w => bought(w.id) || owns(w.id)).length;
+      h += '<div class="lkszn" role="heading" aria-level="4"><span class="sbart" style="--sbbg:url(art/shop_hw_bg.webp)"></span><span class="lkszt"><i>Season One</i><b>Spooky SZN</b><small><u style="--p:' + (all.length ? got / all.length : 0).toFixed(3) + '"></u>' + got + ' of ' + all.length + ' found</small></span><img class="lkpump" src="art/shop_hw_pump.webp" alt="" draggable="false"></div>' + grid(sz); }
+    if (f === 'all') for (const c of ['head', 'face', 'cloth', 'eyes']) { const l = listed.filter(w => !w.season && w.cat === c).sort(by); if (l.length) h += '<p class="lksec">' + LK_CAT[c] + '</p>' + grid(l); }
+  } else {
+    const sz = listed.filter(w => w.season && w.cat === f).sort(by), yr = listed.filter(w => !w.season && w.cat === f).sort(by);
+    if (sz.length) h += '<p class="lksec">' + LK_FSVG + LK_FI.season + '</svg>Spooky SZN</p>' + grid(sz);
+    if (yr.length) h += (sz.length ? '<p class="lksec">All year</p>' : '') + grid(yr);
+  }
+  if (!listed.length) h += '<p class="lkempty">' + SHOP_ICON + 'Nothing left to buy.<br>Everything is in your locker.</p>';
   return h;
 }
+// a pick: the list under it changes and the row stays where it is (at the top of the panel once it's held there)
+function lkFilt(f) {
+  if (f === LKR.filt) { AU.ui(); buzz(3); const b = $('lkPaneShop').querySelector('.lkchip[data-f="' + f + '"]'); if (b) kick(b, 'tpop'); return; }
+  const sc = $('lkScroll'), st = sc.scrollTop; LKR.filt = f; LKR.anim = true; AU.ui(); buzz(4);
+  lkPaneRender(); if (st > LKR.stickY) { sc.scrollTop = LKR.stickY; lkStuck(); }
+}
+// (where the row starts being held at the top: its heading scrolled away; the row is on paper while it's over the cards)
+function lkStickMeasure() { const sc = $('lkScroll'), hd = LKR.tab === 'shop' && $('lkPaneShop').querySelector('.lkhd'); LKR.stickY = hd ? Math.round(hd.getBoundingClientRect().bottom - sc.getBoundingClientRect().top + sc.scrollTop) : 0; }
+function lkStuck() { const row = LKR.tab === 'shop' && $('lkPaneShop').querySelector('.lkchips'), on = !!row && $('lkScroll').scrollTop >= LKR.stickY - 2; if (row && row.classList.contains('stuck') !== on) row.classList.toggle('stuck', on); }
+// after the pane is drawn again: the row as it was (scrolled sideways, the picked chip in view, focus kept), the panel told it has one
+function lkChipEdge(row) { const max = row.scrollWidth - row.clientWidth - 4; row.classList.toggle('ml', row.scrollLeft > 4); row.classList.toggle('mr', row.scrollLeft < max); }
+function lkChipsAfter(el, cx, fchip) {
+  const row = LKR.tab === 'shop' && el.querySelector('.lkchipr'); $('mLocker').classList.toggle('lkchipped', !!row); if (!row) return;
+  row.scrollLeft = cx; const b = row.querySelector('[aria-pressed="true"]');
+  if (b) { if (b.offsetLeft < row.scrollLeft + 48) row.scrollLeft = Math.max(0, b.offsetLeft - 48); else if (b.offsetLeft + b.offsetWidth > row.scrollLeft + row.clientWidth - 48) row.scrollLeft = b.offsetLeft + b.offsetWidth - row.clientWidth + 48; }
+  if (fchip) { const n = row.querySelector('[data-f="' + fchip + '"]'); if (n) n.focus({ preventScroll: true }); }
+  lkChipEdge(row); row.addEventListener('scroll', () => lkChipEdge(row), { passive: true }); lkStickMeasure(); lkStuck();
+}
+$('lkScroll').addEventListener('scroll', () => { if (LKR.tab === 'shop') lkStuck(); }, { passive: true });
+addEventListener('resize', () => { if (lkOn()) setTimeout(() => { if (lkOn()) { lkStickMeasure(); lkStuck(); } }, 80); });
 function lkPaneRender() {
   const sc = $('lkScroll'), top = sc.scrollTop, ae = document.activeElement, fk = ae && ae.dataset && ae.dataset.k && sc.contains(ae) ? ae.dataset.k : '', el = LKR.tab === 'shop' ? $('lkPaneShop') : $('lkPaneMine');
+  const ox = el.querySelector('.lkchipr'), cx = ox ? ox.scrollLeft : 0, fchip = ae && ae.classList && ae.classList.contains('lkchip') && el.contains(ae) ? ae.dataset.f : ''; // (v333)
   el.innerHTML = LKR.tab === 'shop' ? lkShopHtml() : lkMineHtml(); LKR.anim = false; nmSet($('lkNameT'), playerName());
-  sc.scrollTop = top; if (fk) { const f = el.querySelector('[data-k="' + fk + '"]'); if (f) f.focus({ preventScroll: true }); }
+  sc.scrollTop = top; if (fk) { const f = el.querySelector('[data-k="' + fk + '"]'); if (f) f.focus({ preventScroll: true }); } lkChipsAfter(el, cx, fchip);
 }
 function lkTabs() {
   for (const b of $('lkTabs').querySelectorAll('.sgtab')) { const on = b.dataset.tab === LKR.tab; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; }
@@ -22094,7 +22200,7 @@ function lkTap(key) {
 }
 function lkPaint(id) {
   LKR.sel = 'c:' + id; LKR.prev = null; lkDress();
-  if (id !== colorId) { setColor(id); store.color = colorId; save(); kick($('logo'), 'paint'); AU.pop(); AU.splat(0.8); buzz(6); if (SGD.built) { SGD.A.col.set(TEAMS[0].wet); sgDressPaint(true); } $('lkArt').innerHTML = frFace(frLook()); }
+  if (id !== colorId) { setColor(id); lkWallTo(colorId); store.color = colorId; save(); kick($('logo'), 'paint'); AU.pop(); AU.splat(0.8); buzz(6); if (SGD.built) { SGD.A.col.set(TEAMS[0].wet); sgDressPaint(true); } $('lkArt').innerHTML = frFace(frLook()); }
   else { AU.ui(); buzz(4); }
   lkTabs(); lkPaneRender(); lkShowRender(); lkKick('c:' + id);
 }
@@ -22113,7 +22219,7 @@ function lkIris(id) {
 }
 // picking one from outside the panel (a new find's "See it in the shop", a locked eye style in the locker): tried on in the shop
 function lkSelect(id, quiet) {
-  const w = lkItem(id); if (!w) return;
+  const w = lkItem(id); if (!w) return; if (!lkInF(w, LKR.filt)) LKR.filt = 'all'; // (v333)
   if (LKR.tab === 'mine' && w.slot === 'eyes') LKR.sel = 'e:' + id;
   else { LKR.sel = 'w:' + id; LKR.prev = LKR.tab === 'shop' && !bought(id) ? lkWith(myLook, w) : null; lkDress(); if (SGD.on) sgDressReact(w); else SGD.pend = w; }
   if (!quiet) { AU.pop(); buzz(5); } lkPaneRender(); lkShowRender(); lkReveal();
@@ -22130,7 +22236,7 @@ function openLocker(tab, id) {
   if (lkOn()) { lkSetTab(tab); if (id) lkSelect(id); return; }
   if (strokesOpen()) closeStrokes(); if (menuPage === 'worlds') { closeSeason(); $('mWorld').hidden = true; } if (menuPage === 'events') closeEvents();
   closeSide(true); if (lookOpen) closeLook(); else if (shopOpen) closeShop(true); // (the old sheets, never open now)
-  LKR.tab = LKR.from = tab === 'shop' ? 'shop' : 'mine'; LKR.sel = null; LKR.prev = null; LKR.got.clear(); LKR.scr.mine = LKR.scr.shop = 0; LKR.anim = true;
+  LKR.tab = LKR.from = tab === 'shop' ? 'shop' : 'mine'; LKR.sel = null; LKR.prev = null; LKR.got.clear(); LKR.scr.mine = LKR.scr.shop = 0; LKR.anim = true; LKR.filt = 'all'; lkWallSet(colorId);
   menuPage = 'locker'; menu.dataset.page = 'locker'; $('mHome').hidden = true; const pg = $('mLocker'); pg.dataset.tab = LKR.tab; pg.hidden = false; document.body.classList.add('evon', 'stpage');
   $('lkPaneMine').hidden = LKR.tab !== 'mine'; $('lkPaneShop').hidden = LKR.tab !== 'shop'; $('lkUnlockForm').hidden = true; $('lkUnlockLink').hidden = false;
   SGD.kind = 'dress'; SGD.id = null; SGD.started = false; SGD.pend = null; SGD.rectDirty = true;
@@ -22150,8 +22256,8 @@ $('lkBack').addEventListener('click', () => { AU.init(); AU.ui(); closeLocker();
 $('lkCoin').addEventListener('click', () => { AU.init(); if (LKR.tab !== 'shop') lkSetTab('shop'); else { AU.ui(); kick($('lkCoin'), 'bump'); lkToast((store.drops || 0) + ' dabs to spend. Matches pay in dabs'); } });
 $('lkTabs').addEventListener('click', e => { const b = e.target.closest('.sgtab'); if (b) { AU.init(); lkSetTab(b.dataset.tab); } });
 $('lkTabs').addEventListener('keydown', e => { const dl = e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowUp'; if (!dl) return; e.preventDefault(); e.stopPropagation(); const t = LKR.tab === 'mine' ? 'shop' : 'mine'; AU.init(); lkSetTab(t); $(t === 'shop' ? 'lkTabShop' : 'lkTabMine').focus(); });
-$('lkPanel').addEventListener('click', e => { const t = e.target.closest('[data-k], [data-go], #lkNameBtn'); if (!t || !$('lkPanel').contains(t)) return; AU.init();
-  if (t.id === 'lkNameBtn') { AU.ui(); openName(false); return; } if (t.dataset.go) { lkSetTab(t.dataset.go); return; } lkTap(t.dataset.k); });
+$('lkPanel').addEventListener('click', e => { const t = e.target.closest('[data-k], [data-go], [data-f], #lkNameBtn'); if (!t || !$('lkPanel').contains(t)) return; AU.init();
+  if (t.id === 'lkNameBtn') { AU.ui(); openName(false); return; } if (t.dataset.go) { if (t.dataset.f) { LKR.filt = t.dataset.f; LKR.scr.shop = 0; } lkSetTab(t.dataset.go); return; } if (t.dataset.f) { lkFilt(t.dataset.f); return; } lkTap(t.dataset.k); });
 $('lkDo').addEventListener('click', () => { AU.init(); const w = LKR.sel && LKR.sel[0] === 'w' && lkItem(LKR.sel.slice(2)); if (!w) return;
   if (bought(w.id)) { if (!lkWorn(w)) { lkPutOn(w); AU.pop(); buzz(5); lkTabs(); lkPaneRender(); lkShowRender(); } return; } lkBuy(w); });
 $('lkOff').addEventListener('click', () => { AU.init(); const w = LKR.sel && LKR.sel[0] === 'w' && lkItem(LKR.sel.slice(2)); if (!w || w.slot === 'eyes' || !lkWorn(w)) return;
@@ -22183,6 +22289,7 @@ function sgDressStart() {
   if (SGD.pend) { const w = SGD.pend; SGD.pend = null; sgDressReact(w); }
 }
 function sgDress(dt) {
+  lkWallTick(); // (v333)
   const A = SGD.A, D = A.D; SGD.t += dt; if (SGD.shk > 0) SGD.shk = Math.max(0, SGD.shk - dt * 3);
   sgActStep(dt); // (v328: a tap's reaction)
   if (!SGD.dDrag) {
