@@ -4650,7 +4650,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 341</p>
+      <p class="ver">Version 342</p>
     </div>
   </div>
 
@@ -4778,7 +4778,7 @@ i.ptwait>*{display:none}
       <h2 class="ctitle" id="statsTitle">Stats</h2>
       <div class="sthead"><b id="stName">Player</b><button id="stRename" type="button" aria-label="Change your name"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1-4.6L15.6 4.8a2 2 0 0 1 2.8 0l.8.8a2 2 0 0 1 0 2.8L8.6 19 4 20z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></button></div>
       <div class="strank"><span class="pbrank" aria-hidden="true"><svg viewBox="0 0 46 54"><defs><clipPath id="stShClip"><path d="M23 2.6 43 8.6V29c0 11.4-9 18.6-20 22.6C12 47.6 3 40.4 3 29V8.6z"/></clipPath></defs><path class="pbsh" d="M23 2.6 43 8.6V29c0 11.4-9 18.6-20 22.6C12 47.6 3 40.4 3 29V8.6z"/><rect width="46" height="20.5" fill="#F4EEE3" clip-path="url(#stShClip)"/><path d="M3 20.5h40" stroke="#171320" stroke-width="2.4"/><path d="M8.5 44 23 49.6 37.5 44" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="3" clip-path="url(#stShClip)"/><path d="M23 2.6 43 8.6V29c0 11.4-9 18.6-20 22.6C12 47.6 3 40.4 3 29V8.6z" fill="none" stroke="#171320" stroke-width="3" stroke-linejoin="round"/><path d="M8 11.4 23 7l15 4.4" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" opacity=".9"/></svg><small>RANK</small><b id="stLvl">1</b></span><span class="strt"><b id="stTitle">Unknown</b><small id="stXp"></small><span class="stbar"><i id="stFill"></i></span></span></div>
-      <div class="stgrid"><div><b id="stWins">0</b><small>Wins</small></div><div><b id="stPlayed">0</b><small>Matches</small></div><div><b id="stRate">0%</b><small>Win rate</small></div><div><b id="stBest">0%</b><small>Best coverage</small></div></div>
+      <div class="stgrid"><div><b id="stWins">0</b><small>Wins</small></div><div><b id="stKd">–</b><small>K/D</small></div><div><b id="stPlayed">0</b><small>Matches</small></div><div><b id="stRate">0%</b><small>Win rate</small></div></div>
       <button class="btn play sm" id="statsClose" type="button">Back to the studio</button>
     </div>
   </div>
@@ -17331,6 +17331,7 @@ function endMatch() {
   if (mode === 'solo') { endInfo.sid = TH.id; endInfo.tt = ttAdd(TH.id, ry); frTrial(TH.id, ry); } // (v293: on this week's board for the canvas)
   store.played[slot] = (store.played[slot] || 0) + 1; if (win > 0 && mode !== 'solo') store.wins[slot] = (store.wins[slot] || 0) + 1;
   store.runs = (store.runs || 0) + 1; if (store.itemIn > 0) store.itemIn--;
+  if (mode !== 'solo') { store.kos = (store.kos || 0) + (P.kos | 0); store.outs = (store.outs || 0) + (P.outs | 0); } // (v342: for Stats' K/D)
   if (mode === 'solo' ? ry > (store.bestCov.solo || 0) : newBest) store.bestCov[slot] = ry; // (the all-time best stays for Stats)
   endInfo.newBest = newBest;
   store.world = store.world || {}; const wk = worldKey(), wr = store.world[wk] = store.world[wk] || { best: 0, wins: 0, played: 0 }; // and a best and a win count per world, for its plaque
@@ -25094,15 +25095,14 @@ function pbarTick(rdt) {
   pbDraw(rdt);
 }
 pbar.addEventListener('click', uiClick(() => openStats()));
-// your stats: your rank and what's left to the next, wins, matches, win rate, best coverage; your name, and changing it
+// your stats: your rank and what's left to the next, wins, K/D, matches, win rate (v342: K/D for best coverage); your name, and changing it
 function paintStats() {
-  const r = repOf(store.xp || 0); let wins = 0, vs = 0, best = 0;
+  const r = repOf(store.xp || 0), ko = store.kos || 0, out = store.outs || 0; let wins = 0, vs = 0;
   for (const k in store.wins || {}) wins += store.wins[k] || 0;
   for (const k in store.played || {}) if (k !== 'solo') vs += store.played[k] || 0;
-  for (const k in store.bestCov || {}) best = Math.max(best, store.bestCov[k] || 0);
   nmSet($('stName'), playerName()); $('stLvl').textContent = r.lv; $('stTitle').textContent = r.name; $('stXp').textContent = r.x + ' / ' + r.need + ' XP to rank ' + (r.lv + 1);
   $('stFill').style.width = (100 * r.x / r.need).toFixed(1) + '%';
-  $('stWins').textContent = wins; $('stPlayed').textContent = store.runs || 0; $('stRate').textContent = (vs ? Math.round(100 * wins / vs) : 0) + '%'; $('stBest').textContent = best + '%';
+  $('stWins').textContent = wins; $('stPlayed').textContent = store.runs || 0; $('stRate').textContent = (vs ? Math.round(100 * wins / vs) : 0) + '%'; $('stKd').textContent = ko || out ? (ko / Math.max(1, out)).toFixed(2) : '–';
 }
 function openStats() { if (state !== 'menu' || lookOpen || lkOn()) return; paintStats(); $('statsModal').hidden = false; setTimeout(() => $('statsClose').focus({ preventScroll: true }), 30); }
 function closeStats() { if ($('statsModal').hidden) return; $('statsModal').hidden = true; pbar.focus({ preventScroll: true }); }
@@ -25211,6 +25211,7 @@ function endShowdown(timeUp) {
   endInfo = { mode, show: true, win, winner: draw ? null : winners.includes(P) ? P : winners[0], winners, draw, timeUp, time: runT, you: teamCov(0), cpu: teamCov(1), cpu2: teamCov(2), kos: per(D => D.kos | 0), selfs: per(D => D.selfOuts | 0), hearts: per(D => Math.max(0, D.hearts | 0)), places: per(D => D.place || 0), tot: null, newBest: false };
   store.wins = store.wins || {}; store.played = store.played || {}; const slot = mode + diff; store.played[slot] = (store.played[slot] || 0) + 1; if (win > 0) store.wins[slot] = (store.wins[slot] || 0) + 1;
   store.runs = (store.runs || 0) + 1; if (store.itemIn > 0) store.itemIn--;
+  if (mode !== 'solo') { store.kos = (store.kos || 0) + (P.kos | 0); store.outs = (store.outs || 0) + (P.outs | 0); } // (v342: for Stats' K/D)
   store.world = store.world || {}; const wk = worldKey(), wr = store.world[wk] = store.world[wk] || { best: 0, wins: 0, played: 0 }; wr.played++; if (win > 0) wr.wins++;
   endInfo.diff = diff; const pl = P.place || 4; let gain = Math.round(18 + 9 * P.kos + (win > 0 ? 40 : win === 0 ? 14 : 0) + (pl === 2 ? 12 : pl === 3 ? 5 : 0) + 4 * Math.max(0, P.hearts | 0));
   const fin = commProgress(endInfo); endInfo.xp0 = store.xp || 0; store.xp = endInfo.xp0 + gain; endInfo.xp = gain; endInfo.comms = fin;
