@@ -90,7 +90,7 @@ final class AdsBridge: NSObject, WKScriptMessageHandler {
                 self?.load()
             }
         } else if (body["init"] as? Bool) == true {
-            checkConsent {}
+            checkConsent { [weak self] in self?.sendState() } // (a page started over hears whether it needs Ad privacy choices too)
         }
         if let place = body["show"] as? String, !place.isEmpty { show(place) }
         if (body["cancel"] as? Bool) == true { cancelWait() }

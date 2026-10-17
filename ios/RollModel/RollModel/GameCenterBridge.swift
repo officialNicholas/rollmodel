@@ -23,6 +23,7 @@ final class GameCenterBridge: NSObject, WKScriptMessageHandler, GKGameCenterCont
     weak var webView: WKWebView?
     weak var viewController: UIViewController?
     private var started = false
+    private var askedSignIn = false   // (Game Center's sign-in comes up once a launch, from the lobby; never later, mid-match)
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard let body = message.body as? [String: Any] else { return }
@@ -34,14 +35,21 @@ final class GameCenterBridge: NSObject, WKScriptMessageHandler, GKGameCenterCont
     }
 
     /// Signs the player in. Not signed in to Game Center on this phone: Game Center's own sign-in comes up over the lobby, once.
+    /// Asked again (the game's page was started over), it just says where things stand.
     private func start() {
-        guard !started else { return }
+        guard !started else {
+            sendState()
+            return
+        }
         started = true
         GKLocalPlayer.local.authenticateHandler = { [weak self] signIn, _ in
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 if let signIn = signIn {
-                    self.topController()?.present(signIn, animated: true)
+                    if !self.askedSignIn {
+                        self.askedSignIn = true
+                        self.topController()?.present(signIn, animated: true)
+                    }
                     return
                 }
                 self.sendState()

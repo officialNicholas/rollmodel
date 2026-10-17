@@ -85,8 +85,7 @@ final class GameSchemeHandler: NSObject, WKURLSchemeHandler {
             }
             // (the throwing read: the old one stops the app on a read error)
             guard let data = try? handle.read(upToCount: end - start + 1), !data.isEmpty else {
-                return Reply(status: 416, mimeType: "text/plain; charset=utf-8", data: Data(),
-                             headers: ["Content-Range": "bytes */\(total)"])
+                return Reply(status: 500, mimeType: "text/plain; charset=utf-8", data: Data("Read error".utf8))
             }
             return Reply(status: 206, mimeType: mimeType, data: data,
                          headers: ["Content-Range": "bytes \(start)-\(start + data.count - 1)/\(total)"])
