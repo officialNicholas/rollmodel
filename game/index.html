@@ -4625,7 +4625,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 333</p>
+      <p class="ver">Version 334</p>
     </div>
   </div>
 
@@ -23263,8 +23263,7 @@ function frWhen(f) {
 }
 // (v331) a face as the character really looks: its portrait
 function frFace(look) { return ptHtml(ptSpecNet(look), 'frface', frFaceSvg(look)); }
-// (v331) the lobby's Friends button: three portraits for its three drawn faces
-{ const ff = document.querySelector('#friendsBtn .ffaces'); if (ff) { const fb = [...ff.children].map(e => e.outerHTML); ff.innerHTML = [[0xE3122F, 'round'], [0x2479D6, 'dot'], [0x7A4FE0, 'sly']].map(([h, e], i) => ptHtml(ptSpec(h, { eyes: e }), 'ffc', fb[i] || '')).join(''); } }
+// (v334) the lobby's Friends button keeps its three drawn faces (v331 had put portraits there)
 const FR_X = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>';
 const FR_MORE = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="18.5" cy="12" r="2.2" fill="currentColor"/></svg>';
 function frRow(f) {
