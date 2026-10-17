@@ -9,7 +9,7 @@
 // TCP never loses a message, so "loss" here is what TCP turns it into: the lost segment and everything after it wait
 // for a retransmission (about one round trip plus the 200 ms minimum timer).
 //
-// usage: node bench/netprobe.js [profiles] [seconds]   e.g. node bench/netprobe.js lan,rtt120,loss2 8
+// usage: node bench/netprobe.js [profiles] [seconds]   env: SNAP_HZ, SEND_HZ (30 each), WHY=1 (log corrections)   e.g. node bench/netprobe.js lan,rtt120,loss2 8
 //        node bench/netprobe.js drop
 import { performance } from 'node:perf_hooks';
 import { startServer, makeBots, until, sleep, stats, matchOf } from '../test/helpers/harness.js';
@@ -80,9 +80,10 @@ function clientTimeAt(p, R) {
 }
 
 async function duel(name, seconds) {
-  const srv = await startServer({ matchT: seconds + 6 });
+  const srv = await startServer({ matchT: seconds + 6, snapshotHz: +(process.env.SNAP_HZ || 30) });
   const WS = lossySim(NET[name]);
   const bots = makeBots(srv, 2, { WebSocket: WS, behavior: 'wander', record: true, prefix: name });
+  if (process.env.SEND_HZ) for (const b of bots) b.net.sendInterval = 1000 / +process.env.SEND_HZ;
   const corr = [];
   for (const b of bots) b.on('correction', m => { const t = b.trace, n = t.length; corr.push(n >= 4 ? Math.hypot(t[n - 3] - m.x, t[n - 1] - m.z) : 0); if (process.env.WHY) console.log('  correction', m.reason, (corr[corr.length - 1] * 100).toFixed(0) + ' cm'); }); // (the trace's last frame: where it was before the correction)
   try {
