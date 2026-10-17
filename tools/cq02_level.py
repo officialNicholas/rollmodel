@@ -48,4 +48,7 @@ def apply(s):
     s = rep(s, "const QG_C = 2, QG_O = 40, QG_N = 40,", "const QG_C = 2, QG_O = 64, QG_N = 64,")
     # the opening's entrance plays in the play state (its camera stays)
     s = rep(s, "if (t >= c.len || (c.first && state !== 'reveal' && state !== 'intro')) { Q.cut = null;", "if (t >= c.len || (c.first && state !== 'reveal' && state !== 'intro' && !CQL)) { Q.cut = null;")
+    # the keep's far rocks and the wrecks sit where the run goes: the rocks out beyond the world's edge in the level, the wrecks left out
+    s = rep(s, "r = 36 + Rg() * 15, x0 = Math.cos(deg * D) * r", "r = (CQL ? 66 : 36) + Rg() * 15, x0 = Math.cos(deg * D) * r")
+    s = rep(s, "SG.lod(0.6, () => { const mast = (deg, d, H, tilt, ry, sail) =>", "if (!CQL) SG.lod(0.6, () => { const mast = (deg, d, H, tilt, ry, sail) =>")
     return s

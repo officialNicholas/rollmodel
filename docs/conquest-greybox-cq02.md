@@ -20,7 +20,7 @@ The first playable piece of the level in docs/conquest-design.md, built from pla
 - The probe: `tools/cq/shot.mjs` with `e=cqlvEnter(1)` and `p=x,z,yaw` (a teleport) steps. The checks so far ran the whole plaza loop and the run's checkpoints, falls and chips with no page errors.
 
 ## Known gaps (greybox)
-- The keep and the run are one world (60 m across: the keep's wall has a breach, the ground beyond it is slime). The plaza is still its own world: you go through the gate's light with a flash and come out on it rolling the same way.
+- The keep and the run are one world (60 m across: the keep's wall has a breach, the ground beyond it is slime). The sea of slime is a flat purple sheet (the game's sea reads as black on the hi setting), the causeway's tops are plates in the keep's floor stone (its own top material reads as slime on hi), and the keep's far rocks and wrecks, which sat on the lanes, are pushed beyond the world's edge or left out. The plaza is still its own world: you go through the gate's light with a flash and come out on it rolling the same way.
 - The broken stone stays drawn (the keep's stage is too costly to redraw mid-run): a slab of slime over the gap stands for it until the real piece can fall.
 - The two-player reaction (the two look at each other) waits for co-op.
 - The collapse is a dark wall and rubble; the causeway itself doesn't fall.

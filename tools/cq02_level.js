@@ -116,7 +116,12 @@ function cqlvPathAt(path, s) { let acc = 0; for (let i = 0; i + 1 < path.length;
 function cqlvKeepExtend() {
   const L = cqlvRunLayout(); for (const b of L.boxes) BOXES.push(b); buildQGrid(); rebuildSamples(); buildNav();
   POTS.length = 0; for (const p of L.pots) POTS.push(p); RIVALS.length = 0; POWER_SPOTS.length = 0; COF_SPOTS.length = 0;
-  rebuildStage(); sea.visible = true; seaU.uSlime.value = 0; seaU.uDeep.value.set(0x2A0A48); seaU.uShal.value.set(0x8E3CF0); cqlvPurple();
+  rebuildStage(); cqlvPurple();
+  // the sea of slime: one flat purple sheet under everything (the game's sea reads as black on the hi setting)
+  { const g = new THREE.PlaneGeometry(260, 260); g.rotateX(-Math.PI / 2); const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: 0x8E3CF0, emissive: 0x2A0A48, roughness: 0.32 })); m.position.y = -0.3; m.receiveShadow = true; CQL.g.add(m); sea.visible = false; }
+  // the causeway's tops in the keep's floor stone (the theme's own top material reads as slime on the hi setting), a dark lip round each
+  const M = themeMats(TH); for (const b of L.boxes) { const w = b[1] - b[0], d = b[3] - b[2], g = new THREE.BoxGeometry(w - 0.04, 0.05, d - 0.04); g.translate((b[0] + b[1]) / 2, b[5] + 0.025, (b[2] + b[3]) / 2); worldUV(g, TH.uv);
+    const m = new THREE.Mesh(g, M.floor); m.receiveShadow = true; CQL.g.add(m); const o = new THREE.Mesh(new THREE.BoxGeometry(w + 0.1, b[5] + 0.12, d + 0.1), new THREE.MeshBasicMaterial({ color: 0x14261A, side: THREE.BackSide })); o.position.set((b[0] + b[1]) / 2, (b[5] + 0.06) / 2 - 0.06, (b[2] + b[3]) / 2); CQL.g.add(o); }
   Object.assign(START, { x: 0, z: -15.5, yaw: 0 });
 }
 // the Aqueduct Run: one path, a stone causeway half a metre above a sea of slime, round the keep; off the path is the
