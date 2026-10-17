@@ -45,7 +45,7 @@ The music is new and is written on the theme (`music/menu.mp3`). It builds a lay
 | barrel 6.6–10 | Two bubbles come up where it will surface; the eyes pop up (stretching up and settling, a bloop and ripples), look left and right (the head tips and an ear flicks with each look), blink; the camera moves in. Down in the paint it lies as it does in a basin in the game (v266): along its way out, on the ground of a hole (the game's own crawl-out hole, `CR`), deep under the paint and on back under the sand, so nothing but its head shows (its tail used to poke up through the sand behind) | air |
 | iris (card) | "Those eyes need a color." 5 iris colours, live on the face. Picking one: a curious head tilt, as if admiring them | keys |
 | style (card) | "Now give them some style." Round, Aggressive, Dot. Picking one: chin up and a smile (v266: no smirk while it's down in the paint, as its lids don't show through the paint and the smirk's wink lost an eye; standing, after *Not yet*, it still smirks) | low |
-| paint (card) | "Pick your paint." The camera eases back; 6 paints; the puddle, the character, its coat and the game's own colour change live, with a splash and a wag of its ears. Standing (after *Not yet*), the new paint washes up over it and bursts off, the game's own `popIn` | tops |
+| paint (card) | "Pick your paint." The camera eases back; 6 paints (since v329: Red, Grey, Gold, Green, Purple, Pink; Grey is the pearl the character came out in, and it is picked already when the card opens, so Next works straight away); the puddle, the character, its coat and the game's own colour change live, with a splash and a wag of its ears. Standing (after *Not yet*), the new paint washes up over it and bursts off, the game's own `popIn` | tops |
 | form | It climbs out the way it climbs out of a basin in the game (v266, in place of rising and jumping clear): it hauls itself up the bank of the hole on all fours toward its spot, hands reaching up onto the sand, body pitched up the slope, slowest as its chest goes over the lip (a gloop and a ring of drops there), paint dripping off, hips and tail out last; the hole fills in behind it; it shakes the paint off (the coat bursts into flying drops), then looks up, pleased | tops |
 | name (card) | "What do we call you?" Prefilled with a random name, dice for another (its ears wag) | drive (everything) |
 | confirm (card) | "All set?" Its ears perk up and it looks up at you. *Not yet* (back to the eye colour, standing now, every pick still live) or *Let's roll* | drive |
@@ -237,7 +237,7 @@ If the scene can't be built (for instance neither character pack loaded), the in
 
 ## Main's patches over the intro
 
-The main branch's later modules (in `tools/q260.py`) patch lines of the intro's own code after `tools/v257_intro.py` has put it on the page. Each of these must stay exactly as it is in `tools/v257_intro.js` (or `.css`), or main has to be told the new text so it can move its patch. All of them matched exactly once as of v309 (commit 480bb18): main's builder, run on the files here, makes the shipped page byte for byte.
+The main branch's later modules (in `tools/q260.py`) patch lines of the intro's own code after `tools/v257_intro.py` has put it on the page. Each of these must stay exactly as it is in `tools/v257_intro.js` (or `.css`), or main has to be told the new text so it can move its patch. All of them matched exactly once as of v329 (commit 63d8597): main's builder, run on the files here, makes the shipped page byte for byte.
 
 | Module | Lines it hooks |
 |---|---|
@@ -247,6 +247,7 @@ The main branch's later modules (in `tools/q260.py`) patch lines of the intro's 
 | `v285_intro_turn` | `function buildUi() {`; `UI = { el, cur: null };`; the `bob = c.pop > 0 ...` line in `charTick`; the shot distance line in `want()` |
 | `v288_intro_title` | the `.fltitle` rule's opening (`position:absolute;left:0;right:0;top:calc(...) + 18%);`) |
 | `v306_accounts` | the name card note (`It goes up in lights when you win.`); the name input and dice markup; the `flDice` click listener; the `flName` submit listener; the name phase's prefill line |
+| `v329_grey_paint` | `pickPaint`'s line (`const c = PALETTE.find(p => p.id === id); ... X.pearlTo = 0;`); the `paint` branch of `go()`; the `dust: X.dust.P.length, calls: ...` line in `peek()` |
 
 The boot statement that loads the Google Fonts (`try { const l = document.createElement('link'); ... } catch (e) {}`) is also kept exactly as it is: `tools/ios_pack.py` strips it for the app.
 
