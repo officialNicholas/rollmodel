@@ -2580,7 +2580,7 @@ svg{shape-rendering:geometricPrecision}
 .tut .thand{position:absolute;left:var(--ax,50%);width:58px;height:76px;margin-left:-25px;display:none;animation:tutbob .6s ease-in-out infinite alternate}
 .tut[data-pos="above"] .thand{display:block;top:100%;margin-top:4px}
 .tut[data-pos="below"] .thand{display:block;bottom:100%;margin-bottom:4px;transform:scaleY(-1)}
-.tut .thand svg{width:100%;height:100%;filter:drop-shadow(3px 4px 0 rgba(0,0,0,.35))}
+.tut .thand svg{width:100%;height:100%;overflow:visible}
 .tut.on .tplate{animation:tutin .36s cubic-bezier(.2,1.2,.4,1) both}
 @keyframes tutin{from{transform:scale(.88);opacity:0}to{transform:none;opacity:1}}
 @keyframes tutbob{from{translate:0 0}to{translate:0 9px}}
@@ -2616,6 +2616,7 @@ svg{shape-rendering:geometricPrecision}
 .tutslow.deep::after{opacity:1}
 .tutslow.on{opacity:1}
 .tutslow.dark{background:radial-gradient(ellipse at center,rgba(23,19,32,.34) 30%,rgba(23,19,32,.66) 100%)}
+.tutslow{display:none!important} /* (v332: drawn in the 3D frame's last pass; the classes still say when) */
 @media (min-aspect-ratio:1/1){.tut[data-pos="top"]{top:64px}}
 @media (max-width:420px){.tut .ttext{font-size:16px}.tut .tplate{grid-template-columns:52px minmax(0,1fr);column-gap:11px;padding:8px 14px 12px 10px}.tut .tava{width:52px;height:52px}}
 @media (prefers-reduced-motion:reduce){.tut .thand,.tut.on .tplate{animation:none}}
@@ -2660,11 +2661,12 @@ svg{shape-rendering:geometricPrecision}
 .tut[data-pos="play"] .ttext{font-size:15px}
 .tut[data-pos="play"] .tcall{font-size:clamp(19px,5vw,26px)}
 .tuthand{position:absolute;left:0;top:0;z-index:60;width:50px;height:66px;pointer-events:none;animation:tutbob .6s ease-in-out infinite alternate}
-.tuthand svg{width:100%;height:100%;filter:drop-shadow(3px 4px 0 rgba(0,0,0,.35))}
+.tuthand svg{width:100%;height:100%;overflow:visible}
 @media (prefers-reduced-motion:reduce){.tuthand{animation:none}}
 /* the way to go: a gold arrow a little out from you, turning to point at what the lesson wants you to reach */
 .tutarrow{position:absolute;left:0;top:0;z-index:58;width:58px;height:58px;margin:-29px 0 0 -29px;pointer-events:none;will-change:transform}
-.tutarrow svg{display:block;width:100%;height:100%;fill:var(--gold);stroke:#171320;stroke-width:2.4;stroke-linejoin:round;filter:drop-shadow(2px 3px 0 rgba(0,0,0,.4));animation:tutnudge .55s ease-in-out infinite alternate}
+.tutarrow svg{display:block;width:100%;height:100%;fill:var(--gold);stroke:#171320;stroke-width:2.4;stroke-linejoin:round;overflow:visible;animation:tutnudge .55s ease-in-out infinite alternate}
+.tutarrow svg .sh{fill:#000;stroke:#000;opacity:.4}
 @keyframes tutnudge{from{translate:0 0}to{translate:9px 0}}
 @media (prefers-reduced-motion:reduce){.tutarrow svg{animation:none}}
 /* the lesson's last word: the match holds still, a full card says what is left to do, and a button starts it again */
@@ -2716,7 +2718,7 @@ svg{shape-rendering:geometricPrecision}
 .tutgest[data-g="swipe"]{top:60%} /* (well up the screen, clear of the pound button) */
 .tutgest[data-g="pull"]{top:74%;left:62%}
 .tutgest .ghand{position:absolute;left:-25px;top:-62px;width:50px;height:66px;transform-origin:50% 100%}
-.tutgest .ghand svg{width:100%;height:100%;filter:drop-shadow(3px 4px 0 rgba(0,0,0,.35))}
+.tutgest .ghand svg{width:100%;height:100%;overflow:visible}
 .tutgest .gring{position:absolute;left:-22px;top:-22px;width:44px;height:44px;border-radius:50%;border:4px solid #fff;box-shadow:0 0 0 2px rgba(23,19,32,.45);opacity:0}
 .tutgest .gtrail{position:absolute;height:8px;border-radius:8px;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.85),rgba(255,255,255,0));opacity:0}
 .tutgest[data-g="steertap"] .ghand{animation:gsteer 2.6s ease-in-out infinite}
@@ -2752,6 +2754,7 @@ svg{shape-rendering:geometricPrecision}
 .coachpop.oncard{z-index:63}
 .coachpop b{display:block;width:100%;height:100%;background:url(art/coach.webp) center bottom/contain no-repeat;transform-origin:50% 100%;filter:drop-shadow(0 0 10px rgba(23,19,32,.35));animation:coachbob 2.8s ease-in-out infinite}
 .coachpop[data-side="l"] b{scale:-1 1}
+.coachpop b.baked{filter:none}
 .coachpop.talk b{animation:coachtalk .5s cubic-bezier(.3,1.5,.5,1),coachbob 2.8s .5s ease-in-out infinite}
 @keyframes coachbob{0%,100%{transform:none}50%{transform:translateY(-3px) rotate(-1.2deg)}}
 @keyframes coachtalk{0%{transform:none}35%{transform:scale(1.05,.95) translateY(2px)}70%{transform:scale(.98,1.03) translateY(-3px)}100%{transform:none}}
@@ -4460,7 +4463,7 @@ i.ptwait>*{display:none}
   <svg class="sling" id="sling" aria-hidden="true"><line id="slBandO" x1="0" y1="0" x2="0" y2="0"/><line id="slBand" x1="0" y1="0" x2="0" y2="0"/><circle id="slA" r="15"/><circle id="slB" r="11"/></svg>
   <div class="pop" id="pop"></div>
   <div class="hint" id="hint" aria-live="polite"><span id="hintText"></span></div>
-  <div class="tutslow" id="tutSlow" aria-hidden="true"></div><p class="errline" id="errLine" hidden></p><i class="tuthand" id="tutHand" hidden aria-hidden="true"></i><section class="tutgo" id="tutGo" hidden role="dialog" aria-modal="true" aria-labelledby="tgTitle"><div class="tgcard"><span class="tava" id="tgAva" aria-hidden="true"></span><b class="tname">Ol&rsquo; Bloop</b><h2 id="tgTitle">Now <em>win it!</em></h2><p id="tgText">Beat him and cover as much of the canvas as you can. Bonus points every time you take him out.</p><button class="btn play sm" id="tgGo" type="button">Let&rsquo;s do it!</button><button id="tgLater" type="button" hidden>Later</button></div></section><div class="tutpips" id="tutPips" aria-hidden="true"></div><p class="tutpraise" id="tutPraise" aria-live="polite"></p><i class="tutarrow" id="tutArrow" hidden aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M8 17h18V7l17 17-17 17V31H8z"/></svg></i><div class="tutdim" id="tutDim" aria-hidden="true"><b></b><b></b><b></b><b></b></div><div class="tut" id="tut" hidden data-pos="top" role="status" aria-live="polite"><div class="tplate"><b class="tname">Ol&rsquo; Bloop</b><span class="tava" id="tutAva" aria-hidden="true"></span><span class="ttext" id="tutText"></span></div><p class="tcall" id="tutCall"></p><i class="thand" aria-hidden="true"><svg viewBox="0 0 64 84"><g fill="#F2C08A" stroke="#171320" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"><path d="M18 16c0-8 6-13 14-13h13c9 0 16 7 16 16v15c0 10-7 18-16 20H30c-6 0-10-3-12-9z"/><path d="M45 19c7-2 12 3 10 9M45 31c7-2 12 3 10 9M43 43c6-2 10 3 8 8" fill="none"/><path d="M18 16v53c0 6 4 11 9.5 11S37 75 37 69V34"/></g><ellipse cx="27.5" cy="71" rx="5" ry="4" fill="#E39A66"/></svg></i></div>
+  <div class="tutslow" id="tutSlow" aria-hidden="true"></div><p class="errline" id="errLine" hidden></p><i class="tuthand" id="tutHand" hidden aria-hidden="true"></i><section class="tutgo" id="tutGo" hidden role="dialog" aria-modal="true" aria-labelledby="tgTitle"><div class="tgcard"><span class="tava" id="tgAva" aria-hidden="true"></span><b class="tname">Ol&rsquo; Bloop</b><h2 id="tgTitle">Now <em>win it!</em></h2><p id="tgText">Beat him and cover as much of the canvas as you can. Bonus points every time you take him out.</p><button class="btn play sm" id="tgGo" type="button">Let&rsquo;s do it!</button><button id="tgLater" type="button" hidden>Later</button></div></section><div class="tutpips" id="tutPips" aria-hidden="true"></div><p class="tutpraise" id="tutPraise" aria-live="polite"></p><i class="tutarrow" id="tutArrow" hidden aria-hidden="true"><svg viewBox="0 0 48 48"><path class="sh" d="M8 17h18V7l17 17-17 17V31H8z" transform="translate(1.66 2.48)"/><path d="M8 17h18V7l17 17-17 17V31H8z"/></svg></i><div class="tutdim" id="tutDim" aria-hidden="true"><b></b><b></b><b></b><b></b></div><div class="tut" id="tut" hidden data-pos="top" role="status" aria-live="polite"><div class="tplate"><b class="tname">Ol&rsquo; Bloop</b><span class="tava" id="tutAva" aria-hidden="true"></span><span class="ttext" id="tutText"></span></div><p class="tcall" id="tutCall"></p><i class="thand" aria-hidden="true"><svg viewBox="0 0 64 84"><g opacity=".35" transform="translate(3.6 4.8)" fill="#000" stroke="#000" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"><path d="M18 16c0-8 6-13 14-13h13c9 0 16 7 16 16v15c0 10-7 18-16 20H30c-6 0-10-3-12-9z"/><path d="M18 16v53c0 6 4 11 9.5 11S37 75 37 69V34"/></g><g fill="#F2C08A" stroke="#171320" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"><path d="M18 16c0-8 6-13 14-13h13c9 0 16 7 16 16v15c0 10-7 18-16 20H30c-6 0-10-3-12-9z"/><path d="M45 19c7-2 12 3 10 9M45 31c7-2 12 3 10 9M43 43c6-2 10 3 8 8" fill="none"/><path d="M18 16v53c0 6 4 11 9.5 11S37 75 37 69V34"/></g><ellipse cx="27.5" cy="71" rx="5" ry="4" fill="#E39A66"/></svg></i></div>
   <div class="threat" id="threat" aria-live="assertive"><b>!</b><span id="threatText">Missile!</span></div>
   <div class="threatArrow" id="threatArrow" aria-hidden="true"><i>!</i><u><b></b></u></div>
   <div class="banner" id="banner" aria-live="polite"><div class="plate"><span class="pem" id="bannerEm" aria-hidden="true"><i></i></span><div class="ptxt"><p id="bannerBig"></p><p id="bannerSmall"></p></div></div></div>
@@ -4593,7 +4596,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 331</p>
+      <p class="ver">Version 332</p>
     </div>
   </div>
 
@@ -12429,7 +12432,7 @@ const AXOC = (() => {
     look.U.uCoat.value.z = Math.max(X.wet, X.coat > 0.5 ? 1 : 0);
     // the light it's lit by, in the camera's space (its fin glows from behind, its rim catches it)
     SUN_DIR.copy(sun.position).sub(sun.target.position).normalize().transformDirection(camera.matrixWorldInverse); look.U.uKeyDir.value.copy(SUN_DIR);
-    { const adt = D && D.frozenT > 0 ? 0 : dt; if (!I.lodFar) { X.aAcc = 0; A.update(adt); } else { X.aAcc = (X.aAcc || 0) + adt; if (X.aAcc >= ANIM_FAR - 0.003) { A.update(Math.min(0.05, X.aAcc)); X.aAcc = 0; } } } /* (v296: far off, the pose at 30 a second) */ if (D) D.strokeK = (A.strokeMul ? A.strokeMul() : 1) * (D.swimBoost > 1 ? 1 + (D.swimBoost - 1) * (A.loco ? A.loco.slK || 0 : 0) : 1); /* (the Swim faster skill: a touch more pace while it swims) */ // (swimming: the blob's pace follows the stroke; the game moves it by this)
+    { const adt = D && D.frozenT > 0 ? 0 : dt; if (!I.lodFar) { X.aAcc = 0; A.update(adt); } else { X.aAcc = (X.aAcc || 0) + adt; const aNow = performance.now(); if (X.aAcc > 0 && (aNow - (X.aAt || 0) >= ANIM_FAR * 1000 - 3 || X.aAcc >= 0.05)) { A.update(Math.min(0.05, X.aAcc)); X.aAcc = 0; X.aAt = aNow; } } } /* (v296: far off, the pose at 30 a second; v332: 30 a second of real time, so slow motion doesn't make it 10) */ if (D) D.strokeK = (A.strokeMul ? A.strokeMul() : 1) * (D.swimBoost > 1 ? 1 + (D.swimBoost - 1) * (A.loco ? A.loco.slK || 0 : 0) : 1); /* (the Swim faster skill: a touch more pace while it swims) */ // (swimming: the blob's pace follows the stroke; the game moves it by this)
     // curled into a ball in flight it rolls over and over the way it's flying, faster the faster it goes; opening out it comes round upright
     { const bk = A.ballOn || 0, fly = (o.blob || 0) > 0.05 && !!o.inAir, sp = D ? Math.hypot(D.spd || 0, D.vy || 0) : 0, wsc = SC * (I.root.parent ? I.root.parent.scale.x : 1) || 1;
       X.spin = X.spin || 0; X.spinV = X.spinV || 0;
@@ -16020,7 +16023,7 @@ function makeAudio() {
     // the tally and the knock-out flood (their recordings, or the nearest synthesized sound while those load)
     tpour() { P_('tpour', { vary: 0.02, v: 0.9 }); },
     // slow motion: the music sinks under a low-pass (as on pause, not as far) and dips; a whoosh going in, a rising one coming out
-    slow(on, quiet) { if (!ctx) return; const t = T(); musLP.frequency.cancelScheduledValues(t); musLP.frequency.setTargetAtTime(on ? 1100 : 20000, t, on ? 0.07 : 0.18); trkBus.gain.cancelScheduledValues(t); trkBus.gain.setTargetAtTime(on ? 0.72 : 1, t, on ? 0.08 : 0.2);
+    slow(on, quiet) { if (!ctx) return; const t = T(); musLP.frequency.cancelScheduledValues(t); musLP.frequency.setTargetAtTime(on ? 1100 : 20000, t, on ? 0.07 : 0.18); trkBus.gain.cancelScheduledValues(t); trkBus.gain.setTargetAtTime(on ? 0.72 : 1, t, on ? 0.08 : 0.2); musLP.frequency.setValueAtTime(on ? 1100 : 20000, t + (on ? 0.42 : 1.08)); trkBus.gain.setValueAtTime(on ? 0.72 : 1, t + (on ? 0.48 : 1.2)); /* (v332: each sweep ends on its value, so the filter isn't worked out sample by sample from then on) */
       if (quiet || t - (api._slowAt || -9) < 0.45) return; api._slowAt = t; if (!P_(on ? 'slowin' : 'slowout', { vary: 0.03 })) api.whoosh(); },
     ttick(i) { if (!P_('ttick', { rate: Math.pow(2, ((i | 0) % 12) / 30), vary: 0.01 })) api.tick(i); },
     tslice() { if (!P_('tslice', { vary: 0.06 })) api.splat(0.6); },
@@ -19699,7 +19702,7 @@ function blobLOD(b) {
 // the view (red: the low and heat splats, green: the hit's), and the frame's last pass mixes them in with the same timings ----------
 const EDGE_SPL = [['m_splat2', -0.22, -0.14, 0.64], ['m_splat', 1.18, 1.08, 0.66], ['m_drip', 0.18, -0.04, 0.44], ['m_drip', 0.86, -0.06, 0.36], ['m_splat', -0.20, 1.12, 0.54], ['m_splat2', 1.20, -0.10, 0.50]];
 const EDGE_HIT = [['m_splat', -0.20, -0.12, 0.70], ['m_splat2', 1.22, -0.08, 0.62], ['m_splat2', -0.24, 1.18, 0.60], ['m_splat', 1.24, 1.20, 0.74], ['m_drip', 0.42, -0.04, 0.40], ['m_splat2', 0.50, 1.28, 0.50]];
-const EDGE_U = { tEdge: { value: null }, uEdgeK: { value: new THREE.Vector4(0, 0, 1, 0) }, uEdgeV: { value: new THREE.Vector4(0, 0.55, 0.6, 0) }, uEdgeC: { value: new THREE.Vector3() }, uHitC: { value: new THREE.Vector3() }, uVigC: { value: new THREE.Vector3() } };
+const EDGE_U = { tEdge: { value: null }, uEdgeK: { value: new THREE.Vector4(0, 0, 1, 0) }, uEdgeV: { value: new THREE.Vector4(0, 0.55, 0.6, 0) }, uEdgeC: { value: new THREE.Vector3() }, uHitC: { value: new THREE.Vector3() }, uVigC: { value: new THREE.Vector3() }, uSlowV: { value: new THREE.Vector4() }, uSlowPx: { value: new THREE.Vector2(0.008, 0.004) } };
 const EDGE = { img: {}, w: 0, h: 0, tex: null, ink: new THREE.Vector3(0.89, 0.07, 0.18), f: [false, false, false], fT: -1e9, st: '', vigK: 0, splK: 0, hitT0: -9, on: false, last: 0, bq: 0 };
 EDGE_U.tEdge.value = (() => { const t = new THREE.DataTexture(new Uint8Array(4), 1, 1); t.needsUpdate = true; return t; })();
 const edgeRGB = (css, v) => { const h = parseInt(String(css).replace('#', ''), 16) || 0; return v.set(((h >> 16) & 255) / 255, ((h >> 8) & 255) / 255, (h & 255) / 255); };
@@ -19739,6 +19742,16 @@ function edgeTick() {
   U.uEdgeK.value.y = ho * Math.max(vo, hitOn ? 1 : 0); U.uEdgeK.value.z = hs;
   EDGE.on = vo > 0.003 || U.uEdgeK.value.y > 0.003;
 }
+// (v332) the lesson's slow-motion vignette: on and deeper fade as the page's did (CSS ease, 0.3 s and 0.2 s); the lesson still says
+// which by the page element's classes (on, deep, dark), now never shown
+const cssEase = x => { let t = x; for (let i = 0; i < 6; i++) { const u = 1 - t, f = 0.75 * u * u * t + 0.75 * u * t * t + t * t * t - x, d = 0.75 * u * u + 2.25 * t * t; if (Math.abs(f) < 1e-4 || d < 1e-6) break; t = Math.min(1, Math.max(0, t - f / d)); } const u = 1 - t; return 0.3 * u * u * t + 3 * u * t * t + t * t * t; };
+const SLOWF = [{ v: 0, a: 0, b: 0, t0: 0, d: 300 }, { v: 0, a: 0, b: 0, t0: 0, d: 200 }]; let slowEl = null;
+const slowStep = (c, to, now) => { if (c.b !== to) { c.a = c.v; c.b = to; c.t0 = now; } c.v = c.a + (c.b - c.a) * cssEase(Math.min(1, (now - c.t0) / c.d)); return c.v; };
+function slowTick() {
+  const el = slowEl || (slowEl = document.getElementById('tutSlow')), U = EDGE_U.uSlowV.value, now = performance.now(); if (!el) return;
+  const on = el.classList.contains('on'); U.x = slowStep(SLOWF[0], on ? 1 : 0, now); U.y = slowStep(SLOWF[1], on && el.classList.contains('deep') ? 1 : 0, now); U.z = el.classList.contains('dark') ? 1 : 0;
+  EDGE_U.uSlowPx.value.set(3 / Math.max(1, viewW), 3 / Math.max(1, viewH)); // (its gold frame: 3 points in from each edge)
+}
 function edgeReset() { EDGE.hitT0 = -9; EDGE.vigK = 0; EDGE.splK = 0; EDGE.f = [false, false, false]; EDGE.fT = -1e9; EDGE.st = ''; EDGE_U.uEdgeV.value.x = 0; EDGE_U.uEdgeK.value.x = 0; EDGE_U.uEdgeK.value.y = 0; EDGE.on = false; }
 // Performance mode has no last pass: one light overlay instead (the edge paint, the vignette and the sun's warm tint, blended over)
 let edgeOv = null;
@@ -19747,27 +19760,35 @@ function edgeOverlay(force) {
     const U = Object.assign({ uHeat: { value: 0 } }, EDGE_U);
     const m = new THREE.ShaderMaterial({ uniforms: U, transparent: true, depthTest: false, depthWrite: false, blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor,
       vertexShader: 'varying vec2 vUv; void main(){ vUv = position.xy * 0.5 + 0.5; gl_Position = vec4(position.xy, 0.0, 1.0); }',
-      fragmentShader: `uniform sampler2D tEdge; uniform vec4 uEdgeK, uEdgeV; uniform vec3 uEdgeC, uHitC, uVigC; uniform float uHeat; varying vec2 vUv;
+      fragmentShader: `uniform sampler2D tEdge; uniform vec4 uEdgeK, uEdgeV; uniform vec3 uEdgeC, uHitC, uVigC; uniform vec4 uSlowV; uniform vec2 uSlowPx;
+    // (v332) the lesson's slow-motion vignette, as the page drew it: x the darkening (its two gradients, normal and dark), y the gold frame, z the deeper
+    vec3 slowA(vec2 uv){ float t = length(uv * 2.0 - 1.0) * 0.7071068, k = uSlowV.x;
+      float a = uSlowV.z > 0.5 ? mix(0.34, 0.66, clamp((t - 0.3) / 0.7, 0.0, 1.0)) : t < 0.64 ? 0.3 * clamp((t - 0.34) / 0.3, 0.0, 1.0) : 0.3 + 0.42 * clamp((t - 0.64) / 0.36, 0.0, 1.0);
+      float d = t < 0.56 ? 0.3 * clamp((t - 0.24) / 0.32, 0.0, 1.0) : 0.3 + 0.2 * clamp((t - 0.56) / 0.44, 0.0, 1.0); vec2 e = min(uv, 1.0 - uv) / uSlowPx;
+      return vec3(a, 1.0 - step(1.0, min(e.x, e.y)), d * uSlowV.y) * k; }
+    uniform float uHeat; varying vec2 vUv;
         vec4 over(vec4 acc, vec3 c, float a){ return vec4(c * a + acc.rgb * (1.0 - a), a + acc.a * (1.0 - a)); }
         void main(){ vec4 acc = vec4(0.0);
           if (uHeat > 0.01) { float hv = smoothstep(0.3, 0.95, length(vUv - 0.5) * 1.45); acc = over(acc, vec3(1.0, 0.58, 0.28), uHeat * (0.22 + 0.4 * hv)); }
           if (uEdgeV.x > 0.003) { float d = length((vUv - 0.5) / vec2(0.75, 0.70)); acc = over(acc, uVigC, clamp((d - uEdgeV.y) / (1.0 - uEdgeV.y), 0.0, 1.0) * uEdgeV.z * uEdgeV.x); }
           if (uEdgeK.x > 0.003) acc = over(acc, uEdgeC, texture2D(tEdge, vUv).r * uEdgeK.x);
           if (uEdgeK.y > 0.003) { vec2 hu = (vUv - 0.5) / uEdgeK.z + 0.5; acc = over(acc, uHitC, texture2D(tEdge, hu).g * uEdgeK.y); }
+          if (uSlowV.x > 0.003) { vec3 sv = slowA(vUv); acc = over(acc, vec3(0.0902, 0.0745, 0.1255), sv.x); acc = over(acc, vec3(0.949, 0.757, 0.306), sv.y); acc = over(acc, vec3(0.0902, 0.0745, 0.1255), sv.z); }
           gl_FragColor = acc; }` });
     const q = new THREE.Mesh(tri, m); q.frustumCulled = false; sc.add(q); edgeOv = { sc, cam, m }; }
   edgeOv.m.uniforms.uHeat.value = force ? 0.02 : heatK;
   const ac = renderer.autoClear; renderer.autoClear = false; renderer.setRenderTarget(null); renderer.render(edgeOv.sc, edgeOv.cam); renderer.autoClear = ac;
 }
-function lodPass() { blobLOD(body); blobLOD(cBody); blobLOD(L2.body); blobLOD(L3.body); }
+let warmLod = false; // (v332: while the warm-up draws the ball's other spheres, the size check leaves them be)
+function lodPass() { if (warmLod) return; blobLOD(body); blobLOD(cBody); blobLOD(L2.body); blobLOD(L3.body); }
 function renderFrame() {
   lodPass();
   if (vic) return renderVictory();
   if (lobbyOn()) return renderLobby();
-  edgeTick();
+  edgeTick(); slowTick();
   if (post) { post.dofK.copy(state !== 'menu' ? DOF_PLAY : lookOpen ? DOF_LOOK : DOF_MENU); return post.render(); }
   renderer.render(scene, camera);
-  if (EDGE.on || heatK > 0.02) edgeOverlay();
+  if (EDGE.on || heatK > 0.02 || EDGE_U.uSlowV.value.x > 0.003) edgeOverlay();
 }
 
 // ---------- Graphics mode post: the frame renders into an antialiased target, then a soft bloom from the brightest parts,
@@ -19795,7 +19816,13 @@ post = HI ? (() => {
     void main(){ gl_FragColor = vec4((fin3(texture2D(tSrc, vUv + uPx * vec2(-0.5, -0.5)).rgb) + fin3(texture2D(tSrc, vUv + uPx * vec2(0.5, -0.5)).rgb) + fin3(texture2D(tSrc, vUv + uPx * vec2(-0.5, 0.5)).rgb) + fin3(texture2D(tSrc, vUv + uPx * vec2(0.5, 0.5)).rgb)) * 0.25, 1.0); }`);
   const cu = { tScene: { value: null }, tB1: { value: null }, tB2: { value: null }, tDof: { value: null }, uDof: { value: new THREE.Vector4(0.74, 1.0, 0.8, 0.07) }, uBloom: { value: 0.55 }, uSat: { value: 1.08 }, uCon: { value: 1.05 }, uLift: { value: new THREE.Vector3() }, uTint: { value: new THREE.Vector3(1, 1, 1) }, uVig: { value: 0.22 }, uHeat: { value: 0 }, uTime: { value: 0 }, uExpo: { value: 1 }, ...EDGE_U };
   const comp = sm(cu, `uniform sampler2D tScene, tB1, tB2, tDof; uniform vec4 uDof; uniform float uBloom, uSat, uCon, uVig, uHeat, uTime, uExpo; uniform vec3 uLift, uTint; varying vec2 vUv;
-    uniform sampler2D tEdge; uniform vec4 uEdgeK, uEdgeV; uniform vec3 uEdgeC, uHitC, uVigC;
+    uniform sampler2D tEdge; uniform vec4 uEdgeK, uEdgeV; uniform vec3 uEdgeC, uHitC, uVigC; uniform vec4 uSlowV; uniform vec2 uSlowPx;
+    // (v332) the lesson's slow-motion vignette, as the page drew it: x the darkening (its two gradients, normal and dark), y the gold frame, z the deeper
+    vec3 slowA(vec2 uv){ float t = length(uv * 2.0 - 1.0) * 0.7071068, k = uSlowV.x;
+      float a = uSlowV.z > 0.5 ? mix(0.34, 0.66, clamp((t - 0.3) / 0.7, 0.0, 1.0)) : t < 0.64 ? 0.3 * clamp((t - 0.34) / 0.3, 0.0, 1.0) : 0.3 + 0.42 * clamp((t - 0.64) / 0.36, 0.0, 1.0);
+      float d = t < 0.56 ? 0.3 * clamp((t - 0.24) / 0.32, 0.0, 1.0) : 0.3 + 0.2 * clamp((t - 0.56) / 0.44, 0.0, 1.0); vec2 e = min(uv, 1.0 - uv) / uSlowPx;
+      return vec3(a, 1.0 - step(1.0, min(e.x, e.y)), d * uSlowV.y) * k; }
+   
     // Khronos PBR Neutral: colors pass through as authored until they near white, then roll off softly and wash toward white
     vec3 neutralTM(vec3 c){ float x = min(c.r, min(c.g, c.b)), off = x < 0.08 ? x - 6.25 * x * x : 0.04; c -= off; float pk = max(c.r, max(c.g, c.b)); if (pk < 0.76) return c; float d = 0.24, np = 1.0 - d * d / (pk + d - 0.76); c *= np / pk; float g = 1.0 - 1.0 / (0.15 * (pk - np) + 1.0); return mix(c, vec3(np), g); }
     vec3 fin3(vec3 c){ return mix(clamp(c, 0.0, 6e4), vec3(0.0), equal(floatBitsToUint(c) & uvec3(0x7f800000u), uvec3(0x7f800000u))); }
@@ -19815,6 +19842,7 @@ post = HI ? (() => {
       if (uEdgeV.x > 0.003) { float d = length((vUv - 0.5) / vec2(0.75, 0.70)); c = mix(c, uVigC, clamp((d - uEdgeV.y) / (1.0 - uEdgeV.y), 0.0, 1.0) * uEdgeV.z * uEdgeV.x); }
       if (uEdgeK.x > 0.003) c = mix(c, uEdgeC, texture2D(tEdge, vUv).r * uEdgeK.x);
       if (uEdgeK.y > 0.003) { vec2 hu = (vUv - 0.5) / uEdgeK.z + 0.5; c = mix(c, uHitC, texture2D(tEdge, hu).g * uEdgeK.y); }
+      if (uSlowV.x > 0.003) { vec3 sv = slowA(vUv); c = mix(c, vec3(0.0902, 0.0745, 0.1255), sv.x); c = mix(c, vec3(0.949, 0.757, 0.306), sv.y); c = mix(c, vec3(0.0902, 0.0745, 0.1255), sv.z); }
       c += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0;
       gl_FragColor = vec4(clamp(c, 0.0, 1.0), 1.0); }`);
   const pass = (mat, src, dst) => { if (src) mat.uniforms.tSrc.value = src.texture; quad.material = mat; renderer.setRenderTarget(dst); renderer.render(ps, pc); };
@@ -24271,7 +24299,7 @@ async function csLogout() {
 }
 // this phone back to a first launch, as Restart Game does it: sound, music, graphics and orientation kept
 function csFresh() {
-  const keep = {}; for (const k of ['muted', 'sfxOff', 'musicOff', 'gfx', 'orient']) if (store[k] !== undefined) keep[k] = store[k];
+  const keep = {}; for (const k of ['muted', 'sfxOff', 'musicOff', 'gfx', 'orient', 'qLv', 'qSt']) if (store[k] !== undefined) keep[k] = store[k];
   for (const k of Object.keys(store)) delete store[k];
   Object.assign(store, { level: 0, sel: 0, best: {}, stars: {}, seen: {}, muted: false, runs: 0, tut: { ph: 'match' } }, keep);
   csBookSet(null); save(); saveSend(); try { AU.trim && AU.trim(); } catch (e) {}
@@ -25330,8 +25358,9 @@ const pullRange = () => clamp(innerHeight * 0.16, 90, 150);
 // the on-screen band: a ring where you pressed, stretching to your finger as you pull
 const slingEl = $('sling'), slBand = $('slBand'), slBandO = $('slBandO'), slA = $('slA'), slB = $('slB'); let slingOn = false;
 function slingOff() { if (slingOn) { slingOn = false; slingEl.classList.remove('on'); } }
+let slR = null; const slingRect = () => slR || (slR = stage.getBoundingClientRect()); window.addEventListener('resize', () => { slR = null; }); // (v332: once a pull, not on every move of the finger)
 function slingDraw(cx, cy) {
-  const r = stage.getBoundingClientRect(), ax = pullX - r.left, ay = pullY - r.top, range = pullRange();
+  const r = slingRect(), ax = pullX - r.left, ay = pullY - r.top, range = pullRange();
   const dy = clamp(cy - pullY, 0, range + PULL_DEAD + 24), dx = clamp(cx - pullX, -range * 0.5, range * 0.5), k = clamp((dy - PULL_DEAD) / range, 0, 1);
   const bx = ax + dx, by = ay + dy, show = dy > PULL_DEAD * 0.6 ? 1 : 0;
   slA.setAttribute('cx', ax.toFixed(1)); slA.setAttribute('cy', ay.toFixed(1)); slA.setAttribute('r', (15 + 3 * k).toFixed(1));
@@ -25341,7 +25370,7 @@ function slingDraw(cx, cy) {
 }
 const DRY_RING = [1.5, 1.6]; // (v309: how far the roll goes, at the shortest pull and added at the full one)
 function slingShow(cx, cy) { slingEl.style.setProperty('--sl', P.dryPull ? '#8E899C' : TEAMS[P.team].css); /* (v309: grey with no paint in it) */ slingDraw(cx, cy); if (!slingOn) { slingOn = true; slingEl.classList.add('on'); } }
-function beginHold(t, x, y) { startCharge(P); if (!P.charging) return false; holdCharge = true; pullX = x; pullY = y; slingShow(t.cx, t.cy); return true; }
+function beginHold(t, x, y) { slR = null; startCharge(P); if (!P.charging) return false; holdCharge = true; pullX = x; pullY = y; slingShow(t.cx, t.cy); return true; }
 // press and hold without dragging: stop
 function checkHold() {
   if (steerId === null || P.charging) return; const t = touches.get(steerId);
@@ -25570,16 +25599,21 @@ async function warmCompile() {
 }
 // (v269: given a set, only those are drawn in the warm passes: the rest are kept out of every pass by their layers, which children don't
 // inherit. With piece set it stops there, drawn once (piece 1, when the frame before was a warm one, its lights the same) or twice)
+// (v332) what starts empty (an effect's pool with nothing in it, the floor's paint before any is laid) draws nothing, so the phone set it
+// up the first time it turned up mid-match; for the warm frame it has one instance (or one piece) to draw
 function warmRender(only, piece) {
-  if (vic) return; const hid = [], fc = [], fm = [], off = [];
+  if (vic) return; const hid = [], fc = [], fm = [], off = [], one = [], rng = new Map();
   scene.traverse(o => { if (!o.visible) { hid.push(o); o.visible = true; } if (o.frustumCulled) { fc.push(o); o.frustumCulled = false; }
-    if (only && (o.isMesh || o.isPoints || o.isLine || o.isSprite) && !only.has(o)) { off.push(o, o.layers.mask); o.layers.mask = 0; } });
+    if (only && (o.isMesh || o.isPoints || o.isLine || o.isSprite) && !only.has(o)) { off.push(o, o.layers.mask); o.layers.mask = 0; }
+    else if (o.isInstancedMesh && o.count === 0) { one.push(o); o.count = 1; }
+    else if ((o.isMesh || o.isPoints || o.isLine) && o.geometry && o.geometry.drawRange.count === 0 && !rng.has(o.geometry)) { rng.set(o.geometry, 0); o.geometry.drawRange.count = o.isPoints ? 1 : o.isLine ? 2 : 3; } });
   if (!piece) for (const f of floaters) for (const m of f.mats) if (!m.transparent) { m.transparent = true; m.needsUpdate = true; fm.push(m); }
   sun.shadow.needsUpdate = true;
   // twice: three draws the shadows before it sets up the frame's lights, so the first pass makes its shadow shaders for the lights of the
   // last frame drawn, and only the second makes the ones every frame of play will ask for
   const scOn = shadowCache.on; shadowCache.on = false; warming = true; // (and with the shadow cache off, so everything is drawn into the shadows both times)
-  try { renderFrame(); if (piece !== 1) { sun.shadow.needsUpdate = true; renderFrame(); } } catch (e) {}
+  try { renderFrame(); if (piece !== 1) { sun.shadow.needsUpdate = true; renderFrame(); } warmLods(only); } catch (e) {}
+  for (const o of one) o.count = 0; for (const [g, n] of rng) g.drawRange.count = n;
   shadowCache.on = scOn; for (let i = 0; i < off.length; i += 2) off[i].layers.mask = off[i + 1];
   if (piece) { warming = false; for (const o of hid) o.visible = false; for (const o of fc) o.frustumCulled = true; sun.shadow.needsUpdate = true; return; }
   // the victory pose draws the winners straight to the screen (its own shader variants): compile those too
@@ -25590,6 +25624,14 @@ function warmRender(only, piece) {
   if (!post) try { edgeOverlay(true); } catch (e) {}
   warming = false; if (lobbyOn()) try { renderFrame(); } catch (e) {}
   if (!only) LW.done = true; // (v309: the whole warm-up has run)
+}
+// (v332) the slingshot ball's lower-detail spheres: it changes to them once it's small on screen, in flight; the warm frame drew it as it was
+function warmLods(only) {
+  if (!BLOB_LODS) return; const ms = [];
+  for (const b of [body, cBody, L2.body, L3.body]) if (b) b.traverse(m => { if (m.isMesh && (BLOB_LODS.includes(m.geometry) || m.userData.lod) && (!only || only.has(m))) ms.push([m, m.geometry]); });
+  if (!ms.length) return; warmLod = true;
+  try { for (const L of [0, 1, 2]) { for (const [m, g] of ms) m.geometry = BLOB_LODS.includes(g) ? BLOB_LODS[L] : m.userData.lod[L >= 2 ? 1 : 0]; sun.shadow.needsUpdate = true; renderFrame(); } }
+  finally { for (const [m, g] of ms) m.geometry = g; warmLod = false; }
 }
 // (v269) the warm-up at the end of loading, in pieces. In one go it handed the GPU every shader and every first draw at once, and the
 // GPU then took its time over them after "Ready": the page could show nothing new until it was done (the bar sat full, the menu song
@@ -25678,7 +25720,7 @@ let tut2 = null, tut = null, tutPrev = null, tutTip = null, tutWinDue = false, t
   b.addEventListener('click', () => {
     if (!armT) { b.classList.add('arm'); b.textContent = 'Tap again to erase all progress'; AU.nope && AU.nope(); buzz(8); armT = setTimeout(disarm, 4000); return; }
     disarm(); b.disabled = true; const gone = acReset(); CS.hold = true; csBookSet(null); // (v306; v312)
-    const keep = {}; for (const k of ['muted', 'sfxOff', 'musicOff', 'gfx', 'orient']) if (store[k] !== undefined) keep[k] = store[k];
+    const keep = {}; for (const k of ['muted', 'sfxOff', 'musicOff', 'gfx', 'orient', 'qLv', 'qSt']) if (store[k] !== undefined) keep[k] = store[k];
     for (const k of Object.keys(store)) delete store[k];
     Object.assign(store, { level: 0, sel: 0, best: {}, stars: {}, seen: {}, muted: false, runs: 0, tut: { ph: 'match' } }, keep); // (as a first launch starts: the lesson first)
     save(); saveSend(); try { AU.trim && AU.trim(); } catch (e) {}
@@ -25735,6 +25777,12 @@ function tutGest(kind) {
 // over him: the right corner upright (the item button has the left), the left one on a short sideways screen (the buttons are on the right).
 // Between matches he leans up out of his plate; over a card he looks over its top edge, or with no room above it stands in the corner beside it.
 const coachEl = document.createElement('i'); coachEl.className = 'coachpop'; coachEl.hidden = true; coachEl.setAttribute('aria-hidden', 'true'); coachEl.innerHTML = '<b></b>';
+// (v332) his soft shadow drawn into his picture once (the same blur, about 10 points round him): as a filter on a layer that bobs all
+// the time, a phone drew it again every frame
+{ const im = new Image(); im.onload = () => { try { const W = im.naturalWidth, H = im.naturalHeight, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+    g.shadowColor = 'rgba(23,19,32,.35)'; g.shadowBlur = Math.round(W / 16); g.drawImage(im, 0, 0);
+    c.toBlob(bl => { if (!bl) return; const b = coachEl.firstChild; b.style.backgroundImage = 'url(' + URL.createObjectURL(bl) + ')'; b.classList.add('baked'); }, 'image/png'); } catch (e) {} };
+  im.src = 'art/coach.webp'; }
 const tutBust = document.createElement('i'); tutBust.className = 'tbust'; tutBust.setAttribute('aria-hidden', 'true'); tutEl.querySelector('.tplate').prepend(tutBust);
 let coachOffT = 0;
 function coachCorner(side, top) {
@@ -26262,12 +26310,16 @@ function tutFrame(rdt) {
   if (tut) { if (state === 'play' && tut.step >= 0 && !tut.tubHold) { tut.st += rdt; if (tut.st > TUT_STEPS[tut.step].max && !(tut.gap > 0)) tutNext(); } const on = state === 'play' && tut.slowK < 1 && !tut.card; if (tutSlowEl.classList.contains('on') !== on) { tutSlowEl.classList.toggle('on', on); AU.slow(on); } const dp = on && tut.slowK < 0.2; if (tutSlowEl.classList.contains('deep') !== dp) tutSlowEl.classList.toggle('deep', dp); }
   else { const on2 = !!tut2 && state === 'play' && tut2.slowK < 1; if (tutSlowEl.classList.contains('on') !== on2) { tutSlowEl.classList.toggle('on', on2); tutSlowEl.classList.toggle('dark', on2); AU.slow(on2); } if (!((tut2 || tut3) && state === 'play')) tutMenuTick(); } // (the first real match runs its own tips)
   tutProTip();
-  if (tutTip) tutPlace(); else if (popMoved) { popMoved = false; $('pop').style.top = ''; }
+  if (tutTip) { if (state !== 'play' || tutPlaceDue()) tutPlace(); } else if (popMoved) { popMoved = false; $('pop').style.top = ''; }
   { const g = $('tutGo'), card = !g.hidden; if (card) tutCardCoach(); coachCorner(card ? (g.classList.contains('peek') ? null : 'l') : tutTip && tutEl.dataset.pos === 'dock' && !tutEl.classList.contains('wait') ? tutEl.dataset.side : null, card); }
   if (tut || tut2) tutGuide(); else { if (!tutArrowEl.hidden) tutArrowEl.hidden = true; if (!tutPinEl.hidden) tutPinEl.hidden = true; }
   if (tut || tutPipsEl.classList.contains('on')) tutPipsTick();
 }
 let popMoved = false;
+// (v332) in a match a tip, its hand and the pop text sit still: measured a few times a second (and at once when the tip or the screen
+// changes), not every frame, each measure having made the page lay itself out again mid-frame
+let tutPlaceAt = 0, tutPlaceK = '';
+function tutPlaceDue() { const n = performance.now(), k = tutTip.key + '|' + viewW + 'x' + viewH + '|' + tutEl.className; if (k === tutPlaceK && n - tutPlaceAt < 250) return false; tutPlaceK = k; tutPlaceAt = n; return true; }
 // a real match where you have hardly flung: Ol' Bloop's pro tip, with the finger slowly pulling down. Once a match, five times in all, and
 // not once you fling a lot (it goes the moment you do)
 let tutPT = null;
