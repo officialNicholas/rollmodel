@@ -14,10 +14,11 @@ game, app, shared = os.path.join(root, 'game'), os.path.join(root, 'ios', 'RollM
 dst = os.path.join(app, 'RollModel', 'Game')
 if os.path.isdir(dst): shutil.rmtree(dst)
 html = open(os.path.join(game, 'index.html'), encoding='utf8').read()
-used = set(re.findall(r"['\"](axo-pack[-\w]*\.txt)['\"]", html))  # (quoted, as the page loads it: a comment naming one doesn't count)
-# (only the character pack the page loads goes in: older packs stay in the repo for older builds, not in the app)
+named = lambda n: re.search(r"['\"]%s['\"]" % re.escape(n), html) is not None  # (quoted, as the page loads it: a comment naming one doesn't count)
+# (only the packs and scripts the page loads go in: older character packs stay in the repo for older builds, and the boss demo's pack
+# and the network test script stay out of the app too; v350)
 # (and no local test pages: the game is index.html, so no other page at the top of game/ goes in, whatever it's called)
-skip = lambda d, names: [n for n in names if n == '.DS_Store' or (d == game and ((n.startswith('axo-pack') and n.endswith('.txt') and n not in used) or (n.endswith('.html') and n != 'index.html')))]
+skip = lambda d, names: [n for n in names if n == '.DS_Store' or (d == game and (((n.endswith('.txt') or n.endswith('.js')) and not named(n)) or (n.endswith('.html') and n != 'index.html')))]
 shutil.copytree(game, dst, ignore=skip)
 for sub in ('fonts', 'licenses'): shutil.copytree(os.path.join(shared, sub), os.path.join(dst, sub))
 # the fonts from the app itself, not Google

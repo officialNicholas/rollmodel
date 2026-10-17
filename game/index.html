@@ -1998,7 +1998,7 @@ body.homeon .corner{display:none}
 .world[aria-pressed="true"]{transform:scale(1);opacity:1;filter:none}
 @media (max-aspect-ratio:1/1){.world{width:min(62vw,300px,calc((100dvh - 430px) * 1.1));min-width:min(56vw,240px)}.gallery{padding-left:max(10vw,calc(50% - 150px));padding-right:max(10vw,calc(50% - 150px))}}
 .gnav{position:absolute;top:50%;z-index:3;width:42px;height:60px;margin-top:-30px;padding:0;border:0;border-radius:3px;background:#fff url(art/m_paperbg.webp) center/300px;color:var(--black);box-shadow:3px 4px 0 rgba(0,0,0,.45);font:900 30px/1 var(--font-ui);cursor:pointer}
-.gnav.prev{left:8px}.gnav.next{right:8px}
+.gnav.prev{left:max(8px,calc(env(safe-area-inset-left,0px) + 4px))}.gnav.next{right:max(8px,calc(env(safe-area-inset-right,0px) + 4px))}
 .gnav:active{transform:translate(2px,3px);box-shadow:1px 1px 0 rgba(0,0,0,.45)}
 .gnav[disabled]{opacity:.3}
 @media (min-aspect-ratio:1/1){.gnav{top:54%}}
@@ -2891,7 +2891,7 @@ html.touchnav :focus-visible{outline:none!important}
 .mworld .world.locked .plaque .wn{color:#3E3652;text-shadow:0 1px 0 rgba(255,255,255,.5)}
 /* round glass arrows at the painting's height */
 .mworld .gnav{width:46px;height:46px;margin-top:-23px;border-radius:50%;background:rgba(23,19,32,.55);border:1.5px solid rgba(244,238,227,.32);color:#F4EEE3;box-shadow:0 8px 18px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.14);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);font:700 28px/1 var(--font-ui);display:grid;place-items:center;padding:0 0 3px}
-.mworld .gnav.prev{left:10px;padding-right:2px}.mworld .gnav.next{right:10px;padding-left:2px}
+.mworld .gnav.prev{left:max(10px,calc(env(safe-area-inset-left,0px) + 4px));padding-right:2px}.mworld .gnav.next{right:max(10px,calc(env(safe-area-inset-right,0px) + 4px));padding-left:2px} /* (v350: clear of the notch held sideways) */
 .mworld .gnav:active{transform:scale(.92);box-shadow:0 4px 10px rgba(0,0,0,.45)}
 .mworld .gnav[disabled]{opacity:0;pointer-events:none}
 /* the dots: the one you're on a little bar */
@@ -3940,6 +3940,20 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 #setModal .serr:empty{display:none}
 #setModal .sfoot{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
 #setModal .sfoot .sreset{margin:0;padding:4px 0}
+/* (v350) small buttons take taps a little way around them (a tap target near 44 points, as iOS asks), with no change to the look:
+   Restart Game and Delete account (more below than above, where the buttons are), the Stats card's pencil, your name in My Locker,
+   and the Paint Shop's filter chips (inside their row's padding, and no further sideways than half the gap between them) */
+#setModal .sfoot .sreset{position:relative}
+#setModal .sfoot .sreset::after{content:"";position:absolute;inset:-7px -9px -13px}
+#stRename{position:relative}
+#stRename::after{content:"";position:absolute;inset:-6px}
+#mLocker.sgp .lkname{position:relative}
+#mLocker.sgp .lkname::after{content:"";position:absolute;inset:-6px -4px}
+#mLocker.sgp .lkchip::before{content:"";position:absolute;inset:-6px -3px -5px}
+/* (v350) pictures aren't picked up and dragged with a long press, as a web page's are */
+img,svg{-webkit-user-drag:none}
+/* (v350) the iPhone app: no test unlocks unless it was run from Xcode (the browser keeps them) */
+html.appstore .ucode{display:none!important}
 /* (v349) Delete account: a link at the foot of Settings beside Restart Game; it asks first in a card of its own over Settings, Keep it to
    the fore and Delete for good under it in red */
 #setModal .sfoot .sfacts{display:flex;flex-wrap:wrap;align-items:center;gap:4px 18px;min-width:0}
@@ -4669,7 +4683,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 349</p>
+      <p class="ver">Version 350</p>
     </div>
   </div>
 
@@ -5627,6 +5641,9 @@ const MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigat
 // heat) and announces changes with a "nativechange" event. In a browser there's none of that, so this guesses. Messages back to the shell
 // go through one function, so another platform's shell only has to answer the same names.
 const NATIVE = window.__NATIVE || null;
+// (v350) the iPhone app: no test unlocks unless it was run from Xcode (the shell's tester). TestFlight goes without, as App Review
+// installs look just like TestFlight ones. A browser keeps them
+if (NATIVE && NATIVE.platform === 'ios' && !NATIVE.tester) document.documentElement.classList.add('appstore');
 const nativeSay = (name, body) => { try { const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers[name]; if (h) { h.postMessage(body); return true; } if (window.RollNative && window.RollNative.post) { window.RollNative.post(name, JSON.stringify(body)); return true; } } catch (e) {} return false; };
 const DEV_TIER = NATIVE && typeof NATIVE.tier === 'number' ? NATIVE.tier : MOBILE ? 2 : 3;
 // the visuals: what was picked in Settings, or (until then) what suits this device
@@ -20310,7 +20327,7 @@ const kofEl = $('kof'), kofC = $('kofC'), kofG = kofC.getContext('2d'); let kof 
 function kofStart(D, reason, by) {
   const col = by ? TEAMS[by.team].css : reason === 'sun' ? '#F0DDA8' : reason === 'dry' ? '#5E4F5C' : hexCss(new THREE.Color(TEAMS[D.team].wet).multiplyScalar(0.5).getHex());
   kof = { ph: 'wait', t: 0, col, cx: viewW * 0.5, cy: viewH * 0.5, seed: Math.random() * 100 }; // (a beat first: you see yourself splatted, then the paint floods in)
-  $('kofSmall').textContent = by ? 'Splatted by' : reason === 'fall' ? 'Fell off' : reason === 'sun' ? 'Baked' : reason === 'dry' ? 'Dried up' : 'Knocked out';
+  $('kofSmall').textContent = by ? 'Splatted by' : 'Knocked out'; // (v350: the big line under it says how, so it isn't said twice)
   nmSet($('kofBy'), by ? nameOf(by) : (koLine(reason, true) || 'Out!')); $('kofN').textContent = Math.max(1, Math.ceil(D.koT));
   kofEl.style.setProperty('--kc', col); kofEl.hidden = false; kofEl.classList.remove('badge', 'out');
   const el = isShow() && D.elimNow; kofEl.classList.toggle('elim', !!el); $('kofL').textContent = el ? (mode === 'duo' && ACTIVE.some(B => ally(B, P) && sdAlive(B)) ? 'Your teammate fights on' : 'Place') : 'Respawn';
@@ -25948,7 +25965,7 @@ let tut2 = null, tut = null, tutPrev = null, tutTip = null, tutWinDue = false, t
 // (v349) Delete account: at the foot of Settings, beside Restart Game, while you're signed in. It asks first in a card of its own: Keep it
 // to the fore (and focused), Delete for good under it. Once deleted the card says so; if it can't be, the card says why and stays
 const delModal = $('delModal');
-function delPaint() { const b = $('delAcBtn'); if (b) b.hidden = !acctReady(); }
+function delPaint() { const b = $('delAcBtn'); if (!b) return; const h = !acctReady(); if (b.hidden !== h) { b.hidden = h; if (!setModal.hidden) setFitSoon(); } } // (v350: and Settings fits itself again)
 function delOpen() {
   if (!acctReady() || AC.busy) return; const nm = acName() || store.name || '';
   $('delTitle').textContent = 'Delete account?'; $('delNote').innerHTML = 'Delete <b>' + frEsc(hdOf(nm)) + '</b> for good? Your username, friends and account details all go, and it can\u2019t be undone.';

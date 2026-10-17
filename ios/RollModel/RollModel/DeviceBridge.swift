@@ -31,8 +31,19 @@ final class DeviceBridge: NSObject, WKScriptMessageHandler {
             "thermal": info.thermalState.rawValue,
             "maxFPS": UIScreen.main.maximumFramesPerSecond,
             "scale": Double(UIScreen.main.scale),
-            "share": true
+            "share": true,
+            "tester": isDebugBuild
         ]
+    }
+
+    /// Run from Xcode (a debug build): the game keeps its test unlocks. A TestFlight or App Store build has none, since App Review
+    /// installs look just like TestFlight ones and the reviewers must see the game as players will.
+    static var isDebugBuild: Bool {
+        #if DEBUG
+        return true
+        #else
+        return false
+        #endif
     }
 
     /// The hardware model, like "iPhone16,1". In the Simulator, the model being simulated.
