@@ -3,7 +3,7 @@
 // turret on the valve pads pins the boss for your pounds). Sections, checkpoints, lives per checkpoint, chip damage by covering slime.
 // Everything here is placeholder geometry through the stage pipeline (boxes, holes, pots), to be swapped for the real pieces. ----------
 var CQL = null; // the level under way
-var CQLV = window.CQLV = { chip: 0.00006, pop: 0.006, bell: 0.07, bellN: 3, frontK: 0.86, frontGrace: 5, slamEvery: 7.5, diveEvery: 13, jelEvery: 11, jelSpd: 1.9, waves: [4, 6, 8], valveK: 0.55, stun: 12, bossAhead: 18, bossY: -1.1, atkEvery: 6, waveV: 9, waveR: 11 }; // (tunables, for the browser's console)
+var CQLV = window.CQLV = { chip: 0.00006, pop: 0.006, bell: 0.07, bellN: 3, frontK: 0.86, frontGrace: 5, slamEvery: 7.5, diveEvery: 13, jelEvery: 11, jelSpd: 1.9, waves: [4, 6, 8], valveK: 0.55, stun: 12, bossAhead: 18, bossY: -1.1, atkEvery: 6, waveV: 9, waveR: 11, breakT: 14 }; // (tunables, for the browser's console)
 const CQL_SECS = [
   { id: 'keep', label: 'Sunken Keep', sub: 'Season Conquest · the chase' },
   { id: 'plaza', label: 'Sunken Plaza', sub: 'Season Conquest · its babies', arena: 26.4, theme: 'conq2' },
@@ -149,6 +149,7 @@ function cqlvRunSetup() {
   X.path = CQL_RUN_PATH; X.len = cqlvProg(X.path, 57, -30); X.front = -10; X.grace = CQLV.frontGrace; X.atkT = 5; X.atkN = 0; X.diveT = 9; X.jelT = 7; X.boss = { y: 3, low: 0 }; X.waves = []; X.run = true;
   for (const [x, z, yaw] of [[-40, -30, 0], [-40, 30, Math.PI / 2], [40, 30, Math.PI], [40, -30, Math.PI / 2]]) cqlvBuoy(x, z, yaw, cqlvProg(X.path, x, z)); cqlvGate(57, -30, Math.PI / 2, 1);
   const fr = new THREE.Mesh(new THREE.BoxGeometry(12, 9, 1.2), cqlvMat('front')); fr.position.y = 3; CQL.g.add(fr); X.frontM = fr; CQL.cp = { x: 0, z: -12, yaw: Math.PI, prog: 0 };
+  X.boxes0 = BOXES.map(b => b.slice()); X.breaks = [];
 }
 function cqlvSetup(S) {
   const X = CQL.S;
@@ -187,20 +188,29 @@ function cqlvRunTick(dt) {
   // the shock rings run out along the lane: in the air (or mid-roll) as one passes, it goes under you
   for (const w of X.waves) { const r0 = w.r; w.r += dt * CQLV.waveV; const d = Math.hypot(P.x - w.x, P.z - w.z); if (!w.hit && d >= r0 - 0.5 && d < w.r + 0.5 && P.st === 'play') { w.hit = true; if (!P.air && P.rollT <= 0) cqbKnock(w.x, w.z, 1.1); else popText('Dodged!'); } }
   X.waves = X.waves.filter(w => w.r < CQLV.waveR);
+  for (const k of X.breaks) k.t -= dt; if (X.breaks.some(k => k.t <= 0)) cqlvHeal(false);
   if (X.boss.low > 0 && b && b.group.visible) { X.slimeT = (X.slimeT || 0) - dt; if (X.slimeT <= 0) { X.slimeT = 0.12; const g = b.group.position, y = surfaceUnder(g.x, g.z, 6, true); if (y > -Infinity) { const before = teamN[2] + 0.5 * teamN[6]; addSplat(g.x, y, g.z, 0, 1.5, dryClock, false, true, 1); CQL.foe += teamN[2] + 0.5 * teamN[6] - before; } } }
 }
 // its punch breaks the stone: a square of the causeway (half the lane's width) falls into the slime, and stays gone. The lane's boxes
 // are cut round the hole and the stage redrawn (a few ms)
 function cqlvBreak(cx, cz, h) {
-  const B = [cx - h, cx + h, cz - h, cz + h], out = [];
-  for (const b of BOXES) { if (b[4] !== 0 || b[1] <= B[0] || b[0] >= B[1] || b[3] <= B[2] || b[2] >= B[3]) { out.push(b); continue; }
-    const add = (x0, x1, z0, z1) => { if (x1 - x0 > 0.3 && z1 - z0 > 0.3) out.push([x0, x1, z0, z1, b[4], b[5]]); };
-    add(b[0], Math.max(b[0], B[0]), b[2], b[3]); add(Math.min(b[1], B[1]), b[1], b[2], b[3]); const mx0 = Math.max(b[0], B[0]), mx1 = Math.min(b[1], B[1]); add(mx0, mx1, b[2], Math.max(b[2], B[2])); add(mx0, mx1, Math.min(b[3], B[3]), b[3]); }
-  BOXES.length = 0; BOXES.push(...out); buildQGrid(); // (the stone stays drawn: a slab of slime over the gap stands for it, until the real piece falls)
-  const m = new THREE.Mesh(new THREE.BoxGeometry(2 * h + 0.3, 0.12, 2 * h + 0.3), new THREE.MeshStandardMaterial({ color: 0x7A2FD8, emissive: 0x30104A, roughness: 0.3 })); m.position.set(cx, 0.36, cz); CQL.g.add(m);
+  const X = CQL.S, m = new THREE.Mesh(new THREE.BoxGeometry(2 * h + 0.3, 0.12, 2 * h + 0.3), new THREE.MeshStandardMaterial({ color: 0x7A2FD8, emissive: 0x30104A, roughness: 0.3 })); m.position.set(cx, 0.36, cz); CQL.g.add(m);
+  X.breaks.push({ x: cx, z: cz, h, t: CQLV.breakT, m }); cqlvCutBoxes(); // (the stone stays drawn: a slab of slime over the gap stands for it, until the real piece falls)
   shockwave(cx, 0.5, cz, 3.2, 0xFFFFFF); for (let i = 0; i < 26; i++) { const a = Math.random() * 6.283, r = Math.random() * h; spawnPart(cx + Math.cos(a) * r, 0.6, cz + Math.sin(a) * r, Math.cos(a) * 2.5, 2 + Math.random() * 3, Math.sin(a) * 2.5, 0.9, cqlvMat('front'), 0.3 + Math.random() * 0.5); }
   popText('It broke the stone!');
 }
+// the lane's boxes, cut round every hole there is just now (from the whole causeway as it was built); a hole heals after a while, and
+// a respawn heals them all, so you never come back onto a hole
+function cqlvCutBoxes() {
+  const X = CQL.S; BOXES.length = 0; for (const b of X.boxes0) BOXES.push(b.slice());
+  for (const k of X.breaks) { const B = [k.x - k.h, k.x + k.h, k.z - k.h, k.z + k.h], out = [];
+    for (const b of BOXES) { if (b[4] !== 0 || b[1] <= B[0] || b[0] >= B[1] || b[3] <= B[2] || b[2] >= B[3]) { out.push(b); continue; }
+      const add = (x0, x1, z0, z1) => { if (x1 - x0 > 0.3 && z1 - z0 > 0.3) out.push([x0, x1, z0, z1, b[4], b[5]]); };
+      add(b[0], Math.max(b[0], B[0]), b[2], b[3]); add(Math.min(b[1], B[1]), b[1], b[2], b[3]); const mx0 = Math.max(b[0], B[0]), mx1 = Math.min(b[1], B[1]); add(mx0, mx1, b[2], Math.max(b[2], B[2])); add(mx0, mx1, Math.min(b[3], B[3]), b[3]); }
+    BOXES.length = 0; BOXES.push(...out); }
+  buildQGrid();
+}
+function cqlvHeal(all) { const X = CQL.S; if (!X.breaks) return; let n = 0; X.breaks = X.breaks.filter(k => { if (all || k.t <= 0) { CQL.g.remove(k.m); n++; return false; } return true; }); if (n) cqlvCutBoxes(); }
 function cqlvCrack() {}
 function cqlvCheckpoint() { popText('Checkpoint'); AU.ready(); const Q = CQB; if (Q && Q.life < 3) { Q.life = 3; cqlShow('gain'); } if (CQL.S.front != null) CQL.S.front = Math.min(CQL.S.front, CQL.cp.prog - 10); }
 // the plaza: waves of jellets, then the turret and the valve pads; all four painted, the boss is pinned low in the middle, pound it
@@ -289,7 +299,7 @@ function cqlvHud() { let h = $('cqlHud'); if (!h) { h = document.createElement('
   const t = ((performance.now() - L.t0) / 1000) | 0, txt = S.label + ' · ' + Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0') + '\nchip ' + (L.chip * 100).toFixed(1) + '% · pops ' + L.pops + ' · hp ' + Math.round(L.hp * 100) + '%' + (L.S.front != null ? '\ncollapse ' + Math.round(cqlvProg(L.S.path, P.x, P.z) - L.S.front) + ' m back' : '');
   if (h.textContent !== txt) h.textContent = txt; }
 // a life gone to a fall: back at the last checkpoint (the demo's own respawn picks a basin; here it's the buoy you passed)
-function cqlvRespawn(D) { const c = CQL.cp; if (!c) return respawnBlob(D); CQL.deaths++; cqlvPlace(c.x, c.z, c.yaw); P.spd = 0; D.immuneT = SPAWN_SAFE; D.spawnImm = true; D.paint = 0.7; if (CQL.S.front != null) { CQL.S.front = c.prog - 12; CQL.S.grace = 3; } if (kof) kofOpen(); else flashScreen(); AU.flip(); }
+function cqlvRespawn(D) { const c = CQL.cp; if (!c) return respawnBlob(D); CQL.deaths++; cqlvPlace(c.x, c.z, c.yaw); P.spd = 0; D.immuneT = SPAWN_SAFE; D.spawnImm = true; D.paint = 0.7; if (CQL.S.front != null) { const X = CQL.S; X.front = c.prog - 12; X.grace = 3; cqlvHeal(true); X.waves = []; X.pend = null; X.atkT = Math.max(X.atkT, 4.5); for (const o of CQX ? CQX.R : []) o.on = false; } /* (back on whole stone, with a breath before the next attack) */ if (kof) kofOpen(); else flashScreen(); AU.flip(); }
 function cqlvLost(reason) { const Q = CQB; if (!Q || reason === 'boom') return; Q.life = Math.max(0, (Q.life == null ? 3 : Q.life) - 1); cqlShow(true); }
 // the milestone's end: a card with the run's numbers, then the menu
 function cqlvFinish() { const L = CQL, t = ((performance.now() - L.t0) / 1000) | 0; banner('Section cleared!', Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0') + ' · chip ' + (L.chip * 100).toFixed(1) + '% · ' + L.pops + ' pops · ' + L.deaths + ' falls', true); cqiWin(); AU.sting('win'); setTimeout(() => { if (CQL) toMenu(); }, 4200); }
