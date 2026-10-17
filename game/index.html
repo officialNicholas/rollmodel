@@ -2760,14 +2760,24 @@ svg{shape-rendering:geometricPrecision}
 .coachpop[data-side="r"]{right:env(safe-area-inset-right,0px)}
 .coachpop[data-side="l"]{left:env(safe-area-inset-left,0px)}
 .coachpop.on{transform:none;transition:transform .46s cubic-bezier(.25,1.4,.45,1)}
-.coachpop.oncard{z-index:63}
+.coachpop.atcard{z-index:63}
 .coachpop b{display:block;width:100%;height:100%;background:url(art/coach.webp) center bottom/contain no-repeat;transform-origin:50% 100%;filter:drop-shadow(0 0 10px rgba(23,19,32,.35));animation:coachbob 2.8s ease-in-out infinite}
 .coachpop[data-side="l"] b{scale:-1 1}
 .coachpop b.baked{filter:none}
 .coachpop.talk b{animation:coachtalk .5s cubic-bezier(.3,1.5,.5,1),coachbob 2.8s .5s ease-in-out infinite}
 @keyframes coachbob{0%,100%{transform:none}50%{transform:translateY(-3px) rotate(-1.2deg)}}
 @keyframes coachtalk{0%{transform:none}35%{transform:scale(1.05,.95) translateY(2px)}70%{transform:scale(.98,1.03) translateY(-3px)}100%{transform:none}}
-@media (max-height:520px) and (min-aspect-ratio:1/1){.coachpop{width:clamp(104px,32vh,168px)}}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.coachpop{width:clamp(104px,32vh,168px)}
+  /* (v352) sideways, a card of his: him in the corner on the left, a little bigger, and the card compact, centred in the room to his right */
+  :root{--tgcw:clamp(120px,40vh,184px)}
+  .coachpop.atcard{width:var(--tgcw)}
+  .tutgo{padding:12px max(16px,calc(env(safe-area-inset-right,0px) + 10px)) max(12px,env(safe-area-inset-bottom,0px)) calc(env(safe-area-inset-left,0px) + var(--tgcw) + 14px)}
+  .tutgo.peek{padding:12px 24px}
+  .tutgo .tgcard{width:min(100%,460px);gap:9px;padding:18px 22px 16px}
+  .tutgo h2{font-size:clamp(26px,9.5vh,38px)}
+  .tutgo p{font-size:17px}
+  .tutgo #tgGo{margin-top:2px}
+  .tutgo #tgLater{padding:4px 6px}}
 /* his line in a match: a bubble just over him, its tail on his head */
 .tut[data-pos="dock"]{top:auto;transform:none;max-width:min(46vw,250px)}
 .tut[data-pos="dock"][data-side="r"]{left:auto;right:calc(env(safe-area-inset-right,0px) + 8px)}
@@ -4520,6 +4530,38 @@ i.ptwait>*{display:none}
 .bico i.ptwait{background:none}
 #friendsModal .frtagc:has(> img.frface){aspect-ratio:1/.94}#friendsModal .frtagc img.frface{position:absolute;left:5px;top:15px;width:calc(100% - 10px);height:calc(100% - 17px);margin:0;border-radius:6px;object-fit:cover;object-position:50% 30%}
 @media (prefers-reduced-motion:reduce){.ptin{animation:none}}
+/* (v352) held sideways: the lobby's left column spaced out; Commissions, Stats and the Terms fit the screen with their buttons on it;
+   the Time trial board's footer inside its card; the login form centred in its card; the canvases centred between the arrows;
+   the locker's line clear of its window's edge */
+@media (max-height:520px) and (min-aspect-ratio:1/1){
+  #lobbyRail{gap:15px}
+  #commModal,#statsModal,#docModal{padding-top:10px;padding-bottom:10px}
+  #commModal .card{gap:7px;padding-top:14px;padding-bottom:14px}
+  #commModal .comms{gap:7px}
+  #commModal .comm{padding:5px 10px 5px 6px}
+  #commModal .comm .ring{width:38px;height:38px}
+  #commModal .comm .ring::after{width:26px;height:26px}
+  #statsModal .card{gap:9px;padding-top:16px}
+  #docModal .card{max-height:100%;grid-template-rows:auto minmax(0,1fr) auto}
+  #docModal .docb{min-height:0}
+  .ttbody{min-height:min(276px,30vh)}
+  .acform.acin{justify-self:center;width:100%}
+  .mworld{padding-right:max(12px,env(safe-area-inset-right))}
+  .mworld .sgrid{box-sizing:border-box;padding-left:56px;padding-right:56px}
+  #mLocker.sgp .sgfoot{box-sizing:border-box;padding:0 10px 5px 12px}
+  #howModal{padding:10px max(16px,env(safe-area-inset-right)) 10px max(16px,env(safe-area-inset-left))}
+  #howModal .card{width:min(100%,780px);gap:6px}
+  #howModal .ctitle{font-size:26px;margin-bottom:0}
+  #howModal .pols{padding:10px 16px 16px}
+  #howModal .pol{flex-basis:min(62vw,400px);grid-template-columns:36% minmax(0,1fr);grid-template-rows:none;align-items:center;column-gap:12px;padding:10px}
+  #howModal .pol .pic{aspect-ratio:1/.8}
+  #howModal .pol p{font-size:12.5px;line-height:1.35}
+  #howModal .btn.play{min-height:46px}
+}
+@media (max-height:520px) and (min-aspect-ratio:1/1) and (max-width:720px){.mworld .sgrid{gap:10px;padding-left:50px;padding-right:50px}.mworld .sgrid .stg b{font-size:12.5px;padding-left:7px;padding-right:7px}} /* (a small phone: "The Cathedral" still fits) */
+/* (v352) Commissions' label fits its card (it ran a little past both sides) */
+#commBtn{padding-left:1px;padding-right:1px}
+#commBtn>span:not([class]){font-size:9px;letter-spacing:-.02em}
 </style>
 
 <div id="stage">
@@ -4693,7 +4735,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 351</p>
+      <p class="ver">Version 352</p>
     </div>
   </div>
 
@@ -13963,7 +14005,7 @@ function boomTick(dt) {
 }
 // ---------- v271: the Whirlwind: a wind-up, then a charge wrapped in a sideways tornado of your paint. It paints a wide trail, splats any
 // rival it runs into and ends in a burst; you're untouchable while it spins, and it stops short of a drop ----------
-const WHIRL_WIND = 1.3, WHIRL_DASH = 1.1, WHIRL_END = 0.4, WHIRL_R = 1.75, WHIRL_TRAIL = 1.9, WHIRL_STEP = 0.7, WHIRL_BURST = 2.4;
+const WHIRL_WIND = 1.0, WHIRL_DASH = 1.1, WHIRL_END = 0.4, WHIRL_R = 1.75, WHIRL_TRAIL = 1.9, WHIRL_STEP = 0.7, WHIRL_BURST = 2.4;
 const whirlV = () => cfg.speed * MOVE_K * 2.5;
 // the tornado: strips spiralling round the forward axis (+z), narrow at the nose and flaring wide behind (u: tail 0 to nose 1, v across)
 const WHIRL_G = (() => {
@@ -21014,7 +21056,7 @@ const SG_NUMS = {
   roller: [['Lasts', '9 s'], ['Paint', 'Refilled'], ['Roll over', 'Knocks out']],
   turret: [['Lasts', '7 s'], ['Each hit', '7% of their paint'], ['3 in a row', 'Seeing stars'], ['Empty', 'Knocked out']],
   trap: [['Arms in', '0.6 s'], ['Down at once', '2'], ['Set off', 'Knocks out']],
-  whirl: [['Wind-up', '1.3 s'], ['Charge', '1.1 s'], ['In its path', 'Knocked out']],
+  whirl: [['Wind-up', '1 s'], ['Charge', '1.1 s'], ['In its path', 'Knocked out']],
   boom: [['Out and back', 'About 2 s'], ['Paints', 'Its whole loop'], ['Clipped', 'Knocked out']]
 };
 function stPopTick() {}
@@ -21346,9 +21388,9 @@ function sgStep(dt) {
     if (t < 0.3) { sgFace(A, Math.atan2(s, 0), dt, 5); W.ph = ''; DA.ip.expr = 'ready'; }
     else if (sgOnce('wind')) { W.ph = 'wind'; W.t = 0; W.spin = 0; SGD.wpm.uniforms.uCol.value.copy(A.col); SGD.wg.visible = true; emote(DA, 'glee', 1); }
     if (W.ph) { W.t += dt; const fx = Math.sin(DA.yaw), fz = Math.cos(DA.yaw);
-      if (W.ph === 'wind') { W.k = Math.min(1, W.t / 1.3); W.spin += dt * (8 + 24 * W.k); DA.ip.expr = 'focus'; sgFace(A, Math.atan2(s, 0), dt, 6); sgLane(A, Math.min(1, W.t / 1.3), W.t > 0.85);
+      if (W.ph === 'wind') { W.k = Math.min(1, W.t / WHIRL_WIND); W.spin += dt * (8 + 24 * W.k); DA.ip.expr = 'focus'; sgFace(A, Math.atan2(s, 0), dt, 6); sgLane(A, W.k, W.t > WHIRL_WIND - WHIRL_LOCK);
         if (Math.random() < dt * 30) { const a = Math.random() * 6.283; sgPart(sgLX(A) + Math.cos(a) * 1.1, 0.5 + Math.sin(a) * 0.4, sgLZ(A) + Math.sin(a) * 1.1, -Math.cos(a) * 2.6, 0.3, -Math.sin(a) * 2.6, 0.3, COL_WHITE, 0.35); }
-        if (W.t >= 1.3) { W.ph = 'dash'; W.t = 0; W.lx = sgLX(A); W.lz = sgLZ(A); } }
+        if (W.t >= WHIRL_WIND) { W.ph = 'dash'; W.t = 0; W.lx = sgLX(A); W.lz = sgLZ(A); } } // (v352: the match's own wind-up)
       else if (W.ph === 'dash') { W.spin += dt * 22; const lx0 = sgLX(A), lz0 = sgLZ(A); DA.spd = 3.3; DA.x += fx * 3.3 * dt; DA.z += fz * 3.3 * dt; sgStripe(lx0, lz0, sgLX(A), sgLZ(A), 1.45, cA); sgLane(A, 1, true, Math.max(0, 1 - W.t / 0.5));
         if (Math.random() < dt * 60) { const a = W.spin + Math.random() * 6.283; sgPart(sgLX(A) - fx * 0.5 + Math.cos(DA.yaw) * Math.cos(a) * 0.9, 0.42 + Math.max(-0.3, Math.sin(a) * 0.9), sgLZ(A) - fz * 0.5 - Math.sin(DA.yaw) * Math.cos(a) * 0.9, -fx * 2 + Math.cos(DA.yaw) * -Math.sin(a) * 3.4, 1 + Math.cos(a) * 3, -fz * 2 - Math.sin(DA.yaw) * -Math.sin(a) * 3.4, 0.45, A.col, 0.6); }
         if (B.show && Math.hypot(sgLX(B) - sgLX(A), sgLZ(B) - sgLZ(A)) < 0.85) { sgKO(B, cA); emote(DA, 'glee', 1.2); }
@@ -25199,13 +25241,17 @@ function pbDraw(rdt) {
     g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.arc(dx - d.r * 0.45, y1 - d.r * 0.1, d.r * 0.35, 0, 6.2832); g.fill();
   }
 }
+// (v352) sideways, where the spot at your left may start: clear of the lobby's left column
+function slotLo() { if (viewW <= viewH) return 42; const sl = stage.getBoundingClientRect().left; let r = 0;
+  for (const e of $('lobbyRail').children) { if (e.hidden || e.offsetParent === null) continue; const q = e.getBoundingClientRect(); if (q.width > 0) r = Math.max(r, q.right - sl); }
+  return Math.max(42, r + 10 + (slotL.offsetWidth || 64) / 2); }
 // where it floats: over your character's head (and its hat), never up into the top bar or the logo; the spots either side of it
 function placePBar() {
   if (pbar.hidden) return;
   pbR.setFromMatrixColumn(camera.matrixWorld, 0); pbR.y = 0; pbR.normalize();
   for (const [el, s] of [[slotL, -1], [slotR, 1]]) {
     pbV.set(P.x + pbR.x * s * 1.05, P.y + 0.28, P.z + pbR.z * s * 1.05).project(camera);
-    el.style.left = clamp((pbV.x * 0.5 + 0.5) * viewW, 42, viewW - 42).toFixed(1) + 'px'; el.style.top = ((0.5 - pbV.y * 0.5) * viewH).toFixed(1) + 'px';
+    el.style.left = clamp((pbV.x * 0.5 + 0.5) * viewW, s < 0 ? PB.slotLo || 42 : 42, viewW - 42).toFixed(1) + 'px'; el.style.top = ((0.5 - pbV.y * 0.5) * viewH).toFixed(1) + 'px';
   }
   const sr = stage.getBoundingClientRect();
   // (portrait: Friends stands lower in its column, clear of the logo, just over the spot at your right)
@@ -25230,7 +25276,7 @@ function pbarTick(rdt) {
   if (pbar.hidden === on) { pbar.hidden = !on; slotL.hidden = slotR.hidden = !on; }
   if (document.body.classList.contains('homeon') !== on) document.body.classList.toggle('homeon', on);
   if (!on) { if (!sideMenu.hidden && state !== 'menu') closeSide(true); return; }
-  PB.mT -= rdt; if (PB.mT <= 0) { PB.mT = 0.5; let b = logoBottom(); { const e = $('lobbyTop'); if (e && e.offsetParent !== null) { const r = e.getBoundingClientRect(); if (r.height > 0) b = Math.max(b, r.bottom); } } PB.top = b - stage.getBoundingClientRect().top; }
+  PB.mT -= rdt; if (PB.mT <= 0) { PB.mT = 0.5; let b = logoBottom(); { const e = $('lobbyTop'); if (e && e.offsetParent !== null) { const r = e.getBoundingClientRect(); if (r.height > 0) b = Math.max(b, r.bottom); } } PB.top = b - stage.getBoundingClientRect().top; PB.slotLo = slotLo(); }
   pbDraw(rdt);
 }
 pbar.addEventListener('click', uiClick(() => openStats()));
@@ -26123,7 +26169,7 @@ let coachOffT = 0;
 function coachCorner(side, top) {
   if (!coachEl.parentNode) stage.appendChild(coachEl);
   if (!side) { if (coachEl.classList.contains('on')) { coachEl.classList.remove('on'); clearTimeout(coachOffT); coachOffT = setTimeout(() => { if (!coachEl.classList.contains('on')) coachEl.hidden = true; }, 360); } return; }
-  clearTimeout(coachOffT); if (coachEl.dataset.side !== side) coachEl.dataset.side = side; if (coachEl.classList.contains('oncard') !== !!top) coachEl.classList.toggle('oncard', !!top);
+  clearTimeout(coachOffT); if (coachEl.dataset.side !== side) coachEl.dataset.side = side; if (coachEl.classList.contains('atcard') !== !!top) coachEl.classList.toggle('atcard', !!top); /* (v352: not .oncard, the online card's) */
   if (coachEl.hidden) { coachEl.hidden = false; void coachEl.offsetWidth; } if (!coachEl.classList.contains('on')) coachEl.classList.add('on');
 }
 const coachSide = () => viewW > viewH && viewH <= 520 ? 'l' : 'r'; // (the buttons' own sides: see .itemBtn and .slamBtn)
