@@ -3,7 +3,7 @@
 // turret on the valve pads pins the boss for your pounds). Sections, checkpoints, lives per checkpoint, chip damage by covering slime.
 // Everything here is placeholder geometry through the stage pipeline (boxes, holes, pots), to be swapped for the real pieces. ----------
 var CQL = null; // the level under way
-var CQLV = window.CQLV = { chip: 0.00006, pop: 0.006, bell: 0.07, bellN: 3, frontK: 0.86, frontGrace: 5, slamEvery: 7.5, diveEvery: 13, jelEvery: 11, jelSpd: 1.9, waves: [4, 6, 8], valveK: 0.55, stun: 12 }; // (tunables, for the browser's console)
+var CQLV = window.CQLV = { chip: 0.00006, pop: 0.006, bell: 0.07, bellN: 3, frontK: 0.86, frontGrace: 5, slamEvery: 7.5, diveEvery: 13, jelEvery: 11, jelSpd: 1.9, waves: [4, 6, 8], valveK: 0.55, stun: 12, bossAhead: 18, bossY: -1.1, atkEvery: 6, waveV: 9, waveR: 11 }; // (tunables, for the browser's console)
 const CQL_SECS = [
   { id: 'keep', label: 'Sunken Keep', sub: 'Season Conquest · the reveal' },
   { id: 'run', label: 'Aqueduct Run', sub: 'Season Conquest · the chase', arena: 33, theme: 'conq2' },
@@ -42,12 +42,13 @@ function cqlvBuild(S) {
 function cqlvPurple() { const t = { hex: 0xB25CFF, dry: 0x5A2A80, floor: 0xB25CFF }; TEAMS[1].wet = t.hex; TEAMS[1].dry = t.dry; TEAMS[1].css = '#B25CFF'; TEAM_COLS[1].setHex(t.hex); paintUniforms.uWetA.value[1].setHex(t.hex); paintUniforms.uDryA.value[1].setHex(t.dry); teamMats[1].color.setHex(t.hex); }
 function cqlvEnter(i) {
   const S = CQL_SECS[i]; if (!S || !CQL) return; CQL.sec = i; CQL.t = 0; CQL.S = {}; CQL.cpSec = i; CQL.loading = true;
-  irisClose(() => {
+  const go = () => {
     building = true; cqlvBuild(S); cqlvPlace(START.x, START.z, START.yaw); CQL.cp = { x: START.x, z: START.z, yaw: START.yaw, prog: 0 };
     const Q = CQB; if (Q && Q.boss) { Q.follow = false; Q.lock = false; Q.cut = null; Q.boss.group.visible = true; Q.boss.lookAt(null); if (S.id === 'plaza') Q.auto = false; }
     if (Q && Q.el && !Q.el.classList.contains('fold')) { Q.el.classList.add('fold'); const f = $('cqbFold'); if (f) f.setAttribute('aria-expanded', 'false'); } // (the panel out of the way; its fold button opens it)
-    cqlvSetup(S); CQL.loading = false; clearTimeout(warmQ); warmRender(); building = false; irisOpen(); banner(S.label, S.sub, true); AU.whoosh();
-  }, null, S.label);
+    cqlvSetup(S); CQL.loading = false; clearTimeout(warmQ); warmRender(); building = false; banner(S.label, S.sub, true); AU.whoosh();
+  };
+  if (CQLV.iris) irisClose(() => { go(); irisOpen(); }, null, S.label); else { flashScreen(); go(); }
 }
 // a gate: a glowing ring on the floor with a beam of light; rolling into it takes you on
 function cqlvGate(x, z, yaw, next) { const g = new THREE.Group(); const t = new THREE.Mesh(new THREE.TorusGeometry(2.0, 0.16, 8, 40), cqlvMat('gate')); t.rotation.x = Math.PI / 2; t.position.y = 0.12; g.add(t);
@@ -111,7 +112,7 @@ function cqlvPathAt(path, s) { let acc = 0; for (let i = 0; i + 1 < path.length;
 // ---- the sections ----
 // the Aqueduct Run: one path, a stone causeway half a metre above a sea of slime, in an S across the square; off the path is the
 // slime, and the slime is death. Gaps to jump, a basin a leg (at the lane's edge, or on a ledge a hop off it)
-const CQL_RUN_PATH = [[-24, -31], [-24, 26], [0, 26], [0, -26], [24, -26], [24, 30]];
+const CQL_RUN_PATH = [[-24, 31], [-24, -26], [0, -26], [0, 26], [24, 26], [24, -30]]; // (toward -z: the way you came through the keep's gate)
 function cqlvRunLayout() {
   const H = 0.5, W = 4, boxes = [], leg = (x0, x1, z0, z1) => boxes.push([x0, x1, z0, z1, 0, H]);
   // leg 1 up the left (gaps at z 2 and 14), the top cross, leg 3 down the middle (gaps at 8 and -6), the bottom cross, leg 5 up the right (gaps at -8, 4, 16)
@@ -123,29 +124,29 @@ function cqlvRunLayout() {
   // ledges with a basin, a hop off the lane
   boxes.push([-33, -29.5, -14, -10, 0, H], [10, 13.5, -18, -14, 0, H]);
   const pots = [[-31.25, H, -12], [-12, H, 28.8], [11.75, H, -16], [26.8, H, 6]];
-  return { boxes, ramps: [], holes: [[-32.9, 32.9, -32.9, 32.9, 0, 0]], pots, slime: [], start: { x: -24, z: -29, yaw: 0 } };
+  for (const b of boxes) { const z0 = b[2], z1 = b[3]; b[2] = -z1; b[3] = -z0; } for (const p of pots) p[2] = -p[2]; // (flipped: the run leads away from the keep)
+  return { boxes, ramps: [], holes: [[-32.9, 32.9, -32.9, 32.9, 0, 0]], pots, slime: [], start: { x: -24, z: 29, yaw: Math.PI } };
 }
 // the Sunken Plaza: a square court, blocks to hop, four valve pads up on plinths at the corners (only the turret's lobs reach them)
 function cqlvPlazaLayout() {
   const boxes = [], pots = [[-6, 0, -22], [6, 0, 22], [-22, 0, 6], [22, 0, -6]];
   for (const [x, z] of [[-17, -17], [17, -17], [-17, 17], [17, 17]]) boxes.push([x - 1.6, x + 1.6, z - 1.6, z + 1.6, 0, 2.6, undefined, 'plinth']);
   for (const [x, z, w] of [[-8, 0, 1.6], [8, 0, 1.6], [0, -9, 1.6], [0, 9, 1.6], [-13, 7, 1.1], [13, -7, 1.1]]) boxes.push([x - w, x + w, z - w, z + w, 0, 1.0]);
-  return { boxes, ramps: [], holes: [], pots, slime: [], start: { x: 0, z: -22, yaw: 0 } };
+  return { boxes, ramps: [], holes: [], pots, slime: [], start: { x: 0, z: 22, yaw: Math.PI } };
 }
 Object.assign(CQL_SECS[1], { layout: cqlvRunLayout }); Object.assign(CQL_SECS[2], { layout: cqlvPlazaLayout });
 
 function cqlvSetup(S) {
   const X = CQL.S;
   if (S.id === 'run') {
-    X.path = CQL_RUN_PATH; X.len = cqlvProg(X.path, 24, 30); X.front = -12; X.grace = CQLV.frontGrace; X.slamT = 4; X.diveT = 9; X.jelT = 6; X.boss = { y: 3, low: 0 };
-    cqlvBuoy(-24, 27, Math.PI / 2, cqlvProg(X.path, -24, 27)); cqlvBuoy(0, -27, -Math.PI / 2, cqlvProg(X.path, 0, -27)); cqlvGate(24, 30, 0, 2);
+    X.path = CQL_RUN_PATH; X.len = cqlvProg(X.path, 24, -30); X.front = -12; X.grace = CQLV.frontGrace; X.atkT = 4; X.atkN = 0; X.diveT = 9; X.jelT = 6; X.boss = { y: 3, low: 0 }; X.waves = [];
+    cqlvBuoy(-24, -27, Math.PI / 2, cqlvProg(X.path, -24, -27)); cqlvBuoy(0, 27, Math.PI / 2, cqlvProg(X.path, 0, 27)); cqlvGate(24, -30, Math.PI, 2); // (the buoys face the way on: along the crosses, toward +x)
     const fr = new THREE.Mesh(new THREE.BoxGeometry(12, 9, 1.2), cqlvMat('front')); fr.position.y = 3; CQL.g.add(fr); X.frontM = fr;
-    X.cracked = BOXES.filter(b => b[7] === 'cracked').map(b => ({ b, f: floaters.find(f => f.b === b), broken: false }));
-    cqlvBossAt(-24, 3, -14, 50); banner('After it!', 'Keep ahead of the collapse', true);
+    cqlvBossAt(-24, -1.1, 12, 50); banner('After it!', 'Keep ahead of the collapse', true);
   } else if (S.id === 'plaza') {
     X.wave = 0; X.waveT = 2.5; X.pads = BOXES.filter(b => b[7] === 'plinth').map(b => ({ b, k: 0, on: false, m: null })); X.boss = { y: 1.5 };
     for (const p of X.pads) { const m = new THREE.Mesh(new THREE.CylinderGeometry(1.35, 1.35, 0.1, 24), cqlvMat('pad')); m.position.set((p.b[0] + p.b[1]) / 2, p.b[5] + 0.05, (p.b[2] + p.b[3]) / 2); CQL.g.add(m); p.m = m; }
-    cqlvBossAt(0, 1.5, 3, 50); X.phase = 'waves'; X.turret = false;
+    cqlvBossAt(0, -0.4, 3, 50); X.phase = 'waves'; X.turret = false;
   }
 }
 // the collapse: a wall of dark water and rubble coming along the causeway behind you; caught on the causeway behind it, the stone
@@ -160,26 +161,41 @@ function cqlvRunTick(dt) {
   for (const c of X.cps || []) if (!c.on && Math.hypot(P.x - c.x, P.z - c.z) < 4.5) { c.on = true; c.g.material.emissive.set(TEAMS[0].wet); CQL.cp = { x: c.x, z: c.z, yaw: c.yaw, prog: c.prog }; cqlvCheckpoint(); }
   // the boss: ahead and above the course; every so often a slam on the lane ahead (a ring, then the shock), a dive to slime the lane,
   // a pair of jellets dropped in your way
-  const ahead = cqlvPathAt(X.path, Math.min(X.len - 2, pr + 13)); X.boss.low = Math.max(0, X.boss.low - dt);
-  cqlvBossAt(ahead.x, X.boss.low > 0 ? -2.6 : 3.2, ahead.z, X.boss.low > 0 ? 3 : 1.6);
+  const ahead = cqlvPathAt(X.path, Math.min(X.len - 2, pr + CQLV.bossAhead)); X.boss.low = Math.max(0, X.boss.low - dt);
+  cqlvBossAt(ahead.x, X.boss.low > 0 ? -3.2 : CQLV.bossY, ahead.z, X.boss.low > 0 ? 3 : 1.6);
   if (b && b.isReady && !b.busy && state === 'play') {
-    if ((X.slamT -= dt) <= 0) { X.slamT = CQLV.slamEvery; const at = cqlvPathAt(X.path, Math.min(X.len - 2, pr + 7)); const tx = at.x + (Math.random() - 0.5) * 4, tz = at.z + (Math.random() - 0.5) * 4; cqxWarn(tx, tz, 1.1); b.play('slam', { x: tx, z: tz });
-      X.pend = { t: 1.1, x: tx, z: tz }; }
+    if ((X.atkT -= dt) <= 0) { X.atkT = CQLV.atkEvery; const punch = X.atkN++ % 2 === 0, at = cqlvPathAt(X.path, Math.min(X.len - 4, pr + (punch ? 11 : 8)));
+      if (punch) { const side = Math.random() < 0.5 ? 1 : -1, tx = at.x - at.dz * side * 2.1, tz = at.z + at.dx * side * 2.1; cqxWarn(tx, tz, 1.2); b.play('punch', { hand: 'auto', x: tx, z: tz }); X.pend = { t: 1.2, x: tx, z: tz, punch: true }; }
+      else { const tx = at.x, tz = at.z; cqxWarn(tx, tz, 1.1); b.play('slam', { x: tx, z: tz }); X.pend = { t: 1.1, x: tx, z: tz }; } }
     else if ((X.diveT -= dt) <= 0) { X.diveT = CQLV.diveEvery; X.boss.low = 4.2; cqbSfx('b_churn'); }
     else if ((X.jelT -= dt) <= 0) { X.jelT = CQLV.jelEvery; const at = cqlvPathAt(X.path, Math.min(X.len - 2, pr + 16)); cqlvJelSpawn(at.x - at.dz * 2, at.z + at.dx * 2); cqlvJelSpawn(at.x + at.dz * 2, at.z - at.dx * 2); }
   }
-  if (X.pend && (X.pend.t -= dt) <= 0) { const p = X.pend; X.pend = null; cqxRing(p.x, p.z, 2, 0.55, 4.6); cqbSfx('b_slam', { at: [p.x, p.z] }) || AU.quake(); shake = Math.max(shake, 0.35); if (Math.hypot(P.x - p.x, P.z - p.z) < 3.4 && !P.air) cqbKnock(p.x, p.z, 1.2); }
+  if (X.pend && (X.pend.t -= dt) <= 0) { const p = X.pend; X.pend = null;
+    if (p.punch) { cqlvBreak(p.x, p.z, 2.2); cqbSfx('b_impact', { at: [p.x, p.z], duck: [0.6, 1.0] }) || AU.quake(); shake = Math.max(shake, 0.5); buzz([30, 20, 40]); if (Math.hypot(P.x - p.x, P.z - p.z) < 3.2) cqbKnock(p.x, p.z, 1.2); }
+    else { cqxRing(p.x, p.z, 2, CQLV.waveR / CQLV.waveV, CQLV.waveR); cqbSfx('b_slam', { at: [p.x, p.z] }) || AU.quake(); shake = Math.max(shake, 0.35); X.waves.push({ x: p.x, z: p.z, r: 0, hit: false }); } }
+  // the shock rings run out along the lane: in the air (or mid-roll) as one passes, it goes under you
+  for (const w of X.waves) { const r0 = w.r; w.r += dt * CQLV.waveV; const d = Math.hypot(P.x - w.x, P.z - w.z); if (!w.hit && d >= r0 - 0.5 && d < w.r + 0.5 && P.st === 'play') { w.hit = true; if (!P.air && P.rollT <= 0) cqbKnock(w.x, w.z, 1.1); else popText('Dodged!'); } }
+  X.waves = X.waves.filter(w => w.r < CQLV.waveR);
   if (X.boss.low > 0 && b && b.group.visible) { X.slimeT = (X.slimeT || 0) - dt; if (X.slimeT <= 0) { X.slimeT = 0.12; const g = b.group.position, y = surfaceUnder(g.x, g.z, 6, true); if (y > -Infinity) { const before = teamN[2] + 0.5 * teamN[6]; addSplat(g.x, y, g.z, 0, 1.5, dryClock, false, true, 1); CQL.foe += teamN[2] + 0.5 * teamN[6] - before; } } }
-  // the cracked slabs: broken through by a pound, they drop away into the canal
-  for (const c of X.cracked) if (c.broken && c.f && c.f.drop != null) { c.f.drop += dt; const m = stageGroup.children.find(o => o.userData.ownMats === c.f.mats); if (m) { m.position.y = -c.f.drop * c.f.drop * 6; m.visible = c.f.drop < 1.2; } }
 }
-function cqlvCrack(D) { const X = CQL.S; if (!X.cracked) return; for (const c of X.cracked) if (!c.broken && inR(D.x, D.z, c.b, 0.7) && Math.abs(D.y - c.b[5]) < 0.6) { c.broken = true; const i = BOXES.indexOf(c.b); if (i >= 0) BOXES.splice(i, 1); buildQGrid(); if (c.f) { c.f.hull.visible = false; c.f.drop = 0; } popText('Through!'); AU.quake(); shake = Math.max(shake, 0.3); } }
+// its punch breaks the stone: a square of the causeway (half the lane's width) falls into the slime, and stays gone. The lane's boxes
+// are cut round the hole and the stage redrawn (a few ms)
+function cqlvBreak(cx, cz, h) {
+  const B = [cx - h, cx + h, cz - h, cz + h], out = [];
+  for (const b of BOXES) { if (b[4] !== 0 || b[1] <= B[0] || b[0] >= B[1] || b[3] <= B[2] || b[2] >= B[3]) { out.push(b); continue; }
+    const add = (x0, x1, z0, z1) => { if (x1 - x0 > 0.3 && z1 - z0 > 0.3) out.push([x0, x1, z0, z1, b[4], b[5]]); };
+    add(b[0], Math.max(b[0], B[0]), b[2], b[3]); add(Math.min(b[1], B[1]), b[1], b[2], b[3]); const mx0 = Math.max(b[0], B[0]), mx1 = Math.min(b[1], B[1]); add(mx0, mx1, b[2], Math.max(b[2], B[2])); add(mx0, mx1, Math.min(b[3], B[3]), b[3]); }
+  BOXES.length = 0; BOXES.push(...out); buildQGrid(); rebuildStage();
+  shockwave(cx, 0.5, cz, 3.2, 0xFFFFFF); for (let i = 0; i < 26; i++) { const a = Math.random() * 6.283, r = Math.random() * h; spawnPart(cx + Math.cos(a) * r, 0.6, cz + Math.sin(a) * r, Math.cos(a) * 2.5, 2 + Math.random() * 3, Math.sin(a) * 2.5, 0.9, cqlvMat('front'), 0.3 + Math.random() * 0.5); }
+  popText('It broke the stone!');
+}
+function cqlvCrack() {}
 function cqlvCheckpoint() { popText('Checkpoint'); AU.ready(); const Q = CQB; if (Q && Q.life < 3) { Q.life = 3; cqlShow('gain'); } if (CQL.S.front != null) CQL.S.front = Math.min(CQL.S.front, CQL.cp.prog - 10); }
 // the plaza: waves of jellets, then the turret and the valve pads; all four painted, the boss is pinned low in the middle, pound it
 function cqlvPlazaTick(dt) {
   const X = CQL.S, Q = CQB, b = Q && Q.boss; if (!b || !b.isReady) return; const live = CQL.jel.length;
   if (X.phase === 'waves') {
-    cqlvBossAt(Math.sin(clock * 0.35) * 5, 2.2, 3 + Math.cos(clock * 0.27) * 4, 1.2);
+    cqlvBossAt(Math.sin(clock * 0.35) * 6, -0.4, 2 + Math.cos(clock * 0.27) * 5, 1.2);
     if (live === 0 && (X.waveT -= dt) <= 0) {
       if (X.wave >= CQLV.waves.length) { X.phase = 'valves'; banner('Arm the valves!', 'Your turret: plant it facing a pad', true); X.turret = true; P.held = 'turret'; }
       else { const n = CQLV.waves[X.wave]; X.wave++; X.waveT = 2.5; banner('Wave ' + X.wave, n + ' of its babies', true); b.play('taunt', {}); cqbSfx('b_taunt');
@@ -187,7 +203,7 @@ function cqlvPlazaTick(dt) {
     }
     if (X.wave === 2 && live > 0 && Math.random() < dt * 0.12 && !b.busy) b.play('rain', { x: P.x, z: P.z });
   } else if (X.phase === 'valves') {
-    cqlvBossAt(Math.sin(clock * 0.3) * 3, 1.6, Math.cos(clock * 0.3) * 3, 1.2);
+    cqlvBossAt(Math.sin(clock * 0.3) * 3, -0.4, Math.cos(clock * 0.3) * 3, 1.2);
     if (!P.held && !P.turret && !X.turretT) X.turretT = 2.2; if (X.turretT && (X.turretT -= dt) <= 0) { X.turretT = 0; if (!P.turret && P.st === 'play') { P.held = 'turret'; popText('Turret ready again'); } }
     let armed = 0; for (const p of X.pads) { if (!p.on) { let n = 0, on = 0; for (const k of cqlvRectCells(p.b)) if (Math.abs(sY[k] - p.b[5]) < 0.2 && inR(sX[k], sZ[k], p.b)) { n++; if (painted[k] === 1 || painted[k] === 5) on++; } p.k = n ? on / n : 0;
         if (p.k >= CQLV.valveK) { p.on = true; p.m.material = cqlvMat('padOn'); p.m.position.y += 0.4; shockwave(p.m.position.x, p.m.position.y, p.m.position.z, 2.5, 0xFFE070); AU.ready(); popText('Valve armed ' + (X.pads.filter(q => q.on).length) + '/4'); } }
@@ -197,9 +213,9 @@ function cqlvPlazaTick(dt) {
   } else if (X.phase === 'pinned') {
     cqlvBossAt(0, -1.2, 0, 2.5); if ((X.pinT -= dt) <= 0) cqlvUnpin(false);
   } else if (X.phase === 'free') {
-    cqlvBossAt(0, 2.2, 3, 1.2); if ((X.freeT -= dt) <= 0) { X.phase = 'valves'; for (const p of X.pads) { p.on = false; p.k = 0; p.m.material = cqlvMat('pad'); p.m.position.y -= 0.4; } banner('It shook the nets off', 'Arm the valves again', true); }
+    cqlvBossAt(0, -0.4, 3, 1.2); if ((X.freeT -= dt) <= 0) { X.phase = 'valves'; for (const p of X.pads) { p.on = false; p.k = 0; p.m.material = cqlvMat('pad'); p.m.position.y -= 0.4; } banner('It shook the nets off', 'Arm the valves again', true); }
     if (live === 0 && Math.random() < dt * 0.5) for (let i = 0; i < 3; i++) cqlvJelSpawn(b.group.position.x + Math.cos(i * 2.1) * 4, b.group.position.z + Math.sin(i * 2.1) * 4);
-  } else if (X.phase === 'won') { cqlvBossAt(0, 4 + X.wonT * 3, 20 + X.wonT * 6, 1.5); X.wonT += dt; if (X.wonT > 3 && !X.gateUp) { X.gateUp = true; cqlvGate(0, 22, 0, 'end'); banner('It fled again', 'Roll into the light', true); } }
+  } else if (X.phase === 'won') { cqlvBossAt(0, 4 + X.wonT * 3, -20 - X.wonT * 6, 1.5); X.wonT += dt; if (X.wonT > 3 && !X.gateUp) { X.gateUp = true; cqlvGate(0, -22, Math.PI, 'end'); banner('It fled again', 'Roll into the light', true); } }
   if (X.phase !== 'won' && Math.random() < dt * 0.5 && b.group.visible && X.phase !== 'pinned') { X.slimeT = (X.slimeT || 0) - 1; } // (its slime: dropped as it swims)
   if (X.phase !== 'pinned' && X.phase !== 'won' && b.group.visible) { X.dripT = (X.dripT || 0) - dt; if (X.dripT <= 0) { X.dripT = 0.9; const g = b.group.position, y = surfaceUnder(g.x, g.z, 6, true); if (y > -Infinity) { const before = teamN[2] + 0.5 * teamN[6]; addSplat(g.x + (Math.random() - 0.5) * 3, y, g.z + (Math.random() - 0.5) * 3, 0, 1.1, dryClock, false, true, 1); CQL.foe += teamN[2] + 0.5 * teamN[6] - before; } } }
 }
@@ -217,6 +233,7 @@ function cqlvTick(dt, rdt) {
         if (X.fly > 3 && b && b.group.visible) b.group.visible = false; } } }
   else if (state === 'play') { const S = CQL_SECS[L.sec]; if (S.id === 'run') cqlvRunTick(dt); else if (S.id === 'plaza') cqlvPlazaTick(dt); }
   if (state === 'play') cqlvJelTick(dt);
+  if (P.held && !(L.S.turret) && L.sec !== 2) P.held = null; if (P.held2) P.held2 = null; // (no pick-ups in the level: the plaza hands you the turret itself)
   // the gate
   const G = L.S.gate; if (G) { G.g.rotation.y += rdt * 0.8; G.g.scale.setScalar(1 + 0.05 * Math.sin(clock * 4)); if (P.st === 'play' && state === 'play' && Math.hypot(P.x - G.x, P.z - G.z) < G.r + PR && !irisBusy) { L.S.gate = null; CQL.g.remove(G.g); if (G.next === 'end') cqlvFinish(); else cqlvEnter(G.next); } }
   // chip damage: the boss's slime you've covered this frame
@@ -229,7 +246,7 @@ function cqlvHud() { let h = $('cqlHud'); if (!h) { h = document.createElement('
   const t = ((performance.now() - L.t0) / 1000) | 0, txt = S.label + ' · ' + Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0') + '\nchip ' + (L.chip * 100).toFixed(1) + '% · pops ' + L.pops + ' · hp ' + Math.round(L.hp * 100) + '%' + (L.S.front != null ? '\ncollapse ' + Math.round(cqlvProg(L.S.path, P.x, P.z) - L.S.front) + ' m back' : '');
   if (h.textContent !== txt) h.textContent = txt; }
 // a life gone to a fall: back at the last checkpoint (the demo's own respawn picks a basin; here it's the buoy you passed)
-function cqlvRespawn(D) { const c = CQL.cp; if (!c) return respawnBlob(D); CQL.deaths++; cqlvPlace(c.x, c.z, c.yaw); D.immuneT = SPAWN_SAFE; D.spawnImm = true; D.paint = 0.7; if (CQL.S.front != null) { CQL.S.front = c.prog - 12; CQL.S.grace = 3; } if (kof) kofOpen(); else flashScreen(); AU.flip(); }
+function cqlvRespawn(D) { const c = CQL.cp; if (!c) return respawnBlob(D); CQL.deaths++; cqlvPlace(c.x, c.z, c.yaw); P.spd = 0; D.immuneT = SPAWN_SAFE; D.spawnImm = true; D.paint = 0.7; if (CQL.S.front != null) { CQL.S.front = c.prog - 12; CQL.S.grace = 3; } if (kof) kofOpen(); else flashScreen(); AU.flip(); }
 function cqlvLost(reason) { const Q = CQB; if (!Q || reason === 'boom') return; Q.life = Math.max(0, (Q.life == null ? 3 : Q.life) - 1); cqlShow(true); }
 // the milestone's end: a card with the run's numbers, then the menu
 function cqlvFinish() { const L = CQL, t = ((performance.now() - L.t0) / 1000) | 0; banner('Section cleared!', Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0') + ' · chip ' + (L.chip * 100).toFixed(1) + '% · ' + L.pops + ' pops · ' + L.deaths + ' falls', true); cqiWin(); AU.sting('win'); setTimeout(() => { if (CQL) toMenu(); }, 4200); }

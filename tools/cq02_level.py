@@ -26,4 +26,8 @@ def apply(s):
     s = rep(s, "CQP ? 'Season Conquest \\u00b7 boss demo'", "CQP ? (CQL ? CQL_SECS[0].sub : 'Season Conquest \\u00b7 boss demo')")
     # the boss's Hurt flinch costs it nothing in the level (the level's own numbers rule: a pound on the pinned bell, the chips)
     s = rep(s, "else if (e === 'start' && d.move === 'hurt' && B.vis && B.hp > 0) {", "else if (e === 'start' && d.move === 'hurt' && B.vis && B.hp > 0 && !CQL) {")
+    # no pick-ups in the level: nothing spawns, no orb, no start item's banner
+    s = rep(s, "function itemTick(dt) {", "function itemTick(dt) { if (CQL) return;")
+    s = rep(s, "function updateOrb(dt) {", "function updateOrb(dt) { if (CQL) { if (orb.on) orbReset(); return; }")
+    s = rep(s, "else if (state === 'play' && !tut) banner('Paint it '", "else if (state === 'play' && !tut && !CQL) banner('Paint it '")
     return s
