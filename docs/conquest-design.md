@@ -1,142 +1,173 @@
-# Season Conquest: the Jellyfish Boss level (design draft)
+# Season Conquest: the Jellyfish Boss level (design, draft 2)
 
-The aim: one level of about 7 to 9 minutes, played alone or with one online friend. It mixes a little story with runner chases, arena fights against minions, light puzzles and a final fight. You wear the boss down over the whole level, and there is a checkpoint at every section.
+This draft follows the user's notes on draft 1:
+- No painting tiles in place to keep them up. Puzzles use the moves and strokes we already have: the turret's shots, the pound, the basins, the fling, and the other strokes.
+- Everything is outdoors, in one sunken ruin you keep moving through. No interiors.
+- At its heart it stays a game about paint, getting around, and using your strokes to fight.
+- The reward is a stroke you can only get here: **Brood**, where you split into copies of yourself. It comes from the boss, which can make baby copies of itself.
+- The boss's health goes down a little all the time, the way Cuphead's steady fire chips a boss, but through painting rather than a new shooting mechanic.
+- Everyone can finish it: new players struggle, normal players get through with some effort, and players who have mastered the game find shortcuts and finish much faster.
 
-## Ground rules from the game as it is
+## The core loops
 
-- **The camera stays the normal play camera.** It is the chase cam behind you that turns as you turn. We only change its zoom: pulled back in the runners so you can see further ahead, and pushed in for close moments. No section ever takes the camera away from you. The story moments happen in front of the camera while you keep control. The one exception is the opening reveal, which already exists.
-- **You already move forward all the time.** You drag to steer, tap to jump, swipe up to roll or dash, pull back to fling, and press the arrow to pound. A runner section is the normal game in a long corridor, so there are no new controls to learn.
-- **The boss lives in the air.** It swims above and around the course, so you see it ahead of you, above you or off to one side. It dives under the stage and out of frame while you deal with something else, then comes back up somewhere new. Its shadow on the floor, bubbles rising through grates and a rumble always warn you before it comes back up.
-- **Damage comes from your verbs.** The current demo has no way for the player to hurt the boss. In the level, the boss loses health only when you do something to it: pound it, fling into it, paint it, or land a trap or harpoon on it.
-- **Lives:** 3 per checkpoint, and you are back to 3 at each one. A hit from the boss costs one life, as in the demo. Falling into a gap also costs one. When you lose your last life, you go back to the last checkpoint. The boss keeps any damage you have already done.
+### 1. Chip damage: paint its shadow
+The boss swims over the course all the time, and its shadow sweeps the ground below it.
+- **Your paint inside its shadow hurts it.** Each painted cell under the shadow takes a sliver off its health. The jelly flinches, and a faint sizzle and sparks rise up to it.
+- New players chip it now and then, by accident.
+- Good players paint ahead of where the shadow is heading.
+- Experts read its swim path and lay paint where it is going, often with strokes: a roller stripe, a boomerang loop, or a rocket splash on its shadow.
+- This keeps going in every section, runners included, so painting always does something to the boss.
+- It also gives the boss a reason to keep moving and diving: it is getting away from your paint.
 
-## The map
+### 2. Minions are its babies
+- **Jellets:** the boss sheds small simplified copies of itself. They float low, paint the ground purple and sting you on touch.
+- **Popping them:** a pound, a ram while giant, a roller, a boomerang, a trap or a whirlwind pops them.
+- **Each pop sends a spark back** into the boss and chips it. That puts a second steady source of damage into the fights.
 
-The layout follows your sketch: the arena where the boss is revealed at the top, and the runner leading away from it. After the turn-around, "towards the camera" in your top-down sketch becomes "straight ahead" for the player.
+### 3. The big hits come from set pieces
+- Each fight has a set piece that knocks off a big piece of health. The set pieces are built from the strokes and moves you already have.
+- The health split:
+  - **Chip damage** is up to about 35% for a great player, and about 10% for a new one.
+  - **The two midway set pieces** are 20% each.
+  - **The final fight** takes the rest.
+- So the more you chip, the shorter the final fight is. That is where mastery saves the most time.
+
+### 4. Basins under pressure
+- On a runner you never roll back over your own colour, so your paint keeps running down.
+- Basins along the route refill you, but a dip costs about 1 second, and you take it while the world falls apart around you.
+- If you skip a basin you run dry, crawl, and the collapse catches you.
+- Experts chain flings and dashes to reach basins that are off the safe line, or carry enough paint to skip one.
+
+### 5. Verticality and shortcuts
+- **Cracked slabs:** pound them to drop to the level below. Below are faster channels, shortcuts and hidden basins.
+- **Turret pillars:** stone pillars on clam valves. Plant the turret near one, and its paint shots fill the valve and raise the pillar. Each raised pillar is a step up or a bridge.
+- **Fling gaps:** a slingshot ring sits at every big gap, and there is a slower way round for anyone who misses.
+- **Stroke skips:** a rocket hop over a whole loop, a giant smashing a barricade, a whirlwind dash across a span that is falling.
+- Every shortcut is optional. The safe way is always there and is slower.
+
+## Camera, world and checkpoints
+
+- **The camera:** always the normal chase camera behind you, with only the zoom changing (pulled back on runners, pushed in for close moments).
+- **The boss in view:** it swims in front of you, above you or to the side, and dives under the course and out of shot. Its shadow, bubbles and a rumble warn you before it comes back up.
+- **One open place:** a single sunken city on the edge of a trench, outdoors the whole way. From the start you can already see the Reef Crown, a ruined tower on the horizon, and it gets bigger as you go.
+  - The world loads in pieces, but the next piece is always visible before you reach it, so you never cut to a loading screen.
+  - The ground keeps rising and the light gets brighter as you near the top.
+- **Checkpoints:** a lantern buoy lights up in your colour as you pass. Lives go back to 3 at each one, and the boss keeps the damage you've done.
+- **Help for anyone who fails a checkpoint 3 times:** a spare life, and the shortcuts' slow ways get extra glow so they're easier to find.
+
+## The route (about 8:30 a normal run, 5 to 6 minutes for experts)
 
 ```
-   [ Keep arena ]  0 Prologue: the reveal, the boss grabs the cage and flees
-        |
-   ====runner====  1 The Collapse (the floor falls away)
-        |
-   [  square   ]   2 Minion Yard (minions, then the harpoons)            25%
-        |
-   ====runner====  3 The Broken Causeway (punches, split lanes, a fling gap)
-        |
-   [  square   ]   4 Lantern Hall (a dark room, a paint puzzle, the boss under the floor)  25%
-        |
-   ====ramp======  5 The Rising Tide (climb ahead of the water)
-        |
-   [ Crown ring ]  6 The Crown (the final fight, two damage cycles)      50%
+ [0 The Keep pool]  the reveal, it flees toward the camera, you turn and chase
+       |
+ ==1 Aqueduct Run==  the arches fall in behind you; basins; pound down into the channel
+       |
+ [2 Sunken Plaza]    jellet waves; turret pillars up to its bell               20%
+       |
+ ==3 Coral Canyon==  upper ledge or lower floor; boomerang gate; giant smash
+       |
+ [4 Amphitheatre]    stepped rings; traps under its slam; rocket dive          20%
+       |
+ [5 The Reef Crown]  the plateau breaks into the trench; it splits into copies   the rest
 ```
 
-Each `|` is a checkpoint gate: a lantern buoy that lights up in your colour as you pass it.
+### 0. The Keep pool (about 30 s)
+1. The existing entrance plays. The boss looks at you, rises fast and swims off up the far causeway, toward the camera in the top-down sketch.
+2. As it goes, it slams the floor once. The shock ring teaches you to jump.
+3. Your hero pulls the determined face and turns, and you have control at once.
+4. **Checkpoint.**
 
-## Story in four short beats
+### 1. The Aqueduct Run (about 75 s)
+- **The course:** a ruined aqueduct, the arches falling in **behind** you. That keeps your heart racing without needing any special trick.
+- **The boss** swims off to one side and keeps attacking:
+  - It slams the arch ahead, and the shadow of its fist marks the spot 1 second before.
+  - It drops jellets in your lane.
+  - It dives under the arches and comes up through the far side.
+- **Basins** sit on little ledges. Some are on the line you are running, and some are off it, so you have to fling or dash to reach them.
+- **Cracked slabs** halfway along: pound one and you drop into the water channel under the arches. That is the faster way, with a current that pushes you on, but the openings are narrow.
+- **Checkpoint** at the mid-arch.
 
-1. **Reveal** (the existing entrance): the boss rises from the pool, charges up and roars. Then it snatches the hanging cage with your little buddy inside (the Keep already has cages hanging in it). It pounds the floor, which knocks you back, and flies off fast, up and toward the camera.
-2. **The turn:** the camera pushes in on your hero. The hero shows the determined face (a new mood for the face system), turns around and starts the chase. It takes 2 seconds, and you have control the moment the hero turns.
-3. **Halfway (in Lantern Hall):** the lights go out. The boss's eyes and the swinging cage are the only light in the room, and you hear the buddy calling from somewhere in the dark.
-4. **The end:** the boss is beaten, sulks and drops the cage. The buddy pops out and joins your victory pose, and the stamp reads "Boss defeated!"
+### 2. The Sunken Plaza (about 100 s, 20%)
+A square, open-air plaza built like a regular stage, with boxes, ramps and pots, ringed by broken columns.
+- **Jellet waves:** the boss circles overhead and lets go three waves of jellets. Some in the later waves are armoured, so it takes a pound to crack the shell before the second hit pops them.
+- **The turret:** you get it from a pick-up after wave 2.
+- **The set piece:**
+  1. After wave 3 the boss sinks low over the middle of the plaza to feed on its purple paint.
+  2. Four clam valves stand round it. Plant the turret so its shots fill the valves, and each valve raises a pillar. One turret can reach two valves from a good spot, if you know where to plant it.
+  3. Climb the raised pillars and jump onto its bell, then pound it 3 times: 20%.
+- **The alternative:** the slingshot ring by the fountain launches you straight onto the bell, but only if you aim it well.
+- **Checkpoint.**
 
-No text boxes. Everything is shown with action, faces and sound.
+### 3. Coral Canyon (about 75 s)
+- **The course:** a reef canyon with two levels:
+  - **The upper ledge** is narrow and fast, and the boss punches at it.
+  - **The canyon floor** is reached by pounding a cracked slab. It is wider and safer, and has basins, but it is longer.
+- **The boomerang gate:** a coral gate shuts across both levels. Throw a boomerang so its loop hits both switch shells and the gate opens. A boomerang pick-up waits just before the gate. With a good throw you open it without slowing down.
+- **The barricade:** a giant orb sits before a rubble barricade. As a giant you smash straight through it. Anyone else has to go round by the side cave.
+- **The collapsing span:** a whirlwind dash carries you across before it falls. Without one, you jump the pieces as they drop.
+- **Checkpoint.**
 
-## The sections
+### 4. The Amphitheatre (about 100 s, 20%)
+An outdoor ruined amphitheatre, with stepped rings around a round stage. You can jump up and down between the rings.
+- **The fight:** the boss comes down onto the stage. Its moves are Punch, Slam, Sweep, Slime rain and Shock wave, mixed with jellets.
+- **The set piece:**
+  1. Paint Traps spawn on the rings. Set one where its Slam is about to land. The slam's ring shows 1 second ahead, so you need to read and move.
+  2. The trap goes off under its fist and stuns it.
+  3. Climb to the top ring, take the rocket orb and dive onto its bell: 20%.
+  4. It happens twice if your chip damage was low, and once if it was high.
+- **The freeze orb** shows up in the jellet waves. Flash Freeze stops them, and with a good run you have time to clear them all.
+- **Checkpoint.**
 
-### 0. Prologue, in the Keep arena (about 30 s)
-The existing reveal plays, then the cage grab and the flight. Before you run, you get a 5 second warm-up dodge: the boss slams the floor once on its way out, and the shock ring teaches you to jump. Then comes the turn beat. **Checkpoint 0.**
+### 5. The Reef Crown (about 2 min, the rest)
+The ruined tower's plateau on the edge of the trench, open water all round.
+- **Phase 1:** every move is back. **Pieces of the plateau break away into the trench** as it goes, and the basins at the edge are at risk. You have to refill and fight at the same time.
+- **Phase 2:** below 30% it **splits into many copies of itself**. Only the real one casts a **shadow**. Paint its shadow to chip it and find it, then pound or fling into it.
+  - Each hit on the real one breaks up the copies for a few seconds.
+  - Hitting a copy only pops it, and pops send a spark of chip damage back to the real one.
+- **The finish:** a slow-motion fling into the last of its health.
+- The boss shrinks to a jellet, sulks and leaves its power behind. You take it: **Brood unlocked**.
+- **Checkpoints** at the start and at the split.
 
-### 1. The Collapse (runner, about 75 s)
-- **The course:** a stone causeway about 10 m wide, about 400 m long, with water far below.
-- **Collapsing tiles:** they crack (shaking, and a crack line in the stone) 1.2 s before they drop. **Painted tiles hold twice as long**, so painting ahead of you buys time. This is the first idea that ties painting to survival.
-- **Gaps:** jump over them. Later gaps have a ramp that rewards a jump at the right moment.
-- **The boss** swims ahead and above. Every 8 to 10 s it turns and does something to you:
-  - spits slime blobs that land in your path (the existing Slime rain);
-  - punches the causeway from the side, which tilts a section;
-  - dives under, then comes up through the floor ahead (its shadow and bubbles warn you). That tears a hole you have to steer around.
-- **A mid-gate** about 40 s in. **Checkpoint 1a.**
+## The reward: Brood (a special stroke)
 
-### 2. Minion Yard (square arena, about 100 s, boss down 25%)
-A regular-size square stage (about 26 m half-size), built like the normal stages with boxes, ramps and pots. The boss circles overhead and throws in minions in three waves:
-- **Jellets:** small jellyfish that drift after you and paint the floor purple. One pound pops them, and your paint dries them out.
-- **Puffers:** they swell when you get close and burst after 2 s, knocking you back. Roll through them before they burst, or fling them into other minions.
-- **Shell crabs:** a shell in front protects them from pounds. Roll into them to flip them over, then pound them.
+You split into three for 6 seconds: yourself and two jelly-tinted copies at your sides. They use simplified meshes, the same lighter versions as distant characters.
+- **The copies follow your steering in formation,** so you paint three lanes at once.
+- **When you pound,** every copy pounds too, each with a smaller splat.
+- **A copy that gets hit pops harmlessly,** and you are not knocked out.
+- **Getting it:** you earn it the first time you clear the Conquest. From then on you can pick it in Strokes like the other strokes, in every mode.
 
-The damage moment comes after wave 3. Four harpoon cannons stand at the corners, and each sits on a round pad. **Paint a pad fully to arm its cannon.** Once all four are armed, they fire chain nets at the boss and pin it to the floor in the middle. Its bell glows: **pound it 3 times** before it breaks free (8 s). That takes off 25%. Then it tears loose and flies on. **Checkpoint 2.**
+## Skill and speed
 
-### 3. The Broken Causeway (runner, about 75 s)
-- **Fist slams:** the boss runs alongside and punches the bridge ahead. Each punch sends a shock ring along the bridge, which you jump.
-- **Split lanes:** the bridge splits into two or three lanes. One lane is lit and the others crack and fall, so you read and pick.
-- **A big gap:** a slingshot pad (a glowing ring) in front of it. Pull back, aim and fling across it. This teaches the fling, which the final fight needs.
-- **Under the stage:** the boss swims below, visible through grates and as a moving shadow, then bursts up on one side in a sweep. Its tentacle sweep comes along the floor, and you roll or jump it.
-- **A mid-gate. Checkpoint 3a.**
+- **New players:** they learn the level through checkpoints, the safe routes and the spare lives.
+- **Normal players:** they take the safe line with a few shortcuts. That is about 8 to 9 minutes.
+- **Experts:** pound-drops, fling skips and stroke skips, painting where the shadow is going, and chaining pops all save time. That is about 5 to 6 minutes.
+- **Results screen:** the time, the chip %, lives lost and the shortcuts found, with a medal for each.
+- **A leaderboard for the fastest clear** could reuse the weekly Time Trial board.
 
-### 4. Lantern Hall (square arena, a puzzle, about 110 s, boss down 25%)
-- **Dark:** the boss puts out the lights and hides under the floor, so the room is dark. Your paint glows faintly, and the room lights up only where you have painted.
-- **The puzzle:** four lanterns stand on the walls. **Paint an unbroken line from a pot to a lantern** to light it. Paint conducts the light like a wire, so your line has to go round the holes and boxes.
-- **Pressure:** eels come out of holes and bite your paint lines apart, so you can repair or block them.
-- **The boss** shows only as a shadow under the floor, bumping the floor up under you now and then.
-- **Damage:** when all four lanterns are lit, the light reveals the boss under a big grate in the middle. It surfaces, dazed. **Fling into it** (your homing missile, or just the hit), then pound. That takes off 25%. **Checkpoint 4.**
+## With a friend online
 
-### 5. The Rising Tide (ramp runner, about 60 s)
-- **The climb:** a wide spiral ramp up the outside of the keep's tower. The tide rises behind you and the camera pulls back so you can see it chasing.
-- **From above:** the boss drops rubble from overhead, and each piece has a red ring on the ground where it will land.
-- **Pick-ups:** rocket and giant orbs appear here. Giant smashes through barricades and the rocket skips a whole loop, so the strokes you already know pay off.
-- **Checkpoint 5** at the top.
+- **Shared and separate:** you share the boss's health, the chip damage and the checkpoints. Each player has their own lives and camera.
+- **Down, not out:** a player who is out floats as a bubble for 8 seconds, and the partner rolls through it to bring them back.
+- **Splitting the work:**
+  - One player plants the turret on the valves while the other pops jellets.
+  - Each player can take a different route through the canyon.
+- **Fair to both:** the boss picks a target for each move and switches between players.
+- **How it runs online:** the boss and the hazards follow a script from the shared seed, so both phones play the same boss. The server referees the section you are in, the damage, the pops and the lives.
+  - That needs a new co-op mode on the server, and the lead deploys it.
+  - Solo comes first.
 
-### 6. The Crown (the final fight, about 2 min, the last 50%)
-A round arena at the top of the tower, open to the sky. The existing moves all come back, mixed: Punch, Slam, Sweep, Zap, Slime rain, Shock wave, Ripples, Strikes and Sea mines. The damage loop runs twice:
-1. After a **Slam**, its fists stick in the floor for 4 s.
-2. **Roll circles round a fist** to paint it. Once a fist is fully painted it's stuck, and when both are, the boss is stuck and dizzy.
-3. **Fling into its bell** from a slingshot ring, then **pound it.** That takes off 25%.
-
-**Last stand** below 15%: the edge of the arena starts to fall in, closing like the Showdown line, and the boss speeds up. The killing blow is a slow-motion fling. **Checkpoint 6a** after the first cycle.
-
-## Timing
-
-| Section | Clean run | With a few deaths |
-|---|---|---|
-| 0 Prologue | 0:30 | 0:30 |
-| 1 The Collapse | 1:15 | 1:45 |
-| 2 Minion Yard | 1:40 | 2:15 |
-| 3 The Broken Causeway | 1:15 | 1:45 |
-| 4 Lantern Hall | 1:50 | 2:30 |
-| 5 The Rising Tide | 1:00 | 1:20 |
-| 6 The Crown | 2:00 | 3:00 |
-| **Total** | **about 9:30** | **about 13** |
-
-That is a little long. To land at 7 to 9 minutes, the runners can each lose 15 s, or section 5 can be cut, since it is the easiest to drop.
-
-## With an online friend
-
-- **Shared and separate:** both players are on the same course, and each has their own normal camera. You share the boss's health and the checkpoints. Each player has their own lives.
-- **Down, not out:** a player who loses their last life floats as a bubble for 8 s, and the partner rolls through the bubble to bring them back. If nobody does, the player comes back at the next gate the partner passes. You go back to the checkpoint only when both are down.
-- **Two-player puzzles:**
-  - Harpoon pads fill twice as fast with two players painting.
-  - In Lantern Hall, two lanterns need lines lit at the same moment.
-  - In the Crown, each player can take a fist.
-  - Solo play gets longer timers instead.
-- **Boss focus:** the boss picks a target for each move and switches between players, so neither gets ignored.
-- **How it runs online:** the boss and the hazards follow a fixed script from a shared seed and the section's clock. Both phones play the same boss without streaming it, and the server referees only:
-  - which section you are in, and the checkpoints;
-  - boss damage;
-  - minion KOs;
-  - lives.
-
-  This builds on the existing duel server, which already referees KOs, hearts and the clock. It still needs new work on the server: a co-op match mode, minions as server entities, and boss damage events. The lead session has to deploy that. Solo comes first, and co-op follows once solo is fun.
-
-## How I'd build it (modules on top of the current game)
+## The build plan
 
 | Module | What it adds |
 |---|---|
-| cq02 level frame | A sequencer for the sections, checkpoint gates, lives per checkpoint, and the world built as one chain of pieces, with only the nearby pieces drawn. |
-| cq03 prologue | The cage grab, the flight away, the determined face and the turn. |
-| cq04 runner kit | Collapsing tiles that hold longer when painted, gaps, the boss's runner attacks, and the zoom for runners. |
-| cq05 minions | Jellets, puffers and shell crabs. |
-| cq06 Minion Yard | The arena, the waves, the harpoon pads, and the pin-and-pound. |
-| cq07, cq08 | The Broken Causeway, and Lantern Hall (the paint-circuit puzzle and the dark). |
-| cq09 | The Rising Tide, and the Crown fight's damage loop. |
-| cq10 | The ending, the reward, and tuning. |
-| later | Online co-op, which needs the lead and the server. |
+| cq02 | The level frame: the open world loading in pieces, the sections, the checkpoints, the lives, and the chip damage from shadow paint. |
+| cq03 | The opening chase and the Aqueduct Run: the collapse behind you, the basins on runners, and pounding through cracked slabs. |
+| cq04 | Jellets: the simplified boss mesh, popping, and the spark back to the boss. |
+| cq05 | The Sunken Plaza: the waves, and the turret valves and pillars. |
+| cq06 | Coral Canyon: two levels, the boomerang gate, the giant barricade and the whirlwind span. |
+| cq07 | The Amphitheatre: traps under the slam, the rocket dive. |
+| cq08 | The Reef Crown: the breaking plateau and the shadow split. |
+| cq09 | Brood: the stroke, unlocked on clearing. |
+| cq10 | The results, the medals and the tuning. |
 
-**First playable milestone:** sections 0, 1 and 2 (about 3.5 minutes) in the preview. That is enough to judge whether the runner and the arena feel good before building the rest.
+**First playable milestone:** the opening, the Aqueduct Run and the Sunken Plaza, with shadow-paint chip damage working. That is about 3.5 minutes and is enough to judge the feel.
