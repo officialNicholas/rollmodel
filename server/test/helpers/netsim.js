@@ -41,19 +41,22 @@ export function netSim({ up = {}, down = {}, RealWebSocket = globalThis.WebSocke
       NetSimWebSocket.last = this;
       const ws = this._ws = new RealWebSocket(url); ws.binaryType = 'arraybuffer';
       ws.onopen = () => this.down.deliver(0, () => { if (this.readyState === 0) { this.readyState = 1; this.onopen && this.onopen({ type: 'open' }); } });
-      ws.onmessage = ev => { const d = ev.data, n = typeof d === 'string' ? d.length : d.byteLength; this.down.deliver(n, () => { if (this.readyState === 1 || this.readyState === 2) this.onmessage && this.onmessage({ data: d }); }); };
+      ws.onmessage = ev => { if (this.silent) return; const d = ev.data, n = typeof d === 'string' ? d.length : d.byteLength; this.down.deliver(n, () => { if (this.readyState === 1 || this.readyState === 2) this.onmessage && this.onmessage({ data: d }); }); };
       ws.onclose = ev => { const e = { code: ev.code, reason: ev.reason }; this.down.deliver(0, () => { this.readyState = 3; this.onclose && this.onclose(e); }); };
       ws.onerror = ev => { this.onerror && this.onerror(ev); };
     }
     get bufferedAmount() { return this._ws.bufferedAmount; }
     send(data) {
       if (this.readyState !== 1) throw new Error('not open');
+      if (this.silent) return;
       const n = typeof data === 'string' ? data.length : data.byteLength;
       this.up.deliver(n, () => { if (this._ws.readyState === 1) this._ws.send(data); });
     }
     close(code, reason) { if (this.readyState >= 2) return; this.readyState = 2; this.up.deliver(0, () => { try { this._ws.close(code, reason); } catch (e) { /* closing */ } }); }
     // test helper: drop the connection at once, as if the phone lost its signal
     kill() { try { this._ws.close(); } catch (e) { /* gone */ } }
+    // test helper: the link goes dead both ways without closing (a tunnel, Wi-Fi handing over to 4G)
+    blackhole() { this.silent = true; }
   };
 }
 

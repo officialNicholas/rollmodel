@@ -281,7 +281,10 @@ const RMNetSDK = (() => {
   // ---------------------------------------------------------------------------------------------------------------
   class RMNet {
     // opts: { url, name, look, token, WebSocket?, now?, autoReconnect = true, sendHz = 30, minInterp = 60, maxInterp = 200,
-    //         maxExtrapolate = 250, client? }
+    //         maxExtrapolate = 250, deadMs = 3000, smoothMs = 90, client? }
+    // deadMs: a connection that has brought nothing for this long is taken as lost and opened again. The server
+    // answers two pings a second and sends 30 snapshots a second in a match, so silence that long means the link is gone
+    // without having closed (a phone in a tunnel, Wi-Fi handing over to 4G), which otherwise goes unnoticed for minutes.
     constructor(opts = {}) {
       this.url = opts.url; this.name = opts.name || 'Player'; this.look = opts.look === undefined ? null : opts.look;
       this.token = opts.token || null; this.client = opts.client || null;
@@ -290,6 +293,8 @@ const RMNetSDK = (() => {
       this.autoReconnect = opts.autoReconnect !== false;
       this.sendInterval = 1000 / (opts.sendHz || 30);
       this.maxExtrapolate = opts.maxExtrapolate === undefined ? 250 : opts.maxExtrapolate;
+      this.deadMs = opts.deadMs === undefined ? 3000 : opts.deadMs; this._lastRx = 0;
+      this.smoothMs = opts.smoothMs === undefined ? 90 : opts.smoothMs; this._smooth = new Map();
       this.id = null; this.ratings = null; this.connected = false; this.match = null; this.slot = -1; this.room = null;
       this.ws = null; this._h = new Map(); this._closing = false; this._attempt = 0; this._retryTimer = null;
       this._clock = new ClockSync(); this._interp = new InterpDelay(opts.minInterp || 60, opts.maxInterp || 200);
@@ -325,21 +330,28 @@ const RMNetSDK = (() => {
       this.ws = ws; ws.binaryType = 'arraybuffer';
       ws.onopen = () => {
         if (this.ws !== ws) return;
-        this._attempt = 0; this.connected = true; this._emit('open', {});
+        this._attempt = 0; this.connected = true; this._lastRx = this._now(); this._emit('open', {});
         this._sendJ({ t: 'hello', v: PROTOCOL_VERSION, token: this.token || undefined, name: this.name, look: this.look, client: this.client || undefined });
         this._startPings();
       };
       ws.onmessage = ev => { if (this.ws === ws) this._onMessage(ev.data); };
       ws.onerror = () => { /* followed by close */ };
-      ws.onclose = ev => {
-        if (this.ws !== ws) return;
-        this.connected = false; this.ws = null; this._stopPings();
-        for (const [, w] of this._waits) w.reject(Object.assign(new Error('disconnected'), { code: 'disconnected' }));
-        this._waits.clear();
-        const again = !this._closing && this.autoReconnect && !this._noRetry;
-        this._emit('close', { code: ev && ev.code, reason: ev && ev.reason, willReconnect: again });
-        if (again) this._scheduleReconnect();
-      };
+      ws.onclose = ev => { if (this.ws === ws) this._lost(ev); };
+    }
+    _lost(ev) {
+      this.connected = false; this.ws = null; this._stopPings();
+      for (const [, w] of this._waits) w.reject(Object.assign(new Error('disconnected'), { code: 'disconnected' }));
+      this._waits.clear();
+      const again = !this._closing && this.autoReconnect && !this._noRetry;
+      this._emit('close', { code: ev && ev.code, reason: ev && ev.reason, willReconnect: again });
+      if (again) this._scheduleReconnect();
+    }
+    // a link gone silent: let the old socket go (closing a dead one can take minutes to report) and start again
+    _dead() {
+      const ws = this.ws; if (!ws) return;
+      ws.onopen = ws.onmessage = ws.onclose = ws.onerror = null;
+      try { ws.close(4000, 'silent'); } catch (e) { /* already closed */ }
+      this._lost({ code: 4000, reason: 'silent' });
     }
     _scheduleReconnect() {
       if (this._closing || !this.autoReconnect) return;
@@ -365,7 +377,16 @@ const RMNetSDK = (() => {
     _startPings() {
       this._stopPings(); this._pingsSent = 0;
       // a quick burst to start with, then two a second (9 bytes each way: cheap, and it keeps a phone's radio awake)
-      const tick = () => { this._sendB(codec.encodePing(this._now())); this._pingsSent++; this._pingTimer = setTimeout(tick, this._pingsSent < 8 ? 100 : 500); };
+      let last = this._now();
+      const tick = () => {
+        const now = this._now();
+        // (if this page was itself stalled, a long frame or a suspended app, what arrived meanwhile hasn't been read yet:
+        // the link gets a fresh deadMs from now)
+        if (now - last > 1500) this._lastRx = Math.max(this._lastRx, now - 500);
+        last = now;
+        if (this.deadMs > 0 && this.connected && now - this._lastRx > this.deadMs) { this._dead(); return; }
+        this._sendB(codec.encodePing(now)); this._pingsSent++; this._pingTimer = setTimeout(tick, this._pingsSent < 8 ? 100 : 500);
+      };
       tick();
     }
     _stopPings() { clearTimeout(this._pingTimer); this._pingTimer = null; }
@@ -426,12 +447,30 @@ const RMNetSDK = (() => {
     renderTime() { return this.serverNow() - this._interp.value(this._now()); }
     // id: a player id or a slot number. Returns the remote player's state at renderTime (default: now minus the
     // interpolation delay), or null if nothing has arrived yet.
+    // Without a renderTime this is where to draw them now, smoothed: when late states arrive after a stall (TCP holds
+    // everything behind a lost packet) the sampled position can leap back from where it was extrapolated to. A leap
+    // faster than anyone moves is not shown at once but eased out over about smoothMs (as an offset that fades), so the
+    // rival glides back instead of popping. Teleports (respawn, more than 5 m), knock-outs and pots are never smoothed.
     remote(id, renderTime) {
       const slot = typeof id === 'number' ? id : this._slotOf(id); const tr = this._tracks.get(slot); if (!tr) return null;
       const R = renderTime === undefined ? this.renderTime() : renderTime;
       const o = tr.sample(R, this.maxExtrapolate); if (!o) return null;
       this._samples++; if (o.extrapolated) this._extrap++;
-      o.slot = slot; o.id = this._idOf(slot); return o;
+      o.slot = slot; o.id = this._idOf(slot);
+      if (renderTime === undefined && this.smoothMs > 0) this._smoothed(slot, o);
+      return o;
+    }
+    _smoothed(slot, o) {
+      const now = this._now(); let S = this._smooth.get(slot);
+      if (!S) { S = { x: o.x, z: o.z, t: now, ex: 0, ez: 0 }; this._smooth.set(slot, S); }
+      const dt = Math.min(0.25, Math.max(0, (now - S.t) / 1000)), k = Math.exp(-dt * 1000 / this.smoothMs);
+      let ex = S.ex * k, ez = S.ez * k;
+      const dx = o.x - S.x, dz = o.z - S.z, d = Math.hypot(dx, dz), lim = 0.04 + 16 * dt; // (16 m/s: faster than a whirl or a fling)
+      if (d >= TELEPORT_M || (o.flags & (FLAGS.KO | FLAGS.HIDE | FLAGS.OUT))) ex = ez = 0;
+      else if (d > lim) { ex -= dx / d * (d - lim); ez -= dz / d * (d - lim); }
+      const e = Math.hypot(ex, ez); if (e > 1.5) { ex *= 1.5 / e; ez *= 1.5 / e; }
+      S.x = o.x; S.z = o.z; S.t = now; S.ex = ex; S.ez = ez;
+      o.x += ex; o.z += ez;
     }
     players() { return this.match ? this.match.players.slice() : []; }
     _slotOf(id) { if (!this.match) return -1; const p = this.match.players.find(q => q.id === id); return p ? p.slot : -1; }
@@ -450,6 +489,7 @@ const RMNetSDK = (() => {
 
     // ---- incoming ----
     _onMessage(data) {
+      this._lastRx = this._now();
       if (typeof data === 'string') {
         this._st.bytesIn += data.length;
         let m; try { m = JSON.parse(data); } catch (e) { return; }
@@ -496,7 +536,7 @@ const RMNetSDK = (() => {
         case 'roomLeft': this.room = null; this._emit('roomLeft', m); break;
         case 'matchFound': case 'resume':
           this.match = { id: m.matchId, mode: m.mode, seed: m.seed, opts: m.opts, players: m.players, layoutHash: null, startAt: m.startAt || null, endAt: m.endAt || null };
-          this.slot = m.you; this._tracks.clear(); this._clock.locked = true;
+          this.slot = m.you; this._tracks.clear(); this._smooth.clear(); this._clock.locked = true;
           this._emit(m.t, m);
           break;
         case 'start':
@@ -513,7 +553,7 @@ const RMNetSDK = (() => {
         case 'overtime': if (this.match) this.match.endAt = m.endAt; this._emit('overtime', m); break; // (versus: level at the buzzer, plays on once)
         case 'matchEnd': this._clock.locked = false; this._emit('matchEnd', m); break;
         case 'matchCancelled': case 'matchClosed':
-          this._emit(m.t, m); this.match = null; this.slot = -1; this._clock.locked = false; this._tracks.clear();
+          this._emit(m.t, m); this.match = null; this.slot = -1; this._clock.locked = false; this._tracks.clear(); this._smooth.clear();
           break;
         default: this._emit(m.t, m);
       }

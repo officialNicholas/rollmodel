@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { canonicalLayout, layoutHash, hashString, layoutFromStage, codec, FLAGS, RemoteTrack, ClockSync, PROTOCOL_VERSION as SDK_PROTO } from '../client/rmnet.js';
+import { canonicalLayout, layoutHash, hashString, layoutFromStage, codec, FLAGS, RemoteTrack, ClockSync, RMNet, PROTOCOL_VERSION as SDK_PROTO } from '../client/rmnet.js';
 import { Level, inR, rampH } from '../src/geometry.js';
 import { validateLayout, fromCanonical } from '../src/layout.js';
 import { glicko2, rateMatch } from '../src/rating.js';
@@ -199,4 +199,20 @@ test('remote sampling interpolates, extrapolates briefly, then holds', () => {
   // clock: the lowest round trip wins
   const c = new ClockSync(); c.add(0, 1100, 100); c.add(200, 1260, 220); assert.equal(c.offset, 1260 + 10 - 220);
   assert.equal(KO_R, 3.34);
+});
+
+test('drawing a remote player: a leap back after a stall glides instead of popping; real moves and teleports pass through', () => {
+  let now = 0; const net = new RMNet({ url: 'ws://x', now: () => now, autoReconnect: false });
+  const at = (x, flags = 0) => { const o = { x, y: 0, z: 0, flags }; net._smoothed(1, o); return o.x; };
+  // steady running at 5.4 m/s, 60 frames a second: drawn exactly where sampled
+  let x = 0; for (let i = 0; i < 30; i++) { now += 16.7; x += 5.4 * 0.0167; assert.ok(Math.abs(at(x) - x) < 1e-9); }
+  // a stall's late states pull the sample 1.2 m back in one frame: the drawn position barely moves, then eases back
+  now += 16.7; const before = x; x -= 1.2; const d0 = at(x);
+  assert.ok(Math.abs(d0 - before) < 0.35, 'no pop (' + (d0 - before).toFixed(2) + ' m)');
+  let last = d0; for (let i = 0; i < 30; i++) { now += 16.7; const d = at(x); assert.ok(Math.abs(d - last) < 0.35, 'each frame a small step'); last = d; }
+  assert.ok(Math.abs(last - x) < 0.02, 'back on the sample within half a second (' + (last - x).toFixed(3) + ')');
+  // a respawn, more than 5 m away: straight there
+  now += 16.7; x += 9; assert.equal(at(x), x);
+  // knocked out: never smoothed
+  now += 16.7; x -= 2; assert.equal(at(x, FLAGS.KO), x);
 });

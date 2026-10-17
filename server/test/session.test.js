@@ -6,8 +6,8 @@ import { FLAGS, RMNet } from '../client/rmnet.js';
 import { startServer, makeBots, until, sleep, matchOf, metric } from './helpers/harness.js';
 import { netSim, PROFILES } from './helpers/netsim.js';
 
-async function duel(rules, opts = {}) {
-  const srv = await startServer(rules);
+async function duel(rules, opts = {}, extra = {}) {
+  const srv = await startServer(rules, extra);
   const [A, B] = makeBots(srv, 2, Object.assign({ profile: 'rtt60', behavior: 'wander', prefix: 'ses' }, opts));
   await Promise.all([A, B].map(b => b.connect()));
   await A.net.queue('duel'); await B.net.queue('duel');
@@ -30,6 +30,33 @@ test('a dropped connection that comes back within the window picks the match up 
     const end = await c.A.wait('matchEnd', () => true, 15000);
     assert.equal(end.results.find(x => x.slot === c.A.slot).left, false, 'not a forfeit');
     assert.equal(c.A.stats.corrections, 0);
+  } finally { await c.close(); }
+});
+
+test('a link that goes silent without closing: the phone notices, reconnects and picks the match up again', async () => {
+  const c = await duel({ matchT: 12, reconnectWindow: 20, afkWarn: 5, afkForfeit: 15 });
+  try {
+    const resumed = c.A.wait('resume', () => true, 10000), t0 = Date.now();
+    c.A.net.ws.blackhole(); // a tunnel, or Wi-Fi handing over to 4G: nothing arrives either way, and nothing closes
+    const r = await resumed, ms = Date.now() - t0;
+    metric('session.silentResumeMs', ms, 'ms', 'link gone silent to resumed match (the SDK notices after 3 s of nothing)');
+    assert.ok(ms < 5000, 'resumed in ' + ms + ' ms');
+    assert.equal(r.matchId, matchOf(c.srv, c.B.id).id); assert.equal(r.you, c.A.slot);
+    const end = await c.A.wait('matchEnd', () => true, 15000);
+    assert.equal(end.results.find(x => x.slot === c.A.slot).left, false, 'not a forfeit');
+  } finally { await c.close(); }
+});
+
+test('the server closes a connection that has gone silent, so the match holds the player\'s place', async () => {
+  const c = await duel({ matchT: 30, reconnectWindow: 20, afkWarn: 5, afkForfeit: 15 }, {}, { silentMs: 1500 });
+  try {
+    const away = c.B.wait('playerAway', m => m.slot === c.A.slot, 5000), t0 = Date.now();
+    c.A.net.deadMs = 0; c.A.net.autoReconnect = false; c.A.stop(); // (an older client, or an app iOS has suspended)
+    c.A.net.ws.blackhole();
+    await away; const ms = Date.now() - t0;
+    assert.ok(ms < 3500, 'away after ' + ms + ' ms');
+    assert.equal(matchOf(c.srv, c.B.id).phase, 'play', 'the match goes on, the place held');
+    await until(() => { const r = c.B.net.remote(c.A.slot); return r && (r.flags & FLAGS.AWAY); }, 3000);
   } finally { await c.close(); }
 });
 

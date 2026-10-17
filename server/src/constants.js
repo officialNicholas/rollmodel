@@ -65,4 +65,7 @@ export const LIMITS = Object.freeze({
   layout: { boxes: 400, ramps: 200, holes: 120, pots: 32, powers: 48, spawns: 8, puddles: 48 },
   nameMin: 1, nameMax: 16, lookMax: 512,
   helloTimeoutMs: 5000,
+  // a connection that sends nothing for this long is gone (clients ping twice a second): it is closed, so a match shows the
+  // player as away and holds their place, instead of waiting minutes for TCP to give up on a phone that lost its signal
+  silentMs: 6000,
 });

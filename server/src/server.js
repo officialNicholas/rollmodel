@@ -29,7 +29,7 @@ export class GameServer {
     this.roomAway = new Map(); // player id -> the dropped connection whose place in a room is being kept
     this.mm = new Matchmaker(); this.perIp = new Map(); this.connSeq = 0; this.closing = false;
     this.stats = { connections: 0, messages: 0, violations: 0, kicked: 0, matchesStarted: 0, matchesEnded: 0, matchesCancelled: 0, bytesOut: 0, framesOut: 0 };
-    this.tickTimes = new Window(8192); this.tickCpu = new Window(8192); this.startedAt = nowMs(); this._timer = null; this._nextTick = 0; this._lastMM = 0; this._lastPing = 0;
+    this.tickTimes = new Window(8192); this.tickCpu = new Window(8192); this.startedAt = nowMs(); this._timer = null; this._nextTick = 0; this._lastMM = 0; this._lastPing = 0; this._lastSilent = 0;
   }
 
   async listen(port = this.opts.port ?? 8080, host = this.opts.host || '0.0.0.0') {
@@ -410,6 +410,11 @@ export class GameServer {
         this.log.error('match tick failed', { match: m.id, err: e.stack || e.message });
         try { if (m.phase === 'ended') m.close('server_error'); else m.cancel('server_error'); } catch (e2) { this.matches.delete(m); }
       }
+    }
+    if (now - this._lastSilent >= 1000) {
+      this._lastSilent = now;
+      const quiet = this.opts.silentMs ?? LIMITS.silentMs;
+      for (const s of [...this.sessions]) if (quiet > 0 && now - s.lastMsg > quiet) { this.stats.silent = (this.stats.silent || 0) + 1; this.log.info('silent connection closed', { conn: s.id, player: s.player && s.player.id }); try { s.ws && s.ws.terminate(); } catch (e) { /* gone */ } this._closed(s); }
     }
     if (now - this._lastPing >= 2000) { this._lastPing = now; const b = new Uint8Array(codec.encodeSPing(now)); for (const s of this.sessions) if (s.player) this.sendBinary(s, b, true); }
   }
