@@ -3940,6 +3940,16 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 #setModal .serr:empty{display:none}
 #setModal .sfoot{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
 #setModal .sfoot .sreset{margin:0;padding:4px 0}
+/* (v349) Delete account: a link at the foot of Settings beside Restart Game; it asks first in a card of its own over Settings, Keep it to
+   the fore and Delete for good under it in red */
+#setModal .sfoot .sfacts{display:flex;flex-wrap:wrap;align-items:center;gap:4px 18px;min-width:0}
+#delModal{z-index:13}
+#delModal .card{width:min(100%,380px)}
+#delModal .cnote b{font-weight:900;color:inherit}
+#delModal .delerr{margin:0;color:#C93A4C}
+#delModal .delerr:empty{display:none}
+#delModal .btn.delyes{color:#C93A4C} /* (on the card's strip of tape, like its other second buttons) */
+#delModal .btn.delyes:disabled{opacity:.6}
 #setModal .sfoot .sver{margin:0;text-align:right}
 @media (orientation:landscape){#setModal #sfit{gap:10px 12px}}
 /* (v307) the account's birth year: one picker */
@@ -4659,7 +4669,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 348</p>
+      <p class="ver">Version 349</p>
     </div>
   </div>
 
@@ -4685,9 +4695,19 @@ i.ptwait>*{display:none}
         <div class="sopt wide"><p class="slab">Turning <b class="trnv" id="turnVal">80%</b></p><div class="trn"><span class="trnl" aria-hidden="true">Gentle</span><input type="range" id="turnPick" min="50" max="150" step="5" value="80" aria-label="Turning speed" aria-describedby="turnNote"><span class="trnl" aria-hidden="true">Quick</span></div><p class="gnote" id="turnNote">How fast you turn when you swipe.</p></div>
         <div class="sopt full sdocs"><div class="sbtns four"><button class="sbtn" id="howOpen" type="button" aria-haspopup="dialog"><span>How to play</span></button><button class="sbtn" id="tosBtn" type="button" aria-haspopup="dialog"><span>Terms of Service</span></button><button class="sbtn" id="privBtn" type="button" aria-haspopup="dialog"><span>Privacy Policy</span></button><button class="sbtn" id="credBtn" type="button" aria-haspopup="dialog"><span>Credits</span></button></div></div>
         <p class="gnote serr" id="lastErr"></p>
-        <div class="sfoot"><button class="sreset" id="resetBtn" type="button">Restart Game</button><p class="sver" id="setVer"></p></div>
+        <div class="sfoot"><span class="sfacts"><button class="sreset" id="resetBtn" type="button">Restart Game</button><button class="sreset" id="delAcBtn" type="button" aria-haspopup="dialog" hidden>Delete account</button></span><p class="sver" id="setVer"></p></div>
       </div></div>
       <button class="btn play sm" id="setDone" type="button">Done</button>
+    </div>
+  </div>
+
+  <div class="modal" id="delModal" hidden>
+    <div class="card" role="alertdialog" aria-modal="true" aria-labelledby="delTitle" aria-describedby="delNote">
+      <h2 class="ctitle" id="delTitle">Delete account?</h2>
+      <p class="cnote" id="delNote"></p>
+      <p class="cnote delerr" id="delErr" role="alert"></p>
+      <button class="btn play sm" id="delNo" type="button">Keep it</button>
+      <button class="btn delyes" id="delYes" type="button">Delete for good</button>
     </div>
   </div>
 
@@ -24127,7 +24147,7 @@ function acSync(r) {
   if (!r.needs_name && r.name) { store.sbs.name = r.name; if (store.name !== r.name) { store.name = r.name; paintName(); } }
   save();
 }
-function acPaintAll() { try { paintName(); paintPBar(); } catch (e) {} /* (v311: handle or plain name) */ if (!$('sideMenu').hidden) acSetPaint(); if (menuPage === 'events') acMatchPaint(); if (FR.open) { FR.sig = ''; frRender(); } }
+function acPaintAll() { try { paintName(); paintPBar(); } catch (e) {} /* (v311: handle or plain name) */ try { delPaint(); } catch (e) {} /* (v349) */ if (!$('sideMenu').hidden) acSetPaint(); if (menuPage === 'events') acMatchPaint(); if (FR.open) { FR.sig = ''; frRender(); } }
 
 // ---- the line under a username field: what's wrong at once; then (online, after a pause) whether it's free
 const UN_ONLINE = id => id === 'acUser' || ((id === 'nameInput' || id === 'frUnIn') && acctReady()); // (v308: a name is only checked against everyone's, and held, with an account)
@@ -24544,7 +24564,8 @@ $('acBody').addEventListener('click', async e => {
 });
 BA.ready = true; if (BA.on && !SB_CFG) { BA.on = false; const b = $('bootAcct'); if (b) b.hidden = true; } else if (BA.want) baOpen();
 
-// ---- the menu (v346: it was in Settings): the account (who's signed in, Log out, Delete account with a second tap to be sure), or Make an account / Log in
+// ---- the menu (v346: it was in Settings): the account (who's signed in and Log out, which asks first), or Make an account / Log in.
+// (v349) Delete account is at the foot of Settings, so it isn't pressed by mistake
 function acSetPaint() {
   const row = $('acRow'); if (!row) return; const on = !!SB_CFG, nm = acName() || store.name || '';
   const b = (a, t, cls) => '<button class="sbtn' + (cls ? ' ' + cls : '') + '" type="button" data-ac="' + a + '"' + (AC.busy || !on ? ' disabled' : '') + '><span>' + t + '</span></button>';
@@ -24553,7 +24574,7 @@ function acSetPaint() {
   if (!on) { t = 'Accounts come with online play.'; h = b('new', 'Make an account') + b('in', 'Log in'); }
   else if (AC.out && acctReady()) { t = AC.busy ? 'Saving your progress to <b>' + frEsc(hdOf(nm)) + '</b>…' : 'Log out of <b>' + frEsc(hdOf(nm)) + '</b>? Your progress stays with your account, and this phone starts fresh for the next player.'; h = b('outyes', 'Log out') + b('outno', 'Stay'); } // (v312)
   else if (AC.del && acctReady()) { t = 'Delete <b>' + frEsc(hdOf(nm)) + '</b> for good? Your username, friends and account details all go, and it can’t be undone.'; h = b('delyes', 'Delete for good', 'acdel') + b('delno', 'Keep it'); }
-  else if (acctReady()) { t = (AC.note ? frEsc(AC.note) + ' ' : '') + 'Signed in as <b>' + frEsc(hdOf(nm)) + '</b>'; h = b('out', 'Log out') + b('del', 'Delete account', 'acdel'); }
+  else if (acctReady()) { t = (AC.note ? frEsc(AC.note) + ' ' : '') + 'Signed in as <b>' + frEsc(hdOf(nm)) + '</b>'; h = b('out', 'Log out'); } // (v349: Delete account is at the foot of Settings)
   else { t = AC.note ? frEsc(AC.note) : NET_WALLED ? 'Accounts and online play work in the Roll Model app, not in this preview.' : acOut() ? 'You’re signed out. Log in, or make a new account.' : 'Make an account to add friends and play online.'; h = b('new', 'Make an account') + b('in', 'Log in'); }
   $('acNote').innerHTML = t; $('acBtns').innerHTML = h; setFitSoon();
 }
@@ -25023,7 +25044,7 @@ if (store.perfHud) setTimeout(() => perfHudSet(true), 0);
 let LCOV = null;
 function lobbyCovered() { if (!LCOV) LCOV = ['setModal', 'howModal', 'docModal', 'acModal', 'nameModal', 'ttModal'].map(id => document.getElementById(id)).filter(Boolean); for (let i = 0; i < LCOV.length; i++) if (!LCOV[i].hidden) return true; return false; }
 function paintSettings() { try { $('lastErr').textContent = store.lastErr ? 'Last error: ' + store.lastErr : ''; } catch (e) {} for (const b of $('sfxPick').children) b.setAttribute('aria-pressed', String((b.dataset.v === 'off') === !!store.sfxOff)); for (const b of $('musPick').children) b.setAttribute('aria-pressed', String((b.dataset.v === 'off') === !!store.musicOff)); { const v = document.querySelector('#howModal .ver'); $('setVer').textContent = v ? v.textContent : ''; } for (const b of $('orientPick').children) b.setAttribute('aria-pressed', String(b.dataset.o === (store.orient || ''))); for (const b of $('gfxPick').children) b.setAttribute('aria-pressed', String(b.dataset.g === gfxPick)); $('gfxNote').textContent = GFX_NOTE[gfxPick]; $('setDone').textContent = gfxPick === GFX ? 'Done' : 'Restart to apply'; setFitSoon(); }
-function openSettings() { if (state !== 'menu' || lookOpen || shopOpen || lkOn()) return; gfxPick = GFX; paintSettings(); if (window.__turnShow) window.__turnShow(); setModal.hidden = false; setFit(); netProbe(); setTimeout(() => $('gfxPick').querySelector('[aria-pressed="true"]').focus({ preventScroll: true }), 30); }
+function openSettings() { if (state !== 'menu' || lookOpen || shopOpen || lkOn()) return; gfxPick = GFX; paintSettings(); delPaint(); if (window.__turnShow) window.__turnShow(); setModal.hidden = false; setFit(); netProbe(); setTimeout(() => $('gfxPick').querySelector('[aria-pressed="true"]').focus({ preventScroll: true }), 30); }
 function closeSettings() { if (setModal.hidden) return; setModal.hidden = true; $('hamBtn').focus({ preventScroll: true }); }
 function doneSettings() { if (gfxPick === GFX) return closeSettings(); store.gfx = gfxPick; save(); $('setDone').disabled = true; $('setDone').textContent = 'Restarting'; setTimeout(() => location.reload(), 120); }
 $('setBtn').addEventListener('click', uiClick(openSettings));
@@ -25153,8 +25174,8 @@ for (const [id, key] of [['sfxPick', 'sfxOff'], ['musPick', 'musicOff']]) $(id).
 $('setBack').addEventListener('click', uiClick(doneSettings));
 // the pages of words: the terms, the privacy note, the credits (each comes back to Settings)
 const DOCS = {
-  tos: ['Terms of Service', '<p>Updated October 15, 2026. Roll Model is still being made, and these terms will grow with it.</p><h3>Play fair</h3><p>No cheating, hacking, or using bugs to win.</p><h3>Be kind</h3><p>Pick a username that’s friendly to everyone: no swearing, nothing hateful, and no pretending to be someone else. We can change or remove a username that breaks these rules, and close an account that keeps breaking them.</p><h3>Your account</h3><p>You need to be 13 or older to make an account and play online. Keep your password to yourself: you’re responsible for what happens on your account. You can delete it any time from the menu.</p><h3>Changes</h3><p>We may update these terms as the game grows. The date at the top says when they last changed.</p>'],
-  priv: ['Privacy Policy', '<p>Updated October 16, 2026.</p><h3>On this device</h3><p>Your progress (your dabs, items, ranks and settings) is saved on this device. You don’t need an account to play.</p><h3>Your username</h3><p>Your username is kept on our server so no one else can take it. Other players can see it, with your paint colour and rank.</p><h3>Your account</h3><p>If you make an account, we keep your username, your first and last name, your birth year, and when you agreed to these terms. Your name and birth year are private: other players never see them. We ask for your birth year because online play is for players 13 and older.</p><p>While you’re signed in, we also keep a copy of your game progress (your dabs, items, ranks, unlocks and lessons done) with your account, so you can log in on another phone and pick up where you left off. Log out leaves it with your account and starts this device fresh.</p><p>Your password is handled by our sign-in provider, Supabase. It’s stored scrambled (hashed), never in a form anyone can read, not even us.</p><h3>Playing online</h3><p>To run friends and online matches we keep your friend code, your friends, friend requests and blocks, invites to play, your Time trial scores for the friends board, records of your online matches, and when you were last online.</p><h3>Who has it</h3><p>We don’t sell your information. Supabase stores it for us, and online matches run on our game server.</p><h3>Ads</h3><p id="adsP">In the iPhone app you can choose to watch an ad, for example to finish crafting a stroke right away. An ad only plays when you tap to watch one. Ads come from Google AdMob, which gets some information from your device to show an ad and count it: your IP address (which gives a rough location), the kind of device, an identifier for the device that’s only shared within our apps, and how the ad was watched. The game doesn’t ask to track you across other companies’ apps. If you told us you’re under 13, you only get ads that are fit for children, and they aren’t personalised. Where the law asks for it, Google asks for your consent before your first ad.</p><h3>Deleting it</h3><p>Menu › Account › Delete account removes your account and everything above from our server for good. Restart Game in Settings clears this device.</p>'],
+  tos: ['Terms of Service', '<p>Updated October 15, 2026. Roll Model is still being made, and these terms will grow with it.</p><h3>Play fair</h3><p>No cheating, hacking, or using bugs to win.</p><h3>Be kind</h3><p>Pick a username that’s friendly to everyone: no swearing, nothing hateful, and no pretending to be someone else. We can change or remove a username that breaks these rules, and close an account that keeps breaking them.</p><h3>Your account</h3><p>You need to be 13 or older to make an account and play online. Keep your password to yourself: you’re responsible for what happens on your account. You can delete it any time in Settings.</p><h3>Changes</h3><p>We may update these terms as the game grows. The date at the top says when they last changed.</p>'],
+  priv: ['Privacy Policy', '<p>Updated October 16, 2026.</p><h3>On this device</h3><p>Your progress (your dabs, items, ranks and settings) is saved on this device. You don’t need an account to play.</p><h3>Your username</h3><p>Your username is kept on our server so no one else can take it. Other players can see it, with your paint colour and rank.</p><h3>Your account</h3><p>If you make an account, we keep your username, your first and last name, your birth year, and when you agreed to these terms. Your name and birth year are private: other players never see them. We ask for your birth year because online play is for players 13 and older.</p><p>While you’re signed in, we also keep a copy of your game progress (your dabs, items, ranks, unlocks and lessons done) with your account, so you can log in on another phone and pick up where you left off. Log out leaves it with your account and starts this device fresh.</p><p>Your password is handled by our sign-in provider, Supabase. It’s stored scrambled (hashed), never in a form anyone can read, not even us.</p><h3>Playing online</h3><p>To run friends and online matches we keep your friend code, your friends, friend requests and blocks, invites to play, your Time trial scores for the friends board, records of your online matches, and when you were last online.</p><h3>Who has it</h3><p>We don’t sell your information. Supabase stores it for us, and online matches run on our game server.</p><h3>Ads</h3><p id="adsP">In the iPhone app you can choose to watch an ad, for example to finish crafting a stroke right away. An ad only plays when you tap to watch one. Ads come from Google AdMob, which gets some information from your device to show an ad and count it: your IP address (which gives a rough location), the kind of device, an identifier for the device that’s only shared within our apps, and how the ad was watched. The game doesn’t ask to track you across other companies’ apps. If you told us you’re under 13, you only get ads that are fit for children, and they aren’t personalised. Where the law asks for it, Google asks for your consent before your first ad.</p><h3>Deleting it</h3><p>Settings › Delete account removes your account and everything above from our server for good. Restart Game in Settings clears this device.</p>'],
   cred: ['Credits', '<h3>Roll Model</h3><p>Season 1: Spooky SZN</p><h3>Built with</h3><p>three.js (MIT License)</p><h3>Type</h3><p>Bowlby One, Figtree and Barlow Condensed (SIL Open Font License)</p><h3>Sound and voices</h3><p>Made with Ludo.ai</p><h3>3D items</h3><p>Made with Meshy</p><h3>Thanks</h3><p>To everyone who rolls through the paint.</p>']
 };
 function openDoc(k, back) { const d = DOCS[k]; if (!d) return; PB.docFrom = k; PB.docBack = typeof back === 'function' ? back : null; $('docModal').classList.toggle('acup', !!PB.docBack); $('docTitle').textContent = d[0]; $('docBody').innerHTML = d[1]; $('docBody').scrollTop = 0; if (!PB.docBack) setModal.hidden = true; $('docModal').hidden = false; if (k === 'priv') adPrivPaint(); setTimeout(() => $('docClose').focus({ preventScroll: true }), 30); }
@@ -25924,6 +25945,27 @@ let tut2 = null, tut = null, tutPrev = null, tutTip = null, tutWinDue = false, t
     Promise.race([gone, new Promise(r => setTimeout(r, 3000))]).then(() => setTimeout(() => location.reload(), 150));
   });
   $('setDone').addEventListener('click', disarm); $('setBack').addEventListener('click', disarm); }
+// (v349) Delete account: at the foot of Settings, beside Restart Game, while you're signed in. It asks first in a card of its own: Keep it
+// to the fore (and focused), Delete for good under it. Once deleted the card says so; if it can't be, the card says why and stays
+const delModal = $('delModal');
+function delPaint() { const b = $('delAcBtn'); if (b) b.hidden = !acctReady(); }
+function delOpen() {
+  if (!acctReady() || AC.busy) return; const nm = acName() || store.name || '';
+  $('delTitle').textContent = 'Delete account?'; $('delNote').innerHTML = 'Delete <b>' + frEsc(hdOf(nm)) + '</b> for good? Your username, friends and account details all go, and it can\u2019t be undone.';
+  $('delErr').textContent = ''; $('delYes').hidden = false; $('delYes').disabled = $('delNo').disabled = false; $('delYes').textContent = 'Delete for good'; $('delNo').textContent = 'Keep it';
+  delModal.hidden = false; setTimeout(() => $('delNo').focus({ preventScroll: true }), 30);
+}
+function delClose() { if (delModal.hidden || AC.busy) return; delModal.hidden = true; delPaint(); const b = $('delAcBtn'); (b.hidden ? $('setDone') : b).focus({ preventScroll: true }); }
+$('delAcBtn').addEventListener('click', uiClick(delOpen));
+$('delNo').addEventListener('click', uiClick(delClose));
+delModal.addEventListener('click', e => { if (e.target === delModal) delClose(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !delModal.hidden) { e.preventDefault(); e.stopPropagation(); delClose(); } }, true);
+$('delYes').addEventListener('click', async () => {
+  if (AC.busy || !acctReady()) return; AU.init(); AU.ui(); AC.busy = true; $('delYes').disabled = $('delNo').disabled = true; $('delErr').textContent = ''; $('delYes').textContent = 'Deleting\u2026';
+  try { await acDelete(); AC.busy = false; $('delTitle').textContent = 'Account deleted'; $('delNote').textContent = 'Your account is deleted.'; $('delYes').hidden = true; $('delNo').disabled = false; $('delNo').textContent = 'OK'; $('delNo').focus({ preventScroll: true }); }
+  catch (err) { AC.busy = false; $('delYes').disabled = $('delNo').disabled = false; $('delYes').textContent = 'Delete for good'; $('delErr').textContent = acErrText(err); }
+  delPaint();
+});
 const tutPh = () => store.tut.ph, tutSet = ph => { if (store.tut.ph === ph) return; store.tut.ph = ph; save(); };
 const tutMatchDue = () => tutPh() === 'match';
 const TUT_SLOW = 0.35, TUT_M2 = 'sewer'; // (the canvas the lesson's vote lands on: the second match is on Sludge Sewer)
