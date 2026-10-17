@@ -3,6 +3,9 @@ import WebKit
 
 /// iOS web views have no navigator.vibrate, so this adds one: the game's buzzes become Taptic Engine taps.
 /// A pattern is [on, off, on, ...] in milliseconds, like the web API; longer pulses tap harder.
+/// The game can also name a moment instead, and gets the feel iOS itself uses for it: "success" (a win, a purchase, a reward),
+/// "warning", "error" (it didn't work) and "select" (a choice changed, like a switch or a tab). All of them follow the phone's
+/// own System Haptics setting.
 final class HapticsBridge: NSObject, WKScriptMessageHandler {
 
     static let messageName = "haptic"
@@ -27,13 +30,35 @@ final class HapticsBridge: NSObject, WKScriptMessageHandler {
     private let light = UIImpactFeedbackGenerator(style: .light)
     private let medium = UIImpactFeedbackGenerator(style: .medium)
     private let heavy = UIImpactFeedbackGenerator(style: .heavy)
+    private let notice = UINotificationFeedbackGenerator()
+    private let selection = UISelectionFeedbackGenerator()
     private var patternID = 0
 
     func userContentController(_ userContentController: WKUserContentController,
                                didReceive message: WKScriptMessage) {
+        if let moment = message.body as? String {
+            play(moment)
+            return
+        }
         guard let values = message.body as? [Any] else { return }
         let pattern = values.compactMap { ($0 as? NSNumber)?.doubleValue }
         play(pattern)
+    }
+
+    /// A named moment, with the feel iOS uses for it.
+    private func play(_ moment: String) {
+        switch moment {
+        case "success", "warning", "error":
+            patternID += 1 // (it replaces a pattern still playing)
+            let kind: UINotificationFeedbackGenerator.FeedbackType = moment == "success" ? .success : (moment == "warning" ? .warning : .error)
+            notice.prepare()
+            notice.notificationOccurred(kind)
+        case "select":
+            selection.prepare()
+            selection.selectionChanged()
+        default:
+            break
+        }
     }
 
     private func play(_ pattern: [Double]) {

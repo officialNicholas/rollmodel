@@ -1,9 +1,11 @@
+import StoreKit
 import UIKit
 import WebKit
 
 /// Tells the game what it is running on, so it can pick its graphics level on its own: the chip generation, the memory,
 /// Low Power Mode and how warm the phone is running. It keeps the game told when those change, lets the game keep
-/// the screen awake during a match, and opens the share sheet for the game (a friend code).
+/// the screen awake during a match, opens the share sheet for the game (a friend code), and puts up the App Store's
+/// rating prompt when the game asks.
 ///
 /// The game reads this as window.__NATIVE (set before its own script runs) and listens for a "nativechange" event.
 /// Any other shell (an Android one later) only has to provide the same two things.
@@ -14,9 +16,11 @@ final class DeviceBridge: NSObject, WKScriptMessageHandler {
     weak var webView: WKWebView?
     private var observers: [NSObjectProtocol] = []
 
-    /// Runs at document start, before the game's script.
+    /// Runs at document start, before the game's script. (An iPad turns freely and its windows can take any shape, so there the
+    /// game never asks for the device to be turned.)
     static func startScript() -> String {
-        return "window.__NATIVE = \(json(snapshot()));"
+        let pad = UIDevice.current.userInterfaceIdiom == .pad ? " window.__noRotate = true;" : ""
+        return "window.__NATIVE = \(json(snapshot()));" + pad
     }
 
     static func snapshot() -> [String: Any] {
@@ -103,6 +107,22 @@ final class DeviceBridge: NSObject, WKScriptMessageHandler {
         }
         if let text = body["share"] as? String, !text.isEmpty, text.count <= 300 {
             share(text)
+        }
+        if (body["review"] as? Bool) == true {
+            requestReview()
+        }
+    }
+
+    /// The App Store's rating prompt, which the game asks for back in the lobby after a win. iOS decides whether it shows (at
+    /// most three times a year, and never in a TestFlight build).
+    private func requestReview() {
+        Task { @MainActor [weak self] in
+            guard let scene = self?.webView?.window?.windowScene, scene.activationState == .foregroundActive else { return }
+            if #available(iOS 16.0, *) {
+                AppStore.requestReview(in: scene)
+            } else {
+                SKStoreReviewController.requestReview(in: scene)
+            }
         }
     }
 

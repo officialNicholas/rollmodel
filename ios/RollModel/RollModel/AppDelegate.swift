@@ -7,6 +7,8 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         GameAudio.configure()
+        // A shake mid-game is part of playing: it mustn't bring up "Undo Typing" once a name has been typed.
+        application.applicationSupportsShakeToEdit = false
         return true
     }
 
