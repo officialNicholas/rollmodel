@@ -5,10 +5,11 @@
 var CQL = null; // the level under way
 var CQLV = window.CQLV = { chip: 0.00006, pop: 0.006, bell: 0.07, bellN: 3, frontK: 0.86, frontGrace: 5, slamEvery: 7.5, diveEvery: 13, jelEvery: 11, jelSpd: 1.9, waves: [4, 6, 8], valveK: 0.55, stun: 12, bossAhead: 18, bossY: -1.1, atkEvery: 6, waveV: 9, waveR: 11 }; // (tunables, for the browser's console)
 const CQL_SECS = [
-  { id: 'keep', label: 'Sunken Keep', sub: 'Season Conquest · the reveal' },
-  { id: 'run', label: 'Aqueduct Run', sub: 'Season Conquest · the chase', arena: 33, theme: 'conq2' },
+  { id: 'keep', label: 'Sunken Keep', sub: 'Season Conquest · the chase' },
   { id: 'plaza', label: 'Sunken Plaza', sub: 'Season Conquest · its babies', arena: 26.4, theme: 'conq2' },
 ];
+var CQL_GAP = [0, Math.PI * 2], CQL_GAPR = [0, Math.PI * 2], CQL_GND = 80; // (the keep's wall: whole, or with the breach the run leaves by; the ground beyond it)
+const CQL_KEEP_A = 60, CQL_BREACH = 3.6; // (the keep's world is wide enough for the run round the outside of its walls; the breach's half-width)
 // the keep's materials and light on a square floor (no ring, no wall, no pool): the runner and the plaza stand on it
 THEMES.push(Object.assign({}, THEME_BY.conquest, { id: 'conq2', label: 'Sunken Ruins', ring: undefined, dress: null, noSea: false, slime: false, sea: true, seaCol: [0x2A0A48, 0x8E3CF0], base: { hemiI: 1.45, key: 0xC8DCF4, keyI: 0.95 }, lk: { hemi: 0.85, key: 1.5 }, envRT: null, charRT: null })); THEME_BY.conq2 = THEMES[THEMES.length - 1];
 const cqlvM = {}; // shared placeholder materials
@@ -18,10 +19,11 @@ function cqlvMat(k) { if (cqlvM[k]) return cqlvM[k]; const c = { jel: 0xB25CFF, 
 // ---- opening and leaving ----
 function cqlvOpen() {
   if (state !== 'menu' || building || irisBusy) return;
-  CQL = { sec: -1, t: 0, hp: 1, chip: 0, pops: 0, cp: null, cpSec: 0, foe: 0, chipAcc: 0, chipT: 0, jel: [], g: new THREE.Group(), S: {}, hooked: false, deaths: 0, t0: performance.now() };
-  scene.add(CQL.g); conqPreview(); // (the keep and the boss demo's entrance: section 0)
+  CQL = { sec: 0, t: 0, hp: 1, chip: 0, pops: 0, cp: null, cpSec: 0, foe: 0, chipAcc: 0, chipT: 0, jel: [], g: new THREE.Group(), S: {}, hooked: false, deaths: 0, t0: performance.now() };
+  scene.add(CQL.g); const g = 14 * Math.PI / 180; CQL_GAP = [Math.PI + g, Math.PI * 2 - 2 * g]; CQL_GAPR = [Math.PI / 2 + g, Math.PI * 2 - 2 * g]; CQL_GND = 20;
+  conqPreview(); // (the keep, widened, with the run round it; the boss demo's entrance plays in the opening)
 }
-function cqlvEnd() { if (!CQL) return; cqlvClearJel(); scene.remove(CQL.g); CQL.g.traverse(o => { if (o.geometry) o.geometry.dispose(); }); const h = $('cqlHud'); if (h) h.hidden = true; CQL = null; }
+function cqlvEnd() { if (!CQL) return; CQL_GAP = CQL_GAPR = [0, Math.PI * 2]; CQL_GND = 80; cqlvClearJel(); scene.remove(CQL.g); CQL.g.traverse(o => { if (o.geometry) o.geometry.dispose(); }); const h = $('cqlHud'); if (h) h.hidden = true; CQL = null; }
 // the player set down somewhere (a checkpoint, the start of a section): a fresh blob, facing the way on, the camera behind
 function cqlvPlace(x, z, yaw) {
   const y = Math.max(0, surfaceUnder(x, z, 12, true)); resetBlob(P, x, z, yaw); P.y = y; P.st = 'play'; P.paint = 1; P.immuneT = 1.2; P.slamCD = P.slamMax = 1; P.held = null;
@@ -110,22 +112,27 @@ function cqlvProg(path, x, z) { let best = 0, bd = 1e9, acc = 0; for (let i = 0;
 function cqlvPathAt(path, s) { let acc = 0; for (let i = 0; i + 1 < path.length; i++) { const [ax, az] = path[i], [bx, bz] = path[i + 1], L = Math.hypot(bx - ax, bz - az) || 1; if (s <= acc + L || i + 2 === path.length) { const t = clamp((s - acc) / L, 0, 1); return { x: ax + (bx - ax) * t, z: az + (bz - az) * t, dx: (bx - ax) / L, dz: (bz - az) / L }; } acc += L; } return { x: path[0][0], z: path[0][1], dx: 0, dz: 1 }; }
 
 // ---- the sections ----
-// the Aqueduct Run: one path, a stone causeway half a metre above a sea of slime, in an S across the square; off the path is the
+// the keep, extended: the run leaves by the breach in the south wall and goes round the outside of the keep over a sea of slime
+function cqlvKeepExtend() {
+  const L = cqlvRunLayout(); for (const b of L.boxes) BOXES.push(b); buildQGrid(); rebuildSamples(); buildNav();
+  POTS.length = 0; for (const p of L.pots) POTS.push(p); RIVALS.length = 0; POWER_SPOTS.length = 0; COF_SPOTS.length = 0;
+  rebuildStage(); sea.visible = true; seaU.uSlime.value = 0; seaU.uDeep.value.set(0x2A0A48); seaU.uShal.value.set(0x8E3CF0); cqlvPurple();
+  Object.assign(START, { x: 0, z: -15.5, yaw: 0 });
+}
+// the Aqueduct Run: one path, a stone causeway half a metre above a sea of slime, round the keep; off the path is the
 // slime, and the slime is death. Gaps to jump, a basin a leg (at the lane's edge, or on a ledge a hop off it)
-const CQL_RUN_PATH = [[-24, 31], [-24, -26], [0, -26], [0, 26], [24, 26], [24, -30]]; // (toward -z: the way you came through the keep's gate)
+const CQL_RUN_PATH = [[0, -11], [0, -30], [-40, -30], [-40, 30], [40, 30], [40, -30], [57, -30]]; // (out of the south breach, round the keep, east to the gate)
 function cqlvRunLayout() {
-  const H = 0.5, W = 4, boxes = [], leg = (x0, x1, z0, z1) => boxes.push([x0, x1, z0, z1, 0, H]);
-  // leg 1 up the left (gaps at z 2 and 14), the top cross, leg 3 down the middle (gaps at 8 and -6), the bottom cross, leg 5 up the right (gaps at -8, 4, 16)
-  leg(-24 - W, -24 + W, -33, -0.5); leg(-24 - W, -24 + W, 2.5, 12.5); leg(-24 - W, -24 + W, 15.5, 22);
-  leg(-24 - W, 4, 22, 30);
-  leg(-W, W, 11, 22); leg(-W, W, -3.5, 8); leg(-W, W, -22, -6.5);
-  leg(-W, 28, -30, -22);
-  leg(20, 28, -22, -10.5); leg(20, 28, -7.5, 1); leg(20, 28, 4, 13); leg(20, 28, 16, 33);
-  // ledges with a basin, a hop off the lane
-  boxes.push([-33, -29.5, -14, -10, 0, H], [10, 13.5, -18, -14, 0, H]);
-  const pots = [[-31.25, H, -12], [-12, H, 28.8], [11.75, H, -16], [26.8, H, 6]];
-  for (const b of boxes) { const z0 = b[2], z1 = b[3]; b[2] = -z1; b[3] = -z0; } for (const p of pots) p[2] = -p[2]; // (flipped: the run leads away from the keep)
-  return { boxes, ramps: [], holes: [[-32.9, 32.9, -32.9, 32.9, 0, 0]], pots, slime: [], start: { x: -24, z: 29, yaw: Math.PI } };
+  const H = 0.3, W = 4, boxes = [], leg = (x0, x1, z0, z1) => boxes.push([x0, x1, z0, z1, 0, H]);
+  leg(-W, W, -34, -16.5);                                   // out through the breach
+  leg(-44, 4, -34, -26);                                    // west along the south
+  leg(-44, -36, -34, -10); leg(-44, -36, -7, 8); leg(-44, -36, 11, 34);   // north up the west side (gaps at -8.5 and 9.5)
+  leg(-44, -20, 26, 34); leg(-17, 12, 26, 34); leg(15, 44, 26, 34);       // east along the north (gaps at -18.5 and 13.5)
+  leg(36, 44, 12, 26); leg(36, 44, -12, 9); leg(36, 44, -34, -15);        // south down the east side (gaps at 10.5 and -13.5)
+  leg(36, 60, -34, -26);                                    // east to the gate
+  boxes.push([-49, -45.5, -20, -16, 0, H], [45.5, 49, 2, 6, 0, H]);        // ledges with a basin, a hop off the lane
+  const pots = [[-47.25, H, -18], [-10, H, 32.8], [47.25, H, 4], [50, H, -32.8]];
+  return { boxes, pots, start: { x: 0, z: -15.5, yaw: 0 } };
 }
 // the Sunken Plaza: a square court, blocks to hop, four valve pads up on plinths at the corners (only the turret's lobs reach them)
 function cqlvPlazaLayout() {
@@ -134,16 +141,18 @@ function cqlvPlazaLayout() {
   for (const [x, z, w] of [[-8, 0, 1.6], [8, 0, 1.6], [0, -9, 1.6], [0, 9, 1.6], [-13, 7, 1.1], [13, -7, 1.1]]) boxes.push([x - w, x + w, z - w, z + w, 0, 1.0]);
   return { boxes, ramps: [], holes: [], pots, slime: [], start: { x: 0, z: 22, yaw: Math.PI } };
 }
-Object.assign(CQL_SECS[1], { layout: cqlvRunLayout }); Object.assign(CQL_SECS[2], { layout: cqlvPlazaLayout });
+Object.assign(CQL_SECS[1], { layout: cqlvPlazaLayout });
 
+// the run's pieces (the buoys at the corners, facing the way on; the gate; the collapse's wall), set up as the opening ends
+function cqlvRunSetup() {
+  const X = CQL.S;
+  X.path = CQL_RUN_PATH; X.len = cqlvProg(X.path, 57, -30); X.front = -10; X.grace = CQLV.frontGrace; X.atkT = 5; X.atkN = 0; X.diveT = 9; X.jelT = 7; X.boss = { y: 3, low: 0 }; X.waves = []; X.run = true;
+  for (const [x, z, yaw] of [[-40, -30, 0], [-40, 30, Math.PI / 2], [40, 30, Math.PI], [40, -30, Math.PI / 2]]) cqlvBuoy(x, z, yaw, cqlvProg(X.path, x, z)); cqlvGate(57, -30, Math.PI / 2, 1);
+  const fr = new THREE.Mesh(new THREE.BoxGeometry(12, 9, 1.2), cqlvMat('front')); fr.position.y = 3; CQL.g.add(fr); X.frontM = fr; CQL.cp = { x: 0, z: -12, yaw: Math.PI, prog: 0 };
+}
 function cqlvSetup(S) {
   const X = CQL.S;
-  if (S.id === 'run') {
-    X.path = CQL_RUN_PATH; X.len = cqlvProg(X.path, 24, -30); X.front = -12; X.grace = CQLV.frontGrace; X.atkT = 4; X.atkN = 0; X.diveT = 9; X.jelT = 6; X.boss = { y: 3, low: 0 }; X.waves = [];
-    cqlvBuoy(-24, -27, Math.PI / 2, cqlvProg(X.path, -24, -27)); cqlvBuoy(0, 27, Math.PI / 2, cqlvProg(X.path, 0, 27)); cqlvGate(24, -30, Math.PI, 2); // (the buoys face the way on: along the crosses, toward +x)
-    const fr = new THREE.Mesh(new THREE.BoxGeometry(12, 9, 1.2), cqlvMat('front')); fr.position.y = 3; CQL.g.add(fr); X.frontM = fr;
-    cqlvBossAt(-24, -1.1, 12, 50); banner('After it!', 'Keep ahead of the collapse', true);
-  } else if (S.id === 'plaza') {
+  if (S.id === 'plaza') {
     X.wave = 0; X.waveT = 2.5; X.pads = BOXES.filter(b => b[7] === 'plinth').map(b => ({ b, k: 0, on: false, m: null })); X.boss = { y: 1.5 };
     for (const p of X.pads) { const m = new THREE.Mesh(new THREE.CylinderGeometry(1.35, 1.35, 0.1, 24), cqlvMat('pad')); m.position.set((p.b[0] + p.b[1]) / 2, p.b[5] + 0.05, (p.b[2] + p.b[3]) / 2); CQL.g.add(m); p.m = m; }
     cqlvBossAt(0, -0.4, 3, 50); X.phase = 'waves'; X.turret = false;
@@ -161,8 +170,10 @@ function cqlvRunTick(dt) {
   for (const c of X.cps || []) if (!c.on && Math.hypot(P.x - c.x, P.z - c.z) < 4.5) { c.on = true; c.g.material.emissive.set(TEAMS[0].wet); CQL.cp = { x: c.x, z: c.z, yaw: c.yaw, prog: c.prog }; cqlvCheckpoint(); }
   // the boss: ahead and above the course; every so often a slam on the lane ahead (a ring, then the shock), a dive to slime the lane,
   // a pair of jellets dropped in your way
-  const ahead = cqlvPathAt(X.path, Math.min(X.len - 2, pr + CQLV.bossAhead)); X.boss.low = Math.max(0, X.boss.low - dt);
-  cqlvBossAt(ahead.x, X.boss.low > 0 ? -3.2 : CQLV.bossY, ahead.z, X.boss.low > 0 ? 3 : 1.6);
+  // ahead along the course; round a corner it keeps in front of you instead (over the slime), so it stays in the picture
+  const ahead = cqlvPathAt(X.path, Math.min(X.len - 2, pr + CQLV.bossAhead)), fx = Math.sin(P.yaw), fz = Math.cos(P.yaw), ax = ahead.x - P.x, az = ahead.z - P.z, al = Math.hypot(ax, az) || 1;
+  const inFront = (ax * fx + az * fz) / al > 0.5, bx = inFront ? ahead.x : P.x + fx * CQLV.bossAhead * 0.8, bz = inFront ? ahead.z : P.z + fz * CQLV.bossAhead * 0.8;
+  X.boss.low = Math.max(0, X.boss.low - dt); cqlvBossAt(bx, X.boss.low > 0 ? -3.2 : CQLV.bossY, bz, X.boss.low > 0 ? 3 : 1.6);
   if (b && b.isReady && !b.busy && state === 'play') {
     if ((X.atkT -= dt) <= 0) { X.atkT = CQLV.atkEvery; const punch = X.atkN++ % 2 === 0, at = cqlvPathAt(X.path, Math.min(X.len - 4, pr + (punch ? 11 : 8)));
       if (punch) { const side = Math.random() < 0.5 ? 1 : -1, tx = at.x - at.dz * side * 2.1, tz = at.z + at.dx * side * 2.1; cqxWarn(tx, tz, 1.2); b.play('punch', { hand: 'auto', x: tx, z: tz }); X.pend = { t: 1.2, x: tx, z: tz, punch: true }; }
@@ -185,7 +196,8 @@ function cqlvBreak(cx, cz, h) {
   for (const b of BOXES) { if (b[4] !== 0 || b[1] <= B[0] || b[0] >= B[1] || b[3] <= B[2] || b[2] >= B[3]) { out.push(b); continue; }
     const add = (x0, x1, z0, z1) => { if (x1 - x0 > 0.3 && z1 - z0 > 0.3) out.push([x0, x1, z0, z1, b[4], b[5]]); };
     add(b[0], Math.max(b[0], B[0]), b[2], b[3]); add(Math.min(b[1], B[1]), b[1], b[2], b[3]); const mx0 = Math.max(b[0], B[0]), mx1 = Math.min(b[1], B[1]); add(mx0, mx1, b[2], Math.max(b[2], B[2])); add(mx0, mx1, Math.min(b[3], B[3]), b[3]); }
-  BOXES.length = 0; BOXES.push(...out); buildQGrid(); rebuildStage();
+  BOXES.length = 0; BOXES.push(...out); buildQGrid(); // (the stone stays drawn: a slab of slime over the gap stands for it, until the real piece falls)
+  const m = new THREE.Mesh(new THREE.BoxGeometry(2 * h + 0.3, 0.12, 2 * h + 0.3), new THREE.MeshStandardMaterial({ color: 0x7A2FD8, emissive: 0x30104A, roughness: 0.3 })); m.position.set(cx, 0.36, cz); CQL.g.add(m);
   shockwave(cx, 0.5, cz, 3.2, 0xFFFFFF); for (let i = 0; i < 26; i++) { const a = Math.random() * 6.283, r = Math.random() * h; spawnPart(cx + Math.cos(a) * r, 0.6, cz + Math.sin(a) * r, Math.cos(a) * 2.5, 2 + Math.random() * 3, Math.sin(a) * 2.5, 0.9, cqlvMat('front'), 0.3 + Math.random() * 0.5); }
   popText('It broke the stone!');
 }
@@ -222,18 +234,48 @@ function cqlvPlazaTick(dt) {
 function cqlvRectCells(b) { const out = [], i0 = clamp(Math.floor((b[0] + ARENA) / CELL), 0, GN - 1), i1 = clamp(Math.floor((b[1] + ARENA) / CELL), 0, GN - 1), j0 = clamp(Math.floor((b[2] + ARENA) / CELL), 0, GN - 1), j1 = clamp(Math.floor((b[3] + ARENA) / CELL), 0, GN - 1); for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) for (const k of grid[j * GN + i]) out.push(k); return out; }
 function cqlvUnpin(done) { const X = CQL.S, b = CQB.boss; X.pinned = false; if (done) { X.phase = 'won'; X.wonT = 0; b.play('hurt', { x: P.x, z: P.z }); banner('Enough!', 'It tears loose', true); } else { X.phase = 'free'; X.freeT = 4; b.play('taunt', {}); } }
 
+// ---- the opening: after the reveal's sweep (no countdown, no basin): you crawl in and look round, the floor shakes, the boss comes
+// up out of the pool (the demo's entrance, with its camera), you start back, it shoots away over your head and the wall behind you,
+// you turn round (the camera with you), and the run is on ----
+function cqlvCutStart() {
+  const X = CQL.S, Q = CQB; state = 'play'; hud.classList.remove('off'); if (P.pot) { P.pot.occ = null; P.pot = null; }
+  P.st = 'play'; P.x = 0; P.z = -16; P.y = 0; P.yaw = 0; P.air = false; P.vy = 0; P.spd = 0; P.immuneT = 99; camYaw = 0; camYawV = 0; camSnap = true; drop.visible = true; shadowBlob.visible = true;
+  X.cut = { ph: 'crawl', t: 0, paintT: 0 }; if (Q) { Q.follow = false; Q.lock = false; }
+}
+function cqlvCutPh(ph) { const X = CQL.S; if (!X.cut) return; X.cut.ph = ph; X.cut.t = 0; }
+function cqlvCutTick(rdt) {
+  const X = CQL.S, c = X.cut, Q = CQB, b = Q && Q.boss; hold = Math.max(hold, 0.25); if (Q) Q.paused = true; c.t += rdt; const t = c.t, ease = u => { u = clamp(u, 0, 1); return u * u * (3 - 2 * u); };
+  P.immuneT = 99; P.spd = 0; P.turn = 0;
+  if (c.ph === 'crawl') { // in from the edge, slowly, looking about
+    P.z = -16 + 4.5 * ease(t / 2.4); P.yaw = 0.45 * Math.sin(t * 2.2) * (1 - ease((t - 1.6) / 0.8)); P.squash = 0.15 + 0.1 * Math.sin(t * 9);
+    if ((c.paintT -= rdt) <= 0) { c.paintT = 0.09; addSplat(P.x, 0, P.z, P.yaw, 0.42, dryClock, true, true, 0); }
+    if (t >= 2.6) { cqlvCutPh('shake'); cqbSfx('b_churn') || AU.rumble(); buzz([20, 30, 40]); }
+  } else if (c.ph === 'shake') { // the floor trembles, the pool churns
+    shake = Math.max(shake, 0.4 * (1 - t / 1.2)); if (Q) Q.rumble = Math.max(Q.rumble, 0.5); if (Math.random() < rdt * 24) { const a = Math.random() * 6.283, r = Math.random() * 3.6; spawnPart(Math.cos(a) * r, 0.1, Math.sin(a) * r, 0, 2.5 + Math.random() * 2, 0, 0.9, cqlvSparkMat(), 0.16 + Math.random() * 0.12, 0); }
+    P.squash = 0.2 + 0.1 * Math.sin(t * 30);
+    if (t >= 1.1) { if (b && b.isReady) { cqlvCutPh('entrance'); Q.played = true; cqbEntrance('first'); } else if (t > 6) cqlvCutPh('react'); }
+  } else if (c.ph === 'entrance') { if (b && !b.busy && t > 2) cqlvCutPh('react'); } // (the demo's entrance and its camera; emergeDone brings the reaction)
+  else if (c.ph === 'react') { // a start back, eyes wide
+    if (t < 0.02) { emote(P, 'ouch', 1.3); popText('!'); AU.vox('waah', 0.6); buzz(20); }
+    P.y = Math.max(0, 0.9 * Math.sin(Math.PI * Math.min(1, t / 0.5))); P.z = -11.5 - 1.2 * ease(t / 0.5); P.squash = t < 0.5 ? 0 : 0.5 * (1 - ease((t - 0.5) / 0.4));
+    if (t >= 1.1) { cqlvCutPh('flee'); if (b) { b.face('smug', 2); cqbSfx('b_launch', { duck: [0.6, 1.2] }) || AU.whoosh(); } shake = Math.max(shake, 0.3); }
+  } else if (c.ph === 'flee') { // it shoots up, over your head and the wall behind you
+    const k = ease(t / 1.6); if (b) cqlvBossAt(0, 1 + k * 11, -k * 40, 9); P.yaw = 0; P.y = 0;
+    if (t >= 1.7) { cqlvCutPh('turn'); emote(P, 'glee', 1.2); }
+  } else if (c.ph === 'turn') { // round to chase it: the camera comes round with you
+    P.yaw = Math.PI * ease(t / 1.1); P.y = 0;
+    if (t >= 1.3) { X.cut = null; hold = 0; if (Q) Q.paused = false; P.immuneT = 1; P.yaw = Math.PI; cqlvRunSetup(); banner('After it!', 'Keep ahead of the collapse', true); AU.go(); }
+  }
+}
+
 // ---- the frame ----
 function cqlvTick(dt, rdt) {
   const L = CQL; if (!L || !CQP || L.loading) return; L.dt = dt; L.t += dt; const Q = CQB, b = Q && Q.boss;
-  if (!L.hooked && b) { L.hooked = true; b.on('emergeDone', () => { if (CQL && CQL.sec <= 0) { CQL.S.fleeT = 1.6; } }); }
-  // the keep: once the entrance is over, the boss taunts and flees over the wall; the gate lights where it went
-  if (L.sec <= 0) { const X = L.S; if (X.fleeT != null && state === 'play') { X.fleeT -= dt; if (!X.taunted && b) { X.taunted = true; b.play('taunt', {}); }
-      if (X.fleeT <= 0) { X.fly = (X.fly || 0) + dt; const k = Math.min(1, X.fly / 2.6); if (b) { Q.follow = false; Q.lock = false; cqlvBossAt(0, 2 + k * 14, -k * 26, 6); }
-        if (!X.gate && X.fly > 0.4) { cqlvGate(0, -14.5, Math.PI, 1); banner('After it!', 'Roll into the light', true); emote(P, 'glee', 1.2); }
-        if (X.fly > 3 && b && b.group.visible) b.group.visible = false; } } }
-  else if (state === 'play') { const S = CQL_SECS[L.sec]; if (S.id === 'run') cqlvRunTick(dt); else if (S.id === 'plaza') cqlvPlazaTick(dt); }
+  if (!L.hooked && b) { L.hooked = true; b.on('emergeDone', () => { if (CQL && CQL.S.cut && CQL.S.cut.ph === 'entrance') cqlvCutPh('react'); }); }
+  if (L.sec === 0) { const X = L.S; if (X.cut) cqlvCutTick(rdt); else if (X.run && state === 'play') cqlvRunTick(dt); }
+  else if (state === 'play') cqlvPlazaTick(dt);
   if (state === 'play') cqlvJelTick(dt);
-  if (P.held && !(L.S.turret) && L.sec !== 2) P.held = null; if (P.held2) P.held2 = null; // (no pick-ups in the level: the plaza hands you the turret itself)
+  if (P.held && !(L.S.turret) && L.sec !== 1) P.held = null; if (P.held2) P.held2 = null; // (no pick-ups in the level: the plaza hands you the turret itself)
   // the gate
   const G = L.S.gate; if (G) { G.g.rotation.y += rdt * 0.8; G.g.scale.setScalar(1 + 0.05 * Math.sin(clock * 4)); if (P.st === 'play' && state === 'play' && Math.hypot(P.x - G.x, P.z - G.z) < G.r + PR && !irisBusy) { L.S.gate = null; CQL.g.remove(G.g); if (G.next === 'end') cqlvFinish(); else cqlvEnter(G.next); } }
   // chip damage: the boss's slime you've covered this frame
@@ -251,6 +293,6 @@ function cqlvLost(reason) { const Q = CQB; if (!Q || reason === 'boom') return; 
 // the milestone's end: a card with the run's numbers, then the menu
 function cqlvFinish() { const L = CQL, t = ((performance.now() - L.t0) / 1000) | 0; banner('Section cleared!', Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0') + ' · chip ' + (L.chip * 100).toFixed(1) + '% · ' + L.pops + ' pops · ' + L.deaths + ' falls', true); cqiWin(); AU.sting('win'); setTimeout(() => { if (CQL) toMenu(); }, 4200); }
 // the boss panel's own row for the level: jump to a section
-function cqlvPanel() { const el = $('cqbPanel'); if (!el || el.querySelector('.cqlrow')) return; const row = document.createElement('div'); row.className = 'cqbs cqlrow'; row.innerHTML = '<button type="button" data-sec="0">Keep</button><button type="button" data-sec="1">Aqueduct</button><button type="button" data-sec="2">Plaza</button>'; el.appendChild(row);
+function cqlvPanel() { const el = $('cqbPanel'); if (!el || el.querySelector('.cqlrow')) return; const row = document.createElement('div'); row.className = 'cqbs cqlrow'; row.innerHTML = '<button type="button" data-sec="0">Keep</button><button type="button" data-sec="1">Plaza</button>'; el.appendChild(row);
   row.addEventListener('click', e => { const t = e.target.closest('button'); if (!t || !CQL) return; e.stopPropagation(); const i = +t.dataset.sec; if (i === 0) { toMenu(); setTimeout(() => cqlvOpen(), 1400); } else cqlvEnter(i); }); }
 window.cqlvOpen = cqlvOpen; window.cqlvEnter = cqlvEnter;
