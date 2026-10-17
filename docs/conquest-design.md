@@ -10,14 +10,15 @@ This draft follows the user's notes on draft 1:
 
 ## The core loops
 
-### 1. Chip damage: paint its shadow
-The boss swims over the course all the time, and its shadow sweeps the ground below it.
-- **Your paint inside its shadow hurts it.** Each painted cell under the shadow takes a sliver off its health. The jelly flinches, and a faint sizzle and sparks rise up to it.
-- New players chip it now and then, by accident.
-- Good players paint ahead of where the shadow is heading.
-- Experts read its swim path and lay paint where it is going, often with strokes: a roller stripe, a boomerang loop, or a rocket splash on its shadow.
-- This keeps going in every section, runners included, so painting always does something to the boss.
-- It also gives the boss a reason to keep moving and diving: it is getting away from your paint.
+### 1. Chip damage: cover its slime
+The boss is a painter too. As it swims low its tentacles drag over the ground and leave **purple slime trails**, and its slime is what it lives on: it feeds on it, and the slime keeps it strong.
+- **Covering its slime with your paint drains it.** Every purple cell you roll over or splat turns to your colour and takes a sliver off its health. The jelly flinches, and a thread of its purple is pulled up out of the ground and into you.
+- This is the regular game's rule, your colour against a rival's, with the boss as the rival. Nothing new to learn.
+- New players cover some slime just by running the course.
+- Good players go out of their way to cover the trails and the jellets' purple.
+- Experts cover a whole trail in one stroke: a roller stripe along it, a boomerang loop, a rocket splash on a fresh puddle, or a whirlwind straight down it.
+- The boss keeps laying slime in every section, runners included, so it always leaves you something to take back, and it dives and comes up elsewhere to lay more.
+- Its slime is also a hazard: like a rival's paint it slows you, so uncovered slime makes the runners harder.
 
 ### 2. Minions are its babies
 - **Jellets:** the boss sheds small simplified copies of itself. They float low, paint the ground purple and sting you on touch.
@@ -48,7 +49,7 @@ The boss swims over the course all the time, and its shadow sweeps the ground be
 ## Camera, world and checkpoints
 
 - **The camera:** always the normal chase camera behind you, with only the zoom changing (pulled back on runners, pushed in for close moments).
-- **The boss in view:** it swims in front of you, above you or to the side, and dives under the course and out of shot. Its shadow, bubbles and a rumble warn you before it comes back up.
+- **The boss in view:** it swims in front of you, above you or to the side, and dives under the course and out of shot. Bubbles, a rumble and fresh slime seeping up through the stones warn you before it comes back up.
 - **One open place:** a single sunken city on the edge of a trench, outdoors the whole way. From the start you can already see the Reef Crown, a ruined tower on the horizon, and it gets bigger as you go.
   - The world loads in pieces, but the next piece is always visible before you reach it, so you never cut to a loading screen.
   - The ground keeps rising and the light gets brighter as you near the top.
@@ -80,7 +81,7 @@ The boss swims over the course all the time, and its shadow sweeps the ground be
 ### 1. The Aqueduct Run (about 75 s)
 - **The course:** a ruined aqueduct, the arches falling in **behind** you. That keeps your heart racing without needing any special trick.
 - **The boss** swims off to one side and keeps attacking:
-  - It slams the arch ahead, and the shadow of its fist marks the spot 1 second before.
+  - It slams the arch ahead, and a purple glow on the stone marks the spot 1 second before.
   - It drops jellets in your lane.
   - It dives under the arches and comes up through the far side.
 - **Basins** sit on little ledges. Some are on the line you are running, and some are off it, so you have to fling or dash to reach them.
@@ -121,7 +122,7 @@ An outdoor ruined amphitheatre, with stepped rings around a round stage. You can
 ### 5. The Reef Crown (about 2 min, the rest)
 The ruined tower's plateau on the edge of the trench, open water all round.
 - **Phase 1:** every move is back. **Pieces of the plateau break away into the trench** as it goes, and the basins at the edge are at risk. You have to refill and fight at the same time.
-- **Phase 2:** below 30% it **splits into many copies of itself**. Only the real one casts a **shadow**. Paint its shadow to chip it and find it, then pound or fling into it.
+- **Phase 2:** below 30% it **splits into many copies of itself**. Only the real one **leaves slime** as it swims; the copies are dry. Follow the fresh trail, cover it to chip it, then pound or fling into the real one.
   - Each hit on the real one breaks up the copies for a few seconds.
   - Hitting a copy only pops it, and pops send a spark of chip damage back to the real one.
 - **The finish:** a slow-motion fling into the last of its health.
@@ -140,7 +141,7 @@ You split into three for 6 seconds: yourself and two jelly-tinted copies at your
 
 - **New players:** they learn the level through checkpoints, the safe routes and the spare lives.
 - **Normal players:** they take the safe line with a few shortcuts. That is about 8 to 9 minutes.
-- **Experts:** pound-drops, fling skips and stroke skips, painting where the shadow is going, and chaining pops all save time. That is about 5 to 6 minutes.
+- **Experts:** pound-drops, fling skips and stroke skips, covering trails in one stroke, and chaining pops all save time. That is about 5 to 6 minutes.
 - **Results screen:** the time, the chip %, lives lost and the shortcuts found, with a medal for each.
 - **A leaderboard for the fastest clear** could reuse the weekly Time Trial board.
 
@@ -160,14 +161,14 @@ You split into three for 6 seconds: yourself and two jelly-tinted copies at your
 
 | Module | What it adds |
 |---|---|
-| cq02 | The level frame: the open world loading in pieces, the sections, the checkpoints, the lives, and the chip damage from shadow paint. |
+| cq02 | The level frame: the open world loading in pieces, the sections, the checkpoints, the lives, and the chip damage from covering its slime. |
 | cq03 | The opening chase and the Aqueduct Run: the collapse behind you, the basins on runners, and pounding through cracked slabs. |
 | cq04 | Jellets: the simplified boss mesh, popping, and the spark back to the boss. |
 | cq05 | The Sunken Plaza: the waves, and the turret valves and pillars. |
 | cq06 | Coral Canyon: two levels, the boomerang gate, the giant barricade and the whirlwind span. |
 | cq07 | The Amphitheatre: traps under the slam, the rocket dive. |
-| cq08 | The Reef Crown: the breaking plateau and the shadow split. |
+| cq08 | The Reef Crown: the breaking plateau and the split, with the real one giving itself away by its trail. |
 | cq09 | Brood: the stroke, unlocked on clearing. |
 | cq10 | The results, the medals and the tuning. |
 
-**First playable milestone:** the opening, the Aqueduct Run and the Sunken Plaza, with shadow-paint chip damage working. That is about 3.5 minutes and is enough to judge the feel.
+**First playable milestone:** the opening, the Aqueduct Run and the Sunken Plaza, with the slime trails and the chip damage working. That is about 3.5 minutes and is enough to judge the feel.
