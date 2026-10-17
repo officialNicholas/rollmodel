@@ -240,3 +240,18 @@ test('the file store: a change is a short line in the journal, the snapshot is r
   await s.close(); const snap = JSON.parse(readFileSync(file, 'utf8')); assert.equal(snap.players.length, 60);
   assert.ok(snap.players.some(p => p.name === 'Last'));
 });
+
+test('the SDK starts its clock again on another machine (or a restarted one): each counts time from its own start', () => {
+  let now = 1000; const net = new RMNet({ url: 'ws://x', now: () => now, autoReconnect: false });
+  try {
+  for (let i = 0; i < 10; i++) { now += 50; net._clock.add(now - 20, 500000 + now - 10, now); } // (machine m1: its clock 500 s ahead of ours)
+  net._onJson({ t: 'welcome', id: 'p', token: 't', name: 'n', shard: 'm1', serverTime: 500000 + now });
+  assert.ok(Math.abs(net.serverNow() - (500000 + now)) < 30);
+  net._onJson({ t: 'welcome', id: 'p', token: 't', name: 'n', shard: 'm2', serverTime: 20000 + now }); // moved to m2, which started later
+  assert.ok(Math.abs(net.serverNow() - (20000 + now)) < 5, "on m2's clock at once (" + (net.serverNow() - (20000 + now)) + ')');
+  assert.equal(net._clock.n, 0, 'old samples gone');
+  for (let i = 0; i < 6; i++) { now += 50; net._clock.add(now - 20, 20000 + now - 10, now); } // (pings on m2)
+  net._onJson({ t: 'welcome', id: 'p', token: 't', name: 'n', shard: 'm2', serverTime: 90000 + now }); // the same machine, restarted
+  assert.ok(Math.abs(net.serverNow() - (90000 + now)) < 5);
+  } finally { net.close(); }
+});

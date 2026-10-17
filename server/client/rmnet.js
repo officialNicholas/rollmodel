@@ -295,6 +295,9 @@ const RMNetSDK = (() => {
       this.maxExtrapolate = opts.maxExtrapolate === undefined ? 250 : opts.maxExtrapolate;
       this.deadMs = opts.deadMs === undefined ? 3000 : opts.deadMs; this._lastRx = 0;
       this.smoothMs = opts.smoothMs === undefined ? 90 : opts.smoothMs; this._smooth = new Map();
+      // a server spread over several machines: the one this connection is on (from the welcome), and the one the next
+      // connection asks for (?s=): the same machine to pick up a match or a room, the room's own machine to join one
+      this._shard = null; this._target = null;
       this.id = null; this.ratings = null; this.connected = false; this.match = null; this.slot = -1; this.room = null;
       this.ws = null; this._h = new Map(); this._closing = false; this._attempt = 0; this._retryTimer = null;
       this._clock = new ClockSync(); this._interp = new InterpDelay(opts.minInterp || 60, opts.maxInterp || 200);
@@ -312,7 +315,7 @@ const RMNetSDK = (() => {
     // ---- connection ----
     // resolves with the welcome message; rejects if the server refuses (for example a protocol version mismatch)
     connect() {
-      this._closing = false; clearTimeout(this._retryTimer);
+      this._closing = false; clearTimeout(this._retryTimer); this._target = this.match || this.room ? this._shard : null;
       if (this.ws) { const old = this.ws; this.ws = null; try { old.close(1000, 'reconnect'); } catch (e) { /* already closed */ } }
       return new Promise((resolve, reject) => {
         const offW = this.on('welcome', w => { offW(); offE(); resolve(w); });
@@ -326,7 +329,9 @@ const RMNetSDK = (() => {
     }
     _open() {
       let ws;
-      try { ws = new this.WS(this.url); } catch (e) { this._scheduleReconnect(); return; }
+      let url = this.url;
+      if (this._target) { url = url.replace(/([?&])s=[^&]*(&|$)/, (m, a, b) => (b ? a : '')); url += (url.includes('?') ? '&' : '?') + 's=' + encodeURIComponent(this._target); }
+      try { ws = new this.WS(url); } catch (e) { this._scheduleReconnect(); return; }
       this.ws = ws; ws.binaryType = 'arraybuffer';
       ws.onopen = () => {
         if (this.ws !== ws) return;
@@ -356,6 +361,8 @@ const RMNetSDK = (() => {
     _scheduleReconnect() {
       if (this._closing || !this.autoReconnect) return;
       const base = Math.min(8000, 400 * Math.pow(2, this._attempt)), delay = Math.round(base * (0.75 + Math.random() * 0.5));
+      // (back to the machine running our match or room; after a few failures it may be gone, so any machine)
+      this._target = (this.match || this.room) && this._attempt < 4 ? this._shard : null;
       this._attempt++; this._emit('reconnecting', { attempt: this._attempt, delay });
       clearTimeout(this._retryTimer); this._retryTimer = setTimeout(() => this._open(), delay);
     }
@@ -395,7 +402,22 @@ const RMNetSDK = (() => {
     queue(mode) { return this._request({ t: 'queue', mode }); }
     cancelQueue() { return this._request({ t: 'cancelQueue' }); }
     createRoom(mode) { return this._request({ t: 'createRoom', mode }).then(r => r.code); }
-    joinRoom(code) { return this._request({ t: 'joinRoom', code: String(code || '').toUpperCase() }); }
+    // (a room on another machine: the connection moves there, quietly, and joins it)
+    joinRoom(code) {
+      const msg = () => ({ t: 'joinRoom', code: String(code || '').toUpperCase() });
+      return this._request(msg()).catch(e => { if (e.code !== 'room_elsewhere' || !e.shard) throw e; return this._switch(e.shard).then(() => this._request(msg())); });
+    }
+    // to another machine of the same server, without telling the game the connection dropped: it hears the new welcome
+    _switch(shard) {
+      return new Promise((resolve, reject) => {
+        const old = this.ws; this.ws = null; this.connected = false; this._stopPings();
+        if (old) { old.onopen = old.onmessage = old.onclose = old.onerror = null; try { old.close(1000, 'switch'); } catch (e) { /* closed */ } }
+        const done = f => { clearTimeout(to); offW(); offF(); f(); };
+        const to = setTimeout(() => done(() => reject(Object.assign(new Error('could not reach the room'), { code: 'timeout' }))), 10000);
+        const offW = this.on('welcome', () => done(resolve)), offF = this.on('fatal', e => done(() => reject(Object.assign(new Error(e.message || e.code), { code: e.code }))));
+        this._target = shard; this._open();
+      });
+    }
     leaveRoom() { return this._request({ t: 'leaveRoom' }); }
     ready(on = true) { return this._sendJ({ t: 'ready', ready: !!on }); }
     rematch(vote = true) { return this._sendJ({ t: 'rematch', vote: !!vote }); }
@@ -518,19 +540,21 @@ const RMNetSDK = (() => {
     _onJson(m) {
       if (m.r !== undefined && this._waits.has(m.r)) {
         const w = this._waits.get(m.r); this._waits.delete(m.r);
-        if (m.t === 'error') w.reject(Object.assign(new Error(m.message || m.code), { code: m.code })); else w.resolve(m);
+        if (m.t === 'error') w.reject(Object.assign(new Error(m.message || m.code), { code: m.code, shard: m.shard })); else w.resolve(m);
       }
       // A message carrying cid places our blob with authority (start, resume, correction, respawn, flat). From now on
       // our states carry that id, so the server can tell them from the ones we sent before we applied it.
       if (m.cid !== undefined && (m.slot === undefined || m.slot === this.slot)) this._corr = m.cid & 0xff;
       switch (m.t) {
         case 'welcome':
-          this.id = m.id; this.token = m.token; this.name = m.name; this.ratings = m.ratings || null; this._noRetry = false;
+          // another machine (or the same one restarted) counts time from its own start: the clock starts again from its pings
+          if ((m.shard || null) !== this._shard || (fin(m.serverTime) && this._clock.n && Math.abs(m.serverTime - this.serverNow()) > 1000)) { this._clock = new ClockSync(); if (fin(m.serverTime)) this._clock.offset = m.serverTime - this._now(); this._startPings(); }
+          this.id = m.id; this.token = m.token; this.name = m.name; this.ratings = m.ratings || null; this._noRetry = false; this._shard = m.shard || null;
           this._emit('welcome', m); if (m.token) this._emit('token', { token: m.token });
           break;
         case 'error':
           if (m.fatal) { this._noRetry = true; this._emit('fatal', m); }
-          this._emit('error', m);
+          if (m.code !== 'room_elsewhere') this._emit('error', m); // (that one the SDK deals with itself: joinRoom)
           break;
         case 'kicked': this._noRetry = true; this._emit('kicked', m); this._emit('fatal', { code: 'kicked', message: m.reason }); break;
         case 'room': this.room = m; this._emit('room', m); break;

@@ -143,6 +143,10 @@ Settings are environment variables:
 | `SNAPSHOT_HZ` | 30 | Snapshots a second (20 saves about a third of the server's work and bandwidth) |
 | `SHUTDOWN_GRACE_MS` | 3000 | How long a shutdown waits for connections to close |
 | `MATCH_WORKERS` | 0 | Matches on worker threads: `auto` is one per core but the main thread's (which keeps the sockets and the lobby); 0 runs them on the main thread |
+| `INTERNAL_KEY` | | Several machines: the shared secret for the store machine's private API |
+| `STORE_URL` | | Several machines, on the game machines: the store machine (`http://store.process.rollmodel-game.internal:8081`) |
+| `INTERNAL_PORT` | 8081 | The store machine's private API (never public) |
+| `SHARD_ID` / `FLY_REPLAY` | Fly's machine id / on on Fly | This machine, and handing a connection meant for another machine to it |
 | `RULES` | | JSON to change match rules (for example `{"matchT":60}`); see `server/src/constants.js` |
 
 Stopping the server (Ctrl+C, or a SIGTERM from the host) is graceful: running matches are called off without rating
@@ -154,10 +158,10 @@ The live server is the Fly.io app `rollmodel-game` (in the personal organization
 
 - **Address:** `https://rollmodel-game.fly.dev` (check it at `/health`); the game connects to
   `wss://rollmodel-game.fly.dev/ws`. The address is baked into the game from `tools/online_config.json`.
-- **Machine:** one machine in Chicago (`ord`), always on (no stopping when idle, so the first player of the day does
-  not wait for a cold start), with a 1 GB volume `rm_data` mounted at `/data` for the data file. From the deploy after
-  the perf-network branch: performance-2x (two dedicated cores, 4 GB) with `MATCH_WORKERS=auto`, sized for 1,000 players
-  at once (docs/net-scale.md); before it, shared-cpu-1x with 512 MB. A second region can come later.
+- **Machines:** before the perf-network branch, one shared-cpu-1x machine with 512 MB in Chicago (`ord`) and a 1 GB
+  volume `rm_data` at `/data` for the data file. From its deploy: six game machines (performance-2x, about 1,000
+  players each) and one store machine (performance-1x, with the volume), sized for 5,000 players at once; see
+  docs/net-scale.md for how they work together and the deploy steps. Always on (no stopping when idle).
 - **Settings** live in `server/fly.toml`: `TRUST_PROXY=1` (the server reads the player's address from Fly's
   `Fly-Client-IP`), `DATA_FILE=/data/store.json`, and `RULES={"items":false}`, which keeps pick-ups off online until the
   game shows the server's pick-ups.

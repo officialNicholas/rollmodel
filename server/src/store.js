@@ -9,6 +9,9 @@
 //   update(id, patch)             -> player             shallow merge
 //   recordMatch(summary)                                 keeps the most recent matches
 //   flag(id, reason, details)                            anti-cheat and abuse notes
+//   claimRoom(code, shard) -> bool, findRoom(code) -> shard | null, releaseRoom(code, shard)
+//                                                        private room codes, unique across every game machine (kept
+//                                                        in memory: a room lasts no longer than the machine running it)
 //   flush(), close()
 import { promises as fsp } from 'node:fs';
 import path from 'node:path';
@@ -20,7 +23,10 @@ const MAX_MATCHES = 2000, MAX_FLAGS = 50;
 const freshRatings = () => Object.fromEntries(MODES.map(m => [m, { ...DEFAULT_RATING }]));
 
 export class MemoryStore {
-  constructor() { this.players = new Map(); this.byToken = new Map(); this.matches = []; }
+  constructor() { this.players = new Map(); this.byToken = new Map(); this.matches = []; this.roomShards = new Map(); }
+  async claimRoom(code, shard) { if (this.roomShards.has(code)) return false; this.roomShards.set(code, shard); return true; }
+  async findRoom(code) { return this.roomShards.get(code) || null; }
+  async releaseRoom(code, shard) { if (this.roomShards.get(code) === shard) this.roomShards.delete(code); }
   async init() {}
   async create({ name, look = null }) {
     const token = newToken(), now = Date.now();
