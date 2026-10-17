@@ -134,7 +134,7 @@ Settings are environment variables:
 |---|---|---|
 | `PORT` | 8080 | Port to listen on |
 | `HOST` | 0.0.0.0 | Address to listen on |
-| `DATA_FILE` | ./data/store.json | Where players and ratings are saved (`memory` keeps nothing) |
+| `DATA_FILE` | ./data/store.json | Where players and ratings are saved (`memory` keeps nothing): a snapshot, plus a journal of changes beside it (`.log`) folded in now and then |
 | `LOG_LEVEL` | info | debug, info, warn, error or silent; logs are one JSON object per line |
 | `ALLOWED_ORIGINS` | (any) | Web pages allowed to connect, comma separated; the iOS app's page is `rollmodel://localhost` |
 | `MAX_CONNECTIONS` | 5000 | Connections at once |
@@ -142,6 +142,7 @@ Settings are environment variables:
 | `TRUST_PROXY` | 0 | 1 when behind a proxy that sets X-Forwarded-For |
 | `SNAPSHOT_HZ` | 30 | Snapshots a second (20 saves about a third of the server's work and bandwidth) |
 | `SHUTDOWN_GRACE_MS` | 3000 | How long a shutdown waits for connections to close |
+| `MATCH_WORKERS` | 0 | Matches on worker threads: `auto` is one per core but the main thread's (which keeps the sockets and the lobby); 0 runs them on the main thread |
 | `RULES` | | JSON to change match rules (for example `{"matchT":60}`); see `server/src/constants.js` |
 
 Stopping the server (Ctrl+C, or a SIGTERM from the host) is graceful: running matches are called off without rating
@@ -153,9 +154,10 @@ The live server is the Fly.io app `rollmodel-game` (in the personal organization
 
 - **Address:** `https://rollmodel-game.fly.dev` (check it at `/health`); the game connects to
   `wss://rollmodel-game.fly.dev/ws`. The address is baked into the game from `tools/online_config.json`.
-- **Machine:** one shared-cpu-1x machine with 512 MB in Chicago (`ord`), always on (no stopping when idle, so the first
-  player of the day does not wait for a cold start), with a 1 GB volume `rm_data` mounted at `/data` for the data file.
-  One machine handles several hundred players (see the load test above); a second region can come later.
+- **Machine:** one machine in Chicago (`ord`), always on (no stopping when idle, so the first player of the day does
+  not wait for a cold start), with a 1 GB volume `rm_data` mounted at `/data` for the data file. From the deploy after
+  the perf-network branch: performance-2x (two dedicated cores, 4 GB) with `MATCH_WORKERS=auto`, sized for 1,000 players
+  at once (docs/net-scale.md); before it, shared-cpu-1x with 512 MB. A second region can come later.
 - **Settings** live in `server/fly.toml`: `TRUST_PROXY=1` (the server reads the player's address from Fly's
   `Fly-Client-IP`), `DATA_FILE=/data/store.json`, and `RULES={"items":false}`, which keeps pick-ups off online until the
   game shows the server's pick-ups.

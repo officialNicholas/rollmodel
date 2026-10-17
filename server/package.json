@@ -11,7 +11,8 @@
   "scripts": {
     "start": "node src/index.js",
     "test": "node test/run.js",
-    "test:quick": "node test/run.js --quick"
+    "test:quick": "node test/run.js --quick",
+    "test:inline": "RM_MATCH_WORKERS=inline node test/run.js --quick"
   },
   "dependencies": {
     "ws": "8.21.3"

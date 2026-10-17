@@ -33,8 +33,8 @@ function sampleHist(h, t) {
 
 export class Match {
   // sessions: lobby sessions in slot order. sides (optional) are fixed by the mode.
-  constructor(srv, { mode, sessions, rated = false, room = null, rules = {}, seed } = {}) {
-    this.srv = srv; this.id = randomId('m_', 10); this.mode = mode; this.info = MODE_INFO[mode];
+  constructor(srv, { id, mode, sessions, rated = false, room = null, rules = {}, seed } = {}) {
+    this.srv = srv; this.id = id || randomId('m_', 10); this.mode = mode; this.info = MODE_INFO[mode];
     this.rules = Object.assign({}, DEFAULT_RULES, srv.rules || {}, rules);
     this.log = srv.log.child({ match: this.id, mode });
     this.rated = rated; this.room = room; this.seed = seed === undefined ? seed32() : seed >>> 0;

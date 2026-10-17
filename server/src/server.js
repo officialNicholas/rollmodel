@@ -9,6 +9,8 @@ import { sanitizeName, sanitizeLook } from './names.js';
 import { connectionLimits, noteDrop } from './ratelimit.js';
 import { Matchmaker, Room, uniqueCode } from './lobby.js';
 import { Match } from './match.js';
+import { MatchPool } from './matchpool.js';
+import { availableParallelism } from 'node:os';
 import { nowMs, Window, summarize } from './util.js';
 import { performance } from 'node:perf_hooks';
 
@@ -25,7 +27,7 @@ export class GameServer {
     this.log = opts.log || createLogger({ level: opts.logLevel || 'info', base: { svc: 'rollmodel' } });
     this.rules = Object.assign({}, DEFAULT_RULES, opts.rules || {});
     this.store = opts.store || (opts.dataFile && opts.dataFile !== 'memory' ? new JsonFileStore(opts.dataFile) : new MemoryStore());
-    this.sessions = new Set(); this.online = new Map(); this.inMatch = new Map(); this.matches = new Set(); this.rooms = new Map();
+    this.sessions = new Set(); this.bySid = new Map(); this.online = new Map(); this.inMatch = new Map(); this.matches = new Set(); this.rooms = new Map();
     this.roomAway = new Map(); // player id -> the dropped connection whose place in a room is being kept
     this.mm = new Matchmaker(); this.perIp = new Map(); this.connSeq = 0; this.closing = false;
     this.stats = { connections: 0, messages: 0, violations: 0, kicked: 0, matchesStarted: 0, matchesEnded: 0, matchesCancelled: 0, bytesOut: 0, framesOut: 0 };
@@ -39,8 +41,12 @@ export class GameServer {
     this.http.on('upgrade', (req, socket, head) => this._upgrade(req, socket, head));
     await new Promise((resolve, reject) => { this.http.once('error', reject); this.http.listen(port, host, () => { this.http.off('error', reject); resolve(); }); });
     this.port = this.http.address().port;
+    // matches on worker threads: matchWorkers 0 runs them here (the tests' default), 'auto' one per core but this one
+    // ('inline': the tests' way to run the same path in this thread, see matchpool.js)
+    const mw = this.opts.matchWorkers, nw = mw === 'auto' ? Math.max(1, availableParallelism() - 1) : mw === 'inline' ? 1 : Math.max(0, parseInt(mw, 10) || 0);
+    if (nw > 0) this.pool = new MatchPool(this, nw, { inline: mw === 'inline' });
     this._nextTick = nowMs(); this._loop();
-    this.log.info('listening', { port: this.port, host, proto: PROTOCOL_VERSION });
+    this.log.info('listening', { port: this.port, host, proto: PROTOCOL_VERSION, matchWorkers: nw });
     return this;
   }
 
@@ -70,8 +76,14 @@ export class GameServer {
       connections: this.sessions.size, players: this.online.size, matches: this.matches.size, rooms: this.rooms.size, queues: this.mm.sizes(),
       tick: { p50: +t.p50.toFixed(3), p99: +t.p99.toFixed(3), max: +t.max.toFixed(3), n: t.n, cpuP50: +tc.p50.toFixed(3), cpuP99: +tc.p99.toFixed(3) },
       elu: +elu.utilization.toFixed(3), cpu: +cpu.toFixed(3),
-      memMB: Math.round(mem.rss / 1048576), stats: this.stats,
+      memMB: Math.round(mem.rss / 1048576), stats: this.stats, mainCpu: +this._mainCpu(wallNow).toFixed(3), workers: this.pool ? this.pool.health() : undefined,
     };
+  }
+  // the main thread's own processor time since the last call, as a share of one core (cpu above is the whole process)
+  _mainCpu(now) {
+    if (!process.threadCpuUsage) return 0;
+    const u = process.threadCpuUsage(), c0 = this._mcpu || { u: { user: 0, system: 0 }, w: this.startedAt }; this._mcpu = { u, w: now };
+    return ((u.user - c0.u.user) + (u.system - c0.u.system)) / 1000 / Math.max(1, now - c0.w);
   }
   _ip(req) {
     // behind a proxy: Fly.io's own header first (set by its edge, so a client can't fake it), then the usual one
@@ -94,7 +106,7 @@ export class GameServer {
   _connected(ws, req, ip) {
     if (req.socket.setNoDelay) req.socket.setNoDelay(true); // no Nagle delay: small packets go out at once
     const sess = { id: ++this.connSeq, ws, ip, player: null, lim: connectionLimits(), queued: null, room: null, match: null, slot: -1, bad: 0, rtt: 0, at: nowMs(), lastMsg: nowMs(), bytesOut: 0, closed: false };
-    this.sessions.add(sess); this.perIp.set(ip, (this.perIp.get(ip) || 0) + 1); this.stats.connections++;
+    this.sessions.add(sess); this.bySid.set(sess.id, sess); this.perIp.set(ip, (this.perIp.get(ip) || 0) + 1); this.stats.connections++;
     sess.helloTimer = setTimeout(() => { if (!sess.player) this._close(sess, CLOSE.HELLO, 'hello timeout'); }, LIMITS.helloTimeoutMs);
     ws.on('message', (data, isBinary) => this._message(sess, data, isBinary));
     ws.on('close', () => this._closed(sess));
@@ -102,7 +114,7 @@ export class GameServer {
   }
   _closed(sess) {
     if (sess.closed) return; sess.closed = true;
-    clearTimeout(sess.helloTimer); this.sessions.delete(sess);
+    clearTimeout(sess.helloTimer); this.sessions.delete(sess); this.bySid.delete(sess.id);
     const n = (this.perIp.get(sess.ip) || 1) - 1; if (n > 0) this.perIp.set(sess.ip, n); else this.perIp.delete(sess.ip);
     if (!sess.player) return;
     if (this.online.get(sess.player.id) === sess) this.online.delete(sess.player.id);
@@ -115,6 +127,12 @@ export class GameServer {
   sendJson(sess, obj) {
     if (!sess || !sess.ws || sess.ws.readyState !== 1) return false;
     const s = JSON.stringify(obj); sess.bytesOut += s.length; this.stats.bytesOut += s.length + (s.length < 126 ? 2 : 4); this.stats.framesOut++;
+    sess.ws.send(s); return true;
+  }
+  // a message already in JSON (from a match worker)
+  sendRaw(sess, s) {
+    if (!sess || !sess.ws || sess.ws.readyState !== 1) return false;
+    sess.bytesOut += s.length; this.stats.bytesOut += s.length + (s.length < 126 ? 2 : 4); this.stats.framesOut++;
     sess.ws.send(s); return true;
   }
   // droppable: a snapshot may be skipped for a connection that is falling behind (the next one supersedes it)
@@ -329,7 +347,7 @@ export class GameServer {
   // ------------------------------------------------------------------------------------------------ matches
   _startMatch(mode, sessions, { room = null, rated = true, seed } = {}) {
     for (const s of sessions) this.mm.remove(s);
-    const match = new Match(this, { mode, sessions, rated, room, seed });
+    const match = this.pool ? this.pool.create(this, { mode, sessions, rated, room, seed }) : new Match(this, { mode, sessions, rated, room, seed });
     this.matches.add(match); this.stats.matchesStarted++;
     if (room) room.match = match;
     for (const s of sessions) { s.match = match; s.slot = sessions.indexOf(s); this.inMatch.set(s.player.id, match); }
@@ -425,11 +443,13 @@ export class GameServer {
     clearTimeout(this._timer);
     this.log.info('shutting down', { connections: this.sessions.size, matches: this.matches.size });
     for (const m of [...this.matches]) { if (m.phase === 'play' || m.phase === 'countdown' || m.phase === 'consensus') m.cancel('server_shutdown'); else m.close('server_shutdown'); }
+    if (this.pool) await this.pool.drain(Math.min(1000, this.opts.shutdownGraceMs ?? 3000)); // (the workers' last words to the players)
     for (const s of [...this.sessions]) { this.sendJson(s, { t: 'server', msg: 'shutdown' }); this._close(s, CLOSE.AWAY, 'server shutdown'); }
     const grace = this.opts.shutdownGraceMs ?? 3000;
     await new Promise(resolve => { const t = setTimeout(resolve, grace); const iv = setInterval(() => { if (!this.sessions.size) { clearTimeout(t); clearInterval(iv); resolve(); } }, 20); setTimeout(() => clearInterval(iv), grace + 10); });
     for (const s of [...this.sessions]) { try { s.ws && s.ws.terminate(); } catch (e) { /* gone */ } this._closed(s); }
     await new Promise(resolve => this.http.close(() => resolve()));
+    if (this.pool) await this.pool.stop();
     await this.store.close();
     this.log.info('stopped');
   }
