@@ -197,7 +197,7 @@ export class Match {
     const tau = Math.round(clamp(s.t + lag, p.lastTau + 1, recv));
     if (p.st === 'hide') {
       const pot = this.pots[p.pot];
-      if (!pot || Math.hypot(s.x - pot.x, s.z - pot.z) > 0.9 || Math.abs(s.y - pot.y) > 1.0) { this._violation(p, 'pot', true); return null; }
+      if (!pot || Math.hypot(s.x - pot.x, s.z - pot.z) > 0.9 || Math.abs(s.y - pot.y) > 1.0) { this._violation(p, 'pot', true, pot && { d: +Math.hypot(s.x - pot.x, s.z - pot.z).toFixed(2), dy: +(s.y - pot.y).toFixed(2), sinceHidden: Math.round(s.t - p.hiddenAt), late: Math.round(recv - s.t), flags: s.flags }); return null; }
       p.mover.last = { x: pot.x, y: pot.y, z: pot.z, yaw: s.yaw, t: s.t };
       this._accept(p, s, tau, { grounded: true }, { x: pot.x, y: pot.y, z: pot.z });
       return null;
@@ -301,7 +301,7 @@ export class Match {
       case 'land': why = this._land(p, ts, vt, m, recv, n); break;
       case 'stomp': why = this._stomp(p, ts, vt, m.target, recv, n); break;
       case 'enterPot': why = this._enterPot(p, ts, m.pot); break;
-      case 'exitPot': why = p.st === 'hide' ? (this._leavePot(p, ts, 'exit'), null) : 'not_hidden'; break;
+      case 'exitPot': why = p.st === 'hide' ? (this._leavePot(p, ts, 'exit'), null) : (this._lateExit(p, ts), 'not_hidden'); break;
       case 'use': why = this.items ? this.items.use(p, ts, vt, m) : 'no_items'; break;
       case 'selfKo': why = this._selfKo(p, m.reason); break;
     }
@@ -530,7 +530,17 @@ export class Match {
       if (pot.ink <= 0.02) this._sinkPot(pot);
     }
   }
-  _eject(O, why, by) { const i = O.pot; this._leavePot(O, nowMs(), why); this._all({ t: 'potEject', slot: O.slot, i, why, by: by ? by.slot : -1 }); }
+  _eject(O, why, by) { const i = O.pot; this._leavePot(O, nowMs(), why); O.ejected = { pot: i, t: O.mover.last.t, at: nowMs() }; this._all({ t: 'potEject', slot: O.slot, i, why, by: by ? by.slot : -1 }); }
+  // put out of a pot by the server (it ran dry, a bump) while the player's own way out was already on its way: they left
+  // when they say, so their next reports are judged from then (judged from the ejection, the way they had already come
+  // since would look like a burst of speed)
+  _lateExit(p, ts) {
+    const E = p.ejected; p.ejected = null;
+    if (!E || p.st !== 'play' || ts >= E.t || nowMs() - E.at > 2000 || p.mover.last.t > E.t) return;
+    const pot = this.pots[E.pot]; if (!pot) return;
+    p.mover.reset({ x: pot.x, y: pot.y + G.POT_POP_Y, z: pot.z, yaw: p.mover.last.yaw }, ts, { airborne: true, groundY: pot.y });
+    p.mover.onPopOut(ts, pot.y); p.potExitAt = Math.min(p.potExitAt, ts);
+  }
   _freePot(p) { if (p.pot >= 0) { const pot = this.pots[p.pot]; if (pot && pot.occ === p.slot) { pot.occ = -1; this._all({ t: 'pot', i: pot.i, occ: -1, up: pot.up, ink: r2(pot.ink) }); } p.pot = -1; } }
   _sinkPot(pot) { if (!pot.up) return; pot.up = false; pot.upAt = nowMs() + this.rules.potDownT * 1000; this._all({ t: 'pot', i: pot.i, occ: -1, up: false, ink: 0 }); }
   _selfKo(p, reason) {

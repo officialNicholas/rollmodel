@@ -27,7 +27,19 @@ export class Link {
     if (this.delays.length < 50000) this.delays.push(at - now);
     return at;
   }
-  deliver(size, fn) { const now = performance.now(), at = this.arrival(size, now); setTimeout(fn, Math.max(0, at - now)); }
+  // in order, like TCP: one queue per direction (a timer per message could swap two sent within a millisecond, since
+  // timers round their delays)
+  deliver(size, fn) {
+    const now = performance.now(), at = this.arrival(size, now);
+    (this.q || (this.q = [])).push({ at, fn }); if (this.q.length === 1) this._pump();
+  }
+  _pump() {
+    const q = this.q; if (!q.length) return;
+    const wait = q[0].at - performance.now();
+    if (wait > 0) { setTimeout(() => this._pump(), wait); return; }
+    q.shift().fn(); // (one message a task, as a browser hands them over)
+    if (q.length) setImmediate(() => this._pump());
+  }
 }
 
 let seedSeq = 1;

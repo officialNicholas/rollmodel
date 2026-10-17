@@ -2,7 +2,9 @@
 // forfeits, a second device with the same token takes over, and AFK or idle players are removed.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { FLAGS, RMNet } from '../client/rmnet.js';
+import { performance } from 'node:perf_hooks';
+import { FLAGS, RMNet, codec } from '../client/rmnet.js';
+import { flatLayout } from './helpers/layouts.js';
 import { startServer, makeBots, until, sleep, matchOf, metric } from './helpers/harness.js';
 import { netSim, PROFILES } from './helpers/netsim.js';
 
@@ -117,4 +119,27 @@ test('idle: a player who sends but never moves is removed', async () => {
     const left = await c.B.wait('playerLeft', m => m.slot === c.A.slot, 8000);
     assert.equal(left.reason, 'idle');
   } finally { await c.close(); }
+});
+
+test('put out of a pot by the server while their own way out was on its way: judged from when they left', async () => {
+  const srv = await startServer({ matchT: 30 });
+  const [A, B] = makeBots(srv, 2, { behavior: 'script', layoutFor: () => flatLayout(26.4), prefix: 'ex' });
+  A.o.script = B.o.script = bot => { bot.input = { speedK: 0 }; };
+  try {
+    await Promise.all([A, B].map(b => b.connect()));
+    await A.net.queue('duel'); await B.net.queue('duel');
+    await Promise.all([A, B].map(b => b.wait('start')));
+    await until(() => A.net.serverNow() > A.startAt + 300, 5000);
+    A.stop(); // (this test speaks for A)
+    const m = matchOf(srv, A.id), p = m.P[A.slot], pot = m.pots[0], now = performance.now();
+    p.st = 'hide'; p.pot = 0; pot.occ = p.slot; p.mover.reset({ x: pot.x, y: pot.y, z: pot.z, yaw: 0 }, now - 1000);
+    m._eject(p, 'empty', null); // the pot ran dry, here, now
+    p.lagEst = 400; p.jit = 0; // (a slow link: A's own exit, 400 ms ago, is only arriving now)
+    m.onAction(p, { t: 'act', a: 'exitPot', n: 1, ts: now - 400 }, performance.now());
+    // where A really is: popped out 400 ms ago and rolled 2 m away since (5 m/s)
+    const c0 = m.stats.corrections;
+    m.onState(p, codec.encodeState({ x: pot.x, y: pot.y, z: pot.z + 2, yaw: 0, spd: 5, vy: 0, flags: 0 }, 1, performance.now(), p.cid & 0xff), performance.now());
+    assert.equal(m.stats.corrections, c0, 'not corrected');
+    assert.ok(Math.abs(p.latest.z - (pot.z + 2)) < 0.01, 'the report was taken');
+  } finally { A.close(); B.close(); await srv.close(); }
 });

@@ -85,6 +85,8 @@ async function duel(name, seconds) {
   const bots = makeBots(srv, 2, { WebSocket: WS, behavior: 'wander', record: true, prefix: name });
   if (process.env.SEND_HZ) for (const b of bots) b.net.sendInterval = 1000 / +process.env.SEND_HZ;
   const corr = [];
+  for (const b of bots) { b.acts = []; b.on('actionResult', m => { b.acts.push([Math.round(b.net.serverNow()), m.a, m.ok ? 'ok' : m.reason]); if (b.acts.length > 6) b.acts.shift(); }); b.on('potEject', m => { if (m.slot === b.slot) b.acts.push([Math.round(b.net.serverNow()), 'EJECT', m.why]); }); b.on('respawn', m => { if (m.slot === b.slot) b.acts.push([Math.round(b.net.serverNow()), 'RESPAWN', m.pot]); }); }
+  if (process.env.WHY) for (const b of bots) b.on('correction', m => console.log('  acts before', m.reason, JSON.stringify(b.acts), 'now', Math.round(b.net.serverNow()), 'hidden', b.hidden));
   for (const b of bots) b.on('correction', m => { const t = b.trace, n = t.length; corr.push(n >= 4 ? Math.hypot(t[n - 3] - m.x, t[n - 1] - m.z) : 0); if (process.env.WHY) console.log('  correction', m.reason, (corr[corr.length - 1] * 100).toFixed(0) + ' cm'); }); // (the trace's last frame: where it was before the correction)
   try {
     await Promise.all(bots.map(b => b.connect()));

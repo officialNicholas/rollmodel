@@ -58,19 +58,47 @@ them up with no game module; the server part needs a deploy.
 | 3% loss: rival pops (10 s) | 9 to 10, up to 1.3 m | 0 to 1 (a respawn-sized move, partly eased) |
 | Clean links | unchanged | unchanged (no smoothing kicks in) |
 
-The server suite passes (72 tests, 3 new: the silent link resumed, the server closing a silent connection, and the
-smoothing).
+The server suite passes (74 tests, 5 new: the silent link resumed, the server closing a silent connection, the
+smoothing, the late-seen hop and the late pot exit).
+
+## Round two: the referee, the simulator, and 60 a second
+
+- **The simulator was reordering messages.** `test/helpers/netsim.js` gave each message its own timer, and timers round
+  their delays, so two messages sent within a millisecond could arrive swapped (TCP never does that). That made honest
+  players look corrected: a position report overtaking "out of the pot", for instance. It now delivers strictly in order,
+  one message a task, as a browser does. With it, the old server corrects honest players about once in 15 minutes of
+  3% loss or a poor 4G link (it looked like 2 a minute before), so that finding was mostly the simulator's.
+- **Two real edge cases in the referee, fixed anyway** (each with a test that fails without the fix):
+  - a hop first seen in the air some time after take-off (the jump message late, or reports missed) was judged from
+    the speed at that moment, already slowed by gravity, so an honest hop looked like floating. The take-off speed is
+    now worked out from height and time since the ground, up to 450 ms after (a hop lasts about 750 ms), never more
+    than the biggest hop, so it allows nothing a cheat couldn't already claim;
+  - put out of a pot by the server (it ran dry) while the player's own exit was on its way: the next reports were
+    judged from the ejection, so the way already rolled looked like a burst of speed. Their own exit time now counts,
+    if it comes within 2 s and nothing has been judged since.
+  - After: 0 corrections of honest players in 15 minutes of lossy play.
+- **The rival's easing, tuned on the fixed simulator** (30 s runs, leaps the rival makes on screen):
+
+  | Link | Raw | Drawn |
+  |---|---|---|
+  | 1% loss | 9 | 0 |
+  | 3% loss | 19 | 2 (beside a respawn-sized move) |
+  | Poor 4G (450 ms, 2% loss, spikes) | 19 | 0 |
+
+  The eased gap is now up to 3 m and shrinks no faster than 12 m/s, so a big gap glides instead of snapping.
+- **60 a second: not done.** It would draw the rival about 25 ms fresher, but the server is a Fly `shared-cpu-1x`,
+  whose guaranteed share is about 1/16 of a core (with a burst balance; once that's spent it is throttled in 80 ms
+  periods). The load test measures about 0.15% of a core per player at 30 a second, so at baseline that's a few dozen
+  players before the tick stalls by up to 80 ms; 60 a second would halve that.
 
 ## Not done yet, ranked
 
-1. **60 snapshots and states a second** (server `snapshotHz` and the SDK's `sendHz`): the rival is drawn 21 to 28 ms
-   fresher (LAN 74 to 61 ms, 120 ms link 201 to 173 ms). Traffic doubles to about 3.4 KB/s down and 2.1 KB/s up, and the
-   server's per-match work roughly doubles. Needs a deploy.
+1. **The server machine.** Move from `shared-cpu-1x` to `performance-1x` (a dedicated core) before online play has
+   real numbers of players: otherwise a busy hour throttles the tick and every match stutters at once. A Fly setting,
+   for the lead to deploy when the owner agrees (it costs more).
 2. **More regions.** One machine in Chicago: a player in Europe or on the West Coast starts 60 to 120 ms behind. The
    plan (docs/online-plan.md) already has regions and ping matchmaking.
-3. **Honest players corrected under heavy loss.** At 3% loss, about 2 corrections a minute (a "speed" or "pot" ruling,
-   1 to 3 m). On a correction the game snaps the blob at once (netCorrect). Worth tracing in the referee, and easing
-   the snap on the client.
+3. **60 a second**, once the machine has the headroom (above).
 4. **UDP lane** (plan phase 3): the real cure for TCP stalls. Big, native.
 
 # The game on a phone-like setup

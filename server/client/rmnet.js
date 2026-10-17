@@ -464,11 +464,12 @@ const RMNetSDK = (() => {
       const now = this._now(); let S = this._smooth.get(slot);
       if (!S) { S = { x: o.x, z: o.z, t: now, ex: 0, ez: 0 }; this._smooth.set(slot, S); }
       const dt = Math.min(0.25, Math.max(0, (now - S.t) / 1000)), k = Math.exp(-dt * 1000 / this.smoothMs);
-      let ex = S.ex * k, ez = S.ez * k;
+      let ex = S.ex, ez = S.ez; const e0 = Math.hypot(ex, ez);
+      if (e0 > 0) { const e1 = Math.max(e0 * k, e0 - 12 * dt); ex *= e1 / e0; ez *= e1 / e0; } // (fading, but never faster than 12 m/s, so a big gap glides)
       const dx = o.x - S.x, dz = o.z - S.z, d = Math.hypot(dx, dz), lim = 0.04 + 16 * dt; // (16 m/s: faster than a whirl or a fling)
       if (d >= TELEPORT_M || (o.flags & (FLAGS.KO | FLAGS.HIDE | FLAGS.OUT))) ex = ez = 0;
       else if (d > lim) { ex -= dx / d * (d - lim); ez -= dz / d * (d - lim); }
-      const e = Math.hypot(ex, ez); if (e > 1.5) { ex *= 1.5 / e; ez *= 1.5 / e; }
+      const e = Math.hypot(ex, ez); if (e > 3) { ex *= 3 / e; ez *= 3 / e; } // (a bigger gap than that shows partly at once)
       S.x = o.x; S.z = o.z; S.t = now; S.ex = ex; S.ez = ez;
       o.x += ex; o.z += ez;
     }
