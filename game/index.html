@@ -4410,6 +4410,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 @media (min-aspect-ratio:1/1) and (max-height:430px){#mLocker.sgp .lkh{font-size:20px}#mLocker.sgp .lkszn{min-height:72px}#mLocker.sgp .lkszt b{font-size:22px}#mLocker.sgp .lkszn .lkpump{width:78px}#mLocker.sgp .lktn{font-size:10px}}
 @media (max-width:359px){#mLocker.sgp{--tabw:100px}#mLocker.sgp .lkh{font-size:20px}#mLocker.sgp .lkstyles,#mLocker.sgp .lkirises{gap:8px}#mLocker.sgp .lkstyles .eyes{width:38px;height:38px}#mLocker.sgp .lkstyles .eyes svg{width:30px;height:30px}#mLocker.sgp .lkirises .eyec{width:30px;height:30px}#mLocker.sgp .lkszt b{font-size:23px}}
 @media (prefers-reduced-motion:reduce){#mLocker.sgp .sgart .frface,#mLocker.sgp .lkcoin.bump,#mLocker.sgp .sgban.bump,#mLocker.sgp .tpop,#mLocker.sgp .sgdo.nope{animation:none}}
+#mLocker.sgp .sgnote{justify-self:center;width:fit-content;max-width:calc(100% - 12px);margin:0 auto;padding:4px 10px;border-radius:9px;background:rgba(255,250,238,.95);box-shadow:0 2px 0 rgba(23,19,32,.2);color:#3A3048}
 </style>
 
 <div id="stage">
@@ -4583,7 +4584,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 329</p>
+      <p class="ver">Version 330</p>
     </div>
   </div>
 
@@ -16462,9 +16463,10 @@ giftBeam.renderOrder = 8; giftBeam.visible = false; giftBeam.frustumCulled = fal
 const stageSet = () => !TH ? null : TH.id === 'island' || TH.id === 'raft' ? 'island' : TH.id === 'blank' ? 'blank' : ['crypt', 'cathedral', 'manor', 'sewer'].includes(TH.id) ? 'halloween' : null;
 // at the start of a match: if one's due and there's still one here to find, it'll turn up some way in
 function giftPlan() {
-  Object.assign(gift, { id: null, on: false, got: false, pop: 0 }); giftM.visible = giftRing.visible = giftBeam.visible = false;
+  Object.assign(gift, { id: null, on: false, got: false, pop: 0, zg: false }); giftM.visible = giftRing.visible = giftBeam.visible = false;
   if (NM) return; // (v306: no rare finds online)
-  if (store.itemIn > 0) return; const left = ITEMS.filter(w => needFind(w) && w.stage === stageSet() && !owns(w.id)); if (!left.length) return;
+  if (TH && SEASON.themes.includes(TH.id) && !owns('zombie')) { gift.id = 'zombie'; gift.zg = true; gift.at = (mode === 'solo' ? SOLO_T : MATCH_T) * (tutPh() === 'done' && store.tut.m3 === 1 ? 0.5 : 0.14); return; } // (v330: the Zombie eyes, a free gift on your first Spooky SZN canvas)
+  if (store.itemIn > 0) return; const left = ITEMS.filter(w => needFind(w) && !w.gift && w.stage === stageSet() && !owns(w.id)); if (!left.length) return;
   gift.id = left[Math.floor(Math.random() * left.length)].id; gift.at = (mode === 'solo' ? SOLO_T : MATCH_T) * (0.15 + Math.random() * 0.35);
 }
 function giftSpot() {
@@ -16479,17 +16481,19 @@ function giftSpot() {
 }
 function stepGift(dt) {
   if (!gift.id || gift.got) return;
-  if (state !== 'play') { if (gift.on) { gift.on = false; giftPoof(); } return; }
-  if (!gift.on) { if (runT < gift.at || matchLeft < 6) return; const s = (tut2 && tutGiftSpot(6, 11)) || giftSpot(); if (!s) { gift.at = runT + 2; return; }
-    gift.on = true; gift.x = s[0]; gift.z = s[1]; gift.y = 0; gift.t = 0; gift.pop = 0; if (!tut && !tut2) banner('Something rare!', 'An item has turned up. Go grab it', true); /* (the lesson says it itself) */ AU.spot(); buzz([10, 30, 10]); shockwave(gift.x, 0, gift.z, 1.6, 0xFFD54F); }
+  if (state !== 'play') { if (gift.on) { gift.on = false; giftPoof(); } if (gift.zg && tutTip && tutTip.key === 'zgift') tutHide(); return; }
+  if (!gift.on) { if (runT < gift.at || matchLeft < 6) return; const s = ((tut2 || gift.zg) && tutGiftSpot(6, 11)) || giftSpot(); if (!s) { gift.at = runT + 2; return; }
+    gift.on = true; gift.x = s[0]; gift.z = s[1]; gift.y = 0; gift.t = 0; gift.pop = 0; if (gift.zg) banner('A free gift!', 'It\u2019s Spooky SZN. Go grab it', true); else if (!tut && !tut2) banner('Something rare!', 'An item has turned up. Go grab it', true); /* (the lesson says it itself) */ AU.spot(); buzz([10, 30, 10]); shockwave(gift.x, 0, gift.z, 1.6, 0xFFD54F); }
   gift.t += dt; gift.pop = Math.min(1, gift.pop + dt * 2.2);
+  if (gift.zg && !tutTip && P.st !== 'ko') tutShow('A gift has appeared on the canvas! *Grab it!*', null, 'zgift', true, true); // (v330: Ol' Bloop points it out, as the lesson did)
   if (P.st === 'play' && Math.hypot(P.x - gift.x, P.z - gift.z) < 1.0 && Math.abs(P.y - gift.y) < 1.2) giftTake();
   else if (Math.random() < dt * 9) { const a = Math.random() * 6.283; spawnPart(gift.x + Math.cos(a) * 0.5, 0.4 + Math.random() * 0.8, gift.z + Math.sin(a) * 0.5, Math.cos(a) * 0.3, 0.8 + Math.random() * 0.8, Math.sin(a) * 0.3, 0.7, puHaloMat, 0.3 + Math.random() * 0.2); }
 }
 function giftTake() {
   gift.got = true; gift.on = false; giftM.visible = giftRing.visible = giftBeam.visible = false;
-  unlockItem(gift.id); store.itemIn = 2 + Math.floor(Math.random() * 4); save(); newItem = gift.id; emote(P, 'glee', 1.3);
-  const w = WEAR.find(x => x.id === gift.id); banner(tut && gift.id === 'flower' ? 'New items!' : 'New item!', tut && gift.id === 'flower' ? 'Flower + Fangs' : w ? w.name : '', true); AU.power(); setTimeout(() => AU.pop(), 160); buzz([20, 40, 30]); shake = Math.max(shake, 0.15);
+  if (tutTip && tutTip.key === 'zgift') tutHide();
+  unlockItem(gift.id); if (gift.zg) { BOUGHT.add(gift.id); store.bought = [...BOUGHT]; } else store.itemIn = 2 + Math.floor(Math.random() * 4); save(); newItem = gift.id; emote(P, 'glee', 1.3); // (v330: a gift is yours, nothing to pay)
+  const w = ITEMS.find(x => x.id === gift.id); banner(gift.zg ? 'Free gift!' : tut && gift.id === 'flower' ? 'New items!' : 'New item!', tut && gift.id === 'flower' ? 'Flower + Fangs' : w ? w.name : '', true); AU.power(); setTimeout(() => AU.pop(), 160); buzz([20, 40, 30]); shake = Math.max(shake, 0.15);
   confetti(gift.x, gift.y + 0.6, gift.z, 70, 3.2); shockwave(gift.x, 0, gift.z, 2, 0xFFD54F);
 }
 function giftPoof() { giftM.visible = giftRing.visible = giftBeam.visible = false; for (let i = 0; i < 14; i++) { const a = i / 14 * 6.283; spawnPart(gift.x, 0.6, gift.z, Math.cos(a) * 2, 1 + Math.random(), Math.sin(a) * 2, 0.45, puHaloMat, 0.4); } }
@@ -20151,8 +20155,8 @@ function slashWipe(o) {
 function showNewItem(id) {
   const ws = [].concat(id).map(x => ITEMS.find(w => w.id === x)).filter(Boolean), w = ws[0], el = $('newItem'), two = ws.length > 1; if (!w) return showEnd(endImg);
   const pic = it => { let u = ''; try { u = shopPic(it); } catch (e) { u = ''; } return u ? '<img src="' + u + '" alt="">' : '<svg viewBox="0 0 40 40" aria-hidden="true">' + WEAR_ICON[it.id] + '</svg>'; }; /* (the shop's own render of the item, the flat icon only if that fails) */
-  $('niBadges').className = 'nibadges' + (two ? ' two' : ''); $('niBadges').innerHTML = ws.map(it => '<div class="nibadge">' + pic(it) + (two ? '<b class="nibl">' + escAttr(it.name) + '</b>' : '') + '</div>').join(''); $('niKick').textContent = two ? 'New items!' : 'New item!';
-  $('niName').textContent = ws.map(it => it.name).join(' + '); $('niWhere').innerHTML = two ? 'Two new items for your locker' : 'Found on ' + escAttr(WEAR_WHERE[w.stage].replace(/^the /, 'the ')) + '<span class="niprice">' + DROP_SVG + PRICE(w) + '</span>'; $('niTry').textContent = ws.every(it => bought(it.id)) ? 'Try it on' : two ? 'See them in the shop' : 'See it in the shop';
+  $('niBadges').className = 'nibadges' + (two ? ' two' : ''); $('niBadges').innerHTML = ws.map(it => '<div class="nibadge">' + pic(it) + (two ? '<b class="nibl">' + escAttr(it.name) + '</b>' : '') + '</div>').join(''); $('niKick').textContent = two ? 'New items!' : w.gift ? 'Free gift!' : 'New item!';
+  $('niName').textContent = ws.map(it => it.name).join(' + '); $('niWhere').innerHTML = two ? 'Two new items for your locker' : w.gift ? 'A Spooky SZN gift. They\u2019re yours, free' : 'Found on ' + escAttr(WEAR_WHERE[w.stage].replace(/^the /, 'the ')) + '<span class="niprice">' + DROP_SVG + PRICE(w) + '</span>'; $('niTry').textContent = !two && w.gift ? 'Put them on' : ws.every(it => bought(it.id)) ? 'Try it on' : two ? 'See them in the shop' : 'See it in the shop';
   slashWipe({ onPeak: () => { el.hidden = false; void el.offsetWidth; el.classList.add('on'); AU.fanfare(); setTimeout(() => AU.power(), 700); buzz([20, 40, 20, 40, 30]); } });
   setTimeout(() => $('niTry').focus({ preventScroll: true }), 60);
 }
@@ -20442,7 +20446,7 @@ const NO_IRIS = k => k === 'dot' || k === 'zombie'; // (styles whose iris color 
 const WEAR_CAT = { head: 'head', side: 'head', eye: 'face', lash: 'face', mouth: 'face', neck: 'cloth', back: 'cloth', arms: 'cloth' };
 for (const w of WEAR) w.cat = WEAR_CAT[w.slot] || 'face';
 // things to find and buy that are not worn on the body: an eye style
-const EXTRA = [{ id: 'zombie', name: 'Zombie eyes', slot: 'eyes', cat: 'eyes', season: 1, stage: 'halloween' }, { id: 'sly', name: 'Sly eyes', slot: 'eyes', cat: 'eyes' }], ITEMS = WEAR.concat(EXTRA);
+const EXTRA = [{ id: 'zombie', name: 'Zombie eyes', slot: 'eyes', cat: 'eyes', season: 1, stage: 'halloween', gift: 1 }], ITEMS = WEAR.concat(EXTRA); // (v330: the Sly eyes are everyone's from the start; the Zombie eyes, the one style to find, are a free gift)
 let lookCat = 'paint'; // the category open in the locker
 // showing off new eyes: the camera moves in on its face and it pulls a funny face (kind 0 an eye roll, 1 wide-eyed darting glances, 2 a
 // surprised look up then a flutter of blinks)
@@ -20460,9 +20464,10 @@ const OWNED = new Set(Array.isArray(store.owned) ? store.owned.filter(id => ITEM
 // drops: paint earned at the end of a match. A found item goes on sale in the locker; it is worn once it is bought
 const PRICES = { sly: 545, flower: 145, pearls: 160, scarf: 180, bowtie: 185, stache: 195, beanie: 205, party: 240, monocle: 290, lashes: 220, glasses: 270, patch: 330, fangs: 400, tiara: 475, tophat: 580, bunny: 645, pirate: 695, hockey: 765, skull: 835, halo: 850, zombie: 975, hat: 1105, antennae: 195, floaties: 245, snorkel: 295, propcap: 345, cape: 480 }; // (v302: the five new everyday pieces; see docs/wearables-v302.md)
 const OUTRIGHT = new Set(['flower', 'lashes', 'bowtie', 'pearls', 'beanie', 'party', 'monocle', 'stache', 'scarf', 'antennae', 'snorkel', 'propcap', 'floaties', 'cape']), needFind = w => !OUTRIGHT.has(w.id) && (!!w.season || w.slot === 'head'); // (in stock from the start: nothing to find, only dabs to pay) // (what has to be found on a canvas before it is for sale)
-const PRICE = w => { const t = store.tut && store.tut.price; if (t && t[w.id] >= 0) return t[w.id]; if (w.id === 'zombie' && store.zombieDeal && !BOUGHT.has('zombie')) return Math.max(1, Math.floor((store.drops || 0) * 0.7)); /* (the first find of the season: always within reach) */ return PRICES[w.id] || (w.season ? 850 : w.slot === 'head' ? 510 : 255); }; // (the lesson sets the flower's and the fangs' prices)
+const PRICE = w => { const t = store.tut && store.tut.price; if (t && t[w.id] >= 0) return t[w.id]; if (w.gift) return 0; /* (v330: a gift costs nothing) */ return PRICES[w.id] || (w.season ? 850 : w.slot === 'head' ? 510 : 255); }; // (the lesson sets the flower's and the fangs' prices)
 const BOUGHT = new Set(Array.isArray(store.bought) ? store.bought.filter(id => OWNED.has(id)) : [...OWNED]);
 if (!Array.isArray(store.bought)) { store.bought = [...BOUGHT]; }
+for (const w of EXTRA) if (w.gift && OWNED.has(w.id) && !BOUGHT.has(w.id)) { BOUGHT.add(w.id); store.bought = [...BOUGHT]; } // (v330: found but never bought: a gift is yours)
 if (!(store.drops >= 0)) store.drops = 0;
 const bought = id => BOUGHT.has(id);
 function buyItem(id) { const w = ITEMS.find(x => x.id === id); if (!w || (!OWNED.has(id) && needFind(w)) || BOUGHT.has(id) || store.drops < PRICE(w)) return false; store.drops -= PRICE(w); OWNED.add(id); store.owned = [...OWNED]; BOUGHT.add(id); store.bought = [...BOUGHT]; store.fresh = [...new Set([...(store.fresh || []), id])]; save(); return true; }
@@ -21958,8 +21963,8 @@ function lkPic(w) { if (w.slot === 'eyes') return ES_ICON_T[w.id] || ''; const u
 function lkCard(w, tab) {
   const own = bought(w.id), found = own || owns(w.id) || !needFind(w), on = own && lkWorn(w), n = store.drops || 0, broke = !own && found && n < PRICE(w), sel = LKR.sel === 'w:' + w.id;
   const fresh = tab === 'mine' ? own && (store.fresh || []).includes(w.id) : !own && owns(w.id) && needFind(w);
-  const foot = own ? (on ? 'Equipped' : tab === 'shop' ? 'Yours' : '') : found ? DROP_SVG + '<b>' + PRICE(w) + '</b>' : LOCK_ICON + 'Find it';
-  const lab = w.name + (own ? (on ? ', equipped' : ', yours') : found ? ', ' + PRICE(w) + ' dabs' + (broke ? ', ' + (PRICE(w) - n) + ' more needed' : '') : ', locked. Find it on ' + WEAR_WHERE[w.stage]) + (fresh ? ', new' : '');
+  const foot = own ? (on ? 'Equipped' : tab === 'shop' ? 'Yours' : '') : found ? DROP_SVG + '<b>' + PRICE(w) + '</b>' : LOCK_ICON + (w.gift ? 'Free gift' : 'Find it');
+  const lab = w.name + (own ? (on ? ', equipped' : ', yours') : found ? ', ' + PRICE(w) + ' dabs' + (broke ? ', ' + (PRICE(w) - n) + ' more needed' : '') : ', locked. ' + (w.gift ? 'A free gift on ' : 'Find it on ') + WEAR_WHERE[w.stage]) + (fresh ? ', new' : '');
   return '<button class="sgcard lkcard' + (sel ? ' sel' : '') + (own ? (on ? ' own on' : ' own') : found ? ' sale' : ' lock') + (broke ? ' broke' : '') + '" type="button" data-k="w:' + w.id + '" aria-pressed="' + sel + '" aria-label="' + escAttr(lab) + '"><i class="sghook"></i><span class="sgcb"><span class="sgca">' + lkPic(w) + '</span></span><span class="sgcf">' + foot + '</span>' + (fresh ? '<span class="sgnew">New</span>' : '') + '</button>';
 }
 // the locker: your paint, your eyes, and what you own (a tap puts it on)
@@ -21968,7 +21973,7 @@ function lkMineHtml() {
   let h = '<div class="lkhd"><h4 class="lkh">My Locker</h4><button class="lkname" id="lkNameBtn" type="button" aria-label="Change your name"><span id="lkNameT"></span>' + LK_PEN + '</button></div>';
   h += '<p class="lksec">Paint</p><div class="lkpaints" role="group" aria-label="Your paint">' + PALETTE.map(c => '<button class="sw" type="button" data-k="c:' + c.id + '" aria-label="' + c.name + ' paint" aria-pressed="' + (c.id === colorId) + '" style="--c:#' + c.hex.toString(16).padStart(6, '0') + '"><i></i></button>').join('') + '</div>';
   h += '<p class="lksec">Eyes</p><div class="lkeyes"><div class="lkstyles" role="group" aria-label="Eye style">' + Object.keys(EYE_STYLES).map(k => { const it = EXTRA.find(x => x.id === k), lk = !!it && !bought(k);
-    return '<button class="eyes' + (lk ? ' locked' : '') + (it && !lk && fresh.has(k) ? ' fresh' : '') + '" type="button" data-k="e:' + k + '" aria-label="' + EYE_STYLES[k] + ' eyes' + (lk ? ', in the Paint Shop' : '') + '" aria-pressed="' + (myLook.eyes === k) + '">' + ES_ICON_T[k] + (lk ? LOCK_ICON : '') + '</button>'; }).join('') + '</div>';
+    return '<button class="eyes' + (lk ? ' locked' : '') + (it && !lk && fresh.has(k) ? ' fresh' : '') + '" type="button" data-k="e:' + k + '" aria-label="' + EYE_STYLES[k] + ' eyes' + (lk ? (it.gift ? ', a free gift on the Spooky SZN stages' : ', in the Paint Shop') : '') + '" aria-pressed="' + (myLook.eyes === k) + '">' + ES_ICON_T[k] + (lk ? LOCK_ICON : '') + '</button>'; }).join('') + '</div>';
   const ni = NO_IRIS(myLook.eyes); h += '<div class="lkirises' + (ni ? ' off' : '') + '" role="group" aria-label="Eye colour"' + (ni ? ' aria-disabled="true"' : '') + '>' + EYE_KEYS.map(k => '<button class="eyec" type="button" data-k="i:' + k + '" style="--ic:' + EYE_COLS[k].css + '" aria-label="' + EYE_COLS[k].name + ' eyes" aria-pressed="' + (myLook.iris === k) + '"><i></i></button>').join('') + '</div></div>';
   for (const c of ['head', 'face', 'cloth']) { const mine = WEAR.filter(w => w.cat === c && bought(w.id)).sort((a, b) => PRICE(a) - PRICE(b)), sale = WEAR.filter(w => w.cat === c && lkForSale(w)).length;
     h += '<p class="lksec">' + LK_CAT[c] + (mine.length ? '<i>' + mine.length + '</i>' : '') + '</p>' + (mine.length ? grid(mine.map(w => lkCard(w, 'mine')).join('')) : '<p class="lknone">Nothing here yet.' + (sale ? ' <button class="lkgo" type="button" data-go="shop">The Paint Shop has ' + sale + '</button>' : '') + '</p>'); }
@@ -22017,6 +22022,7 @@ function lkShowRender() {
   else if (k === 'i') { kind = 'Eye colour'; name = (EYE_COLS[id] || EYE_COLS.brown).name; line = 'The colour in the middle of your eyes'; }
   else if (LKR.tab === 'shop') { kind = 'Paint Shop'; name = 'Try it on'; line = 'Tap anything to see it on you'; }
   else { kind = 'My Locker'; name = playerName(); line = 'Tap to put it on. Drag to spin around'; }
+  if (w && w.gift) { line = bought(w.id) ? 'A free gift from the Spooky SZN' : 'A free gift on the Spooky SZN stages'; if (!bought(w.id)) { doH = STROKE_LOCK + 'Free gift'; doCls = ''; doDis = true; doLab = w.name + ', a free gift on the Spooky SZN stages'; note = 'They turn up as a free gift the first time you play a Spooky SZN stage'; } } // (v330)
   $('lkKind').textContent = kind; nmSet($('lkName'), name); $('lkName').dataset.def = !s && LKR.tab === 'mine' ? '1' : ''; $('lkLine').textContent = line; lkFitName();
   const b = $('lkDo'); b.hidden = !doH; if (doH) { b.className = 'sgdo' + (doCls ? ' ' + doCls : ''); b.innerHTML = '<span>' + doH + '</span>'; b.disabled = doDis; b.setAttribute('aria-label', doLab); }
   $('lkOff').hidden = !off; $('lkNote').hidden = !note; $('lkNote').textContent = note; $('mLocker').classList.toggle('sgnoted', !!note); SGD.rectDirty = true;
@@ -25812,7 +25818,7 @@ function tutCard(on) {
 $('tgGo').addEventListener('click', () => { AU.init(); AU.ui(); const m = $('tutGo').dataset.mode; if (m === 'welcome') tutWelcomeDone(true); else if (m === 'modes') tutModesDone(true); else if (m === 'strokes1' || m === 'strokes2') tutStrokesGo(); else tutCard(false); });
 $('tgLater').addEventListener('click', () => { AU.init(); AU.ui(); if ($('tutGo').dataset.mode === 'modes') return tutModesDone(false); tutWelcomeDone(false); });
 // the first real match: no weather until halfway, then the sun in three short steps (find shade, with the way to it shown; hold to stay put in
-// it; or hide in a coffin), then the rain in one plain line, no slow-down, then the zombie eyes turn up close by. Your paint lasts longer
+// it; or hide in a coffin), then the rain in one plain line, no slow-down. Your paint lasts longer
 // this match (stepBlob), and the orb comes up near you (orbSpawn)
 function tut2Begin() { tut2 = { ph: 'calm', sub: '', subT: 0, tipT: 0, hold: 0, slowK: 1, slowT: 0, shade: null, held: 0, ms: '', msT: 0, msN: 0 }; wxLeft = 1e9; wxPhase = 'clear'; gift.id = null; gift.on = false; gift.got = false; giftM.visible = giftRing.visible = giftBeam.visible = false; }
 function tut2Step(dt) {
@@ -25831,7 +25837,7 @@ function tut2Step(dt) {
     else if (t.sub === 'pot' && t.subT > 4.5) { t.sub = ''; tutHide(); }
     if (wxPhase === 'dusk' && t.sub && t.sub !== 'pot') { t.sub = ''; tutHide(); } // (the heat's over before you got there: the tips go)
     if (wxPhase === 'rain') { t.ph = 'rain'; t.sub = ''; t.tipT = 3.6; tutShow('You move faster when the floor is wet', null, 'wxrain', false, true); } } /* (no slow-down: they'll feel it) */
-  else if (t.ph === 'rain') { if (wxPhase !== 'rain') { if (owns('zombie')) { t.ph = 'done'; return; } t.ph = 'gift'; gift.id = 'zombie'; gift.got = false; gift.on = false; gift.at = runT + 0.8; wxLeft = Math.max(wxLeft, 30); } }
+  else if (t.ph === 'rain') { if (wxPhase !== 'rain') t.ph = 'done'; } // (v330: the zombie eyes are your first Spooky SZN canvas's gift now)
   else if (t.ph === 'gift') {
     if (gift.on && !gift.got) tutShow('A gift has appeared on the canvas! *Grab it!*', null, 'zgift', true, true);
     if (gift.got) { t.ph = 'done'; tutHide(); store.zombieDeal = 1; save(); return; }
@@ -26159,7 +26165,7 @@ function tutMenuTick() {
     if (state === 'menu' && menuPage === 'events' && sd && !sd.classList.contains('open')) { if (!sd.querySelector('.evbloop')) { sd.classList.add('bpick'); sd.insertAdjacentHTML('beforeend', '<span class="evbloop" aria-hidden="true"><i></i><b>Try this one!</b></span>'); } tutTrySdAt = 1; }
     else if (tutTrySdAt) { store.tut.trySd = 1; save(); tutTrySdAt = 0; document.querySelectorAll('.evbloop').forEach(e => e.remove()); document.querySelectorAll('.evcard.bpick').forEach(e => e.classList.remove('bpick')); }
   }
-  if (tutPh() === 'done') { if (menu.classList.contains('tutoring')) menu.classList.remove('tutoring'); if (!(state === 'play' && tutTip && tutTip.key === 'protip')) tutHide(); return; } /* (the onboarding is over: nothing to point at, so no hunting the page for open dialogs every frame) */
+  if (tutPh() === 'done') { if (menu.classList.contains('tutoring')) menu.classList.remove('tutoring'); if (!(state === 'play' && tutTip && (tutTip.key === 'protip' || tutTip.key === 'zgift'))) tutHide(); return; } /* (the onboarding is over: nothing to point at, so no hunting the page for open dialogs every frame) */
   if ((FL && FL.busy()) || bootHold || !booted || !tutBootEl.classList.contains('gone') || !tutOrientEl.hidden || document.querySelector('.modal:not([hidden]):not(#stPop)')) return tutHide(); // (nothing over the loading screen, the orientation chooser or any dialog) // (nothing over the loading screen: its tap to start must get through)
   const ph = tutPh(); if (menu.classList.contains('tutoring') !== (ph !== 'done')) menu.classList.toggle('tutoring', ph !== 'done'); // (the lesson keeps the lobby simple: no commissions, no how-to)
   if (ph === 'match') { if (state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden) { if (!tutFirstAt) tutFirstAt = performance.now(); if (performance.now() - tutFirstAt < 1000) return tutHide(); /* (a second of the lobby first) */ tutShow('Hey, rookie! Ready to roll? Your first match is a little training session.', 'homePlay', 'first'); } else tutHide(); return; }
@@ -26167,7 +26173,7 @@ function tutMenuTick() {
     if (state === 'menu' && lkOn() && store.zombieDeal && bought('zombie') && myLook.eyes !== 'zombie') { if (LKR.tab !== 'mine') return tutShow('Open your locker and put them on', 'lkTabMine', 'eyesz'); return tutShow('Tap the zombie eyes to put them on', () => $('lkPaneMine').querySelector('[data-k="e:zombie"]'), 'wearz'); } /* (v327: bought, they go straight on; taken off again, they're in your locker) */
     tutHide(); if (state === 'menu') tutSet('done'); return; }
   if (ph === 'strokes') { tutStrokesTick(); return; }
-  if (ph !== 'shop' && ph !== 'locker' && ph !== 'vote') { if (!(state === 'play' && tutTip && tutTip.key === 'protip')) tutHide(); return; } // (a real match's pro tip runs itself)
+  if (ph !== 'shop' && ph !== 'locker' && ph !== 'vote') { if (!(state === 'play' && tutTip && (tutTip.key === 'protip' || tutTip.key === 'zgift'))) tutHide(); return; } // (a real match's pro tip runs itself)
   if (state === 'dead') { if (ph === 'shop' && !$('newItem').hidden) { if (!tutNiAt) tutNiAt = performance.now(); if (performance.now() - tutNiAt < 1600) return tutHide(); return innerHeight < 520 && innerWidth > innerHeight ? tutShow('Tap to see them in the *shop*', 'niTry', 'ni', true, false, 'below') : tutShow('Tap to see your flower and fangs in the shop', 'niTry', 'ni', false, false, 'below'); } /* (a short screen gets the short callout, so the button stays clear) */ tutNiAt = 0; if (!end.hidden) return tutShow('Head back to the lobby', 'menuBtn', 'tomenu'); return tutHide(); }
   if (state !== 'menu' || building || irisBusy || !setModal.hidden || !nameModal.hidden || !howModal.hidden) return tutHide();
   const card = id => $('lkPaneShop').querySelector('.sgcard[data-k="w:' + id + '"]'), tile = id => $('lkPaneMine').querySelector('.sgcard[data-k="w:' + id + '"]'); // (v327: the page's tags)
@@ -26945,7 +26951,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
   function buildUi() {
     const el = document.createElement('div'); el.className = 'flui'; el.id = 'flUi';
     const irises = EYE_KEYS.map(k => opt('data-i', k, '<i class="fliri" style="--ic:' + EYE_COLS[k].css + '"></i><b>' + EYE_COLS[k].name + '</b>', EYE_COLS[k].name + ' eyes', myLook.iris === k)).join('');
-    const styles = ['round', 'edgy', 'dot'].map(k => opt('data-s', k, '<i class="flsty">' + ES_ICON_T[k] + '</i><b>' + EYE_STYLES[k] + '</b>', EYE_STYLES[k] + ' eyes', (myLook.eyes || 'round') === k)).join('');
+    const styles = ['round', 'edgy', 'dot', 'sly'].map(k => opt('data-s', k, '<i class="flsty">' + ES_ICON_T[k] + '</i><b>' + EYE_STYLES[k] + '</b>', EYE_STYLES[k] + ' eyes', (myLook.eyes || 'round') === k)).join('');
     const paints = PALETTE.map(c => opt('data-c', c.id, '<i class="flpai" style="--c:#' + c.hex.toString(16).padStart(6, '0') + '"></i><b>' + c.name + '</b>', c.name, false)).join('');
     el.innerHTML = panel('flIris', 'Those eyes need a color.', '<div class="flopts" id="flIrisO">' + irises + '</div>', go_('flIrisGo', 'Next'), null)
       + panel('flStyle', 'Now give them some style.', '<div class="flopts" id="flStyleO">' + styles + '</div>', go_('flStyleGo', 'Next'), 'iris')
