@@ -4650,7 +4650,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 340</p>
+      <p class="ver">Version 341</p>
     </div>
   </div>
 
@@ -23340,7 +23340,7 @@ function frRow(f) {
     + (!open ? '' : '<div class="frmenu">' + (conf ? '<span>' + (conf === 'remove' ? 'Remove ' : 'Block ') + frEsc(hdOf(f.name)) + '?</span><button class="frb bad" data-act="' + conf + '" data-id="' + f.id + '" type="button">' + (conf === 'remove' ? 'Remove' : 'Block') + '</button><button class="frb ghost" data-act="nvm" type="button">Keep</button>'
       : '<button class="frb ghost" data-act="askremove" data-id="' + f.id + '" type="button">Remove friend</button><button class="frb ghost" data-act="askblock" data-id="' + f.id + '" type="button">Block</button>') + '</div>') + '</li>';
 }
-const FR_FACES = '<span class="ffaces" aria-hidden="true">' + [['green', 'round'], ['purple', 'sly']].map(([c, e]) => frFace({ c, e })).join('') + '</span>';
+const FR_FACES = '<span class="ffaces" aria-hidden="true">' + ['green', 'purple'].map(c => frFaceSvg({ c })).join('') + '</span>'; // (v341: the two drawn faces again, not portraits)
 // the screen. A poll redraws it only when something it shows has changed, and keeps what you're typing
 function frRender(fromPoll) {
   const el = $('frBody'); if (!el) return; let h = '', heroCode = '', heroAdd = '', above = false; // (v326: the wall's part, and the sheet's)
