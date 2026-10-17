@@ -4443,6 +4443,31 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 #mLocker.sgp .lkwx::before{opacity:var(--wk1,.34)}
 #mLocker.sgp .lkwx.go{will-change:opacity}
 #mLocker.sgp .sgfoot .sgline{text-shadow:0 0 3px var(--wallhi,#F4FAD8),0 0 7px var(--wallhi2,rgba(244,250,216,.85))}
+/* ---- (v335) the ad on its way: a taped paper card over the page while the ad for Skip loads (it plays the moment it's ready, over
+   the card), and what went wrong if it doesn't come */
+.adw{position:fixed;inset:0;z-index:70;display:grid;place-items:center;padding:24px max(16px,env(safe-area-inset-right)) 24px max(16px,env(safe-area-inset-left));background:rgba(10,7,16,.55);animation:adstin .2s ease both}
+.adw[hidden]{display:none}
+.adwc{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;width:min(100%,320px);box-sizing:border-box;padding:30px 22px 20px;border-radius:6px;background:#F6F1E8 url(art/m_paperbg.webp) center/420px;color:#171320;text-align:center;box-shadow:0 0 0 3px #171320,7px 8px 0 rgba(0,0,0,.45);animation:cardlift .34s cubic-bezier(.2,1.25,.35,1) both}
+.adwc::before{content:"";position:absolute;left:50%;top:-12px;width:112px;height:28px;margin-left:-56px;background:url(art/m_tape3.webp) center/100% 100% no-repeat;transform:rotate(-2deg);filter:drop-shadow(0 1.5px 0 rgba(23,19,32,.16))}
+.adwi{position:relative;display:grid;place-items:center;width:84px;height:84px;margin-bottom:2px}
+.adwr{position:absolute;inset:0;width:100%;height:100%;animation:sgspin .9s linear infinite}
+.adwr circle{fill:none;stroke-width:8}
+.adwr .bg{stroke:rgba(23,19,32,.12)}
+.adwr .fg{stroke:#F2C14E;stroke-linecap:round;stroke-dasharray:66 198}
+.adwp{display:grid;place-items:center;width:46px;height:46px;color:#171320}
+.adwp svg{display:block;width:46px;height:46px}
+.adwx{display:none}
+.adw.fail .adwr,.adw.fail .adwp{display:none}
+.adw.fail .adwx{display:grid;place-items:center;width:56px;height:56px;border-radius:50%;background:#171320;color:#FFE23C;font:400 32px/1 var(--font-display)}
+.adwc h3{margin:0;font:400 24px/1.05 var(--font-display);letter-spacing:.01em;text-wrap:balance}
+.adwc p{margin:0;font:700 14px/1.4 var(--font-ui);color:#4A4258;text-wrap:balance}
+.adwb{display:flex;gap:10px;margin-top:6px}
+.adwb button{appearance:none;margin:0;min-width:108px;height:42px;padding:0 18px;border:0;border-radius:12px;font:400 16px/1 var(--font-display);letter-spacing:.01em;cursor:pointer;-webkit-tap-highlight-color:transparent;box-shadow:0 0 0 2.5px #171320,2px 3px 0 rgba(23,19,32,.3)}
+.adwb button[hidden]{display:none}
+.adwgo{background:linear-gradient(180deg,#FFE08A,#F2C14E 55%,#E0A72A);color:#2A1A04}
+.adwno{background:#fff;color:#171320}
+.adwb button:active{transform:translate(1px,2px);box-shadow:0 0 0 2.5px #171320,1px 1px 0 rgba(23,19,32,.3)}
+@media (prefers-reduced-motion:reduce){.adw,.adwc{animation:none}.adwr{animation-duration:2.4s}}
 /* (v331) the portraits, and the soft round placeholder that holds a portrait's place till it's made */
 img.ptimg{object-fit:cover;-webkit-user-drag:none;user-select:none;-webkit-user-select:none;pointer-events:none}
 .ptin{animation:ptin .3s ease-out both}
@@ -4625,7 +4650,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 334</p>
+      <p class="ver">Version 335</p>
     </div>
   </div>
 
@@ -4777,6 +4802,7 @@ i.ptwait>*{display:none}
   </div></div>
   <p class="onsr" id="onLive" role="status" aria-live="polite"></p>
 <div class="adst" id="adStand" hidden role="dialog" aria-modal="true" aria-labelledby="adStW"><span class="adsl">AD</span><button class="adsx" id="adStX" type="button" aria-label="Close the ad"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg></button><div class="adsc"><div class="adsr"><svg class="ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="bg" cx="50" cy="50" r="44"/><circle class="fg" cx="50" cy="50" r="44"/></svg><b id="adStN">5</b></div><h3 id="adStW">Ad preview</h3><p>In the app, a rewarded ad plays here. Watch it to the end and the stroke is done.</p></div></div>
+<div class="adw" id="adWait" hidden><div class="adwc" role="dialog" aria-modal="true" aria-labelledby="adWaitH" aria-describedby="adWaitP"><div class="adwi" aria-hidden="true"><svg class="adwr" viewBox="0 0 100 100"><circle class="bg" cx="50" cy="50" r="42"/><circle class="fg" cx="50" cy="50" r="42"/></svg><span class="adwp" id="adWaitI"></span><span class="adwx">!</span></div><h3 id="adWaitH">Getting your ad ready</h3><p id="adWaitP">It starts as soon as it’s loaded.</p><div class="adwb"><button class="adwgo" id="adWaitGo" type="button" hidden>Try again</button><button class="adwno" id="adWaitNo" type="button">Cancel</button></div></div></div>
   <div class="modal" id="docModal" hidden>
     <div class="card" role="dialog" aria-modal="true" aria-labelledby="docTitle">
       <h2 class="ctitle" id="docTitle"></h2>
@@ -20728,16 +20754,19 @@ function adWarm() { const d = store.strokes; if (d && d.craft && !adFree()) adHe
 function craftSkipAsk() {
   const d = strokesOf(); if (!d.craft) return;
   if (adFree()) return craftSkip();
-  if (ADS.id) return; // (one at a time)
+  if (ADS.id) { if (ADS.mode === 'app' && !ADS.open) adWaitShow(); return; } // (one at a time: tapped again, the wait shows)
   ADS.id = d.craft.id; ADS.earned = false; ADS.open = false; AU.ui(); buzz(6); sgSkipPaint();
-  clearTimeout(ADS.t); ADS.t = setTimeout(() => adFail('slow'), 45000); // (the app answers well before this: it's in case it never does)
-  if (ADS.mode === 'app') nativeSay('ads', { show: 'craft', kid: adKid() }); else adStandIn();
+  clearTimeout(ADS.t); ADS.t = setTimeout(() => adFail('slow', true), AD_WAIT_MS + 15000); // (the app answers well before this: it's in case it never does)
+  if (ADS.mode !== 'app') return adStandIn();
+  ADW.t0 = performance.now(); ADW.tries = 1; clearTimeout(ADW.rt); clearTimeout(ADW.popT); // (v335: an ad that's ready opens before the card would come up)
+  if (!$('adWait').hidden) adWaitShow(); else ADW.popT = setTimeout(adWaitShow, 450);
+  nativeSay('ads', { show: 'craft', kid: adKid() });
 }
 window.addEventListener('nativead', e => adOn((e && e.detail) || {}));
 function adOn(m) {
   if (m.e === 'state') { ADS.privacy = !!m.privacy; return adPrivPaint(); }
   if (m.p && m.p !== 'craft') return;
-  if (m.e === 'open') { clearTimeout(ADS.t); ADS.open = ADS.hold = true; if (!ADS.id) { const d = store.strokes; ADS.id = d && d.craft ? d.craft.id : null; } if (ADS.mode === 'app') AU.suspend(true); else AU.muted(true); return; }
+  if (m.e === 'open') { clearTimeout(ADS.t); adWaitHide(); ADS.open = ADS.hold = true; if (!ADS.id) { const d = store.strokes; ADS.id = d && d.craft ? d.craft.id : null; } if (ADS.mode === 'app') AU.suspend(true); else AU.muted(true); return; }
   if (m.e === 'reward') return adReward();
   if (m.e === 'close') return adClose(!!m.earned);
   if (m.e === 'fail') return adFail(m.why);
@@ -20752,14 +20781,42 @@ function adReward() {
 function adClose(earned) {
   ADS.open = false; clearTimeout(ADS.t); if (ADS.mode !== 'app') applyMix(); // (in the app, its "nativeresume" brings the sound back)
   if (earned) ADS.earned = true;
-  clearTimeout(ADS.ct); ADS.ct = setTimeout(() => { ADS.ct = 0; if (ADS.earned) return adPayoff(); adDone(); stToast('Watch to the end to finish it'); }, 420);
+  clearTimeout(ADS.ct); ADS.ct = setTimeout(() => { ADS.ct = 0; if (ADS.earned) adPayoff(); else { adDone(); stToast('Watch to the end to finish it'); } setTimeout(() => { if (strokesOpen()) adWarmPage(); }, 1500); }, 420); // (v335: and the next one readied)
 }
 function adPayoff() { const id = ADS.id; adDone(); const d = strokesOf(); if (id && d.craft && d.craft.id === id) craftSkip(); else if (strokesOpen()) renderStrokes(); }
-function adFail(why) {
+function adFail(why, last) {
   if (!ADS.id && !ADS.open) return;
+  // (v335) still waiting and online: ask the app again, at once if it was only slow (a late one is kept for this), in a moment if not
+  if (!ADS.open && !last && ADS.mode === 'app' && why !== 'offline' && ADW.tries < 4 && performance.now() - ADW.t0 < AD_WAIT_MS) { adWaitShow(); clearTimeout(ADW.rt); ADW.rt = setTimeout(adRetry, why === 'slow' ? 60 : 2500); return; }
   const was = ADS.open; adDone(); if (was) { if (ADS.mode === 'app') AU.wake(true, true); else applyMix(); }
-  AU.nope && AU.nope(); stToast(why === 'offline' ? 'You’re offline: connect to watch the ad' : 'No ad to show right now. Try again soon');
+  AU.nope && AU.nope(); if (ADS.mode === 'app') adWaitFail(why); else stToast(why === 'offline' ? 'You’re offline: connect to watch the ad' : 'No ad to show right now. Try again soon');
 }
+// ---------- (v335) the ad on its way. The app readies an ad as the Abilities page opens (and again once one's been watched), so Skip
+// plays one at once. Tapped before it's ready, a card waits for it: the ad plays the moment it loads (over the card); while it's slow
+// the game asks again (one that turns up late is kept for this), up to AD_WAIT_MS; Cancel tells the app to stop waiting. If none
+// comes, the card says why, with Try again ----------
+const AD_WAIT_MS = 20000, ADW = { t0: 0, tries: 0, rt: 0, popT: 0 };
+const AD_WHY = { offline: ['You’re offline', 'Connect to the internet to watch the ad.'], slow: ['The ad didn’t load', 'It took too long. Try again in a moment.'], noads: ['No ad right now', 'There’s no ad to show at the moment. Try again in a minute.'] };
+function adWarmPage() { if (ADS.mode === 'app' && strokesDue() && !adFree()) adHello(true); }
+function adWaitShow() {
+  const w = $('adWait'); clearTimeout(ADW.popT); ADW.popT = 0; if (!w.hidden && !w.classList.contains('fail')) return;
+  w.classList.remove('fail'); $('adWaitH').textContent = 'Getting your ad ready'; $('adWaitP').textContent = 'It starts as soon as it’s loaded.'; $('adWaitGo').hidden = true; $('adWaitNo').textContent = 'Cancel';
+  const was = w.hidden; w.hidden = false; if (was) setTimeout(() => { if (!w.hidden) $('adWaitNo').focus({ preventScroll: true }); }, 40);
+}
+function adWaitHide() { clearTimeout(ADW.popT); clearTimeout(ADW.rt); ADW.popT = ADW.rt = 0; $('adWait').hidden = true; }
+function adWaitFail(why) {
+  clearTimeout(ADW.popT); clearTimeout(ADW.rt); ADW.popT = ADW.rt = 0; const w = $('adWait'), t = AD_WHY[why] || AD_WHY.noads;
+  w.classList.add('fail'); $('adWaitH').textContent = t[0]; $('adWaitP').textContent = t[1]; $('adWaitGo').hidden = false; $('adWaitNo').textContent = 'Close';
+  w.hidden = false; setTimeout(() => { if (!w.hidden) $('adWaitGo').focus({ preventScroll: true }); }, 40);
+}
+function adRetry() { ADW.rt = 0; if (!ADS.id || ADS.open) return; ADW.tries++; nativeSay('ads', { show: 'craft', kid: adKid() }); }
+function adWaitCancel() {
+  const fail = $('adWait').classList.contains('fail'); adWaitHide(); if (fail) return;
+  if (ADS.id && !ADS.open) { nativeSay('ads', { cancel: true }); adDone(); }
+}
+$('adWaitI').innerHTML = AD_PLAY;
+$('adWaitNo').addEventListener('click', () => { AU.init(); AU.ui(); adWaitCancel(); });
+$('adWaitGo').addEventListener('click', () => { AU.init(); if (!strokesOf().craft) { AU.ui(); return adWaitHide(); } craftSkipAsk(); });
 function adDone() { clearTimeout(ADS.t); clearTimeout(ADS.ct); clearInterval(ADS.si); ADS.ct = 0; ADS.id = null; ADS.open = ADS.hold = ADS.earned = false; sgSkipPaint(); }
 // Skip on the bench: a play mark when it plays an ad (spinning while the ad gets ready), plain in the lesson
 function sgSkipPaint() {
@@ -20931,7 +20988,7 @@ function strokesFrame() { if (!strokesOpen() || ADS.hold) return; const d = stro
 function openStrokes() {
   if (state !== 'menu' || building || lookOpen || shopOpen || strokesOpen() || lkOn()) return;
   if (menuPage === 'worlds') { closeSeason(); $('mWorld').hidden = true; } if (menuPage === 'events') closeEvents();
-  if (!store.abilSeen) { store.abilSeen = 1; save(); } /* (v306: having seen it opens Play online) */ stSkillSel = null; stCat = 'special'; SG_PICK.special = SG_PICK.skill = SG_PICK.item = null; SGD.yaw = SG_YAW0; menuPage = 'strokes'; menu.dataset.page = 'strokes'; $('mHome').hidden = true; $('mStrokes').hidden = false; document.body.classList.add('evon', 'stpage'); closeSide(true); renderStrokes(); adWarm();
+  if (!store.abilSeen) { store.abilSeen = 1; save(); } /* (v306: having seen it opens Play online) */ stSkillSel = null; stCat = 'special'; SG_PICK.special = SG_PICK.skill = SG_PICK.item = null; SGD.yaw = SG_YAW0; menuPage = 'strokes'; menu.dataset.page = 'strokes'; $('mHome').hidden = true; $('mStrokes').hidden = false; document.body.classList.add('evon', 'stpage'); closeSide(true); renderStrokes(); adWarmPage(); // (v335: whenever an ad could be wanted here)
   for (const c of $('mStrokes').querySelectorAll('.sgtab')) { c.style.animation = 'none'; void c.offsetWidth; c.style.animation = ''; } { const r = $('stSpecialRail'); r.classList.remove('in'); void r.offsetWidth; r.classList.add('in'); }
   clearInterval(stTick); stTick = setInterval(strokesFrame, 500); SGD.rectDirty = true; setTimeout(() => $('stBack').focus({ preventScroll: true }), 40);
 }
@@ -25530,6 +25587,7 @@ window.addEventListener('keydown', e => {
   if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
   if (!nameModal.hidden) { if (e.key === 'Escape') { e.preventDefault(); closeName(); } return; }
   if (shopOpen) { if (e.key === 'Escape' || e.key === 'Backspace') { e.preventDefault(); closeShop(); } return; }
+  if (!$('adWait').hidden) { if (e.key === 'Escape') { e.preventDefault(); AU.ui(); adWaitCancel(); } return; } // (v335)
   if (lookOpen) { if (e.key === 'Escape') { e.preventDefault(); closeLook(); } return; }
   if (state === 'menu' && lkOn()) { if (e.key === 'Escape') { e.preventDefault(); closeLocker(); } return; } // (v327)
   if (vic) { if (e.key === ' ' || e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); endVictory(); } return; }

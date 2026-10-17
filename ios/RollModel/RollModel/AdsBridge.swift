@@ -15,6 +15,7 @@ import UserMessagingPlatform
 /// - {init, kid} once the player can craft: Google's consent check (once a session), and whether the player is under 13.
 /// - {warm} when an ad may be wanted soon (a stroke on the bench): one is loaded ahead, so it plays the moment Skip is tapped.
 /// - {show: place} when the player taps to watch.
+/// - {cancel} when the player stops waiting for one (the game's Cancel): it won't pop up later; one still loading is kept for next time.
 /// - {privacy} from the game's Privacy Policy page: Google's privacy choices form.
 ///
 /// It hears back through a "nativead" window event: {e: "open"}, {e: "reward"}, {e: "close", earned}, {e: "fail", why} and
@@ -92,6 +93,7 @@ final class AdsBridge: NSObject, WKScriptMessageHandler {
             checkConsent {}
         }
         if let place = body["show"] as? String, !place.isEmpty { show(place) }
+        if (body["cancel"] as? Bool) == true { cancelWait() }
         if (body["privacy"] as? Bool) == true { privacyChoices() }
     }
 
@@ -290,6 +292,12 @@ final class AdsBridge: NSObject, WKScriptMessageHandler {
     private func stopWaiting() {
         waitID += 1
         waiting = nil
+    }
+
+    /// The player gave up waiting (the game's Cancel): the ad won't be shown for that wait. One still loading is kept, ready for next time.
+    private func cancelWait() {
+        guard waiting != nil else { return }
+        stopWaiting()
     }
 
     private func present(_ place: String) {

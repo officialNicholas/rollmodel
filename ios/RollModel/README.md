@@ -21,6 +21,8 @@ Plug in your iPhone, pick it as the run destination and press **Run**. The first
 
 On the Strokes page, **Skip** on a stroke being crafted now plays a rewarded ad (Google AdMob), and the craft finishes once the ad has been watched. Ol' Bloop's Skip in the lesson stays free. The code is in **AdsBridge.swift**.
 
+The app gets an ad ready as soon as the Strokes page opens, and again after each one is watched, so Skip usually plays one at once. If Skip is tapped before it's loaded, the game shows a "Getting your ad ready" card that waits for it (up to about 20 seconds, asking again while it's slow), with Cancel. If none comes, the card says why (offline, too slow, or no ad to show) with Try again. Cancel tells the app to stop waiting (the `cancel` message in AdsBridge.swift), so the ad doesn't pop up afterwards.
+
 ### The first time you open the project
 Xcode downloads Google's two ad packages, **Google Mobile Ads** and **User Messaging Platform**, by itself. It needs the internet once and takes a minute. If Xcode ever says a package is missing, choose **File > Packages > Resolve Package Versions**. Google's current SDK needs **Xcode 26.2 or newer**; if Xcode is older, update it from the App Store first.
 
@@ -51,7 +53,7 @@ Since the player chooses to watch, the ad can be longer or interactive:
 
 ## Good to know
 
-- The game inside is version 334. Settings shows it as "Version 1.1 (334)".
+- The game inside is version 335. Settings shows it as "Version 1.1 (335)".
 - A brand-new player first gets the intro: a paint barrel in a desert scrapyard, then picking eye colour, eye style, paint colour and a name, before the lobby and the lesson. Existing players go straight to the lobby. To see it again, delete and reinstall the app.
 - Saved names, looks and progress carry over from the earlier builds: the game keeps the same save and the same private address inside the app.
 - The app icon is the paint roller. To change it later, drop a new 1024 x 1024 image into **Assets > AppIcon**.
