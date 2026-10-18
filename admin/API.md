@@ -67,7 +67,7 @@ Anyone signed in can call this. It only tells you about yourself.
 
 - `admin` is true only when all four rules above hold.
 - `listed` says whether the id is in `rm_admins` at all.
-- `why` says what's missing when `admin` is false: `not_listed` (not an admin account), `needs_code` (signed in with the password only: ask for the authenticator code) or `stale` (the code was entered over 12 hours ago, or the session has ended: sign in again).
+- `why` says what's missing when `admin` is false: `not_listed` (not an admin account), `needs_code` (signed in with the password only: ask for the authenticator code), `stale` (the code was entered over 12 hours ago, or the session has ended: sign in again) or `setup` (the database can't look sign-ins up, so no one is an admin until that's fixed: see admin/README.md).
 - `code_at` is when the authenticator code was entered (null before), so the dashboard can say when the session ends.
 
 ### `adm_overview(p_days int = 30)`
@@ -207,7 +207,7 @@ Signs the player out on every device. Returns `{ "ok": true, "sessions": 2 }`, o
 - `p_confirm` must equal their username, case-insensitive; it's a typed confirmation. A player with no username yet is confirmed with their user id.
 - Their install analytics stay, but are no longer linked to them.
 - Returns `{ "ok": true }` or `{ "ok": false, "why": "confirm" | "missing" | "admin" | "slow_down" }`.
-- Writes an audit row with their name and id.
+- Writes an audit row with their id. Their name comes off the audit log, there and in any earlier rows about them, however the account was deleted.
 
 ### `adm_audit(p_limit int = 100)`
 ```json
@@ -221,7 +221,8 @@ Newest first, at most 500. Actions: `set_price`, `set_password`, `signout`, `del
 - Who can call it: anyone (`anon` and `authenticated`).
 - The game batches events and sends them about once a minute, and when the app is put away.
 - When the player is signed in, the call carries their token, and the install is linked to their user id (`auth.uid()`). It's never taken from the body.
-- Returns `{ "ok": true, "v": 1760780000000 }`, `{ "ok": false, "why": "rate" }` (more than 120 calls an hour from one install, or a flood of new installs), or `{ "ok": false, "why": "bad" }`.
+- Returns `{ "ok": true, "v": 1760780000000 }`, `{ "ok": false, "why": "rate" }` (more than 120 calls an hour from one install, or more new installs in a minute or a day than `rm_settings` allows: 300 and 20,000 to start), or `{ "ok": false, "why": "bad" }`.
+- While the owner has paused the stats (`rm_settings`, `paused`), it answers `{ "ok": true, "v": ..., "paused": true }` and records nothing.
 - `v` is the live prices' version, as in `rm_config()`. When it differs from the one the game has, the game asks `rm_config()` again, so a price change reaches players within about a minute.
 
 **`p_iid`:** a random id made once per install, kept in the save.

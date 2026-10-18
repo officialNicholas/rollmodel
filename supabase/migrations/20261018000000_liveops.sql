@@ -103,7 +103,8 @@ create table if not exists public.rm_daily (
   primary key (day, k)
 );
 
--- every Paint Shop buy (an item is bought once per install, so this stays small)
+-- the Paint Shop buys: one row per install and item (bought again after Restart Game, the row is updated), so it stays bounded
+-- however many events arrive
 create table if not exists public.rm_buys (
   id bigint generated always as identity primary key,
   at timestamptz not null default now(),
@@ -111,8 +112,19 @@ create table if not exists public.rm_buys (
   item text not null,
   price int not null
 );
+delete from public.rm_buys a using public.rm_buys b where a.iid = b.iid and a.item = b.item and a.id < b.id;
+create unique index if not exists rm_buys_one on public.rm_buys (iid, item);
 create index if not exists rm_buys_item on public.rm_buys (item, at);
 create index if not exists rm_buys_at on public.rm_buys (at);
+
+-- switches for the stats: paused (everything the game sends is dropped), and how many new installs a minute and a day are taken
+-- (a flood of made-up installs stops there). Change them here in the SQL editor, e.g.
+--   update public.rm_settings set v = v || '{"new_per_day": 50000}' where k = 'stats';
+create table if not exists public.rm_settings (
+  k text primary key,
+  v jsonb not null default '{}'::jsonb check (jsonb_typeof(v) = 'object')
+);
+insert into public.rm_settings (k, v) values ('stats', '{"paused": false, "new_per_minute": 300, "new_per_day": 20000}') on conflict (k) do nothing;
 
 alter table public.rm_admins enable row level security;
 alter table public.rm_audit enable row level security;
@@ -120,7 +132,9 @@ alter table public.rm_prices enable row level security;
 alter table public.rm_installs enable row level security;
 alter table public.rm_daily enable row level security;
 alter table public.rm_buys enable row level security;
-revoke all on public.rm_admins, public.rm_audit, public.rm_prices, public.rm_installs, public.rm_daily, public.rm_buys from anon, authenticated;
+alter table public.rm_settings enable row level security;
+revoke all on public.rm_admins, public.rm_audit, public.rm_prices, public.rm_installs, public.rm_daily, public.rm_buys, public.rm_settings from anon, authenticated;
+revoke all on sequence public.rm_audit_id_seq, public.rm_buys_id_seq from public, anon, authenticated;
 
 -- ---------------------------------------------------------------- helpers (not callable from the app)
 
@@ -131,17 +145,16 @@ create or replace function public._code_at(p_jwt jsonb) returns timestamptz lang
    where jsonb_typeof(e) = 'object' and e ->> 'method' = 'totp' and jsonb_typeof(e -> 'timestamp') = 'number'
 $$;
 
--- is this token's session still live? (signed out, or ended by the owner: no.) Where the session can't be looked up, the rest decides
+-- can the database look sessions up at all? (It can on Supabase; if it ever can't, no one is an admin: the check fails closed)
+create or replace function public._sessions_ok() returns boolean language sql stable set search_path = '' as $$
+  select case when to_regclass('auth.sessions') is null then false else has_table_privilege('auth.sessions', 'select') end
+$$;
+
+-- is this token's session still live? (signed out, or ended by the owner: no)
 create or replace function public._live(p_jwt jsonb) returns boolean language plpgsql stable set search_path = '' as $$
-declare sid uuid;
 begin
-  if coalesce(p_jwt ->> 'session_id', '') !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then return false; end if;
-  sid := (p_jwt ->> 'session_id')::uuid;
-  if to_regclass('auth.sessions') is null then return true; end if;
-  begin
-    return exists (select 1 from auth.sessions where id = sid);
-  exception when insufficient_privilege then return true;
-  end;
+  if coalesce(p_jwt ->> 'session_id', '') !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' or not public._sessions_ok() then return false; end if;
+  return exists (select 1 from auth.sessions where id = (p_jwt ->> 'session_id')::uuid);
 end $$;
 
 -- the calling admin's id, or "not an admin": listed in rm_admins, signed in with an authenticator code (aal2) entered in the last 12
@@ -216,15 +229,19 @@ declare
   evs jsonb := coalesce(p_ev, '[]'::jsonb);
   r public.rm_installs;
   acc jsonb := '{}'::jsonb;   -- what this call adds to the day's counters
+  cfg jsonb := coalesce((select v from public.rm_settings where k = 'stats'), '{}'::jsonb);
   fresh uuid; e jsonb; v_k text; v_s text; v_t text; v_i text; v_m text; v_on text; v_r text; v_n bigint; v_bit int;
   v_steps text[]; v_modes text[]; v_viewed text[]; v_vday date; v_sessions int := 0; v_matches int := 0; v_secs bigint;
 begin
   if p_iid is null or jsonb_typeof(evs) <> 'array' then return jsonb_build_object('ok', false, 'why', 'bad'); end if;
   if jsonb_array_length(evs) > 60 then return jsonb_build_object('ok', false, 'why', 'bad'); end if;
+  -- paused by the owner: taken (so the game doesn't send it again) and dropped
+  if cfg -> 'paused' = 'true'::jsonb then return jsonb_build_object('ok', true, 'v', public._prices_v(), 'paused', true); end if;
   select * into r from public.rm_installs where iid = p_iid for update;
   if r.iid is null then
-    -- a flood of new installs (someone faking them) is turned away: far more than the game could get
-    if (select count(*) from public.rm_installs where first_at > now() - interval '1 minute') >= 600 then
+    -- a flood of new installs (someone faking them) is turned away: far more than the game could get, a minute's and a day's worth
+    if (select count(*) from public.rm_installs where first_at > now() - interval '1 minute') >= coalesce(public._snum(cfg -> 'new_per_minute', 1, 100000), 300)
+       or coalesce((select n from public.rm_daily where day = today and k = 'new'), 0) >= coalesce(public._snum(cfg -> 'new_per_day', 1, 100000000), 20000) then
       return jsonb_build_object('ok', false, 'why', 'rate');
     end if;
     insert into public.rm_installs (iid) values (p_iid) on conflict (iid) do nothing returning iid into fresh;
@@ -288,7 +305,7 @@ begin
       acc := public._tally(acc, 'dabs_spent', v_n);
       acc := public._tally(acc, 'b:' || v_i, 1);
       acc := public._tally(acc, 'bd:' || v_i, v_n);
-      insert into public.rm_buys (iid, item, price) values (p_iid, v_i, v_n);
+      insert into public.rm_buys (iid, item, price) values (p_iid, v_i, v_n) on conflict (iid, item) do update set at = now(), price = excluded.price;
     elsif v_k = 'craft' then
       acc := public._tally(acc, 'craft:' || public._sid(e ->> 'i'), 1);
     elsif v_k = 'skip' then
@@ -355,7 +372,7 @@ begin
   listed := exists (select 1 from public.rm_admins where id = u);
   return jsonb_build_object('id', u, 'email', (select email from auth.users where id = u), 'aal', aal, 'listed', listed, 'code_at', c,
     'admin', listed and aal = 'aal2' and c is not null and c >= now() - interval '12 hours' and c <= now() + interval '5 minutes' and public._live(j),
-    'why', case when not listed then 'not_listed' when aal is distinct from 'aal2' or c is null then 'needs_code'
+    'why', case when not listed then 'not_listed' when not public._sessions_ok() then 'setup' when aal is distinct from 'aal2' or c is null then 'needs_code'
                 when c < now() - interval '12 hours' or c > now() + interval '5 minutes' or not public._live(j) then 'stale' end);
 end $$;
 
@@ -665,7 +682,8 @@ begin
 end $$;
 
 -- delete a player and everything of theirs, as the in-game Delete account does (rm_delete_me). p_confirm: their username (any
--- case), or their user id when they have none. Their install stats stay, no longer linked to them.
+-- case), or their user id when they have none. Their install stats stay, no longer linked to them; the audit log keeps what was
+-- done with their id, not their name.
 -- Answers { ok: true } or { ok: false, why: confirm | missing | admin | slow_down }
 create or replace function public.adm_delete_player(p_id uuid, p_confirm text)
 returns jsonb language plpgsql volatile security definer set search_path = '' as $$
@@ -678,9 +696,18 @@ begin
   if not public._rate(a, 'adm_delete', 30) then return jsonb_build_object('ok', false, 'why', 'slow_down'); end if;
   delete from public.rate_events where user_id = p_id;
   delete from auth.users where id = p_id;
-  perform public._audit(a, 'delete_player', p_id::text, jsonb_build_object('name', nm));
+  perform public._audit(a, 'delete_player', p_id::text, '{}'::jsonb); -- (not their name: deleted is deleted)
   return jsonb_build_object('ok', true);
 end $$;
+
+-- however a player is deleted (in the game, from the dashboard, or in Supabase's own dashboard), their name comes off the audit log
+create or replace function public._audit_forget() returns trigger language plpgsql security definer set search_path = '' as $$
+begin
+  update public.rm_audit set detail = detail - 'name' where target = old.id::text and detail ? 'name';
+  return old;
+end $$;
+drop trigger if exists rm_audit_forget on public.profiles;
+create trigger rm_audit_forget after delete on public.profiles for each row execute function public._audit_forget();
 
 create or replace function public.adm_audit(p_limit int default 100)
 returns jsonb language plpgsql stable security definer set search_path = '' as $$
@@ -692,7 +719,7 @@ end $$;
 
 -- ---------------------------------------------------------------- who may call what
 
-revoke all on function public._code_at(jsonb), public._live(jsonb), public._adm(), public._audit(uuid, text, text, jsonb), public._prices_v(), public._sid(text),
+revoke all on function public._code_at(jsonb), public._sessions_ok(), public._live(jsonb), public._audit_forget(), public._adm(), public._audit(uuid, text, text, jsonb), public._prices_v(), public._sid(text),
   public._snum(jsonb, numeric, numeric), public._tally(jsonb, text, bigint), public._tut_steps(), public._rank_of(bigint), public._days(int),
   public._end_sessions(uuid) from public, anon, authenticated;
 revoke all on function public.rm_track(uuid, jsonb, jsonb), public.rm_config() from public;

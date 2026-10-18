@@ -456,8 +456,9 @@ test('adm_delete_player: a typed confirmation, then everything of theirs goes; t
   const [i] = await q('select user_id, sessions from public.rm_installs where iid = $1', [iid]);
   assert.deepEqual([i.user_id, i.sessions], [null, 1]);
   assert.equal(await call(A.claims, 'adm_player', [p.id]), null);
-  const [log] = (await call(A.claims, 'adm_audit', [5])).filter(x => x.target === p.id);
-  assert.equal(log.action, 'delete_player'); assert.deepEqual(log.detail, { name: p.name });
+  const logs = (await call(A.claims, 'adm_audit', [20])).filter(x => x.target === p.id);
+  assert.equal(logs[0].action, 'delete_player'); assert.deepEqual(logs[0].detail, {});
+  assert.ok(!JSON.stringify(await q('select * from public.rm_audit where target = $1', [p.id])).includes(p.name)); // (deleted is deleted: their name is off the log)
   // a player with no username yet is confirmed with their id
   const n = await newUser();
   assert.deepEqual(await call(A.claims, 'adm_delete_player', [n, 'anything']), { ok: false, why: 'confirm' });
@@ -478,6 +479,36 @@ test('each admin can only do so much an hour', async () => {
   assert.deepEqual(await call(B.claims, 'adm_signout', [r.id]), { ok: false, why: 'slow_down' });
   assert.deepEqual(await call(B.claims, 'adm_set_price', ['tophat', 10]), { ok: false, why: 'slow_down' });
   await q('delete from public.rate_events where user_id = $1', [B.id]);
+});
+
+test('review fixes: buys stay one row per install and item; sequences closed; stats can be paused; a day\'s new installs capped', async () => {
+  const iid = uid();
+  await track(iid, {}, [{ k: 'buy', i: 'cape', p: 480 }, { k: 'buy', i: 'cape', p: 400 }]);
+  for (let i = 0; i < 3; i++) await track(iid, {}, Array.from({ length: 60 }, () => ({ k: 'buy', i: 'cape', p: 100 })));
+  const rows = await q('select price from public.rm_buys where iid = $1', [iid]);
+  assert.deepEqual(rows.map(r => r.price), [100]); // (182 buy events from one install: still one row)
+  for (const sq of ['public.rm_audit_id_seq', 'public.rm_buys_id_seq']) for (const role of ['anon', 'authenticated'])
+    assert.equal((await q('select has_sequence_privilege($1, $2, $3) ok', [role, sq, 'usage']))[0].ok, false, role + ' ' + sq);
+  await q(`update public.rm_settings set v = v || '{"paused": true}' where k = 'stats'`);
+  const before = (await q('select count(*)::int n from public.rm_installs'))[0].n, r = await track(uid(), {}, [{ k: 'open' }]);
+  assert.equal(r.ok, true); assert.equal(r.paused, true);
+  assert.equal((await q('select count(*)::int n from public.rm_installs'))[0].n, before); // (nothing recorded)
+  await q(`update public.rm_settings set v = v || '{"paused": false}' where k = 'stats'`);
+  const today = (await q("select coalesce(sum(n), 0)::int n from public.rm_daily where day = (now() at time zone 'utc')::date and k = 'new'"))[0].n;
+  await q(`update public.rm_settings set v = v || jsonb_build_object('new_per_day', $1::int) where k = 'stats'`, [Math.max(1, today)]);
+  if (today >= 1) assert.deepEqual(await track(uid(), {}, []), { ok: false, why: 'rate' });
+  assert.equal((await track(iid, {}, [])).ok, true); // (installs already known carry on)
+  await q(`update public.rm_settings set v = v || '{"new_per_day": 20000}' where k = 'stats'`);
+  assert.equal((await track(uid(), {}, [])).ok, true);
+});
+
+test('review fixes: no way to look sessions up means no admin (it fails closed), and the dashboard is told why', async () => {
+  await q('alter table auth.sessions rename to sessions_away');
+  try {
+    await rejects(call(A.claims, 'adm_prices'), /not an admin/);
+    assert.equal((await call(A.claims, 'adm_whoami')).why, 'setup');
+  } finally { await q('alter table auth.sessions_away rename to sessions'); }
+  assert.equal((await call(A.claims, 'adm_whoami')).admin, true);
 });
 
 test('adm_audit: newest first, a sane limit', async () => {
