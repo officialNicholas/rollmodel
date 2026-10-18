@@ -23,6 +23,9 @@ Every `adm_*` function except `adm_whoami` checks all three, then refuses with
 
 No admin function works on an admin's own account: resetting the password of, signing out or deleting anyone in `rm_admins` answers `why: "admin"`.
 
+Each admin can only do so much an hour: 30 deleted accounts, 60 password resets, 60 sign-outs and 300 price changes. Past that, the
+function answers `why: "slow_down"` and changes nothing.
+
 ## Signing in (dashboard to GoTrue)
 
 Every request carries the headers `apikey: <publishable key>` and `Content-Type: application/json`. Once signed in, it also carries `Authorization: Bearer <access_token>`.
@@ -156,7 +159,7 @@ Only the live overrides. Every other item uses its default from `catalog.json`.
 ### `adm_set_price(p_item text, p_price int)`
 - Sets the live price for one item, or clears the override when `p_price` is null.
 - `p_item` must match `^[a-z0-9_]{1,32}$`; `p_price` must be 0..100000.
-- Returns `{ "ok": true }` or `{ "ok": false, "why": "item" | "range" }`.
+- Returns `{ "ok": true }` or `{ "ok": false, "why": "item" | "range" | "slow_down" }`.
 - Writes an audit row.
 
 ### `adm_find(p_q text)`
@@ -191,18 +194,18 @@ Returns `null` when there's no such player.
 ### `adm_set_password(p_id uuid, p_password text)`
 - Sets a new password, then signs the player out everywhere.
 - The password must be 8..72 characters with at least one letter and one digit.
-- Returns `{ "ok": true }` or `{ "ok": false, "why": "weak" | "missing" | "anonymous" | "admin" }`. `anonymous` means the player has no account to sign in with.
+- Returns `{ "ok": true }` or `{ "ok": false, "why": "weak" | "missing" | "anonymous" | "admin" | "slow_down" }`. `anonymous` means the player has no account to sign in with.
 - Signing out ends every session at once; a device that's already in keeps working for up to an hour (until its token expires), then has to log in again.
 - Writes an audit row. The password itself is never stored or logged.
 
 ### `adm_signout(p_id uuid)`
-Signs the player out on every device. Returns `{ "ok": true, "sessions": 2 }`, or `{ "ok": false, "why": "missing" | "admin" }`. Writes an audit row.
+Signs the player out on every device. Returns `{ "ok": true, "sessions": 2 }`, or `{ "ok": false, "why": "missing" | "admin" | "slow_down" }`. Writes an audit row.
 
 ### `adm_delete_player(p_id uuid, p_confirm text)`
 - Deletes the player and everything of theirs, exactly as the in-game Delete account does.
 - `p_confirm` must equal their username, case-insensitive; it's a typed confirmation. A player with no username yet is confirmed with their user id.
 - Their install analytics stay, but are no longer linked to them.
-- Returns `{ "ok": true }` or `{ "ok": false, "why": "confirm" | "missing" | "admin" }`.
+- Returns `{ "ok": true }` or `{ "ok": false, "why": "confirm" | "missing" | "admin" | "slow_down" }`.
 - Writes an audit row with their name and id.
 
 ### `adm_audit(p_limit int = 100)`

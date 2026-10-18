@@ -18,6 +18,8 @@
 --   with their password and an authenticator-app code (the token's assurance level is aal2), with that code entered in the
 --   last 12 hours. Anyone else gets "not an admin".
 -- - The admin functions can't touch an admin's own account (no password reset, sign-out or delete of anyone in rm_admins).
+-- - Each admin can only do so much an hour (30 deleted accounts, 60 password resets, 60 sign-outs, 300 price changes), so even
+--   a stolen admin sign-in can only do limited harm before the owner takes it off the list.
 -- - As with the rest of the database, the tables have row level security on with no policies and are closed to the app's
 --   roles; everything goes through the functions.
 --
@@ -531,13 +533,14 @@ begin
             from public.rm_prices);
 end $$;
 
--- a live price for one item, or back to the game's own (p_price null). Answers { ok: true } or { ok: false, why: item | range }
+-- a live price for one item, or back to the game's own (p_price null). Answers { ok: true } or { ok: false, why: item | range | slow_down }
 create or replace function public.adm_set_price(p_item text, p_price int)
 returns jsonb language plpgsql volatile security definer set search_path = '' as $$
 declare a uuid := public._adm(); was int;
 begin
   if p_item is null or p_item !~ '^[a-z0-9_]{1,32}$' then return jsonb_build_object('ok', false, 'why', 'item'); end if;
   if p_price is not null and (p_price < 0 or p_price > 100000) then return jsonb_build_object('ok', false, 'why', 'range'); end if;
+  if not public._rate(a, 'adm_price', 300) then return jsonb_build_object('ok', false, 'why', 'slow_down'); end if;
   select price into was from public.rm_prices where item = p_item for update;
   if p_price is null then
     delete from public.rm_prices where item = p_item;
@@ -614,7 +617,7 @@ begin
 end $$;
 
 -- a new password for a player (8 to 72 characters, a letter and a digit), then signed out everywhere.
--- Answers { ok: true } or { ok: false, why: weak | missing | anonymous | admin }. The password is never kept or logged
+-- Answers { ok: true } or { ok: false, why: weak | missing | anonymous | admin | slow_down }. The password is never kept or logged
 create or replace function public.adm_set_password(p_id uuid, p_password text)
 returns jsonb language plpgsql volatile security definer set search_path = '' as $$
 declare a uuid := public._adm(); u record; nm text;
@@ -626,19 +629,21 @@ begin
   if p_password is null or char_length(p_password) < 8 or octet_length(p_password) > 72 or p_password !~ '[A-Za-z]' or p_password !~ '[0-9]' then
     return jsonb_build_object('ok', false, 'why', 'weak');
   end if;
+  if not public._rate(a, 'adm_password', 60) then return jsonb_build_object('ok', false, 'why', 'slow_down'); end if;
   update auth.users set encrypted_password = extensions.crypt(p_password, extensions.gen_salt('bf', 10)), updated_at = now() where id = p_id;
   select name into nm from public.profiles where id = p_id;
   perform public._audit(a, 'set_password', p_id::text, jsonb_build_object('name', nm, 'sessions', public._end_sessions(p_id)));
   return jsonb_build_object('ok', true);
 end $$;
 
--- sign a player out on every device: { ok: true, sessions } or { ok: false, why: missing | admin }
+-- sign a player out on every device: { ok: true, sessions } or { ok: false, why: missing | admin | slow_down }
 create or replace function public.adm_signout(p_id uuid)
 returns jsonb language plpgsql volatile security definer set search_path = '' as $$
 declare a uuid := public._adm(); n int;
 begin
   if not exists (select 1 from auth.users where id = p_id) then return jsonb_build_object('ok', false, 'why', 'missing'); end if;
   if exists (select 1 from public.rm_admins where id = p_id) then return jsonb_build_object('ok', false, 'why', 'admin'); end if;
+  if not public._rate(a, 'adm_signout', 60) then return jsonb_build_object('ok', false, 'why', 'slow_down'); end if;
   n := public._end_sessions(p_id);
   perform public._audit(a, 'signout', p_id::text, jsonb_build_object('name', (select name from public.profiles where id = p_id), 'sessions', n));
   return jsonb_build_object('ok', true, 'sessions', n);
@@ -646,7 +651,7 @@ end $$;
 
 -- delete a player and everything of theirs, as the in-game Delete account does (rm_delete_me). p_confirm: their username (any
 -- case), or their user id when they have none. Their install stats stay, no longer linked to them.
--- Answers { ok: true } or { ok: false, why: confirm | missing | admin }
+-- Answers { ok: true } or { ok: false, why: confirm | missing | admin | slow_down }
 create or replace function public.adm_delete_player(p_id uuid, p_confirm text)
 returns jsonb language plpgsql volatile security definer set search_path = '' as $$
 declare a uuid := public._adm(); nm text;
@@ -655,6 +660,7 @@ begin
   if exists (select 1 from public.rm_admins where id = p_id) then return jsonb_build_object('ok', false, 'why', 'admin'); end if;
   select name into nm from public.profiles where id = p_id;
   if lower(btrim(coalesce(p_confirm, ''))) is distinct from lower(coalesce(nm, p_id::text)) then return jsonb_build_object('ok', false, 'why', 'confirm'); end if;
+  if not public._rate(a, 'adm_delete', 30) then return jsonb_build_object('ok', false, 'why', 'slow_down'); end if;
   delete from public.rate_events where user_id = p_id;
   delete from auth.users where id = p_id;
   perform public._audit(a, 'delete_player', p_id::text, jsonb_build_object('name', nm));

@@ -453,6 +453,22 @@ test('adm_delete_player: a typed confirmation, then everything of theirs goes; t
   assert.deepEqual(await call(A.claims, 'adm_delete_player', [n, n.toUpperCase()]), { ok: true });
 });
 
+test('each admin can only do so much an hour', async () => {
+  const B = await newAdmin();
+  await q("insert into public.rate_events (user_id, kind, at) select $1, 'adm_delete', now() from generate_series(1, 30)", [B.id]);
+  const p = await newPlayer('Safe');
+  assert.deepEqual(await call(B.claims, 'adm_delete_player', [p.id, p.name]), { ok: false, why: 'slow_down' });
+  assert.equal((await q('select count(*)::int n from public.profiles where id = $1', [p.id]))[0].n, 1); // (still there)
+  assert.deepEqual(await call(A.claims, 'adm_delete_player', [p.id, p.name]), { ok: true }); // (another admin's hour is their own)
+  await q("insert into public.rate_events (user_id, kind, at) select $1, k, now() from (values ('adm_password'), ('adm_signout')) v(k), generate_series(1, 60)", [B.id]);
+  await q("insert into public.rate_events (user_id, kind, at) select $1, 'adm_price', now() from generate_series(1, 300)", [B.id]);
+  const r = await newPlayer('Safe2', { account: true });
+  assert.deepEqual(await call(B.claims, 'adm_set_password', [r.id, 'GoodPass99']), { ok: false, why: 'slow_down' });
+  assert.deepEqual(await call(B.claims, 'adm_signout', [r.id]), { ok: false, why: 'slow_down' });
+  assert.deepEqual(await call(B.claims, 'adm_set_price', ['tophat', 10]), { ok: false, why: 'slow_down' });
+  await q('delete from public.rate_events where user_id = $1', [B.id]);
+});
+
 test('adm_audit: newest first, a sane limit', async () => {
   for (let i = 0; i < 3; i++) await call(A.claims, 'adm_set_price', ['audit_probe', 100 + i]);
   const a = await call(A.claims, 'adm_audit', [3]);
