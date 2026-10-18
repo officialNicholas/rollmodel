@@ -7,7 +7,7 @@
                                           JavaScript, and for share previews); the fonts and the emails' pictures copied in; the checks
   python3 tools/site_build.py --images    also remakes the pictures that come from the game (needs Pillow): the logo, the canvases,
                                           the stroke icons, Ol' Bloop, the icons (from the app icon) and the share picture
-  python3 tools/site_build.py --dist DIR  and then copies what gets uploaded (all of site/ except dev/) to DIR
+  python3 tools/site_build.py --dist DIR  and then copies what gets uploaded (all of site/ except dev/ and README.md) to DIR
 
 Run it again whenever the game's terms, privacy policy or credits change. The checks fail the build on: an em dash, anything inline
 the Content-Security-Policy would block (scripts, styles, event handlers), a link or picture that points at nothing, a picture
@@ -340,7 +340,7 @@ def dist(out):
         if not os.path.isdir(out) or (os.listdir(out) and not all(os.path.exists(os.path.join(out, f)) for f in ('_headers', 'index.html', 'privacy.html'))):
             sys.exit('--dist: %s is already there and isn\'t an earlier copy of the site; pick a new or empty folder' % out)
         shutil.rmtree(out)
-    shutil.copytree(SITE, out, ignore=lambda d, names: [n for n in names if (d == SITE and n == 'dev') or n in ('.DS_Store', '__pycache__')])
+    shutil.copytree(SITE, out, ignore=lambda d, names: [n for n in names if (d == SITE and n in ('dev', 'README.md')) or n in ('.DS_Store', '__pycache__')])
     return out
 
 if __name__ == '__main__':
