@@ -1,7 +1,7 @@
 // Support: find a player (adm_find), look at them (adm_player), and help: reset their password, sign them out
 // everywhere, or delete their account. Every answer the server can give is a plain sentence (api.js WHY).
 
-import { h, card, table, empty, button, field, dialog, actionsRow, errorLine, toast, copyButton, chip, facts, icon, grid, note } from '../ui.js';
+import { h, card, table, empty, button, field, dialog, actionsRow, errorLine, toast, copyButton, chip, facts, icon, grid } from '../ui.js';
 import { num, dateTime, ago, friendCode, UUID, plural } from '../format.js';
 import { rpc, whyText } from '../api.js';
 import { stepName } from '../catalog.js';
@@ -153,7 +153,7 @@ function playerView(d, ctx) {
       { key: 'at', label: 'When', cell: (r) => h('span', { title: dateTime(r.at) }, ago(r.at)) },
       { key: 'admin', label: 'Who', cell: (r) => r.admin || 'n/a' },
       { key: 'action', label: 'What', cell: (r) => actionText(r.action) },
-      { key: 'detail', label: 'Details', cell: (r) => detailText({ ...r, target: r.target || p.id }) },
+      { key: 'detail', label: 'Details', cls: 'wrapcell', cell: (r) => detailText({ ...r, target: r.target || p.id }) },
     ], p.audit, { caption: 'Audit trail' }) : empty('Nothing yet', 'Password resets, sign-outs and other changes to this player show up here.', 'audit'));
 
   return [back, header, grid('two', account, profile), save, installs, trail];
@@ -185,13 +185,14 @@ function resetDialog(p, ctx) {
 
   const choose = (api) => {
     const err = errorLine();
-    const input = h('input', { type: 'text', autocomplete: 'off', spellcheck: 'false', autocapitalize: 'off', value: typed, class: 'mono', disabled: mode !== 'type' });
+    const input = h('input', { type: 'text', autocomplete: 'off', spellcheck: 'false', autocapitalize: 'off', value: typed, class: 'mono' });
     const problem = h('p', { class: 'hint', id: 'pw-problem', 'aria-live': 'polite' });
+    const typedBox = h('div', { class: 'form', hidden: mode !== 'type' }, field('Password to set', input), problem);
     const check = () => { typed = input.value; problem.textContent = typed ? passwordProblem(typed) || 'Looks good.' : '8 to 72 characters, with a letter and a digit.'; };
     input.addEventListener('input', () => { err.clear(); check(); });
     check();
     const radio = (value, label, sub) => h('label', { class: 'radio' },
-      h('input', { type: 'radio', name: 'pwmode', value, checked: mode === value, onchange: () => { mode = value; input.disabled = mode !== 'type'; if (mode === 'type') input.focus(); err.clear(); } }),
+      h('input', { type: 'radio', name: 'pwmode', value, checked: mode === value, onchange: () => { mode = value; typedBox.hidden = mode !== 'type'; if (mode === 'type') input.focus(); err.clear(); } }),
       h('span', null, h('b', null, label), h('small', null, sub)));
     return h('form', { class: 'form', novalidate: true, onsubmit: (e) => {
       e.preventDefault();
@@ -202,8 +203,7 @@ function resetDialog(p, ctx) {
     h('fieldset', { class: 'radios' }, h('legend', null, 'New password'),
       radio('make', 'Make a strong one for me', LENGTH + ' letters and digits, with no look-alikes like 0 and O'),
       radio('type', 'Type one', 'For example one the player asked for')),
-    field('Password to set', input),
-    problem,
+    typedBox,
     err.el,
     actionsRow(button('Cancel', { kind: 'ghost', onclick: () => api.close() }), button('Next', { kind: 'primary', type: 'submit' })));
   };

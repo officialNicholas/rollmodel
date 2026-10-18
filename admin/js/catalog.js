@@ -20,13 +20,15 @@ export const item = (id) => get('items', id);
 export const itemName = (id) => name('items', id);
 export const strokeName = (id) => name('strokes', id);
 export const modeName = (id) => name('modes', id);
-export const stageName = (id) => name('stages', id);
+export const stageName = (id) => (get('stages', id) ? name('stages', id) : cap(id));
 export const stepName = (id) => name('tutorial', id);
 export const adName = (id) => name('ads', id);
 export const tutorialIds = () => (C ? C.tutorial.map((t) => t.id) : []);
 
+const cap = (s) => (s ? String(s).charAt(0).toUpperCase() + String(s).slice(1) : 'Unknown');
+
 // CPU difficulties aren't in the catalog: "easy" -> "Easy"
-export const diffName = (d) => (d ? String(d).charAt(0).toUpperCase() + String(d).slice(1) : 'Unknown');
+export const diffName = (d) => cap(d);
 
 // Where dabs come from (adm_economy earn[].src)
 const EARN = { match: 'Matches', comm: 'Commissions', board: 'Friends board prize', lesson: 'Lesson bonus', gift: 'Gifts', other: 'Other' };

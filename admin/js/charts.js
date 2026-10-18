@@ -40,11 +40,16 @@ export function niceTicks(max, { count = 4, integer = true } = {}) {
 }
 
 // Re-draw at the real pixel width whenever the box changes size (so text never scales).
+// The plot box has a fixed height, and drawing waits for the next frame, so a redraw never resizes what's observed.
 function observe(el, draw) {
-  let w = 0;
+  let w = 0, raf = 0;
   const ro = new ResizeObserver((entries) => {
     const nw = Math.floor(entries[0].contentRect.width);
-    if (nw > 0 && nw !== w) { w = nw; draw(w); }
+    if (nw > 0 && nw !== w) {
+      w = nw;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => draw(w));
+    }
   });
   ro.observe(el);
 }
@@ -102,8 +107,10 @@ function interact(plot, n, show, hide) {
   return { redraw: () => { if (idx >= 0) show(idx); } };
 }
 
-function plotBox(label, hint) {
-  return h('div', { class: 'plot', tabindex: '0', role: 'group', 'aria-label': label + (hint ? '. ' + hint : '') });
+function plotBox(label, hint, height) {
+  const el = h('div', { class: 'plot', tabindex: '0', role: 'group', 'aria-label': label + (hint ? '. ' + hint : '') });
+  el.style.height = height + 34 + 'px'; // the plot, plus the x-axis band
+  return el;
 }
 
 // The y axis: gridlines, tick labels and the baseline. Returns the scale.
@@ -156,7 +163,7 @@ export function lineChart({ label, days, series, fmt = num, tick = compact, heig
   const useArea = area ?? series.length === 1;
   const all = series.flatMap((se) => se.values);
   const max = Math.max(0, ...all);
-  const plot = plotBox(label, 'Use the arrow keys to read each day');
+  const plot = plotBox(label, 'Use the arrow keys to read each day', height);
   const tip = h('div', { class: 'tip', hidden: true });
   const twin = dayTable(label, days, series, fmt);
   let geo = null;
@@ -171,14 +178,17 @@ export function lineChart({ label, days, series, fmt = num, tick = compact, heig
     const g = s('g'); svg.append(g);
     const y = yAxis(g, { ticks, left, right, top, base, fmt: tick });
     const x = (i) => (n === 1 ? (left + right) / 2 : left + (i * (right - left)) / (n - 1));
-    xLabels(g, pickLabels(n, right - left, 64), x, (i) => day(days[i]), { width, y: base + 17 });
+    xLabels(g, pickLabels(n, right - left, 64), x, (i) => (partial && i === n - 1 ? 'Today' : day(days[i])), { width, y: base + 17 });
     if (max === 0) emptyNote(g, (left + right), top, base, emptyText);
     else {
+      // today is still going: the solid line stops at yesterday and a dashed segment reaches today
+      const solid = partial && n > 1 ? n - 1 : n;
       series.forEach((se) => {
-        const pts = se.values.map((v, i) => [x(i), y(v ?? 0)]);
-        const d = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join('');
-        if (useArea) g.append(s('path', { d: d + `L${x(n - 1).toFixed(1)},${base}L${x(0).toFixed(1)},${base}Z`, class: 'ar c' + se.color }));
+        const pts = se.values.map((v, i) => [x(i).toFixed(1), y(v ?? 0).toFixed(1)]);
+        const d = pts.slice(0, solid).map((p, i) => (i ? 'L' : 'M') + p[0] + ',' + p[1]).join('');
+        if (useArea) g.append(s('path', { d: d + `L${pts[solid - 1][0]},${base}L${pts[0][0]},${base}Z`, class: 'ar c' + se.color }));
         g.append(s('path', { d, class: 'ln c' + se.color }));
+        if (solid < n) g.append(s('path', { d: `M${pts[n - 2][0]},${pts[n - 2][1]}L${pts[n - 1][0]},${pts[n - 1][1]}`, class: 'ln part c' + se.color }));
       });
       // end dots and selective end labels (dropped when they'd collide)
       const endY = series.map((se) => y(se.values[n - 1] ?? 0));
@@ -228,7 +238,7 @@ export function stackedDays({ label, days, series, fmt = num, tick = compact, he
   const n = days.length;
   const totals = days.map((_, i) => series.reduce((a, se) => a + (se.values[i] || 0), 0));
   const max = Math.max(0, ...totals);
-  const plot = plotBox(label, 'Use the arrow keys to read each day');
+  const plot = plotBox(label, 'Use the arrow keys to read each day', height);
   const tip = h('div', { class: 'tip', hidden: true });
   const twin = dayTable(label, days, [...series, { name: 'Total', values: totals }], fmt);
   const partial = n > 0 && days[n - 1] === todayUTC();
@@ -245,7 +255,7 @@ export function stackedDays({ label, days, series, fmt = num, tick = compact, he
     const hoverBand = s('rect', { class: 'hover-band', y: String(top), height: String(height), width: String(band), visibility: 'hidden' });
     g.append(hoverBand);
     const y = yAxis(g, { ticks, left, right, top, base, fmt: tick });
-    xLabels(g, pickLabels(n, right - left, 64), cx, (i) => day(days[i]), { width, y: base + 17 });
+    xLabels(g, pickLabels(n, right - left, 64), cx, (i) => (partial && i === n - 1 ? 'Today' : day(days[i])), { width, y: base + 17 });
     if (max === 0) emptyNote(g, left + right, top, base, emptyText);
     else {
       for (let i = 0; i < n; i++) {
@@ -257,9 +267,10 @@ export function stackedDays({ label, days, series, fmt = num, tick = compact, he
           const bottom = k === 0 ? y0 : y0 - GAP; // the 2px surface gap between segments
           if (bottom - y1 < 0.5) return;
           const x0 = cx(i) - bw / 2;
+          const cls = 'bar c' + sg.color + (partial && i === n - 1 ? ' part' : '');
           g.append(k === segs.length - 1
-            ? s('path', { d: colPath(x0, y1, bw, bottom), class: 'bar c' + sg.color })
-            : s('rect', { x: String(x0), y: String(y1), width: String(bw), height: String(bottom - y1), class: 'bar c' + sg.color }));
+            ? s('path', { d: colPath(x0, y1, bw, bottom), class: cls })
+            : s('rect', { x: String(x0), y: String(y1), width: String(bw), height: String(bottom - y1), class: cls }));
         });
       }
     }
@@ -292,13 +303,13 @@ export function stackedDays({ label, days, series, fmt = num, tick = compact, he
 
 // Columns per category. With `nested`, the first series is context (drawn in grey) and the second sits inside it,
 // e.g. all installs at a rank, and the ones active in the last 30 days.
-export function columnChart({ label, cats, series, fmt = num, tick = compact, height = 170, catName = (c) => String(c), minGap = 26, emptyText = 'Nothing here yet' }) {
+export function columnChart({ label, cats, catHead = 'Category', series, fmt = num, tick = compact, height = 170, catName = (c) => String(c), minGap = 26, emptyText = 'Nothing here yet' }) {
   const n = cats.length;
   const max = Math.max(0, ...series.flatMap((se) => se.values));
-  const plot = plotBox(label, 'Use the arrow keys to read each column');
+  const plot = plotBox(label, 'Use the arrow keys to read each column', height);
   const tip = h('div', { class: 'tip', hidden: true });
   const twin = h('div', null, table(
-    [{ key: 'c', label: 'Rank', cell: (r) => catName(r.c) }, ...series.map((se, k) => ({ key: 's' + k, label: se.name, num: true, cell: (r) => fmt(r.v[k]) }))],
+    [{ key: 'c', label: catHead, cell: (r) => catName(r.c) }, ...series.map((se, k) => ({ key: 's' + k, label: se.name, num: true, cell: (r) => fmt(r.v[k]) }))],
     cats.map((c, i) => ({ c, v: series.map((se) => se.values[i] || 0) })), { caption: label }));
   let geo = null;
 
@@ -394,7 +405,7 @@ export function shareBars(rows, { label = 'Shares', legendParts } = {}) {
         bar.append(seg);
       });
     } else bar.classList.add('none');
-    const words = total > 0 ? r.parts.map((p) => p.name + ' ' + Math.round((p.value / total) * 100) + '%').join(' · ') : r.emptyText || 'No results yet';
+    const words = total > 0 ? r.parts.filter((p) => p.value > 0).map((p) => p.name + ' ' + Math.round((p.value / total) * 100) + '%').join(' · ') : r.emptyText || 'No results yet';
     return h('li', { class: 'share' },
       h('div', { class: 'share-head' }, h('span', { class: 'share-label' }, r.label), h('span', { class: 'share-total' }, r.totalText ?? num(total))),
       bar,

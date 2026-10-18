@@ -1,7 +1,7 @@
 // Overview: who's playing now, daily/weekly/monthly actives, installs and accounts, sessions, retention,
 // and the daily charts over the chosen range.
 
-import { h, card, stat, grid, note, empty, icon } from '../ui.js';
+import { h, card, stat, grid, note, icon } from '../ui.js';
 import { lineChart, chartCard, meter } from '../charts.js';
 import { num, compact, pct, secs, hours, ratio, sum } from '../format.js';
 import { rpc } from '../api.js';
@@ -34,7 +34,8 @@ function view(o, ctx) {
 
   const r = o.retention || {};
   const ret = (n, share, cohort, from, to) => h('div', { class: 'ret' },
-    h('div', { class: 'ret-head' }, h('span', { class: 'ret-label' }, 'Day ' + n), h('span', { class: 'ret-value' }, share == null ? 'No cohort yet' : pct(share))),
+    h('div', { class: 'ret-head' }, h('span', { class: 'ret-label' }, 'Day ' + n),
+      share == null ? h('span', { class: 'ret-none' }, 'No cohort yet') : h('span', { class: 'ret-value' }, pct(share))),
     meter(share, { label: 'Day ' + n + ' retention: ' + (share == null ? 'no cohort yet' : pct(share)) }),
     h('p', { class: 'ret-sub' }, share == null
       ? 'Needs installs that started ' + from + ' to ' + to + ' days ago.'

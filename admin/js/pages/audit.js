@@ -66,7 +66,7 @@ function view(rows, ctx) {
         { key: 'at', label: 'When', cell: (r) => h('span', { title: dateTime(r.at) }, dateTime(r.at), h('small', { class: 'muted block' }, ago(r.at))) },
         { key: 'admin', label: 'Who', cell: (r) => r.admin || 'n/a' },
         { key: 'action', label: 'What', cell: (r) => actionText(r.action) },
-        { key: 'detail', label: 'Details', cell: targetCell },
+        { key: 'detail', label: 'Details', cls: 'wrapcell', cell: targetCell },
       ], list, { caption: 'Audit log', empty: 'No changes of this kind in the last ' + num(limit) + '.' })
       : empty('No changes yet', 'Price changes, password resets, sign-outs and deleted accounts show up here, with who did them and when.', 'audit'));
   };
@@ -76,7 +76,7 @@ function view(rows, ctx) {
     LIMITS.map((n) => h('option', { value: String(n), selected: n === limit }, 'Last ' + n)));
   draw();
   return card(null, { cls: 'audit' },
-    h('div', { class: 'toolbar' }, field('Show', kind), field('How many', count),
-      h('p', { class: 'toolbar-note' }, num(rows.length) + (rows.length === 1 ? ' entry' : ' entries'))),
+    rows.length ? h('div', { class: 'toolbar' }, field('Show', kind), field('How many', count),
+      h('p', { class: 'toolbar-note' }, num(rows.length) + (rows.length === 1 ? ' entry' : ' entries'))) : null,
     box);
 }

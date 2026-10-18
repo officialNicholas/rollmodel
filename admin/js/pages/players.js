@@ -1,7 +1,7 @@
 // Players: ranks (latest rank per install, all and active), the median rank, and the tutorial funnel in catalog
 // order with where people drop off and get stuck.
 
-import { h, card, stat, grid, note, empty, chip, icon } from '../ui.js';
+import { h, card, stat, note, empty, chip, icon } from '../ui.js';
 import { columnChart, chartCard } from '../charts.js';
 import { num, pct, sum } from '../format.js';
 import { rpc } from '../api.js';
@@ -37,7 +37,7 @@ function view(p) {
   const rankCard = ranks.length
     ? chartCard('Ranks', 'Installs by their latest rank. Grey is every install, the colour is those seen in the last 30 days.',
       columnChart({
-        label: 'Installs by rank', cats, catName: rankName,
+        label: 'Installs by rank', cats, catHead: 'Rank', catName: rankName,
         series: [
           { name: 'All installs', values: cats.map((c) => (by.get(c) || {}).players || 0), color: 'x' },
           { name: 'Seen in 30 days', values: cats.map((c) => (by.get(c) || {}).active || 0), color: 1 },
@@ -77,9 +77,9 @@ function funnel(rows, first, donePct) {
       h('td', { class: 'muted num-left' }, String(i + 1)),
       h('th', { scope: 'row', class: 'step' }, r.name, r.known ? null : chip('Not in the catalog', 'warn'),
         bigSet.has(r.step) ? chip('Big drop', 'alert') : null),
-      h('td', { class: 'num reached' }, h('span', { class: 'fbar', 'aria-hidden': 'true' }, bar), h('span', null, num(r.reached))),
-      h('td', { class: 'num' }, first ? pct(share) : 'n/a'),
-      h('td', { class: 'num' }, !d || !r.known ? '' : d.lost > 0 ? num(d.lost) + ' (' + pct(d.rate) + ')' : d.lost < 0 ? 'None (+' + num(-d.lost) + ')' : 'None'),
+      h('td', { class: 'num reached' }, h('span', { class: 'fbar', 'aria-hidden': 'true' }, bar), h('span', { class: 'fnum' }, num(r.reached))),
+      h('td', { class: 'num' }, first ? pct(share) : ''),
+      h('td', { class: 'num' }, !first || !d || !r.known ? '' : d.lost > 0 ? num(d.lost) + ' (' + pct(d.rate) + ')' : d.lost < 0 ? 'None (+' + num(-d.lost) + ')' : 'None'),
       h('td', { class: 'num' + (r.stuck && r.stuck === stuckTop ? ' strong' : '') }, r.stuck ? num(r.stuck) : '0'));
   });
 

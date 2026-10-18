@@ -7,6 +7,14 @@ import { rpc } from '../api.js';
 
 export const NOT_ADMIN = "This account isn't an admin.";
 export const STALE = 'Your sign-in is over 12 hours old. Sign in again.';
+export const SETUP = "The database isn't set up for admin sign-in yet. See admin/README.md.";
+export const ENDED = 'Your session ended. Sign in again.';
+
+// why "stale" means the code is over 12 hours old, or the session was ended (signed out elsewhere, or by the owner).
+export function staleText(who) {
+  const at = who && who.code_at ? Date.parse(who.code_at) : NaN;
+  return Number.isFinite(at) && Date.now() - at < 12 * 3600 * 1000 ? ENDED : STALE;
+}
 
 // The page frame shared by every step.
 function frame(root, title, lede, message, ...body) {
@@ -55,13 +63,18 @@ export async function decide(root, opts, tries = 0) {
   try {
     who = await rpc('adm_whoami');
   } catch (e) {
+    if (e.kind === 'auth' || !auth.session()) { // the session is gone: start again
+      await auth.signOut();
+      return showSignIn(root, { ...opts, message: ENDED });
+    }
     return retryStep(root, opts, e.message || "Couldn't check your account.", () => decide(root, opts));
   }
   if (who && who.admin === true) return opts.onAdmin(who);
   const why = who && who.why;
   if (why === 'needs_code' && tries < 1 && auth.aal() !== 'aal2') return factorStep(root, opts);
   await auth.signOut();
-  if (why === 'stale') return showSignIn(root, { ...opts, message: STALE });
+  if (why === 'stale') return showSignIn(root, { ...opts, message: staleText(who) });
+  if (why === 'setup') return showSignIn(root, { ...opts, message: SETUP });
   if (why === 'needs_code') return showSignIn(root, { ...opts, message: "The authenticator code didn't stick. Sign in again." });
   return showSignIn(root, { ...opts, message: NOT_ADMIN });
 }
@@ -136,9 +149,8 @@ async function enrolStep(root, opts) {
 
 // Step 3b: an authenticator is set up: ask for a code.
 function codeStep(root, opts, factorId) {
-  const h1 = frame(root, 'Enter your code', 'Open your authenticator app and enter the code for Roll Model admin.', null,
+  frame(root, 'Enter your code', 'Open your authenticator app and enter the code for Roll Model admin.', null,
     codeForm(root, opts, factorId, '6-digit code'));
-  h1.focus();
   const input = root.querySelector('.code-input');
   if (input) input.focus();
 }

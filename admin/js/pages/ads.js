@@ -1,6 +1,6 @@
 // Ads: the rewarded ads per placement (asked, shown, rewarded, failed, fill and completion), and per day.
 
-import { h, card, stat, table, empty, note } from '../ui.js';
+import { h, card, stat, table, empty, note, rate } from '../ui.js';
 import { lineChart, chartCard } from '../charts.js';
 import { num, pct, ratio, sum } from '../format.js';
 import { rpc } from '../api.js';
@@ -35,8 +35,8 @@ function view(a, ctx) {
       { key: 'shown', label: 'Shown', num: true, sort: (r) => r.shown, cell: (r) => num(r.shown) },
       { key: 'rewarded', label: 'Rewarded', num: true, sort: (r) => r.rewarded, cell: (r) => num(r.rewarded) },
       { key: 'failed', label: 'Failed', num: true, sort: (r) => r.failed, cell: (r) => num(r.failed) },
-      { key: 'fill', label: 'Fill rate', num: true, sort: (r) => ratio(r.shown, r.asked), cell: (r) => pct(ratio(r.shown, r.asked)) },
-      { key: 'done', label: 'Completion', num: true, sort: (r) => ratio(r.rewarded, r.shown), cell: (r) => pct(ratio(r.rewarded, r.shown)) },
+      { key: 'fill', label: 'Fill rate', num: true, sort: (r) => ratio(r.shown, r.asked), cell: (r) => rate(ratio(r.shown, r.asked)) },
+      { key: 'done', label: 'Completion', num: true, sort: (r) => ratio(r.rewarded, r.shown), cell: (r) => rate(ratio(r.rewarded, r.shown)) },
     ], rows, { caption: 'Ads per placement' }),
     asked ? null : empty('No ads yet', 'Rewarded ads only run in the iPhone app. They show up here once players watch them.'));
 

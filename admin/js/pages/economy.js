@@ -1,7 +1,7 @@
 // Economy: every Paint Shop item with its price (live or default), views, buys and conversion; the price editor;
 // the live prices and who set them; dabs earned against spent; balances; Strokes crafts and ad skips; where dabs come from.
 
-import { h, card, stat, grid, table, empty, note, chip, button, field, dialog, actionsRow, errorLine, toast, facts } from '../ui.js';
+import { h, card, stat, grid, table, empty, note, chip, button, field, dialog, actionsRow, errorLine, toast, facts, rate } from '../ui.js';
 import { lineChart, chartCard, hbars, legend } from '../charts.js';
 import { num, pct, ratio, sum, ago, dateTime, dabs } from '../format.js';
 import { rpc, whyText } from '../api.js';
@@ -43,9 +43,9 @@ function view({ e, prices }, ctx) {
 
   const kpis = h('div', { class: 'tiles' },
     stat('Dabs earned', num(t.dabs_earned), { sub: span }),
-    stat('Dabs spent', num(t.dabs_spent), { sub: pct(ratio(t.dabs_spent, t.dabs_earned)) + ' of what was earned' }),
+    stat('Dabs spent', num(t.dabs_spent), { sub: t.dabs_earned ? pct(ratio(t.dabs_spent, t.dabs_earned)) + ' of what was earned' : 'Nothing earned yet' }),
     stat('Items bought', num(t.buys), { sub: span }),
-    stat('Median balance', t.median_balance == null ? 'n/a' : num(t.median_balance), { sub: 'Dabs held by installs active in 7 days' }));
+    stat('Median balance', t.median_balance == null ? 'n/a' : num(t.median_balance), { sub: t.median_balance == null ? 'No installs active in 7 days' : 'Dabs held by installs active in 7 days' }));
 
   const editCell = (r) => {
     if (r.gift) return h('span', { class: 'muted small' }, "Can't be priced");
@@ -64,13 +64,13 @@ function view({ e, prices }, ctx) {
         : h('span', { class: 'price', title: r.def != null ? 'Default ' + num(r.def) : null }, r.price == null ? 'n/a' : num(r.price),
           r.live != null ? chip('Live', 'live') : chip('Default', 'muted'))) },
       { key: 'views', label: 'Views', num: true, sort: (r) => r.views, cell: (r) => num(r.views) },
-      { key: 'afford', label: 'Could buy', num: true, sort: (r) => ratio(r.afford, r.views), cell: (r) => pct(ratio(r.afford, r.views)) },
+      { key: 'afford', label: 'Could buy', num: true, sort: (r) => ratio(r.afford, r.views), cell: (r) => rate(ratio(r.afford, r.views)) },
       { key: 'buys', label: 'Buys', num: true, sort: (r) => r.buys, cell: (r) => num(r.buys) },
-      { key: 'conv', label: 'Buys per view', num: true, sort: (r) => ratio(r.buys, r.views), cell: (r) => pct(ratio(r.buys, r.views)) },
+      { key: 'conv', label: 'Buys per view', num: true, sort: (r) => ratio(r.buys, r.views), cell: (r) => rate(ratio(r.buys, r.views)) },
       { key: 'buyers7', label: 'Buyers in 7 days', num: true, sort: (r) => r.buyers7, cell: (r) => num(r.buyers7) },
       { key: 'dabs', label: 'Dabs', num: true, sort: (r) => r.dabs, cell: (r) => num(r.dabs) },
       { key: 'last', label: 'Last bought', sort: (r) => (r.last ? Date.parse(r.last) : 0), cell: (r) => (r.last ? h('span', { title: dateTime(r.last) }, ago(r.last)) : h('span', { class: 'muted' }, 'Never')) },
-      { key: 'edit', label: 'Price', cls: 'act', cell: editCell },
+      { key: 'edit', label: 'Change the price', hideLabel: true, cls: 'act', cell: editCell },
     ], rows, { caption: 'Paint Shop items', cls: 'items-table' }),
     note('Could buy: the share of views where the player could have bought it right then (in stock and enough dabs). ',
       h('b', null, 'Find first'), ' items have to be found on their canvas before they can be bought. Gifts are free and can\'t be priced.'));
@@ -83,7 +83,7 @@ function view({ e, prices }, ctx) {
       { key: 'chg', label: 'Change', num: true, cell: (p) => change(catItem(p.item) ? catItem(p.item).price : null, p.price) },
       { key: 'at', label: 'Set', sort: (p) => Date.parse(p.updated_at) || 0, cell: (p) => h('span', { title: dateTime(p.updated_at) }, ago(p.updated_at)) },
       { key: 'by', label: 'By', sort: (p) => p.updated_by || '', cell: (p) => p.updated_by || 'n/a' },
-      { key: 'clear', label: 'Default', cls: 'act', cell: (p) => {
+      { key: 'clear', label: 'Go back to the default', hideLabel: true, cls: 'act', cell: (p) => {
         const r = rows.find((x) => x.id === p.item);
         return r && r.known && !r.gift ? button('Use default', { kind: 'ghost small', attrs: { 'aria-label': 'Use the default price of ' + r.name },
           onclick: () => priceDialog({ row: r, onDone: reload, clear: true }) }) : null;

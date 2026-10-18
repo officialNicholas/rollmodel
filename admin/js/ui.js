@@ -1,6 +1,8 @@
 // Building the page. Everything goes through h() and textContent: nothing from the server is ever parsed as HTML.
 // The Content-Security-Policy forbids inline styles, so h() sets styles through the CSSOM (el.style), never an attribute.
 
+import { pct } from './format.js';
+
 const SVG = 'http://www.w3.org/2000/svg';
 const PROPS = new Set(['value', 'checked', 'disabled', 'hidden', 'readOnly', 'required', 'selected', 'open', 'multiple']);
 
@@ -46,6 +48,9 @@ export function s(tag, props, ...kids) {
 }
 
 export const $ = (sel, root = document) => root.querySelector(sel);
+
+// A share for a table cell, or a quiet "n/a" when there's nothing to divide by.
+export const rate = (x) => (x == null ? h('span', { class: 'muted' }, 'n/a') : pct(x));
 export const mount = (el, ...kids) => { el.replaceChildren(); add(el, kids); return el; };
 
 // ---------------------------------------------------------------- messages
@@ -129,7 +134,8 @@ export function field(label, input, hint) {
   return h('div', { class: 'field' }, h('label', { for: id }, label), input, hintEl);
 }
 
-export function card(title, { sub, actions, cls = '', id, level = 'h2' } = {}, ...body) {
+export function card(title, opts, ...body) {
+  const { sub, actions, cls = '', id, level = 'h2' } = opts || {};
   return h('section', { class: 'card ' + cls, id },
     title || actions ? h('header', { class: 'card-head' },
       h('div', { class: 'card-titles' }, title ? h(level, { class: 'card-title' }, title) : null, sub ? h('p', { class: 'card-sub' }, sub) : null),
@@ -197,7 +203,8 @@ export function table(cols, rows, { empty: emptyMsg = 'Nothing here yet.', sort,
     if (c.sort) {
       th.append(h('button', { type: 'button', class: 'th-sort', onclick: () => { dir = by === c.key && dir === 'desc' ? 'asc' : 'desc'; by = c.key; draw(); } },
         h('span', null, c.label), h('span', { class: 'th-arrow', 'aria-hidden': 'true' })));
-    } else th.textContent = c.label;
+    } else if (c.hideLabel) th.append(h('span', { class: 'sr-only' }, c.label));
+    else th.textContent = c.label;
     return th;
   });
   function draw() {

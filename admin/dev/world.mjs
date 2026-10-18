@@ -86,8 +86,12 @@ export const ADMIN_IDS = { 'admin@example.com': 'a0000000-0000-4000-8000-0000000
 
 // ---------------------------------------------------------------- the world
 
+// A seed for one part of the world (a day's count, one install, the profiles), so that what happens today, which
+// depends on the time of day, can't shift the random draws of anything else.
+const mix = (...xs) => xs.reduce((h, x) => Math.imul(h ^ (x >>> 0), 2654435761) >>> 0, 2166136261);
+
 export function makeWorld({ empty = false, iap = false, now = Date.now(), seed = 354 } = {}) {
-  const r = rng(seed);
+  let r = rng(seed);
   const N = DAYS;
   const todayStart = Math.floor(now / MS_DAY) * MS_DAY;
   const elapsed = Math.max(60000, now - todayStart);
@@ -130,8 +134,12 @@ export function makeWorld({ empty = false, iap = false, now = Date.now(), seed =
   for (let d0 = 0; d0 < N; d0++) {
     const dow = new Date(dayStart(d0)).getUTCDay();
     const base = 9 + 44 * (1 - Math.exp(-d0 / 55)) + 110 * Math.exp(-(((d0 - (N - 46)) / 4) ** 2));
+    r = rng(mix(seed, d0, 0xC0FFEE));
     const count = poisson(r, base * (dow === 0 || dow === 6 ? 1.3 : 1) * (d0 === N - 1 ? todayFrac : 1));
-    for (let k = 0; k < count; k++) simulate(d0);
+    for (let k = 0; k < count; k++) {
+      r = rng(mix(seed, d0, k)); // each install has its own stream
+      simulate(d0);
+    }
   }
 
   function earn(ins, d, src, n) {
@@ -297,6 +305,7 @@ export function makeWorld({ empty = false, iap = false, now = Date.now(), seed =
 
   // ---------------------------------------------------------------- players with a profile
 
+  r = rng(mix(seed, 0xACC0));
   const nameFor = () => {
     for (;;) {
       const n = NAME_A[Math.floor(r() * NAME_A.length)] + NAME_B[Math.floor(r() * NAME_B.length)] +

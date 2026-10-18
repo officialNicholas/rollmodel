@@ -7,7 +7,7 @@ import { loadCatalog } from './catalog.js';
 import { watchIdle } from './idle.js';
 import { clock, dateTime } from './format.js';
 import { DEV } from './config.js';
-import { showSignIn, decide, NOT_ADMIN, STALE } from './pages/signin.js';
+import { showSignIn, decide, staleText, NOT_ADMIN, STALE, SETUP } from './pages/signin.js';
 import overview from './pages/overview.js';
 import players from './pages/players.js';
 import modes from './pages/modes.js';
@@ -47,7 +47,11 @@ boot();
 
 async function boot() {
   window.addEventListener('unhandledrejection', (e) => { console.error('Unhandled:', e.reason && e.reason.message); toast('Something went wrong. Try again.', 'error'); });
-  window.addEventListener('error', (e) => { console.error('Error:', e.message); toast('Something went wrong. Reload the page.', 'error'); });
+  window.addEventListener('error', (e) => {
+    if (/ResizeObserver loop/.test(e.message || '')) return; // a harmless browser notice, not an error
+    console.error('Error:', e.message);
+    toast('Something went wrong. Reload the page.', 'error');
+  });
   try {
     await loadCatalog();
   } catch (e) {
@@ -116,7 +120,7 @@ function buildShell() {
   const body = h('div', { class: 'pagebody' });
   const main = h('main', { id: 'main', class: 'main', tabindex: '-1' }, head, body);
   const skip = h('button', { type: 'button', class: 'skip', onclick: () => main.focus() }, 'Skip to content');
-  const shell = h('div', { class: 'shell' }, skip, topbar, side, h('div', { class: 'scrim', onclick: () => setMenu(false) }), main);
+  const shell = h('div', { class: 'shell' }, skip, topbar, h('div', { class: 'side-col' }, side), h('div', { class: 'scrim', onclick: () => setMenu(false) }), main);
   shell.addEventListener('keydown', (e) => { if (e.key === 'Escape' && shell.classList.contains('menu-open')) { setMenu(false); menu.focus(); } });
   mount(app, shell);
   ui = { shell, side, menu, links, head, body, main };
@@ -141,13 +145,16 @@ function parse() {
   return { id: id || 'overview', arg: rest.join('/'), q: new URLSearchParams(i < 0 ? '' : raw.slice(i + 1)), raw };
 }
 
-function route() {
+// e is the hashchange event; the first page after signing in leaves focus at the top, so Tab reaches "Skip to content".
+function route(e) {
   if (!me || !ui) return;
   const r = parse();
   const page = PAGES.find((p) => p.id === r.id) || PAGES[0];
   ui.links.forEach((a) => (a.dataset.page === page.id ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')));
+  const menuWasOpen = ui.shell.classList.contains('menu-open');
   setMenu(false);
-  render(page, r, { focus: 'h1' }); // move focus to the new page's heading, for keyboards and screen readers
+  // later pages: focus moves to the new heading, for keyboards and screen readers
+  render(page, r, { focus: e || menuWasOpen ? 'h1' : null });
 }
 
 async function render(page, r, { keep = false, focus = null } = {}) {
@@ -203,14 +210,18 @@ async function denied() {
   let msg = "You're not allowed to do that any more. Sign in again.";
   try {
     const who = await rpc('adm_whoami');
-    if (who && who.why === 'stale') msg = STALE;
+    if (who && who.why === 'stale') msg = staleText(who);
     else if (who && who.why === 'not_listed') msg = NOT_ADMIN;
     else if (who && who.why === 'needs_code') msg = 'Your sign-in needs your authenticator code again. Sign in again.';
+    else if (who && who.why === 'setup') msg = SETUP;
   } catch { /* keep the general message */ }
   signedOut(msg);
 }
 
+let signingOut = false;
 async function signedOut(message, tone = 'error') {
+  if (signingOut) return; // one reason is enough
+  signingOut = true;
   leaving = true;
   navSeq++;
   if (idle) { idle.stop(); idle = null; }
@@ -219,7 +230,9 @@ async function signedOut(message, tone = 'error') {
   document.querySelectorAll('dialog').forEach((d) => d.close());
   me = null;
   ui = null;
-  await auth.signOut();
+  days = 30;
+  try { sessionStorage.removeItem(DAYS_KEY); } catch { /* fine */ }
+  try { await auth.signOut(); } finally { signingOut = false; }
   showSignIn(app, { onAdmin: enter, message, tone });
 }
 

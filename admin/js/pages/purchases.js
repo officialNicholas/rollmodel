@@ -35,7 +35,7 @@ function view(d, ctx) {
       stat('Purchases', num(buys), { sub: span }),
       stat('Revenue', usd(revenue), { sub: 'What players paid, as the game reports it' }),
       stat('Average purchase', buys ? usd(revenue / buys) : 'n/a', { sub: 'Revenue per purchase' }),
-      stat('Products sold', num(products.filter((p) => p.buys > 0).length), { sub: 'Of ' + num(products.length) + ' with any sales' })),
+      stat('Best seller', products[0] ? products[0].product : 'n/a', { sub: products[0] && revenue ? Math.round((products[0].revenue_cents / revenue) * 100) + '% of revenue' : 'No sales' })),
     grid('two',
       chartCard('Revenue per day', usd(revenue) + ' ' + span, lineChart({
         label: 'Revenue per day', days: days.map((x) => x.day), integer: false,

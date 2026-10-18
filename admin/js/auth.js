@@ -171,7 +171,9 @@ export function refresh() {
 function schedule(retryMs) {
   clearTimeout(timer);
   if (!S) return;
-  const ms = retryMs ?? S.expires_at * 1000 - 60000 - Date.now();
+  const left = S.expires_at * 1000 - Date.now();
+  // a minute before it expires; a token with less than that to live is refreshed halfway, never in a tight loop
+  const ms = retryMs ?? (left > 60000 ? left - 60000 : left / 2);
   timer = setTimeout(() => { refresh().catch(() => {}); }, Math.max(0, ms));
 }
 

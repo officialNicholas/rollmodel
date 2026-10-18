@@ -14,6 +14,7 @@
 //   stale@example.com / correct-horse-9    an admin whose code counts as over 12 hours old
 //   player@example.com / player-pass-1     a player, not an admin
 //   dusk@example.com / dusk-pass-123       another non-admin (the player Dusk's account)
+// MOCK_SETUP=1 plays a database that isn't set up for admin sign-in (adm_whoami answers why "setup").
 // Test-only controls: GET /__mock/state, POST /__mock/reset {dataset, iap}, POST /__mock/config {...} (see control()).
 
 import http from 'node:http';
@@ -21,7 +22,7 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join, normalize, sep, extname } from 'node:path';
 import { randomBytes, randomUUID } from 'node:crypto';
-import { makeWorld, overview, modes, progress, economy, ads, iapData, CATALOG, ADMIN_IDS, SEEDED_PRICES } from './world.mjs';
+import { makeWorld, overview, modes, progress, economy, ads, iapData, ADMIN_IDS, SEEDED_PRICES } from './world.mjs';
 
 const ROOT = normalize(join(dirname(fileURLToPath(import.meta.url)), '..'));
 const KEY = 'sb_publishable_mock_dev_only';
@@ -92,7 +93,7 @@ export function reset({ dataset = process.env.MOCK === 'empty' ? 'empty' : 'full
     prices: new Map(), audit: [],
     sessions: new Map(), refresh: new Map(), factors: new Map(), challenges: new Map(),
     counts: { passwordGrants: 0, refreshes: 0, logouts: 0, verifies: 0, enrolls: 0, rpc: 0 },
-    used: new Map(), limits: { ...DEFAULT_LIMITS }, unlisted: new Set(), fail: new Map(), codeAge: new Map(),
+    used: new Map(), limits: { ...DEFAULT_LIMITS }, unlisted: new Set(), fail: new Map(), codeAge: new Map(), setup: process.env.MOCK_SETUP === '1',
     tokenSecs: Number(process.env.MOCK_TOKEN_SECS) || 3600,
     delay: Number(process.env.MOCK_DELAY) || 0,
   };
@@ -111,7 +112,7 @@ export function reset({ dataset = process.env.MOCK === 'empty' ? 'empty' : 'full
       { at: ago(26), admin: 'owner@example.com', action: 'set_password', target: other.id, detail: { name: other.name } },
       { at: ago(49), admin: 'admin@example.com', action: 'set_price', target: 'tophat', detail: { from: null, to: SEEDED_PRICES.tophat } },
       { at: ago(75), admin: 'owner@example.com', action: 'set_price', target: 'cape', detail: { from: null, to: SEEDED_PRICES.cape } },
-      { at: ago(122), admin: 'owner@example.com', action: 'delete_player', target: 'c3e1a7d2-5b4f-4e8a-9c61-2f7b8d9e0a13', detail: { name: 'Splotch_9', id: 'c3e1a7d2-5b4f-4e8a-9c61-2f7b8d9e0a13' } },
+      { at: ago(122), admin: 'owner@example.com', action: 'delete_player', target: 'c3e1a7d2-5b4f-4e8a-9c61-2f7b8d9e0a13', detail: { id: 'c3e1a7d2-5b4f-4e8a-9c61-2f7b8d9e0a13' } },
       { at: ago(150), admin: 'owner@example.com', action: 'set_password', target: dusk.id, detail: { name: 'Dusk' } },
     );
   }
@@ -179,16 +180,19 @@ function userObject(a) {
   return u;
 }
 
-// The session behind a request's Bearer token, or null.
+// The session behind a request's Bearer token: null without one, 'bad' or 'expired' for a token PostgREST would
+// refuse. A token whose session has ended (signed out, or ended by the owner) is still a valid JWT until it expires:
+// it gets a stand-in session marked ended, so whoami can say "stale" and the admin functions can refuse it (rule 4).
 function sessionOf(req) {
   const m = /^Bearer (.+)$/.exec(req.headers.authorization || '');
   if (!m) return null;
   const parts = m[1].split('.');
   let p = null;
   try { p = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8')); } catch { return 'bad'; }
-  if (!p || !p.exp || p.exp < nowSec()) return 'expired';
+  if (!p || !p.exp || p.exp < nowSec() || !account(p.sub)) return p && p.exp < nowSec() ? 'expired' : 'bad';
   const sess = S.sessions.get(p.session_id);
-  return sess && sess.userId === p.sub ? sess : 'bad';
+  if (sess && sess.userId === p.sub) return sess;
+  return { id: p.session_id, userId: p.sub, aal: p.aal, amr: p.amr || [], ended: true };
 }
 
 function codeAt(sess) {
@@ -247,6 +251,7 @@ async function gotrue(req, res, path, url) {
   if (!sess || typeof sess === 'string') {
     return gotrueError(res, 401, 'bad_jwt', 'invalid JWT: unable to parse or verify signature, token is ' + (sess === 'expired' ? 'expired' : 'invalid'));
   }
+  if (sess.ended) return gotrueError(res, 403, 'session_not_found', 'Session from session_id claim in JWT does not exist');
   const a = account(sess.userId);
   const list = S.factors.get(a.id);
 
@@ -309,10 +314,13 @@ async function gotrue(req, res, path, url) {
 
 function whoami(sess) {
   const a = account(sess.userId);
+  const at0 = codeAt(sess);
+  // the owner hasn't finished setting the database up: it can't look sign-ins up, so no one is an admin
+  if (S.setup) return { id: a.id, email: a.email, aal: sess.aal, listed: false, admin: false, why: 'setup', code_at: at0 == null ? null : iso(at0) };
   const listed = a.listed && !S.unlisted.has(a.email);
   const at = codeAt(sess);
   const stale = at != null && Date.now() - at > 12 * HOUR;
-  const why = !listed ? 'not_listed' : sess.aal !== 'aal2' || at == null ? 'needs_code' : stale ? 'stale' : null;
+  const why = !listed ? 'not_listed' : sess.aal !== 'aal2' || at == null ? 'needs_code' : stale || sess.ended ? 'stale' : null;
   return { id: a.id, email: a.email, aal: sess.aal, listed, admin: why === null, why, code_at: at == null ? null : iso(at) };
 }
 
@@ -332,9 +340,11 @@ function audit(email, action, target, detail) {
 
 const isInt = (v) => Number.isInteger(v);
 const player = (id) => S.world.players.find((p) => p.id === id) || null;
+// what adm_player answers: the player without the mock's own bookkeeping, plus their audit trail
 const publicPlayer = (p) => {
-  const { sessions, ...rest } = p;
-  return { ...rest, audit: S.audit.filter((r) => r.target === p.id).map(({ target, ...r }) => r) };
+  const out = { ...p, audit: S.audit.filter((r) => r.target === p.id).map((r) => ({ at: r.at, admin: r.admin, action: r.action, detail: r.detail })) };
+  delete out.sessions;
+  return out;
 };
 
 async function rpc(req, res, fn) {
@@ -431,7 +441,9 @@ async function rpc(req, res, fn) {
       if (String(body.p_confirm ?? '').trim().toLowerCase() !== want) return json(res, 200, { ok: false, why: 'confirm' });
       if (!allowed(who.email, 'delete_player')) return json(res, 200, { ok: false, why: 'slow_down' });
       w.players.splice(w.players.indexOf(p), 1);
-      audit(who.email, 'delete_player', p.id, { name: p.name, id: p.id });
+      // their name comes off the audit log, in this row and every earlier one about them
+      for (const row of S.audit) if (row.target === p.id && row.detail && 'name' in row.detail) delete row.detail.name;
+      audit(who.email, 'delete_player', p.id, { id: p.id });
       return json(res, 200, { ok: true });
     }
     case 'adm_audit': {
@@ -459,6 +471,10 @@ async function control(req, res, path) {
     if (body.delay != null) S.delay = Number(body.delay);
     if (body.unlist) S.unlisted.add(body.unlist);
     if (body.relist) S.unlisted.delete(body.relist);
+    if (body.setup != null) S.setup = !!body.setup; // true: whoami answers why: "setup"
+    if (body.revoke) { // end every session of an email, as if signed out elsewhere
+      for (const [id, x] of S.sessions) if (account(x.userId).email === body.revoke) S.sessions.delete(id);
+    }
     if (body.limits) Object.assign(S.limits, body.limits);
     if (body.fail) S.fail.set(body.fail.fn, { status: body.fail.status || 500, count: body.fail.count || 1 });
     if (body.codeAge) { // age the code of an email's live sessions, e.g. { email, hours: 13 }

@@ -1,7 +1,7 @@
 // Modes: plays per mode, the favourite, players per mode (all time), results, coverage and length, online share,
 // plays per day per mode, canvases and CPU difficulties.
 
-import { h, card, stat, grid, table, empty, note } from '../ui.js';
+import { h, card, stat, grid, table, empty, note, rate } from '../ui.js';
 import { lineChart, stackedDays, chartCard, hbars, shareBars } from '../charts.js';
 import { num, pct, ratio, secs, sum } from '../format.js';
 import { rpc } from '../api.js';
@@ -30,7 +30,7 @@ function view(m, ctx) {
     stat('Plays', num(total), { sub: 'Matches played to the end in ' + span }),
     stat('Favourite mode', fav ? fav.name : 'None yet', { sub: fav ? pct(fav.plays / total) + ' of plays' : 'No plays in this range' }),
     stat('Played online', pct(ratio(online, total)), { sub: num(online) + ' of the plays' }),
-    stat('Average match', secs(avgLen), { sub: 'Across every mode' }));
+    stat('Average match', total ? secs(avgLen) : 'n/a', { sub: 'Across every mode' }));
 
   const playsCard = card('Plays per mode', { sub: 'Matches played to the end in ' + span },
     total ? hbars(rows.map((r) => ({ label: r.name, value: r.plays, note: pct(r.plays / total) })), { label: 'Plays per mode' })
@@ -40,10 +40,10 @@ function view(m, ctx) {
       { key: 'name', label: 'Mode', sort: (r) => r.name },
       { key: 'plays', label: 'Plays', num: true, sort: (r) => r.plays, cell: (r) => num(r.plays) },
       { key: 'players', label: 'Players (all time)', num: true, sort: (r) => r.players, cell: (r) => num(r.players) },
-      { key: 'wr', label: 'Win rate', num: true, sort: (r) => ratio(r.wins, r.wins + r.losses + r.draws), cell: (r) => pct(ratio(r.wins, r.wins + r.losses + r.draws)) },
-      { key: 'cov', label: 'Average coverage', num: true, sort: (r) => r.avg_cov, cell: (r) => (r.plays ? (Math.round(r.avg_cov * 10) / 10) + '%' : 'n/a') },
-      { key: 'len', label: 'Average length', num: true, sort: (r) => r.avg_secs, cell: (r) => (r.plays ? secs(r.avg_secs) : 'n/a') },
-      { key: 'on', label: 'Online', num: true, sort: (r) => ratio(r.online, r.plays), cell: (r) => pct(ratio(r.online, r.plays)) },
+      { key: 'wr', label: 'Win rate', num: true, sort: (r) => ratio(r.wins, r.wins + r.losses + r.draws), cell: (r) => rate(ratio(r.wins, r.wins + r.losses + r.draws)) },
+      { key: 'cov', label: 'Average coverage', num: true, sort: (r) => r.avg_cov, cell: (r) => (r.plays ? (Math.round(r.avg_cov * 10) / 10) + '%' : rate(null)) },
+      { key: 'len', label: 'Average length', num: true, sort: (r) => r.avg_secs, cell: (r) => (r.plays ? secs(r.avg_secs) : rate(null)) },
+      { key: 'on', label: 'Online', num: true, sort: (r) => ratio(r.online, r.plays), cell: (r) => rate(ratio(r.online, r.plays)) },
     ], rows, { caption: 'Modes in detail' }));
 
   const results = card('Results', { sub: 'Wins, draws and losses per mode, from the player\'s side' },
