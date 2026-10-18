@@ -4758,7 +4758,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 357</p>
+      <p class="ver">Version 358</p>
     </div>
   </div>
 
@@ -26606,7 +26606,7 @@ function tutStrokesCard(n) {
   if (el.hidden) { el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); } tutCardCoach(); if (n === 1) { store.evNew = { solo: 1, showdown: 1 }; AU.fanfare && AU.fanfare(); AU.bloop(0.55); menu.classList.add('tutoring'); } else AU.bloop(0.5); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);
 }
 function tutStrokesGo() { const el = $('tutGo'), m = el.dataset.mode; if (m === 'strokes1') return tutStrokesCard(2); el.classList.remove('on'); el.hidden = true; coachCorner(null); el.dataset.mode = ''; store.tut.strokes = 'on'; tutSet('strokes'); openStrokes(); } /* (straight onto the page: no lobby tip flashing up first) */
-function tutStrokesEnd() { $('mStrokes').classList.remove('sglearn'); tutSDone = 0; store.tut.strokes = 1; if (!store.tut.modes) store.tut.modes = 'due'; tutSet('done'); save(); tutHide(); menu.classList.remove('tutoring'); }
+function tutStrokesEnd() { $('mStrokes').classList.remove('sglearn'); tutSDone = 0; store.tut.strokes = 1; if (!store.tut.modes) store.tut.modes = 1; /* (v358: no modes card: they show as new on Choose event) */ tutSet('done'); save(); tutHide(); menu.classList.remove('tutoring'); }
 function tutStrokesTick() {
   if (state !== 'menu' || building || irisBusy || !setModal.hidden || !nameModal.hidden || !howModal.hidden) return tutHide();
   if (lkOn()) return tutShow('Back to the lobby', 'lkBack', 'back');
@@ -26970,9 +26970,9 @@ function tutPrep() { if (!tutMatchDue()) return; if (!tutPrev) tutPrev = { mode,
 function tutRestore() { tutFlat = false; if (!tutPrev) return; mode = tutPrev.mode; diff = tutPrev.diff; stageSel = tutPrev.stageSel; tutPrev = null; applyMode(); }
 function tutBegin() { // (as a match begins)
   tutHide(); /* (nothing from the lobby carries into the match) */
-  if (tutPh() === 'vote') tutSet('match2');
-  tut2 = null; if (tutPh() === 'match2') tut2Begin();
-  tut3 = null; if (tutPh() === 'done' && store.tut.m3 === 1) tut3Begin();
+  if (tutPh() === 'vote' && !NM) tutSet('match2'); // (v358: whatever you play next, unless it's online)
+  tut2 = null; if (tutPh() === 'match2' && !NM) tut2Begin();
+  tut3 = null; if (tutPh() === 'done' && store.tut.m3 === 1 && !NM) tut3Begin();
   if (!tutMatchDue()) { tut = null; return; }
   Object.assign(TUT_AI, TUT_AI_CALM, { pound: 0, attack: 0, orb: 0 }); AI = TUT_AI;
   tut = { step: -1, st: 0, slowK: 1, hidePound: true, keepAway: true, items: false, orbMine: false, drive: null, noTurret: true, hideItem: true, pips: new Set(), bonus: 0, praiseN: 0 }; tutPipsDraw();
@@ -27007,7 +27007,7 @@ function tutEndMatch() { // (as a match ends)
     for (const k of ['steer', 'jump', 'hold', 'burst', 'roll', 'pound', 'missile', 'item', 'orb', 'rocket', 'airdash', 'rroll']) store.seen[k] = 1; // (taught: the one-time tips stay down)
     endInfo.lesson = true; tutSet('shop'); save(); tutWinDue = true; return;
   }
-  if (tutPh() === 'match2') { tut2 = null; tutHide(); delete store.tut.price; store.tut.m3 = 1; tutSet('done'); save(); }
+  if (tutPh() === 'match2' && tut2) { tut2 = null; tutHide(); delete store.tut.price; store.tut.m3 = 1; tutSet('done'); save(); }
   else if (tut3) { tut3 = null; tutHide(); store.tut.m3 = 2; save(); }
 }
 // (v283) Skip tutorial, from the first lesson's pause: the match ends there and you're back in the lobby with what it would have given you,
@@ -27023,17 +27023,12 @@ function tutFangsSale() { const t = store.tut.price || (store.tut.price = {}); i
 const tutBootEl = $('boot'), tutOrientEl = $('orient'); let tutStrokesAt = 0, tutSDone = 0, tutCommsAt = 0, tutModesAt = 0, tutTrySdAt = 0;
 function tutMenuTick() {
   if (tutPh() === 'done' && tutStrokesDue()) { if (!tutStrokesAt) tutStrokesAt = performance.now(); if (performance.now() - tutStrokesAt > 1200) tutStrokesCard(1); return; } /* (a beat of the lobby, then the praise) */
-  if (tutPh() === 'done' && tutModesDue()) { if (!tutModesAt) tutModesAt = performance.now(); if (performance.now() - tutModesAt > 700) tutModesCard(); return; } else tutModesAt = 0;
+  if (store.tut.modes === 'due') { store.tut.modes = 1; save(); } // (v358: the modes card is gone)
   if (tutPh() === 'done' && tutCommsDue()) { if (!tutCommsAt) tutCommsAt = performance.now(); if (performance.now() - tutCommsAt > 1200) { menu.classList.add('tutoring'); tutWelcome(); } return; } /* (rank 3: commissions open) */
-  // (v283) the modes are open: the first time you're on Choose event, Ol' Bloop's pick sits on the Showdown card (his face and "Try this
-  // one!"), a suggestion only: nothing dimmed or blocked, any card works; it goes once you leave the page
-  if (tutPh() === 'done' && store.tut.trySd === 'due') { const sd = document.querySelector('.evcard[data-ev="showdown"]');
-    if (state === 'menu' && menuPage === 'events' && sd && !sd.classList.contains('open')) { if (!sd.querySelector('.evbloop')) { sd.classList.add('bpick'); sd.insertAdjacentHTML('beforeend', '<span class="evbloop" aria-hidden="true"><i></i><b>Try this one!</b></span>'); } tutTrySdAt = 1; }
-    else if (tutTrySdAt) { store.tut.trySd = 1; save(); tutTrySdAt = 0; document.querySelectorAll('.evbloop').forEach(e => e.remove()); document.querySelectorAll('.evcard.bpick').forEach(e => e.classList.remove('bpick')); }
-  }
+  if (store.tut.trySd === 'due') { store.tut.trySd = 1; save(); } // (v358: no pick on the Showdown card)
   if (tutPh() === 'done') { if (menu.classList.contains('tutoring')) menu.classList.remove('tutoring'); if (!(state === 'play' && tutTip && (tutTip.key === 'protip' || tutTip.key === 'zgift'))) tutHide(); return; } /* (the onboarding is over: nothing to point at, so no hunting the page for open dialogs every frame) */
   if ((FL && FL.busy()) || bootHold || !booted || !tutBootEl.classList.contains('gone') || !tutOrientEl.hidden || document.querySelector('.modal:not([hidden]):not(#stPop)')) return tutHide(); // (nothing over the loading screen, the orientation chooser or any dialog) // (nothing over the loading screen: its tap to start must get through)
-  const ph = tutPh(); if (menu.classList.contains('tutoring') !== (ph !== 'done')) menu.classList.toggle('tutoring', ph !== 'done'); // (the lesson keeps the lobby simple: no commissions, no how-to)
+  const ph = tutPh(), simple = ph !== 'done' && ph !== 'vote' && ph !== 'match2'; if (menu.classList.contains('tutoring') !== simple) menu.classList.toggle('tutoring', simple); /* (v358: not after the locker) */ // (the lesson keeps the lobby simple: no commissions, no how-to)
   if (ph === 'match') { if (state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden) { if (!tutFirstAt) tutFirstAt = performance.now(); if (performance.now() - tutFirstAt < 1000) return tutHide(); /* (a second of the lobby first) */ tutShow('Hey, rookie! Ready to roll? Your first match is a little training session.', 'homePlay', 'first'); } else tutHide(); return; }
   if (ph === 'welcome') { if (state === 'dead') { if (!end.hidden) return tutShow('Back to the lobby', 'menuBtn', 'welback'); return tutHide(); }
     if (state === 'menu' && lkOn() && store.zombieDeal && bought('zombie') && myLook.eyes !== 'zombie') { if (LKR.tab !== 'mine') return tutShow('Open your locker and put them on', 'lkTabMine', 'eyesz'); return tutShow('Tap the zombie eyes to put them on', () => $('lkPaneMine').querySelector('[data-k="e:zombie"]'), 'wearz'); } /* (v327: bought, they go straight on; taken off again, they're in your locker) */
@@ -27063,9 +27058,7 @@ function tutMenuTick() {
     return tutShow('Open your locker and try on your fangs', 'lookBtn', 'locker');
   }
   if (lkOn()) { if (tutBrowseAt && performance.now() - tutBrowseAt < 4200) return tutShow('Take a look around, squirt. Express yourself!', null, 'browse', false, true, null, true); return tutHide(); } /* (no nudge at Back: closing the page is up to you) */
-  if (menuPage === 'worlds') return innerWidth > innerHeight && innerHeight < 520 ? tutShow('*SWIPE* to pick your painting, then tap *PLAY*', 'startBtn', 'startS', true, true, null, true) : tutShow('Swipe the paintings and pick one: that\u2019s your vote. Rivals vote too, and most votes wins. Then Play', 'startBtn', 'start', false, true, null, true); /* (a short screen gets a one-line callout, so the paintings stay clear) */
-  if (menuPage === 'events') return $('evVsPick').hidden ? tutShow('Play the CPU: tap *Versus CPU*', 'evVs', 'evvs') : tutShow('Tap *1 v 1*', () => $('evVsPick').querySelector('[data-m="duel"]'), 'ev1v1');
-  return tutShow('Time for a real match. Tap *Play*', 'homePlay', 'pick');
+  return tutHide(); // (v358: done with the locker, you're free: nothing says what to play next, and nothing in the lobby is dimmed)
 }
 // the lesson's finish, in place of the tally for a beat: the canvas through the window, the title, and what was learned ticked off; Next goes on to the tally
 const TW_LIST = ['Steering and jumping', 'Flinging', 'Refilling', 'The pound', 'Dodging', 'The orb'];

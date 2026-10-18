@@ -31,7 +31,7 @@ async def main():
     # the tutorial, in the order a new player meets it (see admin/API.md, "tut" events)
     d['tutorial'] = ([{'id': 'intro', 'name': 'First launch intro'}, {'id': 'match', 'name': 'First lesson (match)'}]
         + [{'id': 'l:' + s, 'name': 'Lesson: ' + LESSON.get(s, s)} for s in d.pop('lesson')]
-        + [{'id': 'shop', 'name': 'Paint Shop lesson'}, {'id': 'locker', 'name': 'Locker lesson'}, {'id': 'vote', 'name': 'Canvas vote lesson'},
+        + [{'id': 'shop', 'name': 'Paint Shop lesson'}, {'id': 'locker', 'name': 'Locker lesson'}, {'id': 'vote', 'name': 'Locker done, free to play'},
            {'id': 'match2', 'name': 'Second match'}, {'id': 'done', 'name': 'Basics complete'}, {'id': 'rank2', 'name': 'Reached rank 2 (modes open)'},
            {'id': 'strokes', 'name': 'Strokes lesson'}, {'id': 'strokes_done', 'name': 'Strokes lesson done'}])
     d['ads'] = [{'id': 'craft', 'name': 'Skip a craft'}, {'id': 'lesson', 'name': 'Skip in the Strokes lesson'}]
