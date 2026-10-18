@@ -4736,7 +4736,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 353</p>
+      <p class="ver">Version 354</p>
     </div>
   </div>
 
@@ -17470,7 +17470,7 @@ function endMatch() {
   endInfo.diff = diff; let gain = Math.round(16 + ry * 0.9 + (win > 0 ? 36 : win === 0 && mode !== 'solo' ? 12 : 0) + (newBest ? 14 : 0) + (mode === 'trio' ? 8 : 0));
   const fin = commProgress(endInfo); endInfo.xp0 = store.xp || 0; store.xp = endInfo.xp0 + gain; endInfo.xp = gain; endInfo.comms = fin;
   const drops = Math.round(8 + ry * 0.35 + (win > 0 ? 30 : win === 0 && mode !== 'solo' ? 12 : 0) + (newBest ? 10 : 0) + (mode === 'trio' ? 6 : 0)); store.drops = (store.drops || 0) + drops; endInfo.drops = drops;
-  save(); tutEndMatch();
+  stMatch(); save(); tutEndMatch();
   if (!tutWinDue) banner(mode === 'solo' ? "Time's up!" : 'Time!', '', false); buzz([40, 30, 40]); slow = 0.6; // (v304: the lesson ends on its own word, Basics Complete)
   if (mode === 'solo' ? newBest : win > 0) celebrating = true;
   setTimeout(() => { if (id !== runId || state !== 'dead') return; startTally(); }, tutWinDue ? 800 : 1450); // (v304: and that comes up a little sooner)
@@ -20692,13 +20692,114 @@ const OWNED = new Set(Array.isArray(store.owned) ? store.owned.filter(id => ITEM
 // drops: paint earned at the end of a match. A found item goes on sale in the locker; it is worn once it is bought
 const PRICES = { sly: 545, flower: 145, pearls: 160, scarf: 180, bowtie: 185, stache: 195, beanie: 205, party: 240, monocle: 290, lashes: 220, glasses: 270, patch: 330, fangs: 400, tiara: 475, tophat: 580, bunny: 645, pirate: 695, hockey: 765, skull: 835, halo: 850, zombie: 975, hat: 1105, antennae: 195, floaties: 245, snorkel: 295, propcap: 345, cape: 480 }; // (v302: the five new everyday pieces; see docs/wearables-v302.md)
 const OUTRIGHT = new Set(['flower', 'lashes', 'bowtie', 'pearls', 'beanie', 'party', 'monocle', 'stache', 'scarf', 'antennae', 'snorkel', 'propcap', 'floaties', 'cape']), needFind = w => !OUTRIGHT.has(w.id) && (!!w.season || w.slot === 'head'); // (in stock from the start: nothing to find, only dabs to pay) // (what has to be found on a canvas before it is for sale)
-const PRICE = w => { const t = store.tut && store.tut.price; if (t && t[w.id] >= 0) return t[w.id]; if (w.gift) return 0; /* (v330: a gift costs nothing) */ return PRICES[w.id] || (w.season ? 850 : w.slot === 'head' ? 510 : 255); }; // (the lesson sets the flower's and the fangs' prices)
+const PRICE = w => { const t = store.tut && store.tut.price; if (t && t[w.id] >= 0) return t[w.id]; if (w.gift) return 0; /* (v330: a gift costs nothing) */ { const lp = stLive(w.id); if (lp >= 0) return lp; } /* (v354: a live price from the dashboard) */ return PRICES[w.id] || (w.season ? 850 : w.slot === 'head' ? 510 : 255); }; // (the lesson sets the flower's and the fangs' prices)
 const BOUGHT = new Set(Array.isArray(store.bought) ? store.bought.filter(id => OWNED.has(id)) : [...OWNED]);
 if (!Array.isArray(store.bought)) { store.bought = [...BOUGHT]; }
 for (const w of EXTRA) if (w.gift && OWNED.has(w.id) && !BOUGHT.has(w.id)) { BOUGHT.add(w.id); store.bought = [...BOUGHT]; } // (v330: found but never bought: a gift is yours)
 if (!(store.drops >= 0)) store.drops = 0;
 const bought = id => BOUGHT.has(id);
-function buyItem(id) { const w = ITEMS.find(x => x.id === id); if (!w || (!OWNED.has(id) && needFind(w)) || BOUGHT.has(id) || store.drops < PRICE(w)) return false; store.drops -= PRICE(w); OWNED.add(id); store.owned = [...OWNED]; BOUGHT.add(id); store.bought = [...BOUGHT]; store.fresh = [...new Set([...(store.fresh || []), id])]; save(); return true; }
+// ---------- (v354) play stats for the admin dashboard, and live prices. Anonymous stats go to the game's Supabase project (rm_track):
+// a random id for this install (never a name or a device id), the install's state now, and events (sessions, matches, the tutorial
+// steps reached, Paint Shop looks and buys, dabs earned, crafts and ad skips, rewarded ads, ranks). Batched, sent about once a minute
+// while playing and when the app is put away, kept on the phone while offline. The Privacy Policy turns them off. Live prices set in
+// the dashboard (rm_config) override PRICES; kept with the phone, asked for at launch, on coming back (at most every 10 minutes) and
+// when a batch says they changed ----------
+var ST = { q: [], secs: 0, t0: 0, busy: false, dead: false, next: 0, fails: 0, seen: new Set(), lastStep: -1, hidAt: 0, cfgAt: 0, cfgBusy: false, n: 0, gv: 0, up: false };
+const ST_Q = 'rm.stq', ST_MAX = 400, ST_EVERY = 60, ST_CFG_MS = 600000;
+// the server's only asked from the iPhone app, or from a local test project (the web page is the claude.ai preview)
+function stNet() { try { return !!SB_CFG && !NET_WALLED && (!!NATIVE || !/\.supabase\.co$/i.test(new URL(SB_CFG.url).hostname)); } catch (e) { return false; } }
+function stState() { if (!store.st || typeof store.st !== 'object') store.st = {}; const s = store.st; if (!s.iid) { s.iid = stUuid(); save(); } if (!Array.isArray(s.tut)) s.tut = []; return s; }
+function stUuid() { try { if (crypto.randomUUID) return crypto.randomUUID(); } catch (e) {} const b = new Uint8Array(16); crypto.getRandomValues(b); b[6] = (b[6] & 15) | 64; b[8] = (b[8] & 63) | 128; const h = [...b].map(x => x.toString(16).padStart(2, '0')).join(''); return h.slice(0, 8) + '-' + h.slice(8, 12) + '-' + h.slice(12, 16) + '-' + h.slice(16, 20) + '-' + h.slice(20); }
+const stOff = () => !!(store.st && store.st.off);
+// a live price for this item (or -1): the dashboard's, as last heard
+function stLive(id) { const p = store.st && store.st.lp && store.st.lp.prices, v = p && p[id]; return Number.isInteger(v) && v >= 0 && v <= 100000 ? v : -1; }
+function stEv(e) { try { if (stOff()) return; ST.q.push(e); if (ST.q.length > ST_MAX) ST.q.splice(0, ST.q.length - ST_MAX); } catch (x) {} }
+// a tutorial step reached (each once per install)
+function stStep(id) { try { const s = stState(); if (s.tut.includes(id)) return; s.tut.push(id); stEv({ k: 'tut', s: id }); } catch (e) {} }
+// an item looked at in the Paint Shop (once a session), and whether it could be bought right then (in stock, and enough dabs)
+function stView(w) { try { if (ST.seen.has(w.id)) return; ST.seen.add(w.id); stEv({ k: 'view', i: w.id, a: (owns(w.id) || !needFind(w)) && (store.drops || 0) >= PRICE(w) }); } catch (e) {} }
+// a rewarded ad's progress (real ads only: the app's)
+function stAd(r) { try { if (ADS.mode === 'app') stEv({ k: 'ad', pl: ADS.pl || 'craft', r }); } catch (e) {} }
+// a match played to its end, and the dabs it paid. The first lesson counts by its steps, not as a match
+function stMatch() { try {
+  const e = endInfo; if (!e) return;
+  if (!tut) { const on = !!NM, ev = { k: 'match', m: e.mode, on, cov: Math.round(e.you || 0), ko: P.kos | 0, s: Math.round(e.time || 0), st: TH.id };
+    if (e.mode !== 'solo') ev.r = e.win > 0 ? 'win' : e.win < 0 ? 'loss' : 'draw';
+    if (!on && e.mode !== 'solo') ev.d = String(diff);
+    stEv(ev); }
+  if (e.drops > 0) stEv({ k: 'earn', src: 'match', n: e.drops });
+} catch (x) {} }
+// where the tutorial is now: the intro, a step of the lesson, or the phase after it
+function stTutNow() { try { if (FL && FL.live) return 'intro'; if (tut && tut.step >= 0 && TUT_STEPS[tut.step]) return 'l:' + TUT_STEPS[tut.step].id; return String((store.tut && store.tut.ph) || ''); } catch (e) { return ''; } }
+// once a second: the tutorial steps and the rank reached
+function stWatch() {
+  const t = store.tut || {}, ph = t.ph, rk = repOf(store.xp || 0).lv, s = stState();
+  if ((FL && (FL.due || FL.live)) || store.introDone) stStep('intro');
+  if (tut || ['shop', 'locker', 'vote', 'match2', 'done', 'strokes'].includes(ph)) stStep('match'); // (any phase after it: the lesson was started)
+  if (tut) { for (let i = Math.max(0, ST.lastStep + 1); i <= tut.step && i < TUT_STEPS.length; i++) stStep('l:' + TUT_STEPS[i].id); ST.lastStep = Math.max(ST.lastStep, tut.step); } else ST.lastStep = -1;
+  if (['shop', 'locker', 'vote', 'match2'].includes(ph)) stStep(ph);
+  if (ph === 'done' || ph === 'strokes' || t.strokes) stStep('done');
+  if (rk >= 2) stStep('rank2');
+  if (t.strokes === 'on' || t.strokes === 1 || ph === 'strokes') stStep('strokes');
+  if (t.strokes === 1) stStep('strokes_done');
+  if (!(s.rk >= 1)) s.rk = rk; else if (rk > s.rk) { s.rk = rk; stEv({ k: 'rank', n: rk }); }
+}
+// the seconds played while the game was on screen
+function stPlay() { const n = performance.now(); if (ST.t0 && !document.hidden) ST.secs += (n - ST.t0) / 1000; ST.t0 = document.hidden ? 0 : n; }
+function stKeep() { try { if (stOff() || (!ST.q.length && ST.secs < 1)) localStorage.removeItem(ST_Q); else localStorage.setItem(ST_Q, JSON.stringify({ q: ST.q, secs: Math.round(ST.secs) })); } catch (e) {} }
+function stMeta() { const x = store; return { plat: NATIVE && NATIVE.platform === 'ios' ? 'ios' : 'web', av: (NATIVE && NATIVE.appVersion) || undefined, gv: ST.gv || undefined,
+  rank: repOf(x.xp || 0).lv, xp: Math.max(0, Math.floor(+x.xp || 0)), dabs: Math.max(0, Math.floor(+x.drops || 0)), tut: stTutNow() || undefined }; }
+// a batch to the server. away: the app's being put away (sent so it gets there)
+function stFlush(away) {
+  if (!ST.up || ST.busy || ST.dead || stOff() || !stNet() || Date.now() < ST.next) return;
+  stPlay(); if (!ST.q.length && ST.secs < (away ? 5 : ST_EVERY)) return;
+  const s = stState(), ev = ST.q.splice(0, 60), secs = Math.min(3600, Math.round(ST.secs)), meta = Object.assign(stMeta(), { secs });
+  ST.secs -= secs; ST.busy = true; stKeep();
+  const back = () => { ST.q = ev.concat(ST.q); ST.secs += secs; if (ST.q.length > ST_MAX) ST.q.splice(0, ST.q.length - ST_MAX); };
+  const auth = !!(FR.s && FR.s.access_token && FR.s.expires_at - 60 > Date.now() / 1000); // (signed in: the install is theirs. Never a new sign-in for this)
+  return sbFetch('/rest/v1/rpc/rm_track', { p_iid: s.iid, p_meta: meta, p_ev: ev }, auth, !!away).then(r => {
+    if (r && r.ok) { ST.fails = 0; const lp = s.lp || {}; if (r.v != null && +r.v !== +(lp.v || 0)) stCfg(true); }
+    else if (r && r.why === 'rate') { back(); ST.next = Date.now() + 300000; } // (too many: a while before the next)
+    // (bad: the server will never take this batch, so it's dropped)
+  }).catch(e => {
+    back(); if (e && (e.status === 404 || /PGRST202|Could not find the function/i.test(String(e.message || '')))) ST.dead = true; // (the v354 SQL isn't run yet: nothing more this time)
+    else { ST.fails = (ST.fails || 0) + 1; ST.next = Date.now() + Math.min(600000, 30000 * Math.pow(2, ST.fails - 1)); }
+  }).finally(() => { ST.busy = false; stKeep(); });
+}
+// the live prices: asked for at launch, on coming back (at most every 10 minutes), and when a batch says they've changed
+function stCfg(now) {
+  if (!ST.up || ST.cfgBusy || !stNet() || (!now && Date.now() - ST.cfgAt < ST_CFG_MS)) return;
+  ST.cfgBusy = true; ST.cfgAt = Date.now();
+  sbFetch('/rest/v1/rpc/rm_config', {}, false).then(r => {
+    if (!r || typeof r !== 'object' || !r.prices || typeof r.prices !== 'object') return;
+    const p = {}; for (const [k, v] of Object.entries(r.prices)) if (/^[a-z0-9_]{1,32}$/.test(k) && Number.isInteger(v) && v >= 0 && v <= 100000) p[k] = v;
+    const s = stState(), was = JSON.stringify((s.lp && s.lp.prices) || {}); s.lp = { v: +r.v || 0, prices: p }; save();
+    if (JSON.stringify(p) !== was) { try { if (lkOn()) lkRender(); } catch (e) {} } // (the Paint Shop open: its prices redrawn)
+  }).catch(() => {}).finally(() => { ST.cfgBusy = false; });
+}
+// the Privacy Policy's play stats button: off (and the batches waiting are dropped), or back on
+function stPrivPaint() {
+  const p = $('statsP'); if (!p) return; let b = $('statsTog');
+  if (!b) { b = document.createElement('button'); b.type = 'button'; b.className = 'frb adpriv'; b.id = 'statsTog';
+    b.addEventListener('click', () => { AU.init(); AU.ui(); const s = stState(); s.off = !s.off; if (s.off) { ST.q = []; ST.secs = 0; } save(); stKeep(); stPrivPaint(); });
+    p.after(b); }
+  b.textContent = stOff() ? 'Play stats are off. Turn them on' : 'Turn off play stats';
+}
+function stBoot() { try {
+  ST.up = true; ST.t0 = document.hidden ? 0 : performance.now();
+  { const v = document.querySelector('#howModal .ver'), m = v && /(\d+)/.exec(v.textContent); ST.gv = m ? +m[1] : 0; }
+  stState();
+  if (!stOff()) { try { const o = JSON.parse(localStorage.getItem(ST_Q) || 'null'); if (o && Array.isArray(o.q)) ST.q = o.q.concat(ST.q).slice(-ST_MAX); if (o && o.secs > 0) ST.secs += Math.min(36000, +o.secs || 0); } catch (e) {} } // (what an earlier visit didn't get to send, first)
+  stEv({ k: 'open' });
+  setInterval(() => { try { stWatch(); if (++ST.n % ST_EVERY === 10) stFlush(false); } catch (e) {} }, 1000);
+  setTimeout(() => stCfg(true), 2500);
+  document.addEventListener('visibilitychange', () => { try {
+    if (document.hidden) { stPlay(); ST.hidAt = Date.now(); stFlush(true); stKeep(); }
+    else { ST.t0 = performance.now(); if (ST.hidAt && Date.now() - ST.hidAt > 30 * 60000) stEv({ k: 'open' }); ST.hidAt = 0; stCfg(false); } // (back after half an hour: a new session)
+  } catch (e) {} });
+} catch (e) {} }
+setTimeout(stBoot, 1500); // (once the rest of the page's script has run)
+function buyItem(id) { const w = ITEMS.find(x => x.id === id); if (!w || (!OWNED.has(id) && needFind(w)) || BOUGHT.has(id) || store.drops < PRICE(w)) return false; { const p = PRICE(w); store.drops -= p; stEv({ k: 'buy', i: id, p }); } OWNED.add(id); store.owned = [...OWNED]; BOUGHT.add(id); store.bought = [...BOUGHT]; store.fresh = [...new Set([...(store.fresh || []), id])]; save(); return true; }
 function showDrops() { const n = store.drops || 0; if ($('statDrops')) $('statDrops').lastChild.nodeValue = String(n); if ($('lkBalN')) $('lkBalN').textContent = String(n); if ($('lkDabsN')) $('lkDabsN').textContent = String(n); if ($('lkCoinN')) $('lkCoinN').textContent = String(n); }
 const owns = id => OWNED.has(id);
 function unlockItem(id) { if (OWNED.has(id)) return false; OWNED.add(id); store.owned = [...OWNED]; store.fresh = [...new Set([...(store.fresh || []), id])]; store.seen = store.seen || {}; store.seen.look = 0; save(); $('lookBtn').classList.add('hot'); return true; }
@@ -20755,7 +20856,7 @@ function repOf(xp) { let lv = 1, x = Math.max(0, xp | 0); while (x >= xpNeed(lv)
 // commissions: three jobs at a time
 const COMMS = [{ id: 'play3', t: 'Three exhibitions', d: 'Play 3 matches, any mode', n: 3, k: 'play' }, { id: 'win1', t: 'Beat a rival', d: 'Win a 1v1', n: 1, k: 'win1' }, { id: 'cov35', t: 'Cover 35%', d: 'Paint 35% of a canvas in one match', n: 1, k: 'cov', v: 35 }, { id: 'trio', t: 'Three-way', d: 'Enter a 3-way exhibition', n: 1, k: 'trio' }, { id: 'solo30', t: 'Beat the clock', d: 'Cover 30% in a Time trial', n: 1, k: 'solo', v: 30 }, { id: 'win3', t: 'On a roll', d: 'Win 3 matches', n: 3, k: 'win' }, { id: 'play5', t: 'Regular', d: 'Play 5 matches', n: 5, k: 'play' }, { id: 'cov25', t: 'Quarter canvas', d: 'Paint 25% of a canvas in one match', n: 1, k: 'cov', v: 25 }, { id: 'hard1', t: 'Harsh critics', d: 'Win with the critics on harsh', n: 1, k: 'hard' }];
 const COMM_XP = 60, COMM_DABS = 20;
-function commState() { if (!store.comm || !store.comm.active) store.comm = { active: [], prog: {}, done: [], claimed: [], v276: 1 }; const c = store.comm; if (!c.v276) { c.v276 = 1; c.claimed = (c.done || []).slice(); } if (!Array.isArray(c.claimed)) c.claimed = []; { const day = new Date().toDateString(); if (c.day !== day) { if (c.day) { const owe = c.done.filter(id => !c.claimed.includes(id)).length; if (owe) { store.drops = (store.drops || 0) + owe * COMM_DABS; store.xp = (store.xp || 0) + owe * COMM_XP; } c.active = []; c.prog = {}; c.done = []; c.claimed = []; store.commSeen = 0; } c.day = day; save(); } } /* (a fresh set every day) */ c.active = c.active.filter(id => COMMS.some(x => x.id === id)); while (c.active.length < 3) { const pool = COMMS.filter(x => !c.active.includes(x.id) && !c.done.includes(x.id)); if (!pool.length) break; c.active.push(pool[(Math.random() * pool.length) | 0].id); } return c; }
+function commState() { if (!store.comm || !store.comm.active) store.comm = { active: [], prog: {}, done: [], claimed: [], v276: 1 }; const c = store.comm; if (!c.v276) { c.v276 = 1; c.claimed = (c.done || []).slice(); } if (!Array.isArray(c.claimed)) c.claimed = []; { const day = new Date().toDateString(); if (c.day !== day) { if (c.day) { const owe = c.done.filter(id => !c.claimed.includes(id)).length; if (owe) { store.drops = (store.drops || 0) + owe * COMM_DABS; stEv({ k: 'earn', src: 'comm', n: owe * COMM_DABS }); store.xp = (store.xp || 0) + owe * COMM_XP; } c.active = []; c.prog = {}; c.done = []; c.claimed = []; store.commSeen = 0; } c.day = day; save(); } } /* (a fresh set every day) */ c.active = c.active.filter(id => COMMS.some(x => x.id === id)); while (c.active.length < 3) { const pool = COMMS.filter(x => !c.active.includes(x.id) && !c.done.includes(x.id)); if (!pool.length) break; c.active.push(pool[(Math.random() * pool.length) | 0].id); } return c; }
 function commProgress(info) {
   const c = commState(), fin = [];
   for (const id of c.active) { const k = COMMS.find(x => x.id === id); if (!k || c.done.includes(id)) continue; let p = c.prog[id] || 0;
@@ -20805,7 +20906,7 @@ function commCoins(btn, from, to) {
 function commXp(btn) { const m = $('commModal'), mr = m.getBoundingClientRect(), br = btn.getBoundingClientRect(), el = document.createElement('b'); el.className = 'cxpf'; el.textContent = '+' + COMM_XP + ' XP'; el.style.left = (br.right - mr.left - 46).toFixed(0) + 'px'; el.style.top = (br.top - mr.top - 4).toFixed(0) + 'px'; m.appendChild(el); setTimeout(() => el.remove(), 1500); }
 function commClaim(id, btn) {
   const c = commState(); if (!c.done.includes(id) || c.claimed.includes(id)) return;
-  c.claimed.push(id); const from = store.drops || 0; store.drops = from + COMM_DABS; store.xp = (store.xp || 0) + COMM_XP; save();
+  c.claimed.push(id); const from = store.drops || 0; store.drops = from + COMM_DABS; stEv({ k: 'earn', src: 'comm', n: COMM_DABS }); store.xp = (store.xp || 0) + COMM_XP; save();
   const card = btn.closest('.comm'); btn.disabled = true; btn.classList.add('took'); btn.innerHTML = '<span>' + COMM_CHECK + 'Claimed</span>';
   AU.xplay('coins', { v: 0.8 }) || AU.power(); hap('success');
   commXp(btn); commCoins(btn, from, store.drops); commBadgePaint();
@@ -20873,7 +20974,7 @@ const strokesOpen = () => menuPage === 'strokes', strokesDue = () => repOf(store
 let stTick = 0, stToastT = 0;
 function craftLeft() { const c = strokesOf().craft; return c ? Math.max(0, c.end - Date.now()) : 0; }
 function craftTick() { const d = strokesOf(), c = d.craft; if (!c) return false; if (craftLeft() > 0) return true; d.craft = null; if (!d.own.includes(c.id)) d.own.push(c.id); d.fresh = c.id; save(); AU.fanfare && AU.fanfare(); craftDoneNative(); return false; }
-function craftStart(id) { const d = strokesOf(), sp = stDef(id); if (!sp || !sp.craft || d.craft || d.own.includes(id)) return; d.craft = { id, end: Date.now() + sp.craft * 60000 }; save(); AU.pop(); buzz(10); renderStrokes(); adWarm(); noteSync(); noteOffer(id); }
+function craftStart(id) { const d = strokesOf(), sp = stDef(id); if (!sp || !sp.craft || d.craft || d.own.includes(id)) return; d.craft = { id, end: Date.now() + sp.craft * 60000 }; save(); stEv({ k: 'craft', i: id }); AU.pop(); buzz(10); renderStrokes(); adWarm(); noteSync(); noteOffer(id); }
 function craftSkip() { const d = strokesOf(); if (!d.craft) return; const id = d.craft.id; d.craft.end = Date.now(); craftTick(); AU.ui(); renderStrokes(); stToast(stReady(id)); } // (v351: craftTick gives the success feel)
 // (v321) a rewarded ad speeds up crafting. In the app, Skip on a stroke being crafted plays a rewarded ad (AdsBridge.swift: Google
 // AdMob) and the craft finishes once the ad says it was watched; (v340: the lesson's too, which finishes anyway if no ad can come). The page asks
@@ -20892,7 +20993,7 @@ function craftSkipAsk() {
   const d = strokesOf(); if (!d.craft) return;
   if (adFree()) return craftSkip();
   if (ADS.id) { if (ADS.mode === 'app' && !ADS.open) adWaitShow(); return; } // (one at a time: tapped again, the wait shows)
-  ADS.id = d.craft.id; ADS.earned = false; ADS.open = false; AU.ui(); buzz(6); sgSkipPaint();
+  ADS.id = d.craft.id; ADS.earned = false; ADS.open = false; AU.ui(); buzz(6); sgSkipPaint(); ADS.pl = adLesson() ? 'lesson' : 'craft'; stAd('ask');
   clearTimeout(ADS.t); ADS.t = setTimeout(() => { if (ADS.mode === 'app') nativeSay('ads', { cancel: true }); adFail('slow', true); }, AD_WAIT_MS + 15000); // (the app answers well before this: it's in case it never does; v351: and the app stops waiting too)
   if (ADS.mode !== 'app') return adStandIn();
   ADW.t0 = performance.now(); ADW.tries = 1; clearTimeout(ADW.rt); clearTimeout(ADW.popT); // (v335: an ad that's ready opens before the card would come up)
@@ -20906,7 +21007,7 @@ document.addEventListener('click', e => { const b = e.target && e.target.closest
 function adOn(m) {
   if (m.e === 'state') { ADS.privacy = !!m.privacy; return adPrivPaint(); }
   if (m.p && m.p !== 'craft') return;
-  if (m.e === 'open') { clearTimeout(ADS.t); adWaitHide(); ADS.open = ADS.hold = true; if (!ADS.id) { const d = store.strokes; ADS.id = d && d.craft ? d.craft.id : null; } if (ADS.mode === 'app') AU.suspend(true); else AU.muted(true); return; }
+  if (m.e === 'open') { stAd('shown'); clearTimeout(ADS.t); adWaitHide(); ADS.open = ADS.hold = true; if (!ADS.id) { const d = store.strokes; ADS.id = d && d.craft ? d.craft.id : null; } if (ADS.mode === 'app') AU.suspend(true); else AU.muted(true); return; }
   if (m.e === 'reward') return adReward();
   if (m.e === 'close') return adClose(!!m.earned);
   if (m.e === 'fail') return adFail(m.why);
@@ -20914,7 +21015,7 @@ function adOn(m) {
 // the reward: the craft's done now (kept, in case the app is closed mid-ad), and shown off when the ad closes
 function adReward() {
   if (!ADS.id) { const d = store.strokes; ADS.id = d && d.craft ? d.craft.id : null; if (!ADS.id) return; } // (v351: a page started over under the ad)
-  ADS.earned = true; const d = store.strokes;
+  if (!ADS.earned) stAd('reward'); ADS.earned = true; const d = store.strokes;
   if (d && d.craft && d.craft.id === ADS.id) { d.craft.end = Math.min(d.craft.end, Date.now()); save(); }
   if (!ADS.open && !ADS.ct) adPayoff();
 }
@@ -20924,12 +21025,12 @@ function adClose(earned) {
   if (earned) ADS.earned = true;
   clearTimeout(ADS.ct); ADS.ct = setTimeout(() => { ADS.ct = 0; if (ADS.earned) adPayoff(); else { adDone(); stToast('Watch to the end to finish it'); } setTimeout(() => { if (strokesOpen()) adWarmPage(); }, 1500); }, 420); // (v335: and the next one readied)
 }
-function adPayoff() { const id = ADS.id; adDone(); const d = strokesOf(); if (id && d.craft && d.craft.id === id) craftSkip(); else if (strokesOpen()) renderStrokes(); }
+function adPayoff() { const id = ADS.id; adDone(); const d = strokesOf(); if (id && d.craft && d.craft.id === id) { stEv({ k: 'skip', i: id }); craftSkip(); } else if (strokesOpen()) renderStrokes(); }
 function adFail(why, last) {
   if (!ADS.id && !ADS.open) return;
   // (v335) still waiting and online: ask the app again, at once if it was only slow (a late one is kept for this), in a moment if not
   if (!ADS.open && !last && ADS.mode === 'app' && why !== 'offline' && ADW.tries < 4 && performance.now() - ADW.t0 < AD_WAIT_MS) { adWaitShow(); clearTimeout(ADW.rt); ADW.rt = setTimeout(adRetry, why === 'slow' ? 60 : 2500); return; }
-  const was = ADS.open; adDone(); if (was) { if (ADS.mode === 'app') AU.wake(true, true); else applyMix(); }
+  stAd('fail'); const was = ADS.open; adDone(); if (was) { if (ADS.mode === 'app') AU.wake(true, true); else applyMix(); }
   if (adLesson()) { adWaitHide(); craftSkip(); return stToast((why === 'offline' ? 'You’re offline' : 'No ad right now') + ', so this one’s on Ol’ Bloop'); } // (v340: the lesson never gets stuck)
   AU.nope && AU.nope(); if (ADS.mode === 'app') adWaitFail(why); else stToast(why === 'offline' ? 'You’re offline: connect to watch the ad' : 'No ad to show right now. Try again soon');
 }
@@ -22421,7 +22522,7 @@ function lkTap(key) {
   if (k === 'i') return lkIris(id);
   const w = lkItem(id); if (!w) return; const again = LKR.sel === key; LKR.sel = key;
   if (LKR.tab === 'mine') { if (!lkWorn(w)) { lkPutOn(w); AU.pop(); buzz(5); } else { AU.ui(); buzz(4); kick($('lkBan'), 'bump'); lkFreshOff(w.id); } }
-  else if (!again) { LKR.prev = bought(w.id) ? null : lkWith(myLook, w); lkDress(); sgDressReact(w); AU.pop(); buzz(5); }
+  else if (!again) { if (!bought(w.id)) stView(w); LKR.prev = bought(w.id) ? null : lkWith(myLook, w); lkDress(); sgDressReact(w); AU.pop(); buzz(5); }
   else { AU.ui(); buzz(4); kick($('lkBan'), 'bump'); }
   lkTabs(); lkPaneRender(); lkShowRender(); lkKick(key);
 }
@@ -22448,7 +22549,7 @@ function lkIris(id) {
 function lkSelect(id, quiet) {
   const w = lkItem(id); if (!w) return; if (!lkInF(w, LKR.filt)) LKR.filt = 'all'; // (v333)
   if (LKR.tab === 'mine' && w.slot === 'eyes') LKR.sel = 'e:' + id;
-  else { LKR.sel = 'w:' + id; LKR.prev = LKR.tab === 'shop' && !bought(id) ? lkWith(myLook, w) : null; lkDress(); if (SGD.on) sgDressReact(w); else SGD.pend = w; }
+  else { LKR.sel = 'w:' + id; if (LKR.tab === 'shop' && !bought(id)) stView(w); LKR.prev = LKR.tab === 'shop' && !bought(id) ? lkWith(myLook, w) : null; lkDress(); if (SGD.on) sgDressReact(w); else SGD.pend = w; }
   if (!quiet) { AU.pop(); buzz(5); } lkPaneRender(); lkShowRender(); lkReveal();
 }
 function lkSetTab(t, quiet) {
@@ -23593,7 +23694,7 @@ async function frPayout() {
   const wk = new Date(o.prev.wk).toISOString().slice(0, 10); let won = 0, line = '';
   try { for (const sid of Object.keys(o.prev.best)) { const r = await sbRpc('rm_friends_board', { p_stage: sid, p_week: wk }), rows = r.rows || [], i = rows.findIndex(x => x.me);
       if (rows.length >= TT_FRIENDS_MIN && i >= 0 && i < 3) { won += TT_PRIZE.friends[i]; line = ttOrd(i + 1) + ' on ' + ttName(sid); } }
-    store.ttFrPaid = o.prev.wk; if (won) { store.drops = (store.drops || 0) + won; renderLobbyUI(); frToast('<span>Friends board: <b>' + frEsc(line) + '</b>! +' + won + ' dabs</span>'); AU.power(); } save(); }
+    store.ttFrPaid = o.prev.wk; if (won) { store.drops = (store.drops || 0) + won; stEv({ k: 'earn', src: 'board', n: won }); renderLobbyUI(); frToast('<span>Friends board: <b>' + frEsc(line) + '</b>! +' + won + ' dabs</span>'); AU.power(); } save(); }
   catch (e) { FR.paid = false; }
 }
 function frBoardHtml(sid) {
@@ -24532,7 +24633,7 @@ window.acctReady = acctReady; window.acctOpen = acctOpen; setTimeout(() => { try
 // phone takes the account's, at a start. If both did, more rank wins (the server never lets less replace more; a tie stays with this
 // phone). Logging in on a phone that was never this account's brings the account's copy.
 var CS = { ok: false, off: false, hold: false, dirty: false, t: 0, busy: null, sync: null, bootP: null, reloading: false, want: false, watch: 0 };
-const CS_LOCAL = ['sbs', 'muted', 'sfxOff', 'musicOff', 'gfx', 'orient', 'perfHud', 'acYoung', 'lastErr', 'netTok', 'csHi'], CS_BOOK = 'rm.cs', CS_WAIT = 30000;
+const CS_LOCAL = ['sbs', 'muted', 'sfxOff', 'musicOff', 'gfx', 'orient', 'perfHud', 'acYoung', 'lastErr', 'netTok', 'csHi', 'st'], CS_BOOK = 'rm.cs', CS_WAIT = 30000;
 const csUid = () => (FR.s && FR.s.uid) || (store.sbs && store.sbs.uid) || '';
 const csXp = x => Math.max(0, Math.floor(+x || 0));
 const csMissing = e => !!e && (e.status === 404 || /PGRST202|Could not find the function/i.test(String(e.message || ''))); // (the v312 SQL not run yet)
@@ -24642,7 +24743,7 @@ async function csLogout() {
 }
 // this phone back to a first launch, as Restart Game does it: sound, music, graphics and orientation kept
 function csFresh() {
-  const keep = {}; for (const k of ['muted', 'sfxOff', 'musicOff', 'gfx', 'orient', 'qLv', 'qSt']) if (store[k] !== undefined) keep[k] = store[k];
+  const keep = {}; for (const k of ['muted', 'sfxOff', 'musicOff', 'gfx', 'orient', 'qLv', 'qSt', 'st']) if (store[k] !== undefined) keep[k] = store[k];
   for (const k of Object.keys(store)) delete store[k];
   Object.assign(store, { level: 0, sel: 0, best: {}, stars: {}, seen: {}, muted: false, runs: 0, tut: { ph: 'match' } }, keep);
   csBookSet(null); save(); saveSend(); try { AU.trim && AU.trim(); } catch (e) {}
@@ -25318,10 +25419,10 @@ $('setBack').addEventListener('click', uiClick(doneSettings));
 // the pages of words: the terms, the privacy note, the credits (each comes back to Settings)
 const DOCS = {
   tos: ['Terms of Service', '<p>Updated October 15, 2026. Roll Model is still being made, and these terms will grow with it.</p><h3>Play fair</h3><p>No cheating, hacking, or using bugs to win.</p><h3>Be kind</h3><p>Pick a username that’s friendly to everyone: no swearing, nothing hateful, and no pretending to be someone else. We can change or remove a username that breaks these rules, and close an account that keeps breaking them.</p><h3>Your account</h3><p>You need to be 13 or older to make an account and play online. Keep your password to yourself: you’re responsible for what happens on your account. You can delete it any time in Settings.</p><h3>Changes</h3><p>We may update these terms as the game grows. The date at the top says when they last changed.</p>'],
-  priv: ['Privacy Policy', '<p>Updated October 16, 2026.</p><h3>On this device</h3><p>Your progress (your dabs, items, ranks and settings) is saved on this device. You don’t need an account to play.</p><h3>Your username</h3><p>Your username is kept on our server so no one else can take it. Other players can see it, with your paint colour and rank.</p><h3>Your account</h3><p>If you make an account, we keep your username, your first and last name, your birth year, and when you agreed to these terms. Your name and birth year are private: other players never see them. We ask for your birth year because online play is for players 13 and older.</p><p>While you’re signed in, we also keep a copy of your game progress (your dabs, items, ranks, unlocks and lessons done) with your account, so you can log in on another phone and pick up where you left off. Log out leaves it with your account and starts this device fresh.</p><p>Your password is handled by our sign-in provider, Supabase. It’s stored scrambled (hashed), never in a form anyone can read, not even us.</p><h3>Playing online</h3><p>To run friends and online matches we keep your friend code, your friends, friend requests and blocks, invites to play, your Time trial scores for the friends board, records of your online matches, and when you were last online.</p><h3>Who has it</h3><p>We don’t sell your information. Supabase stores it for us, and online matches run on our game server.</p><h3>Ads</h3><p id="adsP">In the iPhone app you can choose to watch an ad, for example to finish crafting a stroke right away. An ad only plays when you tap to watch one. Ads come from Google AdMob, which gets some information from your device to show an ad and count it: your IP address (which gives a rough location), the kind of device, an identifier for the device that’s only shared within our apps, and how the ad was watched. The game doesn’t ask to track you across other companies’ apps. If you told us you’re under 13, you only get ads that are fit for children, and they aren’t personalised. Where the law asks for it, Google asks for your consent before your first ad.</p><h3>Deleting it</h3><p>Settings › Delete account removes your account and everything above from our server for good. Restart Game in Settings clears this device.</p>'],
+  priv: ['Privacy Policy', '<p>Updated October 18, 2026.</p><h3>On this device</h3><p>Your progress (your dabs, items, ranks and settings) is saved on this device. You don’t need an account to play.</p><h3>Your username</h3><p>Your username is kept on our server so no one else can take it. Other players can see it, with your paint colour and rank.</p><h3>Your account</h3><p>If you make an account, we keep your username, your first and last name, your birth year, and when you agreed to these terms. Your name and birth year are private: other players never see them. We ask for your birth year because online play is for players 13 and older.</p><p>While you’re signed in, we also keep a copy of your game progress (your dabs, items, ranks, unlocks and lessons done) with your account, so you can log in on another phone and pick up where you left off. Log out leaves it with your account and starts this device fresh.</p><p>Your password is handled by our sign-in provider, Supabase. It’s stored scrambled (hashed), never in a form anyone can read, not even us.</p><h3>Playing online</h3><p>To run friends and online matches we keep your friend code, your friends, friend requests and blocks, invites to play, your Time trial scores for the friends board, records of your online matches, and when you were last online.</p><h3>Play stats</h3><p id="statsP">To make the game better, it sends us anonymous stats about how it’s played: the modes and canvases you play and how matches go, how far you’ve got in the lessons, your rank and dabs, what you look at and buy in the Paint Shop, what you craft, and whether ads you chose to watch finished. They go with a random number made for this copy of the game, not your name or anything that identifies your device. While you’re signed in, they’re linked to your account. We use them only to improve the game, never for ads, and we don’t sell them. You can turn them off here.</p><h3>Who has it</h3><p>We don’t sell your information. Supabase stores it for us, and online matches run on our game server.</p><h3>Ads</h3><p id="adsP">In the iPhone app you can choose to watch an ad, for example to finish crafting a stroke right away. An ad only plays when you tap to watch one. Ads come from Google AdMob, which gets some information from your device to show an ad and count it: your IP address (which gives a rough location), the kind of device, an identifier for the device that’s only shared within our apps, and how the ad was watched. The game doesn’t ask to track you across other companies’ apps. If you told us you’re under 13, you only get ads that are fit for children, and they aren’t personalised. Where the law asks for it, Google asks for your consent before your first ad.</p><h3>Deleting it</h3><p>Settings › Delete account removes your account and everything above from our server for good. The play stats stay, but no longer linked to you. Restart Game in Settings clears this device.</p>'],
   cred: ['Credits', '<h3>Roll Model</h3><p>Season 1: Spooky SZN</p><h3>Built with</h3><p>three.js (MIT License)</p><h3>Type</h3><p>Bowlby One, Figtree and Barlow Condensed (SIL Open Font License)</p><h3>Sound and voices</h3><p>Made with Ludo.ai</p><h3>3D items</h3><p>Made with Meshy</p><h3>Thanks</h3><p>To everyone who rolls through the paint.</p>']
 };
-function openDoc(k, back) { const d = DOCS[k]; if (!d) return; PB.docFrom = k; PB.docBack = typeof back === 'function' ? back : null; $('docModal').classList.toggle('acup', !!PB.docBack); $('docTitle').textContent = d[0]; $('docBody').innerHTML = d[1]; $('docBody').scrollTop = 0; if (!PB.docBack) setModal.hidden = true; $('docModal').hidden = false; if (k === 'priv') adPrivPaint(); setTimeout(() => $('docClose').focus({ preventScroll: true }), 30); }
+function openDoc(k, back) { const d = DOCS[k]; if (!d) return; PB.docFrom = k; PB.docBack = typeof back === 'function' ? back : null; $('docModal').classList.toggle('acup', !!PB.docBack); $('docTitle').textContent = d[0]; $('docBody').innerHTML = d[1]; $('docBody').scrollTop = 0; if (!PB.docBack) setModal.hidden = true; $('docModal').hidden = false; if (k === 'priv') { adPrivPaint(); stPrivPaint(); } setTimeout(() => $('docClose').focus({ preventScroll: true }), 30); }
 function closeDoc() { if ($('docModal').hidden) return; $('docModal').hidden = true; if (PB.docBack) { const f = PB.docBack; PB.docBack = null; return f(); } if (state === 'menu') { setModal.hidden = false; setFitSoon(); const b = $({ tos: 'tosBtn', priv: 'privBtn', cred: 'credBtn' }[PB.docFrom]); if (b) b.focus({ preventScroll: true }); } }
 for (const [id, k] of [['tosBtn', 'tos'], ['privBtn', 'priv'], ['credBtn', 'cred']]) $(id).addEventListener('click', uiClick(() => openDoc(k)));
 $('docClose').addEventListener('click', uiClick(closeDoc));
@@ -25402,7 +25503,7 @@ function endShowdown(timeUp) {
   endInfo.diff = diff; const pl = P.place || 4; let gain = Math.round(18 + 9 * P.kos + (win > 0 ? 40 : win === 0 ? 14 : 0) + (pl === 2 ? 12 : pl === 3 ? 5 : 0) + 4 * Math.max(0, P.hearts | 0));
   const fin = commProgress(endInfo); endInfo.xp0 = store.xp || 0; store.xp = endInfo.xp0 + gain; endInfo.xp = gain; endInfo.comms = fin;
   const drops = Math.round(8 + 5 * P.kos + (win > 0 ? 30 : win === 0 ? 12 : 0) + (pl === 2 ? 8 : 0)); store.drops = (store.drops || 0) + drops; endInfo.drops = drops;
-  save(); tutEndMatch();
+  stMatch(); save(); tutEndMatch();
   const duo = mode === 'duo';
   if (win > 0) banner(duo ? 'Your team wins!' : 'Last one standing!', timeUp ? 'Most hearts left' : '', false);
   else if (win === 0) banner('Draw!', timeUp ? 'Dead even at the buzzer' : 'Out together', false);
@@ -26080,7 +26181,7 @@ let tut2 = null, tut = null, tutPrev = null, tutTip = null, tutWinDue = false, t
   b.addEventListener('click', () => {
     if (!armT) { b.classList.add('arm'); b.textContent = 'Tap again to erase all progress'; AU.nope && AU.nope(); buzz(8); armT = setTimeout(disarm, 4000); return; }
     disarm(); b.disabled = true; const gone = acReset(); CS.hold = true; csBookSet(null); // (v306; v312)
-    const keep = {}; for (const k of ['muted', 'sfxOff', 'musicOff', 'gfx', 'orient', 'qLv', 'qSt']) if (store[k] !== undefined) keep[k] = store[k];
+    const keep = {}; for (const k of ['muted', 'sfxOff', 'musicOff', 'gfx', 'orient', 'qLv', 'qSt', 'st']) if (store[k] !== undefined) keep[k] = store[k];
     for (const k of Object.keys(store)) delete store[k];
     Object.assign(store, { level: 0, sel: 0, best: {}, stars: {}, seen: {}, muted: false, runs: 0, tut: { ph: 'match' } }, keep); // (as a first launch starts: the lesson first)
     save(); saveSend(); try { AU.trim && AU.trim(); } catch (e) {}
@@ -26746,7 +26847,7 @@ function tutLead() {
 }
 function tutEndMatch() { // (as a match ends)
   if (tut) {
-    const bonus = tut.bonus || 0; if (bonus) { store.drops = (store.drops || 0) + bonus; endInfo.drops = (endInfo.drops || 0) + bonus; } endInfo.tutBonus = bonus; // (the lessons' dabs)
+    const bonus = tut.bonus || 0; if (bonus) { store.drops = (store.drops || 0) + bonus; stEv({ k: 'earn', src: 'lesson', n: bonus }); endInfo.drops = (endInfo.drops || 0) + bonus; } endInfo.tutBonus = bonus; // (the lessons' dabs)
     tutCard(false); tut = null; tutHide(); if (tutSlowEl.classList.contains('on')) AU.slow(false, true); tutSlowEl.classList.remove('on'); tutPipsEl.classList.remove('on');
     if (!owns('flower')) unlockItem('flower'); if (!owns('fangs')) unlockItem('fangs'); if (!newItem || newItem === 'flower') newItem = ['flower', 'fangs'];
     store.tut.price = { flower: Math.max(1, Math.round((endInfo.drops || 0) / 2)) }; // (half what this match paid)

@@ -7,6 +7,7 @@
    "stage": "island",
    "season": false,
    "gift": false,
+   "find": true,
    "price": 695
   },
   {
@@ -16,6 +17,7 @@
    "stage": "island",
    "season": false,
    "gift": false,
+   "find": false,
    "price": 330
   },
   {
@@ -25,6 +27,7 @@
    "stage": "island",
    "season": false,
    "gift": false,
+   "find": false,
    "price": 145
   },
   {
@@ -34,6 +37,7 @@
    "stage": "blank",
    "season": false,
    "gift": false,
+   "find": true,
    "price": 580
   },
   {
@@ -43,6 +47,7 @@
    "stage": "blank",
    "season": false,
    "gift": false,
+   "find": false,
    "price": 185
   },
   {
@@ -52,6 +57,7 @@
    "stage": "blank",
    "season": false,
    "gift": false,
+   "find": false,
    "price": 160
   },
   {
@@ -61,6 +67,7 @@
    "stage": "blank",
    "season": false,
    "gift": false,
+   "find": true,
    "price": 475
   },
   {
@@ -70,6 +77,7 @@
    "stage": "blank",
    "season": false,
    "gift": false,
+   "find": false,
    "price": 220
   },
   {
@@ -79,6 +87,7 @@
    "stage": "blank",
    "season": false,
    "gift": false,
+   "find": false,
    "price": 270
   },
   {
@@ -88,6 +97,7 @@
    "stage": "blank",
    "season": false,
    "gift": false,
+   "find": false,
    "price": 205
   },
   {
@@ -97,6 +107,7 @@
    "stage": "blank",
    "season": false,
    "gift": false,
+   "find": false,
    "price": 240
   },
   {
@@ -106,6 +117,7 @@
    "stage": "blank",
    "season": false,
    "gift": false,
+   "find": false,
    "price": 290
   },
   {
@@ -115,6 +127,7 @@
    "stage": "blank",
    "season": false,
    "gift": false,
+   "find": false,
    "price": 195
   },
   {
@@ -124,6 +137,7 @@
    "stage": "blank",
    "season": false,
    "gift": false,
+   "find": false,
    "price": 180
   },
   {
@@ -133,6 +147,7 @@
    "stage": "blank",
    "season": false,
    "gift": false,
+   "find": false,
    "price": 195
   },
   {
@@ -142,6 +157,7 @@
    "stage": "blank",
    "season": false,
    "gift": false,
+   "find": false,
    "price": 295
   },
   {
@@ -151,6 +167,7 @@
    "stage": "blank",
    "season": false,
    "gift": false,
+   "find": false,
    "price": 345
   },
   {
@@ -160,6 +177,7 @@
    "stage": "blank",
    "season": false,
    "gift": false,
+   "find": false,
    "price": 245
   },
   {
@@ -169,6 +187,7 @@
    "stage": "blank",
    "season": false,
    "gift": false,
+   "find": false,
    "price": 480
   },
   {
@@ -178,6 +197,7 @@
    "stage": "halloween",
    "season": true,
    "gift": false,
+   "find": true,
    "price": 1105
   },
   {
@@ -187,6 +207,7 @@
    "stage": "halloween",
    "season": true,
    "gift": false,
+   "find": true,
    "price": 850
   },
   {
@@ -196,6 +217,7 @@
    "stage": "halloween",
    "season": true,
    "gift": false,
+   "find": true,
    "price": 400
   },
   {
@@ -205,6 +227,7 @@
    "stage": "halloween",
    "season": true,
    "gift": false,
+   "find": true,
    "price": 765
   },
   {
@@ -214,6 +237,7 @@
    "stage": "halloween",
    "season": true,
    "gift": false,
+   "find": true,
    "price": 645
   },
   {
@@ -223,6 +247,7 @@
    "stage": "halloween",
    "season": true,
    "gift": false,
+   "find": true,
    "price": 835
   },
   {
@@ -232,6 +257,7 @@
    "stage": "halloween",
    "season": true,
    "gift": true,
+   "find": true,
    "price": 0
   }
  ],
@@ -476,7 +502,7 @@
   },
   {
    "id": "lesson",
-   "name": "Skip the lesson"
+   "name": "Skip in the Strokes lesson"
   }
  ],
  "_about": "Read out of the game by tools/admin_catalog.py. Prices here are the game's defaults; live prices set in the dashboard override them."

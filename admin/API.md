@@ -124,12 +124,12 @@ Pass `p_steps` as the ids of `catalog.json` `tutorial`, in order (null uses the 
   "totals": { "dabs_earned": 1650000, "dabs_spent": 940000, "buys": 3400, "median_balance": 410 },   // median_balance: dabs held by installs active in the last 7 days
   "days": [ { "day": "2026-09-19", "buys": 88, "dabs_spent": 31500, "dabs_earned": 54200 } ],
   "strokes": [ { "stroke": "giant", "crafts": 420, "skips": 130 } ],   // Strokes crafts started, and of those finished early with an ad
-  "earn": [ { "src": "match", "dabs": 1400000 } ]                       // where dabs came from: match, comm (Commissions), gift, other
+  "earn": [ { "src": "match", "dabs": 1400000 } ]                       // where dabs came from: match, comm (Commissions), board (the Friends board's prize), lesson (the lessons' bonus), other
 }
 ```
 - `items` lists every item that was looked at, bought or given a live price; the dashboard adds the rest of `catalog.json` with zeros.
 - `views`: times the item was looked at in the Paint Shop (tried on), counted once per install per item per day.
-- `afford_views`: the views where the player had enough dabs at that moment.
+- `afford_views`: the views where the player could have bought it right then: it was in stock (sold outright, or already found on its canvas) and they had enough dabs. Items that have to be found first are marked `find: true` in `catalog.json`; their views before they're found don't count as affordable.
 
 ### `adm_ads(p_days int = 30)`
 ```json
@@ -138,7 +138,7 @@ Pass `p_steps` as the ids of `catalog.json` `tutorial`, in order (null uses the 
   "days": [ { "day": "2026-09-19", "asked": 40, "shown": 36, "rewarded": 35, "failed": 4 } ]
 }
 ```
-Placements: `craft` (Skip a Strokes craft), `lesson` (Skip the lesson). These are rewarded ads only; the game has no other ads.
+Placements: `craft` (Skip a Strokes craft), `lesson` (Skip in the Strokes lesson, Ol' Bloop's own craft). These are rewarded ads only; the game has no other ads.
 
 ### `adm_iap(p_days int = 30)`
 ```json
@@ -237,12 +237,12 @@ Newest first, at most 500. Actions: `set_price`, `set_password`, `signout`, `del
 | `open` | (none) | A session starting (launch, or back after 30 minutes away). |
 | `tut` | `s`: step id (`catalog.json` `tutorial`) | That step reached, once per install. |
 | `match` | `m` (mode), `on` (online, bool), `r` (`win`\|`loss`\|`draw`), `cov` (0..100), `ko` (0..99), `s` (seconds, 0..600), `st` (canvas id), `d` (`easy`\|`hard`\|...) | A match played to its end. |
-| `earn` | `src` (`match`\|`comm`\|`gift`\|`other`), `n` (dabs, 0..100000) | Dabs earned. |
-| `view` | `i` (item id), `a` (could afford, bool) | The item looked at in the Paint Shop (the game sends it once per item per session). |
+| `earn` | `src` (`match`\|`comm`\|`board`\|`lesson`\|`other`), `n` (dabs, 0..100000) | Dabs earned. |
+| `view` | `i` (item id), `a` (could buy it right then: in stock and enough dabs, bool) | The item looked at in the Paint Shop (the game sends it once per item per session). |
 | `buy` | `i` (item id), `p` (dabs paid) | An item bought with dabs. |
 | `craft` | `i` (stroke id) | A Strokes craft started. |
 | `skip` | `i` (stroke id) | A craft finished early with a rewarded ad. |
-| `ad` | `pl` (`craft`\|`lesson`), `r` (`ask`\|`shown`\|`reward`\|`fail`) | A rewarded ad's progress. |
+| `ad` | `pl` (`craft`\|`lesson`: the Strokes lesson's own craft), `r` (`ask`\|`shown`\|`reward`\|`fail`) | A rewarded ad's progress (in the iPhone app; the web page has no real ads). |
 | `rank` | `n` (1..999) | A new rank reached. |
 | `iap` | `pr` (product id), `c` (cents) | A real-money purchase (none in the game yet). |
 

@@ -36,7 +36,8 @@ final class DeviceBridge: NSObject, WKScriptMessageHandler {
             "maxFPS": UIScreen.main.maximumFramesPerSecond,
             "scale": Double(UIScreen.main.scale),
             "share": true,
-            "tester": isDebugBuild
+            "tester": isDebugBuild,
+            "appVersion": (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? ""
         ]
     }
 
