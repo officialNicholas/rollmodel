@@ -197,8 +197,8 @@ $$;
 
 -- the tutorial in the order a new player meets it (the same as admin/catalog.json's "tutorial")
 create or replace function public._tut_steps() returns text[] language sql immutable set search_path = '' as $$
-  select array['intro', 'match', 'l:move', 'l:free0', 'l:sling', 'l:free1', 'l:basin', 'l:pound', 'l:dodge', 'l:item', 'l:rollover', 'l:orb',
-    'l:free3', 'l:rocketdodge', 'l:flower', 'l:rest', 'shop', 'locker', 'vote', 'match2', 'done', 'rank2', 'strokes', 'strokes_done']
+  select array['intro', 'match', 'l:move', 'l:free0', 'l:sling', 'l:free1', 'l:pound', 'l:item', 'l:orb', 'l:free3', 'l:flower', 'l:rest',
+    'shop', 'locker', 'vote', 'match2', 'done', 'rank2', 'strokes', 'strokes_done']
 $$;
 
 -- rank from xp, as the game works it out (repOf: rank n needs 100 + 45 (n - 1) more xp, up to 99)

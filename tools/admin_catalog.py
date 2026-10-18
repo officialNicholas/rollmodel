@@ -18,7 +18,7 @@ JS = r"""(() => {
   const lesson = TUT_STEPS.map(s => s.id);
   return JSON.stringify({ items, strokes, modes, stages, lesson });
 })()"""
-LESSON = {'move': 'steer', 'free0': 'paint freely', 'sling': 'slingshot', 'free1': 'paint freely 2', 'basin': 'refill at a basin', 'pound': 'ground pound',
+LESSON = {'move': 'steer and jump', 'free0': 'paint freely', 'sling': 'slingshot', 'free1': 'paint freely 2', 'basin': 'refill at a basin', 'pound': 'ground pound',
           'dodge': 'dodge roll', 'item': 'use a transform', 'rollover': 'roll over the rival', 'orb': 'grab the orb', 'free3': 'paint freely 3',
           'rocketdodge': 'dodge the rocket', 'flower': 'grab the gift', 'rest': 'finish the match'}
 async def main():

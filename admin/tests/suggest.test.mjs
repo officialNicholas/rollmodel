@@ -205,8 +205,8 @@ test('tutorial: the biggest drop to the next step', () => {
 });
 
 test('tutorial: the step where the most players are stuck', () => {
-  const out = tutorialSuggestions(funnel({ 'l:basin': { stuck: 120 } }), CATALOG);
-  const s = byId(out, 'tutorial-stuck-l:basin');
+  const out = tutorialSuggestions(funnel({ 'l:pound': { stuck: 120 } }), CATALOG);
+  const s = byId(out, 'tutorial-stuck-l:pound');
   assert.ok(s);
   assert.match(s.detail, /^120 installs/);
 });
@@ -286,7 +286,7 @@ test('retention: weak day 1 with a big enough cohort', () => {
 test('every suggestion has the documented shape, with numbers in its detail', () => {
   const all = suggest({
     overview: { retention: { d1: 0.12, cohort_d1: 300, d7: 0.05, cohort_d7: 300 } },
-    progress: funnel({ 'l:basin': { stuck: 120 } }),
+    progress: funnel({ 'l:pound': { stuck: 120 } }),
     modes: { modes: [mode('duel', 3000, 2500, 450, 50), mode('ffa', 1000, 60, 930, 10), mode('duo', 100, 50, 49, 1)] },
     economy: shop({ cape: { views: 500, afford_views: 50, buys: 2 }, patch: { views: 600, afford_views: 560, buys: 3 }, bowtie: { buys: 160, afford_views: 380 }, monocle: { views: 40 } },
       { median_balance: 60, dabs_earned: 50000, dabs_spent: 30000 }),

@@ -52,9 +52,8 @@ const STEPS = CATALOG.tutorial.map((t) => t.id);
 const DONE = STEPS.indexOf('done');
 // the chance of going on from a step to the next one, on the first day
 const GO_ON = {
-  intro: 0.985, match: 0.975, 'l:move': 0.985, 'l:free0': 0.98, 'l:sling': 0.84, 'l:free1': 0.985, 'l:basin': 0.92,
-  'l:pound': 0.985, 'l:dodge': 0.98, 'l:item': 0.975, 'l:rollover': 0.985, 'l:orb': 0.985, 'l:free3': 0.99,
-  'l:rocketdodge': 0.965, 'l:flower': 0.99, 'l:rest': 0.97, shop: 0.98, locker: 0.985, vote: 0.96, match2: 0.985,
+  intro: 0.985, match: 0.975, 'l:move': 0.985, 'l:free0': 0.98, 'l:sling': 0.84, 'l:free1': 0.985, 'l:pound': 0.92,
+  'l:item': 0.975, 'l:orb': 0.985, 'l:free3': 0.99, 'l:flower': 0.99, 'l:rest': 0.97, shop: 0.98, locker: 0.985, vote: 0.96, match2: 0.985,
 };
 const MODES = { solo: 0.15, duel: 0.4, trio: 0.22, ffa: 0.185, duo: 0.045 };
 const WIN = { solo: 0.35, duel: 0.81, trio: 0.38, ffa: 0.27, duo: 0.53 };            // against the CPU

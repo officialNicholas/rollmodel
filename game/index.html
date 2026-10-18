@@ -4578,6 +4578,8 @@ i.ptwait>*{display:none}
 /* the sheet keeps to the screen (its body scrolls if it must), and sideways New account takes three columns so it fits */
 #acModal{grid-template-rows:minmax(0,1fr)}
 @media (min-aspect-ratio:1/1) and (max-height:600px){#acModal.nu .accard{width:min(100%,780px)}#acNew{grid-template-columns:repeat(3,minmax(0,1fr))}#acNew>.frfine{order:0;grid-column:span 2;align-self:center}}
+/* (v356) the first lesson has no timer and no coverage: the top bar's card is hidden (pause and sound stay where they are) */
+.hud.lesson .top .score{visibility:hidden}
 </style>
 
 <div id="stage">
@@ -4750,7 +4752,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 355</p>
+      <p class="ver">Version 356</p>
     </div>
   </div>
 
@@ -13904,6 +13906,7 @@ function stepCoffins(dt) {
   for (const p of pots) {
     if (p.cool > 0) p.cool -= dt; if (p.bounce > 0) p.bounce = Math.max(0, p.bounce - dt * 2.5);
     if (p.st === 'up') continue;
+    if (p.st === 'down' && tut && tutFlat) continue; // (v356: in the lesson a basin that's gone stays gone)
     p.t += dt;
     if (p.st === 'sink') {
       if (Math.random() < dt * 20) { const a = Math.random() * 6.283; spawnPart(p.x + Math.cos(a) * 0.8, p.y + 0.06, p.z + Math.sin(a) * 0.8, -Math.cos(a) * 0.6, 0.6 + Math.random(), -Math.sin(a) * 0.6, 0.5, dustMat, 0.7, 0.4); }
@@ -16382,7 +16385,7 @@ function unSay(why, n) {
     : why === 'walled' ? 'Accounts work in the Roll Model app, not in this preview' : why === 'server' ? 'Can’t reach the Roll Model server. Try again in a bit' // (v307)
     : why === 'out' ? 'You’re signed out. Log in first' : 'Try another';
 }
-function applyMode() { const sd = isShow(); ARENA = mode === 'trio' || sd ? ARENA_MAX : 26.4; VS_CFG.pots = mode === 'trio' ? 11 : sd ? 12 : 8; VS_CFG.rivals = mode === 'trio' || sd ? 17 : 12; ACTIVE = mode === 'solo' ? [P] : mode === 'trio' ? [P, H, H2] : sd ? [P, H, H2, H3] : [P, H]; SIDE = mode === 'duo' ? [0, 1, 1, 0] : [0, 1, 2, 3]; teamHues(); }
+function applyMode() { const sd = isShow(); ARENA = mode === 'trio' || sd ? ARENA_MAX : 26.4; VS_CFG.pots = mode === 'trio' ? 11 : sd ? 12 : 8; VS_CFG.rivals = mode === 'trio' || sd ? 17 : 12; ACTIVE = mode === 'solo' || tutFlat ? [P] : mode === 'trio' ? [P, H, H2] : sd ? [P, H, H2, H3] : [P, H]; SIDE = mode === 'duo' ? [0, 1, 1, 0] : [0, 1, 2, 3]; teamHues(); }
 let foesFor = null, foesC = new Map();
 const foes = D => { if (foesFor !== ACTIVE) { foesFor = ACTIVE; foesC = new Map(); } let f = foesC.get(D); if (!f) { f = ACTIVE.filter(o => o !== D && SIDE[o.team] !== SIDE[D.team]); foesC.set(D, f); } return f; };
 const inPlay = D => D.st === 'play' || D.st === 'hide';
@@ -16405,11 +16408,11 @@ function resetBlob(D, x, z, yaw) { const ai = D.ai, lk = D.look, pe = D.potEyes,
 function resetRun() {
   abortVictory(); kofEnd(); abortReveal(); outK = 0; outroFrac = 1; runId++; cfg = VS_CFG; clearTrail(); placeObjects(level);
   resetBlob(P, START.x, START.z, START.yaw); resetBlob(H, CSTART.x, CSTART.z, CSTART.yaw); aiReset(H); resetBlob(H2, CSTART2.x, CSTART2.z, CSTART2.yaw); aiReset(H2); resetBlob(H3, CSTART3.x, CSTART3.z, CSTART3.yaw); aiReset(H3);
-  if (mode === 'solo') H.st = 'out'; if (mode !== 'trio' && !isShow()) H2.st = 'out'; if (!isShow()) H3.st = 'out'; for (const D of ACTIVE) D.hearts = isShow() ? SD_HEARTS : 0; sdEndT = 0; sdSpecEnd(); zoneClear(); { const el = $('sdBar'); if (el) { el._built = false; el._sig = ''; } }
+  if (mode === 'solo' || tutFlat) H.st = 'out'; if (mode !== 'trio' && !isShow()) H2.st = 'out'; if (!isShow()) H3.st = 'out'; for (const D of ACTIVE) D.hearts = isShow() ? SD_HEARTS : 0; sdEndT = 0; sdSpecEnd(); zoneClear(); { const el = $('sdBar'); if (el) { el._built = false; el._sig = ''; } }
   kcamEnd(); kcamUsed = false; for (const D of [P, H, H2, H3]) { D.rag = null; D.slamCD = D.slamMax = SLAM_FIRST; D.wearOff = false; D.wearPop = 1; D.held = null; D.heldT = 0; D.held2 = null; D.orbSaved = null; D.frozenT = 0; if (D.whirl) endWhirl(D); } // the pound builds up before the first one
   wasReady = false; holdCharge = false; pullTgt = 0; slingOff();
   camYaw = P.yaw; camYawV = 0; look.spd = 0; look.lean = 0; look.drop = 0; look.flat = 1; look.roll = 0; Object.assign(lookC, { spd: 0, lean: 0, drop: 0, flat: 1, roll: 0, flatK: 0 }); lookFlatP = 0; aimRing.visible = false; arrow.visible = false;
-  drop.visible = true; shadowBlob.visible = true; LH.drop.visible = LH.shadow.visible = mode !== 'solo'; L2.drop.visible = L2.shadow.visible = mode === 'trio' || isShow(); Object.assign(L2.look, { spd: 0, lean: 0, drop: 0, flat: 1, roll: 0, flatK: 0 }); L3.drop.visible = L3.shadow.visible = isShow(); Object.assign(L3.look, { spd: 0, lean: 0, drop: 0, flat: 1, roll: 0, flatK: 0 }); hud.classList.toggle('trio', mode === 'trio'); hud.classList.toggle('sdmode', isShow()); hud.classList.toggle('solo', mode === 'solo');
+  drop.visible = true; shadowBlob.visible = true; LH.drop.visible = LH.shadow.visible = mode !== 'solo' && !tutFlat; L2.drop.visible = L2.shadow.visible = mode === 'trio' || isShow(); Object.assign(L2.look, { spd: 0, lean: 0, drop: 0, flat: 1, roll: 0, flatK: 0 }); L3.drop.visible = L3.shadow.visible = isShow(); Object.assign(L3.look, { spd: 0, lean: 0, drop: 0, flat: 1, roll: 0, flatK: 0 }); hud.classList.toggle('trio', mode === 'trio'); hud.classList.toggle('sdmode', isShow()); hud.classList.toggle('solo', mode === 'solo');
   runT = 0; matchLeft = mode === 'solo' ? SOLO_T : isShow() ? SD_T : MATCH_T; lastCount = 99; overtimeUsed = false; rainsSeen = 0; lastLead = 0; lastLeadT = -9; leadAcc = 0; deathReason = null; outro = false; outroAge = 0; celebrating = false; hold = 0; slow = 0; dangerK = 0;
   shots.length = 0; drawShots();
   suck.forEach(q => { q.s.visible = false; suckFree.push(q); }); suck.length = 0; fxRings.forEach(f => { f.m.visible = false; fxFree.push(f); }); fxRings.length = 0; poolList.forEach(pl => { pl.items.length = 0; pl.im.count = 0; pl.im.visible = false; }); sprDrops.length = 0; sprJets.length = 0; debris.forEach(d => scene.remove(d.m)); debris.length = 0; geysers.forEach(q => scene.remove(q.m)); geysers.length = 0; confs.forEach(c => scene.remove(c.m)); confs.length = 0;
@@ -23240,13 +23243,13 @@ function showVS(cb) {
   if (window.__instant || reduceMotion) return cb();
   const el = $('vsx'), md = MODES.find(m => m[0] === mode) || MODES[0];
   const card = (D, name, cls) => '<div class="vcol ' + cls + '" style="--sc:' + TEAMS[D.team].css + ';--cd:' + mixHex(TEAMS[D.team].wet, 0x0C0620, 0.62) + '">' + (cls === 'me' ? '' : '<i class="vseam" aria-hidden="true"></i>') + '<i class="vsweep" aria-hidden="true"></i><div class="vhead"><small>' + (cls === 'me' ? 'You' : cls === 'me ally' ? 'Teammate' : NM ? 'Online' : 'CPU') + '</small><b' + (isHd(name) ? ' class="hd"' : '') + '>' + escAttr(name) + '</b></div><span class="vbox" id="vbox' + D.team + '"></span>' + Array.from({ length: 9 }, (_, i) => '<i class="pt" style="--x:' + (6 + Math.random() * 88).toFixed(0) + '%;--s:' + (3 + Math.random() * 7).toFixed(0) + 'px;--d:' + (2.2 + Math.random() * 2.4).toFixed(2) + 's;--w:' + (-Math.random() * 4).toFixed(2) + 's;--dx:' + ((Math.random() - 0.5) * 60).toFixed(0) + 'px"></i>').join('') + '</div>';
-  let h = card(P, playerName(), 'me'); if (mode === 'duo') h += card(H3, NAMES[3], 'me ally') + card(H, NAMES[1], 'foe') + card(H2, NAMES[2], 'foe2'); else if (mode !== 'solo') { h += card(H, NAMES[1], 'foe'); if (mode === 'trio' || mode === 'ffa') h += card(H2, NAMES[2], 'foe2'); if (mode === 'ffa') h += card(H3, NAMES[3], 'foe3'); }
-  $('vsRow').innerHTML = h; $('vsRow').classList.toggle('trio', mode === 'trio'); $('vsRow').classList.toggle('quad', isShow()); $('vsRow').classList.toggle('duo', mode === 'duo'); $('vsRow').classList.toggle('rows', viewH > viewW && mode !== 'solo'); $('vsx').classList.toggle('vvr', viewH > viewW && mode !== 'solo' && !window.__noVote && !tutMatchDue() && !NM); /* (v284: the vote to come) */ /* (upright: one fighter per row, shot on the face) */
+  let h = card(P, playerName(), 'me'); if (mode === 'duo') h += card(H3, NAMES[3], 'me ally') + card(H, NAMES[1], 'foe') + card(H2, NAMES[2], 'foe2'); else if (mode !== 'solo' && !tutFlat) { h += card(H, NAMES[1], 'foe'); if (mode === 'trio' || mode === 'ffa') h += card(H2, NAMES[2], 'foe2'); if (mode === 'ffa') h += card(H3, NAMES[3], 'foe3'); }
+  $('vsRow').innerHTML = h; $('vsRow').classList.toggle('trio', mode === 'trio'); $('vsRow').classList.toggle('quad', isShow()); $('vsRow').classList.toggle('duo', mode === 'duo'); $('vsRow').classList.toggle('rows', viewH > viewW && mode !== 'solo' && !tutFlat); $('vsx').classList.toggle('vvr', viewH > viewW && mode !== 'solo' && !window.__noVote && !tutMatchDue() && !NM); /* (v284: the vote to come) */ /* (upright: one fighter per row, shot on the face) */
   // the rivals step out, dressed, with their game face on; the portraits are taken two frames on, once their bodies have settled
-  const list = [[P, $('vbox0'), VS_POSE.me]]; if (mode !== 'solo') list.push([H, $('vbox1'), VS_POSE.foe]); if (mode === 'trio' || isShow()) list.push([H2, $('vbox2'), VS_POSE.foe2]); if (isShow()) list.push([H3, $('vbox3'), mode === 'duo' ? VS_POSE.ally : VS_POSE.foe3]);
+  const list = [[P, $('vbox0'), VS_POSE.me]]; if (mode !== 'solo' && !tutFlat) list.push([H, $('vbox1'), VS_POSE.foe]); if (mode === 'trio' || isShow()) list.push([H2, $('vbox2'), VS_POSE.foe2]); if (isShow()) list.push([H3, $('vbox3'), mode === 'duo' ? VS_POSE.ally : VS_POSE.foe3]);
   for (const [D, , pose] of list) { D.wearPop = 1; D.wearOff = false; D.wearHid = false; if (D !== P) { D.look.drop.visible = true; D.yaw = P.yaw; D.flatT = 0; D.stunT = 0; D.dry = false; D.vsSt = D.st; D.st = 'play'; }
     D.vsIp = D.ip; D.ip = Object.assign({ hop: 0, spin: 0, pitch: 0, roll: 0, sq: null, rise: null, sink: null, coat: null, watch: null, expr: null, shut: false, stars: false }, pose.ip); }
-  vsSnap = { t: 2, list, id: runId }; $('vsTitle').innerHTML = '<b>' + escAttr(TH.label) + '</b> \u00b7 ' + (mode === 'solo' ? 'Time trial, 60 seconds' : (NM ? md[1] + ', online' : md[1] + ', CPU ' + (CRITICS[diff] || 'fair').toLowerCase()));
+  vsSnap = { t: 2, list, id: runId }; $('vsTitle').innerHTML = '<b>' + escAttr(TH.label) + '</b> \u00b7 ' + (tutFlat ? 'Tutorial' : mode === 'solo' ? 'Time trial, 60 seconds' : (NM ? md[1] + ', online' : md[1] + ', CPU ' + (CRITICS[diff] || 'fair').toLowerCase()));
   el.hidden = false; AU.whoosh(); AU.say('go', 0); buzz([15, 30, 15]); // (v270: no "Are you ready? Let's roll" here or after the vote)
   const id = runId, wipe = win => { AU.music('end'); slashWipe({ dur: 1.0, onPeak: () => { el.hidden = true; el.classList.remove('voting'); $('vvote').hidden = true;
     if (win && TH.id !== win) { building = true; genWorld((Math.random() * 4294967296) >>> 0, { avoid: TH.id, themes: [win] }); mapUsed = false; clearTimeout(warmQ); warmRender(); building = false; }
@@ -24974,13 +24977,14 @@ function openVote(id, done) {
 }
 function beginMatch() {
   clearShot(); $('gframe').hidden = true; $('gwall').hidden = true;
-  vicLayer(P, false); lobbyShadow.visible = false; heroSay.hidden = true; closeSide(true); AI = isShow() ? Object.assign({}, AI_LV[diff], SD_AI[diff]) : AI_LV[diff]; mapUsed = true; resetRun(); gyCam = 0; state = 'intro'; qMatchStart(); introT = 0; introN = 0; introUp = 0; hud.classList.add('off'); giftPlan(); newItem = null; tutBegin(); ptMatch();
+  vicLayer(P, false); lobbyShadow.visible = false; heroSay.hidden = true; closeSide(true); AI = isShow() ? Object.assign({}, AI_LV[diff], SD_AI[diff]) : AI_LV[diff]; mapUsed = true; resetRun(); gyCam = 0; state = 'intro'; qMatchStart(); introT = 0; introN = 0; introUp = 0; hud.classList.add('off'); giftPlan(); newItem = null; tutBegin(); ptMatch(); hud.classList.toggle('lesson', !!(tut && tutFlat)); // (v356)
   if (window.__skipIntro) { startItems(); state = 'play'; hud.classList.remove('off'); for (const D of ACTIVE) { D.y = 6.5; D.air = true; D.vy = -1; D.freeLand = true; D.stroke++; } AU.music('play'); return; } // (tests)
   const basins = NM ? new Map() : introBasins();
   for (const D of ACTIVE) { const p = basins.get(D); D.stroke++; D.wearOff = true; D.peeked = false; D.introBare = false; D.introLeap = null; D.introOut = false; D.introCrawl = null; D.introAct = null; D.ip = null; D.eyeSink = D.eyeShut = D.eyeWide = 0; D.introKind = pickIntro(D);
     if (p) { D.st = 'hide'; D.pot = p; p.occ = p.lastOcc = D; D.x = p.x; D.z = p.z; D.y = D.introY0 = p.y; D.yaw = basinLeap(p); D.rimInfo = basinRim(p, Math.sin(D.yaw), Math.cos(D.yaw)); // (read now, behind the wipe, not mid-countdown) D.air = false; D.vy = 0; D.spd = 0; D.freeLand = false; D.formK = 1; D.fT = 1; D.fV = 0; D.wob = 0;
       potClaim(p, D.team); p.paintC.copy(TEAM_COLS[D.team]); p.slosh = 0; D.popAt = D === P ? 0.32 : 0.36 + Math.random() * 0.16; D.leapAt = D.popAt + (D === P ? 0.85 : 0.8 + Math.random() * 0.08) - (D.introKind === 'climb' ? 0.2 : 0); /* (the climb takes longer now: it starts a little sooner) */ continue; }
     D.introY0 = Math.max(0, surfaceUnder(D.x, D.z, 3, true)); D.y = D.introY0 + INTRO_H; D.air = true; D.vy = 0; D.freeLand = true; D.formK = 0.12; D.fT = 0.34; D.fV = 0; D.wob = 0.8; }
+  if (tut && tutFlat) for (const p of pots) if (p !== basins.get(P)) { p.st = 'down'; p.t = 0; p.g.visible = false; if (p.ring) p.ring.visible = false; if (p.tele) p.tele.visible = false; p.occ = null; p.next = null; } // (v356: the lesson's only basin is yours)
   camYaw = P.yaw; camYawV = 0; introCam(true); gyCam = P.introY0 || 0; camSnap = true;
   if (!reduceMotion && !window.__noReveal && !NM) { state = 'reveal'; revealT = 0; revealA0 = P.yaw + 0.67 + 0.75; revealCam(); camera.position.copy(dPos); camera.lookAt(dLook); camera.updateMatrixWorld(); revealShow(); irisOpen(); AU.whoosh(); return; }
   const v = tv1.set(P.x, P.y + 0.1, P.z).project(camera); irisOpen([(v.x * 0.5 + 0.5) * viewW, (0.5 - v.y * 0.5) * viewH]);
@@ -26481,37 +26485,15 @@ const TUT_STEPS = [
   { id: 'sling', max: 40, enter() { tut.slowK = TUT_SLOW; tutShow(say('*HOLD*, *PULL DOWN*, then let go to fling!', 'Hold *S*, then let go to fling!'), null, 'sling', true); },
     tick() { return P.st === 'play' && P.air && P.flung && (P.flingC || 0) > 0.1; } },
   { id: 'free1', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 2; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
-  { id: 'basin', max: 55, enter() { tut.slowK = 1; tut.basinTip = false; tut.basinT = 0; tut.basinSw = false; tut.potQ = tutRaisePot(); tutHide(); }, /* (the tank drains, a basin comes up just ahead, and the way to it is shown) */
-    exit() { tut.potQ = null; },
-    tick(dt) { if (P.dryT) P.dryT = 0; /* (no running dry into a knock-out in the lesson) */
-      if (P.st === 'play') P.paint = tut.basinTip ? Math.min(P.paint, 0.02) : Math.max(0, P.paint - dt * 1.1); /* (the tank empties in under a second and stays out till you refill) */
-      if (tut.basinTip && !tut.basinSw) { tut.basinT += dt; if (tut.basinT > 2.5 && P.st === 'play') { tut.basinSw = true; tutGest('swipe'); } } /* (not there yet: a finger shows the swipe up, a roll gets you there faster) */
-      if (!tut.basinTip && P.paint <= 0.02) { tut.basinTip = true; pingTank(4); tutShow('Out of paint! Roll into a *' + potWord().toUpperCase() + '* to refill', null, 'basin', true, true); }
-      return P.st === 'hide' && tut.basinTip; } }, // (v303: a tub you rolled into, out of paint)
-  { id: 'pound', max: 80, exit() { tut.drive = null; tut.driveMode = null; TUT_AI.speed = 0.8; }, enter() { tut.hidePound = false; tut.keepAway = false; tut.drive = H; tut.driveMode = 'near'; TUT_AI.speed = 0.62; tutGivePound(); tut.kos0 = P.kos; tut.flat0 = P.flatted; tut.slowK = 1; tut.slowT = 0; tut.poundIn = false; tut.poundShown = false; tut.sub = ''; tutHide(); },
-    tick(dt) { if (tut.slowT > 0) { tut.slowT -= dt / Math.max(tut.slowK, 0.05); if (tut.slowT <= 0) tut.slowK = 1; }
-      if (P.st === 'play' && P.paint < 0.6) P.paint = Math.min(1, P.paint + dt * 1.6); if (P.slamCD > 1.5) P.slamCD = 1.5; // (paint and the pound keep coming back until one lands)
-      const hd = Math.hypot(H.x - P.x, H.z - P.z), near = H.st === 'play' && hd < 11; TUT_AI.speed = hd > 8 ? 1.3 : hd > 5 ? 0.9 : 0.62; /* (hurries over, then eases in) */ if (!tut.poundIn && P.st === 'play') tutRivalIn(5.5); if ((H.st === 'play' && hd < SLAM_R + PR && Math.abs(H.y - P.y) < 1.2) || tut.st > 24) tut.poundIn = true; /* (the tip waits for the rival to come close) */
-      const sub = P.st === 'hide' ? 'burst' : P.air && P.flung && (P.flingC || 0) > 0.15 && near && !P.slam ? 'missile' : tut.poundIn ? 'pound' : 'wait';
-      if (sub !== tut.sub) { const first = sub === 'pound' && !tut.poundShown; tut.sub = sub; tutGivePound();
-        if (sub === 'wait') tutHide();
-        if (first) { tut.poundShown = true; tut.slowK = TUT_SLOW; tut.slowT = 3.5; }
-        if (sub === 'burst') tutShow(say('Full tank! Tap *POUND* to burst out', 'Full tank! Press *E* to burst out'), 'slamBtn', 'burst', true);
-        else if (sub === 'missile') { tut.slowK = 0.3; tutShow(say('*POUND* now to fire a missile!', 'Press *E* now to fire a missile!'), 'slamBtn', 'missile', true); }
-        else if (sub === 'pound') { if (tut.slowT <= 0) tut.slowK = 1; tutShow(hd < 6 ? say('Your Pound splats everything round you. The rival\u2019s close, tap it!', 'Your Pound (E) splats everything round you. The rival\u2019s close, press E!') : say('Your Pound splats everything round you. Get close to the rival and tap it!', 'Your Pound (E) splats everything round you. Get close to the rival and press E!'), 'slamBtn', 'pound'); } }
-      return P.kos > tut.kos0 || P.flatted > tut.flat0; } },
-  { id: 'dodge', max: 60, enter() { tut.noPound = true; Object.assign(TUT_AI, TUT_AI_FIGHT); tut.drive = H; tut.driveMode = 'fight'; H.slamCD = 0; if (H.paint < 0.8) H.paint = 1; if (H.ai) { H.ai.plan = null; H.ai.path = null; } tut.rolled = false; tut.hits = 0; tut.wasKo = false; tut.slowK = 1; tut.sub = ''; tutShow(say('Rivals pound too. Swipe up just before it lands to dodge', 'Rivals pound too. Shift just before it lands to dodge'), null, 'dodge', false, true); },
-    tick(dt) { if (!H.slam && P.st === 'play') tutRivalIn(6.5); if (H.st === 'play' && !H.slam && H.slamCD > 1.2) H.slamCD = 1.2; if (H.paint < 0.5) H.paint = 1;
-      const d = Math.hypot(H.x - P.x, H.z - P.z), eta = H.slam ? H.slamEta - H.slamT : 9, coming = H.slam && H.st === 'play' && P.st === 'play' && !P.air && d < slamRadius(H) + PR + 2.5;
-      if (coming && P.rollT <= 0 && !tut.rolled) P.rollCD = 0; /* (an early swipe never leaves you without a roll for the drop) */
-      if (coming && P.rollT > 0 && !tut.rolled) { tut.rolled = true; tut.rollRT = 0; } // (a roll while its pound is in the air: that is the timing)
-      if (tut.rolled) tut.rollRT = (tut.rollRT || 0) + (dt || 0) / Math.max(tut.slowK, 0.05); /* (real seconds since the swipe) */
-      if (tut.rolled && H.slam && P.rollT > 0 && P.rollT < 0.05) P.rollT = 0.05; /* (and it holds you clear till the pound lands) */
-      if (P.st === 'ko' && !tut.wasKo) tut.hits++; tut.wasKo = P.st === 'ko';
-      const now = coming && eta < 0.42, base = now ? 0.14 : coming ? 0.45 : 1, back = tut.rolled ? Math.min(1, Math.max(0, (tut.rollRT - 1) / 0.25)) : 0; tut.slowK = base + (1 - base) * back; /* (swiped clear: a second more, then back to speed) */
-      const sub = now ? 'now' : 'dodge'; if (sub !== tut.sub) { tut.sub = sub; if (now) tutShow(say('*NOW!* Swipe up!', '*NOW!* Shift!'), null, 'dodgenow', true, true); else tutShow(say('Rivals pound too. Swipe up just before it lands to dodge', 'Rivals pound too. Shift just before it lands to dodge'), null, 'dodge', false, true); }
-      return (tut.rolled || tut.hits >= 2) && P.st === 'play' && !H.slam; },
-    exit() { Object.assign(TUT_AI, TUT_AI_CALM); tut.drive = null; tut.noPound = false; } },
+  // (v356) the pound, on your own: once you're down from the fling (in the air after one, the button fires a missile instead), its
+  // button comes up, the tip points at it, and one that lands is the lesson (no rival to aim at, no tub to burst out of)
+  { id: 'pound', max: 40, enter() { tut.keepAway = false; tut.slammed = false; tut.slowK = 1; tut.slowT = 0; tut.sub = ''; tut.poundUp = false; },
+    tick(dt) { if (!tut.poundUp) { if (P.st !== 'play' || (P.air && (P.flingC || 0) > 0.15)) return false;
+        tut.poundUp = true; tut.hidePound = false; tutGivePound(); tut.slowK = TUT_SLOW; tut.slowT = 2.5;
+        tutShow(say('Tap *POUND* to splat paint all around you!', 'Press *E* to splat paint all around you!'), 'slamBtn', 'pound', true); }
+      if (tut.slowT > 0) { tut.slowT -= dt / Math.max(tut.slowK, 0.05); if (tut.slowT <= 0) tut.slowK = 1; }
+      if (P.slamCD > 1.5) P.slamCD = 1.5; if (P.slam) { tut.slammed = true; tut.slowK = 1; } // (the pound keeps coming back until one lands)
+      return tut.slammed && !P.slam && P.st === 'play'; } },
   // (v270) you've held the Roller since the start; now its button comes up (above the slow-motion shade) and the tip points at it
   { id: 'item', max: 50, enter() { tutHide(); tut.slowK = 1; tut.sub = ''; tut.wait = 0.7; if (!P.held && !(P.power && P.power.type === 'roller')) P.held = 'roller'; tut.hideItem = false; $('itemBtn').classList.add('tutup'); }, /* (a beat for the button to pop up, then its tip) */
     exit() { $('itemBtn').classList.remove('tutup'); },
@@ -26519,38 +26501,11 @@ const TUT_STEPS = [
       if (tut.wait > 0) { tut.wait -= dt; return false; }
       if (tut.sub !== 'use' && P.held === 'roller' && P.st === 'play') { tut.sub = 'use'; tut.slowK = 0.35; tutShow(say('This is a *TRANSFORM* item. *TAP* it!', 'This is a *TRANSFORM* item. Press *F*!'), 'itemBtn', 'use', true); }
       return !!(P.power && P.power.type === 'roller'); } },
-  // (v270) rolling: the rival comes round onto the line in front of you and walks down it at you. As he comes in range it slows right
-  // down, a finger shows the swipe up and the roll is aimed at him. Round again if you miss (the roller holds out) till he's flattened
-  { id: 'rollover', max: 45, enter() { tutHide(); tut.slowK = 1; tut.sub = ''; tut.rAim = true; tut.kos0 = P.kos; tut.flat0 = P.flatted; tut.drive = H; tut.driveMode = 'line'; if (H.ai) { H.ai.plan = null; H.ai.path = null; } tutRivalIn(7, true); },
-    exit() { tut.rAim = false; if (tut.driveMode === 'line') { tut.drive = null; tut.driveMode = null; } TUT_AI.speed = 0.8; tut.items = true; itemSpawn.t = Math.max(itemSpawn.t, 10); },
-    tick(dt) { if (P.kos > tut.kos0 || P.flatted > (tut.flat0 || 0)) return true; /* (v309: flattening him does it too) */
-      const have = !!(P.power && P.power.type === 'roller'); if (have) P.power.t = Math.max(P.power.t, 2.5); else if (P.st === 'play' && !P.held) P.held = 'roller'; /* (out of it somehow: it's handed back) */
-      if (!have && P.held === 'roller' && P.st === 'play') { if (tut.sub !== 'again') { tut.sub = 'again'; tut.slowK = 0.35; $('itemBtn').classList.add('tutup'); tutShow(say('*TAP* your *ROLLER*!', 'Press *F* for your *ROLLER*!'), 'itemBtn', 'use2', true); } return false; }
-      if (tut.sub === 'again') $('itemBtn').classList.remove('tutup');
-      const fx = Math.sin(P.yaw), fz = Math.cos(P.yaw), rx = H.x - P.x, rz = H.z - P.z, ahead = rx * fx + rz * fz, side = Math.abs(rx * fz - rz * fx), d = Math.hypot(rx, rz);
-      if (H.st === 'play' && P.st === 'play' && (ahead < 0 || d > 14)) tutRivalIn(7, true); /* (behind you or far off: he's brought round in front again) */
-      const inLine = H.st === 'play' && P.st === 'play' && !P.air && P.rollT <= 0 && ahead > 1.5 && ahead < 5.5 && side < 1.2 + ahead * 0.15 && lineClear(P, H.x, H.z, P.y) && tutRunClear(P.yaw, ahead + 3.5); /* (and room to roll on past him: no drop, no wall) */
-      const sub = inLine ? 'now' : P.rollT > 0 ? tut.sub : 'wait';
-      if (sub !== tut.sub) { tut.sub = sub;
-        if (sub === 'now') { tut.slowK = 0.25; if (P.rollCD > 0) P.rollCD = 0; tutShow(say('*NOW!* Swipe up to roll over him!', '*NOW!* Press *SHIFT* to roll over him!'), null, 'rroll', true, true); }
-        else { tut.slowK = 1; tutShow(say('Roll right over the rival to knock him out!', 'Roll right over the rival to knock him out!'), null, 'rollwait', false, true); } }
-      return false; } },
   { id: 'orb', max: 55, enter() { orb.spawnT = 0; tut.orbMine = true; tut.hadRocket = false; tut.slowK = 1; tutShow('A special orb! Roll up to it for a super move', null, 'orb', false, true); },
-    tick() { if (P.rocket && !tut.hadRocket) { tut.hadRocket = true; tut.slowK = 1; /* (full speed: the rocket ride is the fun part) */ tutShow(say('Steer over the rival, then tap Boost', 'Steer over the rival, then press E to boost'), 'slamBtn', 'rocket'); }
-      const cross = !!P.rocket; if (cross && tut.driveMode !== 'cross') { tut.drive = H; tut.driveMode = 'cross'; if (H.ai) { H.ai.plan = null; H.ai.path = null; } } else if (!cross && tut.driveMode === 'cross') { tut.drive = null; tut.driveMode = null; TUT_AI.speed = 0.8; } /* (the rival walks into your crosshair) */
+    tick() { if (P.rocket && !tut.hadRocket) { tut.hadRocket = true; tut.slowK = 1; /* (full speed: the rocket ride is the fun part) */ tutShow(say('Steer it, then tap Boost to come down with a big splat!', 'Steer it, then press E to come down with a big splat!'), 'slamBtn', 'rocket'); }
       return tut.hadRocket && !P.rocket; },
     exit() { tut.orbMine = false; TUT_AI.orb = 0.35; } },
   { id: 'free3', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 1.2; } /* (v309: was 8 s) */, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
-  { id: 'rocketdodge', max: 60, enter() { tut.noPound = true; tut.drive = null; if (orb.on) tutOrbOff(); orb.spawnT = 1e9; tut.rocketLock = H; tut.rkFrozen = false; tut.rkStarted = false; tut.rolled = false; tut.hit = false; tut.wasKo = false; tut.sub = ''; tut.slowK = 1;
-      tutShow(say('The rival has a rocket too. When it drops on you, swipe up to roll clear', 'The rival has a rocket too. When it drops on you, press Shift to roll clear'), null, 'rdodge', false, true); },
-    tick() { if (!tut.rkStarted) { if (H.st === 'ko' && H.koT > 0.9) H.koT = 0.9; if (H.st === 'hide' && H.pot) exitPot(H); } // (v309: back quickly from your rocket's knock-out, and straight out of the basin)
-      if (!tut.rkStarted && H.st === 'play' && !H.rocket) { H.paint = 1; startRocket(H); tut.rkStarted = true; } // (it takes off as soon as it is free to)
-      const R = H.rocket, down = !!R && R.ph === 'dive' && !R.slow && H.st === 'play' && P.st === 'play', now = down && tut.rkFrozen;
-      if (now && P.rollT <= 0 && !tut.rolled) P.rollCD = 0; if (now && P.rollT > 0) tut.rolled = true; if (tut.rolled && H.rocket && P.rollT > 0 && P.rollT < 0.05) P.rollT = 0.05; if (P.st === 'ko' && !tut.wasKo) tut.hit = true; tut.wasKo = P.st === 'ko';
-      tut.slowK = now ? 0.12 : 1;
-      const sub = now ? 'now' : 'wait'; if (sub !== tut.sub) { tut.sub = sub; if (now) tutShow(say('*NOW!* Swipe up!', '*NOW!* Shift!'), null, 'rdodgenow', true, true); else tutShow(say('The rival has a rocket too. When it drops on you, swipe up to roll clear', 'The rival has a rocket too. When it drops on you, press Shift to roll clear'), null, 'rdodge', false, true); }
-      return tut.rkStarted && !H.rocket && (tut.rolled || tut.hit || tut.st > 20) && P.st === 'play'; },
-    exit() { tut.rocketLock = null; tut.slowK = 1; tut.noPound = false; } },
   { id: 'flower', max: 42, enter() { if (orb.on) tutOrbOff(); orb.spawnT = 1e9; gift.id = 'flower'; gift.at = 1e9; tut.slowK = 1; tutHide(); tut.wait = 2.2; tut.flowerPaint = Math.max(P.paint, 0.5); },
     tick(dt) { if (P.st === 'play' && P.paint < tut.flowerPaint) P.paint = tut.flowerPaint; /* (no paint drain while you go for the flower) */ if (tut.wait > 0) { tut.wait -= dt; if (tut.wait <= 0) { gift.at = runT; tutShow('A gift has appeared on the canvas! *Grab it!*', null, 'flower', true, true); } return false; } return gift.got; }, /* (a breath after the dodge, then the flower and its tip) */
     exit() { if (!gift.got) { gift.got = true; gift.on = false; giftM.visible = giftRing.visible = giftBeam.visible = false; unlockItem('flower'); newItem = 'flower'; } if (!owns('fangs')) unlockItem('fangs'); newItem = ['flower', 'fangs']; orb.spawnT = 8; } },
@@ -26817,12 +26772,13 @@ function tutReward(id, hit) {
 }
 function tutStep(dt) {
   if (!tut || state !== 'play') return;
+  if (tutFlat) { if (P.st === 'play') P.paint = 1; /* (v356: no basins, so the tank stays full) */ if (P.st === 'play') for (const p of pots) if (potUp(p) && Math.hypot(p.x - P.x, p.z - P.z) > 3.2) sinkCoffin(p); } // (and a basin you're out of goes: the one you start in, or one you came back in)
   if (tut.step < 0) { if (tut.outAt === undefined) { if (P.st === 'play' && !P.air && runT > 0.3) tut.outAt = runT; } else if (runT - tut.outAt >= 1.5) tutNext(); return; } // (a moment at full speed first, so the slow motion isn't taken for your speed) /* (the lesson opens straight on the move tip: its Paint it banner comes later, with the Now win it card) */
   const s = TUT_STEPS[tut.step]; if (tut.step < TUT_REST && matchLeft < 20) matchLeft = 20; // (the lesson does not run out the clock)
   // (v303) back in a tub mid-lesson (knocked out, respawned): the step waits, its clock stopped, while a callout and the swipe finger
   // show the way out; out again, its own tip comes back. (The tub and pound steps deal with the tub themselves; in the free play at the
   // end, finale included, the callout shows only when nothing else is being said, and the match goes on.)
-  const inTub = P.st === 'hide' && !(s.id === 'basin' && tut.basinTip) && s.id !== 'pound' && s.id !== 'rest' && !(tut.gap > 0) && !tut.card; // (v304: the rest step is only the beat before the end now)
+  const inTub = P.st === 'hide' && !(s.id === 'basin' && tut.basinTip) && s.id !== 'rest' && !(tut.gap > 0) && !tut.card; // (v304: the rest step is only the beat before the end now)
   tut.tubHold = inTub && s.id !== 'rest';
   if (inTub) {
     if (s.id === 'rest' ? !tutTip : (!tutTip || tutTip.key !== 'tubout')) { if (tutTip && tutTip.key !== 'tubout') tut.tubTip = tutTip; tutShow(say('*SWIPE UP* to roll out of the tub!', 'Press *SHIFT* to roll out of the tub!'), null, 'tubout', true, true); }
@@ -26954,7 +26910,7 @@ function tutEndMatch() { // (as a match ends)
     if (!owns('flower')) unlockItem('flower'); if (!owns('fangs')) unlockItem('fangs'); if (!newItem || newItem === 'flower') newItem = ['flower', 'fangs'];
     store.tut.price = { flower: Math.max(1, Math.round((endInfo.drops || 0) / 2)) }; // (half what this match paid)
     for (const k of ['steer', 'jump', 'hold', 'burst', 'roll', 'pound', 'missile', 'item', 'orb', 'rocket', 'airdash', 'rroll']) store.seen[k] = 1; // (taught: the one-time tips stay down)
-    tutSet('shop'); save(); tutWinDue = true; return;
+    endInfo.lesson = true; tutSet('shop'); save(); tutWinDue = true; return;
   }
   if (tutPh() === 'match2') { tut2 = null; tutHide(); delete store.tut.price; store.tut.m3 = 1; tutSet('done'); save(); }
   else if (tut3) { tut3 = null; tutHide(); store.tut.m3 = 2; save(); }
@@ -27017,7 +26973,7 @@ function tutMenuTick() {
   return tutShow('Time for a real match. Tap *Play*', 'homePlay', 'pick');
 }
 // the lesson's finish, in place of the tally for a beat: the canvas through the window, the title, and what was learned ticked off; Next goes on to the tally
-const TW_LIST = ['Steering', 'Flinging', 'Refilling', 'The pound', 'Dodging', 'Transforms', 'The orb', 'Finding items'];
+const TW_LIST = ['Steering and jumping', 'Flinging', 'The pound', 'Transforms', 'The orb', 'Finding items'];
 // (the finish page pulls the camera wide over the canvas, as the results do)
 function showTutWin() {
   const el = $('tutWin'); $('twList').innerHTML = TW_LIST.map((t, i) => '<li style="--i:' + i + '"><i><svg viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L20 7"/></svg></i>' + t + '</li>').join('');
@@ -27026,7 +26982,7 @@ function showTutWin() {
   hud.classList.add('off'); hintEl.classList.remove('on'); el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); AU.fanfare(); setTimeout(() => AU.power(), 500); buzz([20, 40, 20]);
   setTimeout(() => $('twNext').focus({ preventScroll: true }), 80);
 }
-$('twNext').addEventListener('click', () => { AU.init(); AU.ui(); const el = $('tutWin'); el.classList.remove('on'); setTimeout(() => { el.hidden = true; }, 300); if (state === 'dead') startTally(); });
+$('twNext').addEventListener('click', () => { AU.init(); AU.ui(); const el = $('tutWin'); el.classList.remove('on'); setTimeout(() => { el.hidden = true; }, 300); if (state === 'dead') { if (endInfo && endInfo.lesson && newItem) showNewItem(newItem); else startTally(); } }); // (v356: the lesson goes on to its new items)
 // ---------- (v257) the first launch, out in the sun: a scrapyard in a sandstone canyon at midday. The camera holds on the sky a while
 // (its stars twinkling, an old windmill turning, A Marcelin Game coming up in the middle of it), then pans slowly down onto an old oil
 // drum; something thumps about inside it, it rocks, tips over and pours; a pair of eyes comes up out of the puddle and looks about; you

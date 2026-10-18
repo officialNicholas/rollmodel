@@ -408,7 +408,7 @@
   },
   {
    "id": "l:move",
-   "name": "Lesson: steer"
+   "name": "Lesson: steer and jump"
   },
   {
    "id": "l:free0",
@@ -423,24 +423,12 @@
    "name": "Lesson: paint freely 2"
   },
   {
-   "id": "l:basin",
-   "name": "Lesson: refill at a basin"
-  },
-  {
    "id": "l:pound",
    "name": "Lesson: ground pound"
   },
   {
-   "id": "l:dodge",
-   "name": "Lesson: dodge roll"
-  },
-  {
    "id": "l:item",
    "name": "Lesson: use a transform"
-  },
-  {
-   "id": "l:rollover",
-   "name": "Lesson: roll over the rival"
   },
   {
    "id": "l:orb",
@@ -449,10 +437,6 @@
   {
    "id": "l:free3",
    "name": "Lesson: paint freely 3"
-  },
-  {
-   "id": "l:rocketdodge",
-   "name": "Lesson: dodge the rocket"
   },
   {
    "id": "l:flower",
