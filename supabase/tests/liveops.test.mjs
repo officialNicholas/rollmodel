@@ -13,7 +13,8 @@ const uid = () => randomUUID();
 const now = () => Math.floor(Date.now() / 1000);
 // a caller's claims: a player (aal1, password), or an admin who also entered their authenticator code (aal2, totp) `ago` seconds back
 const player = id => ({ sub: id, role: 'authenticated', aal: 'aal1', amr: [{ method: 'anonymous', timestamp: now() }] });
-const signedIn = (id, { aal = 'aal2', totpAgo = 60, amr } = {}) => ({ sub: id, role: 'authenticated', aal,
+const SID = new Map(); // (each test user's live session, as Supabase keeps them in auth.sessions)
+const signedIn = (id, { aal = 'aal2', totpAgo = 60, amr, sid } = {}) => ({ sub: id, role: 'authenticated', aal, session_id: sid || SID.get(id),
   amr: amr || [{ method: 'password', timestamp: now() - totpAgo - 5 }, ...(totpAgo == null ? [] : [{ method: 'totp', timestamp: now() - totpAgo }])] });
 async function as(claims, sql, params = [], { role = 'authenticated', tz } = {}) {
   const c = await db.connect();
@@ -34,7 +35,10 @@ const dayAgo = n => new Date(Date.now() - n * 86400000).toISOString().slice(0, 1
 
 let seq = 0;
 const suffix = () => String(Date.now() * 100 + (seq++ % 100)).slice(-8).replace(/[0-9]/g, d => 'bcdfghjlmn'[d]);
-async function newUser(email, anonymous = !email) { const id = uid(); await q('insert into auth.users (id, email, is_anonymous) values ($1, $2, $3)', [id, email || null, anonymous]); return id; }
+async function newUser(email, anonymous = !email) {
+  const id = uid(), sid = uid(); await q('insert into auth.users (id, email, is_anonymous) values ($1, $2, $3)', [id, email || null, anonymous]);
+  await q('insert into auth.sessions (id, user_id) values ($1, $2)', [sid, id]); SID.set(id, sid); return id;
+}
 async function newAdmin() {
   const id = await newUser('boss_' + suffix() + '@example.com');
   await q("insert into public.rm_admins (id, note) values ($1, 'test')", [id]);
@@ -91,6 +95,13 @@ test('only a listed admin, signed in with an authenticator code in the last 12 h
   assert.equal(typeof (await call(A.claims, 'adm_overview', [30])).installs, 'number');
   // the refusal is SQLSTATE 42501, which PostgREST turns into HTTP 403
   await assert.rejects(call(player(p.id), 'adm_audit', [10]), e => e.code === '42501');
+  // signed out (the session gone), or a token with no session: out at once, though the token itself hasn't expired
+  const C = await newAdmin(); await call(C.claims, 'adm_prices');
+  await q('delete from auth.sessions where user_id = $1', [C.id]);
+  await rejects(call(C.claims, 'adm_prices'), /not an admin/);
+  assert.equal((await call(C.claims, 'adm_whoami')).why, 'stale');
+  await rejects(call(signedIn(A.id, { sid: 'none' }), 'adm_prices'), /not an admin/);
+  await rejects(call(signedIn(A.id, { sid: uid() }), 'adm_prices'), /not an admin/);
   // taken off the list: out at once
   const B = await newAdmin(); await call(B.claims, 'adm_prices');
   await q('delete from public.rm_admins where id = $1', [B.id]);
@@ -99,7 +110,7 @@ test('only a listed admin, signed in with an authenticator code in the last 12 h
 
 test('the helpers and the tables stay closed to the app', async () => {
   const p = await newPlayer('Peek');
-  for (const sql of ['select public._adm()', "select public._audit(null, 'x', 'y', '{}')", "select public._tally('{}', 'k', 1)", 'select public._end_sessions(null)',
+  for (const sql of ['select public._adm()', "select public._live('{}')", "select public._audit(null, 'x', 'y', '{}')", "select public._tally('{}', 'k', 1)", 'select public._end_sessions(null)',
     'select public._prices_v()', "select public._code_at('{}')", 'select public._tut_steps()', 'select public._rank_of(1)', 'select public._days(3)']) {
     await rejects(as(A.claims, sql), /permission denied/);
     await rejects(as(null, sql, [], { role: 'anon' }), /permission denied/);
@@ -395,6 +406,7 @@ test('adm_player: the whole picture of one player, or null', async () => {
 test('adm_set_password: a new password, the player signed out everywhere, and nothing of it logged', async () => {
   const p = await newPlayer('Lost', { account: true });
   const s1 = uid(), s2 = uid();
+  await q('delete from auth.sessions where user_id = $1', [p.id]); // (just these two)
   await q('insert into auth.sessions (id, user_id) values ($1, $3), ($2, $3)', [s1, s2, p.id]);
   await q("insert into auth.refresh_tokens (token, user_id, session_id) values ('t1', $1, $2), ('t2', $1, $3)", [p.id, s1, s2]);
   for (const pw of ['short1', 'longbutnodigits', '123456789', 'a1' + 'é'.repeat(36), null]) assert.deepEqual(await call(A.claims, 'adm_set_password', [p.id, pw]), { ok: false, why: 'weak' }, String(pw));
@@ -417,14 +429,13 @@ test('adm_set_password: a new password, the player signed out everywhere, and no
 
 test('adm_signout: every session ends; admins are left alone', async () => {
   const p = await newPlayer('Out');
+  await q('delete from auth.sessions where user_id = $1', [p.id]); // (just these three)
   await q('insert into auth.sessions (id, user_id) values (gen_random_uuid(), $1), (gen_random_uuid(), $1), (gen_random_uuid(), $1)', [p.id]);
   assert.deepEqual(await call(A.claims, 'adm_signout', [p.id]), { ok: true, sessions: 3 });
   assert.deepEqual(await call(A.claims, 'adm_signout', [p.id]), { ok: true, sessions: 0 });
   assert.deepEqual(await call(A.claims, 'adm_signout', [uid()]), { ok: false, why: 'missing' });
-  await q('insert into auth.sessions (id, user_id) values (gen_random_uuid(), $1)', [A.id]);
   assert.deepEqual(await call(A.claims, 'adm_signout', [A.id]), { ok: false, why: 'admin' });
-  assert.equal((await q('select count(*)::int n from auth.sessions where user_id = $1', [A.id]))[0].n, 1);
-  await q('delete from auth.sessions where user_id = $1', [A.id]);
+  assert.equal((await q('select count(*)::int n from auth.sessions where user_id = $1', [A.id]))[0].n, 1); // (the admin's own session stays)
   const log = (await call(A.claims, 'adm_audit', [10])).filter(x => x.target === p.id && x.action === 'signout');
   assert.deepEqual(log.map(x => x.detail.sessions), [0, 3]);
 });

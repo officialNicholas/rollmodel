@@ -16,7 +16,8 @@
 --   who's calling before it does anything.
 -- - An admin is someone whose user id is in rm_admins (only the owner can add one, here in the SQL editor) AND who signed in
 --   with their password and an authenticator-app code (the token's assurance level is aal2), with that code entered in the
---   last 12 hours. Anyone else gets "not an admin".
+--   last 12 hours, and whose session is still live (signing out ends an admin's access at once, not when the token expires).
+--   Anyone else gets "not an admin".
 -- - The admin functions can't touch an admin's own account (no password reset, sign-out or delete of anyone in rm_admins).
 -- - Each admin can only do so much an hour (30 deleted accounts, 60 password resets, 60 sign-outs, 300 price changes), so even
 --   a stolen admin sign-in can only do limited harm before the owner takes it off the list.
@@ -130,13 +131,27 @@ create or replace function public._code_at(p_jwt jsonb) returns timestamptz lang
    where jsonb_typeof(e) = 'object' and e ->> 'method' = 'totp' and jsonb_typeof(e -> 'timestamp') = 'number'
 $$;
 
--- the calling admin's id, or "not an admin": listed in rm_admins, signed in with an authenticator code (aal2), entered in the last 12 hours
+-- is this token's session still live? (signed out, or ended by the owner: no.) Where the session can't be looked up, the rest decides
+create or replace function public._live(p_jwt jsonb) returns boolean language plpgsql stable set search_path = '' as $$
+declare sid uuid;
+begin
+  if coalesce(p_jwt ->> 'session_id', '') !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then return false; end if;
+  sid := (p_jwt ->> 'session_id')::uuid;
+  if to_regclass('auth.sessions') is null then return true; end if;
+  begin
+    return exists (select 1 from auth.sessions where id = sid);
+  exception when insufficient_privilege then return true;
+  end;
+end $$;
+
+-- the calling admin's id, or "not an admin": listed in rm_admins, signed in with an authenticator code (aal2) entered in the last 12
+-- hours, and still signed in (a token outlives its session by up to an hour; an admin's doesn't)
 create or replace function public._adm() returns uuid language plpgsql stable set search_path = '' as $$
 declare u uuid := auth.uid(); j jsonb := coalesce(auth.jwt(), '{}'::jsonb); c timestamptz;
 begin
   c := public._code_at(j);
   if u is null or coalesce(j ->> 'aal', '') <> 'aal2' or c is null or c < now() - interval '12 hours' or c > now() + interval '5 minutes'
-     or not exists (select 1 from public.rm_admins where id = u) then
+     or not exists (select 1 from public.rm_admins where id = u) or not public._live(j) then
     raise exception 'not an admin' using errcode = '42501';
   end if;
   return u;
@@ -339,9 +354,9 @@ declare u uuid := public._me(); j jsonb := coalesce(auth.jwt(), '{}'::jsonb); li
 begin
   listed := exists (select 1 from public.rm_admins where id = u);
   return jsonb_build_object('id', u, 'email', (select email from auth.users where id = u), 'aal', aal, 'listed', listed, 'code_at', c,
-    'admin', listed and aal = 'aal2' and c is not null and c >= now() - interval '12 hours' and c <= now() + interval '5 minutes',
+    'admin', listed and aal = 'aal2' and c is not null and c >= now() - interval '12 hours' and c <= now() + interval '5 minutes' and public._live(j),
     'why', case when not listed then 'not_listed' when aal is distinct from 'aal2' or c is null then 'needs_code'
-                when c < now() - interval '12 hours' or c > now() + interval '5 minutes' then 'stale' end);
+                when c < now() - interval '12 hours' or c > now() + interval '5 minutes' or not public._live(j) then 'stale' end);
 end $$;
 
 -- ---------------------------------------------------------------- the dashboard: analytics
@@ -677,7 +692,7 @@ end $$;
 
 -- ---------------------------------------------------------------- who may call what
 
-revoke all on function public._code_at(jsonb), public._adm(), public._audit(uuid, text, text, jsonb), public._prices_v(), public._sid(text),
+revoke all on function public._code_at(jsonb), public._live(jsonb), public._adm(), public._audit(uuid, text, text, jsonb), public._prices_v(), public._sid(text),
   public._snum(jsonb, numeric, numeric), public._tally(jsonb, text, bigint), public._tut_steps(), public._rank_of(bigint), public._days(int),
   public._end_sessions(uuid) from public, anon, authenticated;
 revoke all on function public.rm_track(uuid, jsonb, jsonb), public.rm_config() from public;

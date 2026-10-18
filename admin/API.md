@@ -17,8 +17,9 @@ A person is an admin only when all of these are true:
 1. Their Supabase Auth user id is in the `rm_admins` table. Only the owner can add a row there, by running SQL in the Supabase dashboard; there's no function for it.
 2. The request's token is at assurance level **aal2**, meaning they signed in with their password *and* an authenticator-app code (TOTP).
 3. That code was entered in the last **12 hours** (the token's `amr` claim says when). After that, even a token that's still being refreshed stops working, and the person signs in again.
+4. The token's session is still live (its `session_id` is in `auth.sessions`). Signing out, or the owner ending the session, cuts an admin off at once, though the token itself would last up to an hour.
 
-Every `adm_*` function except `adm_whoami` checks all three, then refuses with
+Every `adm_*` function except `adm_whoami` checks all four, then refuses with
 `{"code":"42501","message":"not an admin"}` (HTTP 403 from PostgREST) when any fails.
 
 No admin function works on an admin's own account: resetting the password of, signing out or deleting anyone in `rm_admins` answers `why: "admin"`.
@@ -64,9 +65,9 @@ Anyone signed in can call this. It only tells you about yourself.
 { "id": "uuid", "email": "you@example.com", "aal": "aal2", "listed": true, "admin": true, "why": null, "code_at": "2026-10-18T09:00:00Z" }
 ```
 
-- `admin` is true only when all three rules above hold.
+- `admin` is true only when all four rules above hold.
 - `listed` says whether the id is in `rm_admins` at all.
-- `why` says what's missing when `admin` is false: `not_listed` (not an admin account), `needs_code` (signed in with the password only: ask for the authenticator code) or `stale` (the code was entered over 12 hours ago: sign in again).
+- `why` says what's missing when `admin` is false: `not_listed` (not an admin account), `needs_code` (signed in with the password only: ask for the authenticator code) or `stale` (the code was entered over 12 hours ago, or the session has ended: sign in again).
 - `code_at` is when the authenticator code was entered (null before), so the dashboard can say when the session ends.
 
 ### `adm_overview(p_days int = 30)`
