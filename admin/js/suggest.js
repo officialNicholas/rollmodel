@@ -108,10 +108,10 @@ export function itemSuggestions(economy, catalog) {
   const add = (sg) => { if (!out.some((x) => x.id === sg.id)) out.push(sg); };
   // A find item has to be found on its canvas before it can be bought, so few views or buys may only mean
   // few players have found it yet: never call it too expensive or unloved on that alone.
-  const unfound = (r, detail, score) => make('item-unfound-' + r.id, 'items', 'low',
-    'Few players have found ' + r.name + ' yet', detail,
-    'It has to be found ' + where(r) + ' before it can be bought. If that should happen more often, make it easier to spot; hold off on price changes until more players have found it.',
-    score, { item: r.id });
+  const unfoundList = [];
+  const unfound = (r, detail, score) => {
+    if (!unfoundList.some((x) => x.r.id === r.id)) unfoundList.push({ r, detail, score });
+  };
 
   // Against the median of the items with enough views.
   const enough = rows.filter((r) => r.views >= MIN.itemViews);
@@ -124,9 +124,9 @@ export function itemSuggestions(economy, catalog) {
       const could = pct(r.affordShare) + ' of its ' + num(r.views) + ' views could buy it right then';
       if (r.conv < medConv * LIMIT.lowConv && r.affordShare < LIMIT.cantAfford) {
         if (r.find) {
-          add(unfound(r, 'Only ' + could + ' (found, and enough dabs), and ' + conv + '.' +
+          unfound(r, 'Only ' + could + ' (found, and enough dabs), and ' + conv + '.' +
             (balance > 0 && balance < r.price ? ' It may also cost more than players hold: ' + dabs(r.price) + ', against a median of ' + dabs(balance) + '.' : ''),
-            r.views * (medConv - r.conv) * 100));
+            r.views * (medConv - r.conv) * 100);
           continue;
         }
         const price = lowerPrice(r.price, balance);
@@ -167,12 +167,34 @@ export function itemSuggestions(economy, catalog) {
     const vs = ' views, against a median of ' + num(med) + ' for ' + (season ? 'seasonal' : 'regular') + ' items.';
     for (const r of group) {
       if (r.views >= med * LIMIT.lowViews) continue;
-      if (r.find) add(unfound(r, num(r.views) + vs, med - r.views));
+      if (r.find) unfound(r, num(r.views) + vs, med - r.views);
       else add(make('item-unseen-' + r.id, 'items', 'low',
         'Few people look at ' + r.name,
         num(r.views) + vs,
         'It may be hard to find or not appealing in the list: try moving it up or showing it off.',
         med - r.views, { item: r.id }));
+    }
+  }
+
+  // Not found yet: one suggestion per item, or one for the group when three or more of a group share it.
+  for (const season of [false, true]) {
+    const list = unfoundList.filter((x) => x.r.season === season);
+    if (list.length >= 3) {
+      const shares = list.map((x) => x.r.affordShare);
+      const pricey = list.filter((x) => balance > 0 && x.r.price > balance).length;
+      add(make('item-unfound-' + (season ? 'seasonal' : 'regular'), 'items', 'low',
+        'Few players have found the ' + (season ? 'seasonal' : 'hidden') + ' items yet',
+        list.map((x) => x.r.name).join(', ') + ': only ' + pct(Math.min(...shares)) + ' to ' + pct(Math.max(...shares)) +
+          ' of their views could buy them right then (found, and enough dabs).' +
+          (pricey ? ' ' + (pricey === list.length ? 'All' : pricey + ' of them') + ' also cost more than active players hold (a median of ' + dabs(balance) + ').' : ''),
+        'They have to be found on their canvas before they can be bought. If that should happen more often, make them easier to spot; hold off on price changes until more players have found them.',
+        list.reduce((a, x) => a + x.score, 0)));
+    } else {
+      for (const x of list) {
+        add(make('item-unfound-' + x.r.id, 'items', 'low', 'Few players have found ' + x.r.name + ' yet', x.detail,
+          'It has to be found ' + where(x.r) + ' before it can be bought. If that should happen more often, make it easier to spot; hold off on price changes until more players have found it.',
+          x.score, { item: x.r.id }));
+      }
     }
   }
   return out;
