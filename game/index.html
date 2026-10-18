@@ -4759,7 +4759,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 362</p>
+      <p class="ver">Version 363</p>
     </div>
   </div>
 
@@ -22428,7 +22428,7 @@ function lkCard(w, tab) {
   const lab = w.name + (own ? (on ? ', equipped' : ', yours') : found ? ', ' + PRICE(w) + ' dabs' + (broke ? ', ' + (PRICE(w) - n) + ' more needed' : '') : ', locked. ' + (w.gift ? 'A free gift on ' : 'Find it on ') + WEAR_WHERE[w.stage]) + (fresh ? ', new' : '');
   return '<button class="sgcard lkcard' + (sel ? ' sel' : '') + (own ? (on ? ' own on' : ' own') : found ? ' sale' : ' lock') + (broke ? ' broke' : '') + '" type="button" data-k="w:' + w.id + '" aria-pressed="' + sel + '" aria-label="' + escAttr(lab) + '"><i class="sghook"></i><span class="sgcb"><span class="sgca">' + lkPic(w) + '</span></span><span class="sgcf">' + foot + '</span>' + (fresh ? '<span class="sgnew">New</span>' : '') + '</button>';
 }
-// the locker: your paint, your eyes, and what you own (a tap puts it on)
+// the locker: your paint, your eyes, and what you own (a tap puts it on, and takes it off again)
 function lkMineHtml() {
   const fresh = new Set(store.fresh || []), grid = l => '<div class="sggrid lkgrid' + (LKR.anim ? ' in' : '') + '">' + l + '</div>';
   let h = '<div class="lkhd"><h4 class="lkh">My Locker</h4><button class="lkname" id="lkNameBtn" type="button" aria-label="Change your name"><span id="lkNameT"></span>' + LK_PEN + '</button></div>';
@@ -22538,6 +22538,8 @@ function lkBuyTip(t, tc, key) { return innerWidth > innerHeight ? tutShow(tc, 'l
 function lkKick(key) { const el = $('lkScroll').querySelector('[data-k="' + key + '"]'); if (el) kick(el, 'tpop'); }
 function lkReveal() { const sc = $('lkScroll'), el = LKR.sel && sc.querySelector('[data-k="' + LKR.sel + '"]'); if (!el) return; const r = el.getBoundingClientRect(), g = sc.getBoundingClientRect(); if (r.top < g.top + 8 || r.bottom > g.bottom - 8) sc.scrollTop += (r.top + r.height / 2) - (g.top + g.height / 2); }
 function lkFreshOff(id) { if (store.fresh && store.fresh.includes(id)) { store.fresh = store.fresh.filter(x => x !== id); save(); } }
+// taking a thing of yours off (Take off, or a tap on it: v363)
+function lkTakeOff(w) { myLook[w.slot] = null; saveLook(); LKR.prev = null; lkDress(); AU.ui(); buzz(4); if (SGD.built) { const D = SGD.A.D; D.squash = Math.max(D.squash, 0.3); SGD.mood = 'pout'; SGD.moodT = 0.9; } }
 // putting a thing of yours on
 function lkPutOn(w) { Object.assign(myLook, lkWith(myLook, w)); lkFreshOff(w.id); saveLook(); LKR.prev = null; lkDress(); sgDressReact(w); }
 // buying the one you're trying on: paid for, and it stays on
@@ -22555,8 +22557,11 @@ function lkTap(key) {
   if (k === 'e') return lkEyes(id);
   if (k === 'i') return lkIris(id);
   const w = lkItem(id); if (!w) return; const again = LKR.sel === key; LKR.sel = key;
-  if (LKR.tab === 'mine') { if (!lkWorn(w)) { lkPutOn(w); AU.pop(); buzz(5); } else { AU.ui(); buzz(4); kick($('lkBan'), 'bump'); lkFreshOff(w.id); } }
+  const off = bought(w.id) && lkWorn(w) && w.slot !== 'eyes'; // (v363: on already, a tap takes it off; eyes only swap)
+  if (LKR.tab === 'mine') { if (!lkWorn(w)) { lkPutOn(w); AU.pop(); buzz(5); } else if (off) lkTakeOff(w); else { AU.ui(); buzz(4); kick($('lkBan'), 'bump'); lkFreshOff(w.id); } }
   else if (!again) { if (!bought(w.id)) stView(w); LKR.prev = bought(w.id) ? null : lkWith(myLook, w); lkDress(); sgDressReact(w); AU.pop(); buzz(5); }
+  else if (off) lkTakeOff(w);
+  else if (bought(w.id) && !lkWorn(w)) { lkPutOn(w); AU.pop(); buzz(5); } // (and back on, as in your locker)
   else { AU.ui(); buzz(4); kick($('lkBan'), 'bump'); }
   lkTabs(); lkPaneRender(); lkShowRender(); lkKick(key);
 }
@@ -22623,7 +22628,7 @@ $('lkPanel').addEventListener('click', e => { const t = e.target.closest('[data-
 $('lkDo').addEventListener('click', () => { AU.init(); const w = LKR.sel && LKR.sel[0] === 'w' && lkItem(LKR.sel.slice(2)); if (!w) return;
   if (bought(w.id)) { if (!lkWorn(w)) { lkPutOn(w); AU.pop(); buzz(5); lkTabs(); lkPaneRender(); lkShowRender(); } return; } lkBuy(w); });
 $('lkOff').addEventListener('click', () => { AU.init(); const w = LKR.sel && LKR.sel[0] === 'w' && lkItem(LKR.sel.slice(2)); if (!w || w.slot === 'eyes' || !lkWorn(w)) return;
-  myLook[w.slot] = null; saveLook(); LKR.prev = null; lkDress(); AU.ui(); buzz(4); if (SGD.built) { const D = SGD.A.D; D.squash = Math.max(D.squash, 0.3); SGD.mood = 'pout'; SGD.moodT = 0.9; }
+  lkTakeOff(w);
   lkTabs(); lkPaneRender(); lkShowRender(); setTimeout(() => { if (lkOn() && !$('lkDo').hidden) $('lkDo').focus({ preventScroll: true }); }, 30); });
 $('lkUnlockLink').addEventListener('click', () => { AU.init(); AU.ui(); $('lkUnlockLink').hidden = true; $('lkUnlockForm').hidden = false; setTimeout(() => $('lkUnlockCode').focus(), 30); });
 $('lkUnlockCode').addEventListener('keydown', e => e.stopPropagation());
