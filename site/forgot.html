@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Forgot your password? · Roll Model</title>
+<meta name="description" content="Get a link to choose a new password for your Roll Model account.">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#F4EEE3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#171320" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="icon" href="img/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preload" href="fonts/bowlby-one-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/figtree-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/figtree-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/figtree-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/figtree-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/site.css">
+<noscript><link rel="stylesheet" href="css/noscript.css"></noscript>
+<script src="js/config.js" defer></script>
+<script src="js/site.js" defer></script>
+<script src="js/account.js" defer></script>
+<script src="js/forgot.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<!-- header -->
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="./"><img src="img/icon-96.webp" alt="" width="40" height="40">Roll Model</a>
+    <nav class="nav" aria-label="Main">
+      <a href="./">Home</a>
+      <a class="pill" href="support.html">Support</a>
+    </nav>
+  </div>
+</header>
+<!-- /header -->
+
+<main id="main" class="page">
+  <div class="wrap acct">
+    <img class="acct-logo" src="img/logo-560.webp" alt="Roll Model" width="560" height="393" fetchpriority="high">
+    <div class="acct-card">
+      <h1>Forgot your password?</h1>
+      <p>Type your username or the email on your account, and we’ll send you a link to choose a new one.</p>
+      <noscript><p class="noscript">This page needs JavaScript to send the link. Turn it on and reload, or write to us at <span data-config="email">support@playrollmodel.com</span>.</p></noscript>
+      <form class="form js-only" id="forgotForm" novalidate>
+        <div class="field">
+          <label for="who">Username or email</label>
+          <input class="input" id="who" name="who" type="text" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="254" required aria-describedby="whoHint">
+          <p class="err" id="whoHint" hidden></p>
+        </div>
+        <button class="btn btn-full" id="forgotGo" type="submit">Send me a link</button>
+      </form>
+      <div class="live" id="forgotMsg" role="status"></div>
+    </div>
+    <p class="small-links"><a href="support.html">Need a hand? Visit Support</a></p>
+  </div>
+</main>
+
+<!-- footer -->
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-brand"><img src="img/icon-96.webp" alt="" width="44" height="44" loading="lazy" decoding="async"><div>Roll Model<small>A Marcelin Game</small></div></div>
+    <nav aria-label="Footer">
+      <ul>
+        <li><a href="privacy.html">Privacy Policy</a></li>
+        <li><a href="terms.html">Terms of Service</a></li>
+        <li><a href="support.html">Support</a></li>
+        <li><a href="credits.html">Credits</a></li>
+      </ul>
+    </nav>
+    <p class="legal"><span>© <span data-year>2026</span> Roll Model. A Marcelin Game.</span><span>No cookies, no trackers. Just paint.</span></p>
+  </div>
+</footer>
+<!-- /footer -->
+</body>
+</html>
