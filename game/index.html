@@ -4759,7 +4759,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 359</p>
+      <p class="ver">Version 360</p>
     </div>
   </div>
 
@@ -24949,13 +24949,13 @@ function acMatchPaint() {
   c.classList.toggle('lock', !on); c.classList.toggle('fresh', on && !store.mpTried);
   $('evMatchLock').innerHTML = ABIL_LOCK + (lv < ABIL_RANK ? 'Rank ' + ABIL_RANK : 'Open Strokes');
   if (on) b.removeAttribute('aria-disabled'); else b.setAttribute('aria-disabled', 'true');
-  b.setAttribute('aria-label', on ? 'Play online: 1v1 against real people' : 'Play online, locked: open Strokes in the lobby to unlock it');
+  b.setAttribute('aria-label', on ? 'Play online: 1v1 against real people' : lv < ABIL_RANK ? 'Play online, locked: reach rank ' + ABIL_RANK : 'Play online, locked: open Strokes in the lobby to unlock it');
 }
 function evToast(c, t) { const old = c.querySelector('.evtoast'); if (old) old.remove(); const s = document.createElement('span'); s.className = 'evtoast'; s.setAttribute('role', 'status'); s.textContent = t; c.appendChild(s); setTimeout(() => s.remove(), 1700); }
 function mpGo() { if (typeof onlineOpen === 'function') onlineOpen(); else evToast($('evMatch').closest('.evcard'), 'Online matches are coming soon'); }
 function mpTap() {
   const c = $('evMatch').closest('.evcard');
-  if (!mpOpen()) { AU.nope(); buzz(8); return evToast(c, repOf(store.xp || 0).lv < ABIL_RANK ? 'Reach rank ' + ABIL_RANK + ', then open Strokes' : 'Open Strokes in the lobby to unlock it'); }
+  if (!mpOpen()) { AU.nope(); buzz(8); return evToast(c, repOf(store.xp || 0).lv < ABIL_RANK ? 'Reach rank ' + ABIL_RANK : 'Open Strokes in the lobby to unlock it'); }
   AU.ui(); if (!store.mpTried) { store.mpTried = 1; save(); acMatchPaint(); }
   if (!SB_CFG) return evToast(c, 'Online matches are coming soon');
   acctOpen(mpGo);
