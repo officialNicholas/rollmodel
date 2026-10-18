@@ -29,3 +29,11 @@ grant usage on schema public to anon, authenticated, service_role;
 -- Supabase's default privileges hand new tables and functions in public to these roles; the migration has to take them back
 alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
 alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
+-- (email) stand-ins for Supabase's pg_net and Vault: a request is recorded in net.sent, never sent; the Vault is a plain table
+create schema if not exists net;
+create table if not exists net.sent (id bigserial primary key, url text, body jsonb, headers jsonb, at timestamptz not null default now());
+create or replace function net.http_post(url text, body jsonb default '{}'::jsonb, params jsonb default '{}'::jsonb, headers jsonb default '{}'::jsonb, timeout_milliseconds integer default 5000)
+returns bigint language sql as $$ insert into net.sent (url, body, headers) values (url, body, headers) returning id $$;
+create schema if not exists vault;
+create table if not exists vault.secrets_stub (name text primary key, decrypted_secret text, created_at timestamptz not null default now());
+create or replace view vault.decrypted_secrets as select name, decrypted_secret, created_at from vault.secrets_stub;

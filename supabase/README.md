@@ -22,6 +22,9 @@ shouldn't.
    4. `supabase/migrations/20261018000000_liveops.sql` (v354: play stats, live prices and the admin dashboard's functions.
       Until it's run, the game plays as before with its own prices, and the dashboard says the database isn't ready.
       Making yourself the admin is in `admin/README.md`)
+   5. `supabase/migrations/20261019000000_email.sql` (v355: players' emails, the welcome email, Forgot password and the
+      reset link, the "password changed" notice. Sending them needs three more things, at the top of that file: pg_net
+      turned on, your Resend key in the Vault, and your website and addresses. Until then, emails are saved but not sent)
 4. **Send me two values.** Dashboard > Project Settings > API Keys (or Data API):
    - the **Project URL** (`https://<something>.supabase.co`);
    - the **publishable key** (`sb_publishable_...`), or the older **anon public** key if that's what the project shows.
@@ -50,6 +53,11 @@ the Friends screen says friends are on the way.
 | `rm_prices` | Since v354, the live prices set in the dashboard (only the items whose price was changed) |
 | `rm_admins` | The dashboard's admins. Only you add them, here in the SQL editor |
 | `rm_audit` | Every change made in the dashboard: who, when, what (prices, password resets, sign-outs, deleted accounts) |
+| `rm_settings` | Switches: the stats (paused, how many new installs a minute and a day) and the emails (paused, the website, the sender and support addresses) |
+| `account_emails` | Since v355, each account's email and when it was confirmed. Private: other players never see it, and sign-in stays by username |
+| `mail_tokens` | The one-time links in emails (confirm, 24 hours; reset, once in 30 minutes). Only a hash of each is kept |
+| `mail_log` | What was sent and when, for checking delivery (no addresses) |
+| `mail_templates` | The emails themselves (from `email/`, put here by the migration) |
 
 Row level security is on for every table, with no policies, and the app's roles have no table access. Everything goes
 through these functions:
@@ -72,6 +80,8 @@ through these functions:
 | `rm_track(iid, meta, events)` | Anyone: the game's play stats, in batches (about once a minute). 120 calls an hour per install, 60 events per call, every value checked and clamped. A signed-in player's install is linked to them by their token, never by what the game sends |
 | `rm_config()` | Anyone: the live prices |
 | `adm_*` | The admin dashboard's functions (`admin/API.md`). Each checks that the caller is listed in `rm_admins` and signed in with an authenticator-app code in the last 12 hours, else refuses |
+| `rm_email_get()`, `rm_email_set(email)`, `rm_email_resend()` | Your email: read it, save it (accounts only; 5 changes an hour) and get the welcome email with its confirm button, or get it again |
+| `rm_email_verify(token)`, `rm_reset_request(who)`, `rm_reset_password(token, password)` | Anyone (the website's pages): confirm an email; Forgot password (a username or an email; it never says whether the account exists, and sends at most 3 an hour to an account); set a new password from a reset link, which signs the player out everywhere |
 
 Usernames: 3 to 16 letters, digits and underscores with at least one letter, unique however they're capitalised. Bad
 words are refused however they're spelt (capitals, digits for letters, underscores between letters), with a short list
