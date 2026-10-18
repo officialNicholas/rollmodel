@@ -15,6 +15,7 @@
 //   player@example.com / player-pass-1     a player, not an admin
 //   dusk@example.com / dusk-pass-123       another non-admin (the player Dusk's account)
 // MOCK_SETUP=1 plays a database that isn't set up for admin sign-in (adm_whoami answers why "setup").
+// MOCK_NOMAIL=1 plays a database without the account-email SQL (the email functions answer 404).
 // Test-only controls: GET /__mock/state, POST /__mock/reset {dataset, iap}, POST /__mock/config {...} (see control()).
 
 import http from 'node:http';
@@ -65,16 +66,19 @@ const ACCOUNTS = [
 ];
 
 const DEFAULT_LIMITS = { delete_player: 30, set_password: 60, signout: 60, set_price: 300 };
+// (the reset link counts with set_password, as in the SQL)
 
 // The parameters of every function: PostgREST refuses a call whose names don't match (PGRST202).
 const SIG = {
   adm_whoami: [], adm_overview: ['p_days'], adm_modes: ['p_days'], adm_progress: ['p_steps'], adm_economy: ['p_days'],
   adm_ads: ['p_days'], adm_iap: ['p_days'], adm_prices: [], adm_set_price: ['p_item', 'p_price'], adm_find: ['p_q'],
   adm_player: ['p_id'], adm_set_password: ['p_id', 'p_password'], adm_signout: ['p_id'], adm_delete_player: ['p_id', 'p_confirm'],
-  adm_audit: ['p_limit'],
+  adm_audit: ['p_limit'], adm_player_email: ['p_id'], adm_find_email: ['p_q'], adm_email_reset: ['p_id'],
 };
 const REQUIRED = { adm_set_price: ['p_item', 'p_price'], adm_find: ['p_q'], adm_player: ['p_id'], adm_set_password: ['p_id', 'p_password'],
-  adm_signout: ['p_id'], adm_delete_player: ['p_id', 'p_confirm'] };
+  adm_signout: ['p_id'], adm_delete_player: ['p_id', 'p_confirm'], adm_player_email: ['p_id'], adm_find_email: ['p_q'], adm_email_reset: ['p_id'] };
+// MOCK_NOMAIL=1: the email SQL isn't run yet, so its functions are unknown (404, PGRST202)
+const MAIL_FNS = new Set(['adm_player_email', 'adm_find_email', 'adm_email_reset']);
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const iso = (t) => new Date(t).toISOString();
@@ -96,6 +100,7 @@ export function reset({ dataset = process.env.MOCK === 'empty' ? 'empty' : 'full
     used: new Map(), limits: { ...DEFAULT_LIMITS }, unlisted: new Set(), fail: new Map(), codeAge: new Map(), setup: process.env.MOCK_SETUP === '1',
     tokenSecs: Number(process.env.MOCK_TOKEN_SECS) || 3600,
     delay: Number(process.env.MOCK_DELAY) || 0,
+    emails: new Map(), nomail: process.env.MOCK_NOMAIL === '1', mailOff: false,
   };
   for (const a of ACCOUNTS) {
     S.factors.set(a.id, a.factor ? [{ id: randomUUID(), friendly_name: 'Roll Model admin', factor_type: 'totp', status: 'verified', created_at: iso(now - 40 * 86400000), updated_at: iso(now - 40 * 86400000) }] : []);
@@ -340,6 +345,21 @@ function audit(email, action, target, detail) {
 
 const isInt = (v) => Number.isInteger(v);
 const player = (id) => S.world.players.find((p) => p.id === id) || null;
+// A player's email, made up from their id (no draws from the world's random numbers, so the world stays the same):
+// about 6 in 10 accounts have a confirmed email, 2 an unconfirmed one, 2 none.
+function emailOf(p) {
+  if (!p || !p.account) return null;
+  if (S.emails.has(p.id)) return S.emails.get(p.id);
+  let hsh = 0;
+  for (const c of p.id) hsh = (hsh * 31 + c.charCodeAt(0)) >>> 0;
+  const k = p.name === 'Dusk' ? 0 : p.admin ? 0 : hsh % 10;
+  const e = k >= 8 ? null : {
+    email: p.admin ? 'owner@example.com' : (p.name || 'player' + (hsh % 1000)).toLowerCase() + '@example.com',
+    verified: k < 6, verified_at: k < 6 ? p.created_at : null, updated_at: p.created_at,
+  };
+  S.emails.set(p.id, e);
+  return e;
+}
 // what adm_player answers: the player without the mock's own bookkeeping, plus their audit trail
 const publicPlayer = (p) => {
   const out = { ...p, audit: S.audit.filter((r) => r.target === p.id).map((r) => ({ at: r.at, admin: r.admin, action: r.action, detail: r.detail })) };
@@ -365,6 +385,7 @@ async function rpc(req, res, fn) {
   const who = whoami(sess);
   if (fn === 'adm_whoami') return json(res, 200, who);
   if (!who.admin) return pgError(res, 403, '42501', 'not an admin');
+  if (S.nomail && MAIL_FNS.has(fn)) return pgError(res, 404, 'PGRST202', 'Could not find the function public.' + fn + ' in the schema cache');
   const fail = S.fail.get(fn);
   if (fail && fail.count > 0) { fail.count--; return pgError(res, fail.status, 'XX000', 'mock failure for ' + fn); }
 
@@ -446,6 +467,26 @@ async function rpc(req, res, fn) {
       audit(who.email, 'delete_player', p.id, { id: p.id });
       return json(res, 200, { ok: true });
     }
+    case 'adm_player_email': {
+      const p = player(id);
+      return json(res, 200, p ? emailOf(p) : null);
+    }
+    case 'adm_find_email': {
+      const q = String(body.p_q ?? '').trim().toLowerCase();
+      const hits = w.players.filter((p) => { const e = emailOf(p); return e && e.email.toLowerCase() === q; });
+      return json(res, 200, hits.map((p) => ({ id: p.id, name: p.name, code: p.code, rank: p.rank, account: p.account, created_at: p.created_at, last_seen: p.last_seen })));
+    }
+    case 'adm_email_reset': {
+      const p = player(id);
+      if (!p) return json(res, 200, { ok: false, why: 'missing' });
+      if (p.admin) return json(res, 200, { ok: false, why: 'admin' });
+      const e = emailOf(p);
+      if (!e || !e.verified) return json(res, 200, { ok: false, why: 'no_email' });
+      if (!allowed(who.email, 'set_password')) return json(res, 200, { ok: false, why: 'slow_down' });
+      const sent = !S.mailOff;
+      audit(who.email, 'email_reset', p.id, { name: p.name, sent });
+      return json(res, 200, { ok: true, sent });
+    }
     case 'adm_audit': {
       const limit = body.p_limit == null ? 100 : Math.max(1, Math.min(500, isInt(body.p_limit) ? body.p_limit : 100));
       return json(res, 200, S.audit.slice(0, limit));
@@ -476,6 +517,8 @@ async function control(req, res, path) {
       for (const [id, x] of S.sessions) if (account(x.userId).email === body.revoke) S.sessions.delete(id);
     }
     if (body.limits) Object.assign(S.limits, body.limits);
+    if (body.nomail != null) S.nomail = !!body.nomail; // true: the email SQL isn't run (its functions are unknown)
+    if (body.mailOff != null) S.mailOff = !!body.mailOff; // true: adm_email_reset answers sent: false (email switched off)
     if (body.fail) S.fail.set(body.fail.fn, { status: body.fail.status || 500, count: body.fail.count || 1 });
     if (body.codeAge) { // age the code of an email's live sessions, e.g. { email, hours: 13 }
       for (const sess of S.sessions.values()) {

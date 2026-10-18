@@ -209,11 +209,30 @@ Signs the player out on every device. Returns `{ "ok": true, "sessions": 2 }`, o
 - Returns `{ "ok": true }` or `{ "ok": false, "why": "confirm" | "missing" | "admin" | "slow_down" }`.
 - Writes an audit row with their id. Their name comes off the audit log, there and in any earlier rows about them, however the account was deleted.
 
+### Account emails
+These come with the email migration (`supabase/migrations/20261019000000_email.sql`). Until it's run, PostgREST doesn't know
+them (404, `PGRST202`) and the dashboard works without them.
+
+`adm_player_email(p_id uuid)`: the player's private email, or `null` when they haven't given one.
+```json
+{ "email": "dana@example.com", "verified": true, "verified_at": "...", "updated_at": "..." }
+```
+
+`adm_find_email(p_q text)`: the players whose email is exactly `p_q` (any case), as the same rows as `adm_find`. Emails are
+unique, so that's 0 or 1 rows.
+
+`adm_email_reset(p_id uuid)`: emails the player a link to choose a new password themselves (it works once, for 30 minutes).
+Better than making up a password for them: nobody else ever sees it.
+- Returns `{ "ok": true, "sent": true }`, or `{ "ok": false, "why": "missing" | "admin" | "no_email" | "slow_down" }`.
+- `no_email`: no confirmed email to send it to. Reset their password instead.
+- `sent: false`: the game's email is switched off or not set up (see admin/README.md), so nothing went out.
+- Counts towards the hourly password-reset limit (60), and writes an audit row (`email_reset`, with `sent`).
+
 ### `adm_audit(p_limit int = 100)`
 ```json
 [ { "at": "...", "admin": "you@example.com", "action": "set_price", "target": "tophat", "detail": { "from": null, "to": 450 } } ]
 ```
-Newest first, at most 500. Actions: `set_price`, `set_password`, `signout`, `delete_player`.
+Newest first, at most 500. Actions: `set_price`, `set_password`, `email_reset`, `signout`, `delete_player`.
 
 ## What the game sends
 

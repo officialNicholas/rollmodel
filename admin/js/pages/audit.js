@@ -20,6 +20,7 @@ export const ACTIONS = {
   set_password: 'Reset a password',
   signout: 'Signed a player out everywhere',
   delete_player: 'Deleted an account',
+  email_reset: 'Emailed a reset link',
 };
 export const actionText = (a) => ACTIONS[a] || String(a || 'Unknown');
 
@@ -37,6 +38,7 @@ export function detailText(row) {
       return (it ? it.name : row.target || 'An item') + ': ' + priceText(d.from, def) + ' → ' + priceText(d.to, def);
     }
     case 'set_password': return (who ? who + ': ' : '') + 'new password, signed out everywhere';
+    case 'email_reset': return (who ? who + ': ' : '') + (d.sent === false ? "not sent (the game's email is off)" : 'reset link sent to their confirmed email');
     case 'signout': return (who ? who + ': ' : '') + (d.sessions != null ? num(d.sessions) + (Number(d.sessions) === 1 ? ' session' : ' sessions') + ' ended' : 'signed out');
     case 'delete_player': return (who || 'A player') + (d.id || row.target ? ' (' + (d.id || row.target) + ')' : '');
     default: {

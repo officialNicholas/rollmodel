@@ -10,14 +10,18 @@ import { actionText, detailText } from './audit.js';
 
 export default {
   id: 'support', title: 'Support', icon: 'support', range: false,
-  sub: 'Find a player and help them: a new password, signing them out, or deleting their account.',
+  sub: 'Find a player and help them: a reset link, a new password, signing them out, or deleting their account.',
   async load(ctx) {
     const id = ctx.route.arg;
     if (id) {
       if (!UUID.test(id)) return { bad: true };
-      return { id, player: await rpc('adm_player', { p_id: id }) };
+      const [player, email] = await Promise.all([rpc('adm_player', { p_id: id }), emailOf(id)]);
+      return { id, player, email };
     }
     const q = (ctx.route.q.get('q') || '').trim();
+    if (isEmail(q)) {
+      try { return { q, email: true, results: await rpc('adm_find_email', { p_q: q }) }; } catch (e) { if (notSetUp(e)) return { q, email: true, off: true, results: [] }; throw e; }
+    }
     if (q.length >= 2 && q.length <= 40) return { q, results: await rpc('adm_find', { p_q: q }) };
     return { q };
   },
@@ -25,6 +29,15 @@ export default {
 };
 
 const STATUS = { lobby: 'Online, in the menus', match: 'Online, in a match', offline: 'Offline' };
+const isEmail = (q) => q.includes('@');
+const EMAIL_MAX = 254;
+// The account emails arrived after the rest (supabase/migrations/20261019000000_email.sql): until that's run, PostgREST
+// doesn't know the functions (404, PGRST202) and the page works without them.
+const notSetUp = (e) => e && e.kind === 'server' && (e.status === 404 || e.code === 'PGRST202');
+// a player's email: { email, verified, verified_at, updated_at }, null for none, or { off: true } before the email SQL is run
+async function emailOf(id) {
+  try { return await rpc('adm_player_email', { p_id: id }); } catch (e) { if (notSetUp(e)) return { off: true }; throw e; }
+}
 const displayName = (p) => p.name || 'No username';
 const possessive = (p) => (p.name ? p.name + "'s" : "this player's");
 
@@ -34,18 +47,18 @@ let lastSearch = ''; // so a player's page can go back to the results
 
 function searchView(d, ctx) {
   lastSearch = d.results ? d.q : '';
-  const input = h('input', { type: 'search', name: 'q', value: d.q || '', autocomplete: 'off', spellcheck: 'false', autocapitalize: 'off', maxlength: '40' });
+  const input = h('input', { type: 'search', name: 'q', value: d.q || '', autocomplete: 'off', spellcheck: 'false', autocapitalize: 'off', maxlength: String(EMAIL_MAX) });
   const err = errorLine();
   const form = h('form', { class: 'search', role: 'search', novalidate: true, onsubmit: (e) => {
     e.preventDefault();
     const q = input.value.trim();
     if (q.length < 2) return err.show('Type at least 2 characters.');
-    if (q.length > 40) return err.show('That\'s too long: 40 characters at most.');
+    if (isEmail(q) ? q.length > EMAIL_MAX : q.length > 40) return err.show('That\'s too long: ' + (isEmail(q) ? EMAIL_MAX : 40) + ' characters at most.');
     ctx.go('#support?q=' + encodeURIComponent(q));
   } },
   h('div', { class: 'search-row' }, field('Find a player', input),
     button('Search', { kind: 'primary', type: 'submit', ico: 'support' })),
-  h('p', { class: 'hint', id: 'q-hint' }, 'The start of their username, their friend code (like ABCD 2345), or their user id.'),
+  h('p', { class: 'hint', id: 'q-hint' }, 'The start of their username, their friend code (like ABCD 2345), their whole email address, or their user id.'),
   err.el);
   input.setAttribute('aria-describedby', 'q-hint');
 
@@ -63,7 +76,8 @@ function searchView(d, ctx) {
         { key: 'created', label: 'Joined', cell: (r) => h('span', { title: dateTime(r.created_at) }, ago(r.created_at)) },
         { key: 'seen', label: 'Last seen', cell: (r) => h('span', { title: dateTime(r.last_seen) }, ago(r.last_seen)) },
       ], list, { caption: 'Players found' })
-        : empty('No players match "' + d.q + '"', 'Usernames match from the start. Friend codes and user ids have to be exact.', 'support'));
+        : d.off ? empty("Email search isn't set up yet", 'Run the email migration first (admin/README.md, Email).', 'support')
+        : empty('No players match "' + d.q + '"', d.email ? 'Emails have to match exactly (any capitals).' : 'Usernames match from the start. Friend codes and user ids have to be exact.', 'support'));
   } else if (d.q) {
     results = card(null, null, empty('Type at least 2 characters', 'Then search again.', 'support'));
   }
@@ -84,9 +98,14 @@ function playerView(d, ctx) {
   const noAccount = !p.account || p.anonymous;
   const locked = p.admin === true;
   const reason = locked ? "This is an admin account: it can't be changed from the dashboard."
-    : noAccount ? 'No password to reset: this player plays without an account.' : null;
+    : noAccount ? 'No password to reset: this player plays without an account.'
+    : d.email && !d.email.off && !(d.email.verified === true) ? (d.email.email ? "Their email isn't confirmed yet, so a reset link can't go to it. Reset their password instead." : 'No email on this account, so a reset link has nowhere to go. Reset their password instead.')
+    : null;
 
+  const em = d.email && !d.email.off ? d.email : null;
+  const canLink = !locked && !noAccount && !!em && em.verified === true;
   const actions = h('div', { class: 'player-actions' },
+    d.email && d.email.off ? null : button('Send reset link', { kind: 'secondary', ico: 'mail', disabled: !canLink, onclick: () => linkDialog(p, em, ctx) }),
     button('Reset password', { kind: 'secondary', ico: 'key', disabled: locked || noAccount, onclick: () => resetDialog(p, ctx) }),
     button('Sign out everywhere', { kind: 'secondary', ico: 'out', disabled: locked, onclick: () => signoutDialog(p, ctx) }),
     button('Delete account', { kind: 'danger-outline', ico: 'trash', disabled: locked, onclick: () => deleteDialog(p, ctx) }));
@@ -109,6 +128,7 @@ function playerView(d, ctx) {
     det ? [
       h('p', { class: 'check' }, icon('info'), "Before resetting a password, ask the player for these to check it's really them."),
       facts([
+        ...emailRow(d.email),
         ['First name', det.first_name || 'n/a'],
         ['Last name', det.last_name || 'n/a'],
         ['Birth year', det.birth_year == null ? 'n/a' : String(det.birth_year)],
@@ -157,6 +177,14 @@ function playerView(d, ctx) {
     ], p.audit, { caption: 'Audit trail' }) : empty('Nothing yet', 'Password resets, sign-outs and other changes to this player show up here.', 'audit'));
 
   return [back, header, grid('two', account, profile), save, installs, trail];
+}
+
+// the Email row of Account details: nothing before the email SQL is run
+function emailRow(e) {
+  if (e && e.off) return [];
+  if (!e || !e.email) return [['Email', h('span', { class: 'muted' }, 'None')]];
+  return [['Email', h('span', { class: 'email-cell' }, h('span', { class: 'wrap' }, e.email), ' ',
+    e.verified ? chip('Confirmed', 'live') : chip('Not confirmed', 'muted'))]];
 }
 
 // ---------------------------------------------------------------- the actions
@@ -240,6 +268,35 @@ function resetDialog(p, ctx) {
   };
 
   dialog('Reset ' + possessive(p) + ' password', choose, { onClose: () => { if (changed) ctx.reload(); } });
+}
+
+// Email the player a link to choose a new password themselves (adm_email_reset): better than making one up for them.
+function linkDialog(p, em, ctx) {
+  let changed = false;
+  const who = p.name || 'this player';
+  const confirm = (api) => {
+    const err = errorLine();
+    const go = button('Send link', { kind: 'primary', ico: 'mail', onclick: async () => {
+      const res = await act('adm_email_reset', { p_id: p.id }, err, go);
+      if (!res) return;
+      changed = true;
+      api.step(() => [
+        res.sent === false
+          ? h('p', { class: 'danger-line' }, icon('alert'), h('span', null, "Nothing was sent: the game's email isn't switched on (admin/README.md, Email). Reset their password instead."))
+          : h('p', { class: 'ok-line' }, icon('check'), h('span', null, 'Sent to ', h('b', null, em.email), '.')),
+        res.sent === false ? null : h('p', { class: 'hint' }, 'The link works once, for 30 minutes. Their password stays the same until they use it.'),
+        actionsRow(button('Done', { kind: 'primary', onclick: () => api.close() })),
+      ]);
+    } });
+    return [
+      h('p', null, 'Email ', h('b', null, who), ' a link to choose a new password?'),
+      h('p', null, 'It goes to ', h('b', { class: 'wrap' }, em.email), ', their confirmed email.'),
+      h('p', { class: 'hint' }, 'The link works once, for 30 minutes. Their password stays the same until they use it, and nothing is shown to you.'),
+      err.el,
+      actionsRow(button('Cancel', { kind: 'ghost', onclick: () => api.close() }), go),
+    ];
+  };
+  dialog('Send ' + who + ' a reset link', confirm, { onClose: () => { if (changed) ctx.reload(); } });
 }
 
 function signoutDialog(p, ctx) {

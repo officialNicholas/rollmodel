@@ -70,6 +70,7 @@ export const WHY = {
   item: "That item id isn't valid.",
   range: 'A price has to be a whole number from 0 to 100,000.',
   slow_down: "That's the most you can do in an hour. Try again later.",
+  no_email: "This player has no confirmed email, so there's nowhere to send a link. Reset their password instead.",
 };
 
 export const whyText = (why) => WHY[why] || "The server didn't do it" + (why ? ' (' + String(why).slice(0, 40) + ').' : '.');

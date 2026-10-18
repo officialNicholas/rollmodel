@@ -336,6 +336,42 @@ async function flows() {
     await settled(page);
   });
 
+  await step('reset link: the email and Confirmed, Send reset link, sent or not; search by email', async () => {
+    const det = await text(page, '.facts');
+    check(/dusk@example\.com/.test(det) && /Confirmed/.test(det), 'the email and Confirmed: ' + det);
+    await page.click('.player-actions button:has-text("Send reset link")');
+    await page.waitForSelector('dialog');
+    check(/dusk@example\.com/.test(await text(page, 'dialog')), 'the dialog names the address');
+    await shot(page, 'desktop-light-dialog-link');
+    await page.click('dialog button:has-text("Send link")');
+    await page.waitForSelector('dialog .ok-line');
+    check(/Sent to dusk@example\.com/.test(await text(page, 'dialog .ok-line')), 'sent');
+    await page.click('dialog button:has-text("Done")');
+    await settled(page);
+    check(/Emailed a reset link/.test(await text(page, '.pagebody')), 'the audit trail shows it');
+    await control('/config', { mailOff: true });
+    await page.click('.player-actions button:has-text("Send reset link")');
+    await page.click('dialog button:has-text("Send link")');
+    await page.waitForSelector('dialog .danger-line');
+    check(/Nothing was sent/.test(await text(page, 'dialog .danger-line')), 'email switched off: says nothing was sent');
+    await page.click('dialog button:has-text("Done")');
+    await settled(page);
+    await control('/config', { mailOff: false });
+    await go(page, 'support');
+    await page.fill('input[type=search]', 'DUSK@Example.com');
+    await page.click('form button[type=submit]');
+    await settled(page);
+    check(await page.$eval('.pagebody .tbl tbody', (b) => b.querySelectorAll('tr').length) === 1, 'one player for the email, any case');
+    await page.fill('input[type=search]', 'nobody@example.com');
+    await page.click('form button[type=submit]');
+    await settled(page);
+    check(/match exactly/.test(await text(page, '.pagebody')), 'no match says emails match exactly');
+    await go(page, 'support?q=Dusk');
+    await page.click('.pagebody .tbl a >> text="Dusk"');
+    await settled(page);
+    check((await text(page, '.player-name')) === 'Dusk', 'back on Dusk');
+  });
+
   await step('sign out everywhere: confirm, then how many sessions ended; and the hourly limit', async () => {
     await page.click('.player-actions button:has-text("Sign out everywhere")');
     await page.click('dialog button:has-text("Sign out everywhere")');
@@ -396,10 +432,26 @@ async function flows() {
     await page.click('dialog button:has-text("Cancel")');
   });
 
+  await step('before the email SQL is run: no email row or reset link, and email search says so', async () => {
+    await control('/config', { nomail: true });
+    await expecting([FAILED(404)], page, async () => {
+      await go(page, 'support?q=Duskfall');
+      await page.click('.pagebody .tbl a >> text="Duskfall"');
+      await settled(page);
+      check((await text(page, '.player-name')) === 'Duskfall', 'the player still opens');
+      check(!(await page.$('.player-actions button:has-text("Send reset link")')), 'no reset link button');
+      check(!/Email/.test(await text(page, '.facts')), 'no email row');
+      check(!(await page.$eval('.player-actions button:has-text("Reset password")', (b) => b.disabled)), 'Reset password still works');
+      await go(page, 'support?q=' + encodeURIComponent('someone@example.com'));
+      check(/isn't set up yet/.test(await text(page, '.pagebody')), 'email search says it isn\'t set up');
+    });
+    await control('/config', { nomail: false });
+  });
+
   await step('audit log: every change in plain words, newest first', async () => {
     await go(page, 'audit');
     const t = await text(page, '.pagebody');
-    for (const w of ['Changed a price', 'Reset a password', 'Signed a player out everywhere', 'Deleted an account', 'Top hat: 450 → 425', 'Top hat: 425 → the default (580)']) {
+    for (const w of ['Changed a price', 'Reset a password', 'Emailed a reset link', 'Signed a player out everywhere', 'Deleted an account', 'Top hat: 450 → 425', 'Top hat: 425 → the default (580)']) {
       check(t.includes(w), 'audit log has "' + w + '"');
     }
     const first = await text(page, '.pagebody .tbl tbody tr:first-child');
