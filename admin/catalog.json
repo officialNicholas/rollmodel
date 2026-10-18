@@ -423,24 +423,24 @@
    "name": "Lesson: paint freely 2"
   },
   {
+   "id": "l:basin",
+   "name": "Lesson: refill at a basin"
+  },
+  {
+   "id": "l:rival",
+   "name": "Lesson: jump out, the rival arrives"
+  },
+  {
    "id": "l:pound",
    "name": "Lesson: ground pound"
   },
   {
-   "id": "l:item",
-   "name": "Lesson: use a transform"
+   "id": "l:dodge",
+   "name": "Lesson: dodge roll"
   },
   {
    "id": "l:orb",
    "name": "Lesson: grab the orb"
-  },
-  {
-   "id": "l:free3",
-   "name": "Lesson: paint freely 3"
-  },
-  {
-   "id": "l:flower",
-   "name": "Lesson: grab the gift"
   },
   {
    "id": "l:rest",

@@ -284,8 +284,8 @@ test('adm_progress: ranks, the tutorial funnel with who is stuck where, and the 
   const t = Object.fromEntries(p.tutorial.map(x => [x.step, [x.reached, x.stuck]]));
   assert.deepEqual(t.intro, [5, 1]); assert.deepEqual(t.match, [4, 0]); assert.deepEqual(t['l:sling'], [2, 1]); assert.deepEqual(t.done, [2, 0]);
   assert.deepEqual(t['l:rest'], [0, 0]);
-  assert.equal(p.tutorial[0].step, 'intro'); assert.equal(p.tutorial[23].step, 'strokes_done');
-  assert.deepEqual(p.tutorial[24], { step: 'mystery_step', reached: 1, stuck: 0 }); // (steps seen that aren't in the list come after it)
+  const n = p.tutorial.length; assert.equal(p.tutorial[0].step, 'intro'); assert.equal(p.tutorial[n - 2].step, 'strokes_done'); // (the list's own length: the lesson's steps change)
+  assert.deepEqual(p.tutorial[n - 1], { step: 'mystery_step', reached: 1, stuck: 0 }); // (steps seen that aren't in the list come after it)
   assert.equal(p.active_7d, 4); assert.equal(p.median_rank, 2); assert.equal(p.done_pct, 0.3333);
   // the order from the dashboard (catalog.json) wins
   const p2 = await call(A.claims, 'adm_progress', [['match', 'intro']]);

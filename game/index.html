@@ -2726,6 +2726,12 @@ svg{shape-rendering:geometricPrecision}
 .tutgest[data-g="steertap"]{top:85%}
 .tutgest[data-g="swipe"]{top:60%} /* (well up the screen, clear of the pound button) */
 .tutgest[data-g="pull"]{top:74%;left:62%}
+.tutgest[data-g="tap"]{top:70%} /* (v357: a tap, for jumping out of a basin) */
+.tutgest[data-g="tap"] .ghand{animation:gtap 1.3s ease-in-out infinite}
+.tutgest[data-g="tap"] .gring{animation:gtapr 1.3s ease-out infinite}
+@keyframes gtap{0%,100%{transform:translateY(-14px)}30%,46%{transform:translateY(0) scale(.88)}}
+@keyframes gtapr{0%,30%{opacity:0;transform:scale(.4)}36%{opacity:1;transform:scale(.6)}70%,100%{opacity:0;transform:scale(1.7)}}
+body.rvon .corner{opacity:0;pointer-events:none} /* (v357: the rival's entrance in the lesson: nothing over the shot) */
 .tutgest .ghand{position:absolute;left:-25px;top:-62px;width:50px;height:66px;transform-origin:50% 100%}
 .tutgest .ghand svg{width:100%;height:100%;overflow:visible}
 .tutgest .gring{position:absolute;left:-22px;top:-22px;width:44px;height:44px;border-radius:50%;border:4px solid #fff;box-shadow:0 0 0 2px rgba(23,19,32,.45);opacity:0}
@@ -4752,7 +4758,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 356</p>
+      <p class="ver">Version 357</p>
     </div>
   </div>
 
@@ -5775,7 +5781,7 @@ renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
 renderer.setClearColor(0x120A24);
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(80, 1, 0.3, 700); scene.add(camera);
-let baseFov = 70, playFov = 64; // (in play the view's zoomed in 12%: the same lens, narrowed)
+let baseFov = 70, playFov = 64, camRvL = false; // (in play the view's zoomed in 12%: the same lens, narrowed)
 let viewW = 1, viewH = 1, pctRect = null;
 let post = null; // the Graphics mode post pipeline, built further down
 function resize() { const b = stage.getBoundingClientRect(); viewW = Math.max(1, b.width); viewH = Math.max(1, b.height); pctRect = null; renderer.setSize(b.width, b.height, false); if (post) post.resize(); camera.aspect = b.width / Math.max(1, b.height); baseFov = camera.aspect < 0.8 ? 70 : 60; playFov = 2 * Math.atan(Math.tan(baseFov * Math.PI / 360) / 1.12) * 180 / Math.PI; camera.fov = baseFov; camera.updateProjectionMatrix(); }
@@ -13897,7 +13903,7 @@ function pickCoffinSpot(p) {
 function riseCoffin(p) {
   const [x, y, z] = p.next || [p.x, p.y, p.z];
   const yw = potYaw(x, y, z); p.x = x; p.y = y; p.z = z; p.g.position.set(x, y, z); p.g.rotation.y = yw !== null ? yw : Math.random() * 6.28; p.ink = 1; p.cool = 0; p.occ = null; p.next = null; p.lastOcc = null; p.crT = p.jtT = 9; p.dripT = 0; p.paintTeam = -1; if (p.paintC) p.paintC.copy(POT_WHITE);
-  p.st = 'rise'; p.t = 0; p.g.visible = true; p.tele.visible = false; p.bounce = 0;
+  p.st = 'rise'; p.t = 0; p.g.visible = true; p.tele.visible = false; p.bounce = 0; p.tutRise = false;
   shockwave(x, y, z, 1.5, 0xB89B82);
   for (let i = 0; i < 18; i++) { const a = Math.random() * 6.283, sp = 1.5 + Math.random() * 2.5; spawnPart(x + Math.cos(a) * 0.6, y + 0.1, z + Math.sin(a) * 0.6, Math.cos(a) * sp, 2 + Math.random() * 2.5, Math.sin(a) * sp, 0.6 + Math.random() * 0.4, dustMat, 0.8 + Math.random() * 0.7); }
   if (Math.hypot(x - P.x, z - P.z) < 20) { AU.at(x, z); AU.rise(); };
@@ -13906,7 +13912,7 @@ function stepCoffins(dt) {
   for (const p of pots) {
     if (p.cool > 0) p.cool -= dt; if (p.bounce > 0) p.bounce = Math.max(0, p.bounce - dt * 2.5);
     if (p.st === 'up') continue;
-    if (p.st === 'down' && tut && tutFlat) continue; // (v356: in the lesson a basin that's gone stays gone)
+    if (p.st === 'down' && tut && tutFlat && !p.tutRise) continue; // (v356: in the lesson a basin that's gone stays gone)
     p.t += dt;
     if (p.st === 'sink') {
       if (Math.random() < dt * 20) { const a = Math.random() * 6.283; spawnPart(p.x + Math.cos(a) * 0.8, p.y + 0.06, p.z + Math.sin(a) * 0.8, -Math.cos(a) * 0.6, 0.6 + Math.random(), -Math.sin(a) * 0.6, 0.5, dustMat, 0.7, 0.4); }
@@ -16958,7 +16964,7 @@ function airShot(D, c, yaw) {
   const up = v0 / GRAV, ap = v0 * v0 / (2 * GRAV), down = Math.sqrt(2 * Math.max(0, ap + D.y - gy) / (GRAV * 1.45)), T = up + down;
   return { v0, up, ap, T, dist, spd: Math.min(launchSpd(c), dist / Math.max(0.15, T)), x: tx, z: tz, y: g };
 }
-const canAct = D => D.st === 'play' && D.flatT <= 0 && !(D.stunT > 0) && !D.rocket && !D.turret && !D.whirl;
+const canAct = D => D.st === 'play' && D.flatT <= 0 && !(D.stunT > 0) && !D.rocket && !D.turret && !D.whirl && !(D === P && tut && tut.hold); // (v357: tut.hold, the lesson's rival entrance)
 const safe = D => D.rollT > 0 || D.dashT > 0 || !!D.whirl; // untouchable: rolling, or in an air dash
 // coming out of a special move (turret, rocket, giant, roller): half a second where nothing can hurt you, the sun included
 const SPECIAL_GRACE = 0.5, graceOut = D => { D.immuneT = Math.max(D.immuneT || 0, SPECIAL_GRACE); D.sunGrace = SPECIAL_GRACE; };
@@ -17085,7 +17091,7 @@ function enterPot(D, p) {
   potClaim(p, D.team);
   D.st = 'hide'; D.pot = p; p.occ = D; D.emptyT = 0; D.air = false; D.vy = 0; D.stroke++; D.x = p.x; D.z = p.z; D.y = p.y; p.bounce = 1; D.slam = false; D.exposed = false; D.slowed = false;
   if (D.charging) clearCharge(D);
-  if (D === P) { AU.enter(); buzz(10); if (Math.random() < 0.3) AU.vox('ahh'); }
+  if (D === P) { D.potAt = performance.now(); AU.enter(); buzz(10); if (Math.random() < 0.3) AU.vox('ahh'); }
   for (let i = 0; i < 10; i++) { const a = Math.random() * 6.283; spawnPart(p.x, p.y + 0.45, p.z, Math.cos(a) * 1.8, 2 + Math.random() * 1.5, Math.sin(a) * 1.8, 0.4, tmat(D), 0.6); }
 }
 function rollIntoCoffin(D, p) {
@@ -17499,6 +17505,7 @@ function fmtPair(a, b) { return [Math.round(a) + '%', Math.round(b) + '%']; }
 let steerS = 0;
 function steerAndTurn(D, dt, scaleBy) {
   let input = D === P ? (keyL || keyR ? (keyR ? 1 : 0) - (keyL ? 1 : 0) : steerIn) : D.steer;
+  if (D === P && tut && tut.hold) input = 0; // (v357: held still while the rival comes in)
   if (D === P && kcam && kcam.yaw !== undefined && D.st === 'play') { input = kcamSteer(D, dt); if (!D.air && !D.charging && !D.slam) scaleBy = Math.max(scaleBy, 1.25); } // (the kill cam steers)
   // just out of a spawn basin: if the floor runs out ahead, turn for the side that has more of it (whatever the stick says)
   if (D.spawnGuard > 0) { D.spawnGuard -= dt;
@@ -17610,6 +17617,7 @@ function updateWeather(dt) {
 function stepBlob(D, dt) {
   if (D.whirl && (D.st !== 'play' || D.rocket || D.turret || state !== 'play')) endWhirl(D); // (v271: knocked out, out, or the match over: it stops)
   if (D.st === 'out') return;
+  if (state === 'play' && (D.introCrawl || D.introOut)) { if (D.introCrawl) crawlOut(D, dt); else D.spd = 0; return; } // (v357: the lesson's rival climbing out of his basin)
   if (D.orbSaved && state === 'play') { if (D.orbT < Infinity) { D.orbT -= dt; if (D.orbT <= 0) orbFade(D); } if (D.orbSaved && D.ai && (D.ai.orbWait = (D.ai.orbWait || 0) - dt) <= 0 && !useOrb(D)) D.ai.orbWait = 0.3; } // (v256: the orb in the slot; a CPU holds its own a moment, then uses it)
   if (D.dry && (D.paint >= DRY_OUT || D.giantT > 0 || D.st === 'ko')) { D.dry = false;  }
   // the clock runs while you're out on the canvas dry (a coffin pauses it while it fills you)
@@ -17656,6 +17664,7 @@ function stepBlob(D, dt) {
   if (D.dilT > 0) { D.dilT -= dt; if (D.spd > 1 && Math.random() < dt * 10) { const a = Math.random() * 6.283; spawnPart(D.x + Math.cos(a) * 0.3, D.y + 0.35, D.z + Math.sin(a) * 0.3, Math.cos(a) * 1.2, 1.5 + Math.random(), Math.sin(a) * 1.2, 0.3, boilPartMat, 0.45); } }
   if (D.kx || D.kz) { const f = Math.exp(-dt * (D.air ? 1.2 : 5)); D.kx *= f; D.kz *= f; if (D.kx * D.kx + D.kz * D.kz < 0.01) D.kx = D.kz = 0; }
   if (D.charging) { D.spd += (0 - D.spd) * Math.min(1, dt * 16); updateCharge(D, dt); if (!D.air && D.spd > 0.05) { const r = 0.3 + D.spd * 0.08; if (surfaceUnder(D.x + Math.sin(D.yaw) * r, D.z + Math.cos(D.yaw) * r, D.y + STEP, true) === -Infinity) D.spd = 0; } } // (holding to aim is a brake: it stops at a hole or the edge rather than sliding into it)
+  else if (D === P && tut && tut.hold && !D.air) D.spd *= Math.exp(-dt * 9); // (v357: eased to a stop for the rival's entrance)
   else if ((D.slam && !D.missile) || D.flatT > 0 || D.stunT > 0) D.spd = 0;
   else if (!D.air && D.whirl) D.spd = D.whirl.ph === 'wind' ? D.spd * Math.exp(-dt * 12) : D.whirl.ph === 'dash' ? whirlV() : D.spd + (cfg.speed * spdK(D) - D.spd) * Math.min(1, dt * 4);
   else if (!D.air && D.rollT > ROLL_T - ROLL_DASH) D.spd = D.rollV * (0.62 + 0.38 * (D.rollT - ROLL_T + ROLL_DASH) / ROLL_DASH);
@@ -18735,7 +18744,7 @@ function aiCoffin(D, dt) {
 // run without visuals) at most one per 30 ms of game time
 let stepNo = 0, thinkStep = -1, thinkBy = null, visFrame = 0, thinkFrame = -1, thinkClock = -9;
 function aiStep(D, dt) {
-  const ai = D.ai; if (!ai || D.st === 'out') return;
+  const ai = D.ai; if (!ai || D.st === 'out' || D.introCrawl || D.introOut || (D === H && tut && tut.rvCam)) return; // (v357: not while the lesson's rival makes his entrance)
   if ((mode === 'trio' || isShow()) && (ai.focusT = (ai.focusT || 0) - dt) <= 0) { ai.focusT = 1.2 + Math.random() * 0.8; const f = pickFocus(D); if (f && f !== D.focus) { D.focus = f; ai.o = null; ai.seenT = 0; } }
   ai.seenT -= dt; if (ai.seenT <= 0 || !ai.o) { ai.seenT = AI.react; aiSee(D); }
   if (D.st === 'ko') { ai.path = null; ai.plan = null; ai.flight = null; ai.evadeT = 0; ai.attackT = 0; ai.wasRdy = false; return; }
@@ -19731,6 +19740,11 @@ function visuals(dt, rdt) {
     dPos.set(K.x0 + K.fx * d + nx * sw, K.gy + (K.rev ? 1.7 : 2.1) - 0.25 * u, K.z0 + K.fz * d + nz * sw);
     const ax = K.x0 + K.fx * (K.rev ? 1.6 : 3), az = K.z0 + K.fz * (K.rev ? 1.6 : 3), lk = V.rag ? 0.35 : 0.15; dLook.set(ax + (V.x - ax) * lk, K.gy + 0.65 + Math.max(0, V.y - K.gy) * 0.35, az + (V.z - az) * lk);
   }
+  else if (state === 'play' && tut && tut.rvCam) { // (v357) the lesson's rival entrance
+    const R = tut.rvCam; R.t += rdt; const u = smoothstep(0, 3.5, R.t), nx = R.fz * R.side, nz = -R.fx * R.side, out = H.st === 'play', k = 1 - Math.exp(-rdt * 2.4);
+    const sH = out ? (H.x - R.x) * R.fx + (H.z - R.z) * R.fz : 0; R.d += (Math.min(R.dm, Math.max(RV_CAM[0] + 0.5 * u, sH + 4.4)) - R.d) * k; R.w += ((out ? 0.75 : 0) - R.w) * k; // (out and coming your way: it eases back and turns with him)
+    dPos.set(R.x + R.fx * R.d + nx * RV_CAM[1], R.y + RV_CAM[2] + 0.15 * u, R.z + R.fz * R.d + nz * RV_CAM[1]); dLook.set(R.x + (H.x - R.x) * R.w, R.y + 0.55, R.z + (H.z - R.z) * R.w);
+  }
   else if (state === 'play' && spec && P.st === 'out' && specCam(rdt)) {}
   else if (state === 'dead' || state === 'paused') {
     if (state === 'dead' && outro) { outroT += rdt; { const ty = outroBase + Math.sin(outroT * 0.3) * 0.2; camYaw += (ty - camYaw) * (1 - Math.exp(-rdt * 1.4)); } const sc = end.hidden ? ARENA / 26.4 * Math.max(clamp(0.5 / (Math.tan(camera.fov * Math.PI / 360) * camera.aspect), 1, 1.7), 1.2) : outroSc, fx = Math.sin(camYaw), fz = Math.cos(camYaw); dPos.set(-fx * 31 * sc, 37 * sc, -fz * 31 * sc); dLook.set(fx * 3 * sc, -12 * sc, fz * 3 * sc); }
@@ -19769,7 +19783,9 @@ function visuals(dt, rdt) {
   if (shake > 0.001 && !reduceMotion) { const s2 = shake * shake * 2.2; camera.position.addScaledVector(tv2.set(Math.random() - 0.5, Math.random() - 0.5, 0).applyQuaternion(camera.quaternion), s2); }
   if (quake.amp > 0) { quake.t += rdt; const q = quake.amp * Math.exp(-quake.t * 3.2); if (!reduceMotion) { camera.position.y += Math.sin(quake.t * 24) * q * 0.85; camera.position.x += Math.sin(quake.t * 17 + 1.3) * q * 0.4; camera.position.z += Math.cos(quake.t * 21) * q * 0.4; camera.rotateZ(Math.sin(quake.t * 13) * q * 0.035); } if (quake.t > 1.8) quake.amp = 0; }
   shake *= Math.exp(-rdt * 9); fovKick *= Math.exp(-rdt * 4);
-  const fovT = state === 'menu' ? heroFov() : (playing ? playFov : baseFov) + (playing ? ((rainFast(P) ? speedMul : 1) - 1) * 12 + fovKick + (P.rocket ? (P.rocket.ph === 'dive' && !P.rocket.slow ? 14 : 7) : 0) + (P.st === 'play' && !P.air ? clamp((P.spd / (cfg.speed * spdK(P)) - 1) * 14, 0, 5) : 0) : 0);
+  const rvL = state === 'play' && !!tut && !!tut.rvCam && viewW > viewH; // (v357: the rival's entrance, sideways)
+  const fovT = rvL ? playFov * 0.62 : state === 'menu' ? heroFov() : (playing ? playFov : baseFov) + (playing ? ((rainFast(P) ? speedMul : 1) - 1) * 12 + fovKick + (P.rocket ? (P.rocket.ph === 'dive' && !P.rocket.slow ? 14 : 7) : 0) + (P.st === 'play' && !P.air ? clamp((P.spd / (cfg.speed * spdK(P)) - 1) * 14, 0, 5) : 0) : 0);
+  if (rvL !== camRvL) { camRvL = rvL; camera.fov = fovT; camera.updateProjectionMatrix(); }
   if (Math.abs(camera.fov - fovT) > 0.05) { camera.fov += (fovT - camera.fov) * Math.min(1, rdt * 6); camera.updateProjectionMatrix(); }
   sky.position.copy(camera.position);
   // in the menu the shot is framed into the space the logo and the controls leave
@@ -25955,7 +25971,7 @@ canvas.addEventListener('pointermove', e => {
   if (Math.abs(sx) > 9 || Math.abs(dy) > 9) { t.moved = true; P.preJ = 0; }
   // a quick flick up: roll
   const now = performance.now(); t.hist.push([e.clientX, e.clientY, now]); while (t.hist.length > 2 && now - t.hist[0][2] > 180) t.hist.shift();
-  if (!t.rolled && (!P.charging || (holdCharge && pullTgt < 0.05)) && state === 'play') { const h0 = t.hist[0], up = h0[1] - e.clientY, side = Math.abs(e.clientX - h0[0]); if (up > 44 && up > side * 1.5) { t.rolled = true; t.moved = true; t.steered = true; dodgeRoll(P); } else if (P.air && P.airSling && P.airBack && -up > 44 && -up > side * 1.5) { t.rolled = true; t.moved = true; t.steered = true; airDash(P, -1); } }
+  if (!t.rolled && (!P.charging || (holdCharge && pullTgt < 0.05)) && state === 'play') { const h0 = t.hist[0], up = h0[1] - e.clientY, side = Math.abs(e.clientX - h0[0]); if (up > 44 && up > side * 1.5) { t.rolled = true; t.moved = true; t.steered = true; if (!(P.st === 'hide' && h0[2] < (P.potAt || 0) && now - P.potAt < 350)) dodgeRoll(P); } else if (P.air && P.airSling && P.airBack && -up > 44 && -up > side * 1.5) { t.rolled = true; t.moved = true; t.steered = true; airDash(P, -1); } }
   // pulling straight down from a fresh press stops you and loads the shot in one move
   if (!P.charging && !t.steered && dy > 18 && dy > Math.abs(sx) * 1.4 && state === 'play' && (P.st === 'play' || P.st === 'hide') && !P.air) beginHold(t, t.x, t.y);
   // (v303) a clear sideways drag out of a hold that hasn't been pulled is a steer: let go of the brake and go (a finger that rested a
@@ -25973,7 +25989,7 @@ canvas.addEventListener('pointermove', e => {
 const endPtr = e => {
   const t = touches.get(e.pointerId); if (!t) return; touches.delete(e.pointerId);
   if (e.pointerId !== steerId) return;
-  if (P.charging && holdCharge) { if (pullTgt >= FLING_MIN) fling(P, pullTgt); else cancelCharge(P); }
+  if (P.charging && holdCharge) { if (pullTgt >= FLING_MIN) fling(P, pullTgt); else { cancelCharge(P); if (P.st === 'hide' && !t.moved && performance.now() - t.t < 450 && state === 'play') jump(P); } }
   else if (!t.moved && performance.now() - t.t < 260 && state === 'play') jump(P);
   steerId = null; steerIn = 0; rangeIn = 0; holdCharge = false; slingOff(); P.preJ = 0;
 };
@@ -26354,7 +26370,7 @@ const TUT_AI_CALM = { speed: 0.8, pound: 0.45, poundR: 1.5, attack: 0.08, hunt: 
 // a tip: the coach's plate (an explanation, its face and name) or, with call set, a short line for an action, *the words that matter* in red
 // a finger acting out the gesture a tip asks for, on a touch screen: drag across and tap to move and jump, hold and pull down to fling,
 // a flick up to roll out of a pound
-const TUT_GEST = { tubout: 'swipe', msling: 'pull', msling2: 'pull', move: 'steertap', sling: 'pull', dodgenow: 'swipe', rdodgenow: 'swipe', rroll: 'swipe', wxhold: 'hold', protip: 'pullslow' };
+const TUT_GEST = { jumpout: 'tap', tubout: 'swipe', msling: 'pull', msling2: 'pull', move: 'steertap', sling: 'pull', dodgenow: 'swipe', rdodgenow: 'swipe', rroll: 'swipe', wxhold: 'hold', protip: 'pullslow' };
 const tutGestEl = document.createElement('i'); tutGestEl.className = 'tutgest'; tutGestEl.hidden = true; tutGestEl.setAttribute('aria-hidden', 'true');
 function tutGest(kind) {
   const k = kind && (!keysUI || kind === 'spin') ? kind : ''; if (!tutGestEl.parentNode) stage.appendChild(tutGestEl);
@@ -26485,30 +26501,63 @@ const TUT_STEPS = [
   { id: 'sling', max: 40, enter() { tut.slowK = TUT_SLOW; tutShow(say('*HOLD*, *PULL DOWN*, then let go to fling!', 'Hold *S*, then let go to fling!'), null, 'sling', true); },
     tick() { return P.st === 'play' && P.air && P.flung && (P.flingC || 0) > 0.1; } },
   { id: 'free1', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 2; }, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
-  // (v356) the pound, on your own: once you're down from the fling (in the air after one, the button fires a missile instead), its
-  // button comes up, the tip points at it, and one that lands is the lesson (no rival to aim at, no tub to burst out of)
-  { id: 'pound', max: 40, enter() { tut.keepAway = false; tut.slammed = false; tut.slowK = 1; tut.slowT = 0; tut.sub = ''; tut.poundUp = false; },
-    tick(dt) { if (!tut.poundUp) { if (P.st !== 'play' || (P.air && (P.flingC || 0) > 0.15)) return false;
-        tut.poundUp = true; tut.hidePound = false; tutGivePound(); tut.slowK = TUT_SLOW; tut.slowT = 2.5;
-        tutShow(say('Tap *POUND* to splat paint all around you!', 'Press *E* to splat paint all around you!'), 'slamBtn', 'pound', true); }
-      if (tut.slowT > 0) { tut.slowT -= dt / Math.max(tut.slowK, 0.05); if (tut.slowT <= 0) tut.slowK = 1; }
-      if (P.slamCD > 1.5) P.slamCD = 1.5; if (P.slam) { tut.slammed = true; tut.slowK = 1; } // (the pound keeps coming back until one lands)
-      return tut.slammed && !P.slam && P.st === 'play'; } },
-  // (v270) you've held the Roller since the start; now its button comes up (above the slow-motion shade) and the tip points at it
-  { id: 'item', max: 50, enter() { tutHide(); tut.slowK = 1; tut.sub = ''; tut.wait = 0.7; if (!P.held && !(P.power && P.power.type === 'roller')) P.held = 'roller'; tut.hideItem = false; $('itemBtn').classList.add('tutup'); }, /* (a beat for the button to pop up, then its tip) */
-    exit() { $('itemBtn').classList.remove('tutup'); },
-    tick(dt) { if (P.st === 'play' && !P.held && !(P.power && P.power.type === 'roller')) P.held = 'roller'; /* (whatever became of it, it's back in your hand) */
-      if (tut.wait > 0) { tut.wait -= dt; return false; }
-      if (tut.sub !== 'use' && P.held === 'roller' && P.st === 'play') { tut.sub = 'use'; tut.slowK = 0.35; tutShow(say('This is a *TRANSFORM* item. *TAP* it!', 'This is a *TRANSFORM* item. Press *F*!'), 'itemBtn', 'use', true); }
-      return !!(P.power && P.power.type === 'roller'); } },
+  // (v357) out of paint: your tank empties, one basin comes up a few steps ahead of you (the only one about), and the way to it is shown
+  { id: 'basin', max: 55, enter() { tut.slowK = 1; tut.basinTip = false; tut.basinT = 0; tut.basinSw = false; tut.potQ = null; tut.potTry = 0; tutHide(); },
+    exit() { tut.potQ = null; },
+    tick(dt) { if (P.dryT) P.dryT = 0; /* (no running dry into a knock-out in the lesson) */
+      if (!tut.potQ && P.st === 'play' && !P.air && (tut.potTry -= dt) <= 0) { tut.potTry = 0.3; tut.potQ = tutRaisePot(); } /* (once you're down from the fling: its spot is found on your level) */
+      if (P.st === 'play') P.paint = tut.basinTip ? Math.min(P.paint, 0.02) : Math.max(0, P.paint - dt * 1.1); /* (the tank empties in under a second and stays out till you refill) */
+      if (tut.basinTip && !tut.basinSw) { tut.basinT += dt; if (tut.basinT > 2.5 && P.st === 'play') { tut.basinSw = true; tutGest('swipe'); } } /* (not there yet: a finger shows the swipe up, a roll gets you there faster) */
+      if (!tut.basinTip && P.paint <= 0.02) { tut.basinTip = true; pingTank(4); tutShow('Out of paint! Roll into a *' + potWord().toUpperCase() + '* to refill', null, 'basin', true, true); }
+      return P.st === 'hide' && tut.basinTip; } },
+  // (v357) full again, you jump out (a tap) and stop where you land; the view cuts to a second basin across the canvas, the rival climbs
+  // out of it, and the view cuts back to you, turned to face him
+  { id: 'rival', max: 60, enter() { tutHide(); tut.slowK = 1; tut.sub = 'tub'; tut.rvT = 0; tut.outTip = false; tut.tubT = 0; },
+    exit() { tutRevealEnd(); },
+    tick(dt) {
+      if (tut.sub === 'tub') {
+        if (P.st === 'hide' && P.pot) { P.pot.ink = Math.max(P.pot.ink, 0.3); /* (it keeps some paint: a basin drunk dry throws you out itself) */
+          if (!tut.outTip && P.paint >= 0.97) { tut.outTip = true; tutShow(say('*TAP* to jump out!', 'Press *SPACE* to jump out!'), null, 'jumpout', true, true); }
+          if (tut.outTip && (tut.tubT += dt) > 9) jump(P); /* (left in there a good while: out it hops) */
+          return false; }
+        if (P.st !== 'play') return false; tutHide(); tut.sub = 'land'; }
+      if (tut.sub === 'land') { if (P.air) return false; tut.sub = 'stop'; tut.rvT = 0; tut.hold = true; }
+      tut.rvT += dt;
+      if (tut.sub === 'stop') { if (tut.rvT < 0.6 || P.spd > 0.3) return false; tut.sub = tutRivalUp() ? 'peek' : 'look'; tut.rvT = 0; return false; }
+      if (tut.sub === 'peek') { if (tut.rvT < 0.8) return false; if (H.st === 'hide' && H.pot) introCrawl(H); tut.sub = 'climb'; tut.rvT = 0; return false; }
+      if (tut.sub === 'climb') { if (H.introCrawl && tut.rvT < 4) return false; tut.sub = 'look'; tut.rvT = 0; return false; }
+      return tut.rvT > 1.1; } }, // (out and shaking himself off: a moment, then back to you)
+  // the pound, on the rival: he comes over and circles in close, and once he's in reach the tip comes up. In the air after a fling the
+  // button fires a missile instead: close to him that's what the tip says, further off it says nothing till you're down. Knocking him out
+  // or flattening him does it
+  { id: 'pound', max: 80, exit() { tut.drive = null; tut.driveMode = null; TUT_AI.speed = 0.8; }, enter() { tut.hidePound = false; tut.keepAway = false; tut.drive = H; tut.driveMode = 'near'; TUT_AI.speed = 0.62; tutGivePound(); tut.kos0 = P.kos; tut.flat0 = P.flatted; tut.slowK = 1; tut.slowT = 0; tut.poundIn = false; tut.poundShown = false; tut.sub = ''; tutHide(); },
+    tick(dt) { if (tut.slowT > 0) { tut.slowT -= dt / Math.max(tut.slowK, 0.05); if (tut.slowT <= 0) tut.slowK = 1; }
+      if (P.slamCD > 1.5) P.slamCD = 1.5; // (the pound keeps coming back until one lands)
+      const hd = Math.hypot(H.x - P.x, H.z - P.z), near = H.st === 'play' && hd < 11; TUT_AI.speed = hd > 8 ? 1.3 : hd > 5 ? 0.9 : 0.62; /* (hurries over, then eases in) */ if (!tut.poundIn && P.st === 'play') tutRivalIn(5.5); if ((H.st === 'play' && hd < SLAM_R + PR && Math.abs(H.y - P.y) < 1.2) || tut.st > 24) tut.poundIn = true; /* (the tip waits for the rival to come close) */
+      const fwd = P.air && (P.flingC || 0) > 0.15 && !P.slam, sub = fwd ? (near && P.flung ? 'missile' : 'wait') : tut.poundIn ? 'pound' : 'wait';
+      if (sub !== tut.sub) { const first = sub === 'pound' && !tut.poundShown; tut.sub = sub; tutGivePound();
+        if (sub === 'wait') { tutHide(); if (tut.slowT <= 0) tut.slowK = 1; }
+        if (first) { tut.poundShown = true; tut.slowK = TUT_SLOW; tut.slowT = 3.5; }
+        if (sub === 'missile') { tut.slowK = 0.3; tutShow(say('*POUND* now to fire a missile!', 'Press *E* now to fire a missile!'), 'slamBtn', 'missile', true); }
+        else if (sub === 'pound') { if (tut.slowT <= 0) tut.slowK = 1; tutShow(hd < 6 ? say('Your Pound splats everything round you. The rival’s close, tap it!', 'Your Pound (E) splats everything round you. The rival’s close, press E!') : say('Your Pound splats everything round you. Get close to the rival and tap it!', 'Your Pound (E) splats everything round you. Get close to the rival and press E!'), 'slamBtn', 'pound'); } }
+      return P.kos > tut.kos0 || P.flatted > tut.flat0; } },
+  { id: 'dodge', max: 60, enter() { tut.noPound = true; Object.assign(TUT_AI, TUT_AI_FIGHT); tut.drive = H; tut.driveMode = 'fight'; H.slamCD = 0; if (H.paint < 0.8) H.paint = 1; if (H.ai) { H.ai.plan = null; H.ai.path = null; } tut.rolled = false; tut.hits = 0; tut.wasKo = false; tut.slowK = 1; tut.sub = ''; tutShow(say('Rivals pound too. Swipe up just before it lands to dodge', 'Rivals pound too. Shift just before it lands to dodge'), null, 'dodge', false, true); },
+    tick(dt) { if (!H.slam && P.st === 'play') tutRivalIn(6.5); if (H.st === 'play' && !H.slam && H.slamCD > 1.2) H.slamCD = 1.2; if (H.paint < 0.5) H.paint = 1;
+      const d = Math.hypot(H.x - P.x, H.z - P.z), eta = H.slam ? H.slamEta - H.slamT : 9, coming = H.slam && H.st === 'play' && P.st === 'play' && !P.air && d < slamRadius(H) + PR + 2.5;
+      if (coming && P.rollT <= 0 && !tut.rolled) P.rollCD = 0; /* (an early swipe never leaves you without a roll for the drop) */
+      if (coming && P.rollT > 0 && !tut.rolled) { tut.rolled = true; tut.rollRT = 0; } // (a roll while its pound is in the air: that is the timing)
+      if (tut.rolled) tut.rollRT = (tut.rollRT || 0) + (dt || 0) / Math.max(tut.slowK, 0.05); /* (real seconds since the swipe) */
+      if (tut.rolled && H.slam && P.rollT > 0 && P.rollT < 0.05) P.rollT = 0.05; /* (and it holds you clear till the pound lands) */
+      if (P.st === 'ko' && !tut.wasKo) tut.hits++; tut.wasKo = P.st === 'ko';
+      const now = coming && eta < 0.42, base = now ? 0.14 : coming ? 0.45 : 1, back = tut.rolled ? Math.min(1, Math.max(0, (tut.rollRT - 1) / 0.25)) : 0; tut.slowK = base + (1 - base) * back; /* (swiped clear: a second more, then back to speed) */
+      const sub = now ? 'now' : 'dodge'; if (sub !== tut.sub) { tut.sub = sub; if (now) tutShow(say('*NOW!* Swipe up!', '*NOW!* Shift!'), null, 'dodgenow', true, true); else tutShow(say('Rivals pound too. Swipe up just before it lands to dodge', 'Rivals pound too. Shift just before it lands to dodge'), null, 'dodge', false, true); }
+      return (tut.rolled || tut.hits >= 2) && P.st === 'play' && !H.slam; },
+    exit() { Object.assign(TUT_AI, TUT_AI_CALM); tut.drive = null; tut.noPound = false; } },
   { id: 'orb', max: 55, enter() { orb.spawnT = 0; tut.orbMine = true; tut.hadRocket = false; tut.slowK = 1; tutShow('A special orb! Roll up to it for a super move', null, 'orb', false, true); },
-    tick() { if (P.rocket && !tut.hadRocket) { tut.hadRocket = true; tut.slowK = 1; /* (full speed: the rocket ride is the fun part) */ tutShow(say('Steer it, then tap Boost to come down with a big splat!', 'Steer it, then press E to come down with a big splat!'), 'slamBtn', 'rocket'); }
+    tick() { if (P.rocket && !tut.hadRocket) { tut.hadRocket = true; tut.slowK = 1; /* (full speed: the rocket ride is the fun part) */ tutShow(say('Steer over the rival, then tap Boost', 'Steer over the rival, then press E to boost'), 'slamBtn', 'rocket'); }
+      const cross = !!P.rocket; if (cross && tut.driveMode !== 'cross') { tut.drive = H; tut.driveMode = 'cross'; if (H.ai) { H.ai.plan = null; H.ai.path = null; } } else if (!cross && tut.driveMode === 'cross') { tut.drive = null; tut.driveMode = null; TUT_AI.speed = 0.8; } /* (the rival walks into your crosshair) */
       return tut.hadRocket && !P.rocket; },
     exit() { tut.orbMine = false; TUT_AI.orb = 0.35; } },
-  { id: 'free3', max: 99, enter() { tutHide(); tut.slowK = 1; tut.wait = 1.2; } /* (v309: was 8 s) */, tick(dt) { tut.wait -= dt; return tut.wait <= 0; } },
-  { id: 'flower', max: 42, enter() { if (orb.on) tutOrbOff(); orb.spawnT = 1e9; gift.id = 'flower'; gift.at = 1e9; tut.slowK = 1; tutHide(); tut.wait = 2.2; tut.flowerPaint = Math.max(P.paint, 0.5); },
-    tick(dt) { if (P.st === 'play' && P.paint < tut.flowerPaint) P.paint = tut.flowerPaint; /* (no paint drain while you go for the flower) */ if (tut.wait > 0) { tut.wait -= dt; if (tut.wait <= 0) { gift.at = runT; tutShow('A gift has appeared on the canvas! *Grab it!*', null, 'flower', true, true); } return false; } return gift.got; }, /* (a breath after the dodge, then the flower and its tip) */
-    exit() { if (!gift.got) { gift.got = true; gift.on = false; giftM.visible = giftRing.visible = giftBeam.visible = false; unlockItem('flower'); newItem = 'flower'; } if (!owns('fangs')) unlockItem('fangs'); newItem = ['flower', 'fangs']; orb.spawnT = 8; } },
   { id: 'rest', max: 1e9, enter() { tutHide(); tut.slowK = 1; if (matchLeft < 28) matchLeft = 28; tut.cardIn = 1.1; tut.card = false; },
     tick(dt) { if (tut.cardIn > 0) { tut.cardIn -= dt; if (tut.cardIn <= 0) matchLeft = 0; } return false; } } // (a beat for the new item banner, then the match is over. v304: no "Now win it!" card and no finale after it: endMatch makes sure you're ahead (tutLead), then the lesson's finish, Basics Complete, then the tally)
 ];
@@ -26772,13 +26821,15 @@ function tutReward(id, hit) {
 }
 function tutStep(dt) {
   if (!tut || state !== 'play') return;
-  if (tutFlat) { if (P.st === 'play') P.paint = 1; /* (v356: no basins, so the tank stays full) */ if (P.st === 'play') for (const p of pots) if (potUp(p) && Math.hypot(p.x - P.x, p.z - P.z) > 3.2) sinkCoffin(p); } // (and a basin you're out of goes: the one you start in, or one you came back in)
+  if (tutFlat) { const sid = tut.step >= 0 ? TUT_STEPS[tut.step].id : ''; // (v357)
+    if (P.st === 'play' && sid !== 'basin') P.paint = 1; /* (your tank stays full but for the refill lesson) */ if (H.st === 'play' && H.paint < 0.6) H.paint = 1; /* (and his: there are no basins to go back to) */
+    for (const p of pots) if (potUp(p) && !p.occ && p !== tut.potQ && Math.hypot(p.x - P.x, p.z - P.z) > 3.2 && !(H.st === 'play' && Math.hypot(p.x - H.x, p.z - H.z) < 3.2)) sinkCoffin(p); } // (a basin nobody's in or near goes: the one you start in, the refill, his, one either of you came back in)
   if (tut.step < 0) { if (tut.outAt === undefined) { if (P.st === 'play' && !P.air && runT > 0.3) tut.outAt = runT; } else if (runT - tut.outAt >= 1.5) tutNext(); return; } // (a moment at full speed first, so the slow motion isn't taken for your speed) /* (the lesson opens straight on the move tip: its Paint it banner comes later, with the Now win it card) */
   const s = TUT_STEPS[tut.step]; if (tut.step < TUT_REST && matchLeft < 20) matchLeft = 20; // (the lesson does not run out the clock)
   // (v303) back in a tub mid-lesson (knocked out, respawned): the step waits, its clock stopped, while a callout and the swipe finger
   // show the way out; out again, its own tip comes back. (The tub and pound steps deal with the tub themselves; in the free play at the
   // end, finale included, the callout shows only when nothing else is being said, and the match goes on.)
-  const inTub = P.st === 'hide' && !(s.id === 'basin' && tut.basinTip) && s.id !== 'rest' && !(tut.gap > 0) && !tut.card; // (v304: the rest step is only the beat before the end now)
+  const inTub = P.st === 'hide' && !(s.id === 'basin' && tut.basinTip) && s.id !== 'rival' && s.id !== 'rest' && !(tut.gap > 0) && !tut.card; // (v304: the rest step is only the beat before the end now)
   tut.tubHold = inTub && s.id !== 'rest';
   if (inTub) {
     if (s.id === 'rest' ? !tutTip : (!tutTip || tutTip.key !== 'tubout')) { if (tutTip && tutTip.key !== 'tubout') tut.tubTip = tutTip; tutShow(say('*SWIPE UP* to roll out of the tub!', 'Press *SHIFT* to roll out of the tub!'), null, 'tubout', true, true); }
@@ -26806,16 +26857,60 @@ function tutNearPot() { let best = null, bd = 1e9; for (const q of pots) { if (!
 function tutRaisePot() {
   const ok = (x, z) => { const y = surfaceUnder(x, z, P.y + 0.5); if (Math.abs(y - P.y) > 0.05 || !NAV.at(x, z, P.y)) return false;
     for (let k = 0; k < 8; k++) { const a = k * 0.785; if (Math.abs(surfaceUnder(x + Math.cos(a) * 1.1, z + Math.sin(a) * 1.1, P.y + 0.5) - P.y) > 0.05) return false; }
-    return !pots.some(o => Math.hypot(o.x - x, o.z - z) < 3) && !rivals.some(r => Math.hypot(r.x - x, r.z - z) < r.rad + 1.6) && !powers.some(w => Math.hypot(w.x - x, w.z - z) < 2.2) && Math.hypot(H.x - x, H.z - z) > 2; };
+    return !pots.some(o => o.g.visible && Math.hypot(o.x - x, o.z - z) < 3) && !rivals.some(r => Math.hypot(r.x - x, r.z - z) < r.rad + 1.6) && !powers.some(w => Math.hypot(w.x - x, w.z - z) < 2.2) && Math.hypot(H.x - x, H.z - z) > 2; };
   let spot = null;
   const seen = (x, z) => { tv1.set(x, P.y + 0.4, z).project(camera); return tv1.z < 1 && Math.abs(tv1.x) < 0.75 && tv1.y > -0.55 && tv1.y < 0.75; }; // (somewhere on screen)
-  for (const pass of [0, 1]) { for (const d of pass ? [9.5, 8.5, 7.5, 6.5, 5.5, 5, 4.5] : [9.5, 10.5, 8.5, 11.5, 7.5, 6.5]) { for (const da of [0, 0.25, -0.25, 0.5, -0.5, 0.8, -0.8]) { const a = P.yaw + da, x = P.x + Math.sin(a) * d, z = P.z + Math.cos(a) * d; if (ok(x, z) && (pass || seen(x, z))) { spot = [x, P.y, z]; break; } } if (spot) break; } if (spot) break; }
+  for (const pass of [0, 1, 2]) { for (const d of pass ? [9.5, 8.5, 7.5, 6.5, 5.5, 5, 4.5] : [9.5, 10.5, 8.5, 11.5, 7.5, 6.5]) { for (const da of pass > 1 ? [1.1, -1.1, 1.5, -1.5, 2, -2, 2.5, -2.5, 3.1] : [0, 0.25, -0.25, 0.5, -0.5, 0.8, -0.8]) { /* (v357: no room ahead, beside or behind you) */ const a = P.yaw + da, x = P.x + Math.sin(a) * d, z = P.z + Math.cos(a) * d; if (ok(x, z) && (pass || seen(x, z))) { spot = [x, P.y, z]; break; } } if (spot) break; } if (spot) break; }
   if (!spot) return null;
-  let q = null, bd = -1; for (const o of pots) { if (o.st !== 'up' || o.occ) continue; const d = Math.hypot(o.x - P.x, o.z - P.z); if (d > bd) { bd = d; q = o; } }
+  let q = null, bd = -1; for (const o of pots) { if (o.occ || o === P.pot) continue; const d = o.st === 'down' ? 1e9 : Math.hypot(o.x - P.x, o.z - P.z); if (d > bd) { bd = d; q = o; } } // (v357: one that's down first)
   if (!q) return null;
-  q.st = 'down'; q.g.visible = false; if (q.ring) q.ring.visible = false; q.occ = null; q.next = spot; q.t = DOWN_T - 0.6; /* (its mark shows on the floor at once and it is up a second and a half later) */
+  q.st = 'down'; q.g.visible = false; if (q.ring) q.ring.visible = false; q.occ = null; q.next = spot; q.t = DOWN_T - 0.6; q.tutRise = true; /* (its mark shows on the floor at once and it is up a second and a half later) */
   return q;
 }
+// (v357) the rival's entrance. Where: a few strides off (8 to 11 m, so he comes out about 6 m from you), as near dead ahead as there's
+// room, on level clear floor, with the shot's spot on your side of it clear. A basin that's down comes up there (turned so he climbs out
+// on your side, away from its dispenser) with him already in it, and the view cuts to it: the bars come in and the controls go
+const RV_CAM = [5.4, 1.5, 1.9, 7.6]; // (the shot: how far out from the basin on your side, how far off to one side, how high, and how far
+// it may ease back to keep him in the picture as he climbs out toward it)
+function tutRivalUp() {
+  const lvl = (x, z, y0) => { const y = surfaceUnder(x, z, y0 + 0.5); return Math.abs(y - y0) < 0.05 ? y : null; }; let S = null;
+  for (const d of [9, 10, 8.5, 11, 8]) { for (const da of [0, 0.3, -0.3, 0.6, -0.6, 0.9, -0.9, 1.25, -1.25, 1.6, -1.6, 2, -2, 2.5, -2.5, 3.1]) {
+      const a = P.yaw + da, x = P.x + Math.sin(a) * d, z = P.z + Math.cos(a) * d; if (Math.abs(x) > ARENA - 3 || Math.abs(z) > ARENA - 3) continue;
+      const y = lvl(x, z, P.y); if (y === null || !NAV.at(x, z, y) || blockedAt(x, z, y)) continue;
+      let ok = true; for (let k = 0; k < 12 && ok; k++) { const b = k * 0.5236; for (const r of [1.1, 2.4]) { const xx = x + Math.cos(b) * r, zz = z + Math.sin(b) * r; if (lvl(xx, zz, y) === null || blockedAt(xx, zz, y)) ok = false; } } if (!ok) continue;
+      if (pots.some(o => o.g.visible && Math.hypot(o.x - x, o.z - z) < 3.5) || rivals.some(r => Math.hypot(r.x - x, r.z - z) < r.rad + 2) || powers.some(w => Math.hypot(w.x - x, w.z - z) < 2.5)) continue;
+      const fx = (P.x - x) / d, fz = (P.z - z) / d; let side = 0;
+      const dm = Math.min(RV_CAM[3], d - 1.2); // (the furthest back the shot goes: still in front of you)
+      for (const sd of [1, -1]) { let clear = true; for (const cd of [RV_CAM[0], (RV_CAM[0] + dm) / 2, dm]) { /* (where it starts, and on its way back) */
+          const cx = x + fx * cd + fz * sd * RV_CAM[1], cz = z + fz * cd - fx * sd * RV_CAM[1], cy = y + RV_CAM[2]; if (Math.abs(cx) > ARENA + 1 || Math.abs(cz) > ARENA + 1) { clear = false; break; }
+          for (let k = 0; k <= 12 && clear; k++) { const t = k / 12; if (blockedAt(cx + (x - cx) * t, cz + (z - cz) * t, cy - 0.6 + (y + 0.6 - cy) * t)) clear = false; } if (!clear) break; }
+        if (clear) { side = sd; break; } }
+      if (side) { S = { x, y, z, fx, fz, side, dm }; break; } } if (S) break; }
+  if (!S) return false;
+  const q = pots.find(o => !o.occ && !o.g.visible && o !== tut.potQ) || pots.find(o => !o.occ && o !== P.pot && o !== tut.potQ); if (!q) return false;
+  q.next = [S.x, S.y, S.z]; riseCoffin(q); q.st = 'up';
+  if (q.inner) { q.g.rotation.y = 0; q.g.updateMatrixWorld(true); const b = q.inner.localToWorld(tv1.set(0, 0, -0.725)); q.g.rotation.y = wrapA(Math.atan2(-S.fx, -S.fz) - Math.atan2(b.x - q.x, b.z - q.z)); q.g.updateMatrixWorld(true); } // (its back, the dispenser, away from you)
+  enterPot(H, q); q.lastOcc = H; q.paintC.copy(TEAM_COLS[H.team]); q.slosh = 1.2;
+  Object.assign(H, { yaw: Math.atan2(S.fx, S.fz), steer: 0, turn: 0, spd: 0, paint: 1, dry: false, dryT: 0, immuneT: 9, flatT: 0, stunT: 0, kx: 0, kz: 0, knockT: 0, wearOff: true, peeked: true, introCrawl: null, introOut: false, introShake: null, ip: null });
+  H.rimInfo = basinRim(q, S.fx, S.fz); { const V = vOf(H); if (V) { V.yawD = H.yaw; if (V.slime && V.slime.ax) V.slime.ax.fresh = true; } }
+  if (H.ai) { H.ai.plan = null; H.ai.path = null; } LH.drop.visible = LH.shadow.visible = true; ACTIVE = [P, H];
+  tut.rvPot = q; tut.rvCam = { x: S.x, y: S.y, z: S.z, fx: S.fx, fz: S.fz, side: S.side, dm: S.dm, d: RV_CAM[0], w: 0, t: 0 }; camSnap = true;
+  if (!kcBarsEl.parentNode) stage.appendChild(kcBarsEl); kcBarsEl.classList.add('on'); hud.classList.add('kc'); document.body.classList.add('rvon'); AU.whoosh();
+  return true;
+}
+// the end of the entrance (or of the step, cut short): the view back on you, turned to face him, the controls back. With no room found for
+// the shot he simply arrives in front of you; cut short in his basin or mid-climb, he's out on the floor at once
+function tutRevealEnd() {
+  if (!tut) return; tut.hold = false; tutRevealOff();
+  if (H.st === 'out') { H.st = 'play'; H.paint = 1; H.immuneT = 1; LH.drop.visible = LH.shadow.visible = true; ACTIVE = [P, H]; if (H.ai) { H.ai.plan = null; H.ai.path = null; } tutRivalIn(7); }
+  if (H.st === 'hide' && H.pot && H.pot === tut.rvPot) exitPot(H);
+  if (H.introCrawl) { const C = H.introCrawl; H.x = C.cx + C.fx * C.s1; H.z = C.cz + C.fz * C.s1; H.introCrawl = null; H.spd = 0; }
+  if (H.introOut) { H.introOut = false; H.introShake = null; H.ip = null; }
+  H.spawnGuard = 2.4; H.immuneT = Math.min(H.immuneT || 0, 0.8);
+  if (P.st === 'play' && H.st !== 'out') { P.yaw = Math.atan2(H.x - P.x, H.z - P.z); P.turn = 0; const V = vOf(P); if (V) V.yawD = P.yaw; }
+  camYaw = P.yaw; camYawV = 0; camSnap = true;
+}
+function tutRevealOff() { if (tut) tut.rvCam = null; kcBarsEl.classList.remove('on'); hud.classList.remove('kc'); document.body.classList.remove('rvon'); }
 // where to point in the basin lesson: its own basin (or the mark it is coming up on), else the nearest one
 function tutPotMark() { const q = tut.potQ; if (q && q.st !== 'up' && q.next) return { x: q.next[0], y: q.next[1], z: q.next[2] }; if (q && potUp(q) && q.ink > 0.05 && !q.occ) return q; return tutNearPot(); }
 // a finger on the spot itself when it is on screen (a basin), bobbing above it
@@ -26883,7 +26978,7 @@ function tutBegin() { // (as a match begins)
   tut = { step: -1, st: 0, slowK: 1, hidePound: true, keepAway: true, items: false, orbMine: false, drive: null, noTurret: true, hideItem: true, pips: new Set(), bonus: 0, praiseN: 0 }; tutPipsDraw();
   wxLeft = 1e9; orb.spawnT = 1e9; Object.assign(gift, { id: 'flower', on: false, got: false, pop: 0, at: 1e9 }); giftM.visible = giftRing.visible = giftBeam.visible = false;
 }
-function tutLeave() { clearTimeout(tutPraiseEl._t0); tutPraiseEl._pend = false; tutPraiseEl.classList.remove('on'); tut2 = null; tut3 = null; tutArrowEl.hidden = true; if (tut) tutCard(false); tut = null; tutHide(); if (tutSlowEl.classList.contains('on')) AU.slow(false, true); tutSlowEl.classList.remove('on'); tutRestore(); tutWinDue = false; const tw = $('tutWin'); tw.classList.remove('on'); tw.hidden = true; }
+function tutLeave() { tutRevealOff(); clearTimeout(tutPraiseEl._t0); tutPraiseEl._pend = false; tutPraiseEl.classList.remove('on'); tut2 = null; tut3 = null; tutArrowEl.hidden = true; if (tut) tutCard(false); tut = null; tutHide(); if (tutSlowEl.classList.contains('on')) AU.slow(false, true); tutSlowEl.classList.remove('on'); tutRestore(); tutWinDue = false; const tw = $('tutWin'); tw.classList.remove('on'); tw.hidden = true; }
 // (v304) the lesson ends with the gift now, with no finale to win it in, and your first match is a win. Through the lesson the rival's
 // trail thins out as his score (paint plus the knock-out bonus, as the tally adds them up) comes within four points of yours, and he
 // lays none from about two short of it (his first two points he paints freely). His tank only spends what his trail lays, so he
@@ -26973,7 +27068,7 @@ function tutMenuTick() {
   return tutShow('Time for a real match. Tap *Play*', 'homePlay', 'pick');
 }
 // the lesson's finish, in place of the tally for a beat: the canvas through the window, the title, and what was learned ticked off; Next goes on to the tally
-const TW_LIST = ['Steering and jumping', 'Flinging', 'The pound', 'Transforms', 'The orb', 'Finding items'];
+const TW_LIST = ['Steering and jumping', 'Flinging', 'Refilling', 'The pound', 'Dodging', 'The orb'];
 // (the finish page pulls the camera wide over the canvas, as the results do)
 function showTutWin() {
   const el = $('tutWin'); $('twList').innerHTML = TW_LIST.map((t, i) => '<li style="--i:' + i + '"><i><svg viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L20 7"/></svg></i>' + t + '</li>').join('');
