@@ -19,6 +19,9 @@ shouldn't.
    2. `supabase/migrations/20261015010000_accounts.sql`
    3. `supabase/migrations/20261016000000_saves.sql` (v312: progress kept with the account. Until it's run, logging in
       on a new phone works but brings no progress back, and Log out keeps this phone's progress, as before)
+   4. `supabase/migrations/20261018000000_liveops.sql` (v354: play stats, live prices and the admin dashboard's functions.
+      Until it's run, the game plays as before with its own prices, and the dashboard says the database isn't ready.
+      Making yourself the admin is in `admin/README.md`)
 4. **Send me two values.** Dashboard > Project Settings > API Keys (or Data API):
    - the **Project URL** (`https://<something>.supabase.co`);
    - the **publishable key** (`sb_publishable_...`), or the older **anon public** key if that's what the project shows.
@@ -41,6 +44,12 @@ the Friends screen says friends are on the way.
 | `invites` | Invites to a private duel (room code from the game server, 2 minutes to answer) |
 | `trial_scores` | Each player's best Time trial run per canvas per week |
 | `rate_events` | Recent actions, for the rate limits |
+| `rm_installs` | Since v354, one row per install of the game: a random id (no name, no device id), platform and versions, when it was first and last heard from, its rank, dabs and tutorial step now, the tutorial steps and modes it has reached, and running totals. Linked to the player while they're signed in; unlinked when they delete their account |
+| `rm_daily` | Since v354, counters per day for the whole game: active installs, sessions, matches per mode and canvas, Paint Shop views and buys per item, dabs earned and spent, rewarded ads, ranks reached |
+| `rm_buys` | Since v354, every Paint Shop buy: which install, which item, the price and when |
+| `rm_prices` | Since v354, the live prices set in the dashboard (only the items whose price was changed) |
+| `rm_admins` | The dashboard's admins. Only you add them, here in the SQL editor |
+| `rm_audit` | Every change made in the dashboard: who, when, what (prices, password resets, sign-outs, deleted accounts) |
 
 Row level security is on for every table, with no policies, and the app's roles have no table access. Everything goes
 through these functions:
@@ -60,6 +69,9 @@ through these functions:
 | `rm_block(other)`, `rm_unblock(other)` | A block removes the friendship and any requests, and silently drops their requests later |
 | `rm_invite(to, room, mode)`, `rm_answer_invite(id, accept)`, `rm_cancel_invite(id)` | Invites to a private duel |
 | `rm_trial(stage, pct)`, `rm_friends_board(stage, week)` | Time trial runs, and the board of you and your friends |
+| `rm_track(iid, meta, events)` | Anyone: the game's play stats, in batches (about once a minute). 120 calls an hour per install, 60 events per call, every value checked and clamped. A signed-in player's install is linked to them by their token, never by what the game sends |
+| `rm_config()` | Anyone: the live prices |
+| `adm_*` | The admin dashboard's functions (`admin/API.md`). Each checks that the caller is listed in `rm_admins` and signed in with an authenticator-app code in the last 12 hours, else refuses |
 
 Usernames: 3 to 16 letters, digits and underscores with at least one letter, unique however they're capitalised. Bad
 words are refused however they're spelt (capitals, digits for letters, underscores between letters), with a short list
@@ -82,7 +94,8 @@ Limits:
 - 200 friends;
 - 40 invites an hour;
 - 120 Time trial runs an hour;
-- 240 progress saves an hour, each up to 200 kB.
+- 240 progress saves an hour, each up to 200 kB;
+- 120 batches of play stats an hour per install, and at most 600 new installs a minute for the whole game.
 
 ## Testing it without the real project
 
@@ -98,6 +111,10 @@ The game itself was also tested against a small stand-in for Supabase's sign-in 
 other (see `docs/friends-v305.md`).
 
 ## Not on trust yet
+
+- **Play stats:** like any mobile analytics, they come from the phones, and the publishable key that sends them is public.
+  The limits above stop a flood, but someone determined could add made-up installs. Read the numbers as trends.
+  Real-money purchases, once the game has them, should be counted from the App Store's own reports, not from these.
 
 - **Time trial runs:** the phone reports them, so a Friends board is on the honour system until the game server checks
   runs. That's fine between friends, but not for a Global board with prizes.
