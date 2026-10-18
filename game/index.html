@@ -4759,7 +4759,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 360</p>
+      <p class="ver">Version 361</p>
     </div>
   </div>
 
@@ -27578,6 +27578,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     // the character: made with the game's own maker, so what you pick is exactly what you get
     const CH = AXOC.S.ready ? AXOC : SLIME, I = CH.make({ color: PEARL.getHex() }), hold = new THREE.Group(); hold.scale.setScalar(PR); hold.add(I.root); hold.visible = false; sc.add(hold);
     I.noGhost = true; if (I.coatOn) I.coatOn(); if (I.setPaint) I.setPaint(PEARL); if (I.setExpression) I.setExpression('happy');
+    if (I.setIris) I.setIris((EYE_COLS[myLook.iris] || EYE_COLS.brown).lin); if (I.setEyeStyle) I.setEyeStyle(EYE_STYLE_K[myLook.eyes] || 0); // (v361: the colour and style the cards show picked, not the model's own violet)
     const o = { pos: [0, 0, 0], wt: { yaw: 0, pitch: 0 }, watch: null, dt: 0 };
     X = Object.assign(X, { sc, pc: cam, sun, floor, drum, stream, drops, grit, sky, set, dust, tw, wm, birds, dustT: 0, gustT: 5, gust: false, gk: 0, CH, I, hold, o, drop: [], spl: 0, rip: 0,
       t: 0, ph: 'wait', pt: 0, paint: PEARL.clone(), paintTo: null, pearl: 1, pearlTo: 1, R: 0, MR: 0, mouth: new V3(), lid: { on: true, p: new V3(), v: new V3(), w: new V3(), rest: false },
