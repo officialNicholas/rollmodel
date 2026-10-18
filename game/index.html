@@ -4759,7 +4759,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 361</p>
+      <p class="ver">Version 362</p>
     </div>
   </div>
 
@@ -26482,12 +26482,28 @@ function tutPlace() {
   const r = el.getBoundingClientRect(), cx = r.left - r0.left + r.width * (lookOpen && el.classList.contains('lcat') ? 0.28 : 0.5), cw = Math.min(tutEl.offsetWidth, viewW - 24); /* (a locker category card: the hand on its left part, clear of the name pill) */
   tutWindow(r.left - r0.left - 10, r.top - r0.top - 10, r.width + 20, r.height + 20);
   const ph = tutEl.offsetHeight + over, roomUp = r.top - r0.top, roomDn = viewH - (r.bottom - r0.top), above = tutTip.side ? tutTip.side === 'above' : roomUp >= ph + 90 || (roomDn < ph + 90 && roomUp > roomDn); // (the side asked for, else whichever has the room)
-  const left = clamp(cx - cw / 2, 12, Math.max(12, viewW - cw - 12)); let y = above ? roomUp - 84 : r.bottom - r0.top + 84; // (the hand's fingertip lands on the edge of the thing, not over it)
-  y = above ? Math.max(y, ph + 4) : Math.min(y, viewH - ph - 8);
-  const pos = above ? 'above' : 'below'; if (tutEl.dataset.pos !== pos) tutEl.dataset.pos = pos;
+  const left = clamp(cx - cw / 2, 12, Math.max(12, viewW - cw - 12)), y0 = above ? roomUp - 84 : r.bottom - r0.top + 84; // (the hand's fingertip lands on the edge of the thing, not over it)
+  const y = above ? Math.max(y0, ph + 4) : Math.min(y0, viewH - ph - 8), pos = above ? 'above' : 'below';
+  if (!tutHold(pos, left, y, y === y0)) return; // (v362: where it holds, not where one frame's measure puts it)
+  if (tutEl.dataset.pos !== pos) tutEl.dataset.pos = pos;
   const l = left.toFixed(0) + 'px', t = y.toFixed(0) + 'px', ax = (cx - left).toFixed(0) + 'px';
   if (tutEl.style.left !== l) tutEl.style.left = l; if (tutEl.style.top !== t) tutEl.style.top = t; if (tutEl.style.getPropertyValue('--ax') !== ax) tutEl.style.setProperty('--ax', ax);
   { const cs = pos === 'below' && parseFloat(ax) < 170 ? 'r' : 'l'; if (tutEl.dataset.cside !== cs) tutEl.dataset.cside = cs; } // (his head stands up out of the plate: on the far side from a hand pointing up off it)
+}
+// (v362) where the plate over a control goes, held: a new place is taken as the tip comes up or the screen changes size, as it slides (a
+// scroll, the page coming in), once it has held three frames, or when nothing squeezes it there and something squeezed it where it is.
+// A place one frame's measure gives and the next takes back never moves it (on an iPhone the locker's plate jumped between three places
+// every frame, two of them over the tabs). nat: nothing squeezed it (it's where it's meant to be, not pushed off an edge)
+function tutHold(pos, x, y, nat) {
+  const S = tutTip.hold || (tutTip.hold = { on: null, h: [], vk: '' }), c = { pos, x: +x.toFixed(0), y: +y.toFixed(0), nat }, h = S.h, on = S.on, vk = viewW + 'x' + viewH;
+  h.push(c); if (h.length > 3) h.shift();
+  const near = (a, b, d) => a.pos === b.pos && Math.abs(a.x - b.x) <= d && Math.abs(a.y - b.y) <= d;
+  if (on && near(c, on, 0)) return true;
+  const fresh = !on || S.vk !== vk || tutEl.dataset.pos !== on.pos || tutEl.style.left !== on.x + 'px' || tutEl.style.top !== on.y + 'px';
+  const held = h.length === 3 && near(h[2], h[1], 3) && near(h[1], h[0], 3);
+  const slide = h.length === 3 && h[0].pos === pos && h[1].pos === pos && ['x', 'y'].every(k => { const d1 = h[2][k] - h[1][k], d0 = h[1][k] - h[0][k]; return Math.abs(d1) <= 64 && Math.abs(d0) <= 64 && (d1 === 0 || d1 * d0 > 0); }) && !near(h[2], h[1], 0);
+  if (!(fresh || held || slide || (nat && !on.nat))) return false;
+  S.on = c; S.vk = vk; return true;
 }
 // the lesson, one step at a time: each one says what to do, waits for it (slowed down while it waits), then the next. max: real seconds before it moves on anyway
 const TUT_STEPS = [
@@ -26544,7 +26560,7 @@ const TUT_STEPS = [
         if (sub === 'missile') { tut.slowK = 0.3; tutShow(say('*POUND* now to fire a missile!', 'Press *E* now to fire a missile!'), 'slamBtn', 'missile', true); }
         else if (sub === 'pound') { if (tut.slowT <= 0) tut.slowK = 1; tutShow(hd < 6 ? say('Your Pound splats everything round you. The rival’s close, tap it!', 'Your Pound (E) splats everything round you. The rival’s close, press E!') : say('Your Pound splats everything round you. Get close to the rival and tap it!', 'Your Pound (E) splats everything round you. Get close to the rival and press E!'), 'slamBtn', 'pound'); } }
       return P.kos > tut.kos0 || P.flatted > tut.flat0; } },
-  { id: 'dodge', max: 60, enter() { tut.noPound = true; Object.assign(TUT_AI, TUT_AI_FIGHT); tut.drive = H; tut.driveMode = 'fight'; H.slamCD = 0; if (H.paint < 0.8) H.paint = 1; if (H.ai) { H.ai.plan = null; H.ai.path = null; } tut.rolled = false; tut.hits = 0; tut.wasKo = false; tut.slowK = 1; tut.sub = ''; tutShow(say('Rivals pound too. Swipe up just before it lands to dodge', 'Rivals pound too. Shift just before it lands to dodge'), null, 'dodge', false, true); },
+  { id: 'dodge', max: 60, enter() { tut.noPound = true; Object.assign(TUT_AI, TUT_AI_FIGHT); tut.drive = H; tut.driveMode = 'fight'; H.slamCD = 0; if (H.paint < 0.8) H.paint = 1; if (H.ai) { H.ai.plan = null; H.ai.path = null; } tut.rolled = false; tut.hits = 0; tut.wasKo = false; tut.escaped = false; tut.thr = false; tut.slamW = false; tut.h0 = 0; tut.slowK = 1; tut.sub = ''; tutShow(say('Rivals pound too. Swipe up just before it lands to dodge', 'Rivals pound too. Shift just before it lands to dodge'), null, 'dodge', false, true); },
     tick(dt) { if (!H.slam && P.st === 'play') tutRivalIn(6.5); if (H.st === 'play' && !H.slam && H.slamCD > 1.2) H.slamCD = 1.2; if (H.paint < 0.5) H.paint = 1;
       const d = Math.hypot(H.x - P.x, H.z - P.z), eta = H.slam ? H.slamEta - H.slamT : 9, coming = H.slam && H.st === 'play' && P.st === 'play' && !P.air && d < slamRadius(H) + PR + 2.5;
       if (coming && P.rollT <= 0 && !tut.rolled) P.rollCD = 0; /* (an early swipe never leaves you without a roll for the drop) */
@@ -26552,9 +26568,11 @@ const TUT_STEPS = [
       if (tut.rolled) tut.rollRT = (tut.rollRT || 0) + (dt || 0) / Math.max(tut.slowK, 0.05); /* (real seconds since the swipe) */
       if (tut.rolled && H.slam && P.rollT > 0 && P.rollT < 0.05) P.rollT = 0.05; /* (and it holds you clear till the pound lands) */
       if (P.st === 'ko' && !tut.wasKo) tut.hits++; tut.wasKo = P.st === 'ko';
+      if (H.slam && !tut.slamW) tut.h0 = tut.hits; if (H.slam && H.st === 'play' && d < slamRadius(H) + PR + 6) tut.thr = true; // (v362: his pound in the air, you near it)
+      if (tut.slamW && !H.slam) { if (tut.thr && tut.hits === tut.h0 && H.st === 'play' && P.st === 'play') tut.escaped = true; tut.thr = false; } tut.slamW = !!H.slam; /* (it came down and missed you: a swipe, a jump, a fling or just getting out of its way, any of them) */
       const now = coming && eta < 0.42, base = now ? 0.14 : coming ? 0.45 : 1, back = tut.rolled ? Math.min(1, Math.max(0, (tut.rollRT - 1) / 0.25)) : 0; tut.slowK = base + (1 - base) * back; /* (swiped clear: a second more, then back to speed) */
       const sub = now ? 'now' : 'dodge'; if (sub !== tut.sub) { tut.sub = sub; if (now) tutShow(say('*NOW!* Swipe up!', '*NOW!* Shift!'), null, 'dodgenow', true, true); else tutShow(say('Rivals pound too. Swipe up just before it lands to dodge', 'Rivals pound too. Shift just before it lands to dodge'), null, 'dodge', false, true); }
-      return (tut.rolled || tut.hits >= 2) && P.st === 'play' && !H.slam; },
+      return (tut.rolled || tut.escaped || tut.hits >= 2) && P.st === 'play' && !H.slam; },
     exit() { Object.assign(TUT_AI, TUT_AI_CALM); tut.drive = null; tut.noPound = false; } },
   { id: 'orb', max: 55, enter() { orb.spawnT = 0; tut.orbMine = true; tut.hadRocket = false; tut.slowK = 1; tutShow('A special orb! Roll up to it for a super move', null, 'orb', false, true); },
     tick() { if (P.rocket && !tut.hadRocket) { tut.hadRocket = true; tut.slowK = 1; /* (full speed: the rocket ride is the fun part) */ tutShow(say('Steer over the rival, then tap Boost', 'Steer over the rival, then press E to boost'), 'slamBtn', 'rocket'); }
