@@ -1,0 +1,483 @@
+{
+ "items": [
+  {
+   "id": "pirate",
+   "name": "Pirate hat",
+   "slot": "head",
+   "stage": "island",
+   "season": false,
+   "gift": false,
+   "price": 695
+  },
+  {
+   "id": "patch",
+   "name": "Eye patch",
+   "slot": "eye",
+   "stage": "island",
+   "season": false,
+   "gift": false,
+   "price": 330
+  },
+  {
+   "id": "flower",
+   "name": "Flower",
+   "slot": "side",
+   "stage": "island",
+   "season": false,
+   "gift": false,
+   "price": 145
+  },
+  {
+   "id": "tophat",
+   "name": "Top hat",
+   "slot": "head",
+   "stage": "blank",
+   "season": false,
+   "gift": false,
+   "price": 580
+  },
+  {
+   "id": "bowtie",
+   "name": "Bow tie",
+   "slot": "neck",
+   "stage": "blank",
+   "season": false,
+   "gift": false,
+   "price": 185
+  },
+  {
+   "id": "pearls",
+   "name": "Pearl necklace",
+   "slot": "neck",
+   "stage": "blank",
+   "season": false,
+   "gift": false,
+   "price": 160
+  },
+  {
+   "id": "tiara",
+   "name": "Tiara",
+   "slot": "head",
+   "stage": "blank",
+   "season": false,
+   "gift": false,
+   "price": 475
+  },
+  {
+   "id": "lashes",
+   "name": "Lashes",
+   "slot": "lash",
+   "stage": "blank",
+   "season": false,
+   "gift": false,
+   "price": 220
+  },
+  {
+   "id": "glasses",
+   "name": "Glasses",
+   "slot": "eye",
+   "stage": "blank",
+   "season": false,
+   "gift": false,
+   "price": 270
+  },
+  {
+   "id": "beanie",
+   "name": "Beanie",
+   "slot": "head",
+   "stage": "blank",
+   "season": false,
+   "gift": false,
+   "price": 205
+  },
+  {
+   "id": "party",
+   "name": "Party hat",
+   "slot": "head",
+   "stage": "blank",
+   "season": false,
+   "gift": false,
+   "price": 240
+  },
+  {
+   "id": "monocle",
+   "name": "Monocle",
+   "slot": "eye",
+   "stage": "blank",
+   "season": false,
+   "gift": false,
+   "price": 290
+  },
+  {
+   "id": "stache",
+   "name": "Mustache",
+   "slot": "mouth",
+   "stage": "blank",
+   "season": false,
+   "gift": false,
+   "price": 195
+  },
+  {
+   "id": "scarf",
+   "name": "Scarf",
+   "slot": "neck",
+   "stage": "blank",
+   "season": false,
+   "gift": false,
+   "price": 180
+  },
+  {
+   "id": "antennae",
+   "name": "Bouncy antennae",
+   "slot": "head",
+   "stage": "blank",
+   "season": false,
+   "gift": false,
+   "price": 195
+  },
+  {
+   "id": "snorkel",
+   "name": "Snorkel mask",
+   "slot": "eye",
+   "stage": "blank",
+   "season": false,
+   "gift": false,
+   "price": 295
+  },
+  {
+   "id": "propcap",
+   "name": "Propeller cap",
+   "slot": "head",
+   "stage": "blank",
+   "season": false,
+   "gift": false,
+   "price": 345
+  },
+  {
+   "id": "floaties",
+   "name": "Arm floaties",
+   "slot": "arms",
+   "stage": "blank",
+   "season": false,
+   "gift": false,
+   "price": 245
+  },
+  {
+   "id": "cape",
+   "name": "Hero cape",
+   "slot": "back",
+   "stage": "blank",
+   "season": false,
+   "gift": false,
+   "price": 480
+  },
+  {
+   "id": "hat",
+   "name": "Witch hat",
+   "slot": "head",
+   "stage": "halloween",
+   "season": true,
+   "gift": false,
+   "price": 1105
+  },
+  {
+   "id": "halo",
+   "name": "Halo",
+   "slot": "head",
+   "stage": "halloween",
+   "season": true,
+   "gift": false,
+   "price": 850
+  },
+  {
+   "id": "fangs",
+   "name": "Fangs",
+   "slot": "mouth",
+   "stage": "halloween",
+   "season": true,
+   "gift": false,
+   "price": 400
+  },
+  {
+   "id": "hockey",
+   "name": "Hockey mask",
+   "slot": "eye",
+   "stage": "halloween",
+   "season": true,
+   "gift": false,
+   "price": 765
+  },
+  {
+   "id": "bunny",
+   "name": "Bunny ears",
+   "slot": "head",
+   "stage": "halloween",
+   "season": true,
+   "gift": false,
+   "price": 645
+  },
+  {
+   "id": "skull",
+   "name": "Skull bow",
+   "slot": "head",
+   "stage": "halloween",
+   "season": true,
+   "gift": false,
+   "price": 835
+  },
+  {
+   "id": "zombie",
+   "name": "Zombie eyes",
+   "slot": "eyes",
+   "stage": "halloween",
+   "season": true,
+   "gift": true,
+   "price": 0
+  }
+ ],
+ "strokes": [
+  {
+   "id": "rocket",
+   "name": "Rocket",
+   "kind": "special",
+   "craft_min": null,
+   "rank": null
+  },
+  {
+   "id": "giant",
+   "name": "Giant",
+   "kind": "special",
+   "craft_min": 20,
+   "rank": null
+  },
+  {
+   "id": "freeze",
+   "name": "Flash Freeze",
+   "kind": "special",
+   "craft_min": 25,
+   "rank": null
+  },
+  {
+   "id": "swim",
+   "name": "Swim faster",
+   "kind": "skill",
+   "craft_min": null,
+   "rank": null
+  },
+  {
+   "id": "repel",
+   "name": "Weather Repel",
+   "kind": "skill",
+   "craft_min": 15,
+   "rank": null
+  },
+  {
+   "id": "pockets",
+   "name": "Deep Pockets",
+   "kind": "skill",
+   "craft_min": 20,
+   "rank": null
+  },
+  {
+   "id": "roller",
+   "name": "Roller",
+   "kind": "transform",
+   "craft_min": null,
+   "rank": 1
+  },
+  {
+   "id": "turret",
+   "name": "Turret",
+   "kind": "transform",
+   "craft_min": 10,
+   "rank": 3
+  },
+  {
+   "id": "trap",
+   "name": "Paint Trap",
+   "kind": "transform",
+   "craft_min": 15,
+   "rank": 5
+  },
+  {
+   "id": "whirl",
+   "name": "Whirlwind",
+   "kind": "transform",
+   "craft_min": 20,
+   "rank": 7
+  },
+  {
+   "id": "boom",
+   "name": "Boomerang",
+   "kind": "transform",
+   "craft_min": 25,
+   "rank": 9
+  }
+ ],
+ "modes": [
+  {
+   "id": "solo",
+   "name": "Time trial",
+   "sub": "Just you, 60 seconds"
+  },
+  {
+   "id": "duel",
+   "name": "1v1",
+   "sub": "You and one rival"
+  },
+  {
+   "id": "trio",
+   "name": "3-way",
+   "sub": "You and two rivals"
+  },
+  {
+   "id": "ffa",
+   "name": "Showdown",
+   "sub": "Four of you, three hearts each"
+  },
+  {
+   "id": "duo",
+   "name": "Showdown 2v2",
+   "sub": "You and a teammate, three hearts each"
+  }
+ ],
+ "stages": [
+  {
+   "id": "island",
+   "name": "Palette Island"
+  },
+  {
+   "id": "blank",
+   "name": "Blank Canvas"
+  },
+  {
+   "id": "sewer",
+   "name": "Sludge Sewer"
+  },
+  {
+   "id": "raft",
+   "name": "Fishing Raft"
+  },
+  {
+   "id": "crypt",
+   "name": "The Crypt"
+  },
+  {
+   "id": "cathedral",
+   "name": "The Cathedral"
+  },
+  {
+   "id": "manor",
+   "name": "The Manor"
+  }
+ ],
+ "tutorial": [
+  {
+   "id": "intro",
+   "name": "First launch intro"
+  },
+  {
+   "id": "match",
+   "name": "First lesson (match)"
+  },
+  {
+   "id": "l:move",
+   "name": "Lesson: steer"
+  },
+  {
+   "id": "l:free0",
+   "name": "Lesson: paint freely"
+  },
+  {
+   "id": "l:sling",
+   "name": "Lesson: slingshot"
+  },
+  {
+   "id": "l:free1",
+   "name": "Lesson: paint freely 2"
+  },
+  {
+   "id": "l:basin",
+   "name": "Lesson: refill at a basin"
+  },
+  {
+   "id": "l:pound",
+   "name": "Lesson: ground pound"
+  },
+  {
+   "id": "l:dodge",
+   "name": "Lesson: dodge roll"
+  },
+  {
+   "id": "l:item",
+   "name": "Lesson: use a transform"
+  },
+  {
+   "id": "l:rollover",
+   "name": "Lesson: roll over the rival"
+  },
+  {
+   "id": "l:orb",
+   "name": "Lesson: grab the orb"
+  },
+  {
+   "id": "l:free3",
+   "name": "Lesson: paint freely 3"
+  },
+  {
+   "id": "l:rocketdodge",
+   "name": "Lesson: dodge the rocket"
+  },
+  {
+   "id": "l:flower",
+   "name": "Lesson: grab the gift"
+  },
+  {
+   "id": "l:rest",
+   "name": "Lesson: finish the match"
+  },
+  {
+   "id": "shop",
+   "name": "Paint Shop lesson"
+  },
+  {
+   "id": "locker",
+   "name": "Locker lesson"
+  },
+  {
+   "id": "vote",
+   "name": "Canvas vote lesson"
+  },
+  {
+   "id": "match2",
+   "name": "Second match"
+  },
+  {
+   "id": "done",
+   "name": "Basics complete"
+  },
+  {
+   "id": "rank2",
+   "name": "Reached rank 2 (modes open)"
+  },
+  {
+   "id": "strokes",
+   "name": "Strokes lesson"
+  },
+  {
+   "id": "strokes_done",
+   "name": "Strokes lesson done"
+  }
+ ],
+ "ads": [
+  {
+   "id": "craft",
+   "name": "Skip a craft"
+  },
+  {
+   "id": "lesson",
+   "name": "Skip the lesson"
+  }
+ ],
+ "_about": "Read out of the game by tools/admin_catalog.py. Prices here are the game's defaults; live prices set in the dashboard override them."
+}
