@@ -3846,6 +3846,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 .onbtns{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
 .onbtns .frb{min-width:110px;min-height:40px}
 .frrow .frbtns .frb.go.onwt{background:rgba(23,19,32,.07);color:var(--black);box-shadow:none}
+.frrow .frbtns .frb.lk{color:rgba(23,19,32,.55)}.frrow .frbtns .frb.lk svg{flex:none;width:13px;height:13px} /* (v359: Duel, locked till Play online opens) */
 /* an invite to you, over the lobby; and while you're queued or in a room with the sheet shut, a chip that says so */
 .oninv{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 78px);z-index:11;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px 10px;width:max-content;max-width:min(calc(100% - 32px),340px);box-sizing:border-box;padding:10px 12px 11px 10px;border-radius:18px;background:#171320;color:#FFF8EA;box-shadow:0 8px 22px rgba(0,0,0,.4);transform:translateX(-50%);animation:frin .35s cubic-bezier(.2,1.3,.4,1) both}
 .oninv .frface{width:38px;height:38px}
@@ -4758,7 +4759,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 358</p>
+      <p class="ver">Version 359</p>
     </div>
   </div>
 
@@ -24202,7 +24203,7 @@ function onAfter() {
 // ---- duel invites to friends (Supabase, v305: rm_invite, rm_answer_invite, rm_cancel_invite; rm_inbox's invites and sent)
 const ON_INV = { not_friends: n => 'You and ' + n + ' aren’t friends any more.', slow_down: () => 'That’s a lot of invites. Wait a bit, then try again.', bad_room: () => 'Couldn’t send the invite. Try again.' };
 async function onlineInvite(f) {
-  if (!NET_URL || !f || !f.id || !FR.me || state !== 'menu' || (ON.gate && !ON.gate())) return;
+  if (!NET_URL || !f || !f.id || !FR.me || state !== 'menu' || (ON.gate && !ON.gate()) || !mpOpen()) return;
   if (FR.open) closeFriends();
   if (ON.inv && ON.inv.to === f.id) { onlineOpen(); return; } // (already asked: back to waiting)
   if (ON.inv) await onInvEnd('');
@@ -24233,6 +24234,7 @@ async function onInvEnd(note) {
 function onInbox(b) {
   try {
     const now = Date.now() + FR.skew, list = (b.invites || []).filter(i => i && i.id && i.from && !ON.nope.has(i.id) && Date.parse(i.expires) > now), fresh = list.filter(i => !ON.seen.has(i.id));
+    if (list.length && !mpOpen()) { for (const i of list) { ON.nope.add(i.id); sbRpc('rm_answer_invite', { p_id: i.id, p_accept: false }).catch(() => {}); } list.length = 0; fresh.length = 0; } // (v359: not till Play online opens)
     for (const i of list) ON.seen.add(i.id); ON.invites = NET_URL ? list : [];
     if (NET_URL && fresh.length && state === 'menu') { AU.pop(); buzz([12, 40, 12]); onSay(fresh[0].from.name + ' wants to duel'); }
     const i = ON.inv, s = i && i.id && (b.sent || []).find(x => x.id === i.id);
@@ -24259,7 +24261,8 @@ async function onAnswer(id, yes) {
 }
 // (Friends) a Duel button on a friend who's in the lobby
 function onDuelBtn(f) {
-  if (!NET_URL || !f.online || f.status !== 'lobby') return ''; const w = ON.inv && ON.inv.to === f.id, n = frEsc(hdOf(f.name));
+  if (!NET_URL || !f.online || f.status !== 'lobby' || (f.rank != null && (f.rank | 0) < ABIL_RANK)) return ''; const w = ON.inv && ON.inv.to === f.id, n = frEsc(hdOf(f.name));
+  if (!mpOpen()) return '<button class="frb ghost lk" data-on="duellock" type="button" aria-disabled="true" aria-label="Duel ' + n + ', locked">' + ABIL_LOCK + 'Duel</button>'; // (v359: you play friends once Play online opens)
   return '<button class="frb go' + (w ? ' onwt' : '') + '" data-on="duel" data-id="' + frEsc(f.id) + '" type="button" aria-label="' + (w ? 'Waiting for ' : 'Duel ') + n + '">' + (w ? 'Waiting' : 'Duel') + '</button>';
 }
 function onInvRow(i) {
@@ -24347,6 +24350,7 @@ function onAct(a, id) {
   else if (a === 'ready') { ON.want = true; if (ON.net) ON.net.ready(true); } else if (a === 'retry') { ON.v = ''; onlineOpen(); } else if (a === 'uninv') onInvEnd('');
   else if (a === 'iplay' || a === 'inope') onAnswer(id, a === 'iplay'); else if (a === 'open') onlineOpen();
   else if (a === 'duel') { const f = FR.box && FR.box.friends.find(x => x.id === id); if (f) onlineInvite(f); }
+  else if (a === 'duellock') { AU.nope(); buzz(8); frToast('<span>' + (repOf(store.xp || 0).lv < ABIL_RANK ? 'Reach rank ' + ABIL_RANK + ' to play with friends' : 'Open Strokes in the lobby to play with friends') + '</span>'); }
 }
 // one listener for the sheet, the invite card, the chip and the Duel and invite buttons in Friends
 $('stage').addEventListener('click', e => { const b = e.target.closest('[data-on]'); if (!b || b.disabled) return; AU.init(); AU.ui(); onAct(b.dataset.on, b.dataset.id); });
@@ -24960,12 +24964,11 @@ const themeLabel = sid => (THEMES.find(t => t.id === sid) || {}).label || sid;
 let voteState = null;
 function openVote(id, done) {
   const box = $('vvote'), who = [P, H]; if (mode === 'trio' || isShow()) who.push(H2); if (isShow()) who.push(H3);
-  // your vote is the canvas you picked; the rivals' are their own (the lesson: the rival's is Sludge Sewer, and it's the one drawn)
+  // your vote is the canvas you picked; the rivals' are their own; the one that comes up most is drawn (v359: in the second match too)
   const votes = new Map(); votes.set(P, VOTE_STAGES.includes(stageSel) ? stageSel : VOTE_STAGES[(Math.random() * VOTE_STAGES.length) | 0]);
-  const tutV = tutPh() === 'vote' ? TUT_M2 : null;
-  for (const D of who.slice(1)) votes.set(D, tutV && D === H ? tutV : VOTE_STAGES[(Math.random() * VOTE_STAGES.length) | 0]);
+  for (const D of who.slice(1)) votes.set(D, VOTE_STAGES[(Math.random() * VOTE_STAGES.length) | 0]);
   const tally = {}; for (const v of votes.values()) tally[v] = (tally[v] || 0) + 1; const top = Math.max(...Object.values(tally)), lead = Object.keys(tally).filter(k => tally[k] === top);
-  const win = tutV || (lead.length === 1 ? lead[0] : lead[(Math.random() * lead.length) | 0]);
+  const win = lead.length === 1 ? lead[0] : lead[(Math.random() * lead.length) | 0];
   // the reel: the canvases round and round; it spins right, slowing, and stops with the winner in the middle
   const NV = VOTE_STAGES.length, REP = 12, wi = (REP - 5) * NV + VOTE_STAGES.indexOf(win); let h = '';
   for (let r = 0; r < REP; r++) for (const sid of VOTE_STAGES) h += '<span class="vcard" data-s="' + sid + '"><img alt="" src="' + stageArtOf(sid) + '"><b class="vcn">' + escAttr(themeLabel(sid)) + '</b></span>';
@@ -26333,7 +26336,7 @@ $('delYes').addEventListener('click', async () => {
 });
 const tutPh = () => store.tut.ph, tutSet = ph => { if (store.tut.ph === ph) return; store.tut.ph = ph; save(); };
 const tutMatchDue = () => tutPh() === 'match';
-const TUT_SLOW = 0.35, TUT_M2 = 'sewer'; // (the canvas the lesson's vote lands on: the second match is on Sludge Sewer)
+const TUT_SLOW = 0.35;
 const TUT_AI = Object.assign({}, AI_LV.easy, { pound: 0, attack: 0, dodge: 0, evade: 0, orb: 0, grab: 0, hunt: 0, ram: 0, speed: 0.8, steal: 0.7, trap: 0, airSling: 0, coffinHunt: 0, covPound: 0 });
 const TUT_AI_FIGHT = { speed: 1.08, dodge: 0, evade: 0 }; // (the dodge lesson: driven straight at you, a touch quicker)
 // the dodge lesson's rival: steered at you, and a jump pound once it is close enough and you are on the floor
@@ -26597,8 +26600,8 @@ function tutCardCoach() { // (with him over it the card sits half his height low
 }
 // strokes: once you're rank 3 (and the first lessons are done), Ol' Bloop stops you in the lobby: look how far you've come; then let's
 // learn some more: the Strokes page, the Giant crafted (Skip, this one's on him) and equipped
-function tutCommsDue() { return tutPh() === 'done' && !store.tut.comms && commsDue() && (store.tut.strokes === 1 || !strokesDue()) && state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden && $('tutGo').hidden && !vic; }
-function tutStrokesDue() { return tutPh() === 'done' && !store.tut.strokes && strokesDue() && state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden && $('tutGo').hidden && !vic; }
+function tutCommsDue() { return $('friendsModal').hidden && tutPh() === 'done' && !store.tut.comms && commsDue() && (store.tut.strokes === 1 || !strokesDue()) && state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden && $('tutGo').hidden && !vic; }
+function tutStrokesDue() { return $('friendsModal').hidden && tutPh() === 'done' && !store.tut.strokes && strokesDue() && state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden && $('tutGo').hidden && !vic; }
 function tutStrokesCard(n) {
   const el = $('tutGo'); el.dataset.mode = 'strokes' + n;
   if (n === 1) tutCardText(['Look at <em>you</em>, rookie!', 'Rank ' + repOf(store.xp || 0).lv + ' already. You’ve come a long way since that first canvas, and I’ve been watching.', 'Aw, thanks', '']);
@@ -27022,9 +27025,9 @@ function tutFangsSale() { const t = store.tut.price || (store.tut.price = {}); i
 // between matches the coach points the way: the shop for the flower and the fangs, the locker to wear them, then the canvases to vote
 const tutBootEl = $('boot'), tutOrientEl = $('orient'); let tutStrokesAt = 0, tutSDone = 0, tutCommsAt = 0, tutModesAt = 0, tutTrySdAt = 0;
 function tutMenuTick() {
-  if (tutPh() === 'done' && tutStrokesDue()) { if (!tutStrokesAt) tutStrokesAt = performance.now(); if (performance.now() - tutStrokesAt > 1200) tutStrokesCard(1); return; } /* (a beat of the lobby, then the praise) */
+  if (tutPh() === 'done' && tutStrokesDue()) { if (!tutStrokesAt) tutStrokesAt = performance.now(); if (performance.now() - tutStrokesAt > 1200) tutStrokesCard(1); return; } else tutStrokesAt = 0; /* (a beat of the lobby, then the praise; v359: a fresh beat after the Friends page) */
   if (store.tut.modes === 'due') { store.tut.modes = 1; save(); } // (v358: the modes card is gone)
-  if (tutPh() === 'done' && tutCommsDue()) { if (!tutCommsAt) tutCommsAt = performance.now(); if (performance.now() - tutCommsAt > 1200) { menu.classList.add('tutoring'); tutWelcome(); } return; } /* (rank 3: commissions open) */
+  if (tutPh() === 'done' && tutCommsDue()) { if (!tutCommsAt) tutCommsAt = performance.now(); if (performance.now() - tutCommsAt > 1200) { menu.classList.add('tutoring'); tutWelcome(); } return; } else tutCommsAt = 0; /* (rank 3: commissions open) */
   if (store.tut.trySd === 'due') { store.tut.trySd = 1; save(); } // (v358: no pick on the Showdown card)
   if (tutPh() === 'done') { if (menu.classList.contains('tutoring')) menu.classList.remove('tutoring'); if (!(state === 'play' && tutTip && (tutTip.key === 'protip' || tutTip.key === 'zgift'))) tutHide(); return; } /* (the onboarding is over: nothing to point at, so no hunting the page for open dialogs every frame) */
   if ((FL && FL.busy()) || bootHold || !booted || !tutBootEl.classList.contains('gone') || !tutOrientEl.hidden || document.querySelector('.modal:not([hidden]):not(#stPop)')) return tutHide(); // (nothing over the loading screen, the orientation chooser or any dialog) // (nothing over the loading screen: its tap to start must get through)
