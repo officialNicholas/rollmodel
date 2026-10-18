@@ -156,6 +156,7 @@ http.createServer(async (req, res) => {
         const r = await c.query('select public.' + m[1] + '(' + args.join(', ') + ') as r', vals); await c.query('commit'); return send(res, 200, r.rows[0].r);
       } catch (e) {
         await c.query('rollback').catch(() => {});
+        if (e.code === '42883') { ARGS.delete(m[1]); return send(res, 404, { code: 'PGRST202', message: 'Could not find the function public.' + m[1] + ' in the schema cache', details: null, hint: null }); } // (as PostgREST after its schema cache reloads)
         const code = e.code === '42501' ? (claims ? 403 : 401) : e.code === '28000' ? 403 : e.code === 'P0001' ? 400 : 400;
         return send(res, code, { code: e.code, message: e.message, details: null, hint: null });
       } finally { c.release(); }
