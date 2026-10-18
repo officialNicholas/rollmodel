@@ -4117,8 +4117,6 @@ html.appstore #errLine,html.appstore #lastErr{display:none!important}
 :is(#mStrokes,#mLocker).sgp .sgtab:focus-visible,:is(#mStrokes,#mLocker).sgp .sgcard:focus-visible,:is(#mStrokes,#mLocker).sgp .sgib:focus-visible,:is(#mStrokes,#mLocker).sgp .sgback:focus-visible,:is(#mStrokes,#mLocker).sgp .sgdo:focus-visible{outline:3px solid #fff;outline-offset:3px}
 /* the panel: dark and see-through, the tags hung from a bar taped at its top */
 :is(#mStrokes,#mLocker).sgp .sgpanel{position:relative;z-index:3;order:3;flex:0 1 auto;max-height:var(--panh);min-height:0;margin-top:24px;display:flex;flex-direction:column;border-radius:22px;background:var(--panel);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.07),0 8px 22px rgba(23,19,32,.22)}
-#mStrokes.sgp .sghang{position:absolute;left:50%;top:-8px;z-index:2;width:40%;max-width:190px;height:17px;border-radius:999px;background:linear-gradient(#3A3A42,#232328);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.16),0 0 0 2px var(--ink0),0 3px 0 rgba(0,0,0,.35);transform:translateX(-50%)}
-#mStrokes.sgp .sghang::after{content:"";position:absolute;left:58%;top:-9px;width:62px;height:21px;background:url(art/m_tape3.webp) center/100% 100% no-repeat;transform:rotate(-7deg);filter:drop-shadow(0 1px 0 rgba(23,19,32,.2))}
 :is(#mStrokes,#mLocker).sgp .sgscroll{flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;padding:22px 16px 18px;-webkit-mask:linear-gradient(transparent,#000 12px,#000 calc(100% - 18px),transparent);mask:linear-gradient(transparent,#000 12px,#000 calc(100% - 18px),transparent);scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.4) transparent;-webkit-overflow-scrolling:touch}
 :is(#mStrokes,#mLocker).sgp .sgscroll::-webkit-scrollbar{width:5px}
 :is(#mStrokes,#mLocker).sgp .sgscroll::-webkit-scrollbar-thumb{border-radius:999px;background:rgba(255,255,255,.38)}
@@ -4151,12 +4149,12 @@ html.appstore #errLine,html.appstore #lastErr{display:none!important}
 :is(#mStrokes,#mLocker).sgp .sgcard .sgeq{position:absolute;right:-5px;top:2px;z-index:3;display:grid;place-items:center;width:24px;height:24px;border-radius:7px;background:var(--ink0);color:var(--sel);transform:rotate(8deg);box-shadow:0 2px 0 rgba(0,0,0,.3)}
 :is(#mStrokes,#mLocker).sgp .sgcard .sgeq svg{width:15px;height:15px}
 :is(#mStrokes,#mLocker).sgp .sgcard .sgnew{position:absolute;left:-5px;top:4px;z-index:3;padding:4px 6px 3px;border-radius:6px;background:#FF2D55;color:#fff;font:400 10px/1 var(--font-display);transform:rotate(-8deg);box-shadow:0 0 0 2px var(--ink0)}
-:is(#mStrokes,#mLocker).sgp .sgcard.lock .sgca,:is(#mStrokes,#mLocker).sgp .sgcard.raw .sgca{filter:grayscale(.85) opacity(.6)}
+:is(#mStrokes,#mLocker).sgp .sgcard:is(.lock,.raw) .sgca>*{opacity:.6}:is(#mStrokes,#mLocker).sgp .sgcard:is(.lock,.raw) .sgca .stimg{filter:grayscale(.85) drop-shadow(1px 2px 0 rgba(23,19,32,.22))}:is(#mStrokes,#mLocker).sgp .sgcard:is(.lock,.raw) .sgca svg{filter:grayscale(.85)}:is(#mStrokes,#mLocker).sgp .sgcard:is(.lock,.raw) .sgca::before{background:#725764;opacity:.6} /* (v364: a filter on the frame round a picture with its own drew nothing on an iPhone) */
 :is(#mStrokes,#mLocker).sgp .sgcard.lock .sgcb{background-color:#E2DCCF}
 :is(#mStrokes,#mLocker).sgp .sgcard.lock .sgcf{background:#8DA65A}
 :is(#mStrokes,#mLocker).sgp .sgcard.soon{cursor:default}
 :is(#mStrokes,#mLocker).sgp .sgcard.soon .sgcb{background:transparent;box-shadow:inset 0 0 0 2px rgba(255,255,255,.22)}
-:is(#mStrokes,#mLocker).sgp .sgcard.soon .sgca{opacity:.35;filter:grayscale(1)}
+:is(#mStrokes,#mLocker).sgp .sgcard.soon .sgca>*{opacity:.35}:is(#mStrokes,#mLocker).sgp .sgcard.soon .sgca .stimg{filter:grayscale(1) drop-shadow(1px 2px 0 rgba(23,19,32,.22))}:is(#mStrokes,#mLocker).sgp .sgcard.soon .sgca svg{filter:grayscale(1)}
 :is(#mStrokes,#mLocker).sgp .sgcard.soon .sgcf{background:rgba(255,255,255,.1);box-shadow:none;color:rgba(255,255,255,.55);font:800 10px/14px var(--font-ui);letter-spacing:.08em;text-transform:uppercase;min-height:21px;align-items:center}
 :is(#mStrokes,#mLocker).sgp .sgcard.soon .sghook{box-shadow:inset 0 0 0 2.6px rgba(255,255,255,.25)}
 /* back, Info and Test, and the badge */
@@ -4443,7 +4441,7 @@ html.appstore #errLine,html.appstore #lastErr{display:none!important}
 #mLocker.sgp .sgcard.sale .sgcf{background:#FFD34D}
 #mLocker.sgp .sgcard.broke .sgcf{background:#E9E4D6;color:#6E6680}
 #mLocker.sgp .sgcard.lock .sgcb{background-color:#E2DCCF}
-#mLocker.sgp .sgcard.lock .sgca{filter:grayscale(.9) opacity(.55)}
+#mLocker.sgp .sgcard.lock .sgca>*{opacity:.55}#mLocker.sgp .sgcard.lock .sgca .stimg{filter:grayscale(.9) drop-shadow(1px 2px 0 rgba(23,19,32,.22))}#mLocker.sgp .sgcard.lock .sgca svg{filter:grayscale(.9)}#mLocker.sgp .sgcard.lock .sgca::before{background:#6B5962;opacity:.55}
 #mLocker.sgp .sgcard.lock .sgcf{background:#CFC8DC;color:#3E3850}
 #mLocker.sgp .sgcard.on .sgcf{background:var(--ink0);color:var(--sel)}
 /* the Spooky SZN finds: a short banner over them */
@@ -4675,7 +4673,7 @@ i.ptwait>*{display:none}
           <div class="sgact"><span class="sgtimer" id="sgTimer" hidden><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6.5 3h11M6.5 21h11M8 3c0 5.2 8 5.6 8 9s-8 3.8-8 9M16 3c0 5.2-8 5.6-8 9s8 3.8 8 9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></i><b id="sgTime">0:00</b><span class="sgtbar" aria-hidden="true"><i id="sgBar"></i></span></span><button class="sgskip" id="sgSkip" type="button" hidden>Skip</button><button class="sgdo" id="sgDo" type="button">Equip</button><button class="sgib" id="sgInfo" type="button" aria-haspopup="dialog"><span>Info</span></button></div>
           <p class="sgnote" id="sgNote" hidden></p></div>
       </div>
-      <section class="sgpanel" id="stPanel" aria-labelledby="stCatH"><i class="sghang" aria-hidden="true"></i><h3 class="sgvh" id="stCatH">Special strokes</h3><p class="sgvh" id="stCatS">What the orb gives you</p>
+      <section class="sgpanel" id="stPanel" aria-labelledby="stCatH"><h3 class="sgvh" id="stCatH">Special strokes</h3><p class="sgvh" id="stCatS">What the orb gives you</p>
         <div class="sgscroll" id="sgScroll">
           <div class="sggrid" id="stSpecialRail" role="tabpanel" aria-labelledby="stSpecial"></div>
           <div class="sggrid" id="stSkillRail" role="tabpanel" aria-labelledby="stSkill" hidden></div>
@@ -4759,7 +4757,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 363</p>
+      <p class="ver">Version 364</p>
     </div>
   </div>
 
