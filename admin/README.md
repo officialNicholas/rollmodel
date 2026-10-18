@@ -131,8 +131,11 @@ Each time the dashboard changes, build and upload again.
 ## Running it on your computer
 - With made-up numbers: `node admin/dev/mock.mjs`, then open http://localhost:8791 and sign in as admin@example.com /
   correct-horse-9 (the authenticator code is always 123456). `MOCK=empty` starts from an empty launch.
-- Unit tests: `node --test admin/tests/`. In a browser: `node admin/tests/e2e.mjs`.
-- Against the real database code (a local Postgres): see `supabase/README.md`, "Testing it without the real project".
+- Unit tests: `node --test admin/tests/`. In a browser, against the mock: `node admin/tests/e2e.mjs`.
+- Against the real database code: start the local Postgres and `supabase/tests/standin.mjs` (see `supabase/README.md`,
+  "Testing it without the real project"), then `node admin/tests/live.mjs`. It signs in with a real authenticator code
+  and goes through every page, a price change reaching the game, and every support action, with throwaway accounts it
+  deletes afterwards.
 
 ## What the security rests on in Supabase Auth
 The admin check (`public._adm()`) relies on how Supabase Auth issues sign-ins. If Supabase ever changes these, the

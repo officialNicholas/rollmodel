@@ -137,9 +137,16 @@ export async function enroll() {
   }
   const j = await call('/factors', { body: { factor_type: 'totp', friendly_name: 'Roll Model admin' }, token: S.access_token });
   const t = (j && j.totp) || {};
-  // only ever show the QR code as an image from a data: URI
-  const qr = typeof t.qr_code === 'string' && /^data:image\/(svg\+xml|png)[;,]/i.test(t.qr_code) ? t.qr_code : '';
-  return { id: j && j.id, qr, secret: String(t.secret || ''), uri: String(t.uri || '') };
+  return { id: j && j.id, qr: qrSrc(t.qr_code), secret: String(t.secret || ''), uri: String(t.uri || '') };
+}
+
+// The QR code is only ever shown as an image from a data: URI. Supabase sends its SVG raw ("data:image/svg+xml;utf-8,<svg ...>"),
+// where a "#" (a colour) would end the URI early and break the image, so a raw SVG is percent-encoded here.
+function qrSrc(v) {
+  if (typeof v !== 'string') return '';
+  const m = /^data:image\/svg\+xml(;[^,]*)?,([\s\S]*)$/i.exec(v);
+  if (m) return m[2].trimStart().startsWith('<') ? 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(m[2]) : v;
+  return /^data:image\/png[;,]/i.test(v) ? v : '';
 }
 
 // 4. a code: challenge, then verify; the new session is at aal2
