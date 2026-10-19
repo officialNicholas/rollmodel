@@ -3987,17 +3987,17 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 .dsgo{appearance:none;flex:none;min-width:96px;height:42px;padding:0 14px;border:2.5px solid #171320;border-radius:10px;background:linear-gradient(#7BE36A,#3FB54A);color:#fff;font:400 20px/1 var(--font-display);text-shadow:0 2px 0 #171320;box-shadow:0 3px 0 #171320;cursor:pointer}
 .dsgo:disabled{background:#CFC8BC;color:#6E6878;text-shadow:none;font:900 12px/1.1 var(--font-head);cursor:default}
 /* (v383) Go ad-free: a gold foil plate, a little askew, with a stamp over its left edge */
-.dsnoads{position:relative;display:flex;align-items:center;min-height:58px;margin:6px 4px 2px 22px;padding:6px 16px 6px 52px;border:3px solid #171320;border-radius:14px;background:linear-gradient(115deg,#FFE48A 0,#F6C649 28%,#E9A82C 55%,#FFD86A 78%,#F3B73C 100%);box-shadow:inset 0 2px 0 rgba(255,255,255,.65),inset 0 -3px 0 rgba(150,90,10,.35),0 4px 0 #171320;rotate:-1.2deg;overflow:visible}
-.dsnoads::before{content:"";position:absolute;inset:0;border-radius:11px;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.75) 47%,rgba(255,255,255,0) 58%) no-repeat;background-size:250% 100%;background-position:150% 0;animation:dsfoil 3.8s ease-in-out infinite;pointer-events:none}
+.dsnoads{position:relative;display:flex;align-items:center;justify-self:center;width:fit-content;min-width:65%;max-width:calc(100% - 17px);box-sizing:border-box;min-height:38px;margin:4px 0 2px 17px;padding:4px 30px 4px 34px;border:2.5px solid #171320;border-radius:9px;background:linear-gradient(115deg,#FFE48A 0,#F6C649 28%,#E9A82C 55%,#FFD86A 78%,#F3B73C 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.65),inset 0 -2px 0 rgba(150,90,10,.35),0 3px 0 #171320;rotate:-1.2deg;overflow:visible}
+.dsnoads::before{content:"";position:absolute;inset:0;border-radius:7px;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.75) 47%,rgba(255,255,255,0) 58%) no-repeat;background-size:250% 100%;background-position:150% 0;animation:dsfoil 3.8s ease-in-out infinite;pointer-events:none}
 @keyframes dsfoil{0%,55%{background-position:150% 0}100%{background-position:-60% 0}}
-.dsseal{position:absolute;left:-26px;top:50%;width:70px;height:70px;translate:0 -50%;rotate:-12deg;filter:drop-shadow(0 3px 0 rgba(23,19,32,.9))}
+.dsseal{position:absolute;left:-17px;top:50%;width:46px;height:46px;translate:0 -50%;rotate:-12deg;filter:drop-shadow(0 2px 0 rgba(23,19,32,.9))}
 .dsseal .dssb{fill:#E5413A}.dsseal .dstick{display:none}
 .dsnoads.paid .dsseal .dssb{fill:#3FB54A}.dsnoads.paid .dsseal .dstick{display:inline}.dsnoads.paid .dsad{display:none}
 .dsnat{position:relative;display:grid;gap:1px;min-width:0}
-.dsnat small{font:900 11px/1 var(--font-head);letter-spacing:.14em;text-transform:uppercase;color:#7A4A06}
-.dsnat b{font:400 26px/1.02 var(--font-display);color:#fff;letter-spacing:.01em;text-shadow:0 3px 0 #171320,2px 0 0 #171320,-2px 0 0 #171320,0 -2px 0 #171320,2px 2px 0 #171320,-2px 2px 0 #171320,2px -2px 0 #171320,-2px -2px 0 #171320}
-.dsspark{position:absolute;right:16px;top:9px;width:14px;height:14px;background:#fff;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);animation:dsspark 2.4s ease-in-out infinite;pointer-events:none}
-.dsspark.b{right:40px;top:auto;bottom:9px;width:9px;height:9px;animation-delay:-1.2s}
+.dsnat small{font:900 7.5px/1 var(--font-head);letter-spacing:.13em;white-space:nowrap;text-transform:uppercase;color:#7A4A06}
+.dsnat b{font:400 17px/1.02 var(--font-display);color:#fff;letter-spacing:.01em;white-space:nowrap;text-shadow:0 2px 0 #171320,1.4px 0 0 #171320,-1.4px 0 0 #171320,0 -1.4px 0 #171320,1.4px 1.4px 0 #171320,-1.4px 1.4px 0 #171320,1.4px -1.4px 0 #171320,-1.4px -1.4px 0 #171320}
+.dsspark{position:absolute;right:10px;top:6px;width:9px;height:9px;background:#fff;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);animation:dsspark 2.4s ease-in-out infinite;pointer-events:none}
+.dsspark.b{right:22px;top:auto;bottom:6px;width:6px;height:6px;animation-delay:-1.2s}
 @keyframes dsspark{0%,100%{scale:.3;opacity:0}50%{scale:1;opacity:1;rotate:45deg}}
 @media (prefers-reduced-motion:reduce){.dsnoads::before,.dsspark{animation:none}.dsspark{opacity:.8}}
 .dspacks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
@@ -4035,7 +4035,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 .spres{min-height:1.3em;margin:0;font:400 30px/1.1 var(--font-display);color:#171320;text-align:center}
 .spres.big{animation:spbig .5s cubic-bezier(.3,1.6,.5,1)}@keyframes spbig{from{transform:scale(.4)}}
 .gtoast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:70;max-width:min(420px,calc(100% - 32px));transform:translateX(-50%);padding:10px 14px;border-radius:10px;background:#171320;color:#fff;font:800 13.5px/1.3 var(--font-head);text-align:center;box-shadow:0 4px 0 rgba(0,0,0,.25);animation:fadein .2s both;pointer-events:none}
-@media (max-height:520px){#dabStore .dscard{gap:6px;padding-top:10px;padding-bottom:10px}#dabStore .ctitle{font-size:22px}.dsspin{padding:4px 10px 4px 6px}.dsspin .dswheel{width:40px;height:40px}.dsgo{height:36px}.dsnoads{min-height:46px;padding-block:3px}.dsseal{width:56px;height:56px;left:-22px}.dsnat b{font-size:21px}.dspack{gap:2px;padding:6px 6px 6px}.dspack img{width:56px}.dspack .dsn{font-size:20px}.dspack .dsbuy{height:34px;font-size:17px}.dsfine{display:none}}
+@media (max-height:520px){#dabStore .dscard{gap:6px;padding-top:10px;padding-bottom:10px}#dabStore .ctitle{font-size:22px}.dsspin{padding:4px 10px 4px 6px}.dsspin .dswheel{width:40px;height:40px}.dsgo{height:36px}.dsnoads{min-height:30px;padding-block:2px}.dsseal{width:37px;height:37px;left:-14px}.dsnat b{font-size:14px}.dspack{gap:2px;padding:6px 6px 6px}.dspack img{width:56px}.dspack .dsn{font-size:20px}.dspack .dsbuy{height:34px;font-size:17px}.dsfine{display:none}}
 @media (prefers-reduced-motion:reduce){.dplus .dpdot,.dsspin.ready .dswheel,.spres.big,.spbulb,.sphub,.sppin.tick,.spwin{animation:none!important}.spconf{display:none}}
 .friends{width:74px;height:48px;margin-top:24px;padding-bottom:7px;border-radius:10px}.friends .ffaces{top:-24px;width:70px;height:36px}.friends b{font-size:12px} /* (v381: Friends smaller) */
 @media (max-height:520px) and (min-aspect-ratio:1/1){.friends{margin-top:20px}}
@@ -4961,7 +4961,7 @@ html.fh .tutgo .tgcard .tava{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 385</p>
+      <p class="ver">Version 386</p>
     </div>
   </div>
 
