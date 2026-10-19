@@ -9,7 +9,10 @@
   that down to three frames a place). Now the place over a control drops a bottom left on the plate, and measures the plate itself (or
   the callout), never the box round it, so nothing about where it was put can feed back into where it goes.
 - Once the Giant is equipped in Strokes, the lesson ends there: Ol' Bloop's closing line ("Giant it is! Grab the orb in a match and go
-  big. Skills and transforms have their own tabs", five seconds) is gone."""
+  big. Skills and transforms have their own tabs", five seconds) is gone.
+- The craft's wait in the lesson: Ol' Bloop says "Crafting takes 20 minutes. You can skip the wait!" (it said "Tap Skip and watch a
+  quick ad"), and Back is the other way out: leaving the page while the Giant crafts ends the lesson (the Giant finishes on its own),
+  where he used to keep pointing you back at Strokes until the 20 minutes were up."""
 
 def rep(s, a, b, n=1):
     c = s.count(a); assert c == n, (c, n, a[:160]); return s.replace(a, b)
@@ -32,4 +35,10 @@ def apply(s):
     s = rep(s, "function tutStrokesEnd() { $('mStrokes').classList.remove('sglearn'); tutSDone = 0; store.tut.strokes = 1;",
                "function tutStrokesEnd() { $('mStrokes').classList.remove('sglearn'); store.tut.strokes = 1;")
     s = rep(s, "let tutStrokesAt = 0, tutSDone = 0, tutCommsAt = 0,", "let tutStrokesAt = 0, tutCommsAt = 0,")
+    # ---- the craft's wait: skipping it is up to you, and Back is the way out of it
+    s = rep(s, "return tutShow('Crafting takes 20 minutes. Tap Skip and watch a quick ad',",
+               "return tutShow('Crafting takes 20 minutes. You can skip the wait!',")
+    s = rep(s, "  if (!strokesOpen()) return tutShow('Tap Strokes to open it', 'abilBtn', 'sOpen');\n",
+               "  if (!strokesOpen() && strokesOf().craft && strokesOf().craft.id === 'giant') return tutStrokesEnd(); // (v374: Back out of the wait rather than Skip it: the lesson's over, the Giant finishes on its own)\n"
+               "  if (!strokesOpen()) return tutShow('Tap Strokes to open it', 'abilBtn', 'sOpen');\n")
     return s
