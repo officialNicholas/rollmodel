@@ -4873,7 +4873,7 @@ html.fh .tutgo .tgcard .tava{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 376</p>
+      <p class="ver">Version 377</p>
     </div>
   </div>
 
@@ -20796,21 +20796,31 @@ function renderLobby() {
 }
 // the bottom of the logo as drawn (its title card and the season tag under it; the heading's own box has no height)
 function logoBottom() { let b = 0; for (const e of document.querySelectorAll('#logo .tcard, #logo .season')) { if (e.offsetParent === null) continue; const r = e.getBoundingClientRect(); if (r.height > 0) b = Math.max(b, r.bottom); } return b; }
+// (v377) iPhone Duo partly folded, held wide: the half of the screen you stand in (and the rank bar over you), 'l' or 'r'; '' with no fold
+// down the middle. The roomier one once the side plates are counted, the right on a tie (where the rank bar went before)
+let lobbySide = '';
+function lobbyHalf(r, L, R) {
+  if (!(FOLD.on && FOLD.axis === 'v')) return '';
+  const lw = FOLD.a - r.left - (L.width > 0 ? L.right - r.left + 8 : SAI.l + 12), rw = (R.width > 0 ? R.left - r.left - 8 : r.width - SAI.r - 12) - (FOLD.b - r.left);
+  return lw > rw * 1.1 ? 'l' : 'r';
+}
 // where the blob stands: the space the top bar, the side plates and the dock leave, its feet low in it
 function lobbyFrame() {
   const r = stage.getBoundingClientRect(), W = r.width, Hh = r.height, land = W > Hh;
   const rc = id => { const e = $(id); return e && e.offsetParent !== null ? e.getBoundingClientRect() : { left: 0, right: 0, top: 0, bottom: 0, width: 0, height: 0 }; };
   const top = rc('lobbyTop'), L = rc('lobbyRail'), R = rc('lobbyRight'), bot = rc('lobbyBot');
-  const x0 = (L.right || r.left) - r.left + 6, x1 = (R.left || r.right) - r.left - 6, y0 = Math.max(top.bottom, logoBottom()) - r.top + 58, y1 = (bot.top || r.bottom) - r.top;
+  let x0 = (L.right || r.left) - r.left + 6, x1 = (R.left || r.right) - r.left - 6; const y0 = Math.max(top.bottom, logoBottom()) - r.top + 58, y1 = (bot.top || r.bottom) - r.top;
+  lobbySide = lobbyHalf(r, L, R); if (lobbySide === 'l') x1 = Math.min(x1, FOLD.a - r.left); else if (lobbySide === 'r') x0 = Math.max(x0, FOLD.b - r.left); // (v377: one side of the fold)
   if (!(x1 - x0 > 60) || !(y1 - y0 > 60)) return heroDist;
   const fw = x1 - x0, fh = y1 - y0, tx = (x0 + x1) / 2, feetY = y0 + fh * (land ? 0.86 : 0.86);
   const tall = charTall(myLook);
   if (land && lineupOn()) { // (v372) the line-up, centred in the width the side plates leave beside the three of you: one that reaches down
     // beside you narrows it (iPhone Duo closed, a phone on its side), one that stands higher doesn't; the three stand in the middle of the
     // free space, a little low (with the rank bar over your head), never lower than they did
-    const tv = Math.tan(LINEUP.lens * Math.PI / 360), ext = LINEUP.gap + 0.45, body = charTall({}); let lo = SAI.l + 12, hi = W - SAI.r - 12, ppu = 1, fy = y1;
+    const tv = Math.tan(LINEUP.lens * Math.PI / 360), ext = lineGap() + 0.45, body = charTall({}); let lo = SAI.l + 12, hi = W - SAI.r - 12, ppu = 1, fy = y1;
+    if (lobbySide === 'l') hi = Math.min(hi, FOLD.a - r.left - 6); else if (lobbySide === 'r') lo = Math.max(lo, FOLD.b - r.left + 6); // (v377: the three of you in one half)
     for (let k = 0; k < 2; k++) {
-      ppu = Math.min((hi - lo) / 2 * LINEUP.wide / ext, Hh * LINEUP.tall / body, fh * 0.84 / tall); fy = Math.min(y0 + fh * LINEUP.feet, (y0 + y1) / 2 + (tall * ppu + 64) / 2);
+      ppu = Math.min((hi - lo) / 2 * (lobbySide ? 0.95 : LINEUP.wide) / ext, Hh * LINEUP.tall / body, fh * 0.84 / tall); fy = Math.min(y0 + fh * LINEUP.feet, (y0 + y1) / 2 + (tall * ppu + 64) / 2);
       const bt = fy - tall * ppu + 16; if (L.width > 0 && L.bottom - r.top > bt && L.top - r.top < fy) lo = Math.max(lo, L.right - r.left + 8); if (R.width > 0 && R.bottom - r.top > bt && R.top - r.top < fy) hi = Math.min(hi, R.left - r.left - 8);
       if (hi - lo < 180) { const m = (lo + hi) / 2; lo = m - 90; hi = m + 90; }
     }
@@ -22174,7 +22184,7 @@ let heroK = 0, heroT = 0, heroDist = 5.5;
 // (v372) in landscape the lobby is a line-up, you in the middle and a party member's spot either side, seen through a long lens from well
 // back: lens (degrees), gap (from you to a spot), wide (the share of the width the three take), tall (your height, at most, as a share of the
 // screen's), feet (how far down the free space your feet stand), pitch (how much the camera looks down: its height over its distance)
-const LINEUP = { lens: 24, gap: 1.25, wide: 0.86, tall: 0.3, feet: 0.82, pitch: 0.24 }, lineupOn = () => !lookOpen && viewW > viewH;
+const LINEUP = { lens: 24, gap: 1.25, wide: 0.86, tall: 0.3, feet: 0.82, pitch: 0.24 }, lineupOn = () => !lookOpen && viewW > viewH, lineGap = () => FOLD.on && FOLD.axis === 'v' ? 0.8 : LINEUP.gap; // (v377: in half the screen, the places beside you a little closer)
 const heroFov = () => camera.aspect < 0.8 ? 50 : lineupOn() ? LINEUP.lens : 38;
 function heroSees(ax, ay, az, bx, by, bz) {
   const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, bz - az) / 0.3));
@@ -25769,7 +25779,7 @@ function placePBar() {
   if (pbar.hidden) return;
   pbR.setFromMatrixColumn(camera.matrixWorld, 0); pbR.y = 0; pbR.normalize();
   for (const [el, s] of [[slotL, -1], [slotR, 1]]) {
-    const g = lineupOn() ? LINEUP.gap : 1.05; pbV.set(P.x + pbR.x * s * g, P.y + 0.28, P.z + pbR.z * s * g).project(camera);
+    const g = lineupOn() ? lineGap() : 1.05; pbV.set(P.x + pbR.x * s * g, P.y + 0.28, P.z + pbR.z * s * g).project(camera);
     el.style.left = clamp((pbV.x * 0.5 + 0.5) * viewW, Math.max(s < 0 ? PB.slotLo || 42 : 42, 42 + SAI.l), viewW - 42 - SAI.r).toFixed(1) + 'px'; el.style.top = ((0.5 - pbV.y * 0.5) * viewH).toFixed(1) + 'px';
   }
   const sr = stage.getBoundingClientRect();
@@ -25786,7 +25796,7 @@ function placePBar() {
   for (const e of [...$('lobbyRail').children, $('friendsBtn')]) { if (!e || e.hidden || e.offsetParent === null) continue;
     const r = e.getBoundingClientRect(), t = r.top - sr.top - (e.id === 'friendsBtn' ? 30 : 0), b = r.bottom - sr.top + 10; if (b < sy - bh - 4 || t > sy + 4 || !(r.width > 0)) continue;
     if ((r.left + r.right) / 2 - sr.left < viewW / 2) lo = Math.max(lo, r.right - sr.left + 8); else hi = Math.min(hi, r.left - sr.left - 8); }
-  if (FOLD.on && FOLD.axis === 'v') lo = Math.max(lo, FOLD.b - sr.left); // (v371: iPhone Duo partly folded)
+  if (FOLD.on && FOLD.axis === 'v') { if (lobbySide === 'l') hi = Math.min(hi, FOLD.a - sr.left); else lo = Math.max(lo, FOLD.b - sr.left); } // (v371: iPhone Duo partly folded; v377: over you, whichever half you're in)
   if (FOLD.on && FOLD.axis === 'h' && sy > FOLD.a - sr.top - 2 && sy - bh < FOLD.b - sr.top) sy = FOLD.a - sr.top - 2;
   const k = clamp((hi - lo) / bw, 0.7, 1), half = bw * k / 2; sx = clamp(sx, lo + half, Math.max(lo + half, hi - half));
   pbar.style.left = sx.toFixed(1) + 'px'; pbar.style.top = sy.toFixed(1) + 'px';
