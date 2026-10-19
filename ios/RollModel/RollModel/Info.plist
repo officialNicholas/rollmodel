@@ -26,6 +26,11 @@
 	<string>ca-app-pub-5968656294161944~1699104716</string>
 	<key>RollModelRewardedAdUnitID</key>
 	<string>ca-app-pub-5968656294161944/3653605208</string>
+	<!-- The short ad after Play (an interstitial, one every 10 to 20 matches, never for a player who has bought dabs): its AdMob ad unit,
+	     set to Display only so it's a picture rather than a video. Empty: the App Store build shows none (debug and TestFlight builds use
+	     Google's test unit). -->
+	<key>RollModelInterstitialAdUnitID</key>
+	<string></string>
 	<!-- Google and the third-party buyers AdMob lists for SKAdNetwork (developers.google.com/admob/ios/3p-skadnetworks, January 30, 2026) -->
 	<key>SKAdNetworkItems</key>
 	<array>

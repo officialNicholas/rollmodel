@@ -14,6 +14,7 @@ final class GameViewController: UIViewController {
     private let ads = AdsBridge()
     private let notify = NotifyBridge()
     private let gameCenter = GameCenterBridge()
+    private let purchases = PurchaseBridge()
     private let contentController = WKUserContentController()
     private var webView: WKWebView!
     private var lastReload = Date.distantPast
@@ -29,12 +30,15 @@ final class GameViewController: UIViewController {
         contentController.add(orient, name: OrientBridge.messageName)
         // A copy of the save in the app's own files, put back if the web view's storage loses it.
         contentController.add(saves, name: SaveBridge.messageName)
-        // Rewarded ads, only when the player asks for one: Skip on a stroke being crafted plays one (Google AdMob).
+        // Ads (Google AdMob): a rewarded one when the player asks (Skip on a stroke being crafted), and now and then a short one after
+        // Play, never for a player who has bought dabs.
         contentController.add(ads, name: AdsBridge.messageName)
         // A nudge when a craft is done, once the player has said yes to one.
         contentController.add(notify, name: NotifyBridge.messageName)
         // Game Center: signed in from the lobby, and a leaderboard for each canvas's Time trial.
         contentController.add(gameCenter, name: GameCenterBridge.messageName)
+        // Dab packs, bought with Apple's in-app purchase (any one also turns the ads off).
+        contentController.add(purchases, name: PurchaseBridge.messageName)
 
         let configuration = WKWebViewConfiguration()
         configuration.userContentController = contentController
@@ -71,6 +75,7 @@ final class GameViewController: UIViewController {
         notify.webView = webView
         gameCenter.webView = webView
         gameCenter.viewController = self
+        purchases.webView = webView
         view = webView
     }
 

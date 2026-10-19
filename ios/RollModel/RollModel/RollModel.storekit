@@ -1,0 +1,76 @@
+{
+  "identifier": "00000000-0000-0000-0000-00005A17D4B5",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "0.99",
+      "familyShareable": false,
+      "internalID": "6740000000",
+      "localizations": [
+        {
+          "description": "400 dabs to spend in Roll Model. Any pack also turns off ads.",
+          "displayName": "A handful of dabs",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "studio.primeshots.rollmodel.dabs400",
+      "referenceName": "Dabs 400",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "6740000001",
+      "localizations": [
+        {
+          "description": "2,500 dabs to spend in Roll Model. Any pack also turns off ads.",
+          "displayName": "A bucketful of dabs",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "studio.primeshots.rollmodel.dabs2500",
+      "referenceName": "Dabs 2500",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "9.99",
+      "familyShareable": false,
+      "internalID": "6740000002",
+      "localizations": [
+        {
+          "description": "5,500 dabs to spend in Roll Model. Any pack also turns off ads.",
+          "displayName": "A crateful of dabs",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "studio.primeshots.rollmodel.dabs5500",
+      "referenceName": "Dabs 5500",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "19.99",
+      "familyShareable": false,
+      "internalID": "6740000003",
+      "localizations": [
+        {
+          "description": "12,000 dabs to spend in Roll Model. Any pack also turns off ads.",
+          "displayName": "A treasure chest of dabs",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "studio.primeshots.rollmodel.dabs12000",
+      "referenceName": "Dabs 12000",
+      "type": "Consumable"
+    }
+  ],
+  "settings": {
+    "_applicationInternalID": "",
+    "_developerTeamID": "",
+    "_lastSynchronizedDate": 0
+  },
+  "subscriptionGroups": [],
+  "version": {
+    "major": 4,
+    "minor": 0
+  }
+}

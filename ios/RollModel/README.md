@@ -93,9 +93,41 @@ Since the player chooses to watch, the ad can be longer or interactive:
 - **App Store Connect > App Privacy:** add what Google's ad SDK collects, besides what's already there. Google lists: **Coarse Location** (from the IP address), **Device ID**, **Product Interaction**, **Advertising Data**, **Crash Data**, **Performance Data** and **Other Diagnostic Data**, used for **Third-Party Advertising** and **Analytics**. Google's guide to answering these questions: developers.google.com/admob/ios/privacy/data-disclosure
 - The game's Privacy Policy (Settings) now says this too, and no longer says the game has no ads.
 
+## Dab packs (in-app purchases)
+
+The **+** by the dabs opens **Get dabs**: four packs bought with Apple's in-app purchase, and the daily free spin. Any pack bought also turns the ads off for good (no short ads, and crafting is instant). The code is in **PurchaseBridge.swift** (Apple's StoreKit 2); it's already in the project.
+
+### Set them up in App Store Connect (one time)
+In App Store Connect, open **Roll Model > Monetization > In-App Purchases**, and add four, each a **Consumable**, with exactly these product IDs:
+
+| Product ID | Price | Dabs |
+|---|---|---|
+| `studio.primeshots.rollmodel.dabs400` | $0.99 | 400 |
+| `studio.primeshots.rollmodel.dabs2500` | $4.99 | 2,500 |
+| `studio.primeshots.rollmodel.dabs5500` | $9.99 | 5,500 |
+| `studio.primeshots.rollmodel.dabs12000` | $19.99 | 12,000 |
+
+For each: a display name (A handful of dabs, A bucketful of dabs, A crateful of dabs, A treasure chest of dabs), a description ("400 dabs to spend in Roll Model. Any pack also turns off ads."), a screenshot of Get dabs for review, and the price. Then add the four to the app version you send for review (**In-App Purchases and Subscriptions** on the version page): Apple reviews them together with the build. The **Paid Applications** agreement (Business) must be active, with banking and tax filled in.
+
+The game shows Apple's price in the player's own currency, so other countries see their local price.
+
+### Try them before release
+- **In Xcode, without App Store Connect:** **RollModel.storekit** (next to the code) has the four packs. Add it to the project (drag it into the RollModel group), then **Product > Scheme > Edit Scheme > Run > Options > StoreKit Configuration**, pick it, and run. Purchases are free and instant there.
+- **TestFlight:** purchases go through Apple's sandbox, free, once the four are set up in App Store Connect (they can still be "Ready to Submit").
+
+**App Privacy:** the game's anonymous stats now count which pack was bought and its price, so in App Store Connect > App Privacy add **Purchases > Purchase History**, used for **Analytics**, not linked to the player, not used for tracking.
+
+A purchase is finished with Apple only after the game has added the dabs and saved, so one made just before the app closes isn't lost; it's added the next time the game opens. Each purchase is added once.
+
+## The short ad after Play
+
+Once every 10 to 20 matches (a new number each time), after **Play** and before choosing what to play, a short ad shows: an AdMob **interstitial**. The same ad also comes before the daily spin about one day in three (never the first spin, never within 10 minutes of another ad). It shows only if one is already loaded (the player never waits for it), never in the tutorial, never for a player who has bought dabs, and any rewarded ad watched starts the count again, so two ads never come close together.
+
+**Set it up:** in AdMob, **Apps > RollModel > Ad units > Add ad unit > Interstitial**. Under **Ad type**, leave only **Display** ticked (untick Video), so it's a picture you can close at once, not a video. Paste its ID into **Info.plist** as **RollModelInterstitialAdUnitID** (it's there, empty). Until then the App Store version shows none; Xcode and TestFlight builds show Google's test interstitial.
+
 ## Good to know
 
-- The game inside is version 378. Settings shows it as "Version 1.1 (378)".
+- The game inside is version 381. Settings shows it as "Version 1.1 (381)".
 - A brand-new player first gets the intro: a paint barrel in a desert scrapyard, then picking eye colour, eye style, paint colour and a name, before the lobby and the lesson. Existing players go straight to the lobby. To see it again, delete and reinstall the app.
 - Saved names, looks and progress carry over from the earlier builds: the game keeps the same save and the same private address inside the app.
 - The app icon is the paint roller. To change it later, drop a new 1024 x 1024 image into **Assets > AppIcon**.

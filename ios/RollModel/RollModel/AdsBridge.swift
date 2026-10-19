@@ -17,6 +17,9 @@ import UserMessagingPlatform
 /// - {show: place} when the player taps to watch.
 /// - {cancel} when the player stops waiting for one (the game's Cancel): it won't pop up later; one still loading is kept for next time.
 /// - {privacy} from the game's Privacy Policy page: Google's privacy choices form.
+/// - {interWarm} when a short ad is due soon (the game counts matches: one every 10 to 20): an interstitial is loaded ahead.
+/// - {inter: place} after Play, when one is due ("play"), and some days before the daily spin ("spin"): the interstitial shows if one is
+///   loaded and ready, otherwise nothing happens (the game never waits for one). Never sent for a player who has bought dabs.
 ///
 /// It hears back through a "nativead" window event: {e: "open"}, {e: "reward"} (and again just before the close), {e: "close",
 /// earned}, {e: "fail", why} and {e: "state", privacy} (whether the Privacy Policy page needs its "Ad privacy choices" button).
@@ -30,6 +33,22 @@ final class AdsBridge: NSObject, WKScriptMessageHandler {
 
     /// Google's sample rewarded ad unit: test ads only, never paid.
     static let testUnitID = "ca-app-pub-3940256099942544/1712485313"
+
+    /// Google's sample interstitial ad unit: test ads only, never paid.
+    static let testInterUnitID = "ca-app-pub-3940256099942544/4411468910"
+
+    /// The interstitial ad unit after Play: RollModelInterstitialAdUnitID in Info.plist, in the App Store build (set it to Display ads
+    /// only in AdMob, so it's a picture, not a video). Debug and TestFlight builds use Google's test unit. An App Store build without
+    /// one shows none.
+    static var interUnitID: String? {
+        #if DEBUG
+        return testInterUnitID
+        #else
+        if isTestFlight { return testInterUnitID }
+        let id = (Bundle.main.object(forInfoDictionaryKey: "RollModelInterstitialAdUnitID") as? String ?? "").trimmingCharacters(in: .whitespaces)
+        return id.isEmpty ? nil : id
+        #endif
+    }
 
     /// The rewarded ad unit: RollModelRewardedAdUnitID in Info.plist (with the app's own ID, GADApplicationIdentifier, next to it), in
     /// the App Store build. A build run from Xcode or installed from TestFlight uses Google's test unit instead: its ads are marked
@@ -70,7 +89,11 @@ final class AdsBridge: NSObject, WKScriptMessageHandler {
     #if canImport(GoogleMobileAds)
     private var ready: RewardedAd?       // loaded, waiting to be shown
     private var onScreen: RewardedAd?    // (held until it's closed)
+    private var interReady: InterstitialAd?
+    private var interOnScreen: InterstitialAd?
     #endif
+    private var interLoadedAt = Date.distantPast
+    private var interLoading = false
     private var loadedAt = Date.distantPast
     private var loading = false
     private var loadGen = 0              // (bumped when the player turns out to be a child: a load already on its way is dropped)
@@ -93,6 +116,13 @@ final class AdsBridge: NSObject, WKScriptMessageHandler {
             checkConsent { [weak self] in self?.sendState() } // (a page started over hears whether it needs Ad privacy choices too)
         }
         if let place = body["show"] as? String, !place.isEmpty { show(place) }
+        if (body["interWarm"] as? Bool) == true {
+            prepare(asking: false) { [weak self] ok in
+                guard ok else { return }
+                self?.loadInter()
+            }
+        }
+        if let place = body["inter"] as? String, !place.isEmpty { showInter(place) }
         if (body["cancel"] as? Bool) == true { cancelWait() }
         if (body["privacy"] as? Bool) == true { privacyChoices() }
     }
@@ -208,6 +238,7 @@ final class AdsBridge: NSObject, WKScriptMessageHandler {
         configure()
         #if canImport(GoogleMobileAds)
         ready = nil // (one loaded before isn't shown to a child, nor one still on its way)
+        interReady = nil
         loadGen += 1
         #endif
     }
@@ -327,6 +358,46 @@ final class AdsBridge: NSObject, WKScriptMessageHandler {
         #endif
     }
 
+    // MARK: The short ad after Play
+
+    private func loadInter() {
+        #if canImport(GoogleMobileAds)
+        guard started, !interLoading, let unit = AdsBridge.interUnitID else { return }
+        if interReady != nil && Date().timeIntervalSince(interLoadedAt) < 50 * 60 { return }
+        interReady = nil
+        interLoading = true
+        let gen = loadGen
+        InterstitialAd.load(with: unit, request: GoogleMobileAds.Request()) { [weak self] loaded, _ in
+            onMain {
+                guard let self = self else { return }
+                self.interLoading = false
+                guard gen == self.loadGen, let loaded = loaded else { return }
+                loaded.fullScreenContentDelegate = self
+                self.interReady = loaded
+                self.interLoadedAt = Date()
+            }
+        }
+        #endif
+    }
+
+    /// Shown only if one is loaded, fresh, and nothing else is on screen; otherwise the game just carries on.
+    private func showInter(_ place: String) {
+        #if canImport(GoogleMobileAds)
+        guard showing == nil, waiting == nil, UIApplication.shared.applicationState == .active, mayRequest,
+              let next = interReady, Date().timeIntervalSince(interLoadedAt) < 50 * 60, let host = topController() else {
+            send(["e": "fail", "p": place, "why": "noads"])
+            return
+        }
+        interReady = nil
+        interOnScreen = next
+        showing = place
+        earned = false
+        next.present(from: host)
+        #else
+        send(["e": "fail", "p": place, "why": "noads"])
+        #endif
+    }
+
     // MARK: Privacy choices
 
     /// Google's privacy choices form, from the button on the game's Privacy Policy page.
@@ -383,6 +454,7 @@ extension AdsBridge: FullScreenContentDelegate {
         let place = showing ?? ""
         showing = nil
         onScreen = nil
+        interOnScreen = nil
         send(["e": "fail", "p": place, "why": "noads"])
     }
 
@@ -390,6 +462,7 @@ extension AdsBridge: FullScreenContentDelegate {
         let place = showing ?? ""
         showing = nil
         onScreen = nil
+        interOnScreen = nil
         // The ad may have changed the app's sound (its unmute button plays even with the ring switch on silent): the game's own sound
         // settings come back, then the game starts its sound afresh, as after a call.
         GameAudio.apply { [weak self] in
