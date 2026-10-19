@@ -22,7 +22,11 @@ CSP = ("default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' 
 PAGES = ['index.html', 'privacy.html', 'terms.html', 'credits.html', 'support.html', 'forgot.html', 'reset.html', 'confirm.html', '404.html']
 NOINDEX = ['forgot.html', 'reset.html', 'confirm.html', '404.html']
 DOC_PAGES = {'priv': 'privacy.html', 'tos': 'terms.html', 'cred': 'credits.html'}
-FONTS = ['bowlby-one-latin-400-normal.woff2'] + ['figtree-latin-%d-normal.woff2' % w for w in (400, 600, 700, 800)]
+FONTS = ['bowlby-one-latin-400-normal.woff2'] + ['figtree-latin-%d-normal.woff2' % w for w in (400, 600, 700, 800, 900)]
+# the game's own art the site is dressed in (game/art/, copied to site/img/art/): the wall's chevrons and axolotls, the ink band, the
+# card, the graph paper, the masking tape, the PLAY stroke, the splat, the picture frame, the gallery wall, the season's art
+ART = ['lk_wall.webp', 'sg_ink.webp', 'sg_card.webp', 'm_paperbg.webp', 'm_tape1.webp', 'm_tape2.webp', 'm_tape3.webp', 'm_stroke.webp', 'm_splat.webp',
+       'm_frame.webp', 'm_wall.webp', 'shop_hw_bg.webp', 'shop_hw_pump.webp']
 problems, notes = [], []
 
 def read(p): return open(p, encoding='utf8').read()
@@ -77,7 +81,7 @@ def doc_html(key, title, body):
         extra = ('<section class="aside" aria-labelledby="site-note"><h2 id="site-note">This website</h2>'
                  '<p>Set in Bowlby One and Figtree, under the SIL Open Font License (<a href="fonts/BowlbyOne-OFL.txt">Bowlby One</a>, '
                  '<a href="fonts/Figtree-OFL.txt">Figtree</a>). The screenshots are from the game.</p></section>')
-    head = ('<header class="doc-head"><p class="eyebrow">Roll Model</p><h1>%s</h1><p>The same words as in the game, under Settings › %s.</p></header>'
+    head = ('<header class="doc-head"><div class="ban kc-aqua"><p class="kick">Roll Model</p><h1>%s</h1><i class="flag" aria-hidden="true"></i></div><p>The same words as in the game, under Settings › %s.</p></header>'
             % (html.escape(title), html.escape(title)))
     return '\n      ' + head + '\n      <div class="prose">' + body + '</div>' + ('\n      ' + extra if extra else '') + '\n      '
 
@@ -114,10 +118,11 @@ def config():
     return c
 
 def store_button(url):
+    """The App Store button, the lobby's PLAY: a stroke of red paint (css .splash). A link once there is one, else "Coming soon"."""
     ico = '<svg class="store-ico" aria-hidden="true" focusable="false"><use href="#phone-ico"/></svg>'
     if url:
-        return '<a class="btn store" data-config="appstore" href="%s">%s<span class="store-txt"><span class="store-small">Download on the</span><span class="store-big">App Store</span></span></a>' % (html.escape(url), ico)
-    return '<span class="btn store is-soon" data-config="appstore">%s<span class="store-txt"><span class="store-small">Coming soon to the</span><span class="store-big">App Store</span></span></span>' % ico
+        return '<a class="splash store" data-config="appstore" href="%s">%s<span class="store-txt"><span class="store-small">Download on the</span><span class="store-big">App Store</span></span></a>' % (html.escape(url), ico)
+    return '<span class="splash store is-soon" data-config="appstore">%s<span class="store-txt"><span class="store-small">Coming soon to the</span><span class="store-big">App Store</span></span></span>' % ico
 
 def share_tags(page, s, site_url):
     title = html.unescape(re.search(r'<title>(.*?)</title>', s).group(1))
@@ -165,6 +170,7 @@ def build_pages():
     for f in FONTS: copy(os.path.join(ROOT, 'ios', 'shared', 'fonts', f), os.path.join(SITE, 'fonts', f), changed)
     for f in ('BowlbyOne-OFL.txt', 'Figtree-OFL.txt'): copy(os.path.join(ROOT, 'ios', 'shared', 'licenses', f), os.path.join(SITE, 'fonts', f), changed)
     for f in ('logo.png', 'icon.png'): copy(os.path.join(ROOT, 'email', 'assets', f), os.path.join(SITE, 'email', f), changed)
+    for f in ART: copy(os.path.join(GAME, 'art', f), os.path.join(SITE, 'img', 'art', f), changed)
     return changed
 
 def copy(a, b, changed):

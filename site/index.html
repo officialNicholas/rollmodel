@@ -4,15 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Roll Model · A paint game for iPhone</title>
-<meta name="description" content="Roll around as a paint-covered axolotl and paint more of the canvas than your rivals. Coming soon to the App Store.">
+<meta name="description" content="Fast, splashy paint battles made for your phone. Roll around as a paint-covered axolotl and cover more of the canvas than your rivals. Coming soon to the App Store.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#F4EEE3" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#171320" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#17131F" media="(prefers-color-scheme: dark)">
 <!-- share -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Roll Model">
 <meta property="og:title" content="Roll Model · A paint game for iPhone">
-<meta property="og:description" content="Roll around as a paint-covered axolotl and paint more of the canvas than your rivals. Coming soon to the App Store.">
+<meta property="og:description" content="Fast, splashy paint battles made for your phone. Roll around as a paint-covered axolotl and cover more of the canvas than your rivals. Coming soon to the App Store.">
 <meta property="og:image" content="img/og.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -27,6 +27,7 @@
 <link rel="preload" href="fonts/figtree-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/figtree-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/figtree-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/figtree-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/site.css">
 <script src="js/config.js" defer></script>
 <script src="js/site.js" defer></script>
@@ -34,209 +35,310 @@
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <svg class="vh" aria-hidden="true" focusable="false">
-  <symbol id="blob" viewBox="0 0 100 100"><path d="M92.7 46C92.8 51.4 93.7 57.6 91.2 62.3C88.6 67 82.6 70.8 77.4 74.2C72.3 77.7 66.6 81.6 60.3 83.1C54 84.6 45.6 85 39.7 83.2C33.7 81.4 28.8 76.1 24.5 72.3C20.1 68.5 17.4 64.8 13.6 60.4C9.7 56 1.8 50.9 1.4 46C1.1 41.1 7.7 35.3 11.4 30.7C15 26.2 18.8 22.8 23.4 18.6C28 14.5 32.7 7.3 38.8 5.9C44.9 4.4 53.1 8.5 60 10C66.9 11.5 75.2 11.5 80.3 14.8C85.4 18.1 88.5 24.8 90.6 30C92.6 35.2 92.6 40.6 92.7 46Z"/></symbol>
   <symbol id="phone-ico" viewBox="0 0 34 34"><rect x="8" y="2.5" width="18" height="29" rx="4.5" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M14 6.5h6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="17" cy="19" r="4.6" fill="currentColor"/><path d="M13.5 24.5c2.2 1.6 4.8 1.6 7 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="lock" viewBox="0 0 16 16"><path d="M4.5 7V5.2a3.5 3.5 0 0 1 7 0V7" fill="none" stroke="currentColor" stroke-width="2"/><rect x="3" y="7" width="10" height="7.5" rx="2" fill="currentColor"/></symbol>
+  <symbol id="tick" viewBox="0 0 24 24"><path d="M4.5 12.5l4.6 4.6L19.5 6.7" fill="none" stroke="#171320" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="bag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 8.5h13l1 11.5h-15z"/><path d="M9 8.5V7a3 3 0 0 1 6 0v1.5"/></symbol>
+  <symbol id="coin" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="#F2C14E" stroke="#8A5A12" stroke-width="1.6"/><circle cx="10" cy="10" r="6.7" fill="none" stroke="#C98E22" stroke-width="1"/><path d="M10 5.2c.9 0 1.3 1.1 2 1.5 1 .5 2.2-.3 2.6.7.4 1-.9 1.6-.9 2.6s1.2 1.6.7 2.5c-.5.9-1.6.2-2.5.6-.8.4-1 1.7-1.9 1.7s-1.1-1.3-2-1.7c-.9-.4-2 .3-2.5-.6s.7-1.5.7-2.5-1.3-1.6-.9-2.6c.4-1 1.6-.2 2.6-.7.7-.4 1.1-1.5 2.1-1.5z" fill="#E3122F"/></symbol>
+  <symbol id="ico-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7" rx="2" fill="currentColor"/><rect x="13" y="4" width="7" height="7" rx="2" fill="currentColor"/><rect x="4" y="13" width="7" height="7" rx="2" fill="currentColor"/><rect x="13" y="13" width="7" height="7" rx="2" fill="currentColor"/></symbol>
+  <symbol id="ico-season" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8.2c-1.3-.9-3.4-1-4.9-.1C5 9.3 4.2 11.6 4.2 13.6c0 3.3 2.2 5.9 5 5.9.9 0 1.9-.3 2.8-.8.9.5 1.9.8 2.8.8 2.8 0 5-2.6 5-5.9 0-2-.8-4.3-2.9-5.5-1.5-.9-3.6-.8-4.9.1z" fill="#FF8A2A"/><path d="M12 8.8v9.6M12 8.3c0-1.8.6-3.1 2-3.9"/></symbol>
+  <symbol id="ico-head" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 18.2h17"/><path d="M7.2 18.2V8.4c0-1.1.9-2 2-2h5.6c1.1 0 2 .9 2 2v9.8"/><path d="M7.2 14.6h9.6"/></symbol>
+  <symbol id="ico-face" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.3" cy="13.4" r="3.7"/><circle cx="16.7" cy="13.4" r="3.7"/><path d="M11 12.8c.7-.6 1.3-.6 2 0M3.7 12.4 2.6 9.8M20.3 12.4l1.1-2.6"/></symbol>
+  <symbol id="ico-cloth" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M10.2 12 4.2 8.3v7.4zM13.8 12l6-3.7v7.4z"/><rect x="10.2" y="10.2" width="3.6" height="3.6" rx="1" fill="currentColor"/></symbol>
+  <symbol id="ico-eyes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 12.2s3.4-5.4 9.2-5.4 9.2 5.4 9.2 5.4-3.4 5.4-9.2 5.4-9.2-5.4-9.2-5.4z"/><circle cx="12" cy="12.2" r="2.7" fill="currentColor"/></symbol>
+  <symbol id="w-hat" viewBox="0 0 40 40"><path d="M14 26c3-6 5-13 9-19 1 4 2 9 4 13l-1 6z" fill="#4A3378" stroke="#D9C8FF" stroke-width="1.6" stroke-linejoin="round"/><ellipse cx="20" cy="27.5" rx="15" ry="3.6" fill="#4A3378" stroke="#D9C8FF" stroke-width="1.6"/><path d="M14.2 23.2c3.6 1.2 8.4 1.2 12.6 0l.5 2.6c-4.4 1.4-9.4 1.4-13.8 0z" fill="#FF8A1F"/></symbol>
+  <symbol id="w-tophat" viewBox="0 0 40 40"><path d="M12.5 8.5h15v16h-15z" fill="#221A2C" stroke="#D9C8FF" stroke-width="1.6" stroke-linejoin="round"/><path d="M12.5 20h15v4.5h-15z" fill="#E3283E"/><ellipse cx="20" cy="27" rx="13" ry="3.4" fill="#221A2C" stroke="#D9C8FF" stroke-width="1.6"/></symbol>
+  <symbol id="w-pirate" viewBox="0 0 40 40"><path d="M4.5 25.5C7 17 13 13.5 20 13s13 4 15.5 12.5c-4-1.6-9-2.4-15.5-2.4S8.5 24 4.5 25.5z" fill="#221A2C" stroke="#E8B64A" stroke-width="1.8" stroke-linejoin="round"/><circle cx="20" cy="18.6" r="2.4" fill="#F4EEE4"/><path d="M17 21.6l6 2.2M23 21.6l-6 2.2" stroke="#F4EEE4" stroke-width="1.3" stroke-linecap="round"/></symbol>
+  <symbol id="w-halo" viewBox="0 0 40 40"><ellipse cx="20" cy="20" rx="13" ry="5.5" fill="none" stroke="#FFE27A" stroke-width="4"/></symbol>
+  <symbol id="w-fangs" viewBox="0 0 40 40"><path d="M8 15c4 7 20 7 24 0" fill="none" stroke="#FF8CA8" stroke-width="3" stroke-linecap="round"/><path d="M13.5 18.2l1.8 8 2.2-7.4zM22.5 19l2.2 7.4 1.8-8z" fill="#fff" stroke="#1A1030" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  <symbol id="w-hockey" viewBox="0 0 40 40"><path d="M20 4c8 0 13 6 13 15 0 9-5 17-13 17S7 28 7 19C7 10 12 4 20 4z" fill="#F1E6CF" stroke="#171320" stroke-width="2.5" stroke-linejoin="round"/><path d="M11 17c2-2 4.5-2 6.5 0M22.5 17c2-2 4.5-2 6.5 0" fill="none" stroke="#171320" stroke-width="2.6" stroke-linecap="round"/><g fill="#171320"><circle cx="20" cy="23" r="1.4"/><circle cx="16" cy="26.5" r="1.3"/><circle cx="24" cy="26.5" r="1.3"/><circle cx="18" cy="30.5" r="1.2"/><circle cx="22" cy="30.5" r="1.2"/><circle cx="13" cy="22" r="1.1"/><circle cx="27" cy="22" r="1.1"/></g><path d="M12 10l3 3M28 10l-3 3" stroke="#C8303A" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="w-bunny" viewBox="0 0 40 40"><path d="M13 36c-4-9-5-20-1-31 3 1 6 9 7 19M27 36c4-9 5-20 1-31-3 1-6 9-7 19" fill="#F4E8DC" stroke="#171320" stroke-width="2.5" stroke-linejoin="round"/><path d="M14 29c-1.5-6-1.8-13 0-19 1.4 2 2.6 8 3 15M26 29c1.5-6 1.8-13 0-19-1.4 2-2.6 8-3 15" fill="#F58BB0"/><path d="M8 36h24" stroke="#171320" stroke-width="2.5" stroke-linecap="round"/></symbol>
+  <symbol id="w-skull" viewBox="0 0 40 40"><path d="M6 18c5-6 11-4 14 1 3-5 9-7 14-1 2 5-3 10-9 10-1 0-3-.3-5-1-2 .7-4 1-5 1-6 0-11-5-9-10z" fill="#FF7A1A" stroke="#171320" stroke-width="2.5" stroke-linejoin="round"/><path d="M12 20c3 2 5 2 8-1M28 20c-3 2-5 2-8-1" fill="none" stroke="#C84F0E" stroke-width="1.5" stroke-linecap="round"/><circle cx="20" cy="19.5" r="5" fill="#F2E8D8" stroke="#171320" stroke-width="2"/><circle cx="18.2" cy="18.8" r="1.1" fill="#171320"/><circle cx="21.8" cy="18.8" r="1.1" fill="#171320"/><path d="M18.5 22.5h3" stroke="#171320" stroke-width="1.2"/></symbol>
+  <symbol id="w-cape" viewBox="0 0 40 40"><path d="M12 8h16l6 26c-5 2-23 2-28 0z" fill="#D62839" stroke="#D9C8FF" stroke-width="1.4" stroke-linejoin="round"/><circle cx="20" cy="9" r="3" fill="#E8C25A"/></symbol>
+  <symbol id="w-glasses" viewBox="0 0 40 40"><path d="M4.5 17.5h31" stroke="#D9C8FF" stroke-width="5.5" stroke-linecap="round"/><rect x="5" y="14" width="13" height="11.5" rx="4" fill="#8FD3FF" fill-opacity=".25" stroke="#D9C8FF" stroke-width="6"/><rect x="22" y="14" width="13" height="11.5" rx="4" fill="#8FD3FF" fill-opacity=".25" stroke="#D9C8FF" stroke-width="6"/></symbol>
+  <symbol id="w-monocle" viewBox="0 0 40 40"><circle cx="18" cy="16" r="8.5" fill="#BFE6FF" fill-opacity=".35" stroke="#E8C25A" stroke-width="2.6"/><path d="M24.5 21.5c3 3 4.5 7 5.5 11" fill="none" stroke="#E8C25A" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="1.5 2"/></symbol>
+  <symbol id="w-propcap" viewBox="0 0 40 40"><path d="M7 28c0-8 6-13 13-13s13 5 13 13z" fill="#E63946" stroke="#D9C8FF" stroke-width="1.4"/><path d="M16 15.6L18 28h4l2-12.4" fill="#FFD23F"/><path d="M20 15v-5" stroke="#E8E2F2" stroke-width="2"/><path d="M10 9h20" stroke="#E63946" stroke-width="3.4" stroke-linecap="round"/><path d="M27 28h9" stroke="#3A86FF" stroke-width="3.4" stroke-linecap="round"/></symbol>
+  <symbol id="w-tiara" viewBox="0 0 40 40"><path d="M7 27.5c-.4-5 .5-9 1.8-12.2l4.6 6.2L20 9.5l6.6 12 4.6-6.2c1.3 3.2 2.2 7.2 1.8 12.2C27 26 13 26 7 27.5z" fill="#F2C88A" stroke="#D9C8FF" stroke-width="1.6" stroke-linejoin="round"/><path d="M20 14.5l3.2 4.4L20 23.5l-3.2-4.6z" fill="#FF4FB0" stroke="#7A1E52" stroke-width="1"/><circle cx="9" cy="14.6" r="1.8" fill="#FF4FB0"/><circle cx="31" cy="14.6" r="1.8" fill="#FF4FB0"/></symbol>
+  <symbol id="w-party" viewBox="0 0 40 40"><path d="M20 5l11 27H9z" fill="#FF5A8A" stroke="#D9C8FF" stroke-width="1.6" stroke-linejoin="round"/><path d="M12.8 22.5h14.4l2.6 6.5H10.2zM16.6 13h6.8l1.8 4.5h-10.4z" fill="#FFE066"/><circle cx="20" cy="5.5" r="2.8" fill="#F6EBD7" stroke="#D9C8FF" stroke-width="1.4"/></symbol>
+  <symbol id="w-stache" viewBox="0 0 40 40"><path d="M20 19c-2.5-3-6-3.5-9-2-2.4 1.3-3.5 4.2-2.5 6.5 1.6-1.5 4-1.8 6-1 2.2.9 4 .9 5.5-1 1.5 1.9 3.3 1.9 5.5 1 2-.8 4.4-.5 6 1 1-2.3-.1-5.2-2.5-6.5-3-1.5-6.5-1-9 2z" fill="#3B2418" stroke="#D9C8FF" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  <symbol id="w-beanie" viewBox="0 0 40 40"><path d="M8 25c0-9 5.5-15 12-15s12 6 12 15z" fill="#2A9D8F" stroke="#D9C8FF" stroke-width="1.6" stroke-linejoin="round"/><rect x="6.5" y="23.5" width="27" height="6.5" rx="3" fill="#F6EBD7" stroke="#D9C8FF" stroke-width="1.6"/><circle cx="20" cy="8.5" r="3.6" fill="#F6EBD7" stroke="#D9C8FF" stroke-width="1.6"/></symbol>
+  <symbol id="w-scarf" viewBox="0 0 40 40"><path d="M8 15c0-4 5.4-7 12-7s12 3 12 7-5.4 7-12 7S8 19 8 15z" fill="#E3283E" stroke="#D9C8FF" stroke-width="1.6"/><path d="M23 21l2 10h8l-3-11z" fill="#E3283E" stroke="#D9C8FF" stroke-width="1.6" stroke-linejoin="round"/><path d="M26 31v3.5M29 31v3.5M32 31v3.5" stroke="#F6EBD7" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="w-antennae" viewBox="0 0 40 40"><path d="M15 30c-1-8-3-13-7-17M25 30c1-8 3-13 7-17" fill="none" stroke="#231A2B" stroke-width="2.6" stroke-linecap="round"/><circle cx="8" cy="11" r="4.6" fill="#FF5DA2" stroke="#D9C8FF" stroke-width="1.4"/><circle cx="32" cy="11" r="4.6" fill="#FF5DA2" stroke="#D9C8FF" stroke-width="1.4"/></symbol>
+  <symbol id="w-snorkel" viewBox="0 0 40 40"><rect x="5" y="15" width="13" height="10" rx="5" fill="#BFE6FF" stroke="#FFC93C" stroke-width="2.6"/><rect x="20" y="15" width="13" height="10" rx="5" fill="#BFE6FF" stroke="#FFC93C" stroke-width="2.6"/><path d="M35 30V6" stroke="#FF7A1A" stroke-width="3.4" stroke-linecap="round"/></symbol>
+  <symbol id="w-floaties" viewBox="0 0 40 40"><g fill="#FF8A1F" stroke="#D9C8FF" stroke-width="1.4"><ellipse cx="11" cy="16" rx="7.5" ry="5"/><ellipse cx="11" cy="24" rx="7.5" ry="5"/><ellipse cx="29" cy="16" rx="7.5" ry="5"/><ellipse cx="29" cy="24" rx="7.5" ry="5"/></g><path d="M8 20h6M26 20h6" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="17" cy="15" r="1.6" fill="#fff"/><circle cx="35" cy="15" r="1.6" fill="#fff"/></symbol>
+  <symbol id="w-pearls" viewBox="0 0 40 40"><path d="M7.5 14c2.5 8.5 7 12.5 12.5 12.5S30 22.5 32.5 14" fill="none" stroke="#3A2A44" stroke-width="1.4"/><g fill="#F7F1E8" stroke="#D9C8FF" stroke-width="1.2"><circle cx="7.5" cy="14.0" r="2.1"/><circle cx="10.0" cy="18.0" r="2.4"/><circle cx="12.5" cy="21.0" r="2.6"/><circle cx="15.0" cy="23.2" r="2.8"/><circle cx="17.5" cy="24.6" r="3.0"/><circle cx="20.0" cy="25.0" r="3.0"/><circle cx="22.5" cy="24.6" r="3.0"/><circle cx="25.0" cy="23.2" r="2.8"/><circle cx="27.5" cy="21.0" r="2.6"/><circle cx="30.0" cy="18.0" r="2.4"/><circle cx="32.5" cy="14.0" r="2.1"/></g></symbol>
+  <symbol id="w-lashes" viewBox="0 0 40 40"><path d="M7.5 25.5c3.2-6.6 15.6-8 21.6-1.6" fill="none" stroke="#D9C8FF" stroke-width="6" stroke-linecap="round"/><ellipse cx="18.4" cy="27.4" rx="9.6" ry="6.4" fill="#FFFFFF" stroke="#D9C8FF" stroke-width="1.4"/><circle cx="19.6" cy="28.2" r="3.6" fill="#231A2B"/><circle cx="20.8" cy="27" r="1.1" fill="#FFFFFF"/></symbol>
+  <symbol id="w-patch" viewBox="0 0 40 40"><path d="M7 12.5l26 11.5" stroke="#D9C8FF" stroke-width="2" stroke-linecap="round"/><path d="M12.5 14.5c4.5-1.6 10.5-.6 11.2 3.8.7 4.4-2.7 9.4-6.8 9.6-4.1.2-7-3.6-7.6-7.4-.3-2.6.9-5.2 3.2-6z" fill="#231A2B" stroke="#D9C8FF" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  <symbol id="w-flower" viewBox="0 0 40 40"><g transform="translate(20 20)"></symbol>
 </svg>
 <!-- header -->
 <header class="top">
   <div class="wrap">
-    <a class="brand" href="./"><img src="img/icon-96.webp" alt="" width="40" height="40">Roll Model</a>
+    <a class="brand" href="./"><img src="img/icon-96.webp" alt="" width="42" height="42"><span>Roll Model</span></a>
     <nav class="nav" aria-label="Main">
       <a class="anchor" href="#play">How it plays</a>
       <a class="anchor" href="#modes">Modes</a>
-      <a class="anchor" href="#yours">Paint Shop</a>
+      <a class="anchor" href="#shop">Paint Shop</a>
+      <a class="anchor" href="#strokes">Strokes</a>
       <a class="anchor" href="#canvases">Canvases</a>
-      <a class="pill" href="support.html">Support</a>
+      <a class="btn btn-sm" href="support.html">Support</a>
     </nav>
   </div>
 </header>
 <!-- /header -->
 
 <main id="main">
-  <section class="hero" aria-labelledby="hero-title">
-    <div class="wrap">
+  <!-- the lobby -->
+  <section class="hero wall wall-paper" aria-labelledby="hero-title">
+    <div class="wrap hero-grid">
       <div class="hero-copy">
-        <p class="eyebrow">A Marcelin Game</p>
+        <p class="tape">A Marcelin Game</p>
         <h1 id="hero-title"><img src="img/logo-1100.webp" srcset="img/logo-560.webp 560w, img/logo-800.webp 800w, img/logo-1100.webp 1100w" sizes="(min-width: 640px) 560px, 92vw" width="1100" height="771" alt="Roll Model" fetchpriority="high"></h1>
-        <p class="lede">Roll around as a paint-covered axolotl and paint more of the canvas than your rivals.</p>
+        <p class="lede">Fast, splashy paint battles for your phone. Roll around, splat your rivals, and cover more of the canvas than they do before the clock runs out.</p>
         <!-- appstore -->
-        <span class="btn store is-soon" data-config="appstore"><svg class="store-ico" aria-hidden="true" focusable="false"><use href="#phone-ico"/></svg><span class="store-txt"><span class="store-small">Coming soon to the</span><span class="store-big">App Store</span></span></span>
+        <span class="splash store is-soon" data-config="appstore"><svg class="store-ico" aria-hidden="true" focusable="false"><use href="#phone-ico"/></svg><span class="store-txt"><span class="store-small">Coming soon to the</span><span class="store-big">App Store</span></span></span>
         <!-- /appstore -->
-        <p class="fine">For iPhone. Ground pound, slingshot, go giant.</p>
+        <ul class="tapes" aria-label="In three words"><li>Quick matches</li><li>Wild powers</li><li>Colorful chaos</li></ul>
       </div>
       <div class="hero-art">
         <div class="phone p-back"><img src="img/shots/victory-720.webp" srcset="img/shots/victory-360.webp 360w, img/shots/victory-720.webp 720w" sizes="(min-width: 920px) 253px, 220px" width="720" height="1558" alt="The victory screen: Dusk wins a 3-way on Palette Island."></div>
         <div class="phone p-front"><img src="img/shots/lobby-720.webp" srcset="img/shots/lobby-360.webp 360w, img/shots/lobby-720.webp 720w" sizes="(min-width: 920px) 253px, 220px" width="720" height="1558" alt="The lobby: Dusk, a red axolotl, under the Roll Model logo, with the big Play button below."></div>
       </div>
     </div>
+    <div class="floor" aria-hidden="true"></div>
   </section>
 
-  <section class="sec" id="play" aria-labelledby="play-title">
+  <!-- how it plays -->
+  <section class="sec wall wall-gold drips" id="play" aria-labelledby="play-title">
     <div class="wrap">
-      <div class="play-grid">
-        <div class="sec-head">
-          <p class="eyebrow">How it plays</p>
-          <h2 class="h2" id="play-title">Own the canvas</h2>
+      <div class="play-top">
+        <div class="head">
+          <div class="ban kc-orange"><p class="kick">How it plays</p><h2 id="play-title">Own the canvas</h2><i class="flag" aria-hidden="true"></i></div>
           <p class="lede">Every match is a race to cover the canvas. Roll over the floor to paint it your color, and over your rivals’ color to take it back. When the clock runs out, the most paint wins.</p>
         </div>
         <figure class="play-side">
           <div class="phone wide"><img src="img/shots/coach-1600.webp" srcset="img/shots/coach-800.webp 800w, img/shots/coach-1600.webp 1600w" sizes="(min-width: 1040px) 560px, 92vw" width="1600" height="739" alt="A Showdown on Blank Canvas, held sideways: red, green and purple paint trails, and Ol’ Bloop in the corner with a pro tip about slingshotting." loading="lazy" decoding="async"></div>
           <figcaption class="cap-note">Ol’ Bloop, your coach, shows you the ropes and drops in with a pro tip when you need one.</figcaption>
         </figure>
-        <ul class="feats">
-          <li class="feat">
-            <div class="pic" aria-hidden="true"><svg class="blob"><use href="#blob" fill="currentColor"/></svg><svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12h17M8 7.5 3.5 12 8 16.5M16 7.5l4.5 4.5-4.5 4.5"/></svg><span class="cap">Move</span></div>
-            <div><h3>Steer, jump, roll</h3><p>Drag sideways to steer. Tap to jump, swipe up to roll. Your own color is a fast lane that refills your paint.</p></div>
+      </div>
+        <ul class="panel dark hangs moves" aria-label="The moves">
+          <li class="hang move sp-red">
+            <i class="hook" aria-hidden="true"></i>
+            <span class="cb"><span class="ca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 12h17M8 7.5 3.5 12 8 16.5M16 7.5l4.5 4.5-4.5 4.5"/></svg></span></span>
+            <span class="cf">Move</span>
+            <div class="hang-txt"><h3>Steer, jump, roll</h3><p>Drag sideways to steer. Tap to jump, swipe up to roll. Your own color is a fast lane that refills your paint.</p></div>
           </li>
-          <li class="feat">
-            <div class="pic p-blue" aria-hidden="true"><svg class="blob"><use href="#blob" fill="currentColor"/></svg><svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10.5l5 5 5-5M4 20.5h16"/></svg><span class="cap">Pound</span></div>
-            <div><h3>Ground pound</h3><p>Pound to splat a circle of paint. Any rival inside is out for a few seconds, so jump it or time a roll.</p></div>
+          <li class="hang move sp-blue">
+            <i class="hook" aria-hidden="true"></i>
+            <span class="cb"><span class="ca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10.5l5 5 5-5M4 20.5h16"/></svg></span></span>
+            <span class="cf">Pound</span>
+            <div class="hang-txt"><h3>Ground pound</h3><p>Pound to splat a circle of paint. Any rival inside is out for a few seconds, so jump it or time a roll.</p></div>
           </li>
-          <li class="feat">
-            <div class="pic" aria-hidden="true"><svg class="blob"><use href="#blob" fill="currentColor"/></svg><svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20c2.5-8.5 7.5-13.5 15.5-15M13.5 4.2l6 .8-.9 6"/></svg><span class="cap">Fling</span></div>
-            <div><h3>Slingshot</h3><p>Hold to stop, pull down and let go to fling across the canvas. Pound mid-fling to fire a missile that steers itself.</p></div>
+          <li class="hang move sp-orange">
+            <i class="hook" aria-hidden="true"></i>
+            <span class="cb"><span class="ca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20c2.5-8.5 7.5-13.5 15.5-15M13.5 4.2l6 .8-.9 6"/></svg></span></span>
+            <span class="cf">Fling</span>
+            <div class="hang-txt"><h3>Slingshot</h3><p>Hold to stop, pull down and let go to fling across the canvas. Pound mid-fling to fire a missile that steers itself.</p></div>
           </li>
-          <li class="feat">
-            <div class="pic p-purple" aria-hidden="true"><svg class="blob"><use href="#blob" fill="currentColor"/></svg><svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5.6"/><path d="M12 1.8v2.4M12 19.8v2.4M1.8 12h2.4M19.8 12h2.4M4.8 4.8l1.7 1.7M17.5 17.5l1.7 1.7M4.8 19.2l1.7-1.7M17.5 6.5l1.7-1.7"/></svg><span class="cap">The orb</span></div>
-            <div><h3>Go giant</h3><p>Grab the glowing orb for a super move. Grow huge for 5 seconds and roll right over anyone in your way.</p></div>
+          <li class="hang move sp-purple">
+            <i class="hook" aria-hidden="true"></i>
+            <span class="cb"><span class="ca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5.6"/><path d="M12 1.8v2.4M12 19.8v2.4M1.8 12h2.4M19.8 12h2.4M4.8 4.8l1.7 1.7M17.5 17.5l1.7 1.7M4.8 19.2l1.7-1.7M17.5 6.5l1.7-1.7"/></svg></span></span>
+            <span class="cf">The orb</span>
+            <div class="hang-txt"><h3>Go giant</h3><p>Grab the glowing orb for a super move. Grow huge for 5 seconds and roll right over anyone in your way.</p></div>
           </li>
-          <li class="feat">
-            <div class="pic p-green" aria-hidden="true"><svg class="blob"><use href="#blob" fill="currentColor"/></svg><svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2l2.7 5.6 6.1.8-4.5 4.2 1.1 6-5.4-2.9-5.4 2.9 1.1-6-4.5-4.2 6.1-.8z"/></svg><span class="cap">Transforms</span></div>
-            <div><h3>Transform</h3><p>Pick up a roller, a turret, a paint trap, a whirlwind or a boomerang, and change into it when the moment’s right.</p></div>
+          <li class="hang move sp-green">
+            <i class="hook" aria-hidden="true"></i>
+            <span class="cb"><span class="ca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.2l2.7 5.6 6.1.8-4.5 4.2 1.1 6-5.4-2.9-5.4 2.9 1.1-6-4.5-4.2 6.1-.8z"/></svg></span></span>
+            <span class="cf">Transforms</span>
+            <div class="hang-txt"><h3>Transform</h3><p>Pick up a roller, a turret, a paint trap, a whirlwind or a boomerang, and change into it when the moment’s right.</p></div>
           </li>
-          <li class="feat">
-            <div class="pic p-orange" aria-hidden="true"><svg class="blob"><use href="#blob" fill="currentColor"/></svg><svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.2v2.6M12 19.2v2.6M2.2 12h2.6M19.2 12h2.6M5 5l1.8 1.8M17.2 17.2 19 19M5 19l1.8-1.8M17.2 6.8 19 5"/></svg><span class="cap">Weather</span></div>
-            <div><h3>Heat and rain</h3><p>A heat wave bakes anyone out in the open, so hide in a paint tub. Rain speeds everyone up and waters paint down.</p></div>
+          <li class="hang move sp-pink">
+            <i class="hook" aria-hidden="true"></i>
+            <span class="cb"><span class="ca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.2v2.6M12 19.2v2.6M2.2 12h2.6M19.2 12h2.6M5 5l1.8 1.8M17.2 17.2 19 19M5 19l1.8-1.8M17.2 6.8 19 5"/></svg></span></span>
+            <span class="cf">Weather</span>
+            <div class="hang-txt"><h3>Heat and rain</h3><p>A heat wave bakes anyone out in the open, so hide in a paint tub. Rain speeds everyone up and waters paint down.</p></div>
           </li>
         </ul>
-      </div>
     </div>
   </section>
 
-  <section class="sec dark drips" id="modes" aria-labelledby="modes-title">
+  <!-- modes -->
+  <section class="sec wall wall-plum" id="modes" aria-labelledby="modes-title">
     <div class="wrap">
-      <div class="sec-head">
-        <p class="eyebrow">Modes</p>
-        <h2 class="h2" id="modes-title">Pick your fight</h2>
-        <p class="lede">Take on the CPU, a crowd, the clock, or your friends.</p>
+      <div class="head">
+        <div class="ban kc-aqua"><p class="kick">Modes</p><h2 id="modes-title">Pick your fight</h2><i class="flag" aria-hidden="true"></i></div>
+        <p class="lede">Play the CPU, a crowd, the clock, or your friends. A match is over in under three minutes.</p>
       </div>
-      <ul class="modes">
-        <li class="mode">
-          <span class="tag">1v1 or 3-way</span>
-          <h3>Versus CPU</h3>
-          <p>You against one rival, or two. Ninety seconds on the clock, and whoever covers the most canvas wins.</p>
-          <ul class="chips" aria-label="Ways to play"><li>1 v 1</li><li>3-way</li></ul>
+      <ul class="events">
+        <li class="event">
+          <div class="ev-txt">
+            <p class="tape">1v1 or 3-way</p>
+            <h3>Versus CPU</h3>
+            <p>You against one rival, or two. Ninety seconds on the clock, and whoever covers the most canvas wins.</p>
+            <ul class="chips-s" aria-label="Ways to play"><li>1 v 1</li><li>3-way</li></ul>
+          </div>
+          <div class="ev-pic"><img src="img/canvas/island.webp" alt="" width="720" height="495" loading="lazy" decoding="async"></div>
         </li>
-        <li class="mode m-orange">
-          <span class="tag">Last one standing</span>
-          <h3>Showdown</h3>
-          <p>Four of you on a bigger canvas, three hearts each. A knock-out costs a heart, and with none left you’re out.</p>
-          <ul class="chips" aria-label="Ways to play"><li>Free-for-all</li><li>2 v 2</li></ul>
+        <li class="event">
+          <div class="ev-txt">
+            <p class="tape">Last one standing</p>
+            <h3>Showdown</h3>
+            <p>Four of you on a bigger canvas, three hearts each. A knock-out costs a heart, and with none left you’re out.</p>
+            <ul class="chips-s" aria-label="Ways to play"><li>Free-for-all</li><li>2 v 2</li></ul>
+          </div>
+          <div class="ev-pic"><img src="img/canvas/blank.webp" alt="" width="720" height="495" loading="lazy" decoding="async"></div>
         </li>
-        <li class="mode m-blue">
-          <span class="tag">Weekly leaderboard</span>
-          <h3>Time trial</h3>
-          <p>Just you and 60 seconds. Cover all you can, beat your best, and climb each canvas’s board before the week is up.</p>
-          <ul class="chips" aria-label="Ways to play"><li>Solo</li><li>A new board every week</li></ul>
+        <li class="event">
+          <div class="ev-txt">
+            <p class="tape">Weekly leaderboard</p>
+            <h3>Time trial</h3>
+            <p>Just you and 60 seconds. Cover all you can, beat your best, and climb each canvas’s board before the week is up.</p>
+            <ul class="chips-s" aria-label="Ways to play"><li>Solo</li><li>A new board every week</li></ul>
+          </div>
+          <div class="ev-pic"><img src="img/canvas/sewer.webp" alt="" width="720" height="495" loading="lazy" decoding="async"></div>
         </li>
-        <li class="mode m-lime">
-          <span class="tag">Online</span>
-          <h3>Online 1v1</h3>
-          <p>Add your friends with their friend code, send an invite, and settle it on the canvas.</p>
-          <ul class="chips" aria-label="Ways to play"><li>Friends</li><li>Invites</li></ul>
+        <li class="event">
+          <div class="ev-txt">
+            <p class="tape">Online</p>
+            <h3>Online 1v1</h3>
+            <p>Add your friends with their friend code, send an invite, and settle it on the canvas.</p>
+            <ul class="chips-s" aria-label="Ways to play"><li>Friends</li><li>Invites</li></ul>
+          </div>
+          <div class="ev-pic"><img src="img/canvas/raft.webp" alt="" width="720" height="495" loading="lazy" decoding="async"></div>
         </li>
       </ul>
-      <figure class="modes-shot">
+      <figure class="wide-shot">
         <div class="phone wide"><img src="img/shots/showdown-1600.webp" srcset="img/shots/showdown-800.webp 800w, img/shots/showdown-1600.webp 1600w" sizes="(min-width: 980px) 880px, 92vw" width="1600" height="739" alt="A Showdown on Blank Canvas, held sideways: four colors of paint everywhere, with each player’s hearts along the top." loading="lazy" decoding="async"></div>
         <figcaption class="cap-note">Showdown on Blank Canvas: four colors, three hearts each.</figcaption>
       </figure>
     </div>
   </section>
 
-  <section class="sec" id="yours" aria-labelledby="yours-title">
+  <!-- the Paint Shop -->
+  <section class="sec wall wall-pink" id="shop" aria-labelledby="shop-title">
     <div class="wrap">
-      <div class="sec-head">
-        <p class="eyebrow">The Paint Shop and Strokes</p>
-        <h2 class="h2" id="yours-title">Make it yours</h2>
-        <p class="lede">Earn dabs, dress up your axolotl, and craft the moves you bring to every match.</p>
+      <div class="head">
+        <div class="ban kc-aqua"><p class="kick">The Paint Shop</p><h2 id="shop-title">Make it yours</h2><i class="flag" aria-hidden="true"></i></div>
+        <p class="lede">Win dabs in every match and spend them on hats, glasses, capes and more. No real money, ever.</p>
       </div>
-      <div class="yours">
-        <div class="duo">
-          <div class="duo-copy">
-            <h3 class="h3">Dress for the splat</h3>
-            <p>Win dabs in every match and spend them in the Paint Shop on hats, glasses, bow ties, capes and more. Then pick your paint color and your eyes in My Locker.</p>
-            <ul class="ticks">
-              <li>No real money. Everything’s bought with dabs you earn.</li>
-              <li>Paint colors, eyes, hats, glasses and capes.</li>
-              <li>Spooky SZN finds to hunt down on the season’s canvases.</li>
-            </ul>
+      <nav class="band" aria-label="The locker and the shop">
+        <a class="tab t-teal" href="#shop-copy"><b class="tt">My Locker</b><span class="tb"><span class="ti"><svg aria-hidden="true"><use href="#ico-eyes"/></svg></span><span class="tn">12 items</span></span></a>
+        <a class="tab t-yellow on" href="#shop-panel" aria-current="true"><b class="tt">Paint Shop</b><span class="tb"><span class="ti"><svg aria-hidden="true"><use href="#bag"/></svg></span><span class="tn">26 to buy</span></span></a>
+      </nav>
+      <div class="shop-grid">
+        <div class="panel paper shop-panel" id="shop-panel">
+          <div class="ptop"><h3 class="ph">Paint Shop</h3><span class="cnt">26 in stock</span><span class="dabs" aria-label="1240 dabs"><svg aria-hidden="true"><use href="#coin"/></svg>1240</span></div>
+          <ul class="chips" aria-label="What’s in the shop">
+            <li class="chip on"><svg aria-hidden="true"><use href="#ico-all"/></svg><span>All</span><i>26</i></li>
+            <li class="chip"><svg aria-hidden="true"><use href="#ico-season"/></svg><span>Spooky SZN</span><i>7</i></li>
+            <li class="chip"><svg aria-hidden="true"><use href="#ico-head"/></svg><span>Headgear</span><i>11</i></li>
+            <li class="chip"><svg aria-hidden="true"><use href="#ico-face"/></svg><span>Facial</span><i>9</i></li>
+            <li class="chip"><svg aria-hidden="true"><use href="#ico-cloth"/></svg><span>Clothing</span><i>6</i></li>
+          </ul>
+          <div class="szn">
+            <div class="szt"><i>Season One</i><b>Spooky SZN</b><small><u class="p3" aria-hidden="true"></u>3 of 7 found</small><p>Found on the Spooky SZN canvases.</p></div>
+            <img class="pump" src="img/art/shop_hw_pump.webp" alt="" width="364" height="380" loading="lazy" decoding="async">
           </div>
-          <div class="duo-art">
-            <div class="phone"><img src="img/shots/locker-720.webp" srcset="img/shots/locker-360.webp 360w, img/shots/locker-720.webp 720w" sizes="(min-width: 960px) 217px, 41vw" width="720" height="1558" alt="My Locker: Dusk in a witch hat and a bow tie, with paint colors and eyes to pick from." loading="lazy" decoding="async"></div>
-            <div class="phone"><img src="img/shots/shop-720.webp" srcset="img/shots/shop-360.webp 360w, img/shots/shop-720.webp 720w" sizes="(min-width: 960px) 217px, 41vw" width="720" height="1558" alt="The Paint Shop’s Spooky SZN shelf: zombie eyes, fangs, bunny ears and a hockey mask, found on the season’s canvases." loading="lazy" decoding="async"></div>
-          </div>
+          <p class="lab">Spooky SZN finds <i>7</i></p>
+          <ul class="hangs grid4" aria-label="The season’s finds">
+            <li class="hang sel sale"><i class="hook" aria-hidden="true"></i><span class="cb"><span class="ca"><svg aria-hidden="true"><use href="#w-hat"/></svg></span></span><span class="cf"><svg aria-hidden="true"><use href="#coin"/></svg><b>1105</b></span><span class="cn">Witch hat</span></li>
+            <li class="hang on"><i class="hook" aria-hidden="true"></i><span class="cb"><span class="ca"><svg aria-hidden="true"><use href="#w-fangs"/></svg></span></span><span class="cf">Equipped</span><span class="cn">Fangs</span></li>
+            <li class="hang sale"><i class="hook" aria-hidden="true"></i><span class="cb"><span class="ca"><svg aria-hidden="true"><use href="#w-halo"/></svg></span></span><span class="cf"><svg aria-hidden="true"><use href="#coin"/></svg><b>850</b></span><span class="cn">Halo</span></li>
+            <li class="hang gift"><i class="hook" aria-hidden="true"></i><span class="cb"><span class="ca"><svg aria-hidden="true"><use href="#w-skull"/></svg></span></span><span class="cf">Free gift</span><span class="new">New</span><span class="cn">Skull bow</span></li>
+            <li class="hang lock"><i class="hook" aria-hidden="true"></i><span class="cb"><span class="ca"><svg aria-hidden="true"><use href="#w-hockey"/></svg></span></span><span class="cf"><svg aria-hidden="true"><use href="#lock"/></svg>Find it</span><span class="cn">Hockey mask</span></li>
+            <li class="hang lock"><i class="hook" aria-hidden="true"></i><span class="cb"><span class="ca"><svg aria-hidden="true"><use href="#w-bunny"/></svg></span></span><span class="cf"><svg aria-hidden="true"><use href="#lock"/></svg>Find it</span><span class="cn">Bunny ears</span></li>
+            <li class="hang lock"><i class="hook" aria-hidden="true"></i><span class="cb"><span class="ca"><svg aria-hidden="true"><use href="#ico-eyes"/></svg></span></span><span class="cf"><svg aria-hidden="true"><use href="#lock"/></svg>Find it</span><span class="cn">Zombie eyes</span></li>
+          </ul>
+          <p class="lab">Headgear <i>11</i></p>
+          <ul class="hangs grid4" aria-label="Hats and headgear">
+            <li class="hang sale"><i class="hook" aria-hidden="true"></i><span class="cb"><span class="ca"><svg aria-hidden="true"><use href="#w-pirate"/></svg></span></span><span class="cf"><svg aria-hidden="true"><use href="#coin"/></svg><b>695</b></span><span class="cn">Pirate hat</span></li>
+            <li class="hang sale"><i class="hook" aria-hidden="true"></i><span class="cb"><span class="ca"><svg aria-hidden="true"><use href="#w-tophat"/></svg></span></span><span class="cf"><svg aria-hidden="true"><use href="#coin"/></svg><b>580</b></span><span class="cn">Top hat</span></li>
+            <li class="hang sale"><i class="hook" aria-hidden="true"></i><span class="cb"><span class="ca"><svg aria-hidden="true"><use href="#w-tiara"/></svg></span></span><span class="cf"><svg aria-hidden="true"><use href="#coin"/></svg><b>475</b></span><span class="cn">Tiara</span></li>
+            <li class="hang sale"><i class="hook" aria-hidden="true"></i><span class="cb"><span class="ca"><svg aria-hidden="true"><use href="#w-propcap"/></svg></span></span><span class="cf"><svg aria-hidden="true"><use href="#coin"/></svg><b>345</b></span><span class="cn">Propeller cap</span></li>
+          </ul>
         </div>
-        <div class="duo flip">
-          <div class="duo-copy">
-            <h3 class="h3">Craft your strokes</h3>
-            <p>Strokes are your specials and skills. Rank up to open new ones, then craft them on the bench. Pick a special for when you grab the orb, a skill that’s on all match, and the transform you start every match holding.</p>
-            <div class="kits">
-              <section class="kit" aria-labelledby="kit-sp">
-                <h4 id="kit-sp">Specials <span>What the orb gives you</span></h4>
-                <ul>
-                  <li><img src="img/strokes/rocket.webp" alt="" width="64" height="64" loading="lazy" decoding="async">Rocket</li>
-                  <li><img src="img/strokes/giant.webp" alt="" width="64" height="64" loading="lazy" decoding="async">Giant</li>
-                  <li><img src="img/strokes/freeze.webp" alt="" width="64" height="64" loading="lazy" decoding="async">Flash Freeze</li>
-                </ul>
-              </section>
-              <section class="kit" aria-labelledby="kit-sk">
-                <h4 id="kit-sk">Skills <span>Always on, all match</span></h4>
-                <ul>
-                  <li><img src="img/strokes/swim.webp" alt="" width="64" height="64" loading="lazy" decoding="async">Swim faster</li>
-                  <li><img src="img/strokes/repel.webp" alt="" width="64" height="64" loading="lazy" decoding="async">Weather Repel</li>
-                  <li><img src="img/strokes/pockets.webp" alt="" width="64" height="64" loading="lazy" decoding="async">Deep Pockets</li>
-                </ul>
-              </section>
-              <section class="kit" aria-labelledby="kit-tr">
-                <h4 id="kit-tr">Transforms <span>Grab one on the canvas</span></h4>
-                <ul>
-                  <li><img src="img/strokes/roller.webp" alt="" width="64" height="64" loading="lazy" decoding="async">Roller</li>
-                  <li><img src="img/strokes/turret.webp" alt="" width="64" height="64" loading="lazy" decoding="async">Turret</li>
-                  <li><img src="img/strokes/trap.webp" alt="" width="64" height="64" loading="lazy" decoding="async">Paint Trap</li>
-                  <li><img src="img/strokes/whirl.webp" alt="" width="64" height="64" loading="lazy" decoding="async">Whirlwind</li>
-                  <li><img src="img/strokes/boom.webp" alt="" width="64" height="64" loading="lazy" decoding="async">Boomerang</li>
-                </ul>
-              </section>
-            </div>
-          </div>
+        <div class="shop-copy" id="shop-copy">
+          <h3>Dress for the splat</h3>
+          <p>Dabs are the game’s cash, and you win them by playing. The shop is where they go. Everything else is in My Locker: your paint color, your eyes, and whatever you feel like wearing today. Dusk here went with a witch hat and a bow tie.</p>
+          <ul class="ticks">
+            <li>No real money. Everything’s bought with dabs you earn.</li>
+            <li>Paint colors, eyes, hats, glasses and capes.</li>
+            <li>Spooky SZN finds to hunt down on the season’s canvases.</li>
+          </ul>
           <div class="duo-art">
-            <div class="phone"><img src="img/shots/strokes-720.webp" srcset="img/shots/strokes-360.webp 360w, img/shots/strokes-720.webp 720w" sizes="(min-width: 960px) 217px, 41vw" width="720" height="1558" alt="The Strokes page: the Rocket special stroke equipped, with Giant and Flash Freeze waiting to be crafted." loading="lazy" decoding="async"></div>
+            <div class="phone"><img src="img/shots/locker-720.webp" srcset="img/shots/locker-360.webp 360w, img/shots/locker-720.webp 720w" sizes="(min-width: 1000px) 217px, 41vw" width="720" height="1558" alt="My Locker: Dusk in a witch hat and a bow tie, with paint colors and eyes to pick from." loading="lazy" decoding="async"></div>
+            <div class="phone"><img src="img/shots/shop-720.webp" srcset="img/shots/shop-360.webp 360w, img/shots/shop-720.webp 720w" sizes="(min-width: 1000px) 217px, 41vw" width="720" height="1558" alt="The Paint Shop’s Spooky SZN shelf: zombie eyes, fangs, bunny ears and a hockey mask, found on the season’s canvases." loading="lazy" decoding="async"></div>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="sec" id="canvases" aria-labelledby="canvases-title">
+  <!-- strokes -->
+  <section class="sec wall wall-lime" id="strokes" aria-labelledby="strokes-title">
     <div class="wrap">
-      <div class="sec-head">
-        <p class="eyebrow">Canvases</p>
-        <h2 class="h2" id="canvases-title">Pick a canvas</h2>
-        <p class="lede">Every canvas plays its own way. Before a match everyone votes, and the most votes wins.</p>
+      <div class="head">
+        <div class="ban kc-orange"><p class="kick">Strokes</p><h2 id="strokes-title">Craft your moves</h2><i class="flag" aria-hidden="true"></i></div>
+        <p class="lede">Strokes are your special moves. Rank up to unlock them, craft them on the bench, and pick the three you take into a match.</p>
       </div>
-      <ul class="canvases">
+      <nav class="band" aria-label="Kinds of strokes">
+        <a class="tab t-orange on" href="#st-special" aria-current="true"><b class="tt">Specials</b><span class="tb"><span class="ti"><img src="img/strokes/rocket.webp" alt="" width="44" height="44" loading="lazy" decoding="async"></span><span class="dots"><i class="on"></i><i></i><i></i></span></span></a>
+        <a class="tab t-teal" href="#st-skill"><b class="tt">Skills</b><span class="tb"><span class="ti"><img src="img/strokes/swim.webp" alt="" width="44" height="44" loading="lazy" decoding="async"></span><span class="dots"><i class="on"></i><i></i><i></i></span></span></a>
+        <a class="tab t-coral" href="#st-transform"><b class="tt">Transforms</b><span class="tb"><span class="ti"><img src="img/strokes/roller.webp" alt="" width="44" height="44" loading="lazy" decoding="async"></span><span class="dots"><i class="on"></i><i></i><i></i><i></i><i></i></span></span></a>
+      </nav>
+      <div class="strokes-grid">
+        <div class="panel dark strokes-panel">
+          <div class="rail" aria-hidden="true"></div>
+          <h3 class="lab light" id="st-special">Specials <span>What the orb gives you</span></h3>
+          <ul class="hangs grid3" aria-label="Specials">
+            <li class="hang on"><i class="hook" aria-hidden="true"></i><span class="cb"><span class="ca"><img src="img/strokes/rocket.webp" alt="" width="160" height="160" loading="lazy" decoding="async"></span></span><span class="cf">Equipped</span><span class="stamp" aria-hidden="true"><svg><use href="#tick"/></svg></span><span class="cn">Rocket</span></li>
+            <li class="hang"><i class="hook" aria-hidden="true"></i><span class="cb"><span class="ca"><img src="img/strokes/giant.webp" alt="" width="160" height="160" loading="lazy" decoding="async"></span></span><span class="cf">20 min</span><span class="cn">Giant</span></li>
+            <li class="hang sale"><i class="hook" aria-hidden="true"></i><span class="cb"><span class="ca"><img src="img/strokes/freeze.webp" alt="" width="160" height="160" loading="lazy" decoding="async"></span></span><span class="cf"><svg aria-hidden="true"><use href="#coin"/></svg><b>500</b></span><span class="cn">Flash Freeze</span></li>
+          </ul>
+          <h3 class="lab light" id="st-skill">Skills <span>Always on, all match</span></h3>
+          <ul class="hangs grid3" aria-label="Skills">
+            <li class="hang on"><i class="hook" aria-hidden="true"></i><span class="cb"><span class="ca"><img src="img/strokes/swim.webp" alt="" width="160" height="160" loading="lazy" decoding="async"></span></span><span class="cf">Equipped</span><span class="stamp" aria-hidden="true"><svg><use href="#tick"/></svg></span><span class="cn">Swim faster</span></li>
+            <li class="hang sale"><i class="hook" aria-hidden="true"></i><span class="cb"><span class="ca"><img src="img/strokes/repel.webp" alt="" width="160" height="160" loading="lazy" decoding="async"></span></span><span class="cf"><svg aria-hidden="true"><use href="#coin"/></svg><b>300</b></span><span class="cn">Weather Repel</span></li>
+            <li class="hang sale"><i class="hook" aria-hidden="true"></i><span class="cb"><span class="ca"><img src="img/strokes/pockets.webp" alt="" width="160" height="160" loading="lazy" decoding="async"></span></span><span class="cf"><svg aria-hidden="true"><use href="#coin"/></svg><b>400</b></span><span class="cn">Deep Pockets</span></li>
+          </ul>
+          <h3 class="lab light" id="st-transform">Transforms <span>Grab one on the canvas</span></h3>
+          <ul class="hangs grid3" aria-label="Transforms">
+            <li class="hang on"><i class="hook" aria-hidden="true"></i><span class="cb"><span class="ca"><img src="img/strokes/roller.webp" alt="" width="160" height="160" loading="lazy" decoding="async"></span></span><span class="cf">Equipped</span><span class="stamp" aria-hidden="true"><svg><use href="#tick"/></svg></span><span class="cn">Roller</span></li>
+            <li class="hang lock"><i class="hook" aria-hidden="true"></i><span class="cb"><span class="ca"><img src="img/strokes/turret.webp" alt="" width="160" height="160" loading="lazy" decoding="async"></span></span><span class="cf"><svg aria-hidden="true"><use href="#lock"/></svg>Rank 3</span><span class="cn">Turret</span></li>
+            <li class="hang lock"><i class="hook" aria-hidden="true"></i><span class="cb"><span class="ca"><img src="img/strokes/trap.webp" alt="" width="160" height="160" loading="lazy" decoding="async"></span></span><span class="cf"><svg aria-hidden="true"><use href="#lock"/></svg>Rank 5</span><span class="cn">Paint Trap</span></li>
+            <li class="hang lock"><i class="hook" aria-hidden="true"></i><span class="cb"><span class="ca"><img src="img/strokes/whirl.webp" alt="" width="160" height="160" loading="lazy" decoding="async"></span></span><span class="cf"><svg aria-hidden="true"><use href="#lock"/></svg>Rank 7</span><span class="cn">Whirlwind</span></li>
+            <li class="hang lock"><i class="hook" aria-hidden="true"></i><span class="cb"><span class="ca"><img src="img/strokes/boom.webp" alt="" width="160" height="160" loading="lazy" decoding="async"></span></span><span class="cf"><svg aria-hidden="true"><use href="#lock"/></svg>Rank 9</span><span class="cn">Boomerang</span></li>
+          </ul>
+          <p class="unlock">Eleven strokes to start with. Every rank unlocks the next.</p>
+        </div>
+        <div class="strokes-copy">
+          <h3>Three slots, your call</h3>
+          <p>One special for when you grab the orb. One skill that’s on all match. One transform to start the match holding. Swap them around until it feels right.</p>
+          <div class="duo-art">
+            <div class="phone"><img src="img/shots/strokes-720.webp" srcset="img/shots/strokes-360.webp 360w, img/shots/strokes-720.webp 720w" sizes="(min-width: 1000px) 217px, 41vw" width="720" height="1558" alt="The Strokes page: the Rocket special stroke equipped, with Giant and Flash Freeze waiting to be crafted." loading="lazy" decoding="async"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- canvases -->
+  <section class="sec wall wall-night" id="canvases" aria-labelledby="canvases-title">
+    <div class="wrap">
+      <div class="head">
+        <div class="ban kc-gold"><p class="kick">Canvases</p><h2 id="canvases-title">Pick a canvas</h2><i class="flag" aria-hidden="true"></i></div>
+        <p class="lede">Seven canvases, each with its own tricks. The layout gets shuffled before every match, so no two games play the same. Everyone votes on where to play, and the most votes wins.</p>
+      </div>
+      <ul class="frames">
         <li class="canvas"><div class="frame"><img src="img/canvas/island.webp" alt="Palette Island: a sandy island ringed by turquoise sea." width="720" height="495" loading="lazy" decoding="async"></div><p class="plaque">Palette Island</p></li>
         <li class="canvas"><div class="frame"><img src="img/canvas/blank.webp" alt="Blank Canvas: a clean white studio of blocks and ramps." width="720" height="495" loading="lazy" decoding="async"></div><p class="plaque">Blank Canvas</p></li>
         <li class="canvas"><div class="frame"><img src="img/canvas/sewer.webp" alt="Sludge Sewer: grates and pipes over glowing green sludge." width="720" height="495" loading="lazy" decoding="async"></div><p class="plaque">Sludge Sewer</p></li>
         <li class="canvas"><div class="frame"><img src="img/canvas/raft.webp" alt="Fishing Raft: crates and planks on a raft out at sea." width="720" height="495" loading="lazy" decoding="async"></div><p class="plaque">Fishing Raft</p></li>
       </ul>
-      <section class="season" aria-labelledby="season-title">
-        <div class="season-head">
-          <p class="ribbon">Season 1</p>
-          <h3 id="season-title">Spooky SZN</h3>
-          <p>Halloween takes over three canvases of its own: The Crypt, The Cathedral and The Manor. Hunt them for seven spooky finds to wear, from fangs to a witch hat.</p>
-        </div>
-        <ul class="canvases">
+      <section class="szn wide" aria-labelledby="season-title">
+        <div class="szt"><i>Season One</i><b id="season-title">Spooky SZN</b><p>Halloween gets three canvases of its own: The Crypt, The Cathedral and The Manor. Seven spooky things to find and wear are hidden on them, from fangs to a witch hat.</p></div>
+        <img class="pump" src="img/art/shop_hw_pump.webp" alt="" width="364" height="380" loading="lazy" decoding="async">
+        <ul class="frames">
           <li class="canvas"><div class="frame"><img src="img/canvas/crypt.webp" alt="The Crypt: a dark stone floor lit in eerie teal." width="440" height="302" loading="lazy" decoding="async"></div><p class="plaque">The Crypt</p></li>
           <li class="canvas"><div class="frame"><img src="img/canvas/cathedral.webp" alt="The Cathedral: a checkered floor under a purple night sky." width="440" height="302" loading="lazy" decoding="async"></div><p class="plaque">The Cathedral</p></li>
           <li class="canvas"><div class="frame"><img src="img/canvas/manor.webp" alt="The Manor: warm wooden floors glowing orange in the dark." width="440" height="302" loading="lazy" decoding="async"></div><p class="plaque">The Manor</p></li>
@@ -245,25 +347,26 @@
     </div>
   </section>
 
-  <section class="sec" id="shots" aria-labelledby="shots-title">
+  <!-- screenshots -->
+  <section class="sec wall wall-paper" id="shots" aria-labelledby="shots-title">
     <div class="wrap">
-      <div class="sec-head center">
-        <p class="eyebrow">Screenshots</p>
-        <h2 class="h2" id="shots-title">Have a look</h2>
+      <div class="head">
+        <div class="ban kc-pink"><p class="kick">Screenshots</p><h2 id="shots-title">Have a look</h2><i class="flag" aria-hidden="true"></i></div>
       </div>
-      <ul class="strip" tabindex="0" aria-label="Screenshots from the game">
-        <li><figure><div class="phone"><img src="img/shots/lobby-720.webp" srcset="img/shots/lobby-360.webp 360w, img/shots/lobby-720.webp 720w" sizes="(min-width: 1180px) 161px, 198px" width="720" height="1558" alt="The lobby, with Dusk ready to play." loading="lazy" decoding="async"></div><figcaption>The lobby</figcaption></figure></li>
-        <li><figure><div class="phone"><img src="img/shots/match-720.webp" srcset="img/shots/match-360.webp 360w, img/shots/match-720.webp 720w" sizes="(min-width: 1180px) 161px, 198px" width="720" height="1558" alt="A 3-way on Palette Island: red, blue and green paint over the sand, 25 seconds left." loading="lazy" decoding="async"></div><figcaption>A 3-way on Palette Island</figcaption></figure></li>
-        <li><figure><div class="phone"><img src="img/shots/victory-720.webp" srcset="img/shots/victory-360.webp 360w, img/shots/victory-720.webp 720w" sizes="(min-width: 1180px) 161px, 198px" width="720" height="1558" alt="Victory: Dusk wins with 11% of the canvas." loading="lazy" decoding="async"></div><figcaption>Victory!</figcaption></figure></li>
-        <li><figure><div class="phone"><img src="img/shots/locker-720.webp" srcset="img/shots/locker-360.webp 360w, img/shots/locker-720.webp 720w" sizes="(min-width: 1180px) 161px, 198px" width="720" height="1558" alt="My Locker, with Dusk in a witch hat." loading="lazy" decoding="async"></div><figcaption>My Locker</figcaption></figure></li>
-        <li><figure><div class="phone"><img src="img/shots/shop-720.webp" srcset="img/shots/shop-360.webp 360w, img/shots/shop-720.webp 720w" sizes="(min-width: 1180px) 161px, 198px" width="720" height="1558" alt="The Paint Shop’s Spooky SZN shelf." loading="lazy" decoding="async"></div><figcaption>The Paint Shop</figcaption></figure></li>
-        <li><figure><div class="phone"><img src="img/shots/strokes-720.webp" srcset="img/shots/strokes-360.webp 360w, img/shots/strokes-720.webp 720w" sizes="(min-width: 1180px) 161px, 198px" width="720" height="1558" alt="The Strokes page, with the Rocket equipped." loading="lazy" decoding="async"></div><figcaption>Strokes</figcaption></figure></li>
+      <ul class="pols" tabindex="0" aria-label="Screenshots from the game">
+        <li class="pol"><figure><img src="img/shots/lobby-720.webp" srcset="img/shots/lobby-360.webp 360w, img/shots/lobby-720.webp 720w" sizes="(min-width: 1180px) 170px, 192px" width="720" height="1558" alt="The lobby, with Dusk ready to play." decoding="async"><figcaption>The lobby</figcaption></figure></li>
+        <li class="pol"><figure><img src="img/shots/match-720.webp" srcset="img/shots/match-360.webp 360w, img/shots/match-720.webp 720w" sizes="(min-width: 1180px) 170px, 192px" width="720" height="1558" alt="A 3-way on Palette Island: red, blue and green paint over the sand, 25 seconds left." decoding="async"><figcaption>A 3-way on Palette Island</figcaption></figure></li>
+        <li class="pol"><figure><img src="img/shots/victory-720.webp" srcset="img/shots/victory-360.webp 360w, img/shots/victory-720.webp 720w" sizes="(min-width: 1180px) 170px, 192px" width="720" height="1558" alt="Victory: Dusk wins with 11% of the canvas." decoding="async"><figcaption>Victory!</figcaption></figure></li>
+        <li class="pol"><figure><img src="img/shots/locker-720.webp" srcset="img/shots/locker-360.webp 360w, img/shots/locker-720.webp 720w" sizes="(min-width: 1180px) 170px, 192px" width="720" height="1558" alt="My Locker, with Dusk in a witch hat." decoding="async"><figcaption>My Locker</figcaption></figure></li>
+        <li class="pol"><figure><img src="img/shots/shop-720.webp" srcset="img/shots/shop-360.webp 360w, img/shots/shop-720.webp 720w" sizes="(min-width: 1180px) 170px, 192px" width="720" height="1558" alt="The Paint Shop’s Spooky SZN shelf." decoding="async"><figcaption>The Paint Shop</figcaption></figure></li>
+        <li class="pol"><figure><img src="img/shots/strokes-720.webp" srcset="img/shots/strokes-360.webp 360w, img/shots/strokes-720.webp 720w" sizes="(min-width: 1180px) 170px, 192px" width="720" height="1558" alt="The Strokes page, with the Rocket equipped." decoding="async"><figcaption>Strokes</figcaption></figure></li>
       </ul>
       <p class="strip-hint" aria-hidden="true">Swipe for more</p>
     </div>
   </section>
 
-  <section class="sec" id="get" aria-labelledby="get-title">
+  <!-- the last call -->
+  <section class="sec wall wall-paper" id="get" aria-labelledby="get-title">
     <div class="wrap bloop">
       <div class="bloop-art"><img src="img/bloop.webp" alt="Ol’ Bloop, the coach: a whiskery old axolotl, pointing up with a grin." width="440" height="410" loading="lazy" decoding="async"></div>
       <div class="bloop-copy">
@@ -271,7 +374,7 @@
         <p class="who">Ol’ Bloop, your coach</p>
         <h2 class="h2" id="get-title">Coming soon to iPhone</h2>
         <!-- appstore -->
-        <span class="btn store is-soon" data-config="appstore"><svg class="store-ico" aria-hidden="true" focusable="false"><use href="#phone-ico"/></svg><span class="store-txt"><span class="store-small">Coming soon to the</span><span class="store-big">App Store</span></span></span>
+        <span class="splash store is-soon" data-config="appstore"><svg class="store-ico" aria-hidden="true" focusable="false"><use href="#phone-ico"/></svg><span class="store-txt"><span class="store-small">Coming soon to the</span><span class="store-big">App Store</span></span></span>
         <!-- /appstore -->
         <p>Questions? Write to <a data-config="email" href="mailto:support@playrollmodel.com">support@playrollmodel.com</a>.</p>
       </div>

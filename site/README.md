@@ -14,6 +14,23 @@ scripts or fonts, and a strict Content Security Policy (`_headers`).
 | `confirm.html` | Where a welcome email's button goes: confirm the email |
 | `404.html` | Not found |
 
+## The look
+The site is dressed as the game's own screens, so it reads as Roll Model before a word is read:
+- **The lobby** for the top of the home page: cream paper, a strip of masking tape, the logo, the PLAY stroke of red paint as the
+  App Store button (`.splash`, the game's `art/m_stroke.webp` as a mask), and the red paint floor with drips running into the next room.
+- **The Strokes, Locker and Paint Shop pages** for everything else: coloured walls with the game's chevrons and axolotls over them
+  (`.wall-*`, `art/lk_wall.webp` tinted the way the locker tints its wall to your paint), the black ink band with tab cards on it
+  (`.band`, `.tab`, `art/sg_ink.webp`), every title on a taped black banner with a pennant (`.ban`), the dark see-through panel and
+  the graph paper panel (`.panel.dark`, `.panel.paper`), cards that hang on hooks with a lime strip (`.hang`: Equipped, a price with
+  the coin, Rank 3, Find it), the yellow slanted Equip button (`.btn`), the round purple Back (`.orb`), the dabs badge, the filter
+  chips, the season banner with its pumpkin (`.szn`), and the gallery wall with framed canvases on paper plaques (`.frame`, `.plaque`).
+- **Polaroids taped up** for the screenshots, and a sheet of the game's paper, taped at the top, for every page of words and the
+  account pages (`.sheet`).
+
+The art is the game's (`game/art/`, listed in `ART` in `tools/site_build.py`, which copies it to `img/art/`); the colours and the
+measurements are the game's CSS. Dark mode keeps the walls but puts them in the dark, and paper stays paper. Nothing is animated beyond
+a hover, so there is nothing to switch off for reduced motion.
+
 The three account pages call the game's Supabase project directly (`rm_reset_request`, `rm_reset_password`,
 `rm_email_verify` in `supabase/migrations/20261019000000_email.sql`). The links carry their one-time code after a `#`,
 so it never reaches a server log, and the page clears it from the address bar once read.
