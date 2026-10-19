@@ -2924,6 +2924,7 @@ html.touchnav :focus-visible{outline:none!important}
 .mworld .gdots i{width:7px;height:7px;background:rgba(244,238,227,.26);transition:width .25s,background .25s}
 .mworld .gdots i.on{width:22px;border-radius:4px;background:#F4EEE3;transform:none}
 /* CPU difficulty: a heading between two fine rules, one dark switch, the pick on cream paper */
+html.difflock #stages,html.difflock #wDiffHd{display:none!important} /* (v378: not in the second match) */
 .mworld .lhead.critics{display:flex;align-items:center;justify-content:center;gap:12px;margin:0;font:800 11px/1 var(--font-ui);letter-spacing:.24em;color:#CBC2DA}
 .mworld .lhead.critics::before,.mworld .lhead.critics::after{content:'';flex:0 1 64px;height:1px;background:linear-gradient(90deg,rgba(244,238,227,0),rgba(244,238,227,.4))}
 .mworld .lhead.critics::after{background:linear-gradient(90deg,rgba(244,238,227,.4),rgba(244,238,227,0))}
@@ -4873,7 +4874,7 @@ html.fh .tutgo .tgcard .tava{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 377</p>
+      <p class="ver">Version 378</p>
     </div>
   </div>
 
@@ -16524,6 +16525,13 @@ const VS_CFG = { rivals: 12, pots: 8, speed: 5.4, drain: 1 / 21, brushes: 0 }; /
 let state = 'menu', level = 1, cfg = VS_CFG, clock = 0, runT = 0, runId = 0, matchLeft = MATCH_T, lastCount = 99;
 const DIFFS = [['easy', 'Easy', 'Still learning'], ['medium', 'Medium', 'Plays smart'], ['hard', 'Hard', 'Reads you']];
 let diff = DIFFS.some(d => d[0] === store.diff) ? store.diff : 'medium';
+// (v378) the second match (from the locker lesson's end until it's played through): easy, and no difficulty shown anywhere
+const diffLock = () => { const p = store.tut && store.tut.ph; return p === 'vote' || p === 'match2'; };
+let diffLocked = false;
+function diffSync() { const on = diffLock(); document.documentElement.classList.toggle('difflock', on);
+  if (on) diff = 'easy'; else if (diffLocked) diff = DIFFS.some(d => d[0] === store.diff) ? store.diff : 'medium';
+  diffLocked = on; }
+diffSync();
 // easy is a gentler game all round, not just a weaker CPU: your blood lasts longer and the canvases have no holes and less up in the air
 const easyOn = () => !NM && diff === 'easy' && mode !== 'solo', EASY_DRAIN = 0.85;
 const potWord = () => TH.pot === 'can' ? 'paint can' : TH.pot === 'tiki' || TH.pot === 'tank' ? 'paint tub' : TH.pot === 'drum' ? 'paint drum' : TH.pot === 'barrel' ? 'barrel' : 'coffin';
@@ -22070,7 +22078,7 @@ function renderLobbyUI() {
   paintAbil(); const r = repOf(store.xp || 0); $('repName').textContent = r.name; $('repLvl').textContent = r.lv; $('repFill').style.width = Math.round(100 * r.x / r.need) + '%';
   $('lobbyStage').textContent = TH.label; $('lobbyPickLbl').textContent = mode === 'solo' ? 'Canvases \u00b7 your canvas' : 'Canvases \u00b7 your vote'; const art = stageArt(); if (art && $('stageThumb').src !== art) $('stageThumb').src = art;
   const md = MODES.find(m => m[0] === mode) || MODES[0];
-  $('lobbyMode').textContent = mode === 'solo' ? 'Time trial \u00b7 60 seconds' : md[1] + ' \u00b7 CPU ' + (CRITICS[diff] || 'fair').toLowerCase();
+  $('lobbyMode').textContent = mode === 'solo' ? 'Time trial \u00b7 60 seconds' : md[1] + (diffLock() ? '' : ' \u00b7 CPU ' + (CRITICS[diff] || 'fair').toLowerCase()); // (v378: none in the second match)
   showDrops(); paintPBar();
   try { $('nameFace').innerHTML = faceIcon(P, false); } catch (e) {}
   commBadgePaint();
@@ -22175,7 +22183,7 @@ $('homePlay').addEventListener('click', () => { AU.init(); if (state !== 'menu' 
 $('stageBtn').addEventListener('click', () => { AU.init(); AU.ui(); openWorlds(); });
 $('worldBack').addEventListener('click', () => { AU.init(); AU.ui(); if (!closeSeason()) closeWorlds(); });
 window.addEventListener('resize', () => { if (menuPage === 'worlds') { centerWorld(worldBtns.find(b => b.dataset.s === stageSel), false); renderWorlds(); } });
-$('stages').addEventListener('click', e => { const t = e.target.closest('button'); if (!t) return; AU.init(); AU.ui(); diff = t.dataset.d; store.diff = diff; save();
+$('stages').addEventListener('click', e => { const t = e.target.closest('button'); if (!t || diffLock()) return; AU.init(); AU.ui(); diff = t.dataset.d; store.diff = diff; save();
   if (state === 'menu' && !building && GEN.key !== mapKey()) { freshMap(); resetRun(); decorate(); menuPose(); kick($('cvName'), 'bump'); } // easy has its own gentler canvases
   renderStages(); });
 // the menu shot: your blob and the holy water side by side at your spawn, facing a camera that looks in across the canvas
@@ -23563,7 +23571,7 @@ function showVS(cb) {
   const list = [[P, $('vbox0'), VS_POSE.me]]; if (mode !== 'solo' && !tutFlat) list.push([H, $('vbox1'), VS_POSE.foe]); if (mode === 'trio' || isShow()) list.push([H2, $('vbox2'), VS_POSE.foe2]); if (isShow()) list.push([H3, $('vbox3'), mode === 'duo' ? VS_POSE.ally : VS_POSE.foe3]);
   for (const [D, , pose] of list) { D.wearPop = 1; D.wearOff = false; D.wearHid = false; if (D !== P) { D.look.drop.visible = true; D.yaw = P.yaw; D.flatT = 0; D.stunT = 0; D.dry = false; D.vsSt = D.st; D.st = 'play'; }
     D.vsIp = D.ip; D.ip = Object.assign({ hop: 0, spin: 0, pitch: 0, roll: 0, sq: null, rise: null, sink: null, coat: null, watch: null, expr: null, shut: false, stars: false }, pose.ip); }
-  vsSnap = { t: 2, list, id: runId }; $('vsTitle').innerHTML = '<b>' + escAttr(TH.label) + '</b> \u00b7 ' + (tutFlat ? 'Tutorial' : mode === 'solo' ? 'Time trial, 60 seconds' : (NM ? md[1] + ', online' : md[1] + ', CPU ' + (CRITICS[diff] || 'fair').toLowerCase()));
+  vsSnap = { t: 2, list, id: runId }; $('vsTitle').innerHTML = '<b>' + escAttr(TH.label) + '</b> \u00b7 ' + (tutFlat ? 'Tutorial' : mode === 'solo' ? 'Time trial, 60 seconds' : (NM ? md[1] + ', online' : diffLock() ? md[1] : md[1] + ', CPU ' + (CRITICS[diff] || 'fair').toLowerCase()));
   el.hidden = false; AU.whoosh(); AU.say('go', 0); buzz([15, 30, 15]); // (v270: no "Are you ready? Let's roll" here or after the vote)
   const id = runId, wipe = win => { AU.music('end'); slashWipe({ dur: 1.0, onPeak: () => { el.hidden = true; el.classList.remove('voting'); $('vvote').hidden = true;
     if (win && TH.id !== win) prepMatch(() => genWorld((Math.random() * 4294967296) >>> 0, { avoid: TH.id, themes: [win] })).then(cb); else cb(); } }); }; // (v367: the wipe is still shut under the vote)
@@ -26712,7 +26720,7 @@ $('delYes').addEventListener('click', async () => {
   catch (err) { AC.busy = false; $('delYes').disabled = $('delNo').disabled = false; $('delYes').textContent = 'Delete for good'; $('delErr').textContent = acErrText(err); }
   delPaint();
 });
-const tutPh = () => store.tut.ph, tutSet = ph => { if (store.tut.ph === ph) return; store.tut.ph = ph; save(); };
+const tutPh = () => store.tut.ph, tutSet = ph => { if (store.tut.ph === ph) return; store.tut.ph = ph; save(); diffSync(); }; // (v378: the second match's easy comes and goes with its steps)
 const tutMatchDue = () => tutPh() === 'match';
 const TUT_SLOW = 0.35;
 const TUT_AI = Object.assign({}, AI_LV.easy, { pound: 0, attack: 0, dodge: 0, evade: 0, orb: 0, grab: 0, hunt: 0, ram: 0, speed: 0.8, steal: 0.7, trap: 0, airSling: 0, coffinHunt: 0, covPound: 0 });
