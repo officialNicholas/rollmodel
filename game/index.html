@@ -2778,6 +2778,9 @@ body.rvon .corner{opacity:0;pointer-events:none} /* (v357: the rival's entrance 
 .coachpop.atcard{z-index:63}
 .coachpop b{display:block;width:100%;height:100%;background:url(art/coach.webp) center bottom/contain no-repeat;transform-origin:50% 100%;filter:drop-shadow(0 0 10px rgba(23,19,32,.35));animation:coachbob 2.8s ease-in-out infinite}
 .coachpop[data-side="l"] b{scale:-1 1}
+/* (v385) his moods on the lesson's plate and over its cards */
+.tut[data-coach="bust"][data-mood="serious"] .tbust{background-image:url(art/coach_serious.webp)}.tut[data-coach="bust"][data-mood="laugh"] .tbust{background-image:url(art/coach_laugh.webp)}
+.tutgo[data-mood="serious"] .tgcard .tava{background-image:url(art/coach_serious.webp)}.tutgo[data-mood="laugh"] .tgcard .tava{background-image:url(art/coach_laugh.webp)}
 .coachpop b.baked{filter:none}
 .coachpop.talk b{animation:coachtalk .5s cubic-bezier(.3,1.5,.5,1),coachbob 2.8s .5s ease-in-out infinite}
 @keyframes coachbob{0%,100%{transform:none}50%{transform:translateY(-3px) rotate(-1.2deg)}}
@@ -3280,7 +3283,7 @@ html.difflock #stages,html.difflock #wDiffHd{display:none!important} /* (v378: n
 .evcard:not(.fresh) .evnew{display:none}
 /* (v283) Ol' Bloop's pick on the Showdown card: his face in a gold ring and a gold tag, bobbing on the card's picture; taps go through */
 .evbloop{position:absolute;right:12px;bottom:14px;z-index:4;display:flex;align-items:center;pointer-events:none;animation:evbloopin .5s cubic-bezier(.2,1.5,.35,1) .35s both,evbloopbob 2.4s ease-in-out .9s infinite}
-.evbloop i{position:relative;z-index:1;flex:none;width:46px;height:46px;border-radius:50%;background:#2A2437 url(art/coach.webp) 50% 16%/165% no-repeat;box-shadow:0 0 0 2.5px #F2C14E,0 0 0 5px #171320,0 5px 0 5px rgba(0,0,0,.25)}
+.evbloop i{position:relative;z-index:1;flex:none;width:46px;height:46px;border-radius:50%;background:#2A2437 url(art/coach.webp) 52% 4%/150% no-repeat;box-shadow:0 0 0 2.5px #F2C14E,0 0 0 5px #171320,0 5px 0 5px rgba(0,0,0,.25)}
 .evbloop b{margin-left:-12px;padding:8px 13px 7px 19px;border-radius:999px;background:#F2C14E;color:#171320;font:900 12px/1 var(--font-head);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;box-shadow:0 0 0 2.5px #171320,0 4px 0 #171320}
 @keyframes evbloopin{from{opacity:0;transform:translateY(10px) scale(.55)}}
 @keyframes evbloopbob{50%{transform:translateY(-4px) rotate(-2deg)}}
@@ -4958,7 +4961,7 @@ html.fh .tutgo .tgcard .tava{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 384</p>
+      <p class="ver">Version 385</p>
     </div>
   </div>
 
@@ -27225,10 +27228,17 @@ function tutGest(kind) {
 const coachEl = document.createElement('i'); coachEl.className = 'coachpop'; coachEl.hidden = true; coachEl.setAttribute('aria-hidden', 'true'); coachEl.innerHTML = '<b></b>';
 // (v332) his soft shadow drawn into his picture once (the same blur, about 10 points round him): as a filter on a layer that bobs all
 // the time, a phone drew it again every frame
-{ const im = new Image(); im.onload = () => { try { const W = im.naturalWidth, H = im.naturalHeight, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+// (v385) his three moods: normal (talking, making a point), serious, laughing. Each baked with his shadow as it loads
+const COACH_ART = { normal: 'art/coach.webp', serious: 'art/coach_serious.webp', laugh: 'art/coach_laugh.webp' }, coachBaked = {};
+for (const m in COACH_ART) { const im = new Image(); im.onload = () => { try { const W = im.naturalWidth, H = im.naturalHeight, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
     g.shadowColor = 'rgba(23,19,32,.35)'; g.shadowBlur = Math.round(W / 16); g.drawImage(im, 0, 0);
-    c.toBlob(bl => { if (!bl) return; const b = coachEl.firstChild; b.style.backgroundImage = 'url(' + URL.createObjectURL(bl) + ')'; b.classList.add('baked'); }, 'image/png'); } catch (e) {} };
-  im.src = 'art/coach.webp'; }
+    c.toBlob(bl => { if (!bl) return; coachBaked[m] = URL.createObjectURL(bl); if ((coachEl.dataset.mood || 'normal') === m) coachMood(m, true); }, 'image/png'); } catch (e) {} };
+  im.src = COACH_ART[m]; }
+// which mood a line wants: a win or a gift laughs, a warning is serious, the rest (how to do a thing) is the normal one
+const COACH_LAUGH = /^(Learned|Looking good|Nice|It[\u2019']s ready|You found|You earned|All yours|Hey, rookie|Take a look around|It[\u2019']s Spooky|Safe in)/, COACH_SERIOUS = /(Out of paint|sun[\u2019']s coming|Rivals pound|eliminate|Don[\u2019']t forget|Now win it)/;
+const coachMoodOf = text => { const t = String(text || '').replace(/<[^>]+>|\*/g, ''); return COACH_LAUGH.test(t) ? 'laugh' : COACH_SERIOUS.test(t) ? 'serious' : 'normal'; };
+function coachMood(m, force) { m = COACH_ART[m] ? m : 'normal'; if (tutEl.dataset.mood !== m) tutEl.dataset.mood = m; if (!force && coachEl.dataset.mood === m) return; coachEl.dataset.mood = m;
+  const b = coachEl.firstChild; b.style.backgroundImage = 'url(' + (coachBaked[m] || COACH_ART[m]) + ')'; b.classList.toggle('baked', !!coachBaked[m]); }
 const tutBust = document.createElement('i'); tutBust.className = 'tbust'; tutBust.setAttribute('aria-hidden', 'true'); tutEl.querySelector('.tplate').prepend(tutBust);
 let coachOffT = 0;
 function coachCorner(side, top) {
@@ -27243,6 +27253,7 @@ function coachTalk() { coachEl.classList.remove('talk'); void coachEl.offsetWidt
 function tutUnderHead(r0) { const w = $('mWorld'); if (w.hidden || innerWidth > innerHeight || menuPage !== 'worlds') return 0; const h = w.querySelector('.whead').getBoundingClientRect(); return h.height ? h.bottom - r0.top + 4 : 0; }
 function tutShow(text, at, key, call, nodim, side, loose, low) {
   if (tutTip && tutTip.key === key) return;
+  coachMood(coachMoodOf(text)); // (v385)
   tutTip = { text, at: at || null, key, call: !!call, nodim: !!(nodim || loose), side: side || null, loose: !!loose, low: !!low }; /* (low: down at the page's foot, still) */ /* (loose: up top, a hand on the control, nothing dimmed or blocked) */ tutEl.dataset.style = call ? 'call' : 'coach'; { const fw = key === 'first'; if (tutEl.classList.contains('swipe') !== fw) tutEl.classList.toggle('swipe', fw); if (tutDim.classList.contains('slow') !== fw) tutDim.classList.toggle('slow', fw); } if (call) tutCall.innerHTML = escAttr(text).replace(/\*([^*]+)\*/g, '<em>$1</em>'); else tutTxt.textContent = text; if (!call && coachEl.classList.contains('on')) coachTalk(); tutEl.hidden = false; tutEl.classList.remove('on'); void tutEl.offsetWidth; tutEl.classList.add('on');
   const el = tutAt(); if (el) tutReveal(el);
   tutPlace(); tutDim.classList.toggle('on', !nodim && !loose && state !== 'play'); if (call) AU.plop(); else AU.bloop(); // (no dim in a match: the play must stay clear; Ol' Bloop says his lines, the short callouts just pop)
@@ -27440,7 +27451,7 @@ function tutRocket(D, dt) {
 }
 // the card that ends the lesson: the match holds still under it, and Let's do it lets it go
 const TG_REST = ['Now <em>win it!</em>', 'Beat him and cover as much of the canvas as you can. Bonus points every time you take him out.', 'Let\u2019s do it!'];
-function tutCardText(t) { $('tgTitle').innerHTML = t[0]; $('tgText').textContent = t[1] || ''; $('tgText').hidden = !t[1]; $('tgGo').textContent = t[2]; $('tgLater').hidden = !t[3]; if (t[3]) $('tgLater').textContent = t[3]; }
+function tutCardText(t) { $('tutGo').dataset.mood = coachMoodOf(t[0]) === 'serious' ? 'serious' : 'laugh'; /* (v385: the news makes him laugh; 'Now win it!' doesn't) */ $('tgTitle').innerHTML = t[0]; $('tgText').textContent = t[1] || ''; $('tgText').hidden = !t[1]; $('tgGo').textContent = t[2]; $('tgLater').hidden = !t[3]; if (t[3]) $('tgLater').textContent = t[3]; }
 // the welcome to the real game: commissions open, and what to chase next
 // (v273) back in the lobby after the Strokes lesson: Ol' Bloop tells you the new game modes are open. Once, for whoever has just finished it
 function tutModesDue() { return tutPh() === 'done' && store.tut.modes === 'due' && evUnlocked() && state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden && $('tutGo').hidden && !vic; }
