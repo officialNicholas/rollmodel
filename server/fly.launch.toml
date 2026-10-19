@@ -1,0 +1,44 @@
+# Fly.io settings for launch: ONE game machine, two dedicated cores, about 1,000 players at once (room for 1,500).
+# Deploy from this folder: fly deploy -c fly.launch.toml --ha=false
+# The same app, volume and data as before (the single machine keeps /data/store.json), so nothing moves. When players at
+# once near 1,000, switch to fly.toml (6 game machines and a store machine, 5,000 players): docs/net-scale.md.
+app = "rollmodel-game"
+primary_region = "ord"
+
+[env]
+  PORT = "8080"
+  TRUST_PROXY = "1"
+  DATA_FILE = "/data/store.json"
+  LOG_LEVEL = "info"
+  # the game doesn't show online pick-ups yet: none are handed out
+  RULES = '{"items":false}'
+  # matches on a worker thread, the main thread keeps the sockets and the lobby (on performance-2x: one worker).
+  # Measured: 1,000 players in duels, main thread 65% of a core, the match worker 49% (docs/net-scale.md)
+  MATCH_WORKERS = "auto"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+  [http_service.concurrency]
+    type = "connections"
+    soft_limit = 1000
+    hard_limit = 1500
+
+[[http_service.checks]]
+  grace_period = "10s"
+  interval = "15s"
+  method = "GET"
+  path = "/health"
+  timeout = "3s"
+
+[mounts]
+  source = "rm_data"
+  destination = "/data"
+
+# a shared CPU is held to about 1/16 of a core once its burst balance is spent, which stalls every match's tick
+[[vm]]
+  size = "performance-2x"
+  memory = "4gb"

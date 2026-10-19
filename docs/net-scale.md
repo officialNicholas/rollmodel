@@ -107,6 +107,13 @@ All six game machines are in Chicago to start, as now. Spreading them (say 2 in 
 the West Coast, 1 in Europe) cuts ping for players far from Chicago; Fly sends each player to the nearest machine with
 room. Only signing in and saving results go to the store machine.
 
+### Launch first on one machine (`fly.launch.toml`)
+
+Until players at once near 1,000, one performance-2x machine with a match worker does it, with no data to move: the same
+app, volume and `/data/store.json` as the shared-cpu machine before it, and no secrets. From `server/` on this branch
+(or the lead's, once this is merged): back up as in step 1 below, then `fly deploy -c fly.launch.toml --ha=false`. Check
+`/health`: `"ok":true` and one entry under `workers`. About $62 a month. Switch to the 5,000 setup below when needed.
+
 ### Deploying it (the lead, once the owner says so; agents never deploy)
 
 From `server/` on this branch:
