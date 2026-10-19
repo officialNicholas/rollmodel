@@ -4863,7 +4863,7 @@ html.fh .tutgo .tgcard .tava{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 371</p>
+      <p class="ver">Version 372</p>
     </div>
   </div>
 
@@ -19911,7 +19911,7 @@ function visuals(dt, rdt) {
       const a = hero.yaw, ly0 = myLook.head === 'hat' ? 0.44 : myLook.head === 'tophat' || myLook.head === 'pirate' ? 0.41 : 0.36, fk = faceK * faceK * (3 - 2 * faceK), d2 = dist * (1 - 0.34 * fk), ly = ly0 + (0.62 - ly0) * fk;
       dPos.set(hero.mx + Math.sin(a) * d2, ly + 0.06 + d2 * 0.16 * (1 - 0.6 * fk) + Math.sin(clock * 0.47) * 0.04, hero.mz + Math.cos(a) * d2); dLook.set(hero.mx, ly, hero.mz); }
     // the title screen: a slow, high drift around the canvas, like the opening shot of a match
-    else { const a = hero.yaw + Math.sin(clock * 0.21) * 0.05, ly = 0.36, d2 = dist; dPos.set(hero.mx + Math.sin(a) * d2, ly + 0.02 + d2 * 0.13 + Math.sin(clock * 0.47) * 0.025, hero.mz + Math.cos(a) * d2); dLook.set(hero.mx, ly + 0.02, hero.mz); }
+    else { const a = hero.yaw + Math.sin(clock * 0.21) * 0.05, ly = 0.36, d2 = dist; dPos.set(hero.mx + Math.sin(a) * d2, ly + 0.02 + d2 * (lineupOn() ? LINEUP.pitch : 0.13) + Math.sin(clock * 0.47) * 0.025, hero.mz + Math.cos(a) * d2); dLook.set(hero.mx, ly + 0.02, hero.mz); }
     sayTick(rdt);
   }
   else if (state === 'reveal') { rdtCam = rdt; revealCam(); }
@@ -20750,6 +20750,18 @@ function lobbyFrame() {
   if (!(x1 - x0 > 60) || !(y1 - y0 > 60)) return heroDist;
   const fw = x1 - x0, fh = y1 - y0, tx = (x0 + x1) / 2, feetY = y0 + fh * (land ? 0.86 : 0.86);
   const tall = charTall(myLook);
+  if (land && lineupOn()) { // (v372) the line-up, centred in the width the side plates leave beside the three of you: one that reaches down
+    // beside you narrows it (iPhone Duo closed, a phone on its side), one that stands higher doesn't; the three stand in the middle of the
+    // free space, a little low (with the rank bar over your head), never lower than they did
+    const tv = Math.tan(LINEUP.lens * Math.PI / 360), ext = LINEUP.gap + 0.45, body = charTall({}); let lo = SAI.l + 12, hi = W - SAI.r - 12, ppu = 1, fy = y1;
+    for (let k = 0; k < 2; k++) {
+      ppu = Math.min((hi - lo) / 2 * LINEUP.wide / ext, Hh * LINEUP.tall / body, fh * 0.84 / tall); fy = Math.min(y0 + fh * LINEUP.feet, (y0 + y1) / 2 + (tall * ppu + 64) / 2);
+      const bt = fy - tall * ppu + 16; if (L.width > 0 && L.bottom - r.top > bt && L.top - r.top < fy) lo = Math.max(lo, L.right - r.left + 8); if (R.width > 0 && R.bottom - r.top > bt && R.top - r.top < fy) hi = Math.min(hi, R.left - r.left - 8);
+      if (hi - lo < 180) { const m = (lo + hi) / 2; lo = m - 90; hi = m + 90; }
+    }
+    heroDist = clamp(Hh / (2 * tv * ppu) / Math.hypot(1, LINEUP.pitch), 2, 24); hero.mx = P.x; hero.mz = P.z; heroOff.x = W / 2 - (lo + hi) / 2; heroOff.y = Hh / 2 - (fy - 0.36 * ppu);
+    return heroDist;
+  }
   const px = Math.min(fh * (land ? 0.84 : 0.84), fw * 0.74, Hh * 0.6);
   const tv = Math.tan(heroFov() * Math.PI / 360), asp = W / Math.max(1, Hh), wide = VP.slime && VP.slime.kind === 'axo' ? 0.9 : 0.8, dist = clamp(Math.max(tall * Hh / (2 * tv * px), wide / (2 * tv * asp * 0.46)), 1.65, 12), ly = 0.36; /* (by width too: on a wider screen the height alone made it fill the view) */
   heroDist = dist; hero.mx = P.x; hero.mz = P.z;
@@ -22104,7 +22116,11 @@ $('stages').addEventListener('click', e => { const t = e.target.closest('button'
 // the menu shot: your blob and the holy water side by side at your spawn, facing a camera that looks in across the canvas
 const hero = { yaw: 0, mx: 0, mz: 0 }, heroOff = { x: 0, y: 0 }, sideMQ = window.matchMedia ? matchMedia('(min-width:860px) and (min-aspect-ratio:1/1)') : { matches: false }, endSideMQ = window.matchMedia ? matchMedia('(min-width:860px) and (min-aspect-ratio:1/1),(max-height:520px) and (min-aspect-ratio:1/1)') : { matches: false };
 let heroK = 0, heroT = 0, heroDist = 5.5;
-const heroFov = () => camera.aspect < 0.8 ? 50 : 38;
+// (v372) in landscape the lobby is a line-up, you in the middle and a party member's spot either side, seen through a long lens from well
+// back: lens (degrees), gap (from you to a spot), wide (the share of the width the three take), tall (your height, at most, as a share of the
+// screen's), feet (how far down the free space your feet stand), pitch (how much the camera looks down: its height over its distance)
+const LINEUP = { lens: 24, gap: 1.25, wide: 0.86, tall: 0.3, feet: 0.82, pitch: 0.24 }, lineupOn = () => !lookOpen && viewW > viewH;
+const heroFov = () => camera.aspect < 0.8 ? 50 : lineupOn() ? LINEUP.lens : 38;
 function heroSees(ax, ay, az, bx, by, bz) {
   const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, bz - az) / 0.3));
   for (let k = 0; k <= n; k++) {
@@ -25698,7 +25714,7 @@ function placePBar() {
   if (pbar.hidden) return;
   pbR.setFromMatrixColumn(camera.matrixWorld, 0); pbR.y = 0; pbR.normalize();
   for (const [el, s] of [[slotL, -1], [slotR, 1]]) {
-    pbV.set(P.x + pbR.x * s * 1.05, P.y + 0.28, P.z + pbR.z * s * 1.05).project(camera);
+    const g = lineupOn() ? LINEUP.gap : 1.05; pbV.set(P.x + pbR.x * s * g, P.y + 0.28, P.z + pbR.z * s * g).project(camera);
     el.style.left = clamp((pbV.x * 0.5 + 0.5) * viewW, Math.max(s < 0 ? PB.slotLo || 42 : 42, 42 + SAI.l), viewW - 42 - SAI.r).toFixed(1) + 'px'; el.style.top = ((0.5 - pbV.y * 0.5) * viewH).toFixed(1) + 'px';
   }
   const sr = stage.getBoundingClientRect();
