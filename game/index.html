@@ -4691,6 +4691,16 @@ html.fh .menu .mworld .gdots{grid-area:auto;position:absolute;left:0;right:0;top
 html.fh .menu .mworld .sgrid{grid-area:auto;position:absolute;left:50%;top:calc(max(12px,env(safe-area-inset-top)) + 76px);width:min(calc(100% - 32px),calc((var(--fa) - 110px) * 1.16 + 14px));translate:-50% 0;max-height:none;overflow:visible;padding:0;gap:10px 14px}
 /* Ol' Bloop's cards in the lower screen: his picture would sit on the fold, so the card goes alone */
 html.fh .tutgo .tgcard .tava{display:none}
+/* (v373) the Locker's eyes: the styles and the colours in the same five columns, the rows apart, so the rings of the chosen ones (the
+   colour grows x1.18 with a white and a black ring; the style lifts with its ring) never touch a neighbour */
+#mLocker.sgp .lkeyes{gap:22px;padding:4px 2px 10px}
+#mLocker.sgp .lkstyles,#mLocker.sgp .lkirises{display:grid;grid-template-columns:repeat(auto-fill,44px);column-gap:14px;row-gap:22px;justify-items:center;align-items:center}
+@media (max-width:359px){#mLocker.sgp .lkstyles,#mLocker.sgp .lkirises{grid-template-columns:repeat(auto-fill,38px);column-gap:13px}}
+/* (v373) the lock on a style you don't have yet: the rule that sizes the eye pictures (36px) caught the lock's picture too, so a big cream
+   lock spilled out of its little dark badge onto the paper and only the badge's corner showed. The lock keeps its own size, in a dark
+   badge a little bigger than before, ringed in the paper's colour so it stands off the tile's corner */
+#mLocker.sgp .lkstyles .eyes .lk{right:-7px;top:-7px;width:20px;height:20px;border-radius:6px;background:var(--black);color:var(--cream);box-shadow:0 0 0 2px var(--paper)}
+#mLocker.sgp .lkstyles .eyes .lk svg{width:12px;height:12px;filter:none;opacity:1}
 </style>
 
 <div id="stage">
@@ -4863,7 +4873,7 @@ html.fh .tutgo .tgcard .tava{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 372</p>
+      <p class="ver">Version 373</p>
     </div>
   </div>
 
