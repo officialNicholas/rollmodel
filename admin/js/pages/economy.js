@@ -1,11 +1,11 @@
-// Economy: every Paint Shop item with its price (live or default), views, buys and conversion; the price editor;
+// Economy: every Paint Shop item and Stroke for dabs with its price (live or default), views, buys and conversion; the price editor;
 // the live prices and who set them; dabs earned against spent; balances; Strokes crafts and ad skips; where dabs come from.
 
 import { h, card, stat, grid, table, empty, note, chip, button, field, dialog, actionsRow, errorLine, toast, facts, rate } from '../ui.js';
 import { lineChart, chartCard, hbars, legend } from '../charts.js';
 import { num, pct, ratio, sum, ago, dateTime, dabs } from '../format.js';
 import { rpc, whyText } from '../api.js';
-import { catalog, item as catItem, slotName, stageName, strokeName, earnName } from '../catalog.js';
+import { catalog, priced as known, slotName, stageName, strokeName, earnName } from '../catalog.js';
 
 export default {
   id: 'economy', title: 'Economy', icon: 'economy', range: true,
@@ -17,7 +17,11 @@ export default {
   view,
 };
 
-// Every catalog item, plus anything the database knows that the catalog doesn't.
+// Strokes bought with dabs (the game's v370: all but the starters and the Giant), shown and priced like the items.
+const KINDS = { special: 'Special stroke', skill: 'Skill', transform: 'Transform' };
+const pricedStrokes = () => (catalog().strokes || []).filter((x) => x.price != null).map((x) => ({ id: x.id, name: x.name, price: x.price, stroke: x.kind }));
+
+// Every catalog item and priced Stroke, plus anything the database knows that the catalog doesn't.
 export function itemTable(e, prices) {
   const api = new Map((e.items || []).map((r) => [r.item, r]));
   const live = new Map(prices.map((p) => [p.item, p]));
@@ -30,8 +34,8 @@ export function itemTable(e, prices) {
       dabs: r.dabs || 0, last: r.last_buy || null,
     };
   };
-  const rows = catalog().items.map((it) => row(it.id, it, api.get(it.id) || {}));
-  for (const r of e.items || []) if (!catItem(r.item)) rows.push(row(r.item, null, r));
+  const rows = [...catalog().items, ...pricedStrokes()].map((it) => row(it.id, it, api.get(it.id) || {}));
+  for (const r of e.items || []) if (!known(r.item)) rows.push(row(r.item, null, r));
   return rows;
 }
 
@@ -53,11 +57,11 @@ function view({ e, prices }, ctx) {
     return button('Edit', { kind: 'ghost small', ico: 'edit', attrs: { 'aria-label': 'Edit the price of ' + r.name },
       onclick: () => priceDialog({ row: r, onDone: reload }) });
   };
-  const items = card('Paint Shop items', { sub: 'Views, buys and dabs are ' + span + '. Change a price with Edit: players get it within about a minute.' },
+  const items = card('Paint Shop items and Strokes', { sub: 'Views, buys and dabs are ' + span + '. Change a price with Edit: players get it within about a minute.' },
     table([
       { key: 'name', label: 'Item', sort: (r) => r.name, cell: (r) => h('span', { class: 'item-cell' },
         h('span', { class: 'item-name' }, r.name),
-        h('span', { class: 'item-meta' }, r.it ? slotName(r.it.slot) + ' · ' + (stageName(r.it.stage) || r.it.stage) : r.id),
+        h('span', { class: 'item-meta' }, r.it ? (r.it.stroke ? 'Strokes · ' + (KINDS[r.it.stroke] || r.it.stroke) : slotName(r.it.slot) + ' · ' + (stageName(r.it.stage) || r.it.stage)) : r.id),
         r.find ? chip('Find first', 'find') : null, r.season ? chip('Season') : null, !r.known ? chip('Not in the catalog', 'warn') : null) },
       { key: 'price', label: 'Price', num: true, sort: (r) => (r.gift ? -1 : r.price), cell: (r) => (r.gift
         ? h('span', { class: 'price' }, 'Free', chip('Gift'))
@@ -71,16 +75,16 @@ function view({ e, prices }, ctx) {
       { key: 'dabs', label: 'Dabs', num: true, sort: (r) => r.dabs, cell: (r) => num(r.dabs) },
       { key: 'last', label: 'Last bought', sort: (r) => (r.last ? Date.parse(r.last) : 0), cell: (r) => (r.last ? h('span', { title: dateTime(r.last) }, ago(r.last)) : h('span', { class: 'muted' }, 'Never')) },
       { key: 'edit', label: 'Change the price', hideLabel: true, cls: 'act', cell: editCell },
-    ], rows, { caption: 'Paint Shop items', cls: 'items-table' }),
+    ], rows, { caption: 'Paint Shop items and Strokes', cls: 'items-table' }),
     note('Could buy: the share of views where the player could have bought it right then (in stock and enough dabs). ',
       h('b', null, 'Find first'), ' items have to be found on their canvas before they can be bought. Gifts are free and can\'t be priced.'));
 
   const live = card('Live prices', { sub: 'Prices set here that override the game\'s defaults, and who set them' },
     prices.length ? table([
-      { key: 'item', label: 'Item', sort: (p) => (catItem(p.item) || {}).name || p.item, cell: (p) => (catItem(p.item) || {}).name || p.item },
+      { key: 'item', label: 'Item', sort: (p) => (known(p.item) || {}).name || p.item, cell: (p) => (known(p.item) || {}).name || p.item },
       { key: 'price', label: 'Live price', num: true, sort: (p) => p.price, cell: (p) => num(p.price) },
-      { key: 'def', label: 'Default', num: true, cell: (p) => (catItem(p.item) ? num(catItem(p.item).price) : 'n/a') },
-      { key: 'chg', label: 'Change', num: true, cell: (p) => change(catItem(p.item) ? catItem(p.item).price : null, p.price) },
+      { key: 'def', label: 'Default', num: true, cell: (p) => (known(p.item) ? num(known(p.item).price) : 'n/a') },
+      { key: 'chg', label: 'Change', num: true, cell: (p) => change(known(p.item) ? known(p.item).price : null, p.price) },
       { key: 'at', label: 'Set', sort: (p) => Date.parse(p.updated_at) || 0, cell: (p) => h('span', { title: dateTime(p.updated_at) }, ago(p.updated_at)) },
       { key: 'by', label: 'By', sort: (p) => p.updated_by || '', cell: (p) => p.updated_by || 'n/a' },
       { key: 'clear', label: 'Go back to the default', hideLabel: true, cls: 'act', cell: (p) => {

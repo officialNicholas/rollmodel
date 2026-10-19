@@ -262,9 +262,9 @@ Newest first, at most 500. Actions: `set_price`, `set_password`, `email_reset`, 
 | `tut` | `s`: step id (`catalog.json` `tutorial`) | That step reached, once per install. |
 | `match` | `m` (mode), `on` (online, bool), `r` (`win`\|`loss`\|`draw`), `cov` (0..100), `ko` (0..99), `s` (seconds, 0..600), `st` (canvas id), `d` (`easy`\|`hard`\|...) | A match played to its end. |
 | `earn` | `src` (`match`\|`comm`\|`board`\|`lesson`\|`other`), `n` (dabs, 0..100000) | Dabs earned. |
-| `view` | `i` (item id), `a` (could buy it right then: in stock and enough dabs, bool) | The item looked at in the Paint Shop (the game sends it once per item per session). |
-| `buy` | `i` (item id), `p` (dabs paid) | An item bought with dabs. |
-| `craft` | `i` (stroke id) | A Strokes craft started. |
+| `view` | `i` (item or Stroke id), `a` (could buy it right then: in stock, open at your rank and enough dabs, bool) | The item looked at in the Paint Shop, or a Stroke on sale looked at on the Strokes page (since game v370); once per id per session. |
+| `buy` | `i` (item or Stroke id), `p` (dabs paid) | An item bought with dabs, or a Stroke (since game v370 every Stroke but the starters and the Giant is bought, not crafted). |
+| `craft` | `i` (stroke id) | A Strokes craft started (since game v370 only the Giant is crafted; the rest are bought). |
 | `skip` | `i` (stroke id) | A craft finished early with a rewarded ad. |
 | `ad` | `pl` (`craft`\|`lesson`: the Strokes lesson's own craft), `r` (`ask`\|`shown`\|`reward`\|`fail`) | A rewarded ad's progress (in the iPhone app; the web page has no real ads). |
 | `rank` | `n` (1..999) | A new rank reached. |

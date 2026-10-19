@@ -1,5 +1,5 @@
 """admin_catalog.py <test page>: the game's catalog for the dashboard (admin/catalog.json), read out of the game itself.
-Items (with their default prices), Strokes, modes, canvases, the tutorial's steps and the ad placements. Run it again when items or
+Items and Strokes (with their default prices), modes, canvases, the tutorial's steps and the ad placements. Run it again when items or
 prices change in the game. Needs a test build (window.__T) served on the local test server (port 8786)."""
 import asyncio, sys, json, os
 sys.path.insert(0, '/tmp/claude-0/-home-user-rollmodel/5c52352e-692f-5301-ac55-ec4d2c708f3e/scratchpad/strokes_gear')
@@ -11,7 +11,7 @@ JS = r"""(() => {
   if (store.st) store.st.lp = null; // (and any live prices: these are the game's defaults)
   const items = ITEMS.map(w => ({ id: w.id, name: w.name, slot: w.slot || null, stage: w.stage || null, season: !!w.season, gift: !!w.gift, find: !!needFind(w), price: PRICE(w) }));
   if (store.tut) store.tut.price = keep;
-  const st = (kind, L) => L.map(s => ({ id: s.id, name: s.name, kind, craft_min: s.craft || null, rank: s.rank || null }));
+  const st = (kind, L) => L.map(s => ({ id: s.id, name: s.name, kind, craft_min: s.craft || null, rank: s.rank || null, price: s.price || null })); // (v370: priced strokes are bought with dabs)
   const strokes = [...st('special', SPECIALS), ...st('skill', SKILLS), ...st('transform', ST_ITEMS)];
   const modes = MODES.map(m => ({ id: m[0], name: m[1], sub: m[2] }));
   const stages = VOTE_STAGES.map(id => ({ id, name: (typeof ttName === 'function' ? ttName(id) : null) || id }));

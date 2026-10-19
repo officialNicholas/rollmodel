@@ -17,6 +17,8 @@ const get = (k, id) => (maps[k] && maps[k].get(id)) || null;
 const name = (k, id) => (get(k, id) || {}).name || String(id ?? '');
 
 export const item = (id) => get('items', id);
+// what has a price: an item, or a Stroke bought with dabs (the game's v370: all but the starters and the Giant)
+export const priced = (id) => get('items', id) || ((get('strokes', id) || {}).price != null ? get('strokes', id) : null);
 export const itemName = (id) => name('items', id);
 export const strokeName = (id) => name('strokes', id);
 export const modeName = (id) => name('modes', id);

@@ -267,77 +267,88 @@
    "name": "Rocket",
    "kind": "special",
    "craft_min": null,
-   "rank": null
+   "rank": null,
+   "price": null
   },
   {
    "id": "giant",
    "name": "Giant",
    "kind": "special",
    "craft_min": 20,
-   "rank": null
+   "rank": null,
+   "price": null
   },
   {
    "id": "freeze",
    "name": "Flash Freeze",
    "kind": "special",
-   "craft_min": 25,
-   "rank": null
+   "craft_min": null,
+   "rank": null,
+   "price": 500
   },
   {
    "id": "swim",
    "name": "Swim faster",
    "kind": "skill",
    "craft_min": null,
-   "rank": null
+   "rank": null,
+   "price": null
   },
   {
    "id": "repel",
    "name": "Weather Repel",
    "kind": "skill",
-   "craft_min": 15,
-   "rank": null
+   "craft_min": null,
+   "rank": null,
+   "price": 300
   },
   {
    "id": "pockets",
    "name": "Deep Pockets",
    "kind": "skill",
-   "craft_min": 20,
-   "rank": null
+   "craft_min": null,
+   "rank": null,
+   "price": 400
   },
   {
    "id": "roller",
    "name": "Roller",
    "kind": "transform",
    "craft_min": null,
-   "rank": 1
+   "rank": 1,
+   "price": null
   },
   {
    "id": "turret",
    "name": "Turret",
    "kind": "transform",
-   "craft_min": 10,
-   "rank": 3
+   "craft_min": null,
+   "rank": 3,
+   "price": 200
   },
   {
    "id": "trap",
    "name": "Paint Trap",
    "kind": "transform",
-   "craft_min": 15,
-   "rank": 5
+   "craft_min": null,
+   "rank": 5,
+   "price": 300
   },
   {
    "id": "whirl",
    "name": "Whirlwind",
    "kind": "transform",
-   "craft_min": 20,
-   "rank": 7
+   "craft_min": null,
+   "rank": 7,
+   "price": 400
   },
   {
    "id": "boom",
    "name": "Boomerang",
    "kind": "transform",
-   "craft_min": 25,
-   "rank": 9
+   "craft_min": null,
+   "rank": 9,
+   "price": 500
   }
  ],
  "modes": [

@@ -3,7 +3,7 @@
 import { h, card, table, empty, field } from '../ui.js';
 import { num, dateTime, ago, UUID } from '../format.js';
 import { rpc } from '../api.js';
-import { item as catItem } from '../catalog.js';
+import { priced } from '../catalog.js';
 
 export default {
   id: 'audit', title: 'Audit log', icon: 'audit', range: false,
@@ -33,7 +33,7 @@ export function detailText(row) {
   const who = d.name || (row.target && !UUID.test(row.target) ? row.target : null);
   switch (row.action) {
     case 'set_price': {
-      const it = catItem(row.target);
+      const it = priced(row.target);
       const def = it ? it.price : null;
       return (it ? it.name : row.target || 'An item') + ': ' + priceText(d.from, def) + ' → ' + priceText(d.to, def);
     }

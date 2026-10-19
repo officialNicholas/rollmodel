@@ -4446,6 +4446,17 @@ html.appstore #errLine,html.appstore #lastErr{display:none!important}
 #mLocker.sgp .sgcard .sgcf{gap:4px;min-height:21px}
 #mLocker.sgp .sgcard .sgcf b{font-weight:400}
 #mLocker.sgp .sgcard .sgcf .dropi{width:13px;height:13px;flex:none}
+/* (v370) the Strokes page's prices and dabs, as the Locker's */
+#mStrokes.sgp .sgcard .sgcf{gap:4px}
+#mStrokes.sgp .sgcard .sgcf .dropi{width:13px;height:13px;flex:none}
+#mStrokes.sgp .sgdo small{display:inline-flex;align-items:center;gap:3px;font-size:12px}
+#mStrokes.sgp .sgdo .dropi{width:14px;height:14px}
+#mStrokes.sgp .sgdo:disabled .dropi{opacity:.8}
+#mStrokes.sgp .sgdo.nope{animation:lknope .35s}
+#mStrokes.sgp .sgbadge.dabs .sgbi svg{width:20px;height:20px}
+#mStrokes.sgp .sgbadge.bump{animation:tilepop .42s cubic-bezier(.2,1.6,.4,1)}
+#mStrokes.sgp .sghow .dropi{flex:none}
+@media (prefers-reduced-motion:reduce){#mStrokes.sgp .sgdo.nope,#mStrokes.sgp .sgbadge.bump{animation:none}}
 #mLocker.sgp .sgcard .sgcf .lk{display:grid;place-items:center;width:12px;height:12px}
 #mLocker.sgp .sgcard .sgcf .lk svg{width:11px;height:11px}
 #mLocker.sgp .sgcard.sale .sgcf{background:#FFD34D}
@@ -4782,7 +4793,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 369</p>
+      <p class="ver">Version 370</p>
     </div>
   </div>
 
@@ -20856,6 +20867,7 @@ function stEv(e) { try { if (stOff()) return; ST.q.push(e); if (ST.q.length > ST
 // a tutorial step reached (each once per install)
 function stStep(id) { try { const s = stState(); if (s.tut.includes(id)) return; s.tut.push(id); stEv({ k: 'tut', s: id }); } catch (e) {} }
 // an item looked at in the Paint Shop (once a session), and whether it could be bought right then (in stock, and enough dabs)
+function stStrokeView(o) { try { if (!stBuys(o) || strokesOf().own.includes(o.id) || ST.seen.has(o.id)) return; ST.seen.add(o.id); stEv({ k: 'view', i: o.id, a: stDue(o) && (store.drops || 0) >= stPrice(o) }); } catch (e) {} } // (v370: a stroke on sale)
 function stView(w) { try { if (ST.seen.has(w.id)) return; ST.seen.add(w.id); stEv({ k: 'view', i: w.id, a: (owns(w.id) || !needFind(w)) && (store.drops || 0) >= PRICE(w) }); } catch (e) {} }
 // a rewarded ad's progress (real ads only: the app's)
 function stAd(r) { try { if (ADS.mode === 'app') stEv({ k: 'ad', pl: ADS.pl || 'craft', r }); } catch (e) {} }
@@ -21087,6 +21099,11 @@ ST_ITEMS.push({ id: 'whirl', name: 'Whirlwind', desc: 'Charge ahead in a tornado
 ST_ITEMS.push({ id: 'boom', name: 'Boomerang', desc: 'Throw it out in a loop. It comes back.', does: ['Tap it: it flies out ahead, swings round and comes back to you', 'It paints a stripe the whole way and knocks out any rival it clips', 'Turning as you throw curves it your way. Rivals can jump or roll to dodge'] }); // (v301)
 // (v286) in the order they open up: the Roller yours from the start, each of the others from a rank and then crafted on the bench
 { const R = { roller: [1, 0], turret: [3, 10], trap: [5, 15], whirl: [7, 20], boom: [9, 25] }; ST_ITEMS.sort((a, b) => R[a.id][0] - R[b.id][0]); for (const o of ST_ITEMS) { o.rank = R[o.id][0]; if (R[o.id][1]) o.craft = R[o.id][1]; } }
+// (v370) bought with dabs, not crafted: every stroke but the Giant (Ol' Bloop's lesson crafts that one), at 20 dabs for each minute
+// its craft took. A live price from the dashboard wins, as in the Paint Shop
+const ST_PRICE = { turret: 200, repel: 300, trap: 300, pockets: 400, whirl: 400, freeze: 500, boom: 500 };
+for (const o of [...SPECIALS, ...SKILLS, ...ST_ITEMS]) if (ST_PRICE[o.id]) { o.price = ST_PRICE[o.id]; delete o.craft; }
+const stBuys = o => !!(o && o.price), stPrice = o => { const lp = stLive(o.id); return lp >= 0 ? lp : o.price; };
 const FZ_ARM = 'M32 32V7M32 15l-6.5-5.5M32 15l6.5-5.5M32 24l-5-4.2M32 24l5-4.2';
 Object.assign(STROKE_ICON, { repel: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 33v15a5.5 5.5 0 0 1-11 0" fill="none" stroke="#171320" stroke-width="3.6" stroke-linecap="round"/><path d="M7 33a25 23 0 0 1 50 0q-6.25-5-12.5 0-6.25-5-12.5 0-6.25-5-12.5 0Q13.25 28 7 33z" fill="#7CC8FF" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M32 10.5q-9 9-8 22M32 10.5q9 9 8 22" fill="none" stroke="#171320" stroke-width="2.2" opacity=".5"/><path d="M14 22q5-8 13-10" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".85"/><path d="M32 10.5V6" stroke="#171320" stroke-width="3.2" stroke-linecap="round"/><path d="M11 44l-2.5 5M53 41l-2.5 5M47 52l-2 4.4" stroke="#3E9BE0" stroke-width="3" stroke-linecap="round"/></svg>', pockets: '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="23" cy="19" r="9" fill="#B98CFF" stroke="#171320" stroke-width="3.2"/><circle cx="20" cy="16" r="2.6" fill="#fff" opacity=".85"/><rect x="33" y="7" width="20" height="10" rx="5" fill="#F4EEE3" stroke="#171320" stroke-width="3.2"/><path d="M43 17v10" stroke="#171320" stroke-width="3.2" stroke-linecap="round"/><path d="M11 27h42l-4 25a5 5 0 0 1-5 4.4H20a5 5 0 0 1-5-4.4z" fill="#C98B4E" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M11 27h42v6.5H11z" fill="#A86B34" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M20 43h24" stroke="#F4EEE3" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="3 4" opacity=".85"/></svg>',
   freeze: '<svg viewBox="0 0 64 64" aria-hidden="true"><g fill="none" stroke-linecap="round" stroke-linejoin="round">' + [['#171320', 9], ['#7CC8FF', 5], ['#EAF7FF', 1.8]].map(([c, w]) => [0, 60, 120, 180, 240, 300].map(a => '<path d="' + FZ_ARM + '" stroke="' + c + '" stroke-width="' + w + '" transform="rotate(' + a + ' 32 32)"/>').join('')).join('') + '</g><circle cx="32" cy="32" r="6" fill="#EAF7FF" stroke="#171320" stroke-width="3"/></svg>' });
@@ -21106,6 +21123,7 @@ const stReady = id => (stIsSkill(id) ? spName(id) : 'The ' + spName(id)) + ' is 
 const SWIM_BOOST = 1.08, STROKE_LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 10.5V7.8a4.5 4.5 0 0 1 9 0v2.7" fill="none" stroke="currentColor" stroke-width="3"/><rect x="4.5" y="10" width="15" height="12" rx="2.6" fill="currentColor"/></svg>';
 function strokesOf() { const d = store.strokes || (store.strokes = {}); if (!d.special) d.special = 'rocket'; if (!d.skill) d.skill = 'swim'; if (!Array.isArray(d.own)) d.own = ['rocket', 'swim']; for (const k of ST_STARTERS) if (!d.own.includes(k)) d.own.push(k);
   if (!d.sk257) { d.sk257 = 1; d.own = d.own.filter(k => !['repel', 'pockets'].includes(k) || k === d.skill); } // (v257: skills are crafted now; the ones handed out before go back on the bench, all but the one you have on)
+  if (!d.b370) { d.b370 = 1; if (d.craft && ST_PRICE[d.craft.id]) { if (!d.own.includes(d.craft.id)) d.own.push(d.craft.id); d.fresh = d.craft.id; d.craft = null; } } // (v370: what was on the bench when strokes went on sale is done)
   if (!d.it286) { d.it286 = 1; if (stIsItem(d.item) && d.item !== 'roller' && !d.own.includes(d.item)) d.own.push(d.item); } /* (v286: transforms are crafted now; the one you had on stays yours) */ if (!SKILLS.some(x => x.id === d.skill) || !d.own.includes(d.skill)) d.skill = 'swim'; if (!stIsItem(d.item) || !d.own.includes(d.item)) d.item = 'roller'; return d; }
 const stRank = o => stIsItem(o.id) ? (o.rank || 1) : ABIL_RANK, stDue = o => repOf(store.xp || 0).lv >= stRank(o); // (v286: a transform opens at its own rank)
 const strokeOwned = id => strokesOf().own.includes(id), strokeSpecial = () => { const d = strokesOf(); return strokeOwned(d.special) ? d.special : 'rocket'; }, strokeSkill = () => strokesOf().skill, strokeItem = () => strokesOf().item;
@@ -21251,6 +21269,15 @@ function adPrivPaint() {
   b.addEventListener('click', () => { AU.init(); AU.ui(); nativeSay('ads', { privacy: true }); }); p.after(b);
 }
 setTimeout(() => { if (strokesDue()) { adHello(false); adWarm(); } }, 5000); // (once the game's up: the app checks with Google, and readies an ad if one may be wanted)
+// (v370) buying a stroke: the dabs paid, and it's yours and on straight away
+function stBuy(id) {
+  const d = strokesOf(), o = stDef(id); if (!stBuys(o) || d.own.includes(id)) return;
+  if (!stDue(o)) { AU.nope(); hap('error'); kick($('sgDo'), 'nope'); stToast('Reach rank ' + stRank(o) + ' to buy ' + spName(id)); return; }
+  const p = stPrice(o), n = store.drops || 0; if (n < p) { AU.nope(); hap('error'); kick($('sgDo'), 'nope'); stToast('You need ' + (p - n) + ' more dabs'); return; }
+  store.drops = n - p; d.own.push(id); if (d.fresh === id) d.fresh = null; stEv({ k: 'buy', i: id, p }); save(); showDrops();
+  sgEquip(id); AU.power(); hap('success'); kick($('sgBadge'), 'bump');
+  stToast('Bought! ' + o.name + ' is ' + (stIsItem(id) ? 'your starting transform' : stIsSkill(id) ? 'your skill' : 'your special stroke'));
+}
 function equipSpecial(id) { const d = strokesOf(); if (!d.own.includes(id) || d.special === id) return; d.special = id; if (d.fresh === id) d.fresh = null; save(); AU.ready && AU.ready(); buzz(8); renderStrokes(); stToast(SPECIALS.find(x => x.id === id).name + ' is your special stroke'); }
 function stToast(msg) { const w = $('mStrokes'), old = w.querySelector('.sttoast'); if (old) old.remove(); const t = document.createElement('span'); t.className = 'sttoast'; t.setAttribute('role', 'status'); t.textContent = msg; w.appendChild(t); clearTimeout(stToastT); stToastT = setTimeout(() => t.remove(), 2300); }
 const mmss = ms => { const t = Math.ceil(ms / 1000), m = Math.floor(t / 60), sc = t % 60; return m + ':' + (sc < 10 ? '0' : '') + sc; };
@@ -21276,10 +21303,10 @@ function stSetCat(cat, quiet) {
 }
 function stTile(o, skill) {
   const d = strokesOf(), item = skill === 'item', cat = item ? 'item' : skill ? 'skill' : 'special', own = d.own.includes(o.id), on = own && stOnOf(cat) === o.id, cr = !!d.craft && d.craft.id === o.id, ready = own && !on && d.fresh === o.id, lock = !own && !cr && !stDue(o), sel = sgSelId(cat) === o.id;
-  const st = on ? 'equipped' : cr ? 'crafting, ' + mmss(craftLeft()) + ' left' : own ? (ST_STARTERS.includes(o.id) ? 'yours' : 'owned') : lock ? 'locked until rank ' + stRank(o) : 'craft it in ' + o.craft + ' minutes';
+  const st = on ? 'equipped' : cr ? 'crafting, ' + mmss(craftLeft()) + ' left' : own ? (ST_STARTERS.includes(o.id) ? 'yours' : 'owned') : lock ? 'locked until rank ' + stRank(o) : stBuys(o) ? stPrice(o) + ' dabs' : 'craft it in ' + o.craft + ' minutes';
   const tag = cr ? '<i class="sgpb"><i></i></i>' : lock ? '<span class="sgst lk">' + STROKE_LOCK + 'Rank ' + stRank(o) + '</span>' : '';
   // (v323) the strip: Equipped, the craft time, the bench's countdown, or nothing
-  const foot = on ? 'Equipped' : cr ? '<b>' + mmss(craftLeft()) + '</b>' : !own && !lock ? o.craft + ' min' : '';
+  const foot = on ? 'Equipped' : cr ? '<b>' + mmss(craftLeft()) + '</b>' : !own && !lock ? (stBuys(o) ? DROP_SVG + stPrice(o) : o.craft + ' min') : ''; // (v370: a price)
   return '<button class="sgcard' + (on ? ' on' : '') + (cr ? ' crafting' : '') + (ready ? ' ready' : '') + (!own && !cr ? ' raw' : '') + (lock ? ' lock' : '') + (sel ? ' sel' : '') + '" type="button" data-' + (item ? 'it' : skill ? 'sk' : 'st') + '="' + o.id + '" aria-pressed="' + sel + '" aria-label="' + escAttr(o.name + ', ' + st) + '"' + (cr ? ' style="--p:' + stPct(o) + '"' : '') + '>'
     + '<i class="sghook" aria-hidden="true"></i><span class="sgcb"><span class="sgca">' + STROKE_ICON[o.id] + '</span>' + tag + '</span><span class="sgcf" aria-hidden="true">' + foot + '</span>'
     + (on ? '<i class="sgeq" aria-hidden="true">' + ST_CHECK + '</i>' : '') + (ready ? '<i class="sgnew" aria-hidden="true">New</i>' : '') + '</button>';
@@ -21306,13 +21333,15 @@ function stPopRender() {
   const d = strokesOf(), skill = stIsSkill(id), item = stIsItem(id), own = d.own.includes(id), on = own && stOnOf(stCatOf(id)) === id, cr = !!d.craft && d.craft.id === id;
   const card = $('stPop').querySelector('.stpop'); card.classList.toggle('skill', skill || item); card.dataset.cat = stCatOf(id); card.dataset.id = id;
   $('stPopKind').textContent = item ? 'Transform' : skill ? 'Skill' : 'Special stroke';
-  const ow = $('stPopOwn'); ow.hidden = !own; ow.innerHTML = ST_CHECK + (on ? 'Equipped' : ST_STARTERS.includes(id) ? 'Yours' : 'Crafted');
+  const ow = $('stPopOwn'); ow.hidden = !own; ow.innerHTML = ST_CHECK + (on ? 'Equipped' : ST_STARTERS.includes(id) || stBuys(o) ? 'Yours' : 'Crafted');
   if ($('stPopArt').dataset.id !== id) { $('stPopArt').dataset.id = id; $('stPopArt').innerHTML = STROKE_ICON[id]; }
   $('stPopName').textContent = o.name; $('stPopDesc').textContent = o.desc;
   $('stPopDoes').innerHTML = o.does.map(t => '<li>' + t + '</li>').join('');
   $('sgNums').innerHTML = (SG_NUMS[id] || []).map(n => '<div><dt>' + n[0] + '</dt><dd>' + n[1] + '</dd></div>').join('');
-  const how = ST_STARTERS.includes(id) ? 'Yours from the start' : own ? 'Crafted: it’s yours' : cr ? 'On the bench: ' + mmss(craftLeft()) + ' to go' : (item ? 'Opens at rank ' + stRank(o) + ', then craft it in ' + o.craft + ' minutes' : 'Craft it in ' + o.craft + ' minutes, from rank ' + stRank(o));
-  $('sgHow').innerHTML = (own ? ST_CHECK : cr ? ST_GLASS : stDue(o) ? ST_HAMMER : STROKE_LOCK) + '<span>' + how + '</span>';
+  const how = ST_STARTERS.includes(id) ? 'Yours from the start' : own ? (stBuys(o) ? 'It’s yours' : 'Crafted: it’s yours') : cr ? 'On the bench: ' + mmss(craftLeft()) + ' to go'
+    : stBuys(o) ? (item ? 'Opens at rank ' + stRank(o) + ', then buy it for ' + stPrice(o) + ' dabs' : 'Buy it for ' + stPrice(o) + ' dabs, from rank ' + stRank(o)) // (v370)
+    : (item ? 'Opens at rank ' + stRank(o) + ', then craft it in ' + o.craft + ' minutes' : 'Craft it in ' + o.craft + ' minutes, from rank ' + stRank(o));
+  $('sgHow').innerHTML = (own ? ST_CHECK : cr ? ST_GLASS : stDue(o) ? (stBuys(o) ? DROP_SVG : ST_HAMMER) : STROKE_LOCK) + '<span>' + how + '</span>';
 }
 function openStPop(id) {
   if (!stDef(id) || !strokesOpen()) return;
@@ -21350,9 +21379,9 @@ function sgTabs() {
 const SG_RANK = '<svg viewBox="0 0 46 54" aria-hidden="true"><path d="M23 2.6 43 8.6V29c0 11.4-9 18.6-20 22.6C12 47.6 3 40.4 3 29V8.6z" fill="currentColor"/><path d="M23 14l3.4 7 7.6 1-5.5 5.2 1.4 7.6-6.9-3.7-6.9 3.7 1.4-7.6L12 22l7.6-1z" fill="#111014"/></svg>';
 function sgBadge() {
   const d = strokesOf(), b = $('sgBadge'), c = d.craft, lv = repOf(store.xp || 0).lv;
-  b.classList.toggle('cr', !!c);
+  b.classList.toggle('cr', !!c); b.classList.toggle('dabs', !c);
   if (c) { if ($('sgBadgeI').dataset.k !== c.id) { $('sgBadgeI').dataset.k = c.id; $('sgBadgeI').innerHTML = STROKE_ICON[c.id]; } $('sgBadgeT').textContent = mmss(craftLeft()); b.setAttribute('aria-label', spName(c.id) + ' on the bench, ' + mmss(craftLeft()) + ' to go'); }
-  else { if ($('sgBadgeI').dataset.k !== 'rank') { $('sgBadgeI').dataset.k = 'rank'; $('sgBadgeI').innerHTML = SG_RANK; } $('sgBadgeT').textContent = lv; b.setAttribute('aria-label', 'Your rank: ' + lv); }
+  else { if ($('sgBadgeI').dataset.k !== 'dabs') { $('sgBadgeI').dataset.k = 'dabs'; $('sgBadgeI').innerHTML = DROP_SVG; } const n = store.drops || 0; $('sgBadgeT').textContent = n; b.setAttribute('aria-label', 'Dabs: ' + n); } // (v370: your dabs, not your rank)
 }
 // the stroke you're looking at: its banner, its line, its picture (or the demo), and one button: Equip, Craft, or the bench and Skip
 function sgShowRender() {
@@ -21363,11 +21392,16 @@ function sgShowRender() {
   const b = $('sgDo'), tm = $('sgTimer'), sk = $('sgSkip');
   tm.hidden = sk.hidden = !cr; b.hidden = cr; b.classList.toggle('craft', !own && !cr && due && !busy); b.classList.toggle('on', on);
   if (own) { b.disabled = on; b.innerHTML = '<span>' + (on ? ST_CHECK + 'Equipped' : 'Equip') + '</span>'; b.setAttribute('aria-label', on ? o.name + ' is equipped' : 'Equip ' + o.name); }
+  else if (stBuys(o)) { const p = stPrice(o), can = due && (store.drops || 0) >= p; b.classList.toggle('craft', can); b.disabled = !can; // (v370)
+    b.innerHTML = '<span>' + (!due ? STROKE_LOCK + 'Rank ' + stRank(o) : can ? 'Buy<small>' + DROP_SVG + p + '</small>' : DROP_SVG + p) + '</span>';
+    b.setAttribute('aria-label', !due ? o.name + ' opens at rank ' + stRank(o) : can ? 'Buy ' + o.name + ' for ' + p + ' dabs' : o.name + ', ' + p + ' dabs'); }
   else if (!cr) { b.disabled = busy || !due; b.innerHTML = '<span>' + (due ? 'Craft<small>' + o.craft + ' min</small>' : STROKE_LOCK + 'Rank ' + stRank(o)) + '</span>'; b.setAttribute('aria-label', due ? 'Craft ' + o.name + ', ' + o.craft + ' minutes' : o.name + ' opens at rank ' + stRank(o)); }
   if (cr) sgBench(o); sgSkipPaint();
-  const note = own ? '' : cr ? (adFree() ? '' : 'Watch an ad to finish it now') : !due ? 'Reach rank ' + stRank(o) + ' to craft it' : busy ? 'One craft at a time: ' + spName(d.craft.id) + ' is on the bench' : '';
+  const lack = stBuys(o) ? stPrice(o) - (store.drops || 0) : 0;
+  const note = own ? '' : cr ? (adFree() ? '' : 'Watch an ad to finish it now') : !due ? 'Reach rank ' + stRank(o) + ' to ' + (stBuys(o) ? 'buy' : 'craft') + ' it' : stBuys(o) ? (lack > 0 ? 'You need ' + lack + ' more dabs. Matches pay in dabs' : '') : busy ? 'One craft at a time: ' + spName(d.craft.id) + ' is on the bench' : '';
   $('sgNote').hidden = !note; $('sgNote').textContent = note; $('mStrokes').classList.toggle('sgnoted', !!note);
   SGD.rectDirty = true;
+  stStrokeView(o); // (v370)
   sgDemoPick(cat !== 'skill' ? id : null); // (v322: specials too)
 }
 function sgFitName() { const nb = $('sgName'); nb.style.fontSize = ''; if (!nb.clientWidth) return; let fs = parseFloat(getComputedStyle(nb).fontSize) || 24, n = 0; while (nb.scrollWidth > nb.clientWidth + 1 && fs > 13 && n++ < 10) { fs -= 1.5; nb.style.fontSize = fs + 'px'; } }
@@ -21407,9 +21441,10 @@ $('sgTabs').addEventListener('keydown', e => { const ks = ['special', 'skill', '
 for (const k of ['special', 'skill', 'item']) $(ST_CATS[k].rail).addEventListener('click', e => { const b = e.target.closest('.sgcard[data-st], .sgcard[data-sk], .sgcard[data-it]'); if (!b) return; AU.init(); sgPick(b.dataset.st || b.dataset.sk || b.dataset.it); });
 $('sgDo').addEventListener('click', () => { AU.init(); const id = sgSelId(stCat), d = strokesOf(), o = stDef(id); if (!o) return;
   if (d.own.includes(id)) { if (stOnOf(stCat) !== id) sgEquip(id); return; }
+  if (stBuys(o)) return stBuy(id); // (v370)
   if (d.craft) { AU.nope(); stToast('One craft at a time'); return; } if (!stDue(o)) { AU.nope(); stToast('Reach rank ' + stRank(o) + ' to craft ' + spName(id)); return; } craftStart(id); });
 $('sgInfo').addEventListener('click', () => { AU.init(); openStPop(sgSelId(stCat)); });
-$('sgBadge').addEventListener('click', () => { AU.init(); const d = strokesOf(); if (d.craft) { sgPick(d.craft.id, true); AU.ui(); return; } AU.ui(); stToast('Rank ' + repOf(store.xp || 0).lv); });
+$('sgBadge').addEventListener('click', () => { AU.init(); const d = strokesOf(); if (d.craft) { sgPick(d.craft.id, true); AU.ui(); return; } AU.ui(); kick($('sgBadge'), 'bump'); stToast((store.drops || 0) + ' dabs to spend. Matches pay in dabs'); }); // (v370)
 $('stPopX').addEventListener('click', () => { AU.init(); closeStPop(); });
 $('stPop').addEventListener('click', e => { if (e.target === $('stPop')) { AU.init(); closeStPop(); } });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && stPopId) { e.preventDefault(); e.stopPropagation(); closeStPop(); } }, true);
