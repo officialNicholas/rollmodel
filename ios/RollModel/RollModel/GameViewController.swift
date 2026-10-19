@@ -79,7 +79,11 @@ final class GameViewController: UIViewController {
         contentController.addUserScript(WKUserScript(source: HapticsBridge.script,
                                                      injectionTime: .atDocumentStart,
                                                      forMainFrameOnly: true))
-        contentController.addUserScript(WKUserScript(source: DeviceBridge.startScript(),
+        // (the screen's scale and refresh rate from the view and its window's screen, not the main screen: on iPhone Duo the game moves
+        // between two screens)
+        let screen = view.window?.windowScene?.screen
+        contentController.addUserScript(WKUserScript(source: DeviceBridge.startScript(scale: traitCollection.displayScale,
+                                                                                      maxFPS: screen?.maximumFramesPerSecond ?? 0),
                                                      injectionTime: .atDocumentStart,
                                                      forMainFrameOnly: true))
         contentController.addUserScript(WKUserScript(source: AdsBridge.startScript,
@@ -151,8 +155,21 @@ final class GameViewController: UIViewController {
         return [.top, .bottom]
     }
 
+    // A phone-shaped screen keeps the way the player plays; a roomy one (iPhone Duo open or closed, an iPad) turns freely.
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        return UIDevice.current.userInterfaceIdiom == .pad ? .all : orient.mask
+        return OrientBridge.turnsFreely(self) ? .all : orient.mask
+    }
+
+    // iPhone Duo folding or unfolding (or any window resized) changes the game's shape mid-session: the page sees the new size itself,
+    // and the turns allowed are worked out again from it.
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        coordinator.animate(alongsideTransition: nil) { [weak self] _ in
+            guard let self = self else { return }
+            if #available(iOS 16.0, *) {
+                self.setNeedsUpdateOfSupportedInterfaceOrientations()
+            }
+        }
     }
 }
 

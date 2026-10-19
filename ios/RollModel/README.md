@@ -17,6 +17,16 @@ This is the same app you already have in App Store Connect: bundle ID `studio.pr
 
 Plug in your iPhone, pick it as the run destination and press **Run**. The first time, the phone asks you to turn on Developer Mode in Settings > Privacy & Security.
 
+## iPhone Duo
+
+- **Build with Xcode 27.1 or newer** (the iOS 27.1 SDK). Built with an older Xcode, the app still runs on iPhone Duo but in a smaller window: in the middle of the open screen, and beside the status bar and camera on the closed one.
+- **Open or closed, any way round:** the game takes the shape it's given. On iPhone Duo (or any near-square window) it never asks how you hold it and never asks you to turn the phone; on other iPhones the upright or wide choice works as before. (OrientBridge.swift, GameViewController.swift)
+- **Folding or opening mid-match pauses it,** so you can settle your grip; the screen's sharpness is set again for the new size.
+- **No more "Hang Risk" warnings:** the sound settings (AVAudioSession) now change off the main thread, so the screen never waits on them. (AppDelegate.swift, SceneDelegate.swift, AdsBridge.swift)
+- **The screen's scale and refresh rate come from the game's own window,** not the main screen, since iPhone Duo has two. (DeviceBridge.swift)
+- **Try it in the iPhone Duo simulator** (Xcode 27.1): play a match, then close and open the phone, turn it each way, and fold it partway.
+- **App Store:** add iPhone Duo screenshots in App Store Connect to get the "optimized for iPhone Duo" badge on the product page: 2007 × 2853 or 2853 × 2007 (open) and 1398 × 2034 or 2034 × 1398 (closed). From April 2027 they're required for any build made with the iOS 27.1 SDK.
+
 ## New in this build: more of the iPhone
 
 - **Haptics that feel like iOS's own.** A win, a purchase, a claimed reward and a finished craft give iOS's "success" feel; a purchase that can't go through and an ad that didn't come give the "error" feel; switches, tabs, filters, paint colours and the canvas vote give the light tick of a picker. They follow the phone's own **Settings > Sounds & Haptics > System Haptics**. (HapticsBridge.swift)
@@ -84,7 +94,7 @@ Since the player chooses to watch, the ad can be longer or interactive:
 
 ## Good to know
 
-- The game inside is version 366. Settings shows it as "Version 1.1 (366)".
+- The game inside is version 367. Settings shows it as "Version 1.1 (367)".
 - A brand-new player first gets the intro: a paint barrel in a desert scrapyard, then picking eye colour, eye style, paint colour and a name, before the lobby and the lesson. Existing players go straight to the lobby. To see it again, delete and reinstall the app.
 - Saved names, looks and progress carry over from the earlier builds: the game keeps the same save and the same private address inside the app.
 - The app icon is the paint roller. To change it later, drop a new 1024 x 1024 image into **Assets > AppIcon**.

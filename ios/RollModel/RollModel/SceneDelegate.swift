@@ -29,9 +29,11 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func sceneDidBecomeActive(_ scene: UIScene) {
         // Back from the home screen, a call or the app switcher: turn the audio session back on, then tell the game, which restarts its sound
         // (from the background on a fresh start, since iOS can hand the page its old sound back stuck).
-        GameAudio.reactivate()
-        gameController?.resumeGame(afterBackground: wasInBackground)
+        let away = wasInBackground
         wasInBackground = false
+        GameAudio.reactivate { [weak self] in
+            self?.gameController?.resumeGame(afterBackground: away)
+        }
     }
 
     private var gameController: GameViewController? {

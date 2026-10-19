@@ -17,13 +17,14 @@ final class DeviceBridge: NSObject, WKScriptMessageHandler {
     private var observers: [NSObjectProtocol] = []
 
     /// Runs at document start, before the game's script. (An iPad turns freely and its windows can take any shape, so there the
-    /// game never asks for the device to be turned.)
-    static func startScript() -> String {
+    /// game never asks for the device to be turned; anywhere else the game decides that from its own shape.) The scale and refresh
+    /// rate come from the game's view and its screen (0 when not known yet), never the main screen: on iPhone Duo there are two.
+    static func startScript(scale: CGFloat, maxFPS: Int) -> String {
         let pad = UIDevice.current.userInterfaceIdiom == .pad ? " window.__noRotate = true;" : ""
-        return "window.__NATIVE = \(json(snapshot()));" + pad
+        return "window.__NATIVE = \(json(snapshot(scale: scale, maxFPS: maxFPS)));" + pad
     }
 
-    static func snapshot() -> [String: Any] {
+    static func snapshot(scale: CGFloat, maxFPS: Int) -> [String: Any] {
         let info = ProcessInfo.processInfo
         let model = modelIdentifier()
         return [
@@ -33,8 +34,8 @@ final class DeviceBridge: NSObject, WKScriptMessageHandler {
             "memGB": (Double(info.physicalMemory) / 1_073_741_824.0 * 10).rounded() / 10,
             "lowPower": info.isLowPowerModeEnabled,
             "thermal": info.thermalState.rawValue,
-            "maxFPS": UIScreen.main.maximumFramesPerSecond,
-            "scale": Double(UIScreen.main.scale),
+            "maxFPS": maxFPS,
+            "scale": Double(scale),
             "share": true,
             "tester": isDebugBuild,
             "appVersion": (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? ""

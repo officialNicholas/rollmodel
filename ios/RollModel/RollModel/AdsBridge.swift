@@ -392,11 +392,12 @@ extension AdsBridge: FullScreenContentDelegate {
         onScreen = nil
         // The ad may have changed the app's sound (its unmute button plays even with the ring switch on silent): the game's own sound
         // settings come back, then the game starts its sound afresh, as after a call.
-        GameAudio.apply()
+        GameAudio.apply { [weak self] in
+            self?.webView?.evaluateJavaScript("window.dispatchEvent(new CustomEvent('nativeresume', { detail: { away: true } }));", completionHandler: nil)
+        }
         // (the reward again: if iOS had to start the game's page over while the ad was up, the first one went to the page it closed)
         if earned { send(["e": "reward", "p": place]) }
         send(["e": "close", "p": place, "earned": earned])
-        webView?.evaluateJavaScript("window.dispatchEvent(new CustomEvent('nativeresume', { detail: { away: true } }));", completionHandler: nil)
         // (and again just after, in case the SDK sets its own back once this callback is done)
         DispatchQueue.main.async { GameAudio.apply() }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { GameAudio.apply() }
