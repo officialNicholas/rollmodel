@@ -4873,7 +4873,7 @@ html.fh .tutgo .tgcard .tava{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 375</p>
+      <p class="ver">Version 376</p>
     </div>
   </div>
 
@@ -12596,7 +12596,10 @@ const AXOC = (() => {
     const Sm = AXO.meshFrom(S.pack.stand, null, { look, name: 'stand' }), Cm = AXO.meshFrom(S.pack.crawl, null, { look, name: 'crawl' });
     const P = new AXO.Puppet({ stand: Sm, crawl: Cm }), A = new AXO.Animator(P); A.setLook(look);
     const g = new THREE.Group(); g.scale.setScalar(SC); g.position.set(0, GROUND, MID_Z * SC);
-    const xray = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.55, depthWrite: false, depthFunc: THREE.GreaterDepth }), ghosts = [];
+    // (v376) the ghost goes in with the solid things (not transparent, blended by hand), in its order before the bodies (30 < 32): only the
+    // stage is drawn by then, so only the stage can put it on show. Drawn after the bodies it took the body's own skin, puffed out by the
+    // coat and the squash where the ghost isn't, for something in front of it, and laid a pale copy of itself over itself
+    const xray = new THREE.MeshBasicMaterial({ color: col, transparent: false, blending: THREE.CustomBlending, opacity: 0.55, depthWrite: false, depthFunc: THREE.GreaterDepth }), ghosts = [];
     // the ink line: a back-face hull of the same skinned mesh, pushed out along the skinned normals by a width that grows with the distance from
     // the camera (clamped), so the line stays about as wide on screen close up and far away
     // (v250: its width a share of the screen's height whatever the camera's lens (the match's wide one, the victory's and the portraits'
