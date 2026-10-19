@@ -4757,7 +4757,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 365</p>
+      <p class="ver">Version 366</p>
     </div>
   </div>
 
@@ -14563,6 +14563,7 @@ const TRAP_R = 0.92, TRAP_ARM = 0.6, TRAP_LIFE = 45, TRAP_MAX = 2, TRAP_STUN = 1
 // through it or hops it, if it's still dead ahead at the last moment). Once it's well past it forgets, so the next time it comes that way is a
 // new roll
 const TRAP_CATCH = { easy: 0.65, medium: 0.4, hard: 0.25 }, TRAP_SEE = 4.2, TRAP_LANE = 1.8;
+const TRAP_EARLY = 0.15; // (v366: a CPU a trap has caught out sets it off while it's still arming, once it's been down this long)
 const trapMatC = new Map(), trapMat = col => { let o = trapMatC.get(col); if (!o) { o = { m: toon(col), ring: new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.55, depthWrite: false }) }; trapMatC.set(col, o); } return o; };
 function makeTrapMesh(D) {
   const g = new THREE.Group(), M = trapMat(trapDark(TEAMS[D.team].wet));
@@ -14587,13 +14588,14 @@ function trapTick(dt) {
     const T = trapList[i]; T.t += dt; if (T.arm > 0) T.arm -= dt;
     const u = T.g.userData; u.light.material = (T.arm > 0 ? (T.t * 10) % 1 < 0.5 : (T.t * 1.4) % 1 < 0.2) ? trapLightOn : trapLightOff; u.ring.scale.setScalar(1 + 0.07 * Math.sin(T.t * 5));
     if (T.t > TRAP_LIFE) { trapPop(T, null, true); continue; }
-    if (T.arm > 0 || state !== 'play') continue;
-    if (T.owner !== P && !T.seen && P.st === 'play' && Math.hypot(P.x - T.x, P.z - T.z) < 9) { T.seen = true; hint('trapdodge', say('A trap! Swipe up to roll through it safely', 'A trap! Shift to roll through it safely'), 3.2); }
+    if (state !== 'play') continue; const armed = !(T.arm > 0);
+    if (armed && T.owner !== P && !T.seen && P.st === 'play' && Math.hypot(P.x - T.x, P.z - T.z) < 9) { T.seen = true; hint('trapdodge', say('A trap! Swipe up to roll through it safely', 'A trap! Shift to roll through it safely'), 3.2); }
     for (const D of ACTIVE) {
       if (D === T.owner || ally(D, T.owner) || D.st !== 'play' || D.rocket || D.turret || D.immuneT > 0 || D.dashT > 0) continue; // (a roll still sets it off: harmlessly, below)
       const dx = D.x - T.x, dz = D.z - T.z, d = Math.hypot(dx, dz);
       if (D.cpu && D.ai) trapMind(T, D, dx, dz, d); // (v365: has it seen it or not)
       if (d > TRAP_R || Math.abs(D.y - T.y) > 0.8 || (D.air && D.y - T.y > 0.3)) continue;
+      if (!armed && !(T.t > TRAP_EARLY && D.cpu && D.ai && T.mind.get(D) === true)) continue; // (v366: while it arms, only a CPU it has caught out)
       trapPop(T, D, D.rollT > 0 || D.giantT > 0); break;
     }
   }
@@ -14606,7 +14608,8 @@ function trapMind(T, D, dx, dz, d) {
   if (c === undefined) {
     if (D.air || D.charging || D.giantT > 0 || D.rollT > 0 || D.spd < 1.5 || d > TRAP_SEE || Math.abs(D.y - T.y) > 0.6) return;
     const fx = Math.sin(D.yaw), fz = Math.cos(D.yaw);
-    if (-(dx * fx + dz * fz) < 0.3 || Math.abs(dx * fz - dz * fx) > TRAP_LANE || !lineClear(D, T.x, T.z, T.y)) return; // (ahead, in its lane, nothing in between)
+    const ah = -(dx * fx + dz * fz), sd = Math.abs(dx * fz - dz * fx);
+    if (ah < 0.3 || sd > Math.min(TRAP_LANE, Math.max(0.6, ah * 0.7)) || !lineClear(D, T.x, T.z, T.y)) return; // (ahead, in its lane, nothing in between; v366: closer in, within ~35 degrees of its line)
     c = Math.random() < (TRAP_CATCH[diff] || TRAP_CATCH.medium); T.mind.set(D, c);
     if (!c) (D.ai.avoid || (D.ai.avoid = [])).push(T);
   }
