@@ -251,6 +251,56 @@
    "price": 835
   },
   {
+   "id": "galaxy",
+   "name": "Galaxy",
+   "slot": "skin",
+   "stage": "blank",
+   "season": false,
+   "gift": false,
+   "find": false,
+   "price": 2000
+  },
+  {
+   "id": "lava",
+   "name": "Lava",
+   "slot": "skin",
+   "stage": "blank",
+   "season": false,
+   "gift": false,
+   "find": false,
+   "price": 1750
+  },
+  {
+   "id": "rainbow",
+   "name": "Rainbow",
+   "slot": "skin",
+   "stage": "blank",
+   "season": false,
+   "gift": false,
+   "find": false,
+   "price": 1500
+  },
+  {
+   "id": "matrix",
+   "name": "Matrix",
+   "slot": "skin",
+   "stage": "blank",
+   "season": false,
+   "gift": false,
+   "find": false,
+   "price": 1750
+  },
+  {
+   "id": "glitter",
+   "name": "Glitter",
+   "slot": "skin",
+   "stage": "blank",
+   "season": false,
+   "gift": false,
+   "find": false,
+   "price": 1250
+  },
+  {
    "id": "zombie",
    "name": "Zombie eyes",
    "slot": "eyes",
