@@ -287,6 +287,14 @@
    "price": 500
   },
   {
+   "id": "storm",
+   "name": "Paint Storm",
+   "kind": "special",
+   "craft_min": null,
+   "rank": null,
+   "price": 600
+  },
+  {
    "id": "swim",
    "name": "Swim faster",
    "kind": "skill",
@@ -305,6 +313,14 @@
   {
    "id": "pockets",
    "name": "Deep Pockets",
+   "kind": "skill",
+   "craft_min": null,
+   "rank": null,
+   "price": 400
+  },
+  {
+   "id": "shock",
+   "name": "Aftershock",
    "kind": "skill",
    "craft_min": null,
    "rank": null,
