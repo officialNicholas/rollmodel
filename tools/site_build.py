@@ -198,7 +198,9 @@ def build_images():
         m = re.search(r"(?:\b%s: |ST_IMG\.%s = )'data:image/webp;base64,([A-Za-z0-9+/=]+)'" % (key, key), src)
         save(Image.open(io.BytesIO(base64.b64decode(m.group(1)))).convert('RGBA').resize((160, 160), Image.LANCZOS), 'strokes/%s.webp' % key, quality=86, method=6)
     # Ol' Bloop
-    save(Image.open(os.path.join(GAME, 'art', 'coach.webp')).convert('RGBA').resize((440, 410), Image.LANCZOS), 'bloop.webp', quality=84, method=6)
+    # (the website's own drawing of him, cut out: tools/assets/ol_bloop.webp)
+    bl = Image.open(os.path.join(ROOT, 'tools', 'assets', 'ol_bloop.webp')).convert('RGBA')
+    save(bl.resize((440, round(bl.height * 440 / bl.width)), Image.LANCZOS), 'bloop.webp', quality=86, method=6)
     # the icons, from the app's icon: the tab's icon, the home screen's, and the one in the header and footer
     icon = Image.open(os.path.join(ROOT, 'ios', 'RollModel', 'RollModel', 'Assets.xcassets', 'AppIcon.appiconset', 'AppIcon-1024.png')).convert('RGB')
     icon.resize((180, 180), Image.LANCZOS).save(os.path.join(SITE, 'apple-touch-icon.png'), optimize=True); made.append('apple-touch-icon.png')
