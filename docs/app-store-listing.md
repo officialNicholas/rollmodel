@@ -2,6 +2,13 @@
 
 Written in the style of Brawl Stars, Stumble Guys and Clash Royale: a punchy opening line, a short pitch, then sections in capitals with ◉ and ▶ markers. Every claim was checked against the v366 build: modes, names, counts, and the online server responding.
 
+## Categories
+
+- Primary category: Games, with the subcategories Action and Casual
+- Secondary category: Entertainment (optional)
+
+This matches the games it's modeled on: Brawl Stars is Games (Action, Casual) plus Entertainment, Stumble Guys is Games (Action, Casual), and Clash Royale is Games (Action, Strategy) plus Entertainment.
+
 ## Promotional text (170 max)
 
 Shown above the description. You can change it any time without a new build.
