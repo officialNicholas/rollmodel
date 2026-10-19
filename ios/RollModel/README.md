@@ -22,6 +22,7 @@ Plug in your iPhone, pick it as the run destination and press **Run**. The first
 - **Build with Xcode 27.1 or newer** (the iOS 27.1 SDK). Built with an older Xcode, the app still runs on iPhone Duo but in a smaller window: in the middle of the open screen, and beside the status bar and camera on the closed one.
 - **Open or closed, any way round:** the game takes the shape it's given. On iPhone Duo (or any near-square window) it never asks how you hold it and never asks you to turn the phone; on other iPhones the upright or wide choice works as before. (OrientBridge.swift, GameViewController.swift)
 - **Folding or opening mid-match pauses it,** so you can settle your grip; the screen's sharpness is set again for the new size.
+- **Partly folded, boxes and words keep to one side of the fold.** The app reads where the fold runs (UIView's reserved regions, iOS 27.1) and tells the game, twice a second while it changes; held wide, pop-ups and the match's middle go to the right-hand screen and two-part pages split at the fold; held upright, pop-ups go to the lower screen. Opened flat, nothing changes. It calls the iOS 27.1 API by name, so the project still builds with an older SDK. (DeviceBridge.swift, GameViewController.swift)
 - **No more "Hang Risk" warnings:** the sound settings (AVAudioSession) now change off the main thread, so the screen never waits on them. (AppDelegate.swift, SceneDelegate.swift, AdsBridge.swift)
 - **The screen's scale and refresh rate come from the game's own window,** not the main screen, since iPhone Duo has two. (DeviceBridge.swift)
 - **Try it in the iPhone Duo simulator** (Xcode 27.1): play a match, then close and open the phone, turn it each way, and fold it partway.
@@ -94,7 +95,7 @@ Since the player chooses to watch, the ad can be longer or interactive:
 
 ## Good to know
 
-- The game inside is version 370. Settings shows it as "Version 1.1 (370)".
+- The game inside is version 371. Settings shows it as "Version 1.1 (371)".
 - A brand-new player first gets the intro: a paint barrel in a desert scrapyard, then picking eye colour, eye style, paint colour and a name, before the lobby and the lesson. Existing players go straight to the lobby. To see it again, delete and reinstall the app.
 - Saved names, looks and progress carry over from the earlier builds: the game keeps the same save and the same private address inside the app.
 - The app icon is the paint roller. To change it later, drop a new 1024 x 1024 image into **Assets > AppIcon**.

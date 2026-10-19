@@ -91,6 +91,60 @@ final class DeviceBridge: NSObject, WKScriptMessageHandler {
 
     deinit {
         observers.forEach { NotificationCenter.default.removeObserver($0) }
+        foldTimer?.invalidate()
+    }
+
+    // MARK: iPhone Duo's fold
+
+    private var foldTimer: Timer?
+    private var sentFold: String?
+
+    /// Whether this iOS can say where a fold runs (UIView's reserved regions, iOS 27.1 on).
+    static var canReadFold: Bool {
+        return UIView.instancesRespond(to: NSSelectorFromString("reservedRegionsOfKind:options:"))
+            && NSClassFromString("UIViewReservedRegionKind") != nil
+    }
+
+    /// Where the fold runs across the game while iPhone Duo is partly folded, in the page's own units (points), so the game keeps its
+    /// boxes and words to one side of it: {"axis": "v" (down the screen) or "h" (across it), "a" and "b" (where the strip starts and
+    /// ends along that axis, its margins for touch included), "w", "h" (the game's size)}. "null" when there's no fold to keep clear of:
+    /// open flat, closed, or any other phone. Read through the Objective-C runtime, so the app still builds with an SDK without it.
+    static func foldJSON(in view: UIView) -> String {
+        guard canReadFold, let kinds = NSClassFromString("UIViewReservedRegionKind"),
+              let division = (kinds as AnyObject).duoDivisionKind as AnyObject?,
+              let regions = (view as AnyObject).duoReservedRegions?(ofKind: division, options: 0) else { return "null" }
+        let size = view.bounds.size
+        for region in regions {
+            guard let item = region as? NSObject,
+                  (item.value(forKey: "active") as? Bool) == true,
+                  let frame = (item.value(forKey: "frame") as? NSValue)?.cgRectValue else { continue }
+            let rect = frame.intersection(view.bounds)
+            guard !rect.isNull, rect.width > 0 || rect.height > 0 else { continue }
+            let down = rect.height >= rect.width
+            return json(["axis": down ? "v" : "h",
+                         "a": Double(down ? rect.minX : rect.minY), "b": Double(down ? rect.maxX : rect.maxY),
+                         "w": Double(size.width), "h": Double(size.height)])
+        }
+        return "null"
+    }
+
+    /// Keeps the game told where the fold is: checked twice a second (nothing says when the phone's bent), sent only when it changes.
+    func watchFold() {
+        guard foldTimer == nil, DeviceBridge.canReadFold else { return }
+        let timer = Timer(timeInterval: 0.5, repeats: true) { [weak self] _ in self?.pushFold() }
+        timer.tolerance = 0.2
+        RunLoop.main.add(timer, forMode: .common)
+        foldTimer = timer
+    }
+
+    /// Tells the game where the fold is now, if that's changed (or always, for a page that has just loaded).
+    func pushFold(force: Bool = false) {
+        guard DeviceBridge.canReadFold, let view = webView, view.window != nil else { return }
+        let fold = DeviceBridge.foldJSON(in: view)
+        if !force && fold == sentFold { return }
+        sentFold = fold
+        let script = "window.__NATIVE = window.__NATIVE || {}; window.__NATIVE.fold = \(fold); window.dispatchEvent(new CustomEvent('nativefold'));"
+        view.evaluateJavaScript(script, completionHandler: nil)
     }
 
     /// Low Power Mode or the phone's temperature changed: tell the game, so it can ease off (or come back up).
@@ -149,4 +203,11 @@ private func json(_ value: [String: Any]) -> String {
         return "{}"
     }
     return text
+}
+
+/// iOS 27.1's reserved regions as Objective-C knows them (UIView's reservedRegionsOfKind:options: and UIViewReservedRegionKind's
+/// divisionRegionKind), called by name so the app builds with any SDK; they're only called where the phone has them.
+@objc private protocol DuoReservedRegions {
+    @objc(reservedRegionsOfKind:options:) func duoReservedRegions(ofKind kind: AnyObject, options: UInt) -> [AnyObject]
+    @objc(divisionRegionKind) var duoDivisionKind: AnyObject { get }
 }

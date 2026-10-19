@@ -63,6 +63,8 @@ final class GameViewController: UIViewController {
         self.webView = webView
         device.webView = webView
         device.startObserving()
+        // iPhone Duo partly folded: the game hears where the fold runs, and keeps its boxes and words to one side of it.
+        device.watchFold()
         orient.viewController = self
         ads.webView = webView
         ads.viewController = self
@@ -97,6 +99,12 @@ final class GameViewController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardDidHide),
                                                name: UIResponder.keyboardDidHideNotification, object: nil)
         loadGame()
+    }
+
+    // A new size or shape (iPhone Duo folded, opened or turned): where the fold runs may have changed with it.
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        device.pushFold()
     }
 
     @objc private func keyboardDidHide() {
@@ -197,6 +205,8 @@ extension GameViewController: WKNavigationDelegate {
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         // The game is a fixed screen: no pinch zoom.
         webView.scrollView.pinchGestureRecognizer?.isEnabled = false
+        // A page that has just loaded hears where the fold is (if iPhone Duo is partly folded), even if that hasn't changed.
+        device.pushFold(force: true)
     }
 
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {

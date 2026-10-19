@@ -4621,6 +4621,76 @@ i.ptwait>*{display:none}
   .mworld{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
   #setModal #setDone{right:max(16px,calc(env(safe-area-inset-right) + 12px))}
 }
+/* (v371) iPhone Duo partly folded (html.fold): boxes and words keep to one side of the fold. Down the screen (.fv), pop-ups and the
+   match's middle go to the right-hand screen and two-part pages split at the fold; across it (.fh), pop-ups go to the lower screen.
+   --fa and --fb: where the fold's strip starts and ends, with room either side; --fg: its width */
+html.fv :is(.modal:not(#setModal):not(#friendsModal),.tutgo,.adw,.adst){padding-left:calc(var(--fb) + 12px);padding-right:max(12px,env(safe-area-inset-right))}
+html.fv :is(.modal:not(#setModal):not(#friendsModal),.tutgo,.adw)>*{max-width:100%}
+html.fh :is(.modal:not(#setModal):not(#friendsModal),.tutgo,.adw,.adst){padding-top:calc(var(--fb) + 8px);padding-bottom:max(10px,env(safe-area-inset-bottom))}
+html.fh .modal:not(#setModal):not(#friendsModal)>*{max-height:100%}
+html.fh .modal .stpop,html.fh .modal .ttcard{overflow-y:auto}
+/* the pause card: its narrow layout in a screen's width */
+html.fv #pause .card{width:min(100%,420px);grid-template-columns:minmax(0,1fr)}
+html.fv #pause .card>:is(.pscore,.pturn){grid-column:1/-1}
+/* Settings: the middle gap of its four columns is the fold (set in setFit, which may draw the rows smaller) */
+/* the Strokes page and the Locker: the cards up to the fold, the stroke or your character after it */
+html.fv :is(#mStrokes,#mLocker).sgp{--panw:var(--fa);--tabw:min(116px,calc((var(--fa) - var(--gx) - var(--bk) - 50px) / 3))}
+html.fv :is(#mStrokes,#mLocker).sgp .sgshow{left:var(--fb)}
+html.fv :is(#mStrokes,#mLocker).sgp:not(.sgx) .sgpanel{left:var(--gx);width:calc(var(--fa) - var(--gx));transform:none}
+html.fv :is(#mStrokes,#mLocker).sgp:not(.sgx) .sgshow{left:var(--fb)}
+html.fv :is(#mStrokes,#mLocker).sgp .sttoast{left:calc((100% + var(--fb)) / 2)}
+/* Friends: you on the left, the list from the fold on */
+html.fv #friendsModal .frpg{grid-template-columns:minmax(0,calc(var(--fa) - var(--gx))) minmax(0,1fr);column-gap:var(--fg)}
+/* Choose Event: two cards a side */
+html.fv .evgrid{column-gap:var(--fg)}
+/* the vote for a canvas: the title and the pictures on the left, difficulty and Play on the right */
+html.fv .mworld{grid-template-columns:minmax(0,var(--fa)) var(--fg) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;align-items:center}
+html.fv .mworld>.whead{grid-column:1/-1;grid-row:1;grid-template-columns:56px minmax(0,calc(var(--fa) - 80px)) minmax(0,1fr)}
+html.fv .mworld #modes{grid-column:1;grid-row:2}
+html.fv .mworld .gallery{grid-column:1;grid-row:3;padding-left:max(24px,calc(50% - 150px));padding-right:max(24px,calc(50% - 150px))}
+html.fv .mworld .gdots{grid-column:1;grid-row:4}
+html.fv .mworld .sgrid{grid-column:1;grid-row:3/5;width:calc(100% - 40px);grid-template-columns:repeat(2,minmax(0,1fr))}
+html.fv .mworld .wfoot{grid-column:3;grid-row:2/5;align-self:center;width:min(calc(100% - 40px),420px);margin:0}
+html.fv .mworld .gnav.next{right:calc(100% - var(--fa) + 4px)}
+html.fv .mworld .gnav{top:calc(50% + 24px)}
+/* in a match: what sits in the middle goes to the right-hand screen */
+html.fv .hud .score,html.fv .slamBtn,html.fv .vsx .vstitle{translate:calc(var(--fb) / 2) 0}
+html.fv .banner{left:var(--fb)}
+html.fv .hint{left:calc(var(--fb) + 8px)}
+html.fv :is(.pop,.threat,.tutpraise,.tutpips,.evtoast,.sdspec,.mstrokes .sttoast,.frtoast,.kofb,.tydabs){left:calc((100% + var(--fb)) / 2)}
+/* the tally after a match: in the right-hand screen (or the lower one) */
+html.fv .tally{padding-left:calc(var(--fb) + 16px);padding-right:max(16px,env(safe-area-inset-right))}
+html.fh .tally{padding-top:var(--fb)}
+html.fh .kofb{top:calc((100% + var(--fb)) / 2)}
+/* a new item's card, and the loading screen: in the right-hand screen (or the lower one) */
+html.fv :is(.newitem,#boot){padding-left:var(--fb)}
+html.fv #boot .bootacct{left:calc((100% + var(--fb)) / 2)}
+html.fh :is(.newitem,#boot){padding-top:var(--fb)}
+/* the intro: its cards already sit top left on a wide screen (clear of the fold); its title in the right-hand screen, its two lines
+   either side of the fold */
+html.fv .fltitle{padding-left:var(--fb)}
+html.fv .flsend b{font-size:24px;max-width:calc(var(--fa) - 16px)}
+html.fh .flsend b:nth-child(1){top:calc(var(--fa) - 112px)}
+html.fh .flsend b:nth-child(2){top:calc(var(--fb) + 28px)}
+html.fv .count{padding-left:var(--fb)}
+/* across the screen (held upright): the Strokes page and the Locker end their picture at the fold and start the tabs after it */
+html.fh :is(#mStrokes,#mLocker).sgp .sgshow{flex:0 0 auto;height:calc(var(--fa) - var(--gt))}
+html.fh :is(#mStrokes,#mLocker).sgp .sgtabs{margin-top:calc(var(--fg) + 14px)}
+html.fh :is(#mStrokes,#mLocker).sgp .sgpanel{flex:1 1 auto;max-height:none}
+/* Friends: you above the fold, the list below it */
+html.fh #friendsModal .frsheet{flex:0 0 auto;height:calc(100% - var(--fb));margin-top:auto}
+/* Choose Event: two cards above the fold, two below */
+html.fh .evgrid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,calc(var(--fa) - max(14px,env(safe-area-inset-top)) - 76px)) minmax(0,1fr);align-content:stretch;gap:var(--fg) 16px}
+html.fh .evgrid>.evcard:nth-child(-n+2){align-self:center}
+html.fh .evgrid>.evcard:nth-child(n+3){align-self:start}
+/* the vote for a canvas: the title and the pictures above the fold, difficulty and Play below it (out of the page's grid, whose rows would
+   otherwise hold them) */
+html.fh .menu .mworld .gallery{grid-area:auto;position:absolute;left:0;right:0;top:calc(max(12px,env(safe-area-inset-top)) + 70px);height:calc(var(--fa) - max(12px,env(safe-area-inset-top)) - 70px);padding-top:26px;padding-bottom:0;box-sizing:border-box}
+html.fh .mworld .gnav{top:calc((var(--fa) + 70px) / 2 + 16px)}
+html.fh .menu .mworld .gdots{grid-area:auto;position:absolute;left:0;right:0;top:calc(var(--fb) + 2px);justify-content:center}
+html.fh .menu .mworld .sgrid{grid-area:auto;position:absolute;left:50%;top:calc(max(12px,env(safe-area-inset-top)) + 76px);width:min(calc(100% - 32px),calc((var(--fa) - 110px) * 1.16 + 14px));translate:-50% 0;max-height:none;overflow:visible;padding:0;gap:10px 14px}
+/* Ol' Bloop's cards in the lower screen: his picture would sit on the fold, so the card goes alone */
+html.fh .tutgo .tgcard .tava{display:none}
 </style>
 
 <div id="stage">
@@ -4793,7 +4863,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 370</p>
+      <p class="ver">Version 371</p>
     </div>
   </div>
 
@@ -20364,11 +20434,11 @@ const VIC_FONT = '"Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-s
 function vicDrawName() {
   if (!vic) return; const W = Math.max(1, viewW), H = Math.max(1, viewH), land = vicLand(), dpr = Math.min(2, window.devicePixelRatio || 1), g = vicNameG;
   const lines = []; for (const w of vic.name.split(' ').filter(Boolean).map(w => isHd(w) ? w : w.toUpperCase())) { if (lines.length && (lines[lines.length - 1] + ' ' + w).length <= (land ? 16 : 9)) lines[lines.length - 1] += ' ' + w; else lines.push(w); }
-  g.font = 'italic 900 100px ' + VIC_FONT; const widest = Math.max(1, ...lines.map(l => g.measureText(l).width)), maxW = land ? W * 0.56 : W - 28, maxH = land ? H * 0.6 : H * 0.34;
+  g.font = 'italic 900 100px ' + VIC_FONT; const widest = Math.max(1, ...lines.map(l => g.measureText(l).width)), maxW = land ? (FOLD.on && FOLD.axis === 'v' ? Math.min(W * 0.56, FOLD.a - Math.max(W * 0.045, 24) - 12) : W * 0.56) : W - 28, maxH = land ? H * 0.6 : H * 0.34; // (v371: iPhone Duo's fold)
   const fs = clamp(Math.min(100 * maxW / (widest * 1.05), maxH / (lines.length * 0.84)), 40, land ? H * 0.46 : 280), lh = fs * 0.84, x0 = land ? Math.max(W * 0.045, 24) : 14;
   const cw = Math.round(W * dpr), ch = Math.round(H * dpr); if (vicNameCv.width !== cw || vicNameCv.height !== ch) { vicNameCv.width = cw; vicNameCv.height = ch; vicNameTex.dispose(); } g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
   g.globalCompositeOperation = 'lighter'; g.textBaseline = 'alphabetic';
-  if (vic.ghost) { const gs = Math.round(H * (land ? 1.0 : 0.6)); g.font = 'italic 900 ' + gs + 'px ' + VIC_FONT; g.textAlign = 'right'; g.lineWidth = 2; g.strokeStyle = '#00FF00'; g.strokeText(vic.ghost, W * (land ? 0.6 : 1.06), land ? H * 1.04 : vic.nameTop + gs * 0.72 + lh * lines.length * 0.4); }
+  if (vic.ghost) { const gs = Math.round(H * (land ? 1.0 : 0.6)); g.font = 'italic 900 ' + gs + 'px ' + VIC_FONT; g.textAlign = 'right'; g.lineWidth = 2; g.strokeStyle = '#00FF00'; g.strokeText(vic.ghost, land && FOLD.on && FOLD.axis === 'v' ? Math.min(W * 0.6, FOLD.a) : W * (land ? 0.6 : 1.06), land ? H * 1.04 : vic.nameTop + gs * 0.72 + lh * lines.length * 0.4); }
   g.font = 'italic 900 ' + fs.toFixed(1) + 'px ' + VIC_FONT; g.textAlign = 'left'; g.fillStyle = '#FF0000';
   lines.forEach((l, i) => g.fillText(l, x0, vic.nameTop + fs * 0.7 + i * lh));
   g.globalCompositeOperation = 'source-over';
@@ -21120,6 +21190,7 @@ const MOVE_K = 1.06, REPEL_SPD = 0.8, rainFast = D => !D.skill || D.skill === 's
 const stDef = id => SPECIALS.find(x => x.id === id) || SKILLS.find(x => x.id === id) || ST_ITEMS.find(x => x.id === id), stIsSkill = id => SKILLS.some(x => x.id === id);
 const spName = id => (stDef(id) || { name: id }).name, ORB_LBL = { rocket: 'Rocket', giant: 'Giant', freeze: 'Freeze' };
 const stReady = id => (stIsSkill(id) ? spName(id) : 'The ' + spName(id)) + ' is ready!';
+const stLearnt = id => 'Learned! ' + (stIsSkill(id) ? spName(id) : 'The ' + spName(id)) + ' is yours'; // (v371: a craft done, on the page)
 const SWIM_BOOST = 1.08, STROKE_LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 10.5V7.8a4.5 4.5 0 0 1 9 0v2.7" fill="none" stroke="currentColor" stroke-width="3"/><rect x="4.5" y="10" width="15" height="12" rx="2.6" fill="currentColor"/></svg>';
 function strokesOf() { const d = store.strokes || (store.strokes = {}); if (!d.special) d.special = 'rocket'; if (!d.skill) d.skill = 'swim'; if (!Array.isArray(d.own)) d.own = ['rocket', 'swim']; for (const k of ST_STARTERS) if (!d.own.includes(k)) d.own.push(k);
   if (!d.sk257) { d.sk257 = 1; d.own = d.own.filter(k => !['repel', 'pockets'].includes(k) || k === d.skill); } // (v257: skills are crafted now; the ones handed out before go back on the bench, all but the one you have on)
@@ -21132,7 +21203,7 @@ let stTick = 0, stToastT = 0;
 function craftLeft() { const c = strokesOf().craft; return c ? Math.max(0, c.end - Date.now()) : 0; }
 function craftTick() { const d = strokesOf(), c = d.craft; if (!c) return false; if (craftLeft() > 0) return true; d.craft = null; if (!d.own.includes(c.id)) d.own.push(c.id); d.fresh = c.id; save(); AU.fanfare && AU.fanfare(); craftDoneNative(); return false; }
 function craftStart(id) { const d = strokesOf(), sp = stDef(id); if (!sp || !sp.craft || d.craft || d.own.includes(id)) return; d.craft = { id, end: Date.now() + sp.craft * 60000 }; save(); stEv({ k: 'craft', i: id }); AU.pop(); buzz(10); renderStrokes(); adWarm(); noteSync(); noteOffer(id); }
-function craftSkip() { const d = strokesOf(); if (!d.craft) return; const id = d.craft.id; d.craft.end = Date.now(); craftTick(); AU.ui(); renderStrokes(); stToast(stReady(id)); } // (v351: craftTick gives the success feel)
+function craftSkip() { const d = strokesOf(); if (!d.craft) return; const id = d.craft.id; d.craft.end = Date.now(); craftTick(); AU.ui(); renderStrokes(); stToast(stLearnt(id)); } // (v351: craftTick gives the success feel)
 // (v321) a rewarded ad speeds up crafting. In the app, Skip on a stroke being crafted plays a rewarded ad (AdsBridge.swift: Google
 // AdMob) and the craft finishes once the ad says it was watched; (v340: the lesson's too, which finishes anyway if no ad can come). The page asks
 // through nativeSay('ads', ...) and hears back on a "nativead" event: open, reward, close, fail, and state (whether Google wants the
@@ -21276,7 +21347,7 @@ function stBuy(id) {
   const p = stPrice(o), n = store.drops || 0; if (n < p) { AU.nope(); hap('error'); kick($('sgDo'), 'nope'); stToast('You need ' + (p - n) + ' more dabs'); return; }
   store.drops = n - p; d.own.push(id); if (d.fresh === id) d.fresh = null; stEv({ k: 'buy', i: id, p }); save(); showDrops();
   sgEquip(id); AU.power(); hap('success'); kick($('sgBadge'), 'bump');
-  stToast('Bought! ' + o.name + ' is ' + (stIsItem(id) ? 'your starting transform' : stIsSkill(id) ? 'your skill' : 'your special stroke'));
+  stToast('Learned! ' + o.name + ' is ' + (stIsItem(id) ? 'your starting transform' : stIsSkill(id) ? 'your skill' : 'your special stroke'));
 }
 function equipSpecial(id) { const d = strokesOf(); if (!d.own.includes(id) || d.special === id) return; d.special = id; if (d.fresh === id) d.fresh = null; save(); AU.ready && AU.ready(); buzz(8); renderStrokes(); stToast(SPECIALS.find(x => x.id === id).name + ' is your special stroke'); }
 function stToast(msg) { const w = $('mStrokes'), old = w.querySelector('.sttoast'); if (old) old.remove(); const t = document.createElement('span'); t.className = 'sttoast'; t.setAttribute('role', 'status'); t.textContent = msg; w.appendChild(t); clearTimeout(stToastT); stToastT = setTimeout(() => t.remove(), 2300); }
@@ -21303,7 +21374,7 @@ function stSetCat(cat, quiet) {
 }
 function stTile(o, skill) {
   const d = strokesOf(), item = skill === 'item', cat = item ? 'item' : skill ? 'skill' : 'special', own = d.own.includes(o.id), on = own && stOnOf(cat) === o.id, cr = !!d.craft && d.craft.id === o.id, ready = own && !on && d.fresh === o.id, lock = !own && !cr && !stDue(o), sel = sgSelId(cat) === o.id;
-  const st = on ? 'equipped' : cr ? 'crafting, ' + mmss(craftLeft()) + ' left' : own ? (ST_STARTERS.includes(o.id) ? 'yours' : 'owned') : lock ? 'locked until rank ' + stRank(o) : stBuys(o) ? stPrice(o) + ' dabs' : 'craft it in ' + o.craft + ' minutes';
+  const st = on ? 'equipped' : cr ? 'crafting, ' + mmss(craftLeft()) + ' left' : own ? (ST_STARTERS.includes(o.id) ? 'yours' : 'learned') : lock ? 'locked until rank ' + stRank(o) : stBuys(o) ? stPrice(o) + ' dabs' : 'craft it in ' + o.craft + ' minutes';
   const tag = cr ? '<i class="sgpb"><i></i></i>' : lock ? '<span class="sgst lk">' + STROKE_LOCK + 'Rank ' + stRank(o) + '</span>' : '';
   // (v323) the strip: Equipped, the craft time, the bench's countdown, or nothing
   const foot = on ? 'Equipped' : cr ? '<b>' + mmss(craftLeft()) + '</b>' : !own && !lock ? (stBuys(o) ? DROP_SVG + stPrice(o) : o.craft + ' min') : ''; // (v370: a price)
@@ -21333,12 +21404,12 @@ function stPopRender() {
   const d = strokesOf(), skill = stIsSkill(id), item = stIsItem(id), own = d.own.includes(id), on = own && stOnOf(stCatOf(id)) === id, cr = !!d.craft && d.craft.id === id;
   const card = $('stPop').querySelector('.stpop'); card.classList.toggle('skill', skill || item); card.dataset.cat = stCatOf(id); card.dataset.id = id;
   $('stPopKind').textContent = item ? 'Transform' : skill ? 'Skill' : 'Special stroke';
-  const ow = $('stPopOwn'); ow.hidden = !own; ow.innerHTML = ST_CHECK + (on ? 'Equipped' : ST_STARTERS.includes(id) || stBuys(o) ? 'Yours' : 'Crafted');
+  const ow = $('stPopOwn'); ow.hidden = !own; ow.innerHTML = ST_CHECK + (on ? 'Equipped' : ST_STARTERS.includes(id) ? 'Yours' : 'Learned');
   if ($('stPopArt').dataset.id !== id) { $('stPopArt').dataset.id = id; $('stPopArt').innerHTML = STROKE_ICON[id]; }
   $('stPopName').textContent = o.name; $('stPopDesc').textContent = o.desc;
   $('stPopDoes').innerHTML = o.does.map(t => '<li>' + t + '</li>').join('');
   $('sgNums').innerHTML = (SG_NUMS[id] || []).map(n => '<div><dt>' + n[0] + '</dt><dd>' + n[1] + '</dd></div>').join('');
-  const how = ST_STARTERS.includes(id) ? 'Yours from the start' : own ? (stBuys(o) ? 'It’s yours' : 'Crafted: it’s yours') : cr ? 'On the bench: ' + mmss(craftLeft()) + ' to go'
+  const how = ST_STARTERS.includes(id) ? 'Yours from the start' : own ? 'Learned: it’s yours' : cr ? 'On the bench: ' + mmss(craftLeft()) + ' to go'
     : stBuys(o) ? (item ? 'Opens at rank ' + stRank(o) + ', then buy it for ' + stPrice(o) + ' dabs' : 'Buy it for ' + stPrice(o) + ' dabs, from rank ' + stRank(o)) // (v370)
     : (item ? 'Opens at rank ' + stRank(o) + ', then craft it in ' + o.craft + ' minutes' : 'Craft it in ' + o.craft + ' minutes, from rank ' + stRank(o));
   $('sgHow').innerHTML = (own ? ST_CHECK : cr ? ST_GLASS : stDue(o) ? (stBuys(o) ? DROP_SVG : ST_HAMMER) : STROKE_LOCK) + '<span>' + how + '</span>';
@@ -21425,7 +21496,7 @@ function renderStrokes() {
   $('stSkillRail').innerHTML = SKILLS.map(o => stTile(o, true)).join('') + (SKILLS.length % 3 ? soon : ''); $('stItemRail').innerHTML = ST_ITEMS.map(o => stTile(o, 'item')).join('') + (ST_ITEMS.length % 3 ? soon : '');
   stSetCat(stCat, true); sgShowRender(); paintAbil(); stPopRender();
 }
-function strokesFrame() { if (!strokesOpen() || ADS.hold) return; const d = strokesOf(); if (d.craft) { const id = d.craft.id; if (!craftTick()) { renderStrokes(); stToast(stReady(id)); } else { const sp = stDef(id), p = stPct(sp), t = mmss(craftLeft()); for (const el of document.querySelectorAll('#mStrokes .sgcard.crafting')) { el.style.setProperty('--p', p); const b = el.querySelector('.sgcf b'); if (b) b.textContent = t; } $('sgBadgeT').textContent = t; if (sgSelId(stCat) === id) sgBench(sp); if (stPopId === id) stPopRender(); } } }
+function strokesFrame() { if (!strokesOpen() || ADS.hold) return; const d = strokesOf(); if (d.craft) { const id = d.craft.id; if (!craftTick()) { renderStrokes(); stToast(stLearnt(id)); } else { const sp = stDef(id), p = stPct(sp), t = mmss(craftLeft()); for (const el of document.querySelectorAll('#mStrokes .sgcard.crafting')) { el.style.setProperty('--p', p); const b = el.querySelector('.sgcf b'); if (b) b.textContent = t; } $('sgBadgeT').textContent = t; if (sgSelId(stCat) === id) sgBench(sp); if (stPopId === id) stPopRender(); } } }
 function openStrokes() {
   if (state !== 'menu' || building || lookOpen || shopOpen || strokesOpen() || lkOn()) return;
   if (menuPage === 'worlds') { closeSeason(); $('mWorld').hidden = true; } if (menuPage === 'events') closeEvents();
@@ -25434,6 +25505,8 @@ function measureOutro() {
   let ax0, ax1, ay0, ay1;
   if (outroSide) { ax0 = 20; ax1 = end.offsetLeft - 20; ay0 = top; ay1 = viewH - 34; outroFrac = clamp(end.offsetLeft / Math.max(1, viewW), 0.3, 1); }
   else { ax0 = 16; ax1 = viewW - 16; ay0 = top; ay1 = end.offsetTop - 30; outroFrac = clamp(end.offsetTop / Math.max(1, viewH), 0.3, 1); }
+  if (FOLD.on && FOLD.axis === 'v' && outroSide) ax1 = Math.min(ax1, FOLD.a - 6); // (v371: iPhone Duo partly folded)
+  if (FOLD.on && FOLD.axis === 'h' && !outroSide) ay1 = Math.min(ay1, FOLD.a - 40); // (its plaque hangs below the frame)
   const freeMin = Math.min(ax1 - ax0, ay1 - ay0), tiny = freeMin < 120, noPlac = ay1 - ay0 < 190;
   if (noPlac) ay1 += 20;
   gf.style.removeProperty('--gb'); const B = tiny ? 0 : Math.min(parseFloat(getComputedStyle(gf).borderTopWidth) || 38, Math.round(freeMin * 0.16)); gf.classList.toggle('noplac', noPlac);
@@ -25515,8 +25588,9 @@ let gfxPick = GFX;
 function setFit() {
   const r = $('srows'), f = $('sfit'); if (!r || !f || setModal.hidden) return;
   f.style.transform = ''; f.style.width = ''; r.style.overflowY = '';
+  const fg = FOLD.on && FOLD.axis === 'v' && getComputedStyle(f).gridTemplateColumns.split(' ').length === 4 ? FOLD.b - FOLD.a : 0; f.style.columnGap = fg ? fg + 'px' : ''; // (v371: iPhone Duo's fold down the middle)
   const cs = getComputedStyle(r), room = r.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom); let k = 1, h = f.offsetHeight;
-  for (let i = 0; i < 4 && h * k > room + 0.5; i++) { k = Math.max(0.6, room / h); f.style.width = (100 / k).toFixed(3) + '%'; f.style.transform = 'scale(' + k.toFixed(4) + ')'; h = f.offsetHeight; }
+  for (let i = 0; i < 4 && h * k > room + 0.5; i++) { k = Math.max(0.6, room / h); f.style.width = (100 / k).toFixed(3) + '%'; f.style.transform = 'scale(' + k.toFixed(4) + ')'; if (fg) f.style.columnGap = (fg / k).toFixed(1) + 'px'; h = f.offsetHeight; }
   if (h * k > room + 1) r.style.overflowY = 'auto';
   f.dataset.k = k.toFixed(3);
 }
@@ -25641,6 +25715,8 @@ function placePBar() {
   for (const e of [...$('lobbyRail').children, $('friendsBtn')]) { if (!e || e.hidden || e.offsetParent === null) continue;
     const r = e.getBoundingClientRect(), t = r.top - sr.top - (e.id === 'friendsBtn' ? 30 : 0), b = r.bottom - sr.top + 10; if (b < sy - bh - 4 || t > sy + 4 || !(r.width > 0)) continue;
     if ((r.left + r.right) / 2 - sr.left < viewW / 2) lo = Math.max(lo, r.right - sr.left + 8); else hi = Math.min(hi, r.left - sr.left - 8); }
+  if (FOLD.on && FOLD.axis === 'v') lo = Math.max(lo, FOLD.b - sr.left); // (v371: iPhone Duo partly folded)
+  if (FOLD.on && FOLD.axis === 'h' && sy > FOLD.a - sr.top - 2 && sy - bh < FOLD.b - sr.top) sy = FOLD.a - sr.top - 2;
   const k = clamp((hi - lo) / bw, 0.7, 1), half = bw * k / 2; sx = clamp(sx, lo + half, Math.max(lo + half, hi - half));
   pbar.style.left = sx.toFixed(1) + 'px'; pbar.style.top = sy.toFixed(1) + 'px';
   const ks = k.toFixed(3); if (pbar._k !== ks) { pbar._k = ks; pbar.style.transformOrigin = '50% 100%'; pbar.style.transform = k < 0.999 ? 'translate(-50%,-100%) scale(' + ks + ')' : ''; }
@@ -26041,6 +26117,35 @@ const touchy = () => matchMedia('(pointer: coarse)').matches;
 // way it's held, or for a turn, and takes whatever shape it's given (the iPhone shell lets it turn freely as well)
 const roomy = () => { const a = innerWidth, b = innerHeight, k = Math.min(a, b); return k > 0 && Math.max(a, b) / k < 1.6; };
 { const mark = () => document.documentElement.classList.toggle('roomy', roomy()); mark(); addEventListener('resize', mark); }
+// (v371) iPhone Duo partly folded: where the fold runs (the app says, as __NATIVE.fold and 'nativefold', or the browser's viewport
+// segments), so boxes and words keep to one side of it. html.fold with .fv (down the screen: a left and a right screen) or .fh (across
+// it: a top and a bottom one); --fa and --fb where its strip starts and ends, with room either side, --fg its width. Pages placed by
+// script (the lobby's rank bar, Settings' rows, the results' painting) read FOLD
+const FOLD = { on: false, axis: '', a: 0, b: 0 };
+function foldRead() {
+  const W = innerWidth, H = innerHeight, n = window.__NATIVE && window.__NATIVE.fold; let f = null;
+  // (one measured for another size is from before a turn, a moment old: the app sends the new one with the new layout)
+  if (n && (n.axis === 'v' || n.axis === 'h') && +n.b >= +n.a && !(n.w && Math.abs(n.w - W) > 2) && !(n.h && Math.abs(n.h - H) > 2)) f = { axis: n.axis, a: +n.a, b: +n.b };
+  else { const sg = (window.viewport && window.viewport.segments) || (window.visualViewport && window.visualViewport.segments);
+    if (sg && sg.length === 2) { const p = sg[0], q = sg[1]; if (q.left >= p.right - 1) f = { axis: 'v', a: p.right, b: q.left }; else if (q.top >= p.bottom - 1) f = { axis: 'h', a: p.bottom, b: q.top }; } }
+  // (a fold that doesn't leave a screen's worth either side of it isn't one to lay out around)
+  if (f) { const L = f.axis === 'v' ? W : H; if (!(f.a > L * 0.25 && f.b < L * 0.75)) f = null; }
+  return f;
+}
+let foldKey = '';
+function foldApply() {
+  const f = foldRead(), r = document.documentElement, M = 10, key = f ? f.axis + ':' + Math.round(f.a) + ':' + Math.round(f.b) : '';
+  if (key === foldKey) return; foldKey = key;
+  FOLD.on = !!f; FOLD.axis = f ? f.axis : ''; FOLD.a = f ? Math.max(0, f.a - M) : 0; FOLD.b = f ? f.b + M : 0;
+  r.classList.toggle('fold', !!f); r.classList.toggle('fv', !!f && f.axis === 'v'); r.classList.toggle('fh', !!f && f.axis === 'h');
+  if (f) { r.style.setProperty('--fa', FOLD.a.toFixed(1) + 'px'); r.style.setProperty('--fb', FOLD.b.toFixed(1) + 'px'); r.style.setProperty('--fg', (FOLD.b - FOLD.a).toFixed(1) + 'px'); }
+  // (what's laid out by script goes round again)
+  setTimeout(() => { try { dispatchEvent(new Event('resize')); } catch (e) {} }, 0);
+}
+addEventListener('nativefold', foldApply); addEventListener('resize', foldApply);
+try { if (window.viewport && window.viewport.addEventListener) window.viewport.addEventListener('segmentschange', foldApply); } catch (e) {}
+try { if (navigator.devicePosture) navigator.devicePosture.addEventListener('change', () => setTimeout(foldApply, 60)); } catch (e) {}
+foldApply();
 /* focus rings are for keyboards: while you play by touch none is drawn (a phone showed one as a black box round a focused button) */
 { const R = document.documentElement; if (touchy()) R.classList.add('touchnav'); addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse') R.classList.add('touchnav'); }, true); addEventListener('keydown', e => { if (e.key === 'Tab' || e.key.startsWith('Arrow')) R.classList.remove('touchnav'); }, true); }
 function orientNative(v) { try { const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.orient; if (h) h.postMessage(v || ''); } catch (e) {} }
@@ -26832,7 +26937,7 @@ function tutStrokesTick() {
   if (!d.own.includes('giant')) { if (d.craft) { if (d.craft.id === 'giant' && !onG) sgPick('giant', true); return tutShow('Crafting takes 20 minutes. Tap Skip and watch a quick ad', d.craft.id === 'giant' ? 'sgSkip' : 'sgBadge', 'sSkip', false, false, null, false, true); }
     if (onG) return tutShow('Tap Craft to start on it', 'sgDo', 'sCraft', false, false, null, false, true);
     return tutShow('Your Special Stroke is what the orb gives you. The Giant is yours to craft: tap it', giant, 'sGiant', false, false, null, false, true); }
-  if (strokeSpecial() !== 'giant') { if (onG) return tutShow('It’s ready! Tap Equip to make it your special stroke', 'sgDo', 'sEquip', false, false, null, false, true);
+  if (strokeSpecial() !== 'giant') { if (onG) return tutShow('Learned! Tap Equip to make it your special stroke', 'sgDo', 'sEquip', false, false, null, false, true);
     return tutShow('It’s ready! Tap the Giant', giant, 'sEquipT', false, false, null, false, true); }
   if (!tutSDone) { tutSDone = performance.now(); tutShow('Giant it is! Grab the orb in a match and go big. Skills and transforms have their own tabs', null, 'sDone', false, true, null, false, true); }
   else if (performance.now() - tutSDone > 5200) tutStrokesEnd();
