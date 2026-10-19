@@ -23,7 +23,7 @@ CONF = dict(re.findall(r"^\s*([A-Z_]+):\s*'([^']*)'", open(os.path.join(SITE, 'j
 SUPA, KEY = CONF['SUPABASE_URL'], CONF['SUPABASE_KEY']
 CSP = ("default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' "
        "https://nbemerxgukwwtrfgirfl.supabase.co; base-uri 'none'; form-action 'none'; frame-ancestors 'none'")
-PAGES = ['index.html', 'privacy.html', 'terms.html', 'credits.html', 'support.html', 'forgot.html', 'reset.html', 'confirm.html', '404.html']
+PAGES = ['index.html', 'privacy.html', 'terms.html', 'support.html', 'forgot.html', 'reset.html', 'confirm.html', '404.html']
 SIZES = [(390, 844), (1440, 900)]
 OOPS = 'Something went wrong. Try again in a minute.'
 SENT = 'If that account has a confirmed email, we’ve sent a link to it. Check your inbox (and spam).'
@@ -212,7 +212,7 @@ def check_host(browser, base, supa):
     ck('headers: the Content-Security-Policy is the one asked for', hd.get('content-security-policy') == CSP, hd.get('content-security-policy'))
     ck('headers: nosniff, no-referrer, no framing, HSTS, Permissions-Policy', hd.get('x-content-type-options') == 'nosniff' and hd.get('referrer-policy') == 'no-referrer'
        and hd.get('x-frame-options') == 'DENY' and hd.get('strict-transport-security', '').startswith('max-age=') and 'camera=()' in hd.get('permissions-policy', ''), hd)
-    for path, want in (('privacy', 'Privacy Policy'), ('terms', 'Terms of Service'), ('support', 'Support'), ('credits', 'Credits'), ('reset', 'Choose a new password'), ('email/logo.png', None), ('email/icon.png', None)):
+    for path, want in (('privacy', 'Privacy Policy'), ('terms', 'Terms of Service'), ('support', 'Support'), ('reset', 'Choose a new password'), ('email/logo.png', None), ('email/icon.png', None)):
         r = req.get(base + path)
         ck('the host: /%s answers' % path, r.status == 200 and (want is None or ('<h1' in r.text() and want in r.text())), r.status)
     r = req.get(base + 'nope/deeper/still')

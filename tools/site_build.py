@@ -9,7 +9,7 @@
                                           the stroke icons, Ol' Bloop, the icons (from the app icon) and the share picture
   python3 tools/site_build.py --dist DIR  and then copies what gets uploaded (all of site/ except dev/ and README.md) to DIR
 
-Run it again whenever the game's terms, privacy policy or credits change. The checks fail the build on: an em dash, anything inline
+Run it again whenever the game's terms or privacy policy change. The checks fail the build on: an em dash, anything inline
 the Content-Security-Policy would block (scripts, styles, event handlers), a link or picture that points at nothing, a picture
 without alt text or a size, an account page without noindex, or a _headers file whose policy isn't the one the site is built for.
 The screenshots in site/img/shots were taken from the game with Playwright and are not remade here."""
@@ -19,9 +19,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SITE, GAME = os.path.join(ROOT, 'site'), os.path.join(ROOT, 'game')
 CSP = ("default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' "
        "https://nbemerxgukwwtrfgirfl.supabase.co; base-uri 'none'; form-action 'none'; frame-ancestors 'none'")
-PAGES = ['index.html', 'privacy.html', 'terms.html', 'credits.html', 'support.html', 'forgot.html', 'reset.html', 'confirm.html', '404.html']
+PAGES = ['index.html', 'privacy.html', 'terms.html', 'support.html', 'forgot.html', 'reset.html', 'confirm.html', '404.html']
 NOINDEX = ['forgot.html', 'reset.html', 'confirm.html', '404.html']
-DOC_PAGES = {'priv': 'privacy.html', 'tos': 'terms.html', 'cred': 'credits.html'}
+DOC_PAGES = {'priv': 'privacy.html', 'tos': 'terms.html'}
 FONTS = ['bowlby-one-latin-400-normal.woff2'] + ['figtree-latin-%d-normal.woff2' % w for w in (400, 600, 700, 800, 900)]
 # the game's own art the site is dressed in (game/art/, copied to site/img/art/): the wall's chevrons and axolotls, the ink band, the
 # card, the graph paper, the masking tape, the PLAY stroke, the splat, the picture frame, the gallery wall, the season's art

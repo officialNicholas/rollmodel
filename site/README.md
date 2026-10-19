@@ -7,7 +7,7 @@ scripts or fonts, and a strict Content Security Policy (`_headers`).
 | Page | What it's for |
 |---|---|
 | `index.html` | The game: how it plays, the modes, the Paint Shop and Strokes, the canvases, screenshots |
-| `privacy.html`, `terms.html`, `credits.html` | The game's own text, word for word (made by `tools/site_build.py`) |
+| `privacy.html`, `terms.html` | The game's own text, word for word (made by `tools/site_build.py`) |
 | `support.html` | How to reach us, and short answers |
 | `forgot.html` | Forgot password: a username or email in, a reset link out (if the account has a confirmed email) |
 | `reset.html` | Where a reset email's button goes: choose a new password |
@@ -36,7 +36,7 @@ The three account pages call the game's Supabase project directly (`rm_reset_req
 so it never reaches a server log, and the page clears it from the address bar once read.
 
 ## Building and trying it
-- `python3 tools/site_build.py` rewrites privacy, terms and credits from the game (`DOCS` in `game/index.html`), writes
+- `python3 tools/site_build.py` rewrites privacy and terms from the game (`DOCS` in `game/index.html`), writes
   `js/config.js`'s values into the pages, and checks every page (no em dashes, nothing inline the CSP would block, no
   broken links, alt text and image sizes, noindex on the account pages). Run it whenever the game's text changes.
   `--images` remakes the pictures taken from the game; `--dist DIR` makes the folder to upload (everything but `dev/`).
