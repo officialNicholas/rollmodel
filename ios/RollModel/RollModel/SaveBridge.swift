@@ -25,7 +25,7 @@ final class SaveBridge: NSObject, WKScriptMessageHandler {
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard let body = message.body as? [String: Any],
               let save = body["save"] as? String, !save.isEmpty, save.utf8.count < 4_000_000,
-              let time = (body["t"] as? NSNumber)?.doubleValue else { return }
+              let time = (body["t"] as? NSNumber)?.doubleValue, SaveBridge.sane(time) else { return }
         SaveBridge.queue.async {
             // Saves arrive in order, but never let an older one replace a newer one.
             guard time >= SaveBridge.lastTime,
@@ -47,7 +47,7 @@ final class SaveBridge: NSObject, WKScriptMessageHandler {
         guard let data = stored,
               let object = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
               let save = object["save"] as? String,
-              let time = (object["t"] as? NSNumber)?.doubleValue,
+              let time = (object["t"] as? NSNumber)?.doubleValue, sane(time),
               let parsed = try? JSONSerialization.jsonObject(with: Data(save.utf8)), parsed is [String: Any],
               let literal = jsString(save) else {
             return "/* no saved copy in the app yet */\n"
@@ -59,6 +59,11 @@ final class SaveBridge: NSObject, WKScriptMessageHandler {
         } catch (e) {} })();
 
         """
+    }
+
+    /// A save time the app can hold: a real number of milliseconds since 1970, not a broken one (that would stop the app at launch).
+    private static func sane(_ time: Double) -> Bool {
+        return time.isFinite && time >= 0 && time < 1e15
     }
 
     /// A string as a JavaScript string literal (JSON's quoting is valid JavaScript).

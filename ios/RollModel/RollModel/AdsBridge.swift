@@ -18,8 +18,8 @@ import UserMessagingPlatform
 /// - {cancel} when the player stops waiting for one (the game's Cancel): it won't pop up later; one still loading is kept for next time.
 /// - {privacy} from the game's Privacy Policy page: Google's privacy choices form.
 ///
-/// It hears back through a "nativead" window event: {e: "open"}, {e: "reward"}, {e: "close", earned}, {e: "fail", why} and
-/// {e: "state", privacy} (whether the Privacy Policy page needs its "Ad privacy choices" button).
+/// It hears back through a "nativead" window event: {e: "open"}, {e: "reward"} (and again just before the close), {e: "close",
+/// earned}, {e: "fail", why} and {e: "state", privacy} (whether the Privacy Policy page needs its "Ad privacy choices" button).
 ///
 /// Every ad is capped at the parental guidance rating. A player the game knows is under 13 gets child treatment: only ads fit for
 /// children, none of them personalised, and no consent message. In the EEA, the UK and Switzerland, Google's consent message (made in
@@ -90,7 +90,7 @@ final class AdsBridge: NSObject, WKScriptMessageHandler {
                 self?.load()
             }
         } else if (body["init"] as? Bool) == true {
-            checkConsent {}
+            checkConsent { [weak self] in self?.sendState() } // (a page started over hears whether it needs Ad privacy choices too)
         }
         if let place = body["show"] as? String, !place.isEmpty { show(place) }
         if (body["cancel"] as? Bool) == true { cancelWait() }
@@ -303,6 +303,12 @@ final class AdsBridge: NSObject, WKScriptMessageHandler {
     private func present(_ place: String) {
         #if canImport(GoogleMobileAds)
         stopWaiting()
+        // The player left the app (the home screen, a call, the app switcher) while it loaded: no ad pops up while they're away.
+        // It stays loaded, so it plays as soon as they ask again.
+        guard UIApplication.shared.applicationState == .active else {
+            send(["e": "fail", "p": place, "why": "slow"])
+            return
+        }
         guard let next = ready, let host = topController() else {
             send(["e": "fail", "p": place, "why": "noads"])
             return
@@ -386,9 +392,12 @@ extension AdsBridge: FullScreenContentDelegate {
         onScreen = nil
         // The ad may have changed the app's sound (its unmute button plays even with the ring switch on silent): the game's own sound
         // settings come back, then the game starts its sound afresh, as after a call.
-        GameAudio.apply()
+        GameAudio.apply { [weak self] in
+            self?.webView?.evaluateJavaScript("window.dispatchEvent(new CustomEvent('nativeresume', { detail: { away: true } }));", completionHandler: nil)
+        }
+        // (the reward again: if iOS had to start the game's page over while the ad was up, the first one went to the page it closed)
+        if earned { send(["e": "reward", "p": place]) }
         send(["e": "close", "p": place, "earned": earned])
-        webView?.evaluateJavaScript("window.dispatchEvent(new CustomEvent('nativeresume', { detail: { away: true } }));", completionHandler: nil)
         // (and again just after, in case the SDK sets its own back once this callback is done)
         DispatchQueue.main.async { GameAudio.apply() }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { GameAudio.apply() }

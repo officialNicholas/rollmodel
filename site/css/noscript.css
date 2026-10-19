@@ -1,0 +1,2 @@
+/* Only without JavaScript: the forms and messages that need it are hidden, and the <noscript> note says why. */
+.when-token,.when-no-token,.js-only{display:none!important}

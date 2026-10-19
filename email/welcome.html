@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="format-detection" content="telephone=no,address=no,email=no,date=no,url=no">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Welcome to Roll Model, {{username}}!</title>
+<link href="https://fonts.googleapis.com/css2?family=Bowlby+One&amp;display=swap" rel="stylesheet">
+<style>
+  body{margin:0;padding:0;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  a{text-decoration:none}
+  @media (max-width:620px){
+    .wrap{padding:12px 10px 28px!important}
+    .card{border-radius:22px!important}
+    .pad{padding-left:22px!important;padding-right:22px!important}
+    .h1{font-size:28px!important;line-height:32px!important}
+    .name{font-size:26px!important}
+  }
+  @media (prefers-color-scheme:dark){
+    .bg{background:#110E18!important}
+    .card{background:#1E1928!important;border-color:#342C42!important}
+    .ink{color:#F4EEE3!important}
+    .soft{color:#B9AFC6!important}
+    .namebox{background:#2A2336!important;border-color:#CBE45A!important}
+    .namebox .name{color:#CBE45A!important}
+    .rule{border-color:#342C42!important}
+    .warn{background:#2A2336!important;border-color:#4A3F5C!important}
+  }
+</style>
+</head>
+<body class="bg" style="margin:0;padding:0;background:#F4EEE3">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all">Your username is {{username}}. Confirm your email so you can always get back in.&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+<table role="presentation" class="bg" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F4EEE3">
+<tr><td class="wrap" align="center" style="padding:28px 16px 40px">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+    <tr><td align="center" style="padding:0 0 6px">
+      <a href="{{site}}" style="text-decoration:none"><img src="{{site}}/email/logo.png" width="230" height="161" alt="Roll Model" style="display:block;width:230px;max-width:62%;height:auto;border:0"></a>
+    </td></tr>
+    <tr><td>
+      <table role="presentation" class="card" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFCF6;border:1px solid #E6DCCB;border-radius:28px;border-collapse:separate">
+        <tr><td class="pad" style="padding:34px 40px 36px">
+          <h1 class="h1 ink" style="margin:0 0 14px;font-family:'Bowlby One','Arial Black','Avenir Next','Segoe UI','Helvetica Neue',Arial,sans-serif;font-weight:900;font-synthesis:none;font-size:32px;line-height:36px;color:#171320;text-align:center;letter-spacing:.2px">Welcome to Roll&nbsp;Model!</h1>
+          <p class="ink" style="margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:25px;color:#171320;text-align:center">Your account is ready. This is the name the canvas will know you by:</p>
+          <table role="presentation" class="namebox" align="center" cellpadding="0" cellspacing="0" border="0" style="margin:6px auto 22px;background:#CBE45A;border:2px solid #171320;border-radius:18px;border-collapse:separate">
+            <tr><td align="center" style="padding:12px 30px 14px">
+              <p class="soft" style="margin:0 0 2px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:11px;line-height:14px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;color:#171320;opacity:.7">Your username</p>
+              <p class="name" style="margin:0;font-family:'Bowlby One','Arial Black','Avenir Next','Segoe UI','Helvetica Neue',Arial,sans-serif;font-weight:900;font-synthesis:none;font-size:30px;line-height:36px;color:#171320;word-break:break-all">{{username}}</p>
+            </td></tr>
+          </table>
+          <p class="ink" style="margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:25px;color:#171320;text-align:center">Log in with it and your password on any phone, and your progress comes with you.</p>
+          <p class="ink" style="margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:25px;color:#171320;text-align:center">One last thing: confirm your email, so we can get you back in if you ever forget your password.</p>
+          <table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="margin:8px auto 22px">
+            <tr><td align="center" bgcolor="#E3122F" style="border-radius:999px;background:#E3122F;border-bottom:4px solid #99091F">
+              <a href="{{link}}" style="display:inline-block;padding:16px 34px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:17px;line-height:20px;font-weight:800;color:#FFFFFF;text-decoration:none;border-radius:999px">Confirm my email</a>
+            </td></tr>
+          </table>
+          <p class="soft" style="margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:20px;color:#6E6577;text-align:center">The button works for 24 hours.</p>
+          <hr class="rule" style="border:0;border-top:1px solid #E6DCCB;margin:22px 0 20px">
+          <p class="ink" style="margin:0 0 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:25px;color:#171320;text-align:center">See you on the canvas!<br><b>Ol&#8217; Bloop</b>, your coach</p>
+
+        </td></tr>
+      </table>
+    </td></tr>
+    <tr><td class="pad" style="padding:22px 30px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#6E6577;text-align:center">
+      <p class="soft" style="margin:0 0 8px;color:#6E6577">You got this email because a Roll Model account was made with this address. If that wasn&#8217;t you, ignore it.</p>
+      <p class="soft" style="margin:0 0 8px;color:#6E6577">Questions? Write to <a href="mailto:{{support}}" style="color:#6E6577;text-decoration:underline">{{support}}</a></p>
+      <p class="soft" style="margin:0;color:#6E6577"><a href="{{site}}/privacy" style="color:#6E6577;text-decoration:underline">Privacy Policy</a> &nbsp;&middot;&nbsp; <a href="{{site}}/terms" style="color:#6E6577;text-decoration:underline">Terms of Service</a> &nbsp;&middot;&nbsp; <a href="{{site}}/support" style="color:#6E6577;text-decoration:underline">Support</a></p>
+      <p class="soft" style="margin:10px 0 0;color:#6E6577">Roll Model &middot; A Marcelin Game &middot; &copy; {{year}}</p>
+    </td></tr>
+  </table>
+</td></tr>
+</table>
+</body>
+</html>

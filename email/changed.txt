@@ -1,0 +1,15 @@
+Your password was changed
+
+{{username}}, the password for your Roll Model account was changed on {{when}}. You've been signed out on your other devices.
+
+If this was you, you're all set.
+
+Wasn't you? Choose a new password right away:
+{{link}}
+then write to us at {{support}}.
+
+--
+You got this email because the password of the Roll Model account with this address was changed.
+Questions? Write to {{support}}
+Privacy Policy: {{site}}/privacy  Terms: {{site}}/terms  Support: {{site}}/support
+Roll Model, A Marcelin Game

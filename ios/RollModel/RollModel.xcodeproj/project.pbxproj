@@ -16,6 +16,8 @@
 		55B693A1DE65D315A3F92215 /* OrientBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A1CA1779BD513423912E959 /* OrientBridge.swift */; };
 		EEEB90DC25A14505909657CC /* SaveBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0E0336BB155262FB43B5A53 /* SaveBridge.swift */; };
 		CE1C3961FBC267C0D61B74D7 /* AdsBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A38FE07CC82C4CDBA2888B9 /* AdsBridge.swift */; };
+		6479A0AE4A77062E43E077B8 /* NotifyBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC07ABED6578AE332EB65A17 /* NotifyBridge.swift */; };
+		8628B158F1BFBB1A2E19D4B3 /* GameCenterBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293265C01BE632326902D645 /* GameCenterBridge.swift */; };
 		FB7B391A3017C1C12D748CB0 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 292BF1B608A236C4DEA324DA /* GoogleMobileAds */; };
 		A043B619F5026958FC266A02 /* GoogleUserMessagingPlatform in Frameworks */ = {isa = PBXBuildFile; productRef = F5A17FA657A97763A67DF9E6 /* GoogleUserMessagingPlatform */; };
 		6D3176202AFAB4025CF1C75D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3C10E1B9663786B5B539DB02 /* Assets.xcassets */; };
@@ -34,6 +36,8 @@
 		4A1CA1779BD513423912E959 /* OrientBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrientBridge.swift; sourceTree = "<group>"; };
 		A0E0336BB155262FB43B5A53 /* SaveBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveBridge.swift; sourceTree = "<group>"; };
 		4A38FE07CC82C4CDBA2888B9 /* AdsBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdsBridge.swift; sourceTree = "<group>"; };
+		DC07ABED6578AE332EB65A17 /* NotifyBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotifyBridge.swift; sourceTree = "<group>"; };
+		293265C01BE632326902D645 /* GameCenterBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCenterBridge.swift; sourceTree = "<group>"; };
 		3C10E1B9663786B5B539DB02 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CE19A29E3E7364164222C56E /* Game */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Game; sourceTree = "<group>"; };
 		2FCB0B10CB485B242248A929 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -73,6 +77,8 @@
 				4A1CA1779BD513423912E959 /* OrientBridge.swift */,
 				A0E0336BB155262FB43B5A53 /* SaveBridge.swift */,
 				4A38FE07CC82C4CDBA2888B9 /* AdsBridge.swift */,
+				DC07ABED6578AE332EB65A17 /* NotifyBridge.swift */,
+				293265C01BE632326902D645 /* GameCenterBridge.swift */,
 				CE19A29E3E7364164222C56E /* Game */,
 				3C10E1B9663786B5B539DB02 /* Assets.xcassets */,
 				FC90AEE7718CFADA84B0EFC1 /* PrivacyInfo.xcprivacy */,
@@ -177,6 +183,8 @@
 				55B693A1DE65D315A3F92215 /* OrientBridge.swift in Sources */,
 				EEEB90DC25A14505909657CC /* SaveBridge.swift in Sources */,
 				CE1C3961FBC267C0D61B74D7 /* AdsBridge.swift in Sources */,
+				6479A0AE4A77062E43E077B8 /* NotifyBridge.swift in Sources */,
+				8628B158F1BFBB1A2E19D4B3 /* GameCenterBridge.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

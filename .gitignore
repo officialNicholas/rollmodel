@@ -5,3 +5,5 @@ ios/RollModel/RollModel/Game/
 tools/ios/build/
 server/node_modules/
 supabase/tests/node_modules
+admin/dist/
+game/_shots*.html

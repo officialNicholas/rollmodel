@@ -1,0 +1,14 @@
+Forgot your password?
+
+No problem, {{username}}. Open this link and choose a new one:
+{{link}}
+
+The link works once, for 30 minutes.
+
+Didn't ask for this? Ignore this email. Your password stays the same and your account is safe.
+
+--
+You got this email because someone asked to reset the password of the Roll Model account with this address.
+Questions? Write to {{support}}
+Privacy Policy: {{site}}/privacy  Terms: {{site}}/terms  Support: {{site}}/support
+Roll Model, A Marcelin Game

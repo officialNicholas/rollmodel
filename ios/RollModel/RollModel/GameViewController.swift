@@ -4,37 +4,37 @@ import WebKit
 /// Hosts the game full screen. The game itself is the bundled web build in the Game folder, served offline.
 final class GameViewController: UIViewController {
 
-    static let backgroundColor = UIColor(red: 18.0 / 255.0, green: 10.0 / 255.0, blue: 36.0 / 255.0, alpha: 1.0)
+    /// The launch screen's color (LaunchBackground in the asset catalog), so the app never flashes another color as the game loads.
+    static let backgroundColor = UIColor(named: "LaunchBackground") ?? UIColor(red: 18.0 / 255.0, green: 10.0 / 255.0, blue: 36.0 / 255.0, alpha: 1.0)
 
     private let haptics = HapticsBridge()
     private let device = DeviceBridge()
     private let orient = OrientBridge()
     private let saves = SaveBridge()
     private let ads = AdsBridge()
+    private let notify = NotifyBridge()
+    private let gameCenter = GameCenterBridge()
+    private let contentController = WKUserContentController()
     private var webView: WKWebView!
     private var lastReload = Date.distantPast
     private var reloadWhenActive = false
+    private var restarts: [Date] = []    // (when the game's page was started over, this last minute)
+    private var restartCard: UIView?
 
     override func loadView() {
-        let contentController = WKUserContentController()
-        contentController.addUserScript(WKUserScript(source: HapticsBridge.script,
-                                                     injectionTime: .atDocumentStart,
-                                                     forMainFrameOnly: true))
         contentController.add(haptics, name: HapticsBridge.messageName)
         // The game picks its graphics level from what this phone is (and eases off in Low Power Mode or when it runs hot).
-        contentController.addUserScript(WKUserScript(source: DeviceBridge.startScript(),
-                                                     injectionTime: .atDocumentStart,
-                                                     forMainFrameOnly: true))
         contentController.add(device, name: DeviceBridge.messageName)
         // Upright or wide: the player's choice (asked when the game first opens, changed in Settings) turns the iPhone to match.
         contentController.add(orient, name: OrientBridge.messageName)
         // A copy of the save in the app's own files, put back if the web view's storage loses it.
         contentController.add(saves, name: SaveBridge.messageName)
         // Rewarded ads, only when the player asks for one: Skip on a stroke being crafted plays one (Google AdMob).
-        contentController.addUserScript(WKUserScript(source: AdsBridge.startScript,
-                                                     injectionTime: .atDocumentStart,
-                                                     forMainFrameOnly: true))
         contentController.add(ads, name: AdsBridge.messageName)
+        // A nudge when a craft is done, once the player has said yes to one.
+        contentController.add(notify, name: NotifyBridge.messageName)
+        // Game Center: signed in from the lobby, and a leaderboard for each canvas's Time trial.
+        contentController.add(gameCenter, name: GameCenterBridge.messageName)
 
         let configuration = WKWebViewConfiguration()
         configuration.userContentController = contentController
@@ -63,10 +63,34 @@ final class GameViewController: UIViewController {
         self.webView = webView
         device.webView = webView
         device.startObserving()
+        // iPhone Duo partly folded: the game hears where the fold runs, and keeps its boxes and words to one side of it.
+        device.watchFold()
         orient.viewController = self
         ads.webView = webView
         ads.viewController = self
+        notify.webView = webView
+        gameCenter.webView = webView
+        gameCenter.viewController = self
         view = webView
+    }
+
+    /// The scripts that run before the game's own. They go in afresh before every load, so a page started over has this
+    /// moment's description of the phone (Low Power Mode, how warm it is), not the one from when the app opened.
+    private func installScripts() {
+        contentController.removeAllUserScripts()
+        contentController.addUserScript(WKUserScript(source: HapticsBridge.script,
+                                                     injectionTime: .atDocumentStart,
+                                                     forMainFrameOnly: true))
+        // (the screen's scale and refresh rate from the view and its window's screen, not the main screen: on iPhone Duo the game moves
+        // between two screens)
+        let screen = view.window?.windowScene?.screen
+        contentController.addUserScript(WKUserScript(source: DeviceBridge.startScript(scale: traitCollection.displayScale,
+                                                                                      maxFPS: screen?.maximumFramesPerSecond ?? 0),
+                                                     injectionTime: .atDocumentStart,
+                                                     forMainFrameOnly: true))
+        contentController.addUserScript(WKUserScript(source: AdsBridge.startScript,
+                                                     injectionTime: .atDocumentStart,
+                                                     forMainFrameOnly: true))
     }
 
     override func viewDidLoad() {
@@ -75,6 +99,12 @@ final class GameViewController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardDidHide),
                                                name: UIResponder.keyboardDidHideNotification, object: nil)
         loadGame()
+    }
+
+    // A new size or shape (iPhone Duo folded, opened or turned): where the fold runs may have changed with it.
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        device.pushFold()
     }
 
     @objc private func keyboardDidHide() {
@@ -88,6 +118,7 @@ final class GameViewController: UIViewController {
     }
 
     private func loadGame() {
+        installScripts()
         webView.load(URLRequest(url: GameSchemeHandler.startURL))
     }
 
@@ -132,8 +163,21 @@ final class GameViewController: UIViewController {
         return [.top, .bottom]
     }
 
+    // A phone-shaped screen keeps the way the player plays; a roomy one (iPhone Duo open or closed, an iPad) turns freely.
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        return UIDevice.current.userInterfaceIdiom == .pad ? .all : orient.mask
+        return OrientBridge.turnsFreely(self) ? .all : orient.mask
+    }
+
+    // iPhone Duo folding or unfolding (or any window resized) changes the game's shape mid-session: the page sees the new size itself,
+    // and the turns allowed are worked out again from it.
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        coordinator.animate(alongsideTransition: nil) { [weak self] _ in
+            guard let self = self else { return }
+            if #available(iOS 16.0, *) {
+                self.setNeedsUpdateOfSupportedInterfaceOrientations()
+            }
+        }
     }
 }
 
@@ -150,8 +194,9 @@ extension GameViewController: WKNavigationDelegate {
             decisionHandler(.allow)
             return
         }
-        // Anything pointing outside the game opens in Safari instead of replacing it.
-        if scheme == "http" || scheme == "https" || scheme == "mailto" {
+        // Anything pointing outside the game opens in Safari instead of replacing it (only from the game itself, never from
+        // a frame inside it).
+        if scheme == "http" || scheme == "https" || scheme == "mailto", navigationAction.targetFrame?.isMainFrame != false {
             UIApplication.shared.open(url)
         }
         decisionHandler(.cancel)
@@ -160,9 +205,13 @@ extension GameViewController: WKNavigationDelegate {
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         // The game is a fixed screen: no pinch zoom.
         webView.scrollView.pinchGestureRecognizer?.isEnabled = false
+        // A page that has just loaded hears where the fold is (if iPhone Duo is partly folded), even if that hasn't changed.
+        device.pushFold(force: true)
     }
 
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        // The page that kept the screen on for a match is gone: the screen may sleep again until a match asks.
+        UIApplication.shared.isIdleTimerDisabled = false
         // iOS can reclaim the page's memory while the app sits in the background. Start the game again once the app is in front
         // (a page that loads out of sight can't start its sound), after a short pause if it only just happened, so a struggling
         // device isn't stuck reloading.
@@ -174,10 +223,79 @@ extension GameViewController: WKNavigationDelegate {
     }
 
     private func reloadGame() {
-        let wait = Date().timeIntervalSince(lastReload) < 10 ? 3.0 : 0.0
-        lastReload = Date()
+        // A fourth time in a minute: something keeps closing the page (most likely the phone is short of memory). Rather than go
+        // round again, the player gets a card to start the game when they're ready.
+        let now = Date()
+        restarts = restarts.filter { now.timeIntervalSince($0) < 60 } + [now]
+        guard restarts.count <= 3 else {
+            showRestartCard()
+            return
+        }
+        let wait = now.timeIntervalSince(lastReload) < 10 ? 3.0 : 0.0
+        lastReload = now
         DispatchQueue.main.asyncAfter(deadline: .now() + wait) { [weak self] in
             self?.loadGame()
         }
+    }
+
+    /// Over the game, in the launch screen's color: what happened, that progress is kept, and a button to start again.
+    private func showRestartCard() {
+        guard restartCard == nil else { return }
+        let card = UIView(frame: view.bounds)
+        card.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        card.backgroundColor = GameViewController.backgroundColor
+
+        let title = UILabel()
+        title.text = "Roll Model stopped"
+        title.font = .systemFont(ofSize: 24, weight: .heavy)
+        title.textColor = .white
+        title.textAlignment = .center
+        title.numberOfLines = 0
+
+        let note = UILabel()
+        note.text = "Your progress is saved. Closing other apps can help it run."
+        note.font = .systemFont(ofSize: 16, weight: .semibold)
+        note.textColor = UIColor(white: 1, alpha: 0.72)
+        note.textAlignment = .center
+        note.numberOfLines = 0
+
+        var look = UIButton.Configuration.filled()
+        look.title = "Start again"
+        look.baseBackgroundColor = UIColor(red: 1.0, green: 232.0 / 255.0, blue: 150.0 / 255.0, alpha: 1.0)
+        look.baseForegroundColor = UIColor(red: 23.0 / 255.0, green: 19.0 / 255.0, blue: 32.0 / 255.0, alpha: 1.0)
+        look.cornerStyle = .large
+        look.contentInsets = NSDirectionalEdgeInsets(top: 14, leading: 30, bottom: 14, trailing: 30)
+        look.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
+            var outgoing = incoming
+            outgoing.font = UIFont.systemFont(ofSize: 18, weight: .heavy)
+            return outgoing
+        }
+        let button = UIButton(configuration: look, primaryAction: UIAction { [weak self] _ in
+            self?.startAgain()
+        })
+
+        let stack = UIStackView(arrangedSubviews: [title, note, button])
+        stack.axis = .vertical
+        stack.alignment = .center
+        stack.spacing = 14
+        stack.setCustomSpacing(26, after: note)
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        card.addSubview(stack)
+        NSLayoutConstraint.activate([
+            stack.centerXAnchor.constraint(equalTo: card.centerXAnchor),
+            stack.centerYAnchor.constraint(equalTo: card.centerYAnchor),
+            stack.leadingAnchor.constraint(greaterThanOrEqualTo: card.leadingAnchor, constant: 32),
+            stack.trailingAnchor.constraint(lessThanOrEqualTo: card.trailingAnchor, constant: -32)
+        ])
+        view.addSubview(card)
+        restartCard = card
+    }
+
+    private func startAgain() {
+        restartCard?.removeFromSuperview()
+        restartCard = nil
+        restarts = []
+        lastReload = Date()
+        loadGame()
     }
 }

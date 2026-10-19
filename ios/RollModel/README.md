@@ -17,9 +17,51 @@ This is the same app you already have in App Store Connect: bundle ID `studio.pr
 
 Plug in your iPhone, pick it as the run destination and press **Run**. The first time, the phone asks you to turn on Developer Mode in Settings > Privacy & Security.
 
-## Rewarded ads (new in this build)
+## iPhone Duo
 
-On the Strokes page, **Skip** on a stroke being crafted now plays a rewarded ad (Google AdMob), and the craft finishes once the ad has been watched. Ol' Bloop's Skip in the lesson stays free. The code is in **AdsBridge.swift**.
+- **Build with Xcode 27.1 or newer** (the iOS 27.1 SDK). Built with an older Xcode, the app still runs on iPhone Duo but in a smaller window: in the middle of the open screen, and beside the status bar and camera on the closed one.
+- **Open or closed, any way round:** the game takes the shape it's given. On iPhone Duo (or any near-square window) it never asks how you hold it and never asks you to turn the phone; on other iPhones the upright or wide choice works as before. (OrientBridge.swift, GameViewController.swift)
+- **Folding or opening mid-match pauses it,** so you can settle your grip; the screen's sharpness is set again for the new size.
+- **Partly folded, boxes and words keep to one side of the fold.** The app reads where the fold runs (UIView's reserved regions, iOS 27.1) and tells the game, twice a second while it changes; held wide, pop-ups and the match's middle go to the right-hand screen and two-part pages split at the fold; held upright, pop-ups go to the lower screen. Opened flat, nothing changes. It calls the iOS 27.1 API by name, so the project still builds with an older SDK. (DeviceBridge.swift, GameViewController.swift)
+- **No more "Hang Risk" warnings:** the sound settings (AVAudioSession) now change off the main thread, so the screen never waits on them. (AppDelegate.swift, SceneDelegate.swift, AdsBridge.swift)
+- **The screen's scale and refresh rate come from the game's own window,** not the main screen, since iPhone Duo has two. (DeviceBridge.swift)
+- **Try it in the iPhone Duo simulator** (Xcode 27.1): play a match, then close and open the phone, turn it each way, and fold it partway.
+- **App Store:** add iPhone Duo screenshots in App Store Connect to get the "optimized for iPhone Duo" badge on the product page: 2007 × 2853 or 2853 × 2007 (open) and 1398 × 2034 or 2034 × 1398 (closed). From April 2027 they're required for any build made with the iOS 27.1 SDK.
+
+## New in this build: more of the iPhone
+
+- **Haptics that feel like iOS's own.** A win, a purchase, a claimed reward and a finished craft give iOS's "success" feel; a purchase that can't go through and an ad that didn't come give the "error" feel; switches, tabs, filters, paint colours and the canvas vote give the light tick of a picker. They follow the phone's own **Settings > Sounds & Haptics > System Haptics**. (HapticsBridge.swift)
+- **The App Store rating prompt**, back in the lobby after a win, once a player has 3 wins and 8 matches, and once per game build. iOS decides whether it actually shows (at most three times a year) and never shows it in TestFlight. (DeviceBridge.swift)
+- **A nudge when a craft is done.** The first long craft asks in the game's own card, "Get a nudge?"; only a yes brings up iOS's notification prompt. After that each craft schedules a notification for when it's done ("The Giant is ready!"), called off if it's finished in the game first. No setup needed. (NotifyBridge.swift)
+- **Game Center**, once you set it up (below): sign-in from the lobby (never mid-match, never in the first lesson), each Time trial's score on that canvas's leaderboard, and a **Game Center** button on the game's Time trial board. Until it's set up, nothing of it shows. (GameCenterBridge.swift)
+- **Game Mode:** the app says it's a game (Info.plist), so iOS can turn on Game Mode for it.
+- **Opens the way you play:** the app remembers upright or wide, so a wide player's game opens wide instead of turning once it has loaded.
+- **Never stuck reloading:** if iOS closes the game's page three times in a minute (a phone very short of memory), the app shows a "Roll Model stopped" card with **Start again** instead of reloading over and over. Progress is kept.
+- **Ads:** an ad that finishes loading after the player has left the app no longer pops up when they come back, and a reward still counts if iOS restarted the game under the ad.
+- **Small things:** shaking the phone never brings up "Undo Typing"; no long-press menus; the screen may sleep again if the game's page is closed mid-match.
+
+### Game Center (one-time setup)
+1. In Xcode, select the **RollModel** target, open **Signing & Capabilities**, click **+ Capability** and add **Game Center**.
+2. In App Store Connect, open the app, then **Services > Game Center** (or the **Game Center** section of the version), and turn it on for the version.
+3. Add a leaderboard for each canvas (**Leaderboards > +**). Make each one **Recurring**, starting on a Monday at 00:00 UTC, lasting **1 week** and repeating **every week** (that matches the game's own weekly board). Score format **Integer**, sort **High to low**, score range **0 to 100**, and in its localization a suffix of **%**. The **Leaderboard ID** must be exactly:
+
+   | Canvas | Leaderboard ID |
+   |---|---|
+   | Palette Island | `rm.trial.island` |
+   | Blank Canvas | `rm.trial.blank` |
+   | Sludge Sewer | `rm.trial.sewer` |
+   | Fishing Raft | `rm.trial.raft` |
+   | The Crypt | `rm.trial.crypt` |
+   | The Cathedral | `rm.trial.cathedral` |
+   | The Manor | `rm.trial.manor` |
+
+4. Add the leaderboards to the app version before you submit it.
+
+The game only shows its Game Center button for a canvas once that canvas's leaderboard exists, so you can add them one at a time.
+
+## Rewarded ads
+
+On the Strokes page, **Skip** on a stroke being crafted now plays a rewarded ad (Google AdMob), and the craft finishes once the ad has been watched. Ol' Bloop's Skip in the lesson plays one too; if no ad can come there (offline, or none to show), the lesson's craft finishes anyway, so a new player never gets stuck. The code is in **AdsBridge.swift**.
 
 The app gets an ad ready as soon as the Strokes page opens, and again after each one is watched, so Skip usually plays one at once. If Skip is tapped before it's loaded, the game shows a "Getting your ad ready" card that waits for it (up to about 20 seconds, asking again while it's slow), with Cancel. If none comes, the card says why (offline, too slow, or no ad to show) with Try again. Cancel tells the app to stop waiting (the `cancel` message in AdsBridge.swift), so the ad doesn't pop up afterwards.
 
@@ -53,7 +95,7 @@ Since the player chooses to watch, the ad can be longer or interactive:
 
 ## Good to know
 
-- The game inside is version 336. Settings shows it as "Version 1.1 (336)".
+- The game inside is version 378. Settings shows it as "Version 1.1 (378)".
 - A brand-new player first gets the intro: a paint barrel in a desert scrapyard, then picking eye colour, eye style, paint colour and a name, before the lobby and the lesson. Existing players go straight to the lobby. To see it again, delete and reinstall the app.
 - Saved names, looks and progress carry over from the earlier builds: the game keeps the same save and the same private address inside the app.
 - The app icon is the paint roller. To change it later, drop a new 1024 x 1024 image into **Assets > AppIcon**.
@@ -63,8 +105,8 @@ Since the player chooses to watch, the ad can be longer or interactive:
 - If iOS takes the game's graphics away while it's in the background, they come back when you return; if they can't, the game starts again with progress kept. When the phone is short of memory, the game lets go of songs it isn't playing.
 - Pinch and double tap never zoom the game, the page settles back after the keyboard closes, and the home bar fades out while you play.
 - Players pick upright or wide play when the game first opens, and can change it in Settings. On iPhone the app turns to match. iPad turns freely.
-- To test every accessory at once, tap **Unlock all items** at the bottom of Customize and enter **1234**.
-- Game sound follows the ring/silent switch and plays alongside your music. In-game buzzes use the Taptic Engine.
+- The test unlocks (**Unlock everything** on the Strokes page, **Unlock all items** in the shop, code **1234**) only show in a build run from Xcode, and in the browser preview. TestFlight and App Store builds don't have them: App Review installs look just like TestFlight ones, and reviewers must not find a secret code. The same goes for the error lines and the hidden performance readout.
+- Game sound follows the ring/silent switch and plays alongside your music (the app and the game both ask for iOS's "ambient" sound). In-game buzzes use the Taptic Engine.
 - While an ad plays the game's sound is off; it comes back when the ad closes.
 - Sound comes back on its own after the app has been in the background, and after a call, Siri or an alarm. If iOS closed the game while it was away, it starts again when you open the app.
 - The app tells the game which iPhone it's on, plus Low Power Mode and heat, and the game sets its graphics from that. The screen stays awake during a match.
