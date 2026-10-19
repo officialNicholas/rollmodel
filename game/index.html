@@ -4873,7 +4873,7 @@ html.fh .tutgo .tgcard .tava{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 374</p>
+      <p class="ver">Version 375</p>
     </div>
   </div>
 
@@ -15140,15 +15140,51 @@ function startTurret(D) {
 function stepTurret(D, dt) {
   const T = D.turret; T.t -= dt; T.kick = Math.max(0, T.kick - dt * 6);
   if (T.t <= 0) { D.turret = null; graceOut(D); D.squash = 0.7; D.wob = 1; if (hearable(D)) AU.pop(); for (let i = 0; i < 12; i++) { const a = i / 12 * 6.283; spawnPart(D.x, D.y + 0.3, D.z, Math.cos(a) * 2.6, 1.2 + Math.random(), Math.sin(a) * 2.6, 0.4, puHaloMat, 0.5); } return; }
-  // your range: drag up (or the up key) to lob further, down to drop them closer
-  // (v309) a rival near your line pulls the turret round onto them (where they're going), less the harder you steer
-  if (!D.ai && D.st === 'play') { const tg = coneFoe(D, 0.75, TURRET_FAR + 1); if (tg) { const O = tg.O, lead = Math.min(0.6, tg.d / SHOT_V), err = wrapA(Math.atan2(O.x + Math.sin(O.yaw) * O.spd * lead - D.x, O.z + Math.cos(O.yaw) * O.spd * lead - D.z) - D.yaw), r = 2.4 * Math.max(0, 1 - Math.abs(steerIn) * 1.6 - (keyL || keyR ? 1 : 0)) * dt; D.yaw += clamp(err, -r, r); } }
+  // (v375) yours turns only as you steer it (and the camera with it); a rival in front is locked onto and its head swings onto them
+  if (!D.ai && D.st === 'play') turretLock(D, dt);
   T.cd -= dt; if (T.cd <= 0 && D.st === 'play' && !D.air && D.flatT <= 0 && !(D.stunT > 0) && state === 'play') { T.cd += TURRET_RATE; fireShot(D); }
 }
-// where a turret's next shot is headed: your shots go the range you've set (onto a foe near that spot, if there is one); a CPU's sweep
-// near to far and back, or go for a foe in front
+// (v375) your turret's lock: a rival within TUR_IN of where you face, on your screen, in reach and in sight (from about as high as its
+// lob goes, so a low wall doesn't hide them), is locked onto; the lock holds while they stay within TUR_OUT and in reach, and on your
+// screen or just past its edge (off it for a moment doesn't count), whatever they duck behind or roll through, so it never flicks between
+// rivals. Its head swings round onto where its shots will meet them (TUR_SW either side at most, TUR_SWV radians a second); with no lock
+// it comes back to the middle. Where they're going is their real movement over the last moments
+const TUR_IN = 0.6, TUR_OUT = 0.9, TUR_SW = 0.9, TUR_SWV = 5, TUR_MID = 10, turV = new THREE.Vector3();
+function turretLock(D, dt) {
+  const T = D.turret, ay = D.yaw + (T.sw || 0), cy = Math.cos(ay), sy = Math.sin(ay), tp = TURRET_RIG.tip, x0 = D.x + (tp.x * cy + tp.z * sy) * PR, y0 = D.y + (tp.y + 0.82 + 0.3) * PR, z0 = D.z + (-tp.x * sy + tp.z * cy) * PR;
+  const can = O => O && O.st === 'play' && !O.rocket && ACTIVE.includes(O) && !ally(O, D), off = O => ({ d: Math.hypot(O.x - D.x, O.z - D.z), err: Math.abs(wrapA(Math.atan2(O.x - D.x, O.z - D.z) - D.yaw)) });
+  const seen = (O, m) => D !== P || (turV.set(O.x, O.y + 0.3, O.z).project(camera), turV.z < 1 && Math.abs(turV.x) < m && Math.abs(turV.y) < 0.95); // (on your screen, m its width: on an upright phone that's well inside TUR_IN)
+  let L = T.lk; if (L) { const o = can(L) ? off(L) : null; T.offT = seen(L, 1.5) ? 0 : (T.offT || 0) + dt; if (!o || o.err > TUR_OUT || o.d > TURRET_FAR + 3 || o.d < 0.8 || T.offT > 0.4) L = null; } // (a little past the edge holds)
+  if (!L) { let best = null, bs = 1e9; for (const O of foes(D)) { if (!can(O) || O.immuneT > 0.3) continue; const o = off(O); if (o.d < 1.2 || o.d > TURRET_FAR + 1 || o.err > TUR_IN || !seen(O, 0.9) || !losClear(D.x, D.y + 2.6, D.z, O.x, O.y + 0.6, O.z)) continue; const sc = o.err + o.d * 0.02; if (sc < bs) { bs = sc; best = O; } } L = best; T.offT = 0; }
+  if (L !== T.lk) { T.lk = L; T.lv = L ? { x: L.x, z: L.z, vx: Math.sin(L.yaw) * (L.spd || 0), vz: Math.cos(L.yaw) * (L.spd || 0) } : null; if (L && D === P) buzz(8); }
+  if (L) { const v = T.lv, ix = clamp((L.x - v.x) / Math.max(dt, 1e-3), -25, 25), iz = clamp((L.z - v.z) / Math.max(dt, 1e-3), -25, 25), k = Math.min(1, dt / 0.12); v.vx += (ix - v.vx) * k; v.vz += (iz - v.vz) * k; v.x = L.x; v.z = L.z; }
+  let want = 0; if (L) { const P2 = turretLead(D, L, x0, y0, z0); want = clamp(wrapA(Math.atan2(P2.tx - x0, P2.tz - z0) - D.yaw), -TUR_SW, TUR_SW); }
+  T.sw = (T.sw || 0) + clamp(want - (T.sw || 0), -TUR_SWV * dt, TUR_SWV * dt);
+}
+// where a locked rival will be when a shot fired now lands on them: found by trying where they'll be after the flight time, and the
+// flight time to there, a few times over (each time with the very lob the shot will take; a rival in the air, where its jump will have
+// taken it); lead held to 7 units. The low, quick lob if nothing's in its way, else the usual higher one
+function turretLead(D, O, x0, y0, z0) {
+  const v = D.turret.lv || { vx: 0, vz: 0 }; let tx = O.x, tz = O.z, ty = O.y + PR * 0.7, tf = 0, low = true;
+  for (let pass = 0; pass < 2; pass++) {
+    tx = O.x; tz = O.z; ty = O.y + PR * 0.7;
+    for (let i = 0; i < 4; i++) { tf = shotLob(x0, y0, z0, Math.atan2(tx - x0, tz - z0), Math.max(0.5, Math.hypot(tx - x0, tz - z0)), ty, low).tf; const lx = v.vx * tf, lz = v.vz * tf, ll = Math.hypot(lx, lz), c = ll > 7 ? 7 / ll : 1; tx = O.x + lx * c; tz = O.z + lz * c;
+      if (O.air) { const g = surfaceUnder(tx, tz, O.y + 1, true); ty = Math.max(O.y + (O.vy || 0) * tf - 0.6 * GRAV * tf * tf, g > -Infinity ? g : O.y - 9) + PR * 0.7; } }
+    if (!low || !lobBlocked(x0, y0, z0, tx, tz, ty, true)) break; low = false;
+  }
+  return { tx, tz, ty, tf, low };
+}
+// whether a shot's lob to there would run into something on the way (a wall or a box)
+function lobBlocked(x0, y0, z0, tx, tz, ty, low) {
+  const a = Math.atan2(tx - x0, tz - z0), d = Math.max(0.5, Math.hypot(tx - x0, tz - z0)), L = shotLob(x0, y0, z0, a, d, ty, low), sa = Math.sin(a), ca = Math.cos(a);
+  for (let i = 1; i <= 8; i++) { const t = L.tf * i / 9; if (shotBlocked(x0 + sa * L.hv * t, z0 + ca * L.hv * t, y0 + L.vy * t - 0.5 * SHOT_G * t * t)) return true; } return false;
+}
+// where a turret's next shot is headed: yours at the rival it has locked onto, where they'll be (else straight ahead, near to far and
+// back along a lane); a CPU's sweep near to far and back, or go for a foe in front
 function turretTarget(D, x0, z0) {
   const T = D.turret; let a = D.yaw, d, ty, foe = null;
+  if (!D.ai) { a = D.yaw + (T.sw || 0); if (T.lk && T.lk.st === 'play') { const y0 = D.y + (TURRET_RIG.tip.y + 0.82 + 0.3) * PR, L = turretLead(D, T.lk, x0, y0, z0); return { a: Math.atan2(L.tx - x0, L.tz - z0), d: Math.max(0.5, Math.hypot(L.tx - x0, L.tz - z0)), ty: L.ty, foe: T.lk, low: L.low }; }
+    d = TUR_MID - 3 + 6 * (0.5 + 0.5 * Math.sin(T.ph * 0.8)); const g = surfaceUnder(x0 + Math.sin(a) * d, z0 + Math.cos(a) * d, D.y + 8, true); return { a, d, ty: g > -Infinity ? g : D.y, foe: null }; }
   if (D.ai) d = 7 + 5 * (0.5 + 0.5 * Math.sin(T.ph)); else d = TURRET_NEAR + 1.5 + (TURRET_FAR - TURRET_NEAR - 4) * (0.5 + 0.5 * Math.sin(T.ph * 0.8)); // (v309: yours sweep near to far too: no range to set)
   { const g = surfaceUnder(x0 + Math.sin(a) * d, z0 + Math.cos(a) * d, D.y + 8, true); ty = g > -Infinity ? g : D.y; }
   const tg = coneFoe(D, D.ai ? 0.22 : 0.45, TURRET_FAR + 1);
@@ -15156,21 +15192,26 @@ function turretTarget(D, x0, z0) {
   return { a, d, ty, foe };
 }
 function fireShot(D) {
-  const T = D.turret, k = PR, cy = Math.cos(D.yaw), sy = Math.sin(D.yaw), tp = TURRET_RIG.tip;
+  const T = D.turret, k = PR, ay = D.yaw + (T.sw || 0), cy = Math.cos(ay), sy = Math.sin(ay), tp = TURRET_RIG.tip; // (v375: out along the head, swung or not)
   const x0 = D.x + (tp.x * cy + tp.z * sy) * k, y0 = D.y + (tp.y + 0.82 + 0.3) * k, z0 = D.z + (-tp.x * sy + tp.z * cy) * k;
   // a foe in front (or close to it) is aimed at, where it's going to be; otherwise the shots fall from near to far and back, painting a swathe
   T.ph += 0.95 * TURRET_RATE / 0.27; const tt = turretTarget(D, x0, z0); let { a, d, ty } = tt; a += (Math.random() - 0.5) * (tt.foe ? 0.03 : 0.07); d *= 1 + (Math.random() - 0.5) * (tt.foe ? 0 : 0.08);
-  // a lob, not a line: it always arcs well clear of the higher end (so a shot onto a platform drops onto its top instead of hitting its side)
-  // (but under a low platform it keeps under it: the lob is capped below anything overhead along the first part of its path)
-  let ceil = Infinity; for (let q = 0; q <= 4; q++) { const u = q / 4 * Math.min(d * 0.6, 6), px = x0 + Math.sin(a) * u, pz = z0 + Math.cos(a) * u; for (const bx of qcell(qgB, px, pz)) if (bx[4] > y0 + 0.05 && bx[4] < ceil && inR(px, pz, bx, 0.15)) ceil = bx[4]; }
-  let tf = Math.max(0.15, d / SHOT_V), vy = (ty - y0 + 0.5 * SHOT_G * tf * tf) / tf; const top = Math.min(Math.max(y0, ty) + 1.1 + 0.07 * d, ceil - 0.3);
-  for (let k = 0; k < 24; k++) { const t2 = tf * 1.07, v2 = (ty - y0 + 0.5 * SHOT_G * t2 * t2) / t2; if (vy > 0 && y0 + vy * vy / (2 * SHOT_G) >= top) break; if (v2 > 0 && y0 + v2 * v2 / (2 * SHOT_G) > ceil - 0.3) break; tf = t2; vy = v2; }
-  for (let k = 0; k < 20 && vy > 0 && y0 + vy * vy / (2 * SHOT_G) > ceil - 0.3 && tf > 0.22; k++) { tf *= 0.92; vy = (ty - y0 + 0.5 * SHOT_G * tf * tf) / tf; } // flatter and quicker to get under it
-  const hv = d / tf;
+  const { tf, vy, hv } = shotLob(x0, y0, z0, a, d, ty, !!tt.low);
   shots.push({ x: x0, y: y0, z: z0, vx: Math.sin(a) * hv, vy, vz: Math.cos(a) * hv, by: D, team: D.team, tg: tt.foe, life: 4, acc: 0, ph: Math.random() * 6.28, spin: (Math.random() < 0.5 ? -1 : 1) * (3 + Math.random() * 4) });
   T.kick = 1; D.squash = Math.max(D.squash, 0.2); { const Vs = vOf(D); if (Vs && Vs.slime) Vs.slime.fire(); }
   for (let i = 0; i < 3; i++) spawnPart(x0, y0, z0, Math.sin(a) * (2 + Math.random() * 3) + (Math.random() - 0.5) * 1.5, 0.5 + Math.random() * 1.5, Math.cos(a) * (2 + Math.random() * 3) + (Math.random() - 0.5) * 1.5, 0.22, tmat(D), 0.4);
   if (hearable(D)) AU.shoot();
+}
+// a shot's lob from (x0, y0, z0), heading a, to land d out at height ty: its flight time, its speed up and its speed across
+// a lob, not a line: it always arcs well clear of the higher end (so a shot onto a platform drops onto its top instead of hitting its side)
+// (but under a low platform it keeps under it: the lob is capped below anything overhead along the first part of its path). low (v375):
+// a lower, quicker arc, for your shots at a rival you've locked onto
+function shotLob(x0, y0, z0, a, d, ty, low) {
+  let ceil = Infinity; for (let q = 0; q <= 4; q++) { const u = q / 4 * Math.min(d * 0.6, 6), px = x0 + Math.sin(a) * u, pz = z0 + Math.cos(a) * u; for (const bx of qcell(qgB, px, pz)) if (bx[4] > y0 + 0.05 && bx[4] < ceil && inR(px, pz, bx, 0.15)) ceil = bx[4]; }
+  let tf = Math.max(0.15, d / SHOT_V), vy = (ty - y0 + 0.5 * SHOT_G * tf * tf) / tf; const top = Math.min(Math.max(y0, ty) + (low ? 0.45 + 0.035 * d : 1.1 + 0.07 * d), ceil - 0.3);
+  for (let k = 0; k < 24; k++) { const t2 = tf * 1.07, v2 = (ty - y0 + 0.5 * SHOT_G * t2 * t2) / t2; if (vy > 0 && y0 + vy * vy / (2 * SHOT_G) >= top) break; if (v2 > 0 && y0 + v2 * v2 / (2 * SHOT_G) > ceil - 0.3) break; tf = t2; vy = v2; }
+  for (let k = 0; k < 20 && vy > 0 && y0 + vy * vy / (2 * SHOT_G) > ceil - 0.3 && tf > 0.22; k++) { tf *= 0.92; vy = (ty - y0 + 0.5 * SHOT_G * tf * tf) / tf; } // flatter and quicker to get under it
+  return { tf, vy, hv: d / tf };
 }
 // a glob is inside something solid (a box or a ramp): far tighter than a blob's own check, which allows for its width
 function shotBlocked(x, z, y) {
@@ -19313,8 +19354,9 @@ function blobVisual(D, V, dt, ke, kf) {
   const fk = V.flatK;
   // the heading drawn: exactly the simulated one while it steers, but a sudden swing (glancing off a wall or a rival, bounced away) turns the
   // body round over a moment instead of in a single frame
-  if (V.yawD === undefined || D.st !== 'play' || (state !== 'play' && state !== 'dead')) { V.yawD = D.yaw; V.yawSnap = false; }
-  else { const d = wrapA(D.yaw - V.yawD); if (Math.abs(d) > 0.3 + 8 * dt) V.yawSnap = true; if (V.yawSnap) { V.yawD += d * Math.min(1, dt * 16); if (Math.abs(wrapA(D.yaw - V.yawD)) < 0.03) V.yawSnap = false; } else V.yawD = D.yaw; }
+  const DY = D.yaw + (D.turret && D.turret.sw ? D.turret.sw : 0); // (v375: a turret faces where its head has swung)
+  if (V.yawD === undefined || D.st !== 'play' || (state !== 'play' && state !== 'dead')) { V.yawD = DY; V.yawSnap = false; }
+  else { const d = wrapA(DY - V.yawD); if (Math.abs(d) > 0.3 + 8 * dt) V.yawSnap = true; if (V.yawSnap) { V.yawD += d * Math.min(1, dt * 16); if (Math.abs(wrapA(DY - V.yawD)) < 0.03) V.yawSnap = false; } else V.yawD = DY; }
   const yawD = V.yawD;
   // knocked flying: one controlled flip, head over heels along its flight and a little off to one side, timed to finish just before it comes
   // down so it always lands upright on its base (coming down early onto something higher, it rolls the rest of the way over quickly)
@@ -19355,8 +19397,8 @@ function blobVisual(D, V, dt, ke, kf) {
     if (V.tur.visible) { V.tur.scale.setScalar(Math.max(0.01, easeBack(Math.min(1, k * 1.1)))); V.turBarrel.position.copy(TURRET_RIG.dir).multiplyScalar(-0.22 * (D.turret ? D.turret.kick : 0)); const aimT = D.turret ? (D.turret.aim === undefined ? 0.4 : D.turret.aim) : 0.4; V.turPitch = (V.turPitch || 0) + (-(aimT - 0.4) * 0.6 - (V.turPitch || 0)) * Math.min(1, dt * 12); V.turBarrel.rotation.x = V.turPitch;
       const ink = V.tur.userData.ink; if (ink) { const col = TEAMS[D.team].wet; if (V.turCol !== col) { V.turCol = col; ink.material.color.setHex(col); const bd = V.tur.userData.band; if (bd) bd.material.color.setHex(col); } const lv = D.turret ? clamp(D.turret.t / TURRET_T, 0, 1) : (V.turLv === undefined ? 1 : V.turLv); V.turLv = V.turLv === undefined ? lv : V.turLv + (lv - V.turLv) * Math.min(1, dt * 8); ink.scale.set(1, Math.max(0.03, V.turLv), 1); }
       const ey = V.tur.userData.eyes; if (ey) { V.turBT = (V.turBT === undefined ? 1.5 : V.turBT) - dt; if (V.turBT <= 0) { V.turBK = 0.12; V.turBT = 1.8 + Math.random() * 3; } if (V.turBK > 0) V.turBK -= dt; ey.scale.set(1, Math.min(V.turBK > 0 ? 0.1 : 1, 1 - 0.4 * (D.turret ? D.turret.kick : 0)), 1); } } }
-  if (D === P) { const on = !!D.turret && D.st === 'play' && state === 'play'; turretMark.g.visible = on; if (on) { const k = PR, cy = Math.cos(D.yaw), sy = Math.sin(D.yaw), tp = TURRET_RIG.tip, tt = turretTarget(D, D.x + (tp.x * cy + tp.z * sy) * k, D.z + (-tp.x * sy + tp.z * cy) * k), gy = tt.foe ? tt.foe.y : tt.ty;
-    turretMark.g.position.set(D.x + Math.sin(tt.a) * tt.d, gy + 0.05, D.z + Math.cos(tt.a) * tt.d); turretMark.g.scale.setScalar(tt.foe ? 1.25 + 0.1 * Math.sin(clock * 16) : 1); turretMark.mm.color.set(tt.foe ? 0xFFFFFF : TEAMS[D.team].wet).lerp(COL_WHITE, tt.foe ? 0 : 0.2); } }
+  if (D === P) { const on = !!D.turret && D.st === 'play' && state === 'play'; turretMark.g.visible = on; if (on) { const k = PR, ay = D.yaw + (D.turret.sw || 0), cy = Math.cos(ay), sy = Math.sin(ay), tp = TURRET_RIG.tip, x0 = D.x + (tp.x * cy + tp.z * sy) * k, z0 = D.z + (-tp.x * sy + tp.z * cy) * k, tt = turretTarget(D, x0, z0), md = tt.foe ? tt.d : TUR_MID, ma = tt.foe ? tt.a : ay, mx = x0 + Math.sin(ma) * md, mz = z0 + Math.cos(ma) * md, mg = tt.foe ? tt.foe.y : surfaceUnder(mx, mz, D.y + 8, true), gy = mg > -Infinity ? mg : D.y; // (v375: still in the lane's middle with no lock)
+    turretMark.g.position.set(mx, gy + 0.05, mz); turretMark.g.scale.setScalar(tt.foe ? 1.25 + 0.1 * Math.sin(clock * 16) : 1); turretMark.mm.color.set(tt.foe ? 0xFFFFFF : TEAMS[D.team].wet).lerp(COL_WHITE, tt.foe ? 0 : 0.2); } }
   if (V.rk) { const R = D.rocket, on = !!R && D.st === 'play'; V.rkK = (V.rkK || 0) + ((on ? 1 : 0) - (V.rkK || 0)) * Math.min(1, dt * (on ? 10 : 7)); const k = V.rkK; V.rk.visible = k > 0.02 && D.st !== 'ko';
     if (V.rk.visible) { V.rk.scale.setScalar(Math.max(0.01, easeBack(Math.min(1, k * 1.15)))); V.rk.position.copy(gooJS(tv2.set(0, 0.1, -1).normalize(), U)).add(tv1.set(0, 0.02, -0.2));
       const flip = R && R.ph === 'dive' && !R.slow ? 1 : 0; V.rkFlip = (V.rkFlip || 0) + (flip - (V.rkFlip || 0)) * Math.min(1, dt * 14); V.rk.rotation.set(-0.12, 0, Math.PI * V.rkFlip + (R && R.ph === 'hover' ? Math.sin(clock * 7) * 0.06 : 0));
