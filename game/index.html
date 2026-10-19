@@ -4780,7 +4780,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 367</p>
+      <p class="ver">Version 368</p>
     </div>
   </div>
 
@@ -12693,7 +12693,13 @@ const AXOC = (() => {
   }
   function bodyPoint(I, x, y, z, out) { const H = headFrame(I); return out.copy(H.neck); }
   function boneAt(I, name, out) { const X = I.ax, M = X.P.m[X.A.mesh], b = M.byName[name] || M.byName.chest; b.updateWorldMatrix(true, false); _mi.copy(I.root.matrixWorld).invert(); _m.multiplyMatrices(_mi, b.matrixWorld).premultiply(I.root.matrix); return out.setFromMatrixPosition(_m); } // (v302: a bone's place, in the body's space)
-  return { S, load, make, update, headTop, headSize, bodyPoint, backPoint, boneAt, headR0: HEAD_R0, faceK: 1.18 };
+  // (v368) its neck, for what's worn round it: a point s of the way along the line from the chest joint to the head's, and a frame there
+  // with its y up that line (toward the head) and its z out of the throat (down, square to the neck), in the body's space. Returns
+  // the line's length, the unit the neck pieces are sized in
+  const _nc = new THREE.Vector3(), _nh = new THREE.Vector3(), _nd = new THREE.Vector3(), _nf = new THREE.Vector3(), _nx = new THREE.Vector3(), _nm = new THREE.Matrix4();
+  function neckFrame(I, s, out, quat) { boneAt(I, 'chest', _nc); boneAt(I, 'head', _nh); _nd.subVectors(_nh, _nc); const L = _nd.length() || 1; _nd.divideScalar(L); out.copy(_nc).addScaledVector(_nd, s * L);
+    if (quat) { _nf.set(0, -1, 0).addScaledVector(_nd, _nd.y).normalize(); _nx.crossVectors(_nd, _nf); _nm.makeBasis(_nx, _nd, _nf); quat.setFromRotationMatrix(_nm); } return L; }
+  return { S, load, make, update, headTop, headSize, bodyPoint, backPoint, boneAt, neckFrame, headR0: HEAD_R0, faceK: 1.18 };
 })();
 const axoLoad = AXOC.load(window.AXO_PACK || 'axo-pack-250.txt').catch(e => { AXOC.S.failed = true; console.warn('axolotl pack:', e && e.message); });
 // (the slime only comes in if the axolotl never arrives)
@@ -12912,7 +12918,8 @@ const beanieParts = (() => { const dome = new THREE.SphereGeometry(0.52, 26, 18,
   return [[dome, knitMat], [band, creamMat], [pom, creamMat]]; })();
 const partyParts = (() => { const list = [], H = 0.84, N = 5; for (let k = 0; k < N; k++) { const y0 = k / N * H, y1 = (k + 1) / N * H, r = y => 0.3 * (1 - y / H); list.push([new THREE.CylinderGeometry(r(y1) + (k === N - 1 ? 0.01 : 0), r(y0), y1 - y0, 24).translate(0, (y0 + y1) / 2, 0), k % 2 ? partyBMat : partyAMat]); }
   list.push([new THREE.SphereGeometry(0.085, 14, 10).translate(0, H + 0.03, 0), creamMat]); return list; })();
-const scarfParts = (() => { const loop = new THREE.TorusGeometry(0.72, 0.19, 12, 36).rotateX(Math.PI / 2).scale(1, 1, 0.92), tail = new THREE.BoxGeometry(0.34, 0.9, 0.11, 1, 6, 1); { const p = tail.attributes.position; for (let i = 0; i < p.count; i++) { const y = p.getY(i), u = (y + 0.45) / 0.9; p.setZ(i, p.getZ(i) + 0.09 * Math.sin(u * Math.PI * 1.5)); p.setX(i, p.getX(i) * (0.85 + 0.15 * u)); } tail.computeVertexNormals(); } tail.translate(0.26, -0.6, 0.72);
+// (v368) the scarf's loop chunkier: a fatter tube and a band a little taller along the neck, a knitted scarf rather than a cord
+const scarfParts = (() => { const loop = new THREE.TorusGeometry(0.72, 0.27, 14, 40).rotateX(Math.PI / 2).scale(1, 1.18, 0.92), tail = new THREE.BoxGeometry(0.34, 0.9, 0.11, 1, 6, 1); { const p = tail.attributes.position; for (let i = 0; i < p.count; i++) { const y = p.getY(i), u = (y + 0.45) / 0.9; p.setZ(i, p.getZ(i) + 0.09 * Math.sin(u * Math.PI * 1.5)); p.setX(i, p.getX(i) * (0.85 + 0.15 * u)); } tail.computeVertexNormals(); } tail.translate(0.26, -0.6, 0.72);
   const fr = []; for (let k = -2; k <= 2; k++) fr.push(new THREE.CylinderGeometry(0.022, 0.022, 0.2, 6).translate(0.26 + k * 0.065, -1.13, 0.72)); return [[loop, scarfMat], [tail, scarfMat], [mergeGeos(fr), creamMat]]; })();
 const monoParts = (() => { const rim = new THREE.TorusGeometry(0.2, 0.028, 10, 40), glass = new THREE.CircleGeometry(0.18, 32); const pts = [[0.17, -0.1, 0], [0.26, -0.3, -0.04], [0.34, -0.52, -0.1], [0.4, -0.72, -0.2]].map(p => new THREE.Vector3(...p)); const chain = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 16, 0.016, 6);
   return [[rim, goldMat], [chain, goldMat], [glass, glassMat]]; })();
@@ -12966,23 +12973,33 @@ function capeGeo() { const g = new THREE.BufferGeometry(), n = CAPE_R * CAPE_C, 
   g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
   for (let r = 0; r < CAPE_R - 1; r++) for (let c = 0; c < CAPE_C - 1; c++) { const a = r * CAPE_C + c, b = a + 1, d = a + CAPE_C, e = d + 1; idx.push(a, d, b, b, d, e); }
   g.setIndex(idx); return g; }
-// lay the cape along a centreline (pts: body-space points from the shoulders back): each row an arc of an oval over the back, gathered at
+// lay the cape along a centreline (pts: body-space points from the neck back): each row an arc of an oval over the back, gathered at
 // the neck; at speed the back rows lift and stream out behind, the arc opens and it flutters
 const _cv = new THREE.Vector3(), _ct = new THREE.Vector3(), _cs = new THREE.Vector3(), _cu = new THREE.Vector3(0, 1, 0);
 function capeLay(g, pts, t, spd) {
   const p = g.attributes.position, L = pts.length - 1, sk = Math.min(1, spd / 6);
   for (let r = 0; r < CAPE_R; r++) { const u = r / (CAPE_R - 1), f = u * L * (1 + 0.16 * sk), i = Math.min(L - 1, Math.floor(f)), k = f - i;
     _cv.copy(pts[i]).lerp(pts[i + 1], k); _ct.copy(pts[i + 1]).sub(pts[i]).normalize(); _cs.crossVectors(_cu, _ct).normalize();
-    const q = Math.min(3.999, u * 4), j = Math.floor(q), m = q - j, at = K => K[j] + (K[j + 1] - K[j]) * m, A = at(CAPE_A), B = at(CAPE_B) + sk * 0.32 * u * u;
+    const NK = CAPE_A.length - 1, q = Math.min(NK - 0.001, u * NK), j = Math.floor(q), m = q - j, at = K => K[j] + (K[j + 1] - K[j]) * m, A = at(CAPE_A), B = at(CAPE_B) + sk * 0.32 * u * u;
     const pm = at(CAPE_PM) * (1 - 0.25 * sk * u), fl = Math.sin(t * (5 + spd) - u * 5) * (0.02 + 0.05 * sk) * u;
     for (let c = 0; c < CAPE_C; c++) { const v = c / (CAPE_C - 1) * 2 - 1, ph = v * pm, x = A * Math.sin(ph), y = B * Math.cos(ph) + fl + Math.sin(t * 6 + v * 2.2 + u * 3) * 0.015 * u;
       p.setXYZ(r * CAPE_C + c, _cv.x + _cs.x * x, _cv.y + y, _cv.z + _cs.z * x); } }
   p.needsUpdate = true; g.computeVertexNormals(); g.computeBoundingSphere(); }
-// how far out (A) and over (B) the spine it wraps, and how far round (PM, radians from the top), at the chest, the middle of the back,
+// how far out (A) and over (B) the spine it wraps, and how far round (PM, radians from the top), at the neck, the chest, the middle of the back,
 // the waist, the hips and the base of the tail: the back's measured top plus a little air, gathered at the neck, hanging down the
 // flanks, narrower and higher over the hips so the knees come up beside it, and draped down over the tail
-const CAPE_A = [0.62, 0.74, 0.72, 0.55, 0.5], CAPE_B = [0.36, 0.32, 0.29, 0.38, 0.3], CAPE_PM = [0.6, 1.45, 1.45, 1.1, 1.45];
-const CAPE_REST = [[0, 0, 0], [0, -0.02, -0.53], [0, -0.055, -1.05], [0, -0.076, -1.73], [0, -0.016, -2.23]].map(p => new THREE.Vector3(...p));
+const CAPE_A = window.__capeA || [0.42, 0.62, 0.74, 0.72, 0.55, 0.5], CAPE_B = window.__capeB || [0.3, 0.36, 0.32, 0.29, 0.38, 0.3], CAPE_PM = window.__capePM || [0.75, 1.0, 1.45, 1.45, 1.1, 1.45]; // (v368: and from the neck, the first)
+// (v368) round the axolotl's neck (in neck lengths, the chest-to-head line): s how far up it they sit; the scarf's size (ss) and its
+// loop's shape across, along and out of the throat (lx, ly, lz); the pearls' size, how far up and out (ps, py, pz) and their tilt (pt);
+// the bow tie's likewise (bs, by, bz, bt); the cape's cord: its size across and out (cx, cz) and how far up (cs), and its clasp's tilt up from the throat to face forward (ct)
+const NECK_FIT = window.__neckFit || { s: 0.6, ss: 0.78, sy: 0, sz: 0, lx: 1, ly: 1, lz: 1, ps: 0.9, py: 0, pz: 0.52, pt: 0, bs: 0.95, by: 0.12, bz: 0.55, bt: 0, cs: 0.6, cx: 0.5, cz: 0.55, ct: -0.6 };
+// the scarf's end hangs straight down from the front of its loop however the neck is tipped, swinging a little
+const XAX = new THREE.Vector3(1, 0, 0), SCARF_PIN = new THREE.Vector3(0.26, -0.15, 0.72), _shD = new THREE.Vector3(), _shQ = new THREE.Quaternion(), _shP = new THREE.Vector3(), _shN = new THREE.Vector3();
+function scarfHang(o, q, t, F) { const gin = o.userData.gin; if (!gin || gin.children.length < 3) return; const loop = gin.children[0]; loop.scale.set(F.lx, F.ly, F.lz);
+  _shD.set(0, -1, 0).applyQuaternion(_shQ.copy(q).invert()); const a = Math.atan2(-_shD.z, -_shD.y) + Math.sin(t * 2.3) * 0.05, b = Math.sin(t * 1.7 + 1) * 0.06;
+  _shN.set(SCARF_PIN.x * F.lx, SCARF_PIN.y * F.ly, SCARF_PIN.z * F.lz);
+  for (const m of [gin.children[1], gin.children[2]]) { m.rotation.set(a, 0, b); m.position.copy(_shN).sub(_shP.copy(SCARF_PIN).applyEuler(m.rotation)); } }
+const CAPE_REST = [[0, 0.27, 0.35], [0, 0, 0], [0, -0.02, -0.53], [0, -0.055, -1.05], [0, -0.076, -1.73], [0, -0.016, -2.23]].map(p => new THREE.Vector3(...p));
 // how each sits (window.__*Fit: a tuning hook)
 const PROPCAP_FIT = window.__propcapFit || { s: 1.12, y: -0.32, rx: -0.12, rz: 0.06 }, ANTENNA_FIT = window.__antennaFit || { s: 1, y: -0.1, x: 0.26, z: 0.08 };
 const FLOAT_FIT = window.__floatFit || { s: 1, k: 0.45 }; // (k of the way down the upper arm)
@@ -13003,7 +13020,10 @@ function makeWear2(body) {
   const antennae = new THREE.Group(); antennae.userData.st = [-1, 1].map(sd => { const a = simplePiece(antennaParts, ANTENNA_FIT.s); a.scale.x = sd; a.position.set(ANTENNA_FIT.x * sd, 0, ANTENNA_FIT.z); antennae.add(a); return a; });
   const snorkel = simplePiece(snorkelParts), floaties = new THREE.Group(); floaties.userData.arm = [1, -1].map(() => { const f = simplePiece(floatParts, FLOAT_FIT.s); floaties.add(f); return f; });
   const cape = new THREE.Group(); { const g = capeGeo(); capeLay(g, CAPE_REST, 0, 0); const m = new THREE.Mesh(g, capeMat), ln = new THREE.Mesh(g, capeLining); m.renderOrder = 33; ln.renderOrder = 33; m.castShadow = true; cape.add(m, ln); cape.userData.geo = g;
-    const cl = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.04, 8, 20), claspMat), o = new THREE.Mesh(cl.geometry, inkMat); o.renderOrder = 32.6; cl.add(o); cl.renderOrder = 33; cape.add(cl); cape.userData.clasp = cl; }
+    // (v368) the clasp a gold button, a domed boss in a raised rim (it was a thin ring), on a gold cord round the neck
+    const claspG = new THREE.LatheGeometry([[0, -0.03], [0.1, -0.03], [0.125, -0.006], [0.122, 0.02], [0.104, 0.03], [0.088, 0.022], [0.06, 0.04], [0, 0.05]].map(([x, y]) => new THREE.Vector2(x, y)), 28).rotateX(Math.PI / 2);
+    const cl = new THREE.Mesh(claspG, claspMat), o = new THREE.Mesh(cl.geometry, inkMat); o.renderOrder = 32.6; cl.add(o); cl.renderOrder = 33; cape.add(cl); cape.userData.clasp = cl;
+    const cd = new THREE.Mesh(new THREE.TorusGeometry(1, 0.06, 8, 48).rotateX(Math.PI / 2), claspMat), co = new THREE.Mesh(cd.geometry, inkMat); co.renderOrder = 32.6; cd.add(co); cd.renderOrder = 33; cape.add(cd); cape.userData.cord = cd; }
   for (const m of [propcap, antennae, snorkel, floaties, cape]) { m.visible = false; body.add(m); }
   return { pirate, top, bow, pearls, patch, flower, tiara, glasses, hockey, bunny, skull, beanie, party, scarf, monocle, stache, propcap, antennae, snorkel, floaties, cape };
 }
@@ -13068,15 +13088,29 @@ function placeWear(W, U, look, D, withFangs) {
       if (W.flower.visible) { const F = WEAR_PACK && WEAR_PACK.patch ? (look.head ? WEAR_PACK.patch.flowerLow : WEAR_PACK.patch.flower) : { p: [-0.34, 0.24, 0.1], n: [-0.75, 0.59, 0.29] };
         wv2.set(F.p[0], F.p[1], F.p[2]).multiplyScalar(mk).applyQuaternion(wq1); W.flower.position.copy(wv1).add(wv2);
         wq2.setFromUnitVectors(YAX, wv3.set(F.n[0], F.n[1], F.n[2])); W.flower.quaternion.copy(wq1).multiply(wq2).multiply(wearQ2.setFromAxisAngle(YAX, 0.5 + Math.sin(t * 1.7) * 0.04)); W.flower.scale.multiplyScalar(mk * 0.23 * (1 + 0.04 * Math.sin(t * 2.3))); } }
-    if (W.bow.visible && CH.bodyPoint(SI, 0, -0.03, 0.835, wv1)) { W.bow.position.copy(wv1); W.bow.quaternion.setFromEuler(wearE.set(-0.12 + S.tx * 0.35, 0, Math.sin(t * 2.1) * 0.05 + S.tz * 0.5)).premultiply(SI.groups.slime.quaternion); W.bow.scale.multiplyScalar(mk * 0.4); }
-    if (W.scarf.visible && CH.bodyPoint(SI, 0, -0.03, 0.835, wv1)) { W.scarf.position.copy(wv1).add(wv2.set(0, SCARF_FIT.y, SCARF_FIT.z).multiplyScalar(mk).applyQuaternion(wq1)); W.scarf.quaternion.setFromEuler(wearE.set(-0.12 + S.tx * 0.35, 0, Math.sin(t * 2.1) * 0.04 + S.tz * 0.5)).premultiply(SI.groups.slime.quaternion); W.scarf.scale.multiplyScalar(mk * SCARF_FIT.s); }
-    if (W.pearls.visible && CH.bodyPoint(SI, 0, -0.03, 0.835, wv1)) { W.pearls.position.copy(wv1); W.pearls.quaternion.setFromEuler(wearE.set(-0.12 + S.tx * 0.35, 0, Math.sin(t * 2.1) * 0.04 + S.tz * 0.5)).premultiply(SI.groups.slime.quaternion); W.pearls.scale.multiplyScalar(mk * 0.4); }
+    // (v368) on the axolotl round its neck, under the back of its head: under its chin they were at its mouth (the scarf round its
+    // snout, the pearls inside its head)
+    if (CH.neckFrame && (W.bow.visible || W.scarf.visible || W.pearls.visible)) {
+      const F = NECK_FIT, L = CH.neckFrame(SI, F.s, wv1, wq1); wq1.multiply(wq2.setFromEuler(wearE.set(S.tx * 0.25, 0, Math.sin(t * 2.1) * 0.03 + S.tz * 0.3)));
+      if (W.scarf.visible) { W.scarf.position.copy(wv1).add(wv2.set(0, F.sy * L, F.sz * L).applyQuaternion(wq1)); W.scarf.quaternion.copy(wq1); W.scarf.scale.multiplyScalar(F.ss * L); scarfHang(W.scarf, wq1, t, F); }
+      if (W.pearls.visible) { W.pearls.position.copy(wv1).add(wv2.set(0, F.py * L, F.pz * L).applyQuaternion(wq1)); W.pearls.quaternion.copy(wq1).multiply(wq2.setFromAxisAngle(XAX, F.pt)); W.pearls.scale.multiplyScalar(F.ps * L); }
+      if (W.bow.visible) { W.bow.position.copy(wv1).add(wv2.set(0, F.by * L, F.bz * L).applyQuaternion(wq1)); W.bow.quaternion.copy(wq1).multiply(wq2.setFromAxisAngle(XAX, F.bt)); W.bow.scale.multiplyScalar(F.bs * L); }
+    } else {
+      if (W.bow.visible && CH.bodyPoint(SI, 0, -0.03, 0.835, wv1)) { W.bow.position.copy(wv1); W.bow.quaternion.setFromEuler(wearE.set(-0.12 + S.tx * 0.35, 0, Math.sin(t * 2.1) * 0.05 + S.tz * 0.5)).premultiply(SI.groups.slime.quaternion); W.bow.scale.multiplyScalar(mk * 0.4); }
+      if (W.scarf.visible && CH.bodyPoint(SI, 0, -0.03, 0.835, wv1)) { W.scarf.position.copy(wv1).add(wv2.set(0, SCARF_FIT.y, SCARF_FIT.z).multiplyScalar(mk).applyQuaternion(wq1)); W.scarf.quaternion.setFromEuler(wearE.set(-0.12 + S.tx * 0.35, 0, Math.sin(t * 2.1) * 0.04 + S.tz * 0.5)).premultiply(SI.groups.slime.quaternion); W.scarf.scale.multiplyScalar(mk * SCARF_FIT.s); }
+      if (W.pearls.visible && CH.bodyPoint(SI, 0, -0.03, 0.835, wv1)) { W.pearls.position.copy(wv1); W.pearls.quaternion.setFromEuler(wearE.set(-0.12 + S.tx * 0.35, 0, Math.sin(t * 2.1) * 0.04 + S.tz * 0.5)).premultiply(SI.groups.slime.quaternion); W.pearls.scale.multiplyScalar(mk * 0.4); }
+    }
     if (W.snorkel.visible) { CH.headTop(SI, wv1, wq1, 0); W.snorkel.position.copy(wv1); W.snorkel.quaternion.copy(wq1).multiply(wearQ2.setFromEuler(wearE.set(S.tx * 0.2, 0, S.tz * 0.15))); W.snorkel.scale.multiplyScalar(mk); }
     if ((W.floaties.visible || W.cape.visible) && CH.boneAt) {
       if (W.floaties.visible) { const fa = W.floaties.userData.arm; for (let i = 0; i < 2; i++) { const f = fa[i], sd = i ? -1 : 1, a = CH.boneAt(SI, sd > 0 ? 'upperarm.L' : 'upperarm.R', wv1), b = CH.boneAt(SI, sd > 0 ? 'forearm.L' : 'forearm.R', wv2);
         wv3.copy(b).sub(a).normalize(); f.position.copy(a).lerp(b, FLOAT_FIT.k); wv1.set(sd, 0, 0).addScaledVector(wv3, -sd * wv3.x).normalize(); wv2.crossVectors(wv1, wv3); _fM.makeBasis(wv1, wv3, wv2); f.quaternion.setFromRotationMatrix(_fM); f.scale.setScalar(pk * (1 + Math.sin(t * 3.1 + sd) * 0.025)); } } // (round the arm, its valve outward)
-      if (W.cape.visible) { const P4 = W.cape.userData.pts || (W.cape.userData.pts = [0, 1, 2, 3, 4].map(() => new THREE.Vector3())); CH.boneAt(SI, 'chest', P4[0]); CH.boneAt(SI, 'spine1', P4[1]); CH.boneAt(SI, 'spine', P4[2]); CH.boneAt(SI, 'hips', P4[3]); CH.boneAt(SI, 'tail1', P4[4]);
-        capeLay(W.cape.userData.geo, P4, t, D.spd || 0); W.cape.position.set(0, 0, 0); W.cape.quaternion.identity(); W.cape.userData.clasp.position.copy(P4[0]).add(wv1.set(0, 0.37, 0.02)); W.cape.userData.clasp.rotation.set(-1.2, 0, 0); } }
+      if (W.cape.visible) { const P4 = W.cape.userData.pts || (W.cape.userData.pts = [0, 1, 2, 3, 4, 5].map(() => new THREE.Vector3())); CH.boneAt(SI, 'neck', P4[0]); CH.boneAt(SI, 'chest', P4[1]); CH.boneAt(SI, 'spine1', P4[2]); CH.boneAt(SI, 'spine', P4[3]); CH.boneAt(SI, 'hips', P4[4]); CH.boneAt(SI, 'tail1', P4[5]);
+        capeLay(W.cape.userData.geo, P4, t, D.spd || 0); W.cape.position.set(0, 0, 0); W.cape.quaternion.identity();
+        // (v368) tied on: a gold cord round the neck and the clasp at the throat
+        const cl = W.cape.userData.clasp, cd = W.cape.userData.cord, F = NECK_FIT;
+        if (CH.neckFrame) { const L = CH.neckFrame(SI, F.cs, wv1, wq1); cd.visible = true; cd.position.copy(wv1); cd.quaternion.copy(wq1); cd.scale.set(F.cx * L, F.cx * L, F.cz * L);
+          cl.position.copy(wv1).add(wv2.set(0, 0, F.cz * L * 1.02).applyQuaternion(wq1)); cl.quaternion.copy(wq1).multiply(wq2.setFromAxisAngle(XAX, F.ct)); cl.scale.setScalar(L * 0.9); }
+        else { cd.visible = false; cl.position.copy(P4[1]).add(wv1.set(0, 0.37, 0.02)); cl.rotation.set(-1.2, 0, 0); cl.scale.setScalar(1); } } }
     if (W.halo.visible) { W.halo.position.copy(tv3).add(tv1.set(-S.tz * 0.45 * hs, (0.3 + Math.sin(t * 2.3) * 0.045 + S.b * 0.35 + dropIn) * hs, S.tx * 0.45 * hs)); W.halo.rotation.set(-0.18 + S.tx * 0.6, 0, Math.sin(t * 1.3) * 0.08 + S.tz * 0.6); W.halo.scale.multiplyScalar(hs); }
     return;
   }
