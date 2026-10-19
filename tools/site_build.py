@@ -26,7 +26,7 @@ FONTS = ['bowlby-one-latin-400-normal.woff2'] + ['figtree-latin-%d-normal.woff2'
 # the game's own art the site is dressed in (game/art/, copied to site/img/art/): the wall's chevrons and axolotls, the ink band, the
 # card, the graph paper, the masking tape, the PLAY stroke, the splat, the picture frame, the gallery wall, the season's art
 ART = ['lk_wall.webp', 'sg_ink.webp', 'sg_card.webp', 'm_paperbg.webp', 'm_tape1.webp', 'm_tape2.webp', 'm_tape3.webp', 'm_stroke.webp', 'm_splat.webp',
-       'm_frame.webp', 'm_wall.webp', 'm_dot.webp', 'shop_hw_bg.webp', 'shop_hw_pump.webp']
+       'm_frame.webp', 'm_wall.webp', 'm_dot.webp']
 problems, notes = [], []
 
 def read(p): return open(p, encoding='utf8').read()
