@@ -4873,7 +4873,7 @@ html.fh .tutgo .tgcard .tava{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 373</p>
+      <p class="ver">Version 374</p>
     </div>
   </div>
 
@@ -26802,9 +26802,14 @@ function tutPlace() {
   if (vis && block) { const sc = el.closest('.shgrid, .lrail, #lkScroll'); if (sc) { const a = el.getBoundingClientRect(), g = sc.getBoundingClientRect(), lr = sc.classList.contains('lrail'), lo = lr ? Math.max(a.left, g.left) : Math.max(a.top, g.top), hi = lr ? Math.min(a.right, g.right) : Math.min(a.bottom, g.bottom);
     if (Math.max(0, hi - lo) < 0.6 * (lr ? a.width : a.height)) tutReveal(el); } } // (what the tip is about, mostly out of its scroller (a turn of the phone, a scroll): back in the middle of it)
   if (!vis) { if (tutEl.dataset.pos !== 'top') { tutEl.dataset.pos = 'top'; tutEl.style.cssText = ''; } tutWindow(viewW / 2, viewH / 2, 0, 0); return; }
+  // (v374) placed by its top alone, and measured by the plate itself (or the callout), never by the box round it: in a match the plate
+  // sits docked by his corner, held by its bottom, and a bottom left on it here stretched its box down to that, so the height measured
+  // came from where it had been put the frame before, and it went round three places (on the Paint Shop page after the lesson: over
+  // the tabs, under them, and off the top with only the hand showing)
+  if (tutEl.style.bottom) tutEl.style.bottom = '';
   const r = el.getBoundingClientRect(), cx = r.left - r0.left + r.width * (lookOpen && el.classList.contains('lcat') ? 0.28 : 0.5), cw = Math.min(tutEl.offsetWidth, viewW - 24); /* (a locker category card: the hand on its left part, clear of the name pill) */
   tutWindow(r.left - r0.left - 10, r.top - r0.top - 10, r.width + 20, r.height + 20);
-  const ph = tutEl.offsetHeight + over, roomUp = r.top - r0.top, roomDn = viewH - (r.bottom - r0.top), above = tutTip.side ? tutTip.side === 'above' : roomUp >= ph + 90 || (roomDn < ph + 90 && roomUp > roomDn); // (the side asked for, else whichever has the room)
+  const ph = (tutTip.call ? tutCall : tutBust.parentNode).offsetHeight + over, roomUp = r.top - r0.top, roomDn = viewH - (r.bottom - r0.top), above = tutTip.side ? tutTip.side === 'above' : roomUp >= ph + 90 || (roomDn < ph + 90 && roomUp > roomDn); // (the side asked for, else whichever has the room)
   const left = clamp(cx - cw / 2, 12, Math.max(12, viewW - cw - 12)), y0 = above ? roomUp - 84 : r.bottom - r0.top + 84; // (the hand's fingertip lands on the edge of the thing, not over it)
   const y = above ? Math.max(y0, ph + 4) : Math.min(y0, viewH - ph - 8), pos = above ? 'above' : 'below';
   if (!tutHold(pos, left, y, y === y0)) return; // (v362: where it holds, not where one frame's measure puts it)
@@ -26939,34 +26944,33 @@ function tutCardCoach() { // (with him over it the card sits half his height low
   const g = $('tutGo'); if (g.hidden) return; const c = g.querySelector('.tgcard'), ah = $('tgAva').offsetHeight || 160, m = ah * 0.5, H = g.clientHeight - 48, peek = 24 + (H - c.offsetHeight + m) / 2 >= ah + 4, mt = peek ? m.toFixed(0) + 'px' : '';
   if (g.classList.contains('peek') !== peek) g.classList.toggle('peek', peek); if (c.style.marginTop !== mt) c.style.marginTop = mt;
 }
-// strokes: once you're rank 3 (and the first lessons are done), Ol' Bloop stops you in the lobby: look how far you've come; then let's
-// learn some more: the Strokes page, the Giant crafted (Skip, this one's on him) and equipped
+// strokes: once you're rank 3 (and the first lessons are done), Ol' Bloop stops you in the lobby: let's learn some more (v374: no
+// "look how far you've come" card first): the Strokes page, the Giant crafted and equipped
 function tutCommsDue() { return $('friendsModal').hidden && tutPh() === 'done' && !store.tut.comms && commsDue() && (store.tut.strokes === 1 || !strokesDue()) && state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden && $('tutGo').hidden && !vic; }
 function tutStrokesDue() { return $('friendsModal').hidden && tutPh() === 'done' && !store.tut.strokes && strokesDue() && state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden && $('tutGo').hidden && !vic; }
-function tutStrokesCard(n) {
-  const el = $('tutGo'); el.dataset.mode = 'strokes' + n;
-  if (n === 1) tutCardText(['Look at <em>you</em>, rookie!', 'Rank ' + repOf(store.xp || 0).lv + ' already. You’ve come a long way since that first canvas, and I’ve been watching.', 'Aw, thanks', '']);
-  else tutCardText(['Let’s learn <em>some more</em>', 'Strokes, Time trial and Showdown are unlocked. Let’s start with Strokes.', 'Show me', '']);
-  if (el.hidden) { el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); } tutCardCoach(); if (n === 1) { store.evNew = { solo: 1, showdown: 1 }; AU.fanfare && AU.fanfare(); AU.bloop(0.55); menu.classList.add('tutoring'); } else AU.bloop(0.5); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);
+function tutStrokesCard() {
+  const el = $('tutGo'); el.dataset.mode = 'strokes2';
+  tutCardText(['Let’s learn <em>some more</em>', 'Strokes, Time trial and Showdown are unlocked. Let’s start with Strokes.', 'Show me', '']);
+  if (el.hidden) { el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); } tutCardCoach(); store.evNew = { solo: 1, showdown: 1 }; AU.fanfare && AU.fanfare(); AU.bloop(0.55); menu.classList.add('tutoring'); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);
 }
-function tutStrokesGo() { const el = $('tutGo'), m = el.dataset.mode; if (m === 'strokes1') return tutStrokesCard(2); el.classList.remove('on'); el.hidden = true; coachCorner(null); el.dataset.mode = ''; store.tut.strokes = 'on'; tutSet('strokes'); openStrokes(); } /* (straight onto the page: no lobby tip flashing up first) */
-function tutStrokesEnd() { $('mStrokes').classList.remove('sglearn'); tutSDone = 0; store.tut.strokes = 1; if (!store.tut.modes) store.tut.modes = 1; /* (v358: no modes card: they show as new on Choose event) */ tutSet('done'); save(); tutHide(); menu.classList.remove('tutoring'); }
+function tutStrokesGo() { const el = $('tutGo'); el.classList.remove('on'); el.hidden = true; coachCorner(null); el.dataset.mode = ''; store.tut.strokes = 'on'; tutSet('strokes'); openStrokes(); } /* (straight onto the page: no lobby tip flashing up first) */
+function tutStrokesEnd() { $('mStrokes').classList.remove('sglearn'); store.tut.strokes = 1; if (!store.tut.modes) store.tut.modes = 1; /* (v358: no modes card: they show as new on Choose event) */ tutSet('done'); save(); tutHide(); menu.classList.remove('tutoring'); }
 function tutStrokesTick() {
   if (state !== 'menu' || building || irisBusy || !setModal.hidden || !nameModal.hidden || !howModal.hidden) return tutHide();
   if (lkOn()) return tutShow('Back to the lobby', 'lkBack', 'back');
   if (menuPage === 'worlds') return tutShow('Back to the lobby', 'worldBack', 'back'); if (menuPage === 'events') return tutShow('Back to the lobby', 'evBack', 'back');
   if (!strokesOpen() && strokeSpecial() === 'giant' && strokesOf().own.includes('giant')) return tutStrokesEnd(); // (v273: done, and back out: the lesson's over)
+  if (!strokesOpen() && strokesOf().craft && strokesOf().craft.id === 'giant') return tutStrokesEnd(); // (v374: Back out of the wait rather than Skip it: the lesson's over, the Giant finishes on its own)
   if (!strokesOpen()) return tutShow('Tap Strokes to open it', 'abilBtn', 'sOpen');
   if (stCat !== 'special') stSetCat('special', true); // (v275: the Giant is on the Special tab)
   const d = strokesOf(), giant = () => $('stSpecialRail').querySelector('.sgcard[data-st="giant"]'), onG = sgSelId('special') === 'giant';
   if (stPopId) closeStPop(true); if (!$('mStrokes').classList.contains('sglearn')) $('mStrokes').classList.add('sglearn'); // (v313: the lesson walks the page itself, laid out to leave him room)
-  if (!d.own.includes('giant')) { if (d.craft) { if (d.craft.id === 'giant' && !onG) sgPick('giant', true); return tutShow('Crafting takes 20 minutes. Tap Skip and watch a quick ad', d.craft.id === 'giant' ? 'sgSkip' : 'sgBadge', 'sSkip', false, false, null, false, true); }
+  if (!d.own.includes('giant')) { if (d.craft) { if (d.craft.id === 'giant' && !onG) sgPick('giant', true); return tutShow('Crafting takes 20 minutes. You can skip the wait!', d.craft.id === 'giant' ? 'sgSkip' : 'sgBadge', 'sSkip', false, false, null, false, true); }
     if (onG) return tutShow('Tap Craft to start on it', 'sgDo', 'sCraft', false, false, null, false, true);
     return tutShow('Your Special Stroke is what the orb gives you. The Giant is yours to craft: tap it', giant, 'sGiant', false, false, null, false, true); }
   if (strokeSpecial() !== 'giant') { if (onG) return tutShow('Learned! Tap Equip to make it your special stroke', 'sgDo', 'sEquip', false, false, null, false, true);
     return tutShow('It’s ready! Tap the Giant', giant, 'sEquipT', false, false, null, false, true); }
-  if (!tutSDone) { tutSDone = performance.now(); tutShow('Giant it is! Grab the orb in a match and go big. Skills and transforms have their own tabs', null, 'sDone', false, true, null, false, true); }
-  else if (performance.now() - tutSDone > 5200) tutStrokesEnd();
+  tutStrokesEnd(); // (v374: equipped, that's the lesson: no closing line from him)
 }
 function tutWelcomeDone(open) { const el = $('tutGo'); el.classList.remove('on'); el.hidden = true; coachCorner(null); el.dataset.mode = ''; store.tut.comms = 1; tutSet('done'); save(); paintComm(); menu.classList.remove('tutoring'); kick($('commBtn'), 'bump'); if (open) setTimeout(() => openComms(), 250); }
 function tutCard(on) {
@@ -27364,9 +27368,9 @@ function tutSkip() {
 }
 function tutFangsSale() { const t = store.tut.price || (store.tut.price = {}); if (t.fangs >= 0) return; if (!OWNED.has('fangs')) { OWNED.add('fangs'); store.owned = [...OWNED]; } t.fangs = store.drops || 0; save(); if (shopOpen) renderShop(); if (lkOn()) lkRender(); }
 // between matches the coach points the way: the shop for the flower and the fangs, the locker to wear them, then the canvases to vote
-const tutBootEl = $('boot'), tutOrientEl = $('orient'); let tutStrokesAt = 0, tutSDone = 0, tutCommsAt = 0, tutModesAt = 0, tutTrySdAt = 0;
+const tutBootEl = $('boot'), tutOrientEl = $('orient'); let tutStrokesAt = 0, tutCommsAt = 0, tutModesAt = 0, tutTrySdAt = 0;
 function tutMenuTick() {
-  if (tutPh() === 'done' && tutStrokesDue()) { if (!tutStrokesAt) tutStrokesAt = performance.now(); if (performance.now() - tutStrokesAt > 1200) tutStrokesCard(1); return; } else tutStrokesAt = 0; /* (a beat of the lobby, then the praise; v359: a fresh beat after the Friends page) */
+  if (tutPh() === 'done' && tutStrokesDue()) { if (!tutStrokesAt) tutStrokesAt = performance.now(); if (performance.now() - tutStrokesAt > 1200) tutStrokesCard(); return; } else tutStrokesAt = 0; /* (a beat of the lobby, then the card; v359: a fresh beat after the Friends page) */
   if (store.tut.modes === 'due') { store.tut.modes = 1; save(); } // (v358: the modes card is gone)
   if (tutPh() === 'done' && tutCommsDue()) { if (!tutCommsAt) tutCommsAt = performance.now(); if (performance.now() - tutCommsAt > 1200) { menu.classList.add('tutoring'); tutWelcome(); } return; } else tutCommsAt = 0; /* (rank 3: commissions open) */
   if (store.tut.trySd === 'due') { store.tut.trySd = 1; save(); } // (v358: no pick on the Showdown card)

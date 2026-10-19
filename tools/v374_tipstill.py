@@ -41,4 +41,22 @@ def apply(s):
     s = rep(s, "  if (!strokesOpen()) return tutShow('Tap Strokes to open it', 'abilBtn', 'sOpen');\n",
                "  if (!strokesOpen() && strokesOf().craft && strokesOf().craft.id === 'giant') return tutStrokesEnd(); // (v374: Back out of the wait rather than Skip it: the lesson's over, the Giant finishes on its own)\n"
                "  if (!strokesOpen()) return tutShow('Tap Strokes to open it', 'abilBtn', 'sOpen');\n")
+    # ---- no "Look at you, rookie!" card: the Strokes lesson opens on "Let's learn some more" (with the first card's fanfare and its marks)
+    s = rep(s, "// strokes: once you're rank 3 (and the first lessons are done), Ol' Bloop stops you in the lobby: look how far you've come; then let's\n"
+               "// learn some more: the Strokes page, the Giant crafted (Skip, this one's on him) and equipped\n",
+               "// strokes: once you're rank 3 (and the first lessons are done), Ol' Bloop stops you in the lobby: let's learn some more (v374: no\n"
+               "// \"look how far you've come\" card first): the Strokes page, the Giant crafted and equipped\n")
+    s = rep(s, "function tutStrokesCard(n) {\n"
+               "  const el = $('tutGo'); el.dataset.mode = 'strokes' + n;\n"
+               "  if (n === 1) tutCardText(['Look at <em>you</em>, rookie!', 'Rank ' + repOf(store.xp || 0).lv + ' already. You’ve come a long way since that first canvas, and I’ve been watching.', 'Aw, thanks', '']);\n"
+               "  else tutCardText(['Let’s learn <em>some more</em>', 'Strokes, Time trial and Showdown are unlocked. Let’s start with Strokes.', 'Show me', '']);\n"
+               "  if (el.hidden) { el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); } tutCardCoach(); if (n === 1) { store.evNew = { solo: 1, showdown: 1 }; AU.fanfare && AU.fanfare(); AU.bloop(0.55); menu.classList.add('tutoring'); } else AU.bloop(0.5); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);\n",
+               "function tutStrokesCard() {\n"
+               "  const el = $('tutGo'); el.dataset.mode = 'strokes2';\n"
+               "  tutCardText(['Let’s learn <em>some more</em>', 'Strokes, Time trial and Showdown are unlocked. Let’s start with Strokes.', 'Show me', '']);\n"
+               "  if (el.hidden) { el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); } tutCardCoach(); store.evNew = { solo: 1, showdown: 1 }; AU.fanfare && AU.fanfare(); AU.bloop(0.55); menu.classList.add('tutoring'); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);\n")
+    s = rep(s, "function tutStrokesGo() { const el = $('tutGo'), m = el.dataset.mode; if (m === 'strokes1') return tutStrokesCard(2); el.classList.remove('on');",
+               "function tutStrokesGo() { const el = $('tutGo'); el.classList.remove('on');")
+    s = rep(s, "if (performance.now() - tutStrokesAt > 1200) tutStrokesCard(1); return; } else tutStrokesAt = 0; /* (a beat of the lobby, then the praise;",
+               "if (performance.now() - tutStrokesAt > 1200) tutStrokesCard(); return; } else tutStrokesAt = 0; /* (a beat of the lobby, then the card;")
     return s
