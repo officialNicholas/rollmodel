@@ -285,13 +285,31 @@ b,strong{font-weight:800}
 .moves{--cols:2;gap:22px 14px;padding:2px 6px 10px}
 @media (min-width:700px){.moves{--cols:3;gap:26px 22px}}
 .move .cb{aspect-ratio:1/.56}
-.move .ca{top:12%;bottom:8%}
-.move .ca svg{inset:14% 30%;width:40%;height:72%;color:#171320}
+/* the moves' pictures are the game's own: the lesson's hand, the pound button (the red sticker with its arrow), the slingshot's band and
+   rings as the match draws them, the Giant with the orb, the transforms' icons, and the sun, cloud and drop off the weather badge */
+.move .ca{top:9%;bottom:8%;display:grid;place-items:center}
 .move .ca::before{inset:-14% 16%}
+.move .ca img,.move .ca svg{position:static;inset:auto;width:auto;height:88%;max-width:100%;transform:none;filter:drop-shadow(1px 2px 0 rgba(23,19,32,.22))}
+.move .hand{height:86%}
+.move .band{height:100%}
+.move .pound{position:relative;z-index:1;display:grid;place-items:center;height:94%;aspect-ratio:1;background:url(../img/art/m_dot.webp) center/100% 100% no-repeat}
+.move .pound svg{height:54%;width:54%;margin-top:-6%;fill:#fff;stroke:#171320;stroke-width:2;stroke-linejoin:round;filter:none}
+.move .orbm{position:absolute;left:4%;top:0;z-index:2;width:27%;aspect-ratio:1;border-radius:50%;border:2.5px solid #171320;background:conic-gradient(#FF4D6D,#FFD23F,#4DFFB8,#4DA6FF,#C77DFF,#FF4D6D);box-shadow:0 0 10px 3px rgba(255,255,255,.75)}
+.move .ca.tf{display:block}
+.move .tf img{position:absolute;height:auto;width:46%}
+.move .tf .t0{left:50%;top:50%;width:64%;transform:translate(-50%,-50%);z-index:2}
+.move .tf .t1{left:-2%;top:4%;transform:rotate(-12deg)}
+.move .tf .t2{right:-2%;bottom:2%;transform:rotate(12deg)}
+.move .ca.wx{display:flex;align-items:center;justify-content:center;gap:3%}
+.move .wx svg{height:56%}
+.move .wx .sun{height:74%;fill:#FFB400;color:#FFB400}
+.move .wx .sun path{stroke:#FFB400;stroke-width:2.2;stroke-linecap:round;fill:none}
+.move .wx .cloud{fill:#9DB3D1}
+.move .wx .drop{height:46%;fill:#2E9BFF}
 .move .hang-txt{margin-top:12px;text-align:left}
 .move h3{font:400 17px/1.15 var(--display);margin-bottom:5px;color:#fff}
 .move p{font:400 14.5px/1.45 var(--ui);color:#D8D4E2}
-.sp-red{--splat:#E3122F}.sp-blue{--splat:#2E9BFF}.sp-orange{--splat:#F29A3A}.sp-purple{--splat:#C77DFF}.sp-green{--splat:#2ECC71}.sp-pink{--splat:#FF5CA8}.sp-lime{--splat:#CBE45A}.sp-teal{--splat:#22C9B8}
+.sp-red{--splat:#E3122F}.sp-blue{--splat:#2E9BFF}.sp-yellow{--splat:#FFD23F}.sp-orange{--splat:#F29A3A}.sp-purple{--splat:#C77DFF}.sp-green{--splat:#2ECC71}.sp-pink{--splat:#FF5CA8}.sp-lime{--splat:#CBE45A}.sp-teal{--splat:#22C9B8}
 
 /* ---------- modes: the game's event sheet ---------- */
 .events{display:grid;gap:18px;margin:0;padding:0;list-style:none}
