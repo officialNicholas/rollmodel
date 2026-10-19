@@ -4757,7 +4757,7 @@ i.ptwait>*{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 364</p>
+      <p class="ver">Version 365</p>
     </div>
   </div>
 
@@ -14555,9 +14555,14 @@ function pocketHud() {
   if (os) { const keep = !(P.orbT < Infinity), f = keep ? 1 : clamp(P.orbT / ORB_HOLD, 0, 1); if (ob._keep !== keep) { ob._keep = keep; ob.classList.toggle('keep', keep); } if (!keep && Math.abs((ob._f === undefined ? 2 : ob._f) - f) > 0.003) { ob._f = f; ob.style.setProperty('--of', f.toFixed(3)); ob.classList.toggle('low', f < 0.3); } } else ob._f = undefined; // (v256: the orb's clock)
 }
 // ---------- v251: the Paint Trap. Dropped where you stand, it arms in a beat; the next rival over it sets it off: a burst of your paint, and
-// they're stunned and popped up. A dodge roll through it sets it off harmlessly (a CPU heading for one sometimes knows to); your own can't
+// they're stunned and popped up. A dodge roll through it sets it off harmlessly (v365: a CPU coming to one has seen it or not: TRAP_CATCH); your own can't
 // catch you, and a jump clears it. Two down at most each (a third pops the oldest); left alone it fizzles out after TRAP_LIFE seconds ----------
 const TRAP_R = 0.92, TRAP_ARM = 0.6, TRAP_LIFE = 45, TRAP_MAX = 2, TRAP_STUN = 1.5, TRAP_SPLAT = SPLAT_R * 1.7;
+// (v365) a CPU coming to a trap: the first time a rival's lies ahead of it (within TRAP_SEE, and within TRAP_LANE of the line it's rolling
+// along), it either hasn't seen it, TRAP_CATCH of the time by its level, and rolls on over it, or it has, and goes round it (or rolls
+// through it or hops it, if it's still dead ahead at the last moment). Once it's well past it forgets, so the next time it comes that way is a
+// new roll
+const TRAP_CATCH = { easy: 0.65, medium: 0.4, hard: 0.25 }, TRAP_SEE = 4.2, TRAP_LANE = 1.8;
 const trapMatC = new Map(), trapMat = col => { let o = trapMatC.get(col); if (!o) { o = { m: toon(col), ring: new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.55, depthWrite: false }) }; trapMatC.set(col, o); } return o; };
 function makeTrapMesh(D) {
   const g = new THREE.Group(), M = trapMat(trapDark(TEAMS[D.team].wet));
@@ -14572,7 +14577,7 @@ const TRAP_SCALE = 1.3, trapDark = h => (Math.round(((h >> 16) & 255) * 0.4) << 
 function dropTrap(D) {
   const gy = surfaceUnder(D.x, D.z, D.y + 0.4, true), y = gy > -Infinity ? gy : D.y, mine = trapList.filter(T => T.owner === D);
   if (mine.length >= TRAP_MAX) trapPop(mine[0], null, true);
-  const T = { owner: D, x: D.x, y, z: D.z, arm: TRAP_ARM, t: 0, code: tcode(D), dec: {}, seen: false, g: makeTrapMesh(D) }; T.g.position.set(T.x, y, T.z); scene.add(T.g); trapList.push(T);
+  const T = { owner: D, x: D.x, y, z: D.z, arm: TRAP_ARM, t: 0, code: tcode(D), mind: new Map(), seen: false, g: makeTrapMesh(D) }; T.g.position.set(T.x, y, T.z); scene.add(T.g); trapList.push(T);
   shockwave(T.x, y + 0.05, T.z, 0.9, TEAMS[D.team].wet); D.squash = Math.max(D.squash, 0.4); emote(D, 'glee', 0.6);
   if (hearable(D)) { AU.at(T.x, T.z); AU.plop(); }
   if (D === P) { buzz(10); popText('Trap set!'); }
@@ -14587,15 +14592,34 @@ function trapTick(dt) {
     for (const D of ACTIVE) {
       if (D === T.owner || ally(D, T.owner) || D.st !== 'play' || D.rocket || D.turret || D.immuneT > 0 || D.dashT > 0) continue; // (a roll still sets it off: harmlessly, below)
       const dx = D.x - T.x, dz = D.z - T.z, d = Math.hypot(dx, dz);
-      // a CPU heading straight for it may roll through (more often the harsher the critics)
-      if (D.ai && !D.air && !(D.rollT > 0) && d < 1.7 && d > TRAP_R && D.spd > 1.2 && Math.abs(wrapA(Math.atan2(-dx, -dz) - D.yaw)) < 0.6) { const k = 'r' + D.team; if (T.dec[k] === undefined) T.dec[k] = Math.random() < (diff === 'easy' ? 0.3 : diff === 'hard' ? 0.8 : 0.55); if (T.dec[k]) dodgeRoll(D); }
+      if (D.cpu && D.ai) trapMind(T, D, dx, dz, d); // (v365: has it seen it or not)
       if (d > TRAP_R || Math.abs(D.y - T.y) > 0.8 || (D.air && D.y - T.y > 0.3)) continue;
       trapPop(T, D, D.rollT > 0 || D.giantT > 0); break;
     }
   }
 }
+// (v365) what a CPU makes of a trap it's coming to (TRAP_CATCH): caught out, it's drawn on over it (aiLure); seen, it steers round it
+// (hazardAt) and rolls through if it's still dead ahead at the last moment, or hops it if its roll isn't back yet
+function trapMind(T, D, dx, dz, d) {
+  let c = T.mind.get(D);
+  if (c !== undefined && d > TRAP_SEE + 1.5) { trapForget(T, D); c = undefined; } // (well past it: the next time is a new roll)
+  if (c === undefined) {
+    if (D.air || D.charging || D.giantT > 0 || D.rollT > 0 || D.spd < 1.5 || d > TRAP_SEE || Math.abs(D.y - T.y) > 0.6) return;
+    const fx = Math.sin(D.yaw), fz = Math.cos(D.yaw);
+    if (-(dx * fx + dz * fz) < 0.3 || Math.abs(dx * fz - dz * fx) > TRAP_LANE || !lineClear(D, T.x, T.z, T.y)) return; // (ahead, in its lane, nothing in between)
+    c = Math.random() < (TRAP_CATCH[diff] || TRAP_CATCH.medium); T.mind.set(D, c);
+    if (!c) (D.ai.avoid || (D.ai.avoid = [])).push(T);
+  }
+  if (c) { if (!D.ai.lure) D.ai.lure = T; }
+  else if (!D.air && !(D.rollT > 0) && d < 1.7 && d > TRAP_R && D.spd > 1.2 && Math.abs(wrapA(Math.atan2(-dx, -dz) - D.yaw)) < 0.6) { if (D.rollCD <= 0 && rollSafe(D)) dodgeRoll(D); else if (d < 1.5 && hopOK(D)) jump(D); } // (no roll to hand: a hop clears it)
+}
+// a trap gone, or a CPU well past one: out of its mind (only: that CPU's), its steering and what it's heading for
+function trapForget(T, only) {
+  if (only) T.mind.delete(only);
+  for (const B of only ? [only] : [P, H, H2, H3]) { const ai = B && B.ai; if (!ai) continue; if (ai.lure === T) ai.lure = null; const j = ai.avoid ? ai.avoid.indexOf(T) : -1; if (j >= 0) ai.avoid.splice(j, 1); }
+}
 function trapPop(T, B, harmless) {
-  const i = trapList.indexOf(T); if (i >= 0) trapList.splice(i, 1); scene.remove(T.g);
+  const i = trapList.indexOf(T); if (i >= 0) trapList.splice(i, 1); scene.remove(T.g); trapForget(T);
   if (!B && harmless) { for (let k = 0; k < 8; k++) { const a = Math.random() * 6.283; spawnPart(T.x, T.y + 0.2, T.z, Math.cos(a) * 0.7, 0.8 + Math.random() * 0.8, Math.sin(a) * 0.7, 0.3, steamMat, 0.7); } return; } // (fizzled out)
   const col = TEAMS[T.owner.team].wet;
   addSplat(T.x, T.y, T.z, Math.random() * 6.283, TRAP_SPLAT, dryClock, false, false, T.code);
@@ -14612,7 +14636,7 @@ function trapPop(T, B, harmless) {
   emote(B, 'ouch', 1); emote(T.owner, 'glee', 0.9); hitStop(0.06, T.owner, B);
   if (B === P) { shake = Math.max(shake, 0.35); buzz([20, 25, 20]); popText('Trapped!'); } else if (T.owner === P) { buzz(12); popText('Trapped ' + nameOf(B) + '!'); }
 }
-function clearTraps() { for (const T of trapList) scene.remove(T.g); trapList.length = 0; }
+function clearTraps() { for (const T of trapList) { scene.remove(T.g); trapForget(T); } trapList.length = 0; }
 // ---------- v251: Flash Freeze. A beat to wind up (frost creeps in at the edges, a shimmer rises round whoever cast it), then a flash over
 // the whole canvas and everyone else is frozen solid for FREEZE_T seconds. Safe: anyone down in a basin, anyone up in a rocket, and anyone
 // whose dodge roll starts in the last FREEZE_SWEET seconds before the flash (a timing that's hard to master) ----------
@@ -18258,6 +18282,15 @@ function ledgeNudge(D, dt) {
 function flightFor(c, dy) { const v0 = launchV(c), up = v0 / GRAV, ap = v0 * v0 / (2 * GRAV), down = Math.sqrt(Math.max(0, 2 * (ap + dy) / (GRAV * 1.45))); return { T: up + down, d: launchSpd(c) * (up + down), v0, up, ap }; }
 function solveFling(dist, dy) { if (flightFor(1, dy).d < dist) return -1; let lo = FLING_MIN, hi = 1; if (flightFor(lo, dy).d >= dist) return lo; for (let k = 0; k < 16; k++) { const m = (lo + hi) / 2; if (flightFor(m, dy).d < dist) lo = m; else hi = m; } return (lo + hi) / 2; }
 // walk the arc: nothing in the way, and somewhere decent to land (not boiling, not hard, not by a deadly edge)
+// (v365) a CPU's fling lands on (or slides over) a rival's trap only if that trap has caught it out (TRAP_CATCH, rolling up to it): one it
+// has seen, or hasn't come to yet, it doesn't fling onto
+function trapLandOK(D, x, z, y, sx, sz, slide) {
+  for (const T of trapList) {
+    if (T.owner === D || ally(D, T.owner) || Math.abs(T.y - y) > 0.6 || T.mind.get(D) === true) continue;
+    for (let d = 0; d <= slide + 1e-6; d += 0.5) if (Math.hypot(x + sx * d - T.x, z + sz * d - T.z) < TRAP_R + 0.5) return false;
+  }
+  return true;
+}
 function flingLanding(D, yaw, c, bold) {
   const f = flightFor(c, 0), hs = launchSpd(c), sx = Math.sin(yaw), sz = Math.cos(yaw);
   for (let t = 0.04; t < 3; t += 0.04) {
@@ -18270,6 +18303,7 @@ function flingLanding(D, yaw, c, bold) {
       // a hard fling keeps sliding after it lands: make sure that slide doesn't carry it off a ledge into a hole or off the canvas
       let sy = g; const slide = Math.max(0, hs - cfg.speed) / 1.6 + 1.2;
       for (let d = 0.3; d <= slide; d += 0.3) { const px = x + sx * d, pz = z + sz * d; if (blockedAt(px, pz, sy)) break; const s2 = surfaceUnder(px, pz, sy + STEP); if (s2 === -Infinity) return null; sy = s2; }
+      if (trapList.length && !trapLandOK(D, x, z, g, sx, sz, slide)) return null; // (v365)
       return { x, z, y: g, t, n };
     } }
     if (y < -2) return null;
@@ -18297,7 +18331,7 @@ function aiFlingPaint(D, rollRate, need, sunNow) {
       if (rate > bs) { bs = rate; best = { kind: 'paint', yaw, c, t: 0, missile: false }; }
       if (canMissile && c >= 0.55 && D.paint - cost - SLAM_COST > (endgame ? 0.05 : reserve)) {
         const f = flightFor(c, 0), ax = D.x + Math.sin(yaw) * launchSpd(c) * f.up, az = D.z + Math.cos(yaw) * launchSpd(c) * f.up, hh = Math.max(launchSpd(c), cfg.speed * MISSILE_SPD);
-        const m = missileFrom(ax, D.y + f.ap, az, yaw, hh, MISSILE_DIVE, 0.08); if (!m || !safeLand(m.x, m.z, m.y)) continue;
+        const m = missileFrom(ax, D.y + f.ap, az, yaw, hh, MISSILE_DIVE, 0.08); if (!m || !safeLand(m.x, m.z, m.y) || (trapList.length && !trapLandOK(D, m.x, m.z, m.y, Math.sin(yaw), Math.cos(yaw), 0.6))) continue;
         spot.x = m.x; spot.z = m.z; spot.y = m.y;
         const mg = localGain(spot, MISSILE_R * 0.98); if (mg < here * 1.3 || mg < (AI.covPound || 120) * COV_K * 0.8) continue;
         const mr = mg / (f.up + 0.1 + (f.ap + 0.5) / (hh * MISSILE_DIVE) + turnT);
@@ -18547,7 +18581,7 @@ function aiAttackPlan(D) {
 function hazardAt(D, h, quick) {
   // walk forward the way the physics rolls (climbing ramps, dropping off ledges) and add up what's waiting
   const sx = Math.sin(h), sz = Math.cos(h), end = (quick ? 1.4 : 2.1) * Math.max(0.7, D.spd / 5.4), avoidPots = D.ai.mode !== 'refill' && D.ai.mode !== 'shelter' && D.ai.mode !== 'hunt';
-  let y = D.y, score = 0;
+  let y = D.y, score = 0; const av = D.ai.avoid && D.ai.avoid.length ? D.ai.avoid : null; // (v365: traps it has seen)
   for (let d = 0.3; d <= end + 1e-6; d += 0.3) {
     const x = D.x + sx * d, z = D.z + sz * d, w = 1 / Math.max(0.6, d);
     if (blockedAt(x, z, y)) { score += 2.5 * w; break; }
@@ -18558,6 +18592,7 @@ function hazardAt(D, h, quick) {
     if (boilNear(x, z, s, 0.15)) score += 7 * w * 0.5;
     if (hardPhase && dryAt(x, z, s, 0.05, -1)) score += 7 * w * 0.5;
     if (avoidPots) for (const p of pots) if (potUp(p) && !p.occ && p.ink > 0.02 && p.cool <= 0 && Math.hypot(x - p.x, z - p.z) < 0.85 && Math.abs(p.y - s) < 0.5) { score += 4 * w * 0.5; break; }
+    if (av) for (const T of av) if (Math.abs(T.y - s) < 0.6 && Math.hypot(x - T.x, z - T.z) < TRAP_R + 0.45) { score += 5 * w * 0.5; break; }
   }
   return score;
 }
@@ -18659,6 +18694,15 @@ function aiTryPound(D, dt) {
 }
 // a roll only where it lands on the same floor: no rolling off an edge or into a wall
 function rollSafe(D) { const fx = Math.sin(D.yaw), fz = Math.cos(D.yaw); for (let d = 0.5; d <= 3.7; d += 0.4) { const x = D.x + fx * d, z = D.z + fz * d, g = surfaceUnder(x, z, D.y + STEP); if (g === -Infinity || Math.abs(g - D.y) > 0.4 || blockedAt(x, z, D.y)) return false; } return true; }
+// (v365) caught out by a trap it hasn't seen: it rolls straight on over it, no hop, roll, fling or pound on the way (it lets go if the
+// trap goes, or it's carried off or somehow past it)
+function aiLure(D, dt) {
+  const ai = D.ai, T = ai.lure, dx = T.x - D.x, dz = T.z - D.z, d = Math.hypot(dx, dz);
+  if (!trapList.includes(T) || D.giantT > 0 || d > TRAP_SEE + 1 || Math.abs(D.y - T.y) > 0.8 || (d > TRAP_R && Math.sin(D.yaw) * dx + Math.cos(D.yaw) * dz < -0.3) || !lineClear(D, T.x, T.z, T.y)) { ai.lure = null; return false; }
+  if (D.charging) cancelCharge(D); ai.plan = null; ai.rollWind = 0; ai.evadeT = 0;
+  D.steer = -clamp(wrapA(Math.atan2(dx, dz) - D.yaw) * 2.6, -1, 1);
+  return true;
+}
 // get clear of your pound, or hop over a ram
 const ROLL_WIND = 0.28;
 function aiEvade(D, dt) {
@@ -18746,7 +18790,7 @@ function aiStep(D, dt) {
   const ai = D.ai; if (!ai || D.st === 'out' || D.introCrawl || D.introOut || (D === H && tut && tut.rvCam)) return; // (v357: not while the lesson's rival makes his entrance)
   if ((mode === 'trio' || isShow()) && (ai.focusT = (ai.focusT || 0) - dt) <= 0) { ai.focusT = 1.2 + Math.random() * 0.8; const f = pickFocus(D); if (f && f !== D.focus) { D.focus = f; ai.o = null; ai.seenT = 0; } }
   ai.seenT -= dt; if (ai.seenT <= 0 || !ai.o) { ai.seenT = AI.react; aiSee(D); }
-  if (D.st === 'ko') { ai.path = null; ai.plan = null; ai.flight = null; ai.evadeT = 0; ai.attackT = 0; ai.wasRdy = false; return; }
+  if (D.st === 'ko') { ai.path = null; ai.plan = null; ai.flight = null; ai.evadeT = 0; ai.attackT = 0; ai.wasRdy = false; ai.lure = null; return; }
   if (tut && tut.keepAway) ai.attackT = 0; if (tut && tut.drive === D && D.st === 'play' && !D.rocket && !D.turret) return tutDrive(D); // (the lesson: kept away, or driven at you for the dodge)
   if (D.held && D.st === 'play') { D.heldT = (D.heldT || 0) + dt; const O = other(D), near = O && O.st === 'play' && Math.hypot(O.x - D.x, O.z - D.z) < TURRET_FAR * 0.75;
     if (!D.air && !D.charging && (D.held === 'turret' ? (near && D.heldT > 0.6) || D.heldT > 6 : D.held === 'trap' ? (O && O.st === 'play' && Math.hypot(O.x - D.x, O.z - D.z) < 7 && D.heldT > 0.8) || D.heldT > 6 : D.held === 'whirl' ? (O && O.st === 'play' && Math.hypot(O.x - D.x, O.z - D.z) < 10 && Math.hypot(O.x - D.x, O.z - D.z) > 2 && Math.abs(wrapA(Math.atan2(O.x - D.x, O.z - D.z) - D.yaw)) < 0.7 && D.heldT > 0.5) || D.heldT > 8 : D.held === 'boom' ? (O && O.st === 'play' && Math.hypot(O.x - D.x, O.z - D.z) < 11 && Math.hypot(O.x - D.x, O.z - D.z) > 2.5 && Math.abs(wrapA(Math.atan2(O.x - D.x, O.z - D.z) - D.yaw)) < 0.8 && D.heldT > 0.5) || D.heldT > 8 : D.heldT > 1 + Math.random() * 1.5)) useHeld(D); }
@@ -18764,6 +18808,7 @@ function aiStep(D, dt) {
   if (ai.flight === 'shove') ai.ramT = 0.45; // landed just short: keep barreling straight into you
   ai.flight = null; ai.flMissile = false; ai.airRolled = false; if (ai.airAim) { ai.airAim = null; if (D.charging) cancelCharge(D); }
   if (ai.ramT > 0) { ai.ramT -= dt; const O = other(D); if (O.st === 'play' && D.flung) { if (D.charging) cancelCharge(D); D.steer = -clamp(wrapA(Math.atan2(O.x - D.x, O.z - D.z) - D.yaw) * 3, -1, 1); return; } ai.ramT = 0; }
+  if (ai.lure && aiLure(D, dt)) return; // (v365: a trap it hasn't seen, dead ahead)
   if (aiEvade(D, dt)) return;
   if (ai.mode === 'orb') { if (!orb.on || tut3Orb()) { ai.mode = 'paint'; ai.thinkT = 0; } else { ai.thinkT = Math.min(ai.thinkT, 0.25); if (Math.hypot(orb.x - D.x, orb.z - D.z) < 2.6 && orb.y - D.y < 2.1 && orb.y - D.y > -0.2 && !D.charging && solidAround(orb.x, orb.z, D.y, 1.2)) jump(D); /* (not for an orb hanging over a hole: the grab drops it straight down) */ } }
   if (aiTryPound(D, dt)) return;
