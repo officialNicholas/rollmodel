@@ -387,7 +387,8 @@ export class GameServer {
         if (!PARTY.MODES.includes(m.mode)) return this.sendError(sess, 'bad_mode', 'unknown mode', m.r);
         if (party.state === 'match') return this.sendError(sess, 'busy', 'playing', m.r);
         const was = party.mode(this.partyModes()); me.vote = m.mode; me.ready = false;
-        if (party.mode(this.partyModes()) !== was) party.unready(); // (a different mode: everyone says ready again)
+        // (a different mode: everyone says ready again. Not when it's the leader's pick: the others readied up to wait for it)
+        if (party.mode(this.partyModes()) !== was && party.leader !== pid) party.unready();
         if (party.state !== 'idle') return this._partyIdle(party, 'vote', sess, m.r);
         return this._partySend(party, { r: m.r, to: sess });
       }

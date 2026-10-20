@@ -1,5 +1,5 @@
 // Parties: up to four friends who play together. Joining by the code an invite carries, the lead passing on, the
-// leader removing someone, ready and the mode vote, reactions, looks and busy members, a dropped member's place kept
+// leader removing someone, ready and the leader's pick of the event, reactions, looks and busy members, a dropped member's place kept
 // for a while, invites passed on live (a nudge to look at the inbox), and a party of two playing a private duel.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -58,22 +58,53 @@ test('wrong party codes are rate limited', async () => {
   } finally { A.close(); await srv.close(); }
 });
 
-test('the mode vote: the most votes win, the leader breaks a tie, only the modes that fit the party', async () => {
+test('the mode: the leader picks it (with no pick, the most votes), only the modes that fit the party', async () => {
   const on = ['duel', 'ffa', 'duo'];
   const p = new Party('ABCDEFGH'), mk = id => ({ player: { id, name: id, look: null } });
   p.add(mk('a')); p.add(mk('b'));
   assert.deepEqual(p.modes(on).map(x => x.mode + ':' + x.plan), ['duel:private', 'ffa:queue', 'duo:queue']);
   assert.equal(p.mode(on), 'duel', 'nobody voted: the first');
-  p.member('b').vote = 'duo'; assert.equal(p.mode(on), 'duo');
-  p.member('a').vote = 'ffa'; assert.equal(p.mode(on), 'ffa', 'one each: the leader\'s pick');
+  p.member('b').vote = 'duo'; assert.equal(p.mode(on), 'duo', 'no pick from the leader: the votes');
+  p.member('a').vote = 'ffa'; assert.equal(p.mode(on), 'ffa', 'the leader\'s pick');
   p.add(mk('c')); p.add(mk('d'));
   assert.deepEqual(p.modes(on).map(x => x.mode + ':' + x.plan), ['ffa:private', 'duo:private'], 'four: a Showdown or a 2v2 of their own');
-  p.member('c').vote = 'duo'; assert.equal(p.mode(on), 'duo', 'two against one');
-  p.member('d').vote = 'ffa'; assert.equal(p.mode(on), 'ffa', 'two each: the leader\'s');
+  p.member('c').vote = 'duo'; p.member('d').vote = 'duo'; assert.equal(p.mode(on), 'ffa', 'the leader\'s pick, whatever the others voted');
+  p.member('a').vote = 'duel'; assert.equal(p.mode(on), 'duo', 'a pick that doesn\'t fit four: the votes');
   p.remove('d'); assert.deepEqual(p.modes(on).map(x => x.mode), ['ffa'], 'three: a party stays on one team, so no 2v2');
+  assert.equal(p.mode(on), 'ffa');
   assert.equal(p.mode(['duel']), null, 'nothing switched on fits three');
   assert.equal(planFor('duel', 3), null); assert.equal(planFor('duo', 3), null); assert.equal(planFor('ffa', 4), 'private');
   p.remove('a'); assert.equal(p.leader, 'b', 'the lead passes on');
+});
+
+test('the leader picks the event: the others ready up first and stay ready through the pick; a member\'s vote still un-readies', async () => {
+  const srv = await startServer();
+  const [A, B, C] = people(srv, 3, { prefix: 'Host' });
+  try {
+    await Promise.all([A, B, C].map(p => p.connect()));
+    const v = await A.partyCreate(); await B.partyJoin(v.code); await C.partyJoin(v.code);
+    await until(() => A.party && A.party.members.length === 3);
+    await B.partyReady(true); await C.partyReady(true);
+    await until(() => A.party.members.filter(m => m.ready).length === 2);
+    assert.equal(A.party.state, 'idle', 'waiting for the host');
+    // the host picks (Showdown is all a party of three plays): the others stay ready, and the host's ready starts it
+    await A.partyVote('ffa'); await until(() => A.party.mode === 'ffa' && A.party.members.find(m => m.id === A.id).vote === 'ffa');
+    assert.ok(A.party.members.filter(m => m.id !== A.id).every(m => m.ready), 'still ready after the pick');
+    const starting = B.wait('party', m => m.state === 'starting'); await A.partyReady(true); assert.equal((await starting).mode, 'ffa');
+    const idle = B.wait('party', m => m.state === 'idle'); await A.partyReady(false); await idle; // (the host backs out)
+    assert.ok(B.party.members.filter(m => m.id !== A.id).every(m => m.ready), 'the others still ready');
+  } finally { for (const p of [A, B, C]) p.close(); await srv.close(); }
+  // two: a member's vote that changes the mode (no pick from the leader yet) un-readies everyone, as before
+  const srv2 = await startServer();
+  const [D, E] = people(srv2, 2, { prefix: 'Pair' });
+  try {
+    await Promise.all([D, E].map(p => p.connect()));
+    const v = await D.partyCreate(); await E.partyJoin(v.code); await until(() => D.party && D.party.members.length === 2);
+    await D.partyReady(true); await until(() => E.party.members.find(m => m.id === D.id).ready);
+    await E.partyVote('duo'); await until(() => D.party.mode === 'duo');
+    assert.ok(D.party.members.every(m => !m.ready), 'a different mode: everyone readies again');
+    await D.partyVote('duel'); await until(() => D.party.mode === 'duel');
+  } finally { for (const p of [D, E]) p.close(); await srv2.close(); }
 });
 
 test('ready, the vote and reactions: everyone ready starts a private duel for a party of two; then back to the party', async () => {

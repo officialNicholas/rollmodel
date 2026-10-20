@@ -4939,6 +4939,11 @@ html.fh .tutgo .tgcard .tava{display:none}
 @keyframes pyshins{from{transform:translateX(40%);opacity:0}}
 @media (min-aspect-ratio:1/1) and (max-height:600px){.pymode{min-height:48px}.pyround{width:42px;height:42px}.pydock{gap:7px}}
 @media (prefers-reduced-motion:reduce){.pybub,.pybub i,.mbtn.ibbell.ring svg,.ibdot,.pysh{animation:none}}
+
+/* (v392) the party: a line on what it's waiting on, where the mode vote was; Choose Event with the party's events alone */
+.pynote{justify-self:center;min-width:0;max-width:100%;margin:0;padding:7px 13px 6px;box-sizing:border-box;border-radius:999px;background:rgba(23,19,32,.84);color:#FFF8EA;font:800 12.5px/1.1 var(--font-ui);letter-spacing:.01em;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 3px 0 rgba(23,19,32,.22)}
+.pynote:empty{visibility:hidden}
+.mevents.evparty .evcard:not(.evpy),.mevents:not(.evparty) .evpy{display:none}
 </style>
 
 <div id="stage">
@@ -5005,7 +5010,7 @@ html.fh .tutgo .tgcard .tava{display:none}
       <div class="lbot" id="lobbyBot">
           <div class="pydock" id="pyDock" hidden>
             <button class="pyround" id="pyLeave" data-py="leave" type="button" aria-label="Leave the party"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 4H6.5v16H13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/><path d="M11 12h9m-3.2-3.4L20.2 12l-3.4 3.4" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-            <div class="pymodes" id="pyModes" role="radiogroup" aria-label="Vote for a mode"></div>
+            <p class="pynote" id="pyNote" aria-live="polite"></p>
             <button class="pyround" id="pyReactBtn" data-py="emo" type="button" aria-label="Reactions" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.6" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="9" cy="10.2" r="1.4" fill="currentColor"/><circle cx="15" cy="10.2" r="1.4" fill="currentColor"/><path d="M8.4 14.2q3.6 3.6 7.2 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
             <div class="pyemo" id="pyEmo" role="menu" aria-label="Reactions" hidden></div>
           </div>
@@ -5117,7 +5122,7 @@ html.fh .tutgo .tgcard .tava{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 391</p>
+      <p class="ver">Version 392</p>
     </div>
   </div>
 
@@ -22990,7 +22995,7 @@ function closeWorlds() {
 $('gPrev').addEventListener('click', () => { AU.init(); hap('select'); stepWorld(-1); }); $('gNext').addEventListener('click', () => { AU.init(); hap('select'); stepWorld(1); });
 // (v369) not while a season's page is open: the carousel is hidden behind it
 function stepWorld(dir) { if (seasonOpen()) return; const open = worldBtns.filter(b => b.dataset.s !== 'next'), i = open.findIndex(b => b.dataset.s === stageSel), b = open[clamp(i + dir, 0, open.length - 1)]; if (b) { centerWorld(b, true); selectWorld(b.dataset.s); renderWorlds(); } }
-$('homePlay').addEventListener('click', () => { AU.init(); if (ptOn() && !ON.match) { if (state === 'menu' && !building && !lookOpen && !shopOpen && !lkOn()) { AU.pop(); ptReady(); } return; } if (state !== 'menu' || building || lookOpen || shopOpen || lkOn()) return; AU.pop(); if (tutMatchDue()) start(); else playEvents(); });
+$('homePlay').addEventListener('click', () => { AU.init(); if (ptOn() && !ON.match) { if (state === 'menu' && !building && !lookOpen && !shopOpen && !lkOn()) ptPlayTap(); return; } if (state !== 'menu' || building || lookOpen || shopOpen || lkOn()) return; AU.pop(); if (tutMatchDue()) start(); else playEvents(); });
 $('stageBtn').addEventListener('click', () => { AU.init(); AU.ui(); openWorlds(); });
 $('worldBack').addEventListener('click', () => { AU.init(); AU.ui(); if (!closeSeason()) closeWorlds(); });
 window.addEventListener('resize', () => { if (menuPage === 'worlds') { centerWorld(worldBtns.find(b => b.dataset.s === stageSel), false); renderWorlds(); } });
@@ -25316,9 +25321,9 @@ async function onFind(m) {
   ON.note = ''; if (PY_FULL[m] && m !== ON.mode) { ON.mode = m; store.onMode = m; save(); }
   const net = await onNet(); if (!net) return; const mode = ON.mode;
   if (!onModeOn(mode)) { ON.note = PY_FULL[mode] + ' online is coming next. Versus is on now.'; return onRender(); }
-  if (ptOn()) { onlineClose(); return frToast('<span>Your party plays together: vote and ready up in the lobby</span>'); }
+  if (ptOn()) { onlineClose(); return frToast('<span>' + ptTogether() + '</span>'); }
   try { ON.unq = 0; ON.cpu = false; ON.queued = { mode, at: Date.now() }; onUpd(); onBeat(); await net.queue(mode); onSay('Finding players'); }
-  catch (e) { ON.queued = null; ON.note = e.code === 'busy' ? 'Your party plays together: vote and ready up in the lobby.' : onReqText(e); onUpd(); }
+  catch (e) { ON.queued = null; ON.note = e.code === 'busy' ? ptTogether() + '.' : onReqText(e); onUpd(); }
 }
 async function onUnq() { const net = ON.net; ON.unq = Date.now(); ON.queued = null; ON.cpu = false; onUpd(); onBeat(); try { if (net) await net.cancelQueue(); } catch (e) {} }
 // nobody around after 30 s: a match against the CPU instead (never a pretend person)
@@ -25420,7 +25425,6 @@ async function ptAnswer(id, yes) {
 }
 function ptReady() {
   const me = ptMe(), p = ON.party; if (!me || !ON.net || !p || p.state === 'match') return;
-  if (!p.mode && !me.ready) { AU.nope(); return frToast('<span>None of these modes fit your party yet</span>'); }
   ON.net.partyReady(!(me.ready || p.state === 'starting' || p.state === 'queued')).catch(e => frToast('<span>' + frEsc(onReqText(e)) + '</span>'));
 }
 function ptVote(m) {
@@ -25565,7 +25569,7 @@ function pkRender() {
 // ---- the Online sheet: on your own, pick a mode and find a match
 function onlineOpen() {
   if (state !== 'menu' || (ON.gate && !ON.gate())) return false;
-  if (ptOn()) { if (menuPage === 'events') closeEvents(); frToast('<span>Your party plays together: vote and ready up in the lobby</span>'); return false; }
+  if (ptOn()) { if (menuPage === 'events') closeEvents(); frToast('<span>' + ptTogether() + '</span>'); return false; }
   if (!ON.open) { ON.ret = document.activeElement; ON.open = true; $('onModal').hidden = false; setTimeout(() => { if (ON.open) $('onX').focus({ preventScroll: true }); }, 30); }
   if (ON.v === 'error' || ON.v === 'old') ON.v = '';
   onRender(); onCard();
@@ -25712,17 +25716,12 @@ function ptRender() {
   const dock = $('pyDock'); dock.hidden = !inp;
   const p = ON.party, me = ptMe(), was = PY.slots, slots = PY.slots = ptSlots();
   if (!was || was.some((s, i) => !s !== !slots[i])) heroT = 0; // (a spot came or went: the camera frames the line-up again)
-  // the mode vote: the modes that fit the party, each with who voted for it
-  if (inp) {
-    const votes = k => p.members.filter(m => m.vote === k).map(m => '<i style="--c:' + frCol(m.look) + '" title="' + frEsc(hdOf(m.name)) + '"></i>').join('');
-    const mh2 = p.modes.map(x => { const md = PY_MODES.find(q => q[0] === x.mode) || [x.mode, x.mode, '']; const mine = me && me.vote === x.mode, win = p.mode === x.mode;
-      return '<button class="pymode' + (win ? ' win' : '') + '" data-py="vote" data-id="' + x.mode + '" type="button" role="radio" aria-checked="' + !!mine + '"' + (x.on ? '' : ' disabled') + ' aria-label="' + md[1] + (win ? ', the party’s pick' : '') + '"><b>' + md[1] + '</b><small>' + (x.plan === 'private' ? 'Just us' : x.mode === 'duo' ? 'Us vs two' : 'With ' + (4 - p.members.length) + ' more') + '</small><span class="pyvotes">' + votes(x.mode) + '</span>' + (x.on ? '' : '<i class="pysoon">Soon</i>') + '</button>'; }).join('');
-    const box = $('pyModes'); box.style.setProperty('--n', Math.max(1, p.modes.length)); box.classList.toggle('n3', p.modes.length >= 3); if (box._h !== mh2) { box._h = mh2; box.innerHTML = mh2 || '<p class="onhint">No mode for a party this size yet</p>'; }
-  }
-  ptPlay();
+  // (v392) what the party's waiting on (the host picks the event)
+  if (inp) { const t = ptNote(), el = $('pyNote'); if (el.textContent !== t) el.textContent = t; }
+  ptPlay(); ptEvRender();
   // the name plates (yours and each member's) and the spots' look
   const lay = $('pyLayer'); lay.hidden = !inp;
-  const plates = []; if (inp && me) plates.push({ key: 'me', m: me, me: true });
+  const plates = []; // (v392: none under you)
   slots.forEach((s, i) => { if (s && s.k === 'm') plates.push({ key: 'm' + s.m.id, m: s.m, slot: i }); });
   const lead = p && p.leader, iLead = !!(me && lead === me.id);
   const html = plates.map(x => { const m = x.m, st = m.away ? 'away' : m.busy ? 'busy' : m.ready ? 'ready' : '', tap = iLead && !x.me;
@@ -25747,11 +25746,13 @@ function ptPlay() {
   if (!sub) { sub = document.createElement('small'); sub.className = 'pysub'; lbl.after(sub); }
   let t = 'Play', s = '', cls = '';
   if (inp) {
-    const p = ON.party, me = ptMe(), wait = p.members.filter(m => !m.ready).length;
+    const p = ON.party, me = ptMe(), wait = p.members.filter(m => !m.ready).length, lead = p.members.find(m => m.id === p.leader), host = !!me && lead === me;
     if (p.state === 'starting') { t = 'Starting'; s = 'Tap to stop'; cls = 'pygo'; }
     else if (p.state === 'queued') { t = 'Finding'; s = 'Tap to cancel'; cls = 'pygo'; }
-    else if (me && me.ready) { t = 'Ready!'; s = wait ? 'Waiting for ' + wait + ' · tap to undo' : ''; cls = 'pyready'; }
-    else { t = 'Ready'; s = p.mode ? '' : 'No mode for ' + p.members.length + ' yet'; }
+    else if (host && me.ready) { t = 'Ready!'; s = 'Waiting for ' + wait + ' · tap to cancel'; cls = 'pyready'; }
+    else if (host) { const o = wait - 1; t = 'Play'; s = !p.mode ? 'No event for ' + p.members.length + ' yet' : o > 0 ? o + ' not ready yet' : 'Everyone’s ready'; }
+    else if (me && me.ready) { t = 'Ready!'; s = (lead && !lead.ready ? 'Waiting for the host' : 'Waiting for ' + wait) + ' · tap to undo'; cls = 'pyready'; }
+    else { t = 'Ready'; s = ''; }
   }
   if (lbl.textContent !== t) lbl.textContent = t; if (sub.textContent !== s) sub.textContent = s;
   for (const c of ['pyready', 'pygo']) if (b.classList.contains(c) !== (cls === c)) b.classList.toggle(c, cls === c);
@@ -25872,7 +25873,7 @@ function onTick() {
   if (ON.stale && now > ON.stale) { ON.stale = 0; if (ON.party && ON.me) { const had = ptOn(); ON.party = null; ptRender(); onBeat(); if (had) frToast('<span>You were away too long, so you left the party</span>'); } }
   if (ON.queued && !ON.queued.party && !ON.cpu && now - ON.queued.at > 30000) { ON.cpu = true; onUpd(); if (!ON.open && state === 'menu') frToast('<span>It’s quiet right now. Open Online to play the CPU meanwhile.</span>'); }
   // (a party of two finding a Showdown or a 2v2 with nobody about: they can always play each other)
-  { const p = ON.party; if (ptOn() && p.state === 'queued' && p.members.length === 2 && ON.net && ON.net.serverNow() - p.queuedAt > 30000 && ON.quiet !== p.queuedAt) { ON.quiet = p.queuedAt; if (state === 'menu') frToast('<span>It’s quiet right now. Keep looking, or vote Versus to play each other</span>'); } }
+  { const p = ON.party; if (ptOn() && p.state === 'queued' && p.members.length === 2 && ON.net && ON.net.serverNow() - p.queuedAt > 30000 && ON.quiet !== p.queuedAt) { ON.quiet = p.queuedAt; if (state === 'menu') frToast('<span>It’s quiet right now. Keep looking, or ' + (ptHost() ? 'cancel and pick Versus' : 'the host can pick Versus') + ' to play each other</span>'); } }
   if (ON.invites.length) { const t = now + FR.skew, l = ON.invites.filter(x => Date.parse(x.expires) > t); if (l.length !== ON.invites.length) { ON.invites = l; ibBadge(); ibRender(); if (FR.open) frRender(); } }
   if (IB.card && !IB.hold && now - IB.cardAt > 12000) IB.card = '';
   if (IB.card && IB.hold && !ON.invites.some(x => x.id === IB.card)) { IB.card = ''; IB.hold = false; }
@@ -27374,9 +27375,9 @@ function evFoldShow() { $('evShow').closest('.evcard').classList.remove('open');
 function openEvents() {
   if (state !== 'menu' || building || lookOpen || shopOpen || lkOn() || menuPage === 'events') return;
   if (menuPage === 'worlds') { closeSeason(); $('mWorld').hidden = true; }
-  menuPage = 'events'; menu.dataset.page = 'events'; $('mHome').hidden = true; evEl.hidden = false; document.body.classList.add('evon'); closeSide(true); evArt(); evFold(); evLockPaint(); acMatchPaint(); requestAnimationFrame(evMoreTick); setTimeout(lateWarmBg, 700); /* (v309: the match's shaders, behind this page) */
+  menuPage = 'events'; evEl.classList.toggle('evparty', !!PY.evGo); if (PY.evGo) ptEvRender(); menu.dataset.page = 'events'; $('mHome').hidden = true; evEl.hidden = false; document.body.classList.add('evon'); closeSide(true); evArt(); evFold(); evLockPaint(); acMatchPaint(); requestAnimationFrame(evMoreTick); setTimeout(lateWarmBg, 700); /* (v309: the match's shaders, behind this page) */
   for (const c of evEl.querySelectorAll('.evcard')) { c.style.animation = 'none'; void c.offsetWidth; c.style.animation = ''; }
-  setTimeout(() => $('evVs').focus({ preventScroll: true }), 40);
+  if (!PY.evGo) setTimeout(() => $('evVs').focus({ preventScroll: true }), 40);
 }
 function closeEvents() { if (menuPage !== 'events') return; evFold(); evEl.hidden = true; document.body.classList.remove('evon'); menuPage = 'home'; menu.dataset.page = 'home'; $('mHome').hidden = false; heroT = 0; setTimeout(() => $('homePlay').focus({ preventScroll: true }), 30); }
 // (v257) Time trial and Showdown open at rank 2, with the Strokes: until then their cards are greyed with a lock tag
@@ -27405,6 +27406,56 @@ $('evMatch').addEventListener('click', () => { AU.init(); mpTap(); }); // (v306:
 $('evShow').addEventListener('click', evGate('showdown', () => { const c = $('evShow').closest('.evcard'), open = !c.classList.contains('open'); if (open) { $('evVs').closest('.evcard').classList.remove('open'); $('evVsPick').hidden = true; $('evVs').setAttribute('aria-expanded', 'false'); } c.classList.toggle('open', open); $('evShowPick').hidden = !open; $('evShow').setAttribute('aria-expanded', String(open)); if (open) setTimeout(() => $('evShowPick').querySelector('[data-m="' + (mode === 'duo' ? 'duo' : 'ffa') + '"]').focus({ preventScroll: true }), 30); }));
 $('evShowPick').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; AU.init(); AU.pop(); evPick(b.dataset.m); });
 // (v269: the Tutorial event is gone; a new player's first match is still the lesson)
+
+// ---- (v392) the host picks the event: their Play opens Choose Event with the events the party can play together (the
+// multiplayer ones, for its size); a pick readies the host up. The others say Ready and wait for it
+const PY_EV = { duel: { c: '#E3122F', ic: 'evVs', sub: '1v1' }, ffa: { c: '#8E5CFF', ic: 'evShow', sub: 'Free for all' }, duo: { c: '#2E7BFF', ic: 'evShow', sub: 'Teams of two' } };
+function ptHost() { const me = ptMe(), p = ON.party; return !!(me && p && p.leader === me.id); }
+function ptTogether() { return 'Your party plays together: ' + (ptHost() ? 'press Play to pick the event' : 'ready up, and the host picks the event'); }
+// the line beside the big button: who picks, or what was picked
+function ptNote() {
+  const p = ON.party, me = ptMe(); if (!p || !me) return '';
+  const lead = p.members.find(m => m.id === p.leader);
+  if (p.state === 'starting' || p.state === 'queued' || (lead && lead.ready)) return PY_FULL[p.mode] || '';
+  return lead && lead.id === me.id ? 'You pick the event' : lead ? hdOf(lead.name) + ' picks the event' : '';
+}
+// the big button in a party: the host's opens the party's events; anyone else's is Ready (and undoes it); a pick or a start is cancelled
+function ptPlayTap() {
+  const me = ptMe(), p = ON.party; if (!me || !p || p.state === 'match') return;
+  if (p.leader === me.id && !me.ready && p.state === 'idle') {
+    if (!p.modes.some(x => x.on)) { AU.nope(); return frToast('<span>No event fits a party this size yet</span>'); }
+    AU.pop(); PY.evGo = true; try { openEvents(); } finally { PY.evGo = false; }
+    if (menuPage === 'events') setTimeout(() => { const b = evEl.querySelector('.evpy .evmain'); if (b) b.focus({ preventScroll: true }); }, 60);
+    return;
+  }
+  AU.pop(); ptReady();
+}
+function ptEvOn() { return menuPage === 'events' && evEl.classList.contains('evparty'); }
+// the party's event cards (again when the party changes); the page goes once there's nothing for the host to pick
+function ptEvRender() {
+  if (!ptEvOn()) return;
+  const p = ON.party, me = ptMe();
+  if (!ptOn() || ON.match || !me || p.leader !== me.id || me.ready || p.state !== 'idle') return closeEvents();
+  const n = p.members.length, ic = id => { const e = $(id) && $(id).querySelector('.evic'); return e ? e.innerHTML : ''; };
+  const art = { duel: stageArtOf(VOTE_STAGES.includes(stageSel) ? stageSel : 'cathedral'), ffa: stageArtOf('manor'), duo: stageArtOf('crypt') };
+  const h = p.modes.map(x => { const d = PY_EV[x.mode] || PY_EV.ffa, own = x.plan === 'private';
+    const bar = !x.on ? 'Coming soon' : own ? 'Just your party' : x.mode === 'duo' ? 'Finds a team online' : 'Finds ' + (4 - n) + ' more online';
+    const sub = x.mode === 'duel' ? 'You two, 1v1' : x.mode === 'duo' ? (own ? 'Two teams of you' : 'You two vs two') : own ? 'All four of you' : d.sub;
+    return '<div class="evcard evpy' + (x.on ? '' : ' soon') + '" data-pyev="' + x.mode + '" style="--ec:' + d.c + '"><button class="evmain" type="button" data-pyev="' + x.mode + '"' + (x.on ? '' : ' aria-disabled="true"') + '>'
+      + '<span class="evbar"><i>' + bar + '</i></span><span class="evtop"><span class="evic" aria-hidden="true">' + ic(d.ic) + '</span><span class="evtx"><b>' + frEsc(PY_FULL[x.mode] || x.mode) + '</b><small>' + sub + '</small></span></span>'
+      + '<span class="evart" aria-hidden="true"><img alt="" src="' + (art[x.mode] || '') + '"></span></button></div>'; }).join('');
+  const g = $('evGrid'); if (g._py === h) return; g._py = h;
+  g.querySelectorAll('.evpy').forEach(e => e.remove()); g.insertAdjacentHTML('afterbegin', h);
+}
+// a pick: the party's event, and the host is ready (the friends who are ready already start it)
+async function ptEvPick(m) {
+  const p = ON.party, me = ptMe(), x = p && p.modes.find(q => q.mode === m);
+  if (!p || !me || !ON.net || p.leader !== me.id || p.state !== 'idle') return closeEvents();
+  if (!x || !x.on) { AU.nope(); buzz(8); return frToast('<span>' + (x ? 'Coming soon' : 'Not for a party this size') + '</span>'); }
+  AU.pop(); buzz(12); closeEvents();
+  try { await ON.net.partyVote(m); await ON.net.partyReady(true); } catch (e) { frToast('<span>' + frEsc(onReqText(e)) + '</span>'); }
+}
+$('evGrid').addEventListener('click', e => { const b = e.target.closest('.evpy [data-pyev]'); if (!b || !ptEvOn()) return; AU.init(); ptEvPick(b.dataset.pyev); });
 
 // ---------- screen orientation: picked on the first launch, changed in Settings. On a phone held the other way the game asks for a turn ----------
 const ORIENT_NAMES = { port: 'upright', land: 'wide' };

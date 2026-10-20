@@ -21,9 +21,12 @@ today's lobby and Friends page.
 - **Join** and they stand in that spot as their own character (their paint, eyes, wearables and skin) with a name
   plate: a crown for the leader, a tick when ready, and where they are if they're busy ("In the locker"). You see your
   whole party in the lobby, upright and sideways.
-- **In a party** the foot of the lobby is the party's: Leave (the door), the mode vote, reactions, and Ready.
-  - **The vote:** the modes that fit the party. Two: Versus (just you two), Showdown (with two more found) or 2v2.
-    Three: Showdown, with one more found. Four: Showdown or 2v2, just you. Most votes win; the leader breaks a tie.
+- **In a party** the foot of the lobby is the party's: Leave (the door), what the party is waiting on, reactions, and
+  the big button.
+  - **The host picks the event (v392; the mode vote of v391 is gone):** the host's Play opens Choose Event with only
+    the modes that fit the party. Two: Versus (just you two), Showdown (with two more found) or Showdown 2v2.
+    Three: Showdown, with one more found. Four: Showdown or Showdown 2v2, just you. The others' button is Ready, and
+    they wait for the host's pick ("@host picks the event"). Picking readies the host up; with everyone ready it starts.
   - **Ready:** when everyone is, a moment to back out, then the match. Opening the locker, the shop, Strokes or
     Settings, or a new look, un-readies you.
   - **The leader** taps a friend's plate to remove them. After a match you're all back in the lobby together.

@@ -72,9 +72,11 @@ A party is up to four friends in one lobby who play together. The game server ke
   the party has 1.5 seconds to back out, then plays: a party of two plays a private duel (unrated); a mode that needs
   more players goes into matchmaking as one ticket. Anyone un-readying (or busy, or dropping) takes the party out of
   the queue.
-- **The mode vote.** Each member votes for one of the modes that fit the party's size: Versus (1v1) for one or two,
-  Showdown free-for-all for one to four, 2v2 for one, two or four (a party stays on one team, so not three). The most
-  votes win; a tie goes the leader's way; with no votes, the first that fits. The `partyModes` setting says which modes
+- **The leader picks the mode** (v392). The modes that fit the party's size: Versus (1v1) for one or two,
+  Showdown free-for-all for one to four, 2v2 for one, two or four (a party stays on one team, so not three). The game
+  has the others ready up and wait; the leader's Play opens Choose Event with just those modes, and a pick is
+  `partyVote` then `partyReady`. The leader's vote is the party's mode, and it doesn't un-ready the others. With no
+  pick from the leader (an earlier game in the party), the most votes, then the first that fits. The `partyModes` setting says which modes
   the server offers (all three by default; the game shows any other as coming next, and so does an older server's).
 - **Reactions**: eight emotes, sent to the rest of the party, at most four in a row and then one a second.
 - **A dropped connection** keeps its place for 60 seconds (`partyGrace`): the app went to the background, or the
@@ -139,7 +141,7 @@ with someone who has been waiting):
   each player's team; the match's slots follow the mode's sides.
 - **Nobody found after 30 seconds:** the game offers a match against the CPU instead, in the same mode (a Showdown
   against the CPU once the player has it), and keeps looking if the player wants; it never pretends a CPU is a person.
-  A party of two still searching is reminded it can vote Versus and play each other; a party of three is in a Showdown
+  A party of two still searching is reminded the leader can pick Versus and play each other; a party of three is in a Showdown
   of its own after 20 seconds.
 - **More server regions later.** Run one server per region, each with its own matchmaker, and send each player to the
   region with the lowest measured round trip (the game pings each region's `/health` at start). To widen to the whole

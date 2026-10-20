@@ -1,5 +1,5 @@
 // Parties: up to four friends in one lobby who play together. The game server keeps them: who is in it, who leads, each
-// member's look, ready flag and mode vote, the invites still waiting for an answer, and the party's place in the
+// member's look, ready flag and mode vote (the leader's is the party's pick), the invites still waiting for an answer, and the party's place in the
 // matchmaking queue. Invites themselves are made in the game's Supabase project (only friends can invite each other,
 // and blocks are honoured there); the game server only passes the word along live and lets the invited player in.
 import { nowMs, randomId, roomCode } from './util.js';
@@ -51,12 +51,13 @@ export class Party {
   }
   // the modes this party can play now, each with how: [{ mode, plan }] (on: the modes switched on for parties)
   modes(on) { return PARTY.MODES.map(mode => ({ mode, plan: planFor(mode, this.size), on: on.includes(mode) })).filter(x => x.plan); }
-  // the mode the party plays: the most votes among the modes it can play; a tie goes the leader's way; nobody voted, the first
+  // the mode the party plays: the leader's pick (v392: the leader picks the event, the others ready up and wait for it); with no
+  // pick from the leader, the most votes among the modes it can play (a party with an earlier game in it), and nobody voted, the first
   mode(on) {
     const ok = this.modes(on).filter(x => x.on).map(x => x.mode); if (!ok.length) return null;
+    const lead = this.member(this.leader); if (lead && ok.includes(lead.vote)) return lead.vote;
     const n = new Map(ok.map(m => [m, 0])); for (const m of this.members) if (n.has(m.vote)) n.set(m.vote, n.get(m.vote) + 1);
-    const top = Math.max(...n.values()), tied = ok.filter(m => n.get(m) === top), lead = this.member(this.leader);
-    return lead && tied.includes(lead.vote) ? lead.vote : tied[0];
+    const top = Math.max(...n.values()); return ok.find(m => n.get(m) === top);
   }
   allReady() { return this.members.length > 0 && this.members.every(m => m.ready && !m.away && !m.busy); }
   unready() { let any = false; for (const m of this.members) if (m.ready) { m.ready = false; any = true; } return any; }
