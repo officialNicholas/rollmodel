@@ -11,10 +11,21 @@
   (up to five), a portrait that works clears the count, the pictures switch off only after six failures in a row, and they
   come back on after twenty seconds. A portrait that failed is made again the next time it's wanted.
 - Paint Storm opens at rank 5 (the user: "make paint storm unlock after level 5"); the other strokes at rank 2 as before.
+- Swim faster's card says "You glide much faster than normal" (and its numbers "Much faster than normal"), not 8%; Weather Repel's
+  numbers no longer list "Pace: A fifth slower" (the user).
+- The Strokes page's cards a size smaller, so more fit across: four in a row on a phone held upright (three before), five on a wider
+  one, four in landscape (the user: "make the skills icons smaller so it can fit more columns").
 - The "Harsh critics" commission says "Win with the CPU on harsh" (the user; the title stays)."""
 
 def rep(s, a, b, n=1):
     c = s.count(a); assert c == n, (c, n, a[:160]); return s.replace(a, b)
+
+CSS = r"""
+/* (v404) the Strokes page's cards a size smaller: more across */
+#mStrokes.sgp .sggrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 9px}
+@media (max-aspect-ratio:1/1) and (min-width:560px){#mStrokes.sgp .sggrid{grid-template-columns:repeat(5,minmax(0,1fr));gap:12px 10px}}
+@media (min-aspect-ratio:1/1){#mStrokes.sgp .sggrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 10px}}
+"""
 
 def apply(s):
     s = rep(s, 'aria-controls="stItemRail"><b class="sgtt">Transforms</b>', 'aria-controls="stItemRail"><b class="sgtt">Starters</b>')
@@ -32,4 +43,8 @@ def apply(s):
     s = rep(s, "d: 'Win with the critics on harsh'", "d: 'Win with the CPU on harsh'")
     s = rep(s, "stRank = o => stIsItem(o.id) ? (o.rank || 1) : ABIL_RANK,", "stRank = o => stIsItem(o.id) ? (o.rank || 1) : o.rank || ABIL_RANK,")
     s = rep(s, "SPECIALS.push({ id: 'storm', name: 'Paint Storm', desc:", "SPECIALS.push({ id: 'storm', rank: 5, name: 'Paint Storm', desc:")
+    s = rep(s, "does: ['8% more pace every time you glide',", "does: ['You glide much faster than normal',")
+    s = rep(s, "swim: [['Glide', '8% faster'],", "swim: [['Glide', 'Much faster than normal'],")
+    s = rep(s, ", ['Pace', 'A fifth slower']],", "],")
+    i = s.rfind('</style>'); s = s[:i] + CSS + s[i:]
     return s
