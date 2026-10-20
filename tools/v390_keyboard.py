@@ -5,7 +5,7 @@ hid the character; only the "What do we call you?" card should move up).
   how tall the keyboard is ("nativekeyboard", window.__NATIVE.kb) and how long it takes to come up.
 - In a browser the keyboard's height comes from the visual viewport, and the page is put back if the browser scrolled it.
 - The intro's name card rises whole (its Back and Next with it) to sit just above the keyboard, in step with it, and settles back down when
-  the keyboard goes. The scene stays where it is; the camera only eases to keep the character in the clear space above the card, as it
+  the keyboard goes. (Where it can't fit above it, a phone held sideways, it rises only as far as its top allows; the field always shows.) The scene stays where it is; the camera only eases to keep the character in the clear space above the card, as it
   does whenever a card comes or goes.
 - Any other field (the account form, a friend code): the panel it's in scrolls it into view if it can, otherwise its card (or its page)
   rises just far enough to show it above the keyboard. Never the field itself off the top of the screen."""
@@ -43,7 +43,7 @@ function kbFit(ms) {
     const s0 = e.scrollTop; e.scrollTop = s0 + need; const d = e.scrollTop - s0; need -= d; fTop -= d; break;
   }
   let y = Math.max(0, need);
-  if (box.hasAttribute('data-kblift')) y = Math.max(y, Math.min(box.getBoundingClientRect().bottom + KB.lift - low, fTop - top)); // (the whole card, never the field off the top)
+  if (box.hasAttribute('data-kblift')) { const b = box.getBoundingClientRect(); y = Math.max(y, Math.min(b.bottom + KB.lift - low, b.top + KB.lift - top)); } // (the whole card, as long as its top stays on the screen)
   y = Math.max(0, Math.round(y)); if (Math.abs(y - KB.lift) < 1) return;
   KB.lift = y; kbSet(box, y, ms);
 }
