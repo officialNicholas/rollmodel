@@ -10,6 +10,7 @@
   the pictures off for good, so every results page after showed the drawn faces. Now an empty one waits a moment between tries
   (up to five), a portrait that works clears the count, the pictures switch off only after six failures in a row, and they
   come back on after twenty seconds. A portrait that failed is made again the next time it's wanted.
+- Paint Storm opens at rank 5 (the user: "make paint storm unlock after level 5"); the other strokes at rank 2 as before.
 - The "Harsh critics" commission says "Win with the CPU on harsh" (the user; the title stays)."""
 
 def rep(s, a, b, n=1):
@@ -29,4 +30,6 @@ def apply(s):
     s = rep(s, "    j.url = await ptEncode(buf); PT.n++;\n  } catch (e) { j.fail = true; if (++PT.errs >= 3) PT.fail = true; try { console.warn('portrait:', e); } catch (x) {} }\n  finally { PT.busy = false; PT.cool = 2; ptSweep(); }",
                "    j.url = await ptEncode(buf); PT.n++; PT.errs = 0;\n  } catch (e) { j.fail = true; PT.map.delete(j.k); if (++PT.errs >= 6) { PT.fail = true; setTimeout(() => { PT.fail = false; PT.errs = 0; }, 20000); } try { console.warn('portrait:', e); } catch (x) {} } // (v404: made again when next wanted; off for a while only after six in a row)\n  finally { PT.busy = false; PT.cool = Math.max(2, PT.cool2 || 0); PT.cool2 = 0; ptSweep(); }")
     s = rep(s, "d: 'Win with the critics on harsh'", "d: 'Win with the CPU on harsh'")
+    s = rep(s, "stRank = o => stIsItem(o.id) ? (o.rank || 1) : ABIL_RANK,", "stRank = o => stIsItem(o.id) ? (o.rank || 1) : o.rank || ABIL_RANK,")
+    s = rep(s, "SPECIALS.push({ id: 'storm', name: 'Paint Storm', desc:", "SPECIALS.push({ id: 'storm', rank: 5, name: 'Paint Storm', desc:")
     return s
