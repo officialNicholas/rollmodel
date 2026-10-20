@@ -54,6 +54,9 @@ final class GameViewController: UIViewController {
         webView.scrollView.isScrollEnabled = false
         webView.scrollView.bounces = false
         webView.scrollView.contentInsetAdjustmentBehavior = .never
+        // The keyboard comes up over the game and the page stays where it is (WebKit would push the whole page up to show the field
+        // being typed in): the game lifts just that field above the keyboard, told how tall the keyboard is (see keyboardWillChange).
+        webView.scrollView.delegate = self
         webView.underPageBackgroundColor = GameViewController.backgroundColor
         webView.allowsLinkPreview = false
         webView.allowsBackForwardNavigationGestures = false
@@ -103,6 +106,10 @@ final class GameViewController: UIViewController {
         // Typing a name can leave the page pushed up once the keyboard has gone: put it back.
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardDidHide),
                                                name: UIResponder.keyboardDidHideNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillChange(_:)),
+                                               name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillChange(_:)),
+                                               name: UIResponder.keyboardWillHideNotification, object: nil)
         loadGame()
     }
 
@@ -114,6 +121,27 @@ final class GameViewController: UIViewController {
 
     @objc private func keyboardDidHide() {
         webView?.scrollView.setContentOffset(.zero, animated: false)
+    }
+
+    /// The keyboard is coming up, going, or changing size: the game hears how much of the bottom of the screen it will cover (0 when
+    /// it's going, or floating free of the bottom edge on an iPad) and how long it takes to get there, so it can lift the field being
+    /// typed in above it in step.
+    @objc private func keyboardWillChange(_ note: Notification) {
+        guard let webView = webView, webView.window != nil else { return }
+        let info = note.userInfo ?? [:]
+        let seconds = (info[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double) ?? 0.25
+        var height: CGFloat = 0
+        if note.name != UIResponder.keyboardWillHideNotification,
+           let end = (info[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
+            // (the keyboard's frame is in the screen's coordinates; the game's view may not fill the screen, on an iPad)
+            let space: UICoordinateSpace = webView.window?.windowScene?.screen.coordinateSpace ?? UIScreen.main.coordinateSpace
+            let frame = webView.convert(end, from: space), bounds = webView.bounds
+            if frame.maxY >= bounds.maxY - 1 && frame.minY < bounds.maxY { height = bounds.maxY - max(frame.minY, bounds.minY) }
+        }
+        let h = Int(height.rounded()), ms = Int((seconds * 1000).rounded())
+        webView.evaluateJavaScript("window.__NATIVE = window.__NATIVE || {}; window.__NATIVE.kb = \(h); "
+                                   + "window.dispatchEvent(new CustomEvent('nativekeyboard', { detail: { h: \(h), ms: \(ms) } }));",
+                                   completionHandler: nil)
     }
 
     /// The phone is short of memory: the game lets go of the songs it isn't playing, so iOS is less likely to close it.
@@ -183,6 +211,15 @@ final class GameViewController: UIViewController {
                 self.setNeedsUpdateOfSupportedInterfaceOrientations()
             }
         }
+    }
+}
+
+extension GameViewController: UIScrollViewDelegate {
+
+    /// The page never scrolls (the game is one fixed screen). When the keyboard comes up WebKit scrolls it to show the field being typed
+    /// in, which pushed the whole game up out of sight: it's put straight back, and the game lifts the field itself.
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        if scrollView.contentOffset != .zero { scrollView.contentOffset = .zero }
     }
 }
 

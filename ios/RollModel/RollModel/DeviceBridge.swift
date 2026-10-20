@@ -37,6 +37,7 @@ final class DeviceBridge: NSObject, WKScriptMessageHandler {
             "maxFPS": maxFPS,
             "scale": Double(scale),
             "share": true,
+            "kb": 0,    // (how much of the screen the keyboard covers: the game view keeps this told, with a "nativekeyboard" event)
             "tester": isDebugBuild,
             "appVersion": (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? ""
         ]
