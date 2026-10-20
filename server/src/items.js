@@ -9,7 +9,7 @@ import { rng, randomId, nowMs } from './util.js';
 export const ITEM_KINDS = ['roller', 'whirl', 'turret', 'trap', 'slam', 'giant'];
 const POOL = ['roller', 'roller', 'whirl', 'turret', 'trap', 'slam'];
 const PICK_R = 0.95, STALE = 25, TRAP_R = 0.92, TRAP_ARM = 0.6, TRAP_LIFE = 45, TRAP_MAX = 2, DROP_GRACE = 2.5;
-const DUR = { roller: 9, whirl: G.WHIRL_T, turret: 7, giant: 5 };
+const DUR = { roller: 9, whirl: G.WHIRL_T, turret: 7, giant: 6 }; // (giant: 6 s since v401, as in the game)
 
 export class Items {
   constructor(match) {
