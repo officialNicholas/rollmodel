@@ -5232,7 +5232,7 @@ html.fv #pause .card>.psets{grid-column:1/-1}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 411</p>
+      <p class="ver">Version 412</p>
     </div>
   </div>
 
@@ -25991,7 +25991,7 @@ function onNew() {
 // let go of the connection (and with it the queue and the party, which the server lets go of too, a minute later)
 function onlineDrop() {
   const n = ON.net, end = ON.cpEnd; ON.net = null; ON.me = null; ON.cp = null; ON.cpEnd = null; ON.queued = null; ON.party = null; ON.lost = 0; ON.stale = 0; ON.cpu = false;
-  if (end) end(onE('closed')); if (n) n.close(); ptRender();
+  if (end) end(onE('closed')); if (n) n.close(); partyRender();
 }
 // the app went to the background: the connection goes (a match keeps it: the server holds your place there itself)
 function onlineSleep() {
@@ -26054,7 +26054,7 @@ function onFound(m) {
   clearTimeout(ON.foundT); ON.foundT = 0; if (ON.queued) ON.qAt = ON.queued.at;
   ON.match = m; ON.queued = null; ON.lost = 0; ON.note = ''; ON.off = false; ON.after = false; ON.cpu = false; onBeat();
   if (FR.open) closeFriends(); pkClose(); ibClose(); ptEmo(false); ptMenuClose(); noteClose();
-  if (typeof window.netMatchFound === 'function') { ON.v = ''; onlineClose(); onCard(); ptRender(); try { window.netMatchFound(m, net); } catch (e) { frameErr(e); } return; }
+  if (typeof window.netMatchFound === 'function') { ON.v = ''; onlineClose(); onCard(); partyRender(); try { window.netMatchFound(m, net); } catch (e) { frameErr(e); } return; }
   ON.v = 'found'; if (!onlineOpen()) onRender(); AU.ready(); buzz([10, 30, 10]); onSay('Match found!');
   ON.foundT = setTimeout(onFoundEnd, 2000);
 }
@@ -26079,7 +26079,7 @@ function onAfter() {
   const off = ON.off; ON.after = false; ON.off = false; clearTimeout(ON.foundT); ON.foundT = 0; ON.match = null; ON.v = ''; onBeat();
   if (ON.queued && !ON.queued.party) { ON.note = off ? 'The match was called off' : ''; onlineOpen(); return; }
   if (!onWant() && ON.net) onlineDrop();
-  ptRender(); onUpd();
+  partyRender(); onUpd();
 }
 // ---- parties
 // the game server's word on your party: who's in it, ready, votes, its state. A newcomer pops; everyone ready rings
@@ -26093,13 +26093,13 @@ function ptView(v) {
     if (v.state === 'queued' && was.state !== 'queued') onSay('Finding players');
   } else if (v.members.length > 1 && state === 'menu') { AU.pop(); onSay('You’re in a party'); }
   if (!was) ptLookSync(); // (your look may be newer than the one you said hello with)
-  ptRender(); onBeat(); onUpd(); if (PK.open) pkRender();
+  partyRender(); onBeat(); onUpd(); if (PK.open) pkRender();
 }
 function ptLeft(m) {
   const had = ptOn(); ON.party = null; ptMenuClose(); ptEmo(false);
   if (m.reason === 'removed') frToast('<span>You were removed from the party</span>');
   else if (m.reason === 'gone' && had) frToast('<span>You were away too long, so you left the party</span>');
-  ptRender(); onBeat(); onUpd(); if (PK.open) pkRender();
+  partyRender(); onBeat(); onUpd(); if (PK.open) pkRender();
 }
 // your party (made the first time you invite someone)
 async function ptEnsure() {
@@ -26124,7 +26124,7 @@ async function ptInvite(f) {
     try { await ON.net.partyInvite(f.id, { name: f.name, look: f.look, inv: r.id, sbt: FR.s && FR.s.access_token }); } catch (e) {} // (it's in their inbox either way)
     AU.pop(); onSay('Invited ' + hdOf(f.name)); pushAsk(); if (PK.spot) setTimeout(() => { if (PK.open && PK.spot) pkClose(); }, 650);
   } catch (e) { AU.nope(); ON.pick = e.code === 'full' ? 'Your party is full.' : e.code === 'no_party' ? 'Parties come with the next game server update.' : e.status === 400 ? PT_INV.bad_mode() : e.status ? frErrText(e) : e.code === 'old' ? 'Update the game to play online.' : onReqText(e); }
-  finally { PK.busy.delete(tag); pkRender(); ptRender(); }
+  finally { PK.busy.delete(tag); pkRender(); partyRender(); }
 }
 // Join (into their party) or Not now (they hear it). Joining leaves the party you were in
 async function ptAnswer(id, yes) {
@@ -26149,7 +26149,7 @@ function ptVote(m) {
   if (!x || !x.on) { AU.nope(); return frToast('<span>' + (x ? 'Coming soon' : 'Not for a party this size') + '</span>'); }
   ON.net.partyVote(m).catch(() => {}); AU.pop();
 }
-function ptLeave() { if (!ON.net || !ON.party) return; ON.net.partyLeave().catch(() => {}); ON.party = null; ptMenuClose(); ptEmo(false); ptRender(); onBeat(); onUpd(); onSay('You left the party'); }
+function ptLeave() { if (!ON.net || !ON.party) return; ON.net.partyLeave().catch(() => {}); ON.party = null; ptMenuClose(); ptEmo(false); partyRender(); onBeat(); onUpd(); onSay('You left the party'); }
 function ptKick(id) { if (!ON.net) return; (ON.kicked = ON.kicked || new Set()).add(id); ON.net.partyKick(id).catch(e => frToast('<span>' + frEsc(onReqText(e)) + '</span>')); ptMenuClose(); }
 function ptReact(e) { if (!ON.net || !ptOn() || !ON.me) return; ON.net.partyReact(e); ptBubble(ON.me.id, e); ptEmo(false); }
 // what you're doing in your own game: a trip to the locker, the shop, Strokes or Settings, or a CPU match, un-readies you (the
@@ -26315,7 +26315,7 @@ function onlineClose() {
   if (ON.v !== 'found' && !onWant() && ON.net && !ON.match) onlineDrop(); // (nothing going on: no connection kept)
   onCard();
 }
-const onUpd = () => { if (ON.open) onRender(true); onCard(); ptRender(); };
+const onUpd = () => { if (ON.open) onRender(true); onCard(); partyRender(); };
 function onView() { return !NET_URL ? 'off' : ON.v || (ON.queued && !ON.queued.party ? 'queue' : 'home'); }
 // the choice, as Choose Event shows its events (v393): Versus, 1 v 1 or a 3-way (most paint wins), and Showdown, the free-for-all
 // for up to four. A mode the game server doesn't offer yet is greyed and marked Coming next
@@ -26445,7 +26445,7 @@ function ptSlots() {
 // the third spot shows something (a member, an invite or its +): the line-up widens for it
 const pyFar = () => { if (!ptLobby()) return false; const s = (PY.slots || ptSlots())[2]; return !!s; };
 // the party's pieces of the lobby, when the party changes (never per frame)
-function ptRender() {
+function partyRender() {
   const inp = ptOn() && !ON.match, mh = $('mHome'); if (mh.classList.contains('inparty') !== inp) mh.classList.toggle('inparty', inp);
   const dock = $('pyDock'); dock.hidden = !inp;
   const p = ON.party, me = ptMe(), was = PY.slots, slots = PY.slots = ptSlots();
@@ -26494,7 +26494,7 @@ function ptPlay() {
 // the clocks in the lobby: an invite's time left on its spot; the party's search
 function ptClocks() {
   for (const e of document.querySelectorAll('.slot .pytime')) { const t = onClock(+e.dataset.left - Date.now()); if (e.textContent !== t) e.textContent = t; }
-  if (ON.party && ON.party.invites.some(i => !i.over && i.exp <= Date.now())) { for (const i of ON.party.invites) if (i.exp <= Date.now()) i.over = true; ptRender(); } // (an invite ran out: its spot is free again)
+  if (ON.party && ON.party.invites.some(i => !i.over && i.exp <= Date.now())) { for (const i of ON.party.invites) if (i.exp <= Date.now()) i.over = true; partyRender(); } // (an invite ran out: its spot is free again)
   const p = ON.party; if (ptOn() && p.state === 'queued' && ON.net) { const t = 'Finding ' + onClock(ON.net.serverNow() - p.queuedAt), l = $('homePlay').querySelector('.pbl'); if (l.textContent !== t) l.textContent = t; }
   if (ptOn() && p.state === 'starting' && ON.net) { const n = Math.max(1, Math.ceil((p.startAt - ON.net.serverNow()) / 1000)), t = 'Starting ' + n, l = $('homePlay').querySelector('.pbl'); if (l.textContent !== t) l.textContent = t; }
 }
@@ -26604,7 +26604,7 @@ function onTick() {
   if (ON.after && state === 'menu') onAfter();
   if (!ON.net && !ON.cp && !ON.match && onWant() && now > ON.retryAt && !NET_WALLED) onlineConnect().catch(e => { ON.fails++; ON.retryAt = Date.now() + Math.min(120000, 10000 * ON.fails); });
   else if (ON.net && !ON.cp && !onWant() && !ON.match && state === 'menu') onlineDrop();
-  if (ON.stale && now > ON.stale) { ON.stale = 0; if (ON.party && ON.me) { const had = ptOn(); ON.party = null; ptRender(); onBeat(); if (had) frToast('<span>You were away too long, so you left the party</span>'); } }
+  if (ON.stale && now > ON.stale) { ON.stale = 0; if (ON.party && ON.me) { const had = ptOn(); ON.party = null; partyRender(); onBeat(); if (had) frToast('<span>You were away too long, so you left the party</span>'); } }
   if (ON.queued && !ON.queued.party && !ON.cpu && now - ON.queued.at > 30000) { ON.cpu = true; onUpd(); if (!ON.open && state === 'menu') frToast('<span>It’s quiet right now. Open Online to play the CPU meanwhile.</span>'); }
   // (a party of two finding a Showdown or a 2v2 with nobody about: they can always play each other)
   { const p = ON.party; if (ptOn() && p.state === 'queued' && p.members.length === 2 && ON.net && ON.net.serverNow() - p.queuedAt > 30000 && ON.quiet !== p.queuedAt) { ON.quiet = p.queuedAt; if (state === 'menu') frToast('<span>It’s quiet right now. Keep looking, or ' + (ptHost() ? 'cancel and pick Versus' : 'the host can pick Versus') + ' to play each other</span>'); } }
