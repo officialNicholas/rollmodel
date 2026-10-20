@@ -5232,7 +5232,7 @@ html.fv #pause .card>.psets{grid-column:1/-1}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 410</p>
+      <p class="ver">Version 411</p>
     </div>
   </div>
 
@@ -24035,7 +24035,7 @@ function renderLook() {
   const mine = WEAR.filter(w => w.cat === lookCat && bought(w.id)).sort((a, b) => PRICE(a) - PRICE(b)), forSale = WEAR.filter(w => w.cat === lookCat && !bought(w.id)).length;
   rail.innerHTML = mine.map(w => { const found = owns(w.id), own = found && bought(w.id), sale = found && !own, fr = own && fresh.has(w.id), broke = sale && (store.drops || 0) < PRICE(w);
     return '<button class="ltile' + (own ? '' : sale ? ' sale' : ' locked') + (broke ? ' broke' : '') + (fr ? ' fresh' : '') + '" type="button" data-w="' + w.id + '"' + (own ? ' aria-pressed="' + (myLook[w.slot] === w.id) + '"' : sale ? '' : ' aria-disabled="true"') + ' aria-label="' + w.name + (own ? (fr ? ', new' : '') : sale ? ', ' + PRICE(w) + ' dabs' : ', locked') + '">' + (own ? '' : '<span class="ltag">' + DROP_SVG + PRICE(w) + '</span>') + '<svg viewBox="0 0 40 40" aria-hidden="true">' + WEAR_ICON[w.id] + '</svg><span class="ltn">' + w.name + '</span>' + (found ? '' : LOCK_ICON) + '</button>'; }).join('')
-    + (mine.length ? '' : '<p class="lnone">Nothing here yet. The Paint Shop has ' + forSale + ' to buy.</p>');
+    + (mine.length ? '' : '<p class="lnone">Nothing here yet.</p>');
   showDrops();
   const ES_ICON = ES_ICON_T;
   $('eyeStyles').innerHTML = Object.keys(EYE_STYLES).map(k => { const it = EXTRA.find(x => x.id === k), lk = it && !bought(k); return '<button class="eyes' + (lk ? ' locked' : '') + (it && !lk && (store.fresh || []).includes(k) ? ' fresh' : '') + '" type="button" data-es="' + k + '" aria-label="' + EYE_STYLES[k] + ' eyes' + (lk ? ', ' + PRICE(it) + ' dabs in the Paint Shop' : '') + '" title="' + EYE_STYLES[k] + (lk ? ' (Paint Shop)' : '') + '" aria-pressed="' + (myLook.eyes === k) + '">' + ES_ICON[k] + (lk ? LOCK_ICON : '') + '</button>'; }).join('');
@@ -24245,9 +24245,9 @@ function lkMineHtml() {
     return '<button class="eyes' + (lk ? ' locked' : '') + (it && !lk && fresh.has(k) ? ' fresh' : '') + '" type="button" data-k="e:' + k + '" aria-label="' + EYE_STYLES[k] + ' eyes' + (lk ? (it.gift ? ', a free gift on the Spooky SZN stages' : ', in the Paint Shop') : '') + '" aria-pressed="' + (myLook.eyes === k) + '">' + ES_ICON_T[k] + (lk ? LOCK_ICON : '') + '</button>'; }).join('') + '</div>';
   const ni = NO_IRIS(myLook.eyes); h += '<div class="lkirises' + (ni ? ' off' : '') + '" role="group" aria-label="Eye colour"' + (ni ? ' aria-disabled="true"' : '') + '>' + EYE_KEYS.map(k => '<button class="eyec" type="button" data-k="i:' + k + '" style="--ic:' + EYE_COLS[k].css + '" aria-label="' + EYE_COLS[k].name + ' eyes" aria-pressed="' + (myLook.iris === k) + '"><i></i></button>').join('') + '</div></div>';
   { const ems = EMOTE_ITEMS.filter(w => bought(w.id)), sale = EMOTE_ITEMS.filter(lkForSale).length; // (v407: your emotes, Slam first)
-    h += '<p class="lksec">' + LK_CAT.emote + '<i>' + ems.length + '</i></p>' + grid(ems.map(w => lkCard(w, 'mine')).join('')) + (sale ? '<p class="lknone"><button class="lkgo" type="button" data-go="shop" data-f="emote">The Paint Shop has ' + sale + ' more</button></p>' : ''); }
+    h += '<p class="lksec">' + LK_CAT.emote + '<i>' + ems.length + '</i></p>' + grid(ems.map(w => lkCard(w, 'mine')).join('')); } // (v411: no 'the Paint Shop has' line)
   for (const c of ['skin', 'head', 'face', 'cloth']) { const mine = WEAR.filter(w => w.cat === c && bought(w.id)).sort((a, b) => PRICE(a) - PRICE(b)), sale = WEAR.filter(w => w.cat === c && lkForSale(w)).length;
-    h += '<p class="lksec">' + LK_CAT[c] + (mine.length ? '<i>' + mine.length + '</i>' : '') + '</p>' + (mine.length ? grid(mine.map(w => lkCard(w, 'mine')).join('')) : '<p class="lknone">Nothing here yet.' + (sale ? ' <button class="lkgo" type="button" data-go="shop" data-f="' + c + '">The Paint Shop has ' + sale + '</button>' : '') + '</p>'); }
+    if (mine.length) h += '<p class="lksec">' + LK_CAT[c] + '<i>' + mine.length + '</i></p>' + grid(mine.map(w => lkCard(w, 'mine')).join('')); } // (v411: a category you own nothing in isn't shown)
   return h;
 }
 // the shop: the season's finds first, under their banner, then everything else for sale (what this visit bought stays, as yours)
