@@ -5,7 +5,7 @@ locker. Users can purchase new emotes in the shop.").
 The winner's moment on the results is now an emote of its own, picked in the locker. All four keep the same beat, landing their big
 moment where the slam always landed (so the music and the splat behind the name still hit together):
 - Slam (everyone's, free): as before. Down low, a hand reared up and slammed down.
-- Backflip (cool): it sinks down, springs up, tucks into a ball through a full backflip and lands hard (the splat and the ring burst
+- Backflip (cool): it sinks down, springs up, curls into its ball through a full backflip and lands hard (the splat and the ring burst
   out from under it), then stands its ground, a hand thrown up.
 - Showstopper (cool): winds back, spins twice, faster and faster, ears flared, and stops dead facing you with a hand up high, held
   (a flash and the ring from it), then settles into the menace stance.
@@ -21,7 +21,7 @@ def rep(s, a, b, n=1):
 ITEMS_JS = r"""// (v407) the victory emotes: things to buy that are not worn on the body. Slam is everyone's
 const EMOTE_ITEMS = [{ id: 'slam', name: 'Slam', slot: 'emote', cat: 'emote', stage: 'blank', desc: 'Down low, a hand reared up and slammed down' },
   { id: 'hearts', name: 'Lovestruck', slot: 'emote', cat: 'emote', stage: 'blank', desc: 'A few happy bounces, a big wave and hearts' },
-  { id: 'flip', name: 'Backflip', slot: 'emote', cat: 'emote', stage: 'blank', desc: 'Springs up, tucks into a backflip and lands hard' },
+  { id: 'flip', name: 'Backflip', slot: 'emote', cat: 'emote', stage: 'blank', desc: 'Springs up, curls into a ball, flips and lands hard' },
   { id: 'spin', name: 'Showstopper', slot: 'emote', cat: 'emote', stage: 'blank', desc: 'Spins up fast and stops dead, a hand held high' }];
 const emoteOk = v => typeof v === 'string' && EMOTE_ITEMS.some(w => w.id === v) ? v : null;
 """
@@ -44,7 +44,7 @@ const EM_POSE = {
   // sinks down, springs, a tucked backflip, a hard landing; then its ground held, a hand thrown up
   flip(e, o, ip, k) { const T0 = 0.38; o.menace = smoothstep(EM_HIT + 0.15, EM_HIT + 0.6, e); if (e < 0) return;
     if (e < T0) { const u = e / T0; o.sq = Math.max(o.sq, 0.55 * smoothstep(0, 1, u)); ip.earUp = -0.5 * u; o.expr = 'focus'; }
-    else if (e < EM_HIT) { const u = (e - T0) / (EM_HIT - T0); o.hop = 0.8 * k * 4 * u * (1 - u); ip.pitch = -6.2832 * smoothstep(0.06, 0.94, u);
+    else if (e < EM_HIT) { const u = (e - T0) / (EM_HIT - T0); o.hop = k < 1 ? 0.34 * Math.sin(Math.PI * u) * (1 - Math.pow(Math.sin(Math.PI * u), 6)) : 0.42 * 4 * u * (1 - u); o.ball = k === 1 && u > 0.14 && u < 0.86; /* (the locker's window: its own body over, low, so it stays in the window) */ ip.pitch = -6.2832 * (k < 1 ? smoothstep(0.2, 0.8, u) : smoothstep(0.06, 0.94, u));
       ip.curl = Math.min(1, 1.7 * Math.sin(Math.PI * clamp((u - 0.08) / 0.84, 0, 1))); o.rise = u < 0.18 ? 0.55 * (1 - u / 0.18) : 0; ip.earUp = 0.8; o.expr = 'glee'; }
     else { const q = e - EM_HIT; o.sq = Math.max(o.sq, 0.75 * Math.exp(-q * 7) * Math.min(1, q / 0.03)); o.expr = q < 0.55 ? 'angry' : 'smirk';
       if (q > 0.85 && q < 1.8) ip.hand = smoothstep(0.85, 1.0, q) * (1 - smoothstep(1.55, 1.8, q)); } },
@@ -73,7 +73,7 @@ function emHearts(x, y, n, sc) {
 // which emote a winner does: its own (yours, or another player's as their look says), else a CPU's pick for this match
 function vicEmOf(D) { const w = lookOf(D), v = w && emoteOk(w.emote); if (v) return v; if (D === P || NM) return 'slam'; return ['slam', 'slam', 'flip', 'spin', 'hearts', 'slam'][((runId || 0) * 7 + D.team * 5) % 6]; }
 // the victory's cues: a whoosh, a bop, hearts round its head
-function emVicCue(k, n) { if (!vic) return; if (k === 'whoosh') AU.whoosh(); else if (k === 'bop') AU.pop(); else if (k === 'heart') { const D = vic.feat[0]; vicV.set(D.x, D.y + 0.72, D.z).project(vicCam); emHearts((vicV.x * 0.5 + 0.5) * viewW, (0.5 - vicV.y * 0.5) * viewH, n || 2, 1); if (n) return; AU.pop(); } }
+function emVicCue(k, n) { if (!vic) return; if (k === 'whoosh') AU.whoosh(); else if (k === 'bop') AU.pop(); else if (k === 'heart') { const D = vic.feat[0]; vicV.set(D.x, D.y + 0.72, D.z).project(vicCam); emHearts((vicV.x * 0.5 + 0.5) * viewW, (0.5 - vicV.y * 0.5) * viewH, n || 2, 1.35); if (n) return; AU.pop(); } }
 // the icons on their tags
 function emIcon(id) {
   const ink = '#171320', g = {
@@ -94,6 +94,7 @@ function emLocker(a, D, ip) {
   const e = a.t - 0.2, e0 = a.e, o = D.vicPose || (D.vicPose = {}); a.e = e;
   Object.assign(o, { hop: 0, sq: 0, rise: 0, spin: 0, coil: 0, kick: 0, leap: false, side: 1, twirl: 0, ball: false, stand: false, menace: 0, slam: 0, em: a.id, expr: null });
   emClear(ip); (EM_POSE[a.id] || EM_POSE.slam)(e, o, ip, 0.55);
+  if (a.id === 'flip') { const z = smoothstep(0.05, 0.35, e) * (1 - smoothstep(EM_HIT + 0.05, EM_HIT + 0.5, e)); if (z > 0) SGD.dk = Math.min(SGD.dk, 1 - 0.75 * z); } // (the window draws back for it to go over)
   ip.hop = o.hop; o.hop = 0; SGD.actFace = o.expr || (a.id === 'hearts' ? 'happy' : 'smirk'); // (the hop on the body's own, so the window rises with it)
   emCueRun(a.id, e0, e, k => { if (k === 'whoosh') AU.whoosh(); else if (k === 'bop') AU.pop(); else if (k === 'heart') emStageHearts(2); });
   if (e0 < EM_HIT && e >= EM_HIT) { const c = SGD.A.col;
@@ -150,6 +151,7 @@ def apply(s):
     s = rep(s, "  if (a.k === 'hop') { ip.hop = Math.sin(u * Math.PI) * 0.42;", "  if (a.k === 'emote') emLocker(a, D, ip);\n  else if (a.k === 'hop') { ip.hop = Math.sin(u * Math.PI) * 0.42;")
     # the body takes a pose wherever one is set (the victory, or the locker's window), and its flip and roll at the victory too
     s = rep(s, "vic && D.vicPose", "D.vicPose", 7)
+    s = rep(s, "if (D.st === 'play' && (I.root.visible || V.oldBlob.visible)) ballPoof(D, ballOn);", "if (D.st === 'play' && !D.vicPose && (I.root.visible || V.oldBlob.visible)) ballPoof(D, ballOn);") # (no puff of paint curling up in an emote)
     s = rep(s, "const IPr = state === 'intro' || state === 'play' ? D.ip : null;", "const IPr = state === 'intro' || state === 'play' || D.vicPose ? D.ip : null;")
     # the victory: each winner's emote, its pose, its face, its moment
     s = rep(s, "function vicPose(i, t) {", POSE_JS + "function vicPose(i, t) {")
