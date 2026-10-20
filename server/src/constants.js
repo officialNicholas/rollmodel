@@ -14,7 +14,7 @@ export const G = Object.freeze({
   SPLAT_R: 1.35, SPLAT_COST: 0.06,
   DRAIN: 1 / 21, STILL_DRAIN: 0.02, OWN_REFILL: 0.09, REGEN: 0.55, INK_RUSH: 3.2,
   RESPAWN_T: 3.5, FLAT_T: 1.5, SPAWN_SAFE: 4, SPAWN_GRACE: 1,
-  MATCH_T: 90, SD_T: 180, SD_HEARTS: 2, SD_OUT_T: 2.4,
+  MATCH_T: 90, SD_T: 180, SD_HEARTS: 3, SD_OUT_T: 2.4, // (three hearts in a Showdown since the game's v309)
   ZONE_AT: [60, 120], ZONE_SZ: [26.4, 20], ZONE_WARN: 15, ZONE_BURN: 0.32,
   POT_REACH: 0.5 + 0.34 * 0.95, POT_POP_Y: 0.55,
   FLING_MIN: 0.08,
@@ -43,6 +43,10 @@ export const DEFAULT_RULES = Object.freeze({
   layoutTimeout: 15, reconnectWindow: 20, afkWarn: 5, afkForfeit: 15, idleForfeit: 40,
   rematchWindow: 30, endLinger: 0, // (the game's tally and winner screen take about ten seconds before the buttons show)
   roomGrace: 60, // a private room keeps a dropped player's place this long (say a phone that went to another app to send the code)
+  partyGrace: 60, // a party keeps a dropped member's place this long (the app went to the background, or the signal dropped)
+  partyModes: ['duel', 'ffa', 'duo'], // the modes the game offers online, to parties and on its own (it shows the others as coming next)
+  idlePing: 20, // seconds between the server's pings to a connection that is only waiting in the lobby (2 s in a match or a queue)
+  silentKick: 75, // a connection that has sent nothing at all for this long is gone (the game sends a heartbeat every 20 s)
   weather: true, items: true, zone: true,
   itemFirst: [6, 9], itemEvery: [9, 13], // seconds: when the first pick-up appears, and the gap between them
   // The spec says a player hidden in a pot is safe from a pound. The current single-player game knocks them out instead

@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url)), root = path.resolve(here, '..');
 const quick = process.argv.includes('--quick');
-const files = ['unit', 'movement', 'consensus', 'lifecycle', 'sync', 'lagcomp', 'cheats', 'session', 'rooms', 'items', 'robustness', 'load'].map(f => path.join('test', f + '.test.js'));
+const files = ['unit', 'movement', 'matchmaking', 'consensus', 'lifecycle', 'sync', 'lagcomp', 'cheats', 'session', 'rooms', 'party', 'items', 'robustness', 'load'].map(f => path.join('test', f + '.test.js'));
 const dir = mkdtempSync(path.join(tmpdir(), 'rmtest-')), metricsFile = path.join(dir, 'metrics.jsonl');
 const env = Object.assign({}, process.env, { RM_METRICS_FILE: metricsFile }, quick ? { RM_LOAD_ROOMS: process.env.RM_LOAD_ROOMS || '20', RM_LOAD_SECONDS: process.env.RM_LOAD_SECONDS || '5' } : {});
 const t0 = Date.now();

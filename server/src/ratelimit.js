@@ -18,6 +18,8 @@ export function connectionLimits() {
     json: new TokenBucket(20, 40), // control messages
     act: new TokenBucket(15, 25), // in-match actions
     join: new TokenBucket(0.1, 6), // wrong room codes: 6, then one more every 10 s
+    react: new TokenBucket(1, 4), // party reactions: 4 in a row, then one a second
+    poke: new TokenBucket(0.5, 12), // invites and pokes to other players: 12, then one every 2 s
     dropped: 0, droppedSince: nowMs(),
   };
 }

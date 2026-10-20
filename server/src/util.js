@@ -12,9 +12,10 @@ const B32 = 'abcdefghijkmnpqrstuvwxyz23456789';
 export function randomId(prefix, n = 12) { const b = randomBytes(n); let s = prefix; for (let i = 0; i < n; i++) s += B32[b[i] & 31]; return s; }
 export const newToken = () => randomBytes(24).toString('base64url');
 export const tokenKey = t => createHash('sha256').update(String(t)).digest('base64url');
-// private room codes: 5 characters without look-alikes (no 0/O, 1/I/L)
+// private room codes: 5 characters without look-alikes (no 0/O, 1/I/L); a party's join code is longer (it is never
+// typed: it travels inside an invite)
 export const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-export function roomCode() { let s = ''; for (let i = 0; i < 5; i++) s += CODE_ALPHABET[randomInt(CODE_ALPHABET.length)]; return s; }
+export function roomCode(n = 5) { let s = ''; for (let i = 0; i < n; i++) s += CODE_ALPHABET[randomInt(CODE_ALPHABET.length)]; return s; }
 export const seed32 = () => randomBytes(4).readUInt32LE(0);
 
 export function percentile(sorted, p) {

@@ -182,6 +182,19 @@ test('oversized and malformed messages are refused without hurting the server', 
   } finally { await srv.close(); }
 });
 
+test('late answers to the server\'s pings (a game held up for a while) are let go; one from the future is still refused', async () => {
+  const srv = await startServer();
+  try {
+    const r = new Raw(srv.url); await r.hello();
+    const late = new Uint8Array(codec.encodeSPong(performance.now() - 45000));
+    for (let i = 0; i < 30; i++) { r.send(late); await sleep(100); } // (more than the 25 bad messages that get a connection kicked, at a pace the ping limit lets through)
+    await sleep(300);
+    assert.equal(r.closed, null, 'still connected'); assert.ok(!r.msgs.some(m => m.t === 'kicked' || m.code === 'bad_message'), JSON.stringify(r.msgs.slice(-3)));
+    r.send(new Uint8Array(codec.encodeSPong(performance.now() + 60000)));
+    await r.wait(m => m.code === 'bad_message');
+  } finally { await srv.close(); }
+});
+
 test('a client on the wrong protocol version is told and turned away', async () => {
   const srv = await startServer();
   try {

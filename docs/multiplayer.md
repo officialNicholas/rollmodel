@@ -2,7 +2,9 @@
 
 This is how Roll Model is played against other people over the internet: a game server (in `server/`, running on
 Fly.io) and a small piece of code in the game, the RMNet SDK (`server/client/rmnet.js`), that talks to it. Since v306
-the game uses it for online duels (one against one); "In the game" below says how, and what is still off online.
+the game uses it for online duels (one against one), and since v312 for Showdown with real people (everyone for
+themselves, three or four of you, or two teams of two), parties of friends, and matchmaking that looks near you first;
+"In the game" below says how, and what is still off online.
 
 ## How it works
 
@@ -31,8 +33,110 @@ The same as a versus match against the CPU, with the server keeping score:
   place (offline, an empty pot moves to a new spot). A burst breaks the pot like a drain does.
 - **After the match** both players have 30 seconds to ask for a rematch; when both do, a new match starts on a new
   canvas with the same rival. A player who left takes the rematch with them: the match closes at once.
-- **Private rooms** keep a dropped player's place for 60 seconds (a phone that went to another app to send the code):
-  the code still works, and the same device comes back into the room when it reconnects.
+- **Private rooms** (the v306 to v311 games; v312 plays with friends through parties instead) keep a dropped player's
+  place for 60 seconds: the code still works, and the same device comes back into the room when it reconnects.
+
+### The rules of an online Showdown
+
+The same as a Showdown against the CPU, with the server keeping score:
+
+- **Three hearts each** (the server's `hearts` setting; the game's own Showdown has three since v309). A knock-out
+  costs a heart; with none left you are out. Paint is fuel, not points.
+- **The closing canvas.** The safe square shrinks at 60 and 120 seconds, with a warning 15 seconds before each; out past
+  the line your paint burns off, and with none left you are knocked out. The game draws the line on the server's clock.
+- **The end.** The last one standing wins (in 2v2, the last pair: a team is out only when both are). If the 3 minutes
+  run out first, the most hearts left wins, then the most knock-outs. The places follow: everyone still in, then the
+  others in the order they went out.
+- **Out of it,** you watch the rest, or leave. Leaving once you are out keeps the place you went out in; leaving while
+  still in it counts as last.
+- **Free-for-all** is four players, or three when a fourth hasn't turned up after 20 seconds. **2v2** is four: a party
+  of two is one team (a party plays a party when there is one); four players on their own are split, the best and the
+  worst against the two in the middle.
+- **Rated** when matchmaking made it. A party's own match (a party of two in Versus, a party of four in either
+  Showdown) is not, and neither is a Showdown of three that turned out to be just one party.
+- **After the match** everyone has 30 seconds to ask for a rematch; it needs all of them.
+
+### Parties
+
+A party is up to four friends in one lobby who play together. The game server keeps it.
+
+- **Making one and joining.** Whoever makes a party leads it. A party has an 8-character join code that nobody types:
+  it travels inside an invite, and wrong codes are rate limited like room codes. A player joining a party leaves the
+  one they were in, and their own place in the queue.
+- **Leaving.** Anyone can leave; the lead passes to whoever has been in the party longest, and the last one out closes
+  it. The leader can remove someone; a removed player can only come back with a new invite.
+- **What each member shows the others:** their username, their look (paint colour, eyes, wearables, rank), whether
+  they are ready, their mode vote, and what they are busy with in their own game (the locker, the shop, Strokes,
+  Settings, a match against the CPU), or that their connection is away.
+- **Ready.** Being busy, or changing your look, un-readies you, and so does a change of mode. When everyone is ready
+  the party has 1.5 seconds to back out, then plays: a party of two plays a private duel (unrated); a mode that needs
+  more players goes into matchmaking as one ticket. Anyone un-readying (or busy, or dropping) takes the party out of
+  the queue.
+- **The mode vote.** Each member votes for one of the modes that fit the party's size: Versus (1v1) for one or two,
+  Showdown free-for-all for one to four, 2v2 for one, two or four (a party stays on one team, so not three). The most
+  votes win; a tie goes the leader's way; with no votes, the first that fits. The `partyModes` setting says which modes
+  the server offers (all three by default; the game shows any other as coming next, and so does an older server's).
+- **Reactions**: eight emotes, sent to the rest of the party, at most four in a row and then one a second.
+- **A dropped connection** keeps its place for 60 seconds (`partyGrace`): the app went to the background, or the
+  signal went. The same device comes back into the party when it reconnects.
+
+### Invites
+
+Friends live in the game's Supabase project (`supabase/README.md`), so invites are made there: `rm_invite` checks you
+are friends and that neither of you has blocked the other, lasts 2 minutes, and counts towards 40 an hour. The game
+server only does two things:
+
+- **It passes the word on live.** After making the invite, the game tells the game server who it went to (their
+  Supabase id). The server nudges that player's game (a `poke`, which carries nothing but its kind), and the game reads
+  its inbox from Supabase at once. So what shows is always what the database allows; a game that claims someone else's
+  Supabase id in its hello only receives nudges, never an invite. Friend requests and their answers nudge the same way.
+- **It lets the invited player in.** Accepting an invite (`rm_answer_invite`) hands over the party's code, and the game
+  joins the party with it. Declining tells the database and the party (who see "can't play right now").
+
+A friend who isn't connected finds the invite in their inbox (it is in the database) if they open the game within the
+2 minutes. Notifications while the game is closed would need Apple's push service; see "Decisions needed".
+
+### Matchmaking
+
+There is one queue per mode. A ticket is one player, or a party that plays together. Every 250 ms the server forms
+matches, oldest tickets first, from tickets that are in reach of each other. A ticket's reach widens with its wait
+(two tickets fit when they are within the reach of the one that has waited longer, so a newcomer is matched at once
+with someone who has been waiting):
+
+| Waited | Region | Round trip to the server | Rating |
+|---|---|---|---|
+| from 0 s | the same region | within 50 ms of each other | within 150 |
+| from 4 s | the same or a neighbouring region | within 100 ms | within 300 |
+| from 8 s | anywhere | within 200 ms | within 500 |
+| from 12 s | anywhere | any | any |
+
+- **The region** comes from the time zone the game reports in its hello (`America/Chicago` is North America, and so
+  on: North and South America, Europe, Africa, the Middle East, Asia, Oceania; neighbours are regions whose players
+  usually reach each other's servers well under 150 ms apart). Without a time zone name, the offset does it roughly.
+  The round trip is the server's own measure of each connection.
+- **Parties stay together.** Showdown fills around a party; in 2v2 a party of two is one team (a party plays a party
+  when there is one), and four players on their own are split best and worst against the two in the middle. A
+  Showdown still a player short after 20 seconds starts with three.
+- **The hand-off.** Parties and the matchmaker start every match through one function, `_launch(mode, players)`, with
+  each player's team; the match's slots follow the mode's sides.
+- **Nobody found after 30 seconds:** the game offers a match against the CPU instead, in the same mode (a Showdown
+  against the CPU once the player has it), and keeps looking if the player wants; it never pretends a CPU is a person.
+  A party of two still searching is reminded it can vote Versus and play each other; a party of three is in a Showdown
+  of its own after 20 seconds.
+- **More server regions later.** Run one server per region, each with its own matchmaker, and send each player to the
+  region with the lowest measured round trip (the game pings each region's `/health` at start). To widen to the whole
+  world, a ticket that has waited 8 seconds in a quiet region is also offered to its neighbouring regions' queues
+  (either the game holds a second connection and queues in both, cancelling one when the other finds a match, or the
+  servers share their waiting tickets through a small common store such as Redis and agree which region hosts the
+  match: the one that keeps the worst player's round trip lowest). The stages above stay the same.
+
+### Connections
+
+The game keeps its connection open while the player is signed in to an account in the lobby (so an invite arrives
+live), in a party, in a queue or in a match. While it only waits in the lobby it sends a heartbeat every 20 seconds and
+the server pings it every 20 seconds (`idlePing`); in a queue, a starting party or a match both ping twice a second
+(it keeps a phone's radio awake for the start). A connection that has sent nothing for 75 seconds is closed
+(`silentKick`). The game closes its connection when it goes to the background, outside a match.
 
 ### How lag is hidden
 
@@ -67,7 +171,8 @@ The same as a versus match against the CPU, with the server keeping score:
   them all exactly; if anyone's stage differs (a modified game, or a bug), the match is called off and the honest
   players go straight back into the queue.
 - **The connection.** Message sizes are capped, each connection has rate limits, every field is checked, and a phone
-  that floods or sends garbage is disconnected. Private room codes cannot be guessed quickly.
+  that floods or sends garbage is disconnected. A late answer to the server's ping (a phone held up for over 30
+  seconds) is let go rather than counted as garbage. Private room codes cannot be guessed quickly.
 
 ## Measured in the tests
 
@@ -142,7 +247,7 @@ Settings are environment variables:
 | `TRUST_PROXY` | 0 | 1 when behind a proxy that sets X-Forwarded-For |
 | `SNAPSHOT_HZ` | 30 | Snapshots a second (20 saves about a third of the server's work and bandwidth) |
 | `SHUTDOWN_GRACE_MS` | 3000 | How long a shutdown waits for connections to close |
-| `RULES` | | JSON to change match rules (for example `{"matchT":60}`); see `server/src/constants.js` |
+| `RULES` | | JSON to change match rules (for example `{"matchT":60}`), and the lobby's: `partyModes` (`["duel","ffa","duo"]`), `partyGrace` (60), `idlePing` (20), `silentKick` (75); see `server/src/constants.js` |
 
 Stopping the server (Ctrl+C, or a SIGTERM from the host) is graceful: running matches are called off without rating
 changes, everyone is told, and the data file is saved.
@@ -182,7 +287,9 @@ game's convention (forward is `sin(yaw), cos(yaw)`).
 ### Connecting and the lobby
 
 ```js
-const net = new RMNet({ url: 'wss://play.example.com/ws', name: 'Blobby', look: { hat: 'cap' }, token: localStorage.rmToken });
+const net = new RMNet({ url: 'wss://play.example.com/ws', name: 'Blobby', look: { hat: 'cap' }, token: localStorage.rmToken,
+  sb: supabaseUserId,                                           // optional: invites and nudges find the player by it
+  zone: 'America/Chicago', beat: 20000 });                      // the time zone (the browser's by default); ms between pings
 net.on('welcome', w => { localStorage.rmToken = w.token; });   // keep the device token: it is the player's account
 await net.connect();                                            // resolves with the welcome; rejects if the game is too old
 await net.queue('duel');                                        // 'duel' | 'trio' | 'ffa' (Showdown) | 'duo' (Showdown 2v2)
@@ -194,10 +301,32 @@ net.ready(true);                                                // in a room: th
 net.rematch(true);                                              // after a match: vote for a rematch (false: leave)
 await net.setName('New name');                                  // returns the cleaned-up name
 net.close();                                                    // leave for good (no reconnect)
+net.setBeat(500);                                               // ping twice a second from now on (a heartbeat in the lobby: 20000)
 ```
 
 The connection reconnects by itself (backing off from 0.4 s to 8 s) and, within 20 seconds of a drop, picks up the
 match where it was (the `resume` event).
+
+Parties (`net.party` holds the latest view; each change comes as a `party` event):
+
+```js
+const v = await net.partyCreate();          // { id, code, leader, max, state, startAt?, queuedAt?, mode, modes, members, invites }
+await net.partyJoin(v.code);                // rejects with 'not_found', 'full', 'busy' (playing or finding a match) or 'rate'
+await net.partyInvite(friendSupabaseId, { name, look }); // after rm_invite: shows in the party, and nudges the friend's game
+await net.partyDecline(code);               // (the invited player) no: the party hears it
+await net.partyReady(true);                 // everyone ready: 1.5 s, then the match or the search
+await net.partyVote('duel');                // 'duel' | 'ffa' | 'duo'
+await net.partyLook(look);                  // a new look (un-readies you)
+await net.partyBusy('locker');              // 'locker' | 'shop' | 'strokes' | 'settings' | 'cpu' | 'menu' | null (busy un-readies you)
+net.partyReact('wave');                     // 'wave' | 'laugh' | 'wow' | 'love' | 'cool' | 'cry' | 'angry' | 'gg'
+await net.partyKick(memberId);              // the leader only
+await net.partyLeave();
+net.poke(friendSupabaseId, 'request');      // nudge a friend's game to read its inbox ('invite' | 'request' | 'answer')
+```
+
+A member in the view is `{ id, sb, name, look, ready, vote, busy?, away? }`; `modes` lists each mode that fits the
+party's size with how it plays (`plan`: `private` or `queue`) and whether parties may play it on this server (`on`);
+`invites` are the invites still waiting (`{ to, name, look, by, left }`, `left` in ms).
 
 ### The match
 
@@ -252,8 +381,11 @@ resolves with the server's ruling.
 
 | event | what it carries |
 |---|---|
-| `welcome` | `{ id, token, name, nameChanged, ratings, resume, serverTime, proto, modes }` (`resume`: the match to pick up, or null) |
-| `queued`, `queueLeft`, `room`, `roomLeft` | lobby updates (`room`: `{ code, mode, host, need, inMatch, players: [{ id, name, look, ready }] }`) |
+| `welcome` | `{ id, token, name, nameChanged, ratings, resume, serverTime, proto, modes, caps, partyModes }` (`resume`: the match to pick up, or null; `caps` includes `party` on a server with parties) |
+| `queued`, `queueLeft`, `room`, `roomLeft` | lobby updates (`room`: `{ code, mode, host, need, inMatch, players: [{ id, name, look, ready }] }`; `queued` and `queueLeft` say `party: true` for a party's search) |
+| `party`, `partyLeft` | your party as it is now (see above); you are out of it (`reason`: left, removed, gone) |
+| `react`, `partyNote` | a member's reaction `{ id, e }`; `{ k: 'declined', name, to }`: an invited friend said no (`to`: their Supabase id) |
+| `poke` | `{ k }`: something new in your inbox (`invite`, `request`, `answer`); read it from Supabase |
 | `matchFound`, `start`, `resume` | see above; `resume` adds `self` (where you are and your state), `others`, `pots`, `cov`, `items` |
 | `snapshot` | every snapshot: `{ seq, t, ack, players: [...] }` (`remote()` is usually all you need) |
 | `correction` | `{ x, y, z, yaw, reason }`: move your blob there at once |
@@ -306,22 +438,25 @@ and the hash `746f9aef3f617241` (the unit tests check both).
 Text messages are JSON objects with a type `t`; frequent ones are binary.
 
 From the game: `hello`, `queue`, `cancelQueue`, `createRoom`, `joinRoom`, `leaveRoom`, `ready`, `setName`, `layout`,
-`act`, `rematch`, `leaveMatch`, `bye` (JSON), and binary STATE (34 bytes, about 30 a second), PING and SPONG
+`act`, `rematch`, `leaveMatch`, `bye`, `partyCreate`, `partyJoin`, `partyLeave`, `partyKick`, `partyReady`, `partyVote`,
+`partyLook`, `partyBusy`, `partyReact`, `partyInvite`, `partyDecline`, `poke` (JSON), and binary STATE (34 bytes, about 30 a second), PING and SPONG
 (9 bytes).
 
-From the server: `welcome`, `error`, `kicked`, `queued`, `queueLeft`, `room`, `roomLeft`, `name`, `matchFound`,
+From the server: `welcome`, `error`, `kicked`, `queued`, `queueLeft`, `room`, `roomLeft`, `party`, `partyLeft`, `react`,
+`partyNote`, `poke`, `name`, `matchFound`,
 `matchCancelled`, `start`, `resume`, `ack`, `act`, `correction`, `ko`, `respawn`, `out`, `flat`, `push`, `dodged`, `pot`,
 `potEject`, `cov`, `itemSpawn`, `itemTaken`, `itemUsed`, `itemGone`, `itemTrap`, `unGiant`, `playerAway`, `playerBack`,
 `playerLeft`, `afk`, `matchEnd`, `rematch`, `matchClosed`, `server` (JSON), and binary SNAP (14 bytes plus 19 per
 player, 30 a second), PONG (17 bytes) and SPING (9 bytes). The exact byte layouts are written at the top of
 `rmnet.js`.
 
-## In the game (v306)
+## In the game (v306, v312)
 
-The online duel lives in three build modules: `tools/v306_accounts.py` (the username and the account),
-`tools/v306_lobby.py` (finding a rival: the Matchmaking card, private rooms and friend invites) and
-`tools/v306_match.py` (the match itself). What a player sees, with pictures, is in `docs/online-v306.md`. The match works
-like this:
+The online game lives in build modules: `tools/v306_accounts.py` (the username and the account),
+`tools/v312_party.py` (the Online sheet's Versus and Showdown, parties, invites, the inbox and matchmaking; it took the
+place of v306's rooms in `tools/v306_lobby.py`, which still brings the SDK), `tools/v306_match.py` (the match) and
+`tools/v312_showdown.py` (the match for up to four). What a player sees, with pictures, is in `docs/online-v306.md`
+and `docs/party-v312.md`. The match works like this:
 
 1. **The canvas.** When the server finds a match, both phones build the stage from the server's seed with the same fixed
    options (normal paint, none of the player's own canvas choices, the seven vote canvases) and send it back; the server
@@ -331,15 +466,25 @@ like this:
 3. **Your blob** moves on your phone at once; every hop, roll, fling, pound, landing, stomp and pot dive goes to the
    server as it happens, and your position about 30 times a second. A move the server refuses is undone (a pot it did
    not let you into pops you out).
-4. **Your rival** is drawn from the server's snapshots a moment in the past, with its trail, hops, rolls, flings and
-   pounds, its name, colour (changed on your screen if it is the same as yours), eyes, wearables and rank.
+4. **The others** are drawn from the server's snapshots a moment in the past, with their trails, hops, rolls, flings
+   and pounds, names, colours (changed on your screen if one is too like yours or another's), eyes, wearables and
+   ranks. Each is one of the game's own rivals: in 2v2 your teammate is the game's ally and wears your team's colour
+   (your two colours mixed, as each team's is), the other pair the other; in a Showdown of three the fourth sits out.
 5. **The server decides** knock-outs, flattenings, pushes, dodges, who is in which pot, pots going down and coming back,
-   coverage (the bar shows the server's numbers), the clock, the weather (the server's schedule), overtime and the
-   result. The game never knocks out, flattens, stuns or rams anyone itself online.
+   coverage (the bar shows the server's numbers), the clock, the weather (the server's schedule), overtime, the hearts
+   a knock-out costs, who is out and in what place, and the result. The game never knocks out, flattens, stuns or rams
+   anyone itself online; it shows its own Showdown (the hearts across the top, the banners, the closing line) around
+   the server's rulings.
 6. **Real time.** The server runs on real time, so online there is no hit-stop, slow motion or kill cam, and a slow
    frame catches up (up to a quarter of a second) instead of playing in slow motion as it does offline. Pause shows the
    menu while the match goes on; Leave match forfeits.
-7. **After the match:** the usual tally and winner screen, then Rematch (both have to say yes) or Menu.
+7. **Out of a Showdown:** the camera watches someone still in it, and the Skip button (offline it runs the rest at
+   speed) says Leave: online the match runs on real time.
+8. **After the match:** the usual tally and winner screen, then Rematch (everyone has to say yes) or Menu, which
+   takes a party back to its lobby. A Showdown's last knock-out plays out first (1.7 seconds, as offline).
+9. **Called off or taken out before it begins:** a match called off, ended, or that the server took you out of while
+   your phone is still on the versus card or the countdown goes back to the lobby with a word on screen ("The match was
+   called off", "Away too long"), never into a match you are no longer in.
 
 Off online for now: pick-ups (the server can hand them out, but the game does not show the server's yet), orbs and the
 special strokes that come from them, rare finds and gifts, the Swim faster start boost, the easier paint drain of easy
@@ -369,6 +514,15 @@ mode, rams and roll stuns between players, and pots moving to new spots.
    list (or a moderation service), a report button, and what happens to reported players.
 7. **Analytics.** What to measure (round trips by region, match length, abandon rate, cheat flags), where it goes, and
    whether players must agree first.
+8. **Notifications while the game is closed.** Invites and friend requests reach a game that is open (live) or opened
+   within the invite's 2 minutes (the inbox). Reaching a closed app needs Apple's push service: an APNs key (a .p8 from
+   the Apple developer account, with its key id and team id), the app asking the player's permission and registering
+   for remote notifications (its device token goes to Supabase, in a new table, one row per device), and something
+   that sends: a Supabase Edge Function (or the game server) that signs a JWT with the APNs key and posts to Apple's
+   HTTP/2 API when an invite or a request is made (a database trigger or webhook on `invites` and `friend_requests`).
+   Tapping the notification should open the game on the inbox. Decide whether to ask for permission at the first invite
+   (better than at launch), and what the notification says (the sender's handle, such as @number1, and never anything
+   private).
 
 ## Next steps
 

@@ -31,6 +31,7 @@ const RMNetSDK = (() => {
   const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
   const wrapA = a => { a = (a + Math.PI) % TAU; if (a < 0) a += TAU; return a - Math.PI; };
   const fin = v => typeof v === 'number' && Number.isFinite(v);
+  const localZone = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || null; } catch (e) { return null; } };
 
   // ---------------------------------------------------------------------------------------------------------------
   // Layout canonical form and hash. The server runs exactly this code too (it imports this file).
@@ -281,10 +282,14 @@ const RMNetSDK = (() => {
   // ---------------------------------------------------------------------------------------------------------------
   class RMNet {
     // opts: { url, name, look, token, WebSocket?, now?, autoReconnect = true, sendHz = 30, minInterp = 60, maxInterp = 200,
-    //         maxExtrapolate = 250, client? }
+    //         maxExtrapolate = 250, client?, sb? (the player's Supabase user id: invites and pokes find them by it),
+    //         zone?, tzo? (the time zone and its offset: matchmaking looks near first; the browser's own by default),
+    //         beat = 500 (ms between pings once connected; setBeat changes it: slow while just waiting in the lobby) }
     constructor(opts = {}) {
       this.url = opts.url; this.name = opts.name || 'Player'; this.look = opts.look === undefined ? null : opts.look;
-      this.token = opts.token || null; this.client = opts.client || null;
+      this.token = opts.token || null; this.client = opts.client || null; this.sb = opts.sb || null;
+      this.zone = opts.zone !== undefined ? opts.zone : localZone(); this.tzo = opts.tzo !== undefined ? opts.tzo : new Date().getTimezoneOffset();
+      this.beat = opts.beat || 500; this.party = null;
       this.WS = opts.WebSocket || globalThis.WebSocket;
       this._now = opts.now || (() => (globalThis.performance && performance.now ? performance.now() : Date.now()));
       this.autoReconnect = opts.autoReconnect !== false;
@@ -326,7 +331,8 @@ const RMNetSDK = (() => {
       ws.onopen = () => {
         if (this.ws !== ws) return;
         this._attempt = 0; this.connected = true; this._emit('open', {});
-        this._sendJ({ t: 'hello', v: PROTOCOL_VERSION, token: this.token || undefined, name: this.name, look: this.look, client: this.client || undefined });
+        this._sendJ({ t: 'hello', v: PROTOCOL_VERSION, token: this.token || undefined, name: this.name, look: this.look, client: this.client || undefined,
+          sb: this.sb || undefined, zone: this.zone || undefined, tzo: fin(this.tzo) ? this.tzo : undefined });
         this._startPings();
       };
       ws.onmessage = ev => { if (this.ws === ws) this._onMessage(ev.data); };
@@ -364,11 +370,19 @@ const RMNetSDK = (() => {
     serverNow() { return this._now() + this._clock.offset; }
     _startPings() {
       this._stopPings(); this._pingsSent = 0;
-      // a quick burst to start with, then two a second (9 bytes each way: cheap, and it keeps a phone's radio awake)
-      const tick = () => { this._sendB(codec.encodePing(this._now())); this._pingsSent++; this._pingTimer = setTimeout(tick, this._pingsSent < 8 ? 100 : 500); };
+      // a quick burst to start with, then one every `beat` ms: two a second by default (9 bytes each way: cheap, and it
+      // keeps a phone's radio awake for a match); a game waiting in its lobby slows it to a heartbeat (setBeat)
+      const tick = () => { this._sendB(codec.encodePing(this._now())); this._pingsSent++; this._pingAt = this._now(); this._pingTimer = setTimeout(tick, this._pingsSent < 8 ? 100 : this.beat); };
       tick();
     }
     _stopPings() { clearTimeout(this._pingTimer); this._pingTimer = null; }
+    // ms between pings from now on (a quicker one starts at once)
+    setBeat(ms) {
+      ms = clamp(Math.round(+ms || 500), 100, 60000); if (ms === this.beat) return; const quicker = ms < this.beat; this.beat = ms;
+      if (!this._pingTimer || this._pingsSent < 8) return;
+      clearTimeout(this._pingTimer); const tick = () => { this._sendB(codec.encodePing(this._now())); this._pingsSent++; this._pingAt = this._now(); this._pingTimer = setTimeout(tick, this.beat); };
+      this._pingTimer = setTimeout(tick, quicker ? 0 : Math.max(0, this.beat - (this._now() - (this._pingAt || 0))));
+    }
 
     // ---- lobby ----
     queue(mode) { return this._request({ t: 'queue', mode }); }
@@ -381,6 +395,24 @@ const RMNetSDK = (() => {
     // quit the current match for good (during play it counts as a forfeit); resolves once the server has let you go
     leaveMatch() { return this._request({ t: 'leaveMatch' }); }
     setName(name) { return this._request({ t: 'setName', name }).then(r => { this.name = r.name; return r.name; }); }
+
+    // ---- parties: up to four friends who play together (net.party is the latest view; the 'party' event brings each one) ----
+    // view: { id, code, leader, max, state: 'idle' | 'starting' | 'queued' | 'match', startAt?, queuedAt?, mode, modes: [{ mode, plan, on }],
+    //         members: [{ id, name, look, ready, vote, busy?, away? }], invites: [{ to, name, look, by, left }] }
+    partyCreate() { return this._request({ t: 'partyCreate' }); } // (resolves with the view; in one already: that one)
+    partyJoin(code) { return this._request({ t: 'partyJoin', code: String(code || '').toUpperCase() }); } // rejects: not_found, full, busy, rate
+    partyLeave() { return this._request({ t: 'partyLeave' }); }
+    partyKick(id) { return this._request({ t: 'partyKick', id }); } // (the leader only)
+    partyReady(on = true) { return this._request({ t: 'partyReady', ready: !!on }); }
+    partyVote(mode) { return this._request({ t: 'partyVote', mode }); }
+    partyLook(look) { this.look = look; return this._request({ t: 'partyLook', look }); } // (un-readies you)
+    partyBusy(what) { return this._request({ t: 'partyBusy', what: what || null }); } // 'locker' | 'shop' | 'strokes' | 'settings' | 'cpu' | 'menu' | null
+    partyReact(e) { return this._sendJ({ t: 'partyReact', e }); } // the others get { id, e } as 'react'
+    // tell the game server about an invite made in the database: it shows in the party, and the friend's game is nudged
+    partyInvite(to, info = {}) { return this._request({ t: 'partyInvite', to, name: info.name, look: info.look }); }
+    partyDecline(code) { return this._request({ t: 'partyDecline', code: String(code || '').toUpperCase() }); }
+    // nudge a friend's game to look at its inbox ('invite', 'request' or 'answer'); it carries nothing else
+    poke(to, k) { return this._sendJ({ t: 'poke', to, k }); }
 
     // ---- map consensus ----
     layoutHash(layout) { return layoutHash(layout); }
@@ -494,6 +526,8 @@ const RMNetSDK = (() => {
         case 'kicked': this._noRetry = true; this._emit('kicked', m); this._emit('fatal', { code: 'kicked', message: m.reason }); break;
         case 'room': this.room = m; this._emit('room', m); break;
         case 'roomLeft': this.room = null; this._emit('roomLeft', m); break;
+        case 'party': this.party = m; this._emit('party', m); break;
+        case 'partyLeft': this.party = null; this._emit('partyLeft', m); break;
         case 'matchFound': case 'resume':
           this.match = { id: m.matchId, mode: m.mode, seed: m.seed, opts: m.opts, players: m.players, layoutHash: null, startAt: m.startAt || null, endAt: m.endAt || null };
           this.slot = m.you; this._tracks.clear(); this._clock.locked = true;

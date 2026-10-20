@@ -3,6 +3,6 @@
   "private": true,
   "type": "module",
   "description": "Tests for the Supabase migration on a local Postgres (see supabase/README.md)",
-  "scripts": { "test": "node --test friends.test.mjs accounts.test.mjs saves.test.mjs liveops.test.mjs email.test.mjs" },
+  "scripts": { "test": "node --test friends.test.mjs accounts.test.mjs saves.test.mjs liveops.test.mjs email.test.mjs parties.test.mjs" },
   "devDependencies": { "pg": "8.13.1" }
 }

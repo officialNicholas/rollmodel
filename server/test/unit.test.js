@@ -168,7 +168,7 @@ test('token buckets, schedules, matchmaking windows, room codes', () => {
   const rain = w.find(p => p.ph === 'rain'); if (rain) { assert.equal(rainMulAt(w, rain.at + 1), 2); assert.equal(rainMulAt(w, rain.at + rain.dur + 1), 2, 'tail'); }
   assert.equal(rainMulAt(w, 1), 1);
   const z = zoneSchedule(); assert.equal(zoneSizeAt(z, 59), Infinity); assert.equal(zoneSizeAt(z, 61), 26.4); assert.equal(zoneSizeAt(z, 121), 20);
-  assert.equal(windowFor(0), 100); assert.equal(windowFor(10), 300); assert.equal(windowFor(30), 600); assert.equal(windowFor(60), Infinity);
+  assert.equal(windowFor(0), 150); assert.equal(windowFor(5), 300); assert.equal(windowFor(10), 500); assert.equal(windowFor(12), Infinity); // (more in matchmaking.test.js)
   const mk = (r, at) => ({ player: { ratings: { duel: { r, rd: 50 }, duo: { r, rd: 50 } } } });
   const mm = new Matchmaker(); const a = mk(1500), c = mk(1550), far = mk(2400);
   mm.add(a, 'duel', 0); mm.add(far, 'duel', 0); assert.equal(mm.form(1000).length, 0, 'too far apart at first');

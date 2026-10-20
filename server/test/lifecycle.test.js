@@ -72,16 +72,17 @@ test('Showdown: hearts, elimination order, last one standing', async () => {
   try {
     await Promise.all(bots.map(b => b.connect()));
     for (const b of bots) await b.net.queue('ffa');
-    await Promise.all(bots.map(b => b.wait('start')));
+    const starts = await Promise.all(bots.map(b => b.wait('start')));
+    assert.equal(starts[0].rules.hearts, 3, 'three hearts each, as in the game');
     await until(() => bots[0].net.serverNow() > bots[0].startAt + 100, 5000);
-    // three of them knock themselves out twice each (a fall): two hearts gone, then out
+    // three of them knock themselves out three times each (a fall): three hearts gone, then out
     const order = [bots[3], bots[1], bots[2]];
     for (const b of order) {
-      for (let k = 0; k < 2; k++) {
+      for (let k = 0; k < 3; k++) {
         const ko = b.wait('ko', m => m.slot === b.slot);
-        assert.equal((await b.net.action('selfKo', { reason: 'fall' })).ok, true);
-        const m = await ko; assert.equal(m.hearts, 1 - k);
-        if (k === 0) await b.wait('respawn', r => r.slot === b.slot); else assert.equal(m.out, true);
+        const r = await b.net.action('selfKo', { reason: 'fall' }); assert.equal(r.ok, true, 'refused: ' + r.reason + ' (fall ' + (k + 1) + ')');
+        const m = await ko; assert.equal(m.hearts, 2 - k);
+        if (k < 2) await b.wait('respawn', r => r.slot === b.slot); else assert.equal(m.out, true);
       }
     }
     const end = await bots[0].wait('matchEnd', () => true, 10000);
@@ -94,8 +95,30 @@ test('Showdown: hearts, elimination order, last one standing', async () => {
   } finally { for (const b of bots) b.close(); await srv.close(); }
 });
 
+test('Showdown: out of hearts and then leaving keeps the place you went out in', async () => {
+  const srv = await startServer({ sdT: 60, respawnT: 0.5, hearts: 2 });
+  const bots = makeBots(srv, 4, { behavior: 'still', prefix: 'sdl' });
+  try {
+    await Promise.all(bots.map(b => b.connect()));
+    for (const b of bots) await b.net.queue('ffa');
+    await Promise.all(bots.map(b => b.wait('start')));
+    await until(() => bots[0].net.serverNow() > bots[0].startAt + 100, 5000);
+    const slots = new Map(bots.map(b => [b, b.slot])); // (a player who leaves forgets their slot)
+    const outOf = async b => { for (let k = 0; k < 2; k++) { const ko = b.wait('ko', m => m.slot === b.slot); await b.net.action('selfKo', { reason: 'fall' }); await ko; if (k === 0) await b.wait('respawn', r => r.slot === b.slot); } };
+    // the first out stays to watch; the second out watches for a moment, then leaves; then the third goes out
+    await outOf(bots[3]);
+    await outOf(bots[1]); await bots[1].wait('out', m => m.slot === bots[1].slot, 6000);
+    await bots[1].net.leaveMatch();
+    await outOf(bots[2]);
+    const end = await bots[0].wait('matchEnd', () => true, 10000), res = b => end.results.find(r => r.slot === slots.get(b)), place = b => res(b).place;
+    assert.equal(place(bots[0]), 1); assert.equal(place(bots[2]), 2); assert.equal(place(bots[3]), 4);
+    assert.equal(place(bots[1]), 3, 'out second, so third, though they left (not last)');
+    assert.equal(res(bots[1]).left, true);
+  } finally { for (const b of bots) b.close(); await srv.close(); }
+});
+
 test('Showdown 2v2: a side is out only when both are out', async () => {
-  const srv = await startServer({ sdT: 60, respawnT: 0.5 });
+  const srv = await startServer({ sdT: 60, respawnT: 0.5, hearts: 2 });
   const bots = makeBots(srv, 4, { behavior: 'still', prefix: 'duo' });
   try {
     await Promise.all(bots.map(b => b.connect()));
