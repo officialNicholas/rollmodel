@@ -10,22 +10,25 @@ import { startStoreApi } from './storeapi.js';
 import { sanitizeName, sanitizeLook } from './names.js';
 import { connectionLimits, noteDrop } from './ratelimit.js';
 import { Matchmaker, Room, uniqueCode, makeTicket, regionOf } from './lobby.js';
-import { Party, PARTY, planFor, newPartyCode, playsTrio } from './party.js';
+import { Party, PARTY, planFor, cpuPlan, newPartyCode, playsTrio, playsCpu } from './party.js';
 import { Match } from './match.js';
 import { Pusher } from './push.js';
 import { MatchPool } from './matchpool.js';
 import { availableParallelism } from 'node:os';
 import { nowMs, Window, summarize, fin } from './util.js';
+import { DEFAULT_RATING } from './rating.js';
 import { performance } from 'node:perf_hooks';
 
 const CLOSE = { NORMAL: 1000, AWAY: 1001, VERSION: 4000, REPLACED: 4001, KICKED: 4003, HELLO: 4004, POLICY: 4008 };
 const JSON_TYPES = new Set(['hello', 'queue', 'cancelQueue', 'createRoom', 'joinRoom', 'leaveRoom', 'ready', 'setName', 'layout', 'act', 'rematch', 'leaveMatch', 'bye',
-  'partyCreate', 'partyJoin', 'partyLeave', 'partyKick', 'partyReady', 'partyVote', 'partyLook', 'partyBusy', 'partyReact', 'partyInvite', 'partyDecline', 'poke']);
+  'partyCreate', 'partyJoin', 'partyLeave', 'partyKick', 'partyReady', 'partyVote', 'partyLook', 'partyBusy', 'partyReact', 'partyInvite', 'partyDecline', 'poke', 'matchReact']);
 // what this server offers beyond the first protocol (the game checks before it shows parties)
-const CAPS = ['party'];
+const CAPS = ['party', 'cpu', 'mreact']; // (v404: CPU players in online matches; v405: reactions in a match's results)
 // a Supabase user id (the game's friends live there): the address of an invite or a poke
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const POKES = new Set(['invite', 'request', 'answer']);
+// (v404) the CPU players' names online
+const CPU_NAMES = ['Pip', 'Nori', 'Mochi', 'Taffy', 'Sprocket', 'Ziggy', 'Pebble', 'Bean', 'Gumdrop', 'Rascal', 'Biscuit', 'Wobble'];
 
 // a room member: who they are, kept on the connection (a dropped one keeps its place for a while)
 const roomMember = sess => Object.assign(sess, { roomPid: sess.player.id, roomName: sess.player.name, roomLook: sess.player.look });
@@ -158,18 +161,21 @@ export class GameServer {
   }
   _close(sess, code, reason) { try { if (sess.ws) sess.ws.close(code, reason); } catch (e) { /* already closed */ } }
   sendJson(sess, obj) {
+    if (sess && sess.bot) return this.sendRaw(sess, JSON.stringify(obj));
     if (!sess || !sess.ws || sess.ws.readyState !== 1) return false;
     const s = JSON.stringify(obj); sess.bytesOut += s.length; this.stats.bytesOut += s.length + (s.length < 126 ? 2 : 4); this.stats.framesOut++;
     sess.ws.send(s); return true;
   }
   // a message already in JSON (from a match worker)
   sendRaw(sess, s) {
+    if (sess && sess.bot) { const o = this.online.get(sess.ownerId); return o && o !== sess ? this.sendRaw(o, '{"t":"bot","slot":' + sess.slot + ',"m":' + s + '}') : false; } // (v404: a CPU player's word goes to the game that drives it)
     if (!sess || !sess.ws || sess.ws.readyState !== 1) return false;
     sess.bytesOut += s.length; this.stats.bytesOut += s.length + (s.length < 126 ? 2 : 4); this.stats.framesOut++;
     sess.ws.send(s); return true;
   }
   // droppable: a snapshot may be skipped for a connection that is falling behind (the next one supersedes it)
   sendBinary(sess, bytes, droppable = false) {
+    if (sess && sess.bot) return false; // (v404: a CPU player is sent no snapshots: its owner has them)
     if (!sess || !sess.ws || sess.ws.readyState !== 1) return false;
     if (droppable && sess.ws.bufferedAmount > 64 * 1024) { sess.skipped = (sess.skipped || 0) + 1; return false; }
     sess.bytesOut += bytes.byteLength; this.stats.bytesOut += bytes.byteLength + (bytes.byteLength < 126 ? 2 : 4); this.stats.framesOut++;
@@ -234,6 +240,14 @@ export class GameServer {
       if (!sess.match) return;
       const p = sess.match.playerById(sess.player.id); if (!p || p.sess !== sess) return;
       if (sess.match.onState(p, data, now) === 'malformed') this._bad(sess, 'bad state');
+      return;
+    }
+    if (type === MSG.BSTATE) { // (v404) a CPU player's state, from the game that drives it
+      if (data.length !== 2 + codec.STATE_BYTES) return this._bad(sess, 'bad state');
+      if (!sess.match) return;
+      const p = sess.match.P.find(q => q.slot === data[1]); if (!p || !p.bot || p.owner !== sess.player.id || !p.sess) return;
+      if (!p.sess.lim.state.take(1, now)) return;
+      if (sess.match.onState(p, data.subarray(2), now) === 'malformed') this._bad(sess, 'bad state');
       return;
     }
     if (type === MSG.SPONG) {
@@ -362,8 +376,13 @@ export class GameServer {
         const p = match.playerById(sess.player.id); if (p && p.sess === sess) match.onLayout(p, m); return;
       }
       case 'act': {
-        if (!sess.lim.act.take(1, now)) { if (noteDrop(sess.lim, now)) this.kick(sess, 'flood'); return; }
+        if (!Number.isInteger(m.bot) && !sess.lim.act.take(1, now)) { if (noteDrop(sess.lim, now)) this.kick(sess, 'flood'); return; } // (a CPU player's moves count against its own allowance, below)
         const match = sess.match; if (!match) return this.sendJson(sess, { t: 'ack', n: Number.isInteger(m.n) ? m.n : undefined, a: m.a, ok: false, reason: 'not_in_match' });
+        if (Number.isInteger(m.bot)) { // (v404) a CPU player's move, from the game that drives it
+          const b = match.P.find(q => q.slot === m.bot); if (!b || !b.bot || b.owner !== sess.player.id || !b.sess) return;
+          if (!b.sess.lim.act.take(1, now)) return;
+          if (match.onAction(b, m, now) === 'bad') this._bad(sess, 'bad action'); return;
+        }
         const p = match.playerById(sess.player.id); if (!p || p.sess !== sess) return;
         if (match.onAction(p, m, now) === 'bad') this._bad(sess, 'bad action');
         return;
@@ -378,6 +397,13 @@ export class GameServer {
         this.sendJson(sess, { t: 'matchClosed', matchId: match.id, reason: 'you_left', r: m.r }); return;
       }
       case 'bye': this._unqueue(sess, 'left'); return;
+      case 'matchReact': { // (v405) a reaction on a match's results, to the others in it
+        const lm = sess.lastMatch, match = sess.match || (lm && now < lm.until ? lm.match : null), em = m.e; if (!match || !PARTY.EMOTES.includes(em)) return; // (a match already closed still takes them for a while: its results stay up)
+        if (!sess.lim.react.take(1, now)) return;
+        const me = match.playerById(sess.player.id); if (!me || me.sess !== sess) return;
+        for (const q of match.P) if (q !== me && !q.bot && q.sess && !q.sess.bot && q.sess !== sess) this.sendJson(q.sess, { t: 'matchReact', slot: me.slot, e: em });
+        return;
+      }
       default: return this._partyMsg(sess, m, now);
     }
   }
@@ -439,7 +465,9 @@ export class GameServer {
         if (!need()) return;
         if (!PARTY.MODES.includes(m.mode)) return this.sendError(sess, 'bad_mode', 'unknown mode', m.r);
         if (party.state === 'match') return this.sendError(sess, 'busy', 'playing', m.r);
-        const was = party.mode(this.partyModes()); me.vote = m.mode; me.ready = false;
+        const was = party.mode(this.partyModes()), wasCpu = party.cpu; me.vote = m.mode; me.ready = false;
+        if (party.leader === pid && typeof m.cpu === 'boolean') party.cpu = m.cpu; // (v404: the leader's pick: against CPUs)
+        if (party.cpu !== wasCpu) party.unready();
         // (a different mode: everyone says ready again. Not when it's the leader's pick: the others readied up to wait for it)
         if (party.mode(this.partyModes()) !== was && party.leader !== pid) party.unready();
         if (party.state !== 'idle') return this._partyIdle(party, 'vote', sess, m.r);
@@ -528,6 +556,16 @@ export class GameServer {
     if (party.state !== 'starting' || now < party.startAt) return;
     const mode = party.mode(this.partyModes()), plan = mode && planFor(mode, party.size), sessions = party.members.map(x => x.sess);
     if (!plan || !party.allReady() || sessions.some(s => !s || s.closed || s.match || s.room)) { party.state = 'idle'; party.unready(); return this._partySend(party); }
+    const cpus = party.cpu ? party.modes(this.partyModes()).find(x => x.mode === mode)?.cpus : 0;
+    if (cpus > 0) { // (v404) the party against CPUs: no search
+      const sides = MODE_INFO[mode].sides, bots = this._cpusFor(sessions, cpus);
+      // in a 2v2 the party is a team (slots 0 and 3), the CPUs the other; otherwise everyone for themselves
+      const teams = mode === 'duo' ? [...party.members.map((x, i) => ({ sess: x.sess, team: i < 2 ? 0 : 1 })), ...bots.map((b, i) => ({ sess: b, team: party.size + i < 2 ? 0 : 1 }))]
+        : [...sessions, ...bots].map((x, i) => ({ sess: x, team: sides[i] }));
+      this.log.info('party match with CPUs', { party: party.id, mode, cpus });
+      this._launch(mode, teams, { rated: false, parties: [party] });
+      return;
+    }
     if (plan === 'private') {
       // just the party: who plays on which side (in a 2v2 of four, the best and the worst together)
       const order = mode === 'duo' ? party.members.slice().sort((a, b) => b.sess.player.ratings.duo.r - a.sess.player.ratings.duo.r) : party.members;
@@ -617,6 +655,24 @@ export class GameServer {
     for (const s of room.members) this.sendJson(s, room.view());
   }
 
+  // ------------------------------------------------------------------------------------------------ CPU players (v404)
+  // A CPU player in an online match: a connection of its own on this server (its id, its allowance, its place in the
+  // match) that rides on one player's game, its owner, which drives it as the game drives CPUs on its own and sends its
+  // states and moves; the server referees it like anyone. Rulings meant for it go to that game, wrapped ({ t: 'bot' }).
+  _cpuSess(owner, k, lv) {
+    const id = ++this.connSeq, names = CPU_NAMES, name = names[(id + k) % names.length];
+    const ratings = Object.fromEntries(Object.keys(MODE_INFO).map(m => [m, Object.assign({}, DEFAULT_RATING)]));
+    const vs = { id, bot: true, ownerId: owner.player.id, ws: true, ip: owner.ip, player: { id: 'cpu_' + id, name, look: { r: Math.max(1, Math.round(lv || 1)), cpu: 1 }, ratings },
+      lim: connectionLimits(), queued: null, room: null, party: null, match: null, slot: -1, bad: 0, rtt: 0, at: nowMs(), lastMsg: nowMs(), closed: false, sb: null };
+    this.bySid.set(id, vs); return vs;
+  }
+  // the CPU players to fill a match with, driven by the human with the steadiest connection (the lowest round trip)
+  _cpusFor(humans, n) {
+    const owner = humans.slice().sort((a, b) => (a.rtt || 999) - (b.rtt || 999))[0], lvs = humans.map(s => (s.player.look && s.player.look.r) || 1);
+    const lv = lvs.reduce((a, x) => a + x, 0) / lvs.length;
+    return Array.from({ length: n }, (_, k) => this._cpuSess(owner, k, lv));
+  }
+
   // ------------------------------------------------------------------------------------------------ matches
   // sessions in slot order. parties: the parties playing in it (back to their lobby after); tickets: the queue tickets
   // it was made from (a match called off before it began puts them back in line)
@@ -646,8 +702,9 @@ export class GameServer {
     for (const p of match.P) {
       const sess = p.sess;
       if (this.inMatch.get(p.id) === match) this.inMatch.delete(p.id);
+      if (sess && sess.bot) { this.bySid.delete(sess.id); sess.closed = true; sess.match = null; continue; } // (v404: a CPU player's connection ends with its match)
       if (!sess || sess.closed || sess.match !== match) continue;
-      sess.match = null; sess.slot = -1;
+      sess.match = null; sess.slot = -1; sess.lastMatch = { match, until: nowMs() + 60000 }; // (v405: reactions on its results)
     }
     // back to matchmaking after a cancelled queue match (not the ones who caused it), keeping their place in line; a
     // party goes back together, or not at all
@@ -710,8 +767,16 @@ export class GameServer {
   _tick(now) {
     if (now - this._lastMM >= 250) {
       this._lastMM = now;
-      for (const g of this.mm.form(now)) {
+      for (const g of this.mm.form(now, { cpuFill: this.rules.cpuFill ?? 25, cpuOk: playsCpu })) {
         const sides = MODE_INFO[g.mode].sides, parties = [...new Set(g.tickets.map(t => t.party).filter(Boolean))];
+        if (g.cpus > 0) { // (v404) waited long enough: CPU players in the empty places (unrated)
+          const bots = this._cpusFor(g.sessions, g.cpus), used = new Map(); for (const x of g.teams) used.set(x.team, (used.get(x.team) || 0) + 1);
+          const per = sides.reduce((m, t) => m.set(t, (m.get(t) || 0) + 1), new Map()), teams = g.teams.slice();
+          for (const b of bots) { const t = [...per.keys()].find(k => (used.get(k) || 0) < per.get(k)); used.set(t, (used.get(t) || 0) + 1); teams.push({ sess: b, team: t }); }
+          this.log.info('match with CPUs', { mode: g.mode, players: g.sessions.length, cpus: g.cpus });
+          this._launch(g.mode, teams, { rated: false, parties, tickets: g.tickets });
+          continue;
+        }
         // (a party that waited long enough for a Showdown of three plays just itself: unrated, like a party's private match)
         this._launch(g.mode, g.sessions.map((s, i) => ({ sess: s, team: sides[i] })), { rated: !(g.tickets.length === 1 && g.tickets[0].party), parties, tickets: g.tickets });
       }

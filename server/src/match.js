@@ -17,6 +17,8 @@ const SELF_KO = new Set(['dry', 'fall', 'zone', 'sun']);
 const CLIENT_FLAGS = FLAGS.AIR | FLAGS.CHARGE | FLAGS.SLAM | FLAGS.FLUNG | FLAGS.MISSILE;
 const SELF_RESPAWN_T = 2, SD_END_T = 1.7, ZONE_KO = 1.1, VHIST = 96, POT_EMPTY_T = 0.8;
 const nextCid = c => (c % 255) + 1;
+// (v404) what a CPU player's own connection gets (it rides on the game that drives it): its moves' rulings and corrections
+const BOT_MSGS = new Set(['ack', 'correction']);
 const r2 = v => Math.round(v * 100) / 100;
 const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 
@@ -42,6 +44,7 @@ export class Match {
     this.opts = { mode, arena: this.info.arena, players: this.info.players };
     this.phase = 'consensus'; this.createdAt = nowMs(); this.layoutDeadline = this.createdAt + this.rules.layoutTimeout * 1000;
     this.P = sessions.map((s, slot) => this._mkPlayer(s, slot));
+    if (this.P.some(p => p.bot)) this.rated = false; // (v404: never rated with CPUs in it)
     this.level = null; this.cov = null; this.pots = []; this.hits = [];
     this.snapSeq = 0; this.nextCovAt = 0; this.startAt = 0; this.endAt = 0; this.endingAt = 0; this.lastTick = nowMs();
     this.weather = []; this.zone = []; this.items = null; this.results = null; this.rematchUntil = 0; this.layoutHash = null; this.otUsed = false;
@@ -51,6 +54,7 @@ export class Match {
     const pl = sess.player, now = nowMs();
     return {
       slot, sess, id: pl.id, name: pl.name, look: pl.look, side: this.info.sides[slot], color: slot,
+      bot: !!sess.bot, owner: sess.bot ? sess.ownerId : null, sb: sess.sb || null, // (v404: a CPU player, driven by its owner's game; sb: who to add as a friend)
       rating: Object.assign({}, pl.ratings[this.mode]),
       connected: !!sess.ws, awaySince: 0, afk: false, st: 'wait',
       layout: null, layoutHash: null, parsed: null,
@@ -66,10 +70,11 @@ export class Match {
   }
 
   // ------------------------------------------------------------------------------------------------ messaging
-  _send(p, msg) { if (p.connected && p.sess && p.sess.ws) this.srv.sendJson(p.sess, msg); }
+  _send(p, msg) { if (p.bot && !BOT_MSGS.has(msg.t)) return; if (p.connected && p.sess && p.sess.ws) this.srv.sendJson(p.sess, msg); }
+  _botsOf(p) { return this.P.filter(q => q.bot && q.owner === p.id); }
   _all(msg, except) { for (const p of this.P) if (p !== except) this._send(p, msg); }
   _ack(p, n, a, ok, reason, data) { if (Number.isInteger(n)) this._send(p, { t: 'ack', n, a, ok, reason: ok ? undefined : reason, data }); }
-  roster() { return this.P.map(p => ({ slot: p.slot, id: p.id, name: p.name, look: p.look, side: p.side, color: p.color, rating: Math.round(p.rating.r) })); }
+  roster() { return this.P.map(p => ({ slot: p.slot, id: p.id, name: p.name, look: p.look, side: p.side, color: p.color, rating: Math.round(p.rating.r), cpu: p.bot || undefined, owner: p.bot ? p.owner : undefined, sb: p.bot ? undefined : p.sb || undefined })); }
   publicRules() {
     const r = this.rules;
     return { matchT: r.matchT, sdT: r.sdT, hearts: r.hearts, respawnT: r.respawnT, flatT: r.flatT, slamFirst: r.slamFirst, slamCd: r.slamCd, potShields: r.potShields, items: r.items, weather: r.weather, zone: r.zone, lagCompMaxMs: r.lagCompMaxMs, snapshotHz: r.snapshotHz, koPct: r.koPct, overtime: r.overtime, potDownT: r.potDownT };
@@ -88,11 +93,11 @@ export class Match {
     if (!v.ok) { this.log.warn('layout invalid', { player: p.id, error: v.error }); p.layout = '!invalid'; p.layoutHash = '!invalid:' + p.slot; }
     else if (m.hash !== v.hash) { this.log.warn('layout hash differs from its content', { player: p.id, computed: v.hash }); p.layout = v.canonical; p.layoutHash = '!hash:' + p.slot; }
     else { p.layout = v.canonical; p.layoutHash = v.hash; p.parsed = v.layout; }
-    if (this.P.every(q => q.layout || q.st === 'left')) this._consensus();
+    if (this.P.every(q => q.layout || q.st === 'left' || q.bot)) this._consensus();
   }
   _consensus() {
-    const live = this.P.filter(q => q.st !== 'left');
-    if (live.length < 2) return this.cancel('player_left');
+    const live = this.P.filter(q => q.st !== 'left' && !q.bot); // (CPU players build nothing: their game's stage is theirs)
+    if (live.length < 1 || this.P.filter(q => q.st !== 'left').length < 2) return this.cancel('player_left');
     const ref = live[0], agree = live.every(q => q.layout === ref.layout && q.layoutHash === ref.layoutHash) && !ref.layoutHash.startsWith('!');
     if (!agree) {
       // with three or more players a majority shows who is out of step; flag them
@@ -143,14 +148,16 @@ export class Match {
 
   // ------------------------------------------------------------------------------------------------ connections
   onDisconnect(p) {
+    for (const b of this._botsOf(p)) this.onDisconnect(b); // (v404: its CPU players go with it)
     if (p.st === 'left') return;
-    p.connected = false; p.sess = null; p.awaySince = nowMs();
+    p.connected = false; if (!p.bot) p.sess = null; p.awaySince = nowMs(); // (a CPU player keeps its connection: it is its owner's, and comes back with it)
     this._all({ t: 'playerAway', slot: p.slot });
     if (this.phase === 'ended') { p.rematch = false; this._rematchCheck(); }
   }
   // the same player came back with their token: pick up where they were
   onReconnect(p, sess) {
     const now = nowMs();
+    if (!p.bot) for (const b of this._botsOf(p)) if (b.st !== 'left') { b.connected = true; b.awaySince = 0; b.afk = false; b.lastStateAt = now; if (b.mover) { b.mover.last.t = now; b.mover.bucket = 0; } this._all({ t: 'playerBack', slot: b.slot }, p); } // (v404)
     p.sess = sess; p.connected = true; p.awaySince = 0; p.afk = false; p.lastStateAt = now;
     p.cid = nextCid(p.cid);
     if (p.mover) { p.mover.last.t = now; p.mover.bucket = 0; }
@@ -167,6 +174,7 @@ export class Match {
   }
   // leaving for good (quit, kicked, gone too long, AFK)
   forfeit(p, why) {
+    if (!p.bot) for (const b of this._botsOf(p)) if (b.st !== 'left' && this.phase !== 'closed') this.forfeit(b, why === 'kicked' ? 'left' : why); // (v404: its CPU players leave with it)
     if (p.st === 'left') return;
     const now = nowMs();
     this.log.info('player left', { player: p.id, why, phase: this.phase });
@@ -686,7 +694,7 @@ export class Match {
     for (const e of codec.decodeSnapshot(bytes).players) this.P[e.slot].track.push(e);
     this.stats.snapshots++;
     for (const p of this.P) {
-      if (!p.connected || !p.sess) continue;
+      if (!p.connected || !p.sess || p.bot) continue;
       const b = bytes.slice(); codec.setSnapshotAck(b, p.ackSeq);
       this.stats.bytes += b.byteLength; this.srv.sendBinary(p.sess, b, true);
     }
@@ -715,7 +723,7 @@ export class Match {
     this.log.info('match ended', { reason, winner, cov: sideCov.map(r2) });
     this.srv.onMatchEnd(this, ratings);
     // a player who left won't play again: no rematch to wait for
-    for (const p of this.P) if (p.st === 'left') p.rematch = false;
+    for (const p of this.P) if (p.st === 'left') p.rematch = false; else if (p.bot) p.rematch = true; // (v404: the CPUs are always up for another)
     this._rematchCheck();
   }
   // a side's versus score, as the game counts it: its coverage in whole percent, plus koPct for each knock-out

@@ -29,6 +29,15 @@ export function planFor(mode, n) {
   return null;
 }
 
+// (v404) a party playing against CPUs: how many CPU players fill a mode for a party of n (null: not with CPUs). Two
+// people at least (one alone plays the CPUs offline); in 2v2 a party of two is a team against two CPUs
+export function cpuPlan(mode, n) {
+  const need = { trio: 3, ffa: 4, duo: 4 }[mode]; if (!need || n < 2 || n >= need) return null;
+  return need - n;
+}
+// a game that drives CPU players online: it says so in its hello (client 'rm-404' or later)
+export function playsCpu(sess) { const v = /^rm-(\d{1,6})$/.exec(String((sess && sess.client) || '')); return !!v && +v[1] >= 404; }
+
 // a game that plays the 3-way online in a party: it says so in its hello (client 'rm-394' or later)
 export function playsTrio(sess) { const v = /^rm-(\d{1,6})$/.exec(String((sess && sess.client) || '')); return !!v && +v[1] >= 394; }
 
@@ -38,6 +47,7 @@ export class Party {
   constructor(code) {
     this.id = randomId('pt_', 10); this.code = code; this.leader = null; this.members = []; this.invites = []; this.kicked = new Set();
     // idle (in the lobby), starting (everyone ready: a moment to back out), queued (matchmaking) or match (playing)
+    this.cpu = false; // (v404) the leader's pick: play against CPUs (no search) when the mode has room for them
     this.state = 'idle'; this.startAt = 0; this.ticket = null; this.match = null; this.queuedAt = 0; this.createdAt = nowMs(); this.note = null;
   }
   get size() { return this.members.length; }
@@ -58,7 +68,8 @@ export class Party {
   // only when every member's game plays one online (v394 and later): an earlier game in the party doesn't see it
   modes(on) {
     const trio = this.members.every(m => m.trio);
-    return PARTY.MODES.map(mode => ({ mode, plan: planFor(mode, this.size), on: on.includes(mode) })).filter(x => x.plan && (x.mode !== 'trio' || trio));
+    const cpu = this.members.every(m => playsCpu(m.sess));
+    return PARTY.MODES.map(mode => ({ mode, plan: planFor(mode, this.size), on: on.includes(mode), cpus: cpu ? cpuPlan(mode, this.size) || undefined : undefined })).filter(x => x.plan && (x.mode !== 'trio' || trio));
   }
   // the mode the party plays: the leader's pick (v392: the leader picks the event, the others ready up and wait for it); with no
   // pick from the leader, the most votes among the modes it can play (a party with an earlier game in it), and nobody voted, the first
@@ -76,7 +87,7 @@ export class Party {
     return {
       t: 'party', id: this.id, code: this.code, leader: this.leader, max: PARTY.MAX, state: this.state,
       startAt: this.state === 'starting' ? Math.round(this.startAt) : undefined, queuedAt: this.state === 'queued' ? Math.round(this.queuedAt) : undefined,
-      mode: this.mode(on), modes: this.modes(on),
+      mode: this.mode(on), modes: this.modes(on), cpu: this.cpu || undefined,
       members: this.members.map(m => ({ id: m.id, sb: m.sb || undefined, name: m.name, look: m.look, ready: m.ready, vote: m.vote || null, busy: m.busy || undefined, away: m.away || undefined })),
       invites: this.liveInvites(now).map(i => ({ to: i.to, name: i.name, look: i.look, by: i.by, left: Math.max(0, Math.round(i.exp - now)) })),
     };

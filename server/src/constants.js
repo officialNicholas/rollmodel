@@ -46,6 +46,7 @@ export const DEFAULT_RULES = Object.freeze({
   partyGrace: 60, // a party keeps a dropped member's place this long (the app went to the background, or the signal dropped)
   partyModes: ['duel', 'trio', 'ffa', 'duo'], // the modes the game offers online, to parties and on its own (it shows the others as coming next)
   idlePing: 20, // seconds between the server's pings to a connection that is only waiting in the lobby (2 s in a match or a queue)
+  cpuFill: 25, // (v404) seconds in the queue before a match of two or more people starts with CPU players in the empty places (0: never)
   silentKick: 75, // a connection that has sent nothing at all for this long is gone (the game sends a heartbeat every 20 s)
   weather: true, items: true, zone: true,
   itemFirst: [6, 9], itemEvery: [9, 13], // seconds: when the first pick-up appears, and the gap between them

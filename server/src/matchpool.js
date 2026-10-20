@@ -127,8 +127,8 @@ export class MatchProxy {
   constructor(pool, W, { id, mode, sessions, rated, room, seed }) {
     this.pool = pool; this.W = W; this.id = id; this.mode = mode; this.rated = rated; this.room = room; this.seed = seed;
     this.phase = 'consensus'; this.results = null; this.layoutHash = null;
-    this.P = sessions.map((s, slot) => ({ slot, sess: s, id: s.player.id, side: MODE_INFO[mode].sides[slot], st: 'wait', place: 0, kos: 0, connected: !!s.ws, queuedAt: 0 }));
-    this.spec = { id, mode, rated, seed, room: room ? { code: room.code } : null, players: sessions.map(s => ({ sid: s.id, connected: !!s.ws, player: { id: s.player.id, name: s.player.name, look: s.player.look, ratings: s.player.ratings } })) };
+    this.P = sessions.map((s, slot) => ({ slot, sess: s, id: s.player.id, side: MODE_INFO[mode].sides[slot], st: 'wait', place: 0, kos: 0, connected: !!s.ws, queuedAt: 0, bot: !!s.bot, owner: s.bot ? s.ownerId : null }));
+    this.spec = { id, mode, rated, seed, room: room ? { code: room.code } : null, players: sessions.map(s => ({ sid: s.id, connected: !!s.ws, bot: !!s.bot || undefined, ownerId: s.bot ? s.ownerId : undefined, sb: s.sb || undefined, player: { id: s.player.id, name: s.player.name, look: s.player.look, ratings: s.player.ratings } })) };
   }
   get active() { return this.phase !== 'closed'; }
   playerById(id) { return this.P.find(p => p.id === id) || null; }

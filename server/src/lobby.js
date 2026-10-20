@@ -108,12 +108,14 @@ export class Matchmaker {
   }
   sizes() { return Object.fromEntries([...this.q].map(([m, l]) => [m, l.reduce((n, t) => n + t.size, 0)])); }
   // returns [{ mode, tickets, sessions }] ready to start (sessions in slot order); those tickets leave the queue
-  form(now = nowMs()) {
+  // opts.cpuFill: seconds a ticket waits before the match it can make starts with CPU players in the empty places (v404:
+  // two people at least; opts.cpuOk(sess) says whose game drives CPUs)
+  form(now = nowMs(), opts = {}) {
     const out = [];
     for (const [mode, list] of this.q) {
       if (!list.length) continue;
       const need = MODE_INFO[mode].players;
-      if (list.reduce((n, t) => n + t.size, 0) < Math.min(need, 3)) continue;
+      if (list.reduce((n, t) => n + t.size, 0) < Math.min(need, 3) && !(opts.cpuFill > 0 && list.length && list.reduce((n, t) => n + t.size, 0) >= 2)) continue; // (v404: two can still play with CPUs)
       list.sort((a, b) => a.at - b.at);
       const used = new Set();
       for (const A of list) {
@@ -123,6 +125,18 @@ export class Matchmaker {
         if (!g) continue;
         for (const t of g.tickets) used.add(t);
         out.push({ mode, tickets: g.tickets, sessions: g.sessions });
+      }
+      if (opts.cpuFill > 0 && mode !== 'duel') for (const A of list) { // (v404) waited long enough: fill the empty places with CPUs
+        if (used.has(A) || waitOf(A, now) < opts.cpuFill || !A.sessions.every(opts.cpuOk || (() => false))) continue;
+        const group = [A]; let n = A.size;
+        for (const B of list) { if (n >= need - 1) break; if (B === A || used.has(B) || n + B.size > need - 1 || !B.sessions.every(opts.cpuOk) || !fitsAll(group, B, now)) continue; if (mode === 'duo' && (A.size > 1 || B.size > 1)) continue; /* (2v2: a party of two plays as a team; or people on their own) */ group.push(B); n += B.size; }
+        if (n < 2) continue;
+        for (const t of group) used.add(t);
+        // who plays on which side: in 2v2 a party of two is a team; two on their own each get a CPU teammate
+        let teams;
+        if (mode === 'duo') { const ses = group.flatMap(t => t.sessions); teams = group.length === 1 ? ses.map(s => ({ sess: s, team: 0 })) : ses.map((s, i) => ({ sess: s, team: i % 2 })); }
+        else teams = group.flatMap(t => t.sessions).map((s, i) => ({ sess: s, team: MODE_INFO[mode].sides[i] }));
+        out.push({ mode, tickets: group, sessions: group.flatMap(t => t.sessions), cpus: need - n, teams });
       }
       if (used.size) { this.q.set(mode, list.filter(t => !used.has(t))); for (const t of used) for (const s of t.sessions) if (s.queued === t) s.queued = null; }
       for (const t of used) if (t.party && t.party.ticket === t) t.party.ticket = null;

@@ -62,7 +62,7 @@ export function createHost(data, postBatch) {
     const m = op[0] === 'create' ? null : matches.get(op[1]);
     switch (op[0]) {
       case 'create': {
-        const s = op[1], match = new Match(srv, { id: s.id, mode: s.mode, rated: s.rated, room: s.room, seed: s.seed, sessions: s.players.map(p => stub(p.sid, p.player)) });
+        const s = op[1], match = new Match(srv, { id: s.id, mode: s.mode, rated: s.rated, room: s.room, seed: s.seed, sessions: s.players.map(p => Object.assign(stub(p.sid, p.player), { sb: p.sb || null }, p.bot ? { bot: true, ownerId: p.ownerId } : {})) });
         for (let i = 0; i < s.players.length; i++) if (!s.players[i].connected) { match.P[i].connected = false; match.P[i].sess = null; match.P[i].awaySince = nowMs(); }
         for (const p of s.players) bySid.set(p.sid, [match.id, p.player.id]);
       matches.set(match.id, match); match.start(); return;

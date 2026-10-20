@@ -24,7 +24,7 @@ const RMNetSDK = (() => {
   });
   const FLAG_NAMES = { air: FLAGS.AIR, rolling: FLAGS.ROLL, charging: FLAGS.CHARGE, slam: FLAGS.SLAM, hidden: FLAGS.HIDE, flung: FLAGS.FLUNG, dry: FLAGS.DRY, missile: FLAGS.MISSILE };
   // binary message types (first byte)
-  const MSG = Object.freeze({ STATE: 1, PING: 2, PONG: 3, SPING: 4, SPONG: 5, SNAP: 16 });
+  const MSG = Object.freeze({ STATE: 1, PING: 2, PONG: 3, SPING: 4, SPONG: 5, BSTATE: 6, SNAP: 16 }); // (BSTATE, v404: a CPU player's state, from the game that drives it: [6, slot] then a STATE)
   const STATE_BYTES = 34, PING_BYTES = 9, PONG_BYTES = 17, SNAP_HEAD = 14, SNAP_ENTRY = 19;
   const TAU = Math.PI * 2;
   const GRAV = 15, FALL_K = 1.45;
@@ -124,6 +124,11 @@ const RMNetSDK = (() => {
     d.setUint16(30, (s.flags || 0) & 0xffff, true); d.setUint8(32, u8((s.paint === undefined ? 1 : s.paint) * 255)); d.setUint8(33, u8((s.aim || 0) * 255));
     return b;
   }
+  // (v404) a CPU player's state, sent by the game that drives it: two bytes (BSTATE, its slot) in front of a state
+  function encodeBotState(slot, s, seq, t, corrAck) {
+    const inner = new Uint8Array(encodeState(s, seq, t, corrAck)), b = new Uint8Array(2 + STATE_BYTES);
+    b[0] = MSG.BSTATE; b[1] = slot & 0xff; b.set(inner, 2); return b.buffer;
+  }
   // returns null for anything malformed (wrong size, NaN, infinities)
   function decodeState(buf) {
     const d = view(buf); if (!d || d.byteLength !== STATE_BYTES || d.getUint8(0) !== MSG.STATE) return null;
@@ -169,7 +174,7 @@ const RMNetSDK = (() => {
     return { seq: d.getUint16(2, true), t, ack: d.getUint16(12, true), players };
   }
   const codec = {
-    encodeState, decodeState, encodeSnapshot, decodeSnapshot, setSnapshotAck, encodePong, decodePong,
+    encodeState, encodeBotState, decodeState, encodeSnapshot, decodeSnapshot, setSnapshotAck, encodePong, decodePong,
     encodePing: t => encodeTime(MSG.PING, t), decodePing: b => decodeTime(b, MSG.PING),
     encodeSPing: t => encodeTime(MSG.SPING, t), decodeSPing: b => decodeTime(b, MSG.SPING),
     encodeSPong: t => encodeTime(MSG.SPONG, t), decodeSPong: b => decodeTime(b, MSG.SPONG),
@@ -309,6 +314,7 @@ const RMNetSDK = (() => {
       this.ws = null; this._h = new Map(); this._closing = false; this._attempt = 0; this._retryTimer = null;
       this._clock = new ClockSync(); this._interp = new InterpDelay(opts.minInterp || 60, opts.maxInterp || 200);
       this._tracks = new Map(); this._seq = 0; this._nextSend = 0; this._corr = 0; this._ack = 0;
+      this._bots = new Map(); // (v404) the CPU players this game drives in the match: slot -> { seq, corr, next }
       this._req = 0; this._waits = new Map(); this._act = 0; this._acts = new Map(); this._pingTimer = null; this._pingsSent = 0;
       this._snapTimes = []; this._extrap = 0; this._samples = 0;
       this._st = { corrections: 0, snapshots: 0, rejected: 0, bytesIn: 0, bytesOut: 0 };
@@ -504,6 +510,27 @@ const RMNetSDK = (() => {
         this._acts.set(n, r => { clearTimeout(timer); resolve(r); });
       });
     }
+    // (v404) CPU players: in a match with CPUs, one game drives them (the roster's cpu: true, owner: that player's id).
+    // That game sends each one's state and moves as it does its own; the server referees them like anyone.
+    bots() { return [...this._bots.keys()]; }
+    sendBotState(slot, state, force = false, t) {
+      const b = this._bots.get(slot); if (!b) return false;
+      const now = this._now(); if (!force && now < b.next) return false;
+      b.next = b.next + this.sendInterval > now ? b.next + this.sendInterval : now + this.sendInterval;
+      let flags = state.flags;
+      if (flags === undefined) { flags = 0; for (const k in FLAG_NAMES) if (state[k]) flags |= FLAG_NAMES[k]; }
+      if (!fin(state.x) || !fin(state.y) || !fin(state.z)) return false;
+      b.seq = (b.seq + 1) & 0xffff;
+      return this._sendB(codec.encodeBotState(slot, Object.assign({}, state, { flags }), b.seq, fin(t) ? Math.min(t, this.serverNow()) : this.serverNow(), b.corr));
+    }
+    botAction(slot, type, data = {}) {
+      if (!this._bots.has(slot)) return Promise.resolve({ ok: false, reason: 'not_yours' });
+      return this.action(type, Object.assign({}, data, { bot: slot }));
+    }
+    _botsFrom(m) {
+      this._bots.clear();
+      for (const p of m.players || []) if (p.cpu && p.owner === this.id) this._bots.set(p.slot, { seq: 0, corr: 1, next: 0 });
+    }
     renderTime() { return this.serverNow() - this._interp.value(this._now()); }
     // id: a player id or a slot number. Returns the remote player's state at renderTime (default: now minus the
     // interpolation delay), or null if nothing has arrived yet.
@@ -583,6 +610,7 @@ const RMNetSDK = (() => {
       // A message carrying cid places our blob with authority (start, resume, correction, respawn, flat). From now on
       // our states carry that id, so the server can tell them from the ones we sent before we applied it.
       if (m.cid !== undefined && (m.slot === undefined || m.slot === this.slot)) this._corr = m.cid & 0xff;
+      else if (m.cid !== undefined && this._bots.has(m.slot)) this._bots.get(m.slot).corr = m.cid & 0xff; // (v404: one of our CPU players placed)
       switch (m.t) {
         case 'welcome':
           // another machine (or the same one restarted) counts time from its own start: the clock starts again from its pings
@@ -601,7 +629,7 @@ const RMNetSDK = (() => {
         case 'partyLeft': this.party = null; this._emit('partyLeft', m); break;
         case 'matchFound': case 'resume':
           this.match = { id: m.matchId, mode: m.mode, seed: m.seed, opts: m.opts, players: m.players, layoutHash: null, startAt: m.startAt || null, endAt: m.endAt || null };
-          this.slot = m.you; this._tracks.clear(); this._smooth.clear(); this._clock.locked = true;
+          this.slot = m.you; this._tracks.clear(); this._smooth.clear(); this._clock.locked = true; this._botsFrom(m);
           this._emit(m.t, m);
           break;
         case 'start':
@@ -614,11 +642,17 @@ const RMNetSDK = (() => {
           this._emit('actionResult', m);
           break;
         }
+        case 'bot': { // (v404) a message for one of the CPU players this game drives: its move's ruling, or a correction
+          const b = this._bots.get(m.slot), x = m.m; if (!b || !x || typeof x.t !== 'string') break;
+          if (x.t === 'ack') { const f = this._acts.get(x.n); if (f) { this._acts.delete(x.n); f({ ok: !!x.ok, reason: x.reason, a: x.a, data: x.data }); } }
+          else if (x.t === 'correction') { if (x.cid !== undefined) b.corr = x.cid & 0xff; this._emit('botCorrection', Object.assign({}, x, { slot: m.slot })); }
+          break;
+        }
         case 'cov': this._emit('coverage', { sides: m.s, colors: m.c }); break; // (short on the wire: four a second)
         case 'overtime': if (this.match) this.match.endAt = m.endAt; this._emit('overtime', m); break; // (versus: level at the buzzer, plays on once)
         case 'matchEnd': this._clock.locked = false; this._emit('matchEnd', m); break;
         case 'matchCancelled': case 'matchClosed':
-          this._emit(m.t, m); this.match = null; this.slot = -1; this._clock.locked = false; this._tracks.clear(); this._smooth.clear();
+          this._emit(m.t, m); this.match = null; this.slot = -1; this._clock.locked = false; this._tracks.clear(); this._smooth.clear(); this._bots.clear();
           break;
         default: this._emit(m.t, m);
       }
