@@ -123,12 +123,18 @@ matches, oldest tickets first, from tickets that are in reach of each other. A t
 (two tickets fit when they are within the reach of the one that has waited longer, so a newcomer is matched at once
 with someone who has been waiting):
 
-| Waited | Region | Round trip to the server | Rating |
-|---|---|---|---|
-| from 0 s | the same region | within 50 ms of each other | within 150 |
-| from 4 s | the same or a neighbouring region | within 100 ms | within 300 |
-| from 8 s | anywhere | within 200 ms | within 500 |
-| from 12 s | anywhere | any | any |
+| Waited | Region | Round trip to the server | Rank (v393) | Rating |
+|---|---|---|---|---|
+| from 0 s | the same region | within 50 ms of each other | within 2 | within 150 |
+| from 4 s | the same or a neighbouring region | within 100 ms | within 5 | within 300 |
+| from 8 s | anywhere | within 200 ms | within 10 | within 500 |
+| from 12 s | anywhere | any | any | any |
+
+- **The rank** is the player's level, the one the game shows (the `r` of the look the game sends in its hello; a
+  party's is its average). Among the tickets in reach, the closest region, then rank, round trip and rating come first
+  (one rank apart weighs as much as 25 ms). A game that doesn't send one isn't held back by it.
+- **Play online** (v393) offers Versus 1 v 1 (`duel`), Versus 3-way (`trio`: three on one canvas, most paint wins) and
+  the Showdown free-for-all (`ffa`). 2v2 (`duo`) is still queued by older games and by parties.
 
 - **The region** comes from the time zone the game reports in its hello (`America/Chicago` is North America, and so
   on: North and South America, Europe, Africa, the Middle East, Asia, Oceania; neighbours are regions whose players

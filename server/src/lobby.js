@@ -43,15 +43,16 @@ export function regionGap(a, b) {
 // ---------------------------------------------------------------------------------------------------------------
 // How the search widens. A ticket reaches further the longer it has waited (two tickets fit together when they are
 // within the reach of the one that has waited longer, so a newcomer is matched at once with someone who has been
-// waiting). It starts near (the same region, a similar round trip, a similar rating), takes in the neighbouring
-// regions after 4 s, the whole world after 8 s, and anyone at all after 12 s. Nobody waits long for a game.
+// waiting). It starts near (the same region, a similar round trip, a close rank and a similar rating), takes in the
+// neighbouring regions and ranks further off after 4 s, the whole world after 8 s, and anyone at all after 12 s.
+// Nobody waits long for a game. (The rank is the player's level, the one the game shows: its look's r.)
 // ---------------------------------------------------------------------------------------------------------------
 export const MM = Object.freeze({
   STAGES: Object.freeze([
-    Object.freeze({ at: 0, region: 0, rtt: 50, rating: 150 }),
-    Object.freeze({ at: 4, region: 1, rtt: 100, rating: 300 }),
-    Object.freeze({ at: 8, region: 2, rtt: 200, rating: 500 }),
-    Object.freeze({ at: 12, region: 2, rtt: Infinity, rating: Infinity }),
+    Object.freeze({ at: 0, region: 0, rtt: 50, rating: 150, rank: 2 }),
+    Object.freeze({ at: 4, region: 1, rtt: 100, rating: 300, rank: 5 }),
+    Object.freeze({ at: 8, region: 2, rtt: 200, rating: 500, rank: 10 }),
+    Object.freeze({ at: 12, region: 2, rtt: Infinity, rating: Infinity, rank: Infinity }),
   ]),
   SHORT_HANDED: 20, // seconds: a Showdown still a player short after this starts with three
 });
@@ -64,21 +65,27 @@ export function near(A, B, now = nowMs()) {
   const s = stageFor(Math.max(waitOf(A, now), waitOf(B, now)));
   if (regionGap(A, B) > s.region) return false;
   if (A.rtt > 0 && B.rtt > 0 && Math.abs(A.rtt - B.rtt) > s.rtt) return false;
+  if (A.lv && B.lv && Math.abs(A.lv - B.lv) > s.rank) return false;
   return Math.abs(A.r - B.r) <= s.rating;
 }
-// the better of two possible opponents: nearer first, then the closer round trip, then the closer rating
-const cost = (A, B) => regionGap(A, B) * 400 + (A.rtt > 0 && B.rtt > 0 ? Math.abs(A.rtt - B.rtt) : 0) + Math.abs(A.r - B.r) * 0.5;
+// the better of two possible opponents: nearer first, then the closer rank, round trip and rating (a rank apart weighs
+// as much as 25 ms, or 50 rating points)
+const lvGap = (A, B) => (A.lv && B.lv ? Math.abs(A.lv - B.lv) : 0);
+const cost = (A, B) => regionGap(A, B) * 400 + lvGap(A, B) * 25 + (A.rtt > 0 && B.rtt > 0 ? Math.abs(A.rtt - B.rtt) : 0) + Math.abs(A.r - B.r) * 0.5;
+// a player's rank, as their game shows it (their look's r); 0 when it doesn't say (an older game)
+export const rankOf = sess => { const r = sess && sess.player && sess.player.look && sess.player.look.r; return Number.isFinite(r) && r >= 1 ? Math.min(999, Math.floor(r)) : 0; };
 const fitsAll = (group, B, now) => group.every(A => near(A, B, now));
 
 let ticketSeq = 0;
 // a ticket: one player, or a party (it stays together: the same match, and in 2v2 the same team)
 export function makeTicket(sessions, mode, at = nowMs(), party = null) {
   const rt = sessions.map(s => (s.player && s.player.ratings && s.player.ratings[mode]) || DEFAULT_RATING);
-  const first = sessions[0], rtts = sessions.map(s => s.rtt || 0);
+  const first = sessions[0], rtts = sessions.map(s => s.rtt || 0), lvs = sessions.map(rankOf).filter(x => x > 0);
   return {
     id: ++ticketSeq, mode, sessions, sess: first, party, size: sessions.length, at, pids: sessions.map(s => s.player && s.player.id),
     r: rt.reduce((a, x) => a + x.r, 0) / rt.length, rd: rt.reduce((a, x) => a + x.rd, 0) / rt.length,
     region: first.region || '', tzo: Number.isFinite(first.tzo) ? first.tzo : null, rtt: Math.max(0, ...rtts),
+    lv: lvs.length ? lvs.reduce((a, x) => a + x, 0) / lvs.length : 0, // (a party: its average rank)
   };
 }
 

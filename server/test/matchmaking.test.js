@@ -1,4 +1,4 @@
-// The search that widens: near first (the same region, a similar round trip, a similar rating), the neighbouring
+// The search that widens: near first (the same region, a similar round trip, a close rank, a similar rating), the neighbouring
 // regions after 4 s, the whole world after 8 s, anyone at all after 12 s. Parties stay together, and in 2v2 a party of
 // two is one team. These run on the matchmaker alone, with made-up players and clocks.
 import { test } from 'node:test';
@@ -9,7 +9,7 @@ import { MODE_INFO } from '../src/constants.js';
 let n = 0;
 const player = (o = {}) => {
   const r = o.r ?? 1500;
-  return { player: { id: 'p' + (++n), ratings: Object.fromEntries(['duel', 'trio', 'ffa', 'duo'].map(m => [m, { r, rd: 80 }])) }, region: o.region ?? '', tzo: o.tzo ?? null, rtt: o.rtt ?? 0, name: o.name };
+  return { player: { id: 'p' + (++n), look: o.lv ? { c: 'red', r: o.lv } : null, ratings: Object.fromEntries(['duel', 'trio', 'ffa', 'duo'].map(m => [m, { r, rd: 80 }])) }, region: o.region ?? '', tzo: o.tzo ?? null, rtt: o.rtt ?? 0, name: o.name };
 };
 const names = g => g.sessions.map(s => s.name);
 // the first moment (in 250 ms steps, as the server runs it) the queue forms a match
@@ -58,6 +58,26 @@ test('ratings: close first, wider with time, anyone after 12 s', () => {
   const g = mm.form(1250); assert.equal(g.length, 1); assert.deepEqual(names(g[0]).sort(), ['a', 'c']);
   mm.add(player({ name: 'd', r: 1500 }), 'duel', 1500);
   const m = firstMatch(mm, 1500); assert.ok(m.t >= 12000 && m.t <= 12250, 'after 12 s anyone will do: ' + m.t);
+});
+
+test('ranks: close first (2 apart), further with time, anyone after 12 s; the closest rank is picked', () => {
+  assert.deepEqual([0, 4, 8, 12].map(w => stageFor(w).rank), [2, 5, 10, Infinity]);
+  const mm = new Matchmaker();
+  mm.add(player({ name: 'r5', lv: 5 }), 'duel', 0); mm.add(player({ name: 'r30', lv: 30 }), 'duel', 0);
+  assert.equal(mm.form(1000).length, 0, 'rank 5 and rank 30: not at first');
+  mm.add(player({ name: 'r9', lv: 9 }), 'duel', 1000); assert.equal(mm.form(1250).length, 0, 'four ranks apart: not yet');
+  const g = firstMatch(mm, 1250); assert.ok(g.t >= 4000 && g.t <= 4250, 'within five ranks after 4 s: ' + g.t); assert.deepEqual(names(g.g[0]).sort(), ['r5', 'r9']);
+  const m = firstMatch(mm, g.t); assert.equal(m, null, 'rank 30 alone: nobody to play');
+  mm.add(player({ name: 'r12', lv: 12 }), 'duel', 6000);
+  const w = firstMatch(mm, 6000); assert.ok(w.t >= 12000 && w.t <= 12250, 'rank 30 meets rank 12 once anyone will do: ' + w.t);
+  // a choice of rivals: the closer rank first, whoever came first
+  const mm2 = new Matchmaker();
+  mm2.add(player({ name: 'me', lv: 10 }), 'trio', 0); mm2.add(player({ name: 'far', lv: 12 }), 'trio', 100); mm2.add(player({ name: 'mid', lv: 11 }), 'trio', 200); mm2.add(player({ name: 'near', lv: 10 }), 'trio', 300);
+  const t = mm2.form(400); assert.equal(t.length, 1); assert.equal(t[0].sessions.length, 3, 'a 3-way: three players');
+  assert.deepEqual(names(t[0]).sort(), ['me', 'mid', 'near'], 'the two closest ranks, though rank 12 came sooner');
+  // an older game that doesn't say its rank: its rank holds nothing back
+  const mm3 = new Matchmaker(); mm3.add(player({ name: 'old' }), 'duel', 0); mm3.add(player({ name: 'r40', lv: 40 }), 'duel', 0);
+  assert.equal(mm3.form(0).length, 1);
 });
 
 test('a round trip far from the others waits a little, but not long', () => {
