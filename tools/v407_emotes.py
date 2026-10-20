@@ -23,7 +23,7 @@ const EMOTE_ITEMS = [{ id: 'slam', name: 'Slam', slot: 'emote', cat: 'emote', st
   { id: 'hearts', name: 'Lovestruck', slot: 'emote', cat: 'emote', stage: 'blank', desc: 'A few happy bounces, a big wave and hearts' },
   { id: 'flip', name: 'Backflip', slot: 'emote', cat: 'emote', stage: 'blank', desc: 'Springs up, tucks into a backflip and lands hard' },
   { id: 'spin', name: 'Showstopper', slot: 'emote', cat: 'emote', stage: 'blank', desc: 'Spins up fast and stops dead, a hand held high' }];
-const emOk = v => typeof v === 'string' && EMOTE_ITEMS.some(w => w.id === v) ? v : null;
+const emoteOk = v => typeof v === 'string' && EMOTE_ITEMS.some(w => w.id === v) ? v : null;
 """
 
 AFTER_BOUGHT = r"""
@@ -71,7 +71,7 @@ function emHearts(x, y, n, sc) {
     h.style.setProperty('--dx', Math.round(a * 46 + (Math.random() - 0.5) * 16) + 'px'); h.style.setProperty('--dy', Math.round(-70 - Math.random() * 40) + 'px'); h.style.setProperty('--r', Math.round(a * 16) + 'deg'); h.style.setProperty('--s', String(sc || 1)); h.style.animationDelay = (i * 0.07).toFixed(2) + 's';
     document.body.appendChild(h); setTimeout(() => h.remove(), 1900); } }
 // which emote a winner does: its own (yours, or another player's as their look says), else a CPU's pick for this match
-function vicEmOf(D) { const w = lookOf(D), v = w && emOk(w.emote); if (v) return v; if (D === P || NM) return 'slam'; return ['slam', 'slam', 'flip', 'spin', 'hearts', 'slam'][((runId || 0) * 7 + D.team * 5) % 6]; }
+function vicEmOf(D) { const w = lookOf(D), v = w && emoteOk(w.emote); if (v) return v; if (D === P || NM) return 'slam'; return ['slam', 'slam', 'flip', 'spin', 'hearts', 'slam'][((runId || 0) * 7 + D.team * 5) % 6]; }
 // the victory's cues: a whoosh, a bop, hearts round its head
 function emVicCue(k, n) { if (!vic) return; if (k === 'whoosh') AU.whoosh(); else if (k === 'bop') AU.pop(); else if (k === 'heart') { const D = vic.feat[0]; vicV.set(D.x, D.y + 0.72, D.z).project(vicCam); emHearts((vicV.x * 0.5 + 0.5) * viewW, (0.5 - vicV.y * 0.5) * viewH, n || 2, 1); if (n) return; AU.pop(); } }
 // the icons on their tags
@@ -122,7 +122,7 @@ def apply(s):
     s = rep(s, "stage: 'halloween', gift: 1 }], ITEMS = WEAR.concat(EXTRA);", "stage: 'halloween', gift: 1 }].concat(EMOTE_ITEMS), ITEMS = WEAR.concat(EXTRA);")
     s = rep(s, "const bought = id => BOUGHT.has(id);\n", "const bought = id => BOUGHT.has(id);" + AFTER_BOUGHT)
     s = rep(s, "iris: ['brown', 'blue', 'green', 'violet', 'gold'].includes(l.iris) ? l.iris : 'brown' }; })();",
-               "iris: ['brown', 'blue', 'green', 'violet', 'gold'].includes(l.iris) ? l.iris : 'brown', emote: (v => v && (v === 'slam' || BOUGHT.has(v)) ? v : null)(emOk(l.emote)) }; })();")
+               "iris: ['brown', 'blue', 'green', 'violet', 'gold'].includes(l.iris) ? l.iris : 'brown', emote: (v => v && (v === 'slam' || BOUGHT.has(v)) ? v : null)(emoteOk(l.emote)) }; })();")
     # the locker and the shop
     s = rep(s, "const lkWorn = w => w.slot === 'eyes' ? myLook.eyes === w.id : myLook[w.slot] === w.id;",
                "const lkWorn = w => w.slot === 'eyes' ? myLook.eyes === w.id : w.slot === 'emote' ? (myLook.emote || 'slam') === w.id : myLook[w.slot] === w.id;")
@@ -178,7 +178,7 @@ def apply(s):
     # online: your emote goes out with your look; theirs comes in with theirs
     s = rep(s, "const frLook = () => ({ c: colorId, e: myLook.eyes, w: frWear() });", "const frLook = () => ({ c: colorId, e: myLook.eyes, w: frWear(), m: myLook.emote || undefined }); // (v407: m, your emote)")
     s = rep(s, "JSON.stringify(frWear());", "JSON.stringify(frWear()) + '|' + (myLook.emote || '');")
-    s = rep(s, "NM.ranks.set(D, clamp(L.r | 0, 1, 999) || 1);", "Lk.wearing.emote = emOk(L.m); NM.ranks.set(D, clamp(L.r | 0, 1, 999) || 1);")
+    s = rep(s, "NM.ranks.set(D, clamp(L.r | 0, 1, 999) || 1);", "Lk.wearing.emote = emoteOk(L.m); NM.ranks.set(D, clamp(L.r | 0, 1, 999) || 1);")
     s = rep(s, "@media (prefers-reduced-motion:reduce){#repRow .jackpot,#repRow .jackpot .jcoin{animation:none}}\n",
                "@media (prefers-reduced-motion:reduce){#repRow .jackpot,#repRow .jackpot .jcoin{animation:none}}\n" + CSS)
     return s
