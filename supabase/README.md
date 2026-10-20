@@ -1,7 +1,7 @@
 # Roll Model on Supabase
 
 Usernames and accounts (v306), progress kept with an account (v312), friends (codes, requests, who's online, blocks,
-invites) and the Friends leaderboard live in your Supabase project. The game talks to it directly from the phone over Supabase's REST API. The database only answers
+party invites, v391) and the Friends leaderboard live in your Supabase project. The game talks to it directly from the phone over Supabase's REST API. The database only answers
 through a set of functions (`rm_*`) that check who's asking, so a player can never read or change anything they
 shouldn't.
 
@@ -25,7 +25,11 @@ shouldn't.
    5. `supabase/migrations/20261019000000_email.sql` (v355: players' emails, the welcome email, Forgot password and the
       reset link, the "password changed" notice. Sending them needs three more things, at the top of that file: pg_net
       turned on, your Resend key in the Vault, and your website and addresses. Until then, emails are saved but not sent)
-   6. `supabase/migrations/20261020010000_first_name.sql` (v391: an account asks for a first name only; the last names
+   6. `supabase/migrations/20261020000000_parties.sql` (v391: invites to a party, the inbox that shows them, and each
+      iPhone's token for notifications while the game is closed. Until it's run, the + spots in the lobby say invites
+      need a database update, and older games carry on as before. The notifications also need the APNs key on the game
+      server: `docs/party-v391.md`)
+   7. `supabase/migrations/20261020010000_first_name.sql` (v391: an account asks for a first name only; the last names
       kept so far are cleared. Run it before v391 of the game is out: until it's run, making an account in v391 fails)
 4. **Send me two values.** Dashboard > Project Settings > API Keys (or Data API):
    - the **Project URL** (`https://<something>.supabase.co`);
@@ -46,7 +50,8 @@ the Friends screen says friends are on the way.
 | `friend_requests` | Pending requests (deleted once accepted, declined or cancelled) |
 | `friendships` | One row per pair of friends |
 | `blocks` | Who blocked whom |
-| `invites` | Invites to a private duel (room code from the game server, 2 minutes to answer) |
+| `invites` | Invites to a party (its join code from the game server; the v306 to v390 games invited to a duel room), 2 minutes to answer, and whether its notification has gone |
+| `push_tokens` | Since v391, one row per iPhone that said yes to notifications: its APNs device token, whether it's an Xcode build, and the account signed in on it now. Nobody reads it but `rm_invite_push` |
 | `trial_scores` | Each player's best Time trial run per canvas per week |
 | `rate_events` | Recent actions, for the rate limits |
 | `rm_installs` | Since v354, one row per install of the game: a random id (no name, no device id), platform and versions, when it was first and last heard from, its rank, dabs and tutorial step now, the tutorial steps and modes it has reached, and running totals. Linked to the player while they're signed in; unlinked when they delete their account |
@@ -73,11 +78,14 @@ through these functions:
 | `rm_account_save(first, last, birthday, terms)`, `rm_account()` | The account details (13 or older; the game passes the birth year as its last day, so a player counts as 13 only once that's certain), and reading your own back |
 | `rm_save_put(data)`, `rm_save_get()` | Keeps a copy of your progress (accounts only), and reads it back. A copy with less rank than the one kept is refused (`behind`), so a phone left behind can't wipe out progress made on another |
 | `rm_delete_me()` | Deletes the player and everything of theirs (saved progress too), and frees the username |
-| `rm_inbox(status)` | Everything the Friends screen shows, in one call; also marks you online (`lobby` / `match` / `offline`) |
-| `rm_add_friend(code)` | Sends a request, or makes you friends at once if they'd already asked you |
+| `rm_inbox2(status)` | Everything the Friends screen and the inbox show, in one call, with party invites; also marks you online (`lobby` / `match` / `offline`) |
+| `rm_inbox(status)` | The same for the v306 to v390 games, which only know duel invites (party invites are left out) |
+| `rm_add_friend(code)` | Sends a request, or makes you friends at once if they'd already asked you; says who it went to, so the game can nudge their game |
 | `rm_answer_request(from, accept)`, `rm_cancel_request(to)`, `rm_remove_friend(other)` | Requests and friends |
 | `rm_block(other)`, `rm_unblock(other)` | A block removes the friendship and any requests, and silently drops their requests later |
-| `rm_invite(to, room, mode)`, `rm_answer_invite(id, accept)`, `rm_cancel_invite(id)` | Invites to a private duel |
+| `rm_invite(to, code, mode)`, `rm_answer_invite(id, accept)`, `rm_cancel_invite(id)` | Invites to a party (`mode` 'party', the party's 8-character code); friends only, never across a block |
+| `rm_push_token(token, env)`, `rm_push_forget(token)` | This iPhone's notification token, for the player signed in (a token belongs to one account at a time; 5 phones each), or taken away (logging out) |
+| `rm_invite_push(id)` | The game server, as the player who sent the invite: one open party invite's notification (who it's to, the sender's username, their phones), once per invite |
 | `rm_trial(stage, pct)`, `rm_friends_board(stage, week)` | Time trial runs, and the board of you and your friends |
 | `rm_track(iid, meta, events)` | Anyone: the game's play stats, in batches (about once a minute). 120 calls an hour per install, 60 events per call, every value checked and clamped. A signed-in player's install is linked to them by their token, never by what the game sends |
 | `rm_config()` | Anyone: the live prices |
@@ -104,15 +112,17 @@ Limits:
 - 30 friend-code tries an hour (wrong codes count, so codes can't be guessed);
 - 50 pending requests out, 100 in;
 - 200 friends;
-- 40 invites an hour;
+- 40 invites an hour (an invite lasts 2 minutes);
+- 30 notification token updates an hour;
 - 120 Time trial runs an hour;
 - 240 progress saves an hour, each up to 200 kB;
 - 120 batches of play stats an hour per install, and at most 600 new installs a minute for the whole game.
 
 ## Testing it without the real project
 
-`supabase/tests/` runs the migration on a plain local Postgres, with `local_stub.sql` standing in for what Supabase
-provides (its roles, `auth.users`, `auth.uid()`). Never run the stub on the real project.
+`supabase/tests/` runs the migrations on a plain local Postgres, with `local_stub.sql` standing in for what Supabase
+provides (its roles, `auth.users`, `auth.uid()`). Never run the stub on the real project. Load the stub, then the
+migrations in order, into an empty database first (`psql -f`).
 
 ```
 cd supabase/tests && npm install

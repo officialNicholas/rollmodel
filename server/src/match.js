@@ -173,7 +173,9 @@ export class Match {
     if (this.phase === 'consensus' || this.phase === 'countdown') { p.st = 'left'; return this.cancel('player_left'); }
     if (this.phase === 'ended' || this.phase === 'closed') { p.rematch = false; p.st = 'left'; this._rematchCheck(); return; }
     this._freePot(p);
-    p.st = 'left'; p.pound = null; p.elimAt = now; p.hearts = 0;
+    // (out of a Showdown already, watching: their place stands, from when they went out)
+    p.outLeft = p.st === 'out'; if (!p.outLeft) p.elimAt = now;
+    p.st = 'left'; p.pound = null; p.hearts = 0;
     if (this.items) this.items.onKo(p);
     this._all({ t: 'playerLeft', slot: p.slot, reason: why });
     const sidesLeft = new Set(this.P.filter(q => q.st !== 'left').map(q => q.side));
@@ -568,7 +570,7 @@ export class Match {
     p.st = 'hide'; p.pot = best.i; p.hiddenAt = now; p.immuneUntil = now + G.SPAWN_SAFE * 1000; p.spawnImm = true; p.paint = Math.max(p.paint, 0.5);
     p.cid = nextCid(p.cid); p.mover.reset({ x: best.x, y: best.y, z: best.z, yaw: p.latest.yaw }, now);
     p.vhist = [{ tc: now, tau: Math.round(now), x: best.x, y: best.y, z: best.z, grounded: true }];
-    p.flingOpen = false; p.pound = null; p.flatUntil = 0; p.lastMoveAt = now; p.lastHit = null;
+    p.flingOpen = false; p.pound = null; p.flatUntil = 0; p.lastMoveAt = now; p.lastHit = null; if (p.lastStateAt >= p.koAt - 1000) p.lastStateAt = Math.max(p.lastStateAt, now); // (time knocked out isn't time away for someone who was playing when it happened; a game that had already stopped sending stays quiet)
     p.latest = { tau: Math.max(p.lastTau + 1, Math.round(now)), tc: now, x: best.x, y: best.y, z: best.z, yaw: p.latest.yaw, spd: 0, vy: 0, flags: 0, aim: 0 }; p.lastTau = p.latest.tau;
     for (const q of this.P) this._send(q, { t: 'respawn', slot: p.slot, pot: best.i, x: best.x, y: best.y, z: best.z, immuneUntil: p.immuneUntil, cid: q === p ? p.cid : undefined });
     this._all({ t: 'pot', i: best.i, occ: p.slot, up: true, ink: r2(best.ink) });
@@ -714,10 +716,10 @@ export class Match {
     const sc = live.map(s => this._score(s, sideCov)).sort((a, b) => b - a); return sc[0] === sc[1];
   }
   // 1 is best. Versus: by score (side coverage, plus the knock-out bonus). Showdown: whoever is still in (most hearts, then knock-outs), then the order
-  // sides went out. Anyone who left is last.
+  // sides went out. Anyone who left is last (in a Showdown, unless they were already out: then where they went out).
   _places(sideCov) {
     const sides = [...new Set(this.info.sides)], of = s => this.P.filter(p => p.side === s);
-    const gone = s => of(s).every(p => p.st === 'left');
+    const gone = s => of(s).every(p => p.st === 'left' && !p.outLeft);
     let order;
     if (!this.showdown) {
       order = sides.filter(s => !gone(s)).map(s => ({ s, k: [this._score(s, sideCov)] }));
@@ -731,7 +733,7 @@ export class Match {
     order.forEach((o, i) => { if (!prev || prev.k.join() !== o.k.join()) place = i + 1; placeOf.set(o.s, place); prev = o; });
     const last = sides.length;
     const out = new Map();
-    for (const p of this.P) out.set(p.slot, p.st === 'left' ? last : placeOf.get(p.side) || last);
+    for (const p of this.P) out.set(p.slot, p.st === 'left' && !p.outLeft ? last : placeOf.get(p.side) || last);
     return out;
   }
   onRematch(p, vote) {

@@ -7,13 +7,21 @@ import { createLogger } from './log.js';
 import { MemoryStore, JsonFileStore } from './store.js';
 import { sanitizeName, sanitizeLook } from './names.js';
 import { connectionLimits, noteDrop } from './ratelimit.js';
-import { Matchmaker, Room, uniqueCode } from './lobby.js';
+import { Matchmaker, Room, uniqueCode, makeTicket, regionOf } from './lobby.js';
+import { Party, PARTY, planFor, newPartyCode } from './party.js';
 import { Match } from './match.js';
-import { nowMs, Window, summarize } from './util.js';
+import { Pusher } from './push.js';
+import { nowMs, Window, summarize, fin } from './util.js';
 import { performance } from 'node:perf_hooks';
 
 const CLOSE = { NORMAL: 1000, AWAY: 1001, VERSION: 4000, REPLACED: 4001, KICKED: 4003, HELLO: 4004, POLICY: 4008 };
-const JSON_TYPES = new Set(['hello', 'queue', 'cancelQueue', 'createRoom', 'joinRoom', 'leaveRoom', 'ready', 'setName', 'layout', 'act', 'rematch', 'leaveMatch', 'bye']);
+const JSON_TYPES = new Set(['hello', 'queue', 'cancelQueue', 'createRoom', 'joinRoom', 'leaveRoom', 'ready', 'setName', 'layout', 'act', 'rematch', 'leaveMatch', 'bye',
+  'partyCreate', 'partyJoin', 'partyLeave', 'partyKick', 'partyReady', 'partyVote', 'partyLook', 'partyBusy', 'partyReact', 'partyInvite', 'partyDecline', 'poke']);
+// what this server offers beyond the first protocol (the game checks before it shows parties)
+const CAPS = ['party'];
+// a Supabase user id (the game's friends live there): the address of an invite or a poke
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const POKES = new Set(['invite', 'request', 'answer']);
 
 // a room member: who they are, kept on the connection (a dropped one keeps its place for a while)
 const roomMember = sess => Object.assign(sess, { roomPid: sess.player.id, roomName: sess.player.name, roomLook: sess.player.look });
@@ -27,6 +35,10 @@ export class GameServer {
     this.store = opts.store || (opts.dataFile && opts.dataFile !== 'memory' ? new JsonFileStore(opts.dataFile) : new MemoryStore());
     this.sessions = new Set(); this.online = new Map(); this.inMatch = new Map(); this.matches = new Set(); this.rooms = new Map();
     this.roomAway = new Map(); // player id -> the dropped connection whose place in a room is being kept
+    this.parties = new Map(); // join code -> party
+    this.partyAway = new Map(); // player id -> the party keeping a dropped member's place
+    this.bySb = new Map(); // Supabase user id -> the connections of that player (for invites and pokes)
+    this.push = opts.pusher || new Pusher(opts.push || null, { log: this.log }); // (v391: an invite to a friend whose game is closed, as a notification)
     this.mm = new Matchmaker(); this.perIp = new Map(); this.connSeq = 0; this.closing = false;
     this.stats = { connections: 0, messages: 0, violations: 0, kicked: 0, matchesStarted: 0, matchesEnded: 0, matchesCancelled: 0, bytesOut: 0, framesOut: 0 };
     this.tickTimes = new Window(8192); this.tickCpu = new Window(8192); this.startedAt = nowMs(); this._timer = null; this._nextTick = 0; this._lastMM = 0; this._lastPing = 0;
@@ -41,6 +53,7 @@ export class GameServer {
     this.port = this.http.address().port;
     this._nextTick = nowMs(); this._loop();
     this.log.info('listening', { port: this.port, host, proto: PROTOCOL_VERSION });
+    this.push.announce();
     return this;
   }
 
@@ -67,7 +80,7 @@ export class GameServer {
     const mem = process.memoryUsage();
     return {
       ok: !this.closing, proto: PROTOCOL_VERSION, uptime: Math.round((nowMs() - this.startedAt) / 1000),
-      connections: this.sessions.size, players: this.online.size, matches: this.matches.size, rooms: this.rooms.size, queues: this.mm.sizes(),
+      connections: this.sessions.size, players: this.online.size, matches: this.matches.size, rooms: this.rooms.size, parties: this.parties.size, queues: this.mm.sizes(),
       tick: { p50: +t.p50.toFixed(3), p99: +t.p99.toFixed(3), max: +t.max.toFixed(3), n: t.n, cpuP50: +tc.p50.toFixed(3), cpuP99: +tc.p99.toFixed(3) },
       elu: +elu.utilization.toFixed(3), cpu: +cpu.toFixed(3),
       memMB: Math.round(mem.rss / 1048576), stats: this.stats,
@@ -93,7 +106,7 @@ export class GameServer {
   // ------------------------------------------------------------------------------------------------ sessions
   _connected(ws, req, ip) {
     if (req.socket.setNoDelay) req.socket.setNoDelay(true); // no Nagle delay: small packets go out at once
-    const sess = { id: ++this.connSeq, ws, ip, player: null, lim: connectionLimits(), queued: null, room: null, match: null, slot: -1, bad: 0, rtt: 0, at: nowMs(), lastMsg: nowMs(), bytesOut: 0, closed: false };
+    const sess = { id: ++this.connSeq, ws, ip, player: null, lim: connectionLimits(), queued: null, room: null, party: null, match: null, slot: -1, bad: 0, rtt: 0, at: nowMs(), lastMsg: nowMs(), lastPing: 0, bytesOut: 0, closed: false, sb: null, region: '', tzo: null };
     this.sessions.add(sess); this.perIp.set(ip, (this.perIp.get(ip) || 0) + 1); this.stats.connections++;
     sess.helloTimer = setTimeout(() => { if (!sess.player) this._close(sess, CLOSE.HELLO, 'hello timeout'); }, LIMITS.helloTimeoutMs);
     ws.on('message', (data, isBinary) => this._message(sess, data, isBinary));
@@ -106,9 +119,11 @@ export class GameServer {
     const n = (this.perIp.get(sess.ip) || 1) - 1; if (n > 0) this.perIp.set(sess.ip, n); else this.perIp.delete(sess.ip);
     if (!sess.player) return;
     if (this.online.get(sess.player.id) === sess) this.online.delete(sess.player.id);
+    this._sbOff(sess);
     this.mm.remove(sess);
     if (sess.match) { const p = sess.match.playerById(sess.player.id); if (p && p.sess === sess) sess.match.onDisconnect(p); }
     else if (sess.room) this._roomAway(sess);
+    if (sess.party) this._partyAway(sess);
     sess.ws = null;
   }
   _close(sess, code, reason) { try { if (sess.ws) sess.ws.close(code, reason); } catch (e) { /* already closed */ } }
@@ -152,9 +167,10 @@ export class GameServer {
     const now = nowMs(); sess.lastMsg = now; this.stats.messages++;
     if (isBinary) return this._binary(sess, data, now);
     const len = data.length;
-    // only a layout may be big, and only while that player's match is collecting layouts
-    const layoutTime = sess.match && sess.match.phase === 'consensus';
-    if (len > (layoutTime ? LIMITS.maxLayoutJson : LIMITS.maxJson)) { if (noteDrop(sess.lim, now)) return this.kick(sess, 'flood'); return this._bad(sess, 'message too large'); }
+    // only a layout may be big, and only while that player's match is collecting layouts; an invite carries the inviter's
+    // Supabase token for its notification, so it may be a little bigger than the rest
+    const layoutTime = sess.match && sess.match.phase === 'consensus', invite = len > LIMITS.maxJson && len <= LIMITS.maxInviteJson && data.toString('utf8', 0, 20).startsWith('{"t":"partyInvite"');
+    if (len > (layoutTime ? LIMITS.maxLayoutJson : invite ? LIMITS.maxInviteJson : LIMITS.maxJson)) { if (noteDrop(sess.lim, now)) return this.kick(sess, 'flood'); return this._bad(sess, 'message too large'); }
     if (!sess.lim.json.take(1, now)) { if (noteDrop(sess.lim, now)) this.kick(sess, 'flood'); return; }
     let m; try { m = JSON.parse(data.toString('utf8')); } catch (e) { return this._bad(sess, 'not JSON'); }
     if (!m || typeof m !== 'object' || Array.isArray(m) || typeof m.t !== 'string') return this._bad(sess, 'no type');
@@ -186,7 +202,8 @@ export class GameServer {
     }
     if (type === MSG.SPONG) {
       if (!sess.lim.ping.take(1, now)) return;
-      const t = codec.decodeSPong(data); if (t === null || t > now || now - t > 30000) return this._bad(sess, 'bad pong');
+      const t = codec.decodeSPong(data); if (t === null || t > now) return this._bad(sess, 'bad pong');
+      if (now - t > 30000) return; // (a late answer, from a game that was held up for a while: not a bad message, just no use)
       const rtt = now - t; sess.rtt = sess.rtt ? sess.rtt + (rtt - sess.rtt) * 0.25 : rtt; return;
     }
     this._bad(sess, 'unknown binary type');
@@ -216,15 +233,21 @@ export class GameServer {
       if (old && old !== sess) {
         this.sendJson(old, { t: 'kicked', reason: 'replaced' });
         this.mm.remove(old); if (old.room) this._roomAway(old); // (its place in a room goes to the new connection, below)
+        if (old.party) this._partyAway(old); // (and its place in a party)
         if (old.match) { const op = old.match.playerById(player.id); if (op && op.sess === old) old.match.onDisconnect(op); old.match = null; }
-        this.online.delete(player.id); old.player = null; this._close(old, CLOSE.REPLACED, 'replaced');
+        this._sbOff(old); this.online.delete(player.id); old.player = null; this._close(old, CLOSE.REPLACED, 'replaced');
       }
       sess.player = player; this.online.set(player.id, sess); clearTimeout(sess.helloTimer);
+      // where the player is (for matchmaking: near first) and who they are among friends (for invites)
+      if (typeof m.zone === 'string') sess.region = regionOf(m.zone);
+      if (fin(m.tzo) && Math.abs(m.tzo) <= 900) sess.tzo = Math.round(m.tzo);
+      if (typeof m.sb === 'string' && UUID.test(m.sb)) this._sbOn(sess, m.sb);
       const match = this.inMatch.get(player.id);
       const ratings = Object.fromEntries(Object.entries(player.ratings).map(([k, v]) => [k, { r: Math.round(v.r), rd: Math.round(v.rd), games: v.games }]));
-      this.sendJson(sess, { t: 'welcome', id: player.id, token, name: player.name, nameChanged: nm.changed || undefined, ratings, serverTime: nowMs(), proto: PROTOCOL_VERSION, resume: match && match.active ? match.id : null, modes: Object.keys(MODE_INFO) });
+      this.sendJson(sess, { t: 'welcome', id: player.id, token, name: player.name, nameChanged: nm.changed || undefined, ratings, serverTime: nowMs(), proto: PROTOCOL_VERSION, resume: match && match.active ? match.id : null, modes: Object.keys(MODE_INFO), caps: CAPS, partyModes: this.partyModes() });
       if (match && match.active) { const p = match.playerById(player.id); if (p && p.st !== 'left') { sess.match = match; sess.slot = p.slot; match.onReconnect(p, sess); } else this.inMatch.delete(player.id); }
       if (!sess.match) this._roomBack(sess);
+      this._partyBack(sess);
     } catch (e) {
       this.log.error('hello failed', { err: e.stack || e.message }); this.sendError(sess, 'server', 'could not sign in', m.r, true); this._close(sess, CLOSE.KICKED, 'server error');
     } finally {
@@ -239,9 +262,10 @@ export class GameServer {
         if (!MODE_INFO[m.mode]) return this.sendError(sess, 'bad_mode', 'unknown mode', m.r);
         if (sess.match) return this.sendError(sess, 'busy', 'already in a match', m.r);
         if (sess.room) return this.sendError(sess, 'busy', 'leave the room first', m.r);
+        if (sess.party && sess.party.size > 1) return this.sendError(sess, 'busy', 'in a party: everyone readies up instead', m.r);
         this.mm.add(sess, m.mode); this.sendJson(sess, { t: 'queued', mode: m.mode, r: m.r }); return;
       }
-      case 'cancelQueue': this.mm.remove(sess); this.sendJson(sess, { t: 'queueLeft', r: m.r }); return;
+      case 'cancelQueue': this._unqueue(sess, 'cancelled'); this.sendJson(sess, { t: 'queueLeft', r: m.r }); return;
       case 'createRoom': {
         if (!MODE_INFO[m.mode]) return this.sendError(sess, 'bad_mode', 'unknown mode', m.r);
         if (sess.match || sess.room) return this.sendError(sess, 'busy', 'already in a match or room', m.r);
@@ -274,7 +298,10 @@ export class GameServer {
       }
       case 'setName': {
         const nm = sanitizeName(m.name);
-        this.store.update(sess.player.id, { name: nm.name }).then(p => { if (p) sess.player.name = p.name; this.sendJson(sess, { t: 'name', name: nm.name, changed: nm.changed, r: m.r }); });
+        this.store.update(sess.player.id, { name: nm.name }).then(p => {
+          if (p) sess.player.name = p.name; this.sendJson(sess, { t: 'name', name: nm.name, changed: nm.changed, r: m.r });
+          const me = p && sess.party && sess.party.member(sess.player.id); if (me) { me.name = p.name; this._partySend(sess.party); } // (the party sees it too)
+        });
         return;
       }
       case 'layout': {
@@ -297,8 +324,212 @@ export class GameServer {
         if (p && p.sess === sess) { p.sess = null; match.forfeit(p, 'quit'); }
         this.sendJson(sess, { t: 'matchClosed', matchId: match.id, reason: 'you_left', r: m.r }); return;
       }
-      case 'bye': this.mm.remove(sess); return;
+      case 'bye': this._unqueue(sess, 'left'); return;
+      default: return this._partyMsg(sess, m, now);
     }
+  }
+  // takes a player out of the queue; a party's ticket goes as a whole, and the rest of the party is told
+  _unqueue(sess, why) { const t = this.mm.remove(sess); if (t && t.party) this._partyIdle(t.party, why, sess); return t; }
+
+  // ------------------------------------------------------------------------------------------------ parties
+  // The modes parties may play on this server (rules.partyModes), from the ones a party can vote for.
+  partyModes() { const on = Array.isArray(this.rules.partyModes) ? this.rules.partyModes : PARTY.MODES; return PARTY.MODES.filter(x => on.includes(x)); }
+  _partyMsg(sess, m, now) {
+    const pid = sess.player.id, party = sess.party, me = party && party.member(pid);
+    const need = () => { if (!me) { this.sendError(sess, 'no_party', 'not in a party', m.r); return false; } return true; };
+    switch (m.t) {
+      case 'partyCreate': {
+        if (party) return this.sendJson(sess, Object.assign(party.view(this.partyModes()), { r: m.r })); // (already in one)
+        if (sess.match || sess.room) return this.sendError(sess, 'busy', 'in a match or a room', m.r);
+        const p = new Party(newPartyCode(this.parties)); this.parties.set(p.code, p);
+        p.add(sess); sess.party = p;
+        this.log.info('party made', { party: p.id, player: pid });
+        return this.sendJson(sess, Object.assign(p.view(this.partyModes()), { r: m.r }));
+      }
+      case 'partyJoin': {
+        const code = typeof m.code === 'string' ? m.code.toUpperCase().trim() : '';
+        if (party && party.code === code) return this.sendJson(sess, Object.assign(party.view(this.partyModes()), { r: m.r })); // (already in it)
+        const p = /^[A-Z0-9]{8}$/.test(code) ? this.parties.get(code) : null;
+        if (!p) { if (!sess.lim.join.take(1, now)) return this.sendError(sess, 'rate', 'too many tries; wait a little', m.r); return this.sendError(sess, 'not_found', 'that party has closed', m.r); }
+        if (p.kicked.has(pid) && !p.liveInvites().some(i => i.to === sess.sb)) return this.sendError(sess, 'not_found', 'that party has closed', m.r);
+        if (p.size >= PARTY.MAX) return this.sendError(sess, 'full', 'that party is full', m.r);
+        if (p.state !== 'idle' || p.members.some(x => x.sess && (x.sess.match || (x.sess.queued && x.sess.queued.party !== p)))) return this.sendError(sess, 'busy', p.state === 'match' ? 'they are playing a match' : 'they are finding a match', m.r);
+        if (sess.match) return this.sendError(sess, 'busy', 'already in a match', m.r);
+        if (party) this._partyRemove(party, pid, 'left');
+        this._unqueue(sess, 'left');
+        p.add(sess); sess.party = p; p.kicked.delete(pid);
+        if (sess.sb) p.invites = p.invites.filter(i => i.to !== sess.sb);
+        p.unready(); this.log.info('party joined', { party: p.id, player: pid, size: p.size });
+        return this._partySend(p, { r: m.r, to: sess });
+      }
+      case 'partyLeave': {
+        if (!party) return this.sendJson(sess, { t: 'partyLeft', reason: 'left', r: m.r });
+        this._partyRemove(party, pid, 'left', m.r); return;
+      }
+      case 'partyKick': {
+        if (!need()) return;
+        if (party.leader !== pid) return this.sendError(sess, 'not_leader', 'only the leader can remove someone', m.r);
+        const who = typeof m.id === 'string' && m.id !== pid ? party.member(m.id) : null;
+        if (!who) return this.sendError(sess, 'not_found', 'not in the party', m.r);
+        party.kicked.add(who.id); this._partyRemove(party, who.id, 'removed');
+        return this.sendJson(sess, { t: 'ack', a: 'partyKick', ok: true, r: m.r });
+      }
+      case 'partyReady': {
+        if (!need()) return;
+        const on = m.ready === true && !me.busy && !me.away;
+        if (me.ready === on) return this.sendJson(sess, Object.assign(party.view(this.partyModes()), { r: m.r }));
+        me.ready = on;
+        if (!on && party.state !== 'idle' && party.state !== 'match') return this._partyIdle(party, 'unready', sess, m.r);
+        this._partySend(party, { r: m.r, to: sess }); this._partyCheck(party); return;
+      }
+      case 'partyVote': {
+        if (!need()) return;
+        if (!PARTY.MODES.includes(m.mode)) return this.sendError(sess, 'bad_mode', 'unknown mode', m.r);
+        if (party.state === 'match') return this.sendError(sess, 'busy', 'playing', m.r);
+        const was = party.mode(this.partyModes()); me.vote = m.mode; me.ready = false;
+        if (party.mode(this.partyModes()) !== was) party.unready(); // (a different mode: everyone says ready again)
+        if (party.state !== 'idle') return this._partyIdle(party, 'vote', sess, m.r);
+        return this._partySend(party, { r: m.r, to: sess });
+      }
+      case 'partyLook': {
+        if (!need()) return;
+        const look = sanitizeLook(m.look); if (!look) return this.sendError(sess, 'bad_look', 'look too big or not an object', m.r);
+        me.look = look; sess.player.look = look; me.ready = false;
+        this.store.update(pid, { look }).catch(e => this.log.error('store look failed', { err: e.message }));
+        if (party.state === 'starting' || party.state === 'queued') return this._partyIdle(party, 'look', sess, m.r);
+        return this._partySend(party, { r: m.r, to: sess });
+      }
+      case 'partyBusy': {
+        if (!need()) return;
+        const what = m.what === null || m.what === undefined || m.what === '' ? null : PARTY.BUSY.includes(m.what) ? m.what : undefined;
+        if (what === undefined) return this.sendError(sess, 'bad_busy', 'unknown', m.r);
+        if (me.busy === what) return this.sendJson(sess, Object.assign(party.view(this.partyModes()), { r: m.r }));
+        me.busy = what; if (what) me.ready = false;
+        if (what && (party.state === 'starting' || party.state === 'queued')) return this._partyIdle(party, 'busy', sess, m.r);
+        return this._partySend(party, { r: m.r, to: sess });
+      }
+      case 'partyReact': {
+        if (!need()) return;
+        if (!PARTY.EMOTES.includes(m.e)) return this.sendError(sess, 'bad_emote', 'unknown reaction', m.r);
+        if (!sess.lim.react.take(1, now)) return; // (too quick: dropped quietly)
+        for (const x of party.members) if (x !== me && x.sess && !x.away) this.sendJson(x.sess, { t: 'react', id: pid, e: m.e });
+        return;
+      }
+      case 'partyInvite': {
+        if (!need()) return;
+        if (typeof m.to !== 'string' || !UUID.test(m.to)) return this.sendError(sess, 'bad_invite', 'who to?', m.r);
+        if (party.size >= PARTY.MAX) return this.sendError(sess, 'full', 'the party is full', m.r);
+        if (party.members.some(x => x.sess && x.sess.sb === m.to)) return this.sendError(sess, 'already', 'already in the party', m.r);
+        if (!sess.lim.poke.take(1, now)) return this.sendError(sess, 'rate', 'that is a lot of invites; wait a little', m.r);
+        const live = party.liveInvites(now).filter(i => i.to !== m.to);
+        if (live.length >= PARTY.MAX_INVITES) return this.sendError(sess, 'rate', 'too many invites waiting', m.r);
+        const nm = sanitizeName(m.name);
+        live.push({ to: m.to, name: nm.reason === 'missing' || nm.reason === 'empty' ? 'Friend' : nm.name, look: sanitizeLook(m.look), by: pid, exp: now + PARTY.INVITE_S * 1000 });
+        party.invites = live; // (someone the leader removed can come back only with an invite like this)
+        this._poke(m.to, 'invite', sess);
+        // (v391) a friend whose game isn't connected: a notification on their phone, when the invite came with what it needs
+        if (!this.bySb.has(m.to) && typeof m.inv === 'string' && typeof m.sbt === 'string') this.push.invite(m.inv, m.sbt);
+        return this._partySend(party, { r: m.r, to: sess });
+      }
+      case 'partyDecline': {
+        const code = typeof m.code === 'string' ? m.code.toUpperCase().trim() : '', p = this.parties.get(code);
+        if (!p || !sess.sb) return this.sendJson(sess, { t: 'ack', a: 'partyDecline', ok: true, r: m.r });
+        const n = p.invites.length; p.invites = p.invites.filter(i => i.to !== sess.sb);
+        if (p.invites.length !== n) { this._partySend(p); for (const x of p.members) if (x.sess && !x.away) this.sendJson(x.sess, { t: 'partyNote', k: 'declined', name: sess.player.name, to: sess.sb }); }
+        return this.sendJson(sess, { t: 'ack', a: 'partyDecline', ok: true, r: m.r });
+      }
+      case 'poke': {
+        if (typeof m.to !== 'string' || !UUID.test(m.to) || !POKES.has(m.k)) return this._bad(sess, 'bad poke');
+        if (!sess.lim.poke.take(1, now)) return;
+        this._poke(m.to, m.k, sess); return;
+      }
+    }
+  }
+  // a nudge to another player's game: "look at your inbox". It carries nothing else, so who a connection says it is
+  // (its Supabase id, from hello) only decides who gets nudged; what shows comes from the database, which checks
+  _poke(to, k, from) { const set = this.bySb.get(to); if (set) for (const s of set) if (s !== from && s.player) this.sendJson(s, { t: 'poke', k }); }
+  _sbOn(sess, id) { this._sbOff(sess); sess.sb = id; let set = this.bySb.get(id); if (!set) this.bySb.set(id, set = new Set()); set.add(sess); }
+  _sbOff(sess) { const set = sess.sb && this.bySb.get(sess.sb); if (set) { set.delete(sess); if (!set.size) this.bySb.delete(sess.sb); } }
+  // the party as it is now, to everyone in it (extra: { r, to } answers a request of that member)
+  _partySend(party, extra = {}) {
+    const v = party.view(this.partyModes());
+    for (const x of party.members) if (x.sess && !x.away) this.sendJson(x.sess, x.sess === extra.to && extra.r !== undefined ? Object.assign({}, v, { r: extra.r }) : v);
+  }
+  // back to the lobby from "starting" or the queue (someone un-readied, changed something, or dropped)
+  _partyIdle(party, why, by, r) {
+    const was = party.state;
+    if (party.ticket) this.mm.drop(party.ticket);
+    if (was === 'starting' || was === 'queued') { party.state = 'idle'; party.startAt = 0; party.queuedAt = 0; }
+    if (was === 'queued') for (const x of party.members) if (x.sess && !x.away) this.sendJson(x.sess, { t: 'queueLeft', party: true, why });
+    this._partySend(party, { r, to: by });
+  }
+  // everyone ready: a moment to back out, then the match (just the party) or the search (matchmaking fills the rest)
+  _partyCheck(party) {
+    if (party.state !== 'idle' || !party.allReady()) return;
+    const mode = party.mode(this.partyModes()); if (!mode || !planFor(mode, party.size)) return;
+    party.state = 'starting'; party.startAt = nowMs() + PARTY.START_MS;
+    this._partySend(party);
+  }
+  _partyGo(party, now) {
+    if (party.state !== 'starting' || now < party.startAt) return;
+    const mode = party.mode(this.partyModes()), plan = mode && planFor(mode, party.size), sessions = party.members.map(x => x.sess);
+    if (!plan || !party.allReady() || sessions.some(s => !s || s.closed || s.match || s.room)) { party.state = 'idle'; party.unready(); return this._partySend(party); }
+    if (plan === 'private') {
+      // just the party: who plays on which side (in a 2v2 of four, the best and the worst together)
+      const order = mode === 'duo' ? party.members.slice().sort((a, b) => b.sess.player.ratings.duo.r - a.sess.player.ratings.duo.r) : party.members;
+      const sides = MODE_INFO[mode].sides;
+      this.log.info('party match', { party: party.id, mode });
+      this._launch(mode, order.map((x, i) => ({ sess: x.sess, team: sides[i] })), { rated: false, parties: [party] });
+      return;
+    }
+    for (const s of sessions) this.mm.remove(s);
+    this.mm.addTicket(makeTicket(sessions, mode, now, party));
+    party.state = 'queued'; party.queuedAt = now;
+    for (const s of sessions) this.sendJson(s, { t: 'queued', mode, party: true });
+    this._partySend(party);
+  }
+  // A member leaves, is removed or was gone too long. The lead passes on; an empty party closes.
+  _partyRemove(party, pid, why, r) {
+    const m = party.member(pid); if (!m) return;
+    if (party.ticket) this.mm.drop(party.ticket);
+    party.remove(pid); clearTimeout(m.awayTimer);
+    if (this.partyAway.get(pid) && this.partyAway.get(pid).party === party) this.partyAway.delete(pid);
+    const s = m.sess; if (s && s.party === party) s.party = null;
+    if (s && !s.closed) this.sendJson(s, { t: 'partyLeft', reason: why, r });
+    this.log.info('party left', { party: party.id, player: pid, why, size: party.size });
+    if (!party.size) { this.parties.delete(party.code); return; }
+    const was = party.state; party.unready();
+    if (was === 'starting' || was === 'queued') { party.state = 'idle'; party.startAt = 0; party.queuedAt = 0; if (was === 'queued') for (const x of party.members) if (x.sess && !x.away) this.sendJson(x.sess, { t: 'queueLeft', party: true, why: 'left' }); }
+    this._partySend(party);
+  }
+  // A member's connection dropped (the app went to the background, or the signal went): their place is kept for
+  // partyGrace seconds, and they come back into the party when they reconnect.
+  _partyAway(sess) {
+    const party = sess.party, pid = sess.player && sess.player.id; if (!party || !pid) return;
+    const m = party.member(pid); if (!m || m.sess !== sess) return;
+    m.away = true; m.ready = false; this.partyAway.set(pid, { party, sess });
+    clearTimeout(m.awayTimer); m.awayTimer = setTimeout(() => { if (m.away && party.member(pid) === m) this._partyRemove(party, pid, 'gone'); }, (this.rules.partyGrace ?? 60) * 1000);
+    if (m.awayTimer.unref) m.awayTimer.unref(); // (a stopped server isn't held open by it)
+    if (party.state === 'starting' || party.state === 'queued') return this._partyIdle(party, 'away');
+    this._partySend(party);
+  }
+  _partyBack(sess) {
+    const pid = sess.player.id, rec = this.partyAway.get(pid); if (!rec) return;
+    this.partyAway.delete(pid);
+    const { party } = rec, m = party.member(pid);
+    if (!m || this.parties.get(party.code) !== party) return;
+    clearTimeout(m.awayTimer); if (rec.sess && rec.sess !== sess && rec.sess.party === party) rec.sess.party = null;
+    m.sess = sess; m.away = false; m.name = sess.player.name; m.sb = sess.sb || m.sb; if (sess.player.look) m.look = sess.player.look; sess.party = party;
+    this._partySend(party);
+  }
+
+  // ------------------------------------------------------------------------------------------------ starting a match
+  // The one hand-off from parties and the matchmaker to a match: the mode and its players, each with a team (in 2v2
+  // a party of two is one team). Slots follow the mode's sides (MODE_INFO: 2v2 is slots 0 and 3 against 1 and 2).
+  _launch(mode, players, opts = {}) {
+    const sides = MODE_INFO[mode].sides, left = players.slice(), slots = [];
+    for (let i = 0; i < players.length; i++) { const k = left.findIndex(p => p.team === sides[i]); slots.push((k >= 0 ? left.splice(k, 1) : left.splice(0, 1))[0].sess); }
+    return this._startMatch(mode, slots, opts);
   }
   _leaveRoom(sess, silent, pid = sess.player && sess.player.id) {
     const room = sess.room; if (!room) return;
@@ -327,29 +558,51 @@ export class GameServer {
   }
 
   // ------------------------------------------------------------------------------------------------ matches
-  _startMatch(mode, sessions, { room = null, rated = true, seed } = {}) {
+  // sessions in slot order. parties: the parties playing in it (back to their lobby after); tickets: the queue tickets
+  // it was made from (a match called off before it began puts them back in line)
+  _startMatch(mode, sessions, { room = null, rated = true, seed, parties = [], tickets = null } = {}) {
     for (const s of sessions) this.mm.remove(s);
     const match = new Match(this, { mode, sessions, rated, room, seed });
+    match.parties = parties; match.tickets = tickets;
     this.matches.add(match); this.stats.matchesStarted++;
     if (room) room.match = match;
     for (const s of sessions) { s.match = match; s.slot = sessions.indexOf(s); this.inMatch.set(s.player.id, match); }
     match.start();
+    for (const p of parties) { p.state = 'match'; p.match = match; p.ticket = null; p.startAt = 0; p.queuedAt = 0; this._partySend(p); }
     return match;
+  }
+  // a party's match is over: back to its lobby, everyone to ready up again
+  _partyHome(party, match) {
+    if (party.match !== match) return;
+    party.match = null; if (party.state === 'match') { party.state = 'idle'; party.unready(); }
+    for (const x of party.members) if (x.away && x.sess && !x.sess.closed && this.online.get(x.id) === x.sess) x.away = false;
+    if (this.parties.get(party.code) === party) this._partySend(party);
   }
   _detach(sess, match) { if (sess.match === match) { sess.match = null; sess.slot = -1; } if (sess.player && this.inMatch.get(sess.player.id) === match) this.inMatch.delete(sess.player.id); }
   // a match ended for good (cancelled, closed after the rematch vote, or replaced by its rematch)
   onMatchClosed(match, { cancelled, reason, culprits = [] }) {
     this.matches.delete(match);
     if (cancelled) this.stats.matchesCancelled++;
-    const now = nowMs();
     for (const p of match.P) {
       const sess = p.sess;
       if (this.inMatch.get(p.id) === match) this.inMatch.delete(p.id);
       if (!sess || sess.closed || sess.match !== match) continue;
       sess.match = null; sess.slot = -1;
-      // back to matchmaking after a cancelled queue match (not the ones who caused it), keeping their place in line
-      if (cancelled && !match.room && p.st !== 'left' && !culprits.includes(p.id) && !this.closing) { this.mm.add(sess, match.mode, p.queuedAt || now); this.sendJson(sess, { t: 'queued', mode: match.mode, requeued: true }); }
     }
+    // back to matchmaking after a cancelled queue match (not the ones who caused it), keeping their place in line; a
+    // party goes back together, or not at all
+    if (cancelled && !match.room && match.tickets && !this.closing) {
+      for (const t of match.tickets) {
+        const ps = t.pids.map(id => match.playerById(id)), ses = t.pids.map(id => this.online.get(id));
+        if (!ps.every(p => p && p.st !== 'left' && !culprits.includes(p.id)) || !ses.every(s => s && !s.closed && !s.match && !s.room)) continue;
+        if (t.party && (this.parties.get(t.party.code) !== t.party || t.party.size !== ses.length)) continue;
+        this.mm.addTicket(makeTicket(ses, match.mode, t.at, t.party));
+        if (t.party) { t.party.state = 'queued'; t.party.queuedAt = t.at; t.party.match = null; }
+        for (const s of ses) this.sendJson(s, { t: 'queued', mode: match.mode, requeued: true, party: t.party ? true : undefined });
+        if (t.party) this._partySend(t.party);
+      }
+    }
+    for (const party of match.parties || []) this._partyHome(party, match);
     if (match.room) {
       const room = match.room; room.match = null; room.ready = new Map(room.members.map(s => [s.roomPid, false]));
       room.members = room.members.filter(s => !s.closed);
@@ -376,9 +629,9 @@ export class GameServer {
     this.matches.delete(old);
     const sessions = old.P.map(p => p.sess);
     for (const p of old.P) if (this.inMatch.get(p.id) === old) this.inMatch.delete(p.id);
-    if (sessions.some(s => !s || s.closed)) { for (const s of sessions) if (s && !s.closed) { s.match = null; this.sendJson(s, { t: 'matchClosed', matchId: old.id, reason: 'rematch_failed' }); } return; }
+    if (sessions.some(s => !s || s.closed)) { for (const s of sessions) if (s && !s.closed) { s.match = null; this.sendJson(s, { t: 'matchClosed', matchId: old.id, reason: 'rematch_failed' }); } for (const p of old.parties || []) this._partyHome(p, old); return; }
     for (const s of sessions) { s.match = null; }
-    this._startMatch(old.mode, sessions, { room: old.room, rated: old.rated });
+    this._startMatch(old.mode, sessions, { room: old.room, rated: old.rated, parties: old.parties || [], tickets: old.tickets });
   }
 
   // ------------------------------------------------------------------------------------------------ the clock
@@ -398,10 +651,11 @@ export class GameServer {
     if (now - this._lastMM >= 250) {
       this._lastMM = now;
       for (const g of this.mm.form(now)) {
-        for (const t of g.tickets) t.sess.queuedAt = t.at;
-        const m = this._startMatch(g.mode, g.tickets.map(t => t.sess), { rated: true });
-        for (const p of m.P) p.queuedAt = g.tickets[p.slot].at;
+        const sides = MODE_INFO[g.mode].sides, parties = [...new Set(g.tickets.map(t => t.party).filter(Boolean))];
+        // (a party that waited long enough for a Showdown of three plays just itself: unrated, like a party's private match)
+        this._launch(g.mode, g.sessions.map((s, i) => ({ sess: s, team: sides[i] })), { rated: !(g.tickets.length === 1 && g.tickets[0].party), parties, tickets: g.tickets });
       }
+      for (const p of this.parties.values()) if (p.state === 'starting') this._partyGo(p, now);
     }
     for (const m of [...this.matches]) {
       try { m.tick(now); } catch (e) {
@@ -411,7 +665,18 @@ export class GameServer {
         try { if (m.phase === 'ended') m.close('server_error'); else m.cancel('server_error'); } catch (e2) { this.matches.delete(m); }
       }
     }
-    if (now - this._lastPing >= 2000) { this._lastPing = now; const b = new Uint8Array(codec.encodeSPing(now)); for (const s of this.sessions) if (s.player) this.sendBinary(s, b, true); }
+    // the server's own pings (they measure each connection's round trip): every 2 s in a match, a queue or a party
+    // that is starting; every idlePing seconds for a connection that is only waiting in the lobby, so a phone's radio
+    // can rest. A connection that has said nothing for silentKick seconds is gone (a heartbeat comes every 20 s).
+    if (now - this._lastPing >= 2000) {
+      this._lastPing = now; const b = new Uint8Array(codec.encodeSPing(now)), idle = (this.rules.idlePing ?? 20) * 1000, silent = (this.rules.silentKick ?? 75) * 1000;
+      for (const s of [...this.sessions]) {
+        if (!s.player) continue;
+        if (now - s.lastMsg > silent) { this.log.info('silent connection closed', { conn: s.id, player: s.player.id }); try { s.ws && s.ws.terminate(); } catch (e) { /* gone */ } continue; }
+        if (!(s.match || s.queued || (s.party && s.party.state !== 'idle')) && now - s.lastPing < idle) continue;
+        s.lastPing = now; this.sendBinary(s, b, true);
+      }
+    }
   }
 
   // ------------------------------------------------------------------------------------------------ shutdown
@@ -419,13 +684,14 @@ export class GameServer {
     if (this.closing) return; this.closing = true;
     clearTimeout(this._timer);
     this.log.info('shutting down', { connections: this.sessions.size, matches: this.matches.size });
+    for (const p of this.parties.values()) for (const x of p.members) clearTimeout(x.awayTimer);
     for (const m of [...this.matches]) { if (m.phase === 'play' || m.phase === 'countdown' || m.phase === 'consensus') m.cancel('server_shutdown'); else m.close('server_shutdown'); }
     for (const s of [...this.sessions]) { this.sendJson(s, { t: 'server', msg: 'shutdown' }); this._close(s, CLOSE.AWAY, 'server shutdown'); }
     const grace = this.opts.shutdownGraceMs ?? 3000;
     await new Promise(resolve => { const t = setTimeout(resolve, grace); const iv = setInterval(() => { if (!this.sessions.size) { clearTimeout(t); clearInterval(iv); resolve(); } }, 20); setTimeout(() => clearInterval(iv), grace + 10); });
     for (const s of [...this.sessions]) { try { s.ws && s.ws.terminate(); } catch (e) { /* gone */ } this._closed(s); }
     await new Promise(resolve => this.http.close(() => resolve()));
-    await this.store.close();
+    await this.store.close(); this.push.close();
     this.log.info('stopped');
   }
 }

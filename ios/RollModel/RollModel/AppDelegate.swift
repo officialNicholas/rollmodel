@@ -1,5 +1,6 @@
 import UIKit
 import AVFoundation
+import UserNotifications
 
 @main
 final class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -9,7 +10,20 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         GameAudio.configure()
         // A shake mid-game is part of playing: it mustn't bring up "Undo Typing" once a name has been typed.
         application.applicationSupportsShakeToEdit = false
+        // Notifications: none over the game while it's open, and a tapped party invite opens the game on it (set before launch
+        // finishes, so the tap that opened the app is heard).
+        UNUserNotificationCenter.current().delegate = NotifyCenter.shared
         return true
+    }
+
+    // This phone's address for notifications (asked for only once the player has said yes to them): the game keeps it with their
+    // account, so a friend's party invite reaches them with the game closed.
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        NotifyBridge.tokenArrived(deviceToken)
+    }
+
+    // No address (no network, or the app isn't signed for notifications): invites still reach the game while it's open.
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
     }
 
     func application(_ application: UIApplication,

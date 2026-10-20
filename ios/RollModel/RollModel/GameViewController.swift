@@ -152,6 +152,8 @@ final class GameViewController: UIViewController {
 
     private func loadGame() {
         installScripts()
+        // (a tapped invite waits until the new page says it's ready)
+        notify.pageWillLoad()
         webView.load(URLRequest(url: GameSchemeHandler.startURL))
     }
 
