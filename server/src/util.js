@@ -1,9 +1,13 @@
 import { randomBytes, createHash, randomInt } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
+import { isMainThread, workerData } from 'node:worker_threads';
 
 export const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 export const fin = v => typeof v === 'number' && Number.isFinite(v);
-export const nowMs = () => performance.now();
+// one clock for the whole process: a match worker thread counts from the main thread's start, not its own, so every time
+// a client sees (pongs from the main thread, snapshots from a worker) is on the same clock
+const CLOCK_BASE = !isMainThread && workerData && Number.isFinite(workerData.timeOrigin) ? performance.timeOrigin - workerData.timeOrigin : 0;
+export const nowMs = () => performance.now() + CLOCK_BASE;
 
 // the game's own seeded generator (mulberry32), so a seed means the same thing on both sides
 export const rng = a => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };

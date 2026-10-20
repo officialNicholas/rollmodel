@@ -17,6 +17,7 @@ export function createLogger({ level = 'info', base = {}, sink = null } = {}) {
     child: extra => createLogger({ level: Object.keys(LEVELS).find(k => LEVELS[k] === min) || 'info', base: Object.assign({}, base, extra), sink }),
     setLevel: lv => { min = LEVELS[lv] ?? min; },
     enabled: lv => LEVELS[lv] >= min,
+    levelName: () => Object.keys(LEVELS).find(k => LEVELS[k] === min) || 'info',
   };
   return log;
 }

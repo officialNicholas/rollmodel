@@ -1,5 +1,8 @@
-# Fly.io settings for the game server. Deploy from this folder: fly deploy --ha=false
-# One machine on purpose: the lobby, queues, rooms and matches live in one process's memory.
+# Fly.io settings for the game server: ONE machine, two dedicated cores and 4 GB, about 1,000 players at once (room for
+# 1,500). Deploy from this folder: fly deploy --ha=false
+# One machine on purpose: parties, invites, queues and rooms live in one process's memory. Matches run on a worker thread
+# beside it. The same app, volume and /data/store.json as before. fly.scale.toml is the several-machine setup for
+# 5,000 players (docs/net-scale.md); parties would need to be shared between machines first.
 app = "rollmodel-game"
 primary_region = "ord"
 
@@ -10,6 +13,11 @@ primary_region = "ord"
   LOG_LEVEL = "info"
   # the game doesn't show online pick-ups yet: none are handed out
   RULES = '{"items":false}'
+  # matches on a worker thread, the main thread keeps the sockets and the lobby (on performance-2x: one worker).
+  # Measured: 1,000 players in duels, main thread 65% of a core, the match worker 49% (docs/net-scale.md)
+  MATCH_WORKERS = "auto"
+  # one machine: no handing connections to another
+  FLY_REPLAY = "0"
 
 [http_service]
   internal_port = 8080
@@ -19,8 +27,8 @@ primary_region = "ord"
   min_machines_running = 1
   [http_service.concurrency]
     type = "connections"
-    soft_limit = 2000
-    hard_limit = 4000
+    soft_limit = 1000
+    hard_limit = 1500
 
 [[http_service.checks]]
   grace_period = "10s"
@@ -33,6 +41,7 @@ primary_region = "ord"
   source = "rm_data"
   destination = "/data"
 
+# a shared CPU is held to about 1/16 of a core once its burst balance is spent, which stalls every match's tick
 [[vm]]
-  size = "shared-cpu-1x"
-  memory = "512mb"
+  size = "performance-2x"
+  memory = "4gb"

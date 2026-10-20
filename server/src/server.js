@@ -5,12 +5,16 @@ import { PROTOCOL_VERSION, MSG, codec } from '../client/rmnet.js';
 import { MODE_INFO, DEFAULT_RULES, LIMITS } from './constants.js';
 import { createLogger } from './log.js';
 import { MemoryStore, JsonFileStore } from './store.js';
+import { RemoteStore } from './storeclient.js';
+import { startStoreApi } from './storeapi.js';
 import { sanitizeName, sanitizeLook } from './names.js';
 import { connectionLimits, noteDrop } from './ratelimit.js';
 import { Matchmaker, Room, uniqueCode, makeTicket, regionOf } from './lobby.js';
 import { Party, PARTY, planFor, newPartyCode, playsTrio } from './party.js';
 import { Match } from './match.js';
 import { Pusher } from './push.js';
+import { MatchPool } from './matchpool.js';
+import { availableParallelism } from 'node:os';
 import { nowMs, Window, summarize, fin } from './util.js';
 import { performance } from 'node:perf_hooks';
 
@@ -32,8 +36,10 @@ export class GameServer {
     this.opts = opts;
     this.log = opts.log || createLogger({ level: opts.logLevel || 'info', base: { svc: 'rollmodel' } });
     this.rules = Object.assign({}, DEFAULT_RULES, opts.rules || {});
-    this.store = opts.store || (opts.dataFile && opts.dataFile !== 'memory' ? new JsonFileStore(opts.dataFile) : new MemoryStore());
-    this.sessions = new Set(); this.online = new Map(); this.inMatch = new Map(); this.matches = new Set(); this.rooms = new Map();
+    // several machines: one keeps the store and serves it to the others (storeUrl), see storeapi.js
+    this.store = opts.store || (opts.storeUrl ? new RemoteStore(opts.storeUrl, opts.internalKey) : opts.dataFile && opts.dataFile !== 'memory' ? new JsonFileStore(opts.dataFile) : new MemoryStore());
+    this.shardId = opts.shardId || 'local'; // (this machine, for routing a player back to it: Fly's machine id)
+    this.sessions = new Set(); this.bySid = new Map(); this.online = new Map(); this.inMatch = new Map(); this.matches = new Set(); this.rooms = new Map();
     this.roomAway = new Map(); // player id -> the dropped connection whose place in a room is being kept
     this.parties = new Map(); // join code -> party
     this.partyAway = new Map(); // player id -> the party keeping a dropped member's place
@@ -41,7 +47,7 @@ export class GameServer {
     this.push = opts.pusher || new Pusher(opts.push || null, { log: this.log }); // (v391: an invite to a friend whose game is closed, as a notification)
     this.mm = new Matchmaker(); this.perIp = new Map(); this.connSeq = 0; this.closing = false;
     this.stats = { connections: 0, messages: 0, violations: 0, kicked: 0, matchesStarted: 0, matchesEnded: 0, matchesCancelled: 0, bytesOut: 0, framesOut: 0 };
-    this.tickTimes = new Window(8192); this.tickCpu = new Window(8192); this.startedAt = nowMs(); this._timer = null; this._nextTick = 0; this._lastMM = 0; this._lastPing = 0;
+    this.tickTimes = new Window(8192); this.tickCpu = new Window(8192); this.startedAt = nowMs(); this._timer = null; this._nextTick = 0; this._lastMM = 0; this._lastPing = 0; this._lastSilent = 0;
   }
 
   async listen(port = this.opts.port ?? 8080, host = this.opts.host || '0.0.0.0') {
@@ -51,8 +57,16 @@ export class GameServer {
     this.http.on('upgrade', (req, socket, head) => this._upgrade(req, socket, head));
     await new Promise((resolve, reject) => { this.http.once('error', reject); this.http.listen(port, host, () => { this.http.off('error', reject); resolve(); }); });
     this.port = this.http.address().port;
+    // matches on worker threads: matchWorkers 0 runs them here (the tests' default), 'auto' one per core but this one
+    // ('inline': the tests' way to run the same path in this thread, see matchpool.js)
+    const mw = this.opts.matchWorkers, nw = mw === 'auto' ? Math.max(1, availableParallelism() - 1) : mw === 'inline' ? 1 : Math.max(0, parseInt(mw, 10) || 0);
+    if (nw > 0) this.pool = new MatchPool(this, nw, { inline: mw === 'inline' });
     this._nextTick = nowMs(); this._loop();
-    this.log.info('listening', { port: this.port, host, proto: PROTOCOL_VERSION });
+    if (this.opts.internalKey && !this.opts.storeUrl && this.opts.internalPort !== undefined) {
+      this.storeApi = await startStoreApi({ store: this.store, key: this.opts.internalKey, port: this.opts.internalPort, host: this.opts.internalHost || '::', log: this.log });
+      this.internalPort = this.storeApi.address().port;
+    }
+    this.log.info('listening', { port: this.port, host, proto: PROTOCOL_VERSION, matchWorkers: nw, shard: this.shardId, store: this.opts.storeUrl ? 'remote' : this.storeApi ? 'serving' : 'local' });
     this.push.announce();
     return this;
   }
@@ -83,8 +97,14 @@ export class GameServer {
       connections: this.sessions.size, players: this.online.size, matches: this.matches.size, rooms: this.rooms.size, parties: this.parties.size, queues: this.mm.sizes(),
       tick: { p50: +t.p50.toFixed(3), p99: +t.p99.toFixed(3), max: +t.max.toFixed(3), n: t.n, cpuP50: +tc.p50.toFixed(3), cpuP99: +tc.p99.toFixed(3) },
       elu: +elu.utilization.toFixed(3), cpu: +cpu.toFixed(3),
-      memMB: Math.round(mem.rss / 1048576), stats: this.stats,
+      memMB: Math.round(mem.rss / 1048576), stats: this.stats, mainCpu: +this._mainCpu(wallNow).toFixed(3), workers: this.pool ? this.pool.health() : undefined,
     };
+  }
+  // the main thread's own processor time since the last call, as a share of one core (cpu above is the whole process)
+  _mainCpu(now) {
+    if (!process.threadCpuUsage) return 0;
+    const u = process.threadCpuUsage(), c0 = this._mcpu || { u: { user: 0, system: 0 }, w: this.startedAt }; this._mcpu = { u, w: now };
+    return ((u.user - c0.u.user) + (u.system - c0.u.system)) / 1000 / Math.max(1, now - c0.w);
   }
   _ip(req) {
     // behind a proxy: Fly.io's own header first (set by its edge, so a client can't fake it), then the usual one
@@ -94,7 +114,15 @@ export class GameServer {
   _upgrade(req, socket, head) {
     const reject = (code, text) => { try { socket.write('HTTP/1.1 ' + code + ' ' + text + '\r\nConnection: close\r\nContent-Length: 0\r\n\r\n'); } catch (e) { /* gone */ } socket.destroy(); };
     if (this.closing) return reject(503, 'Service Unavailable');
-    if ((req.url || '/').split('?')[0] !== '/ws' && (req.url || '/').split('?')[0] !== '/') return reject(404, 'Not Found');
+    const [path, query] = (req.url || '/').split('?');
+    if (path !== '/ws' && path !== '/') return reject(404, 'Not Found');
+    // ?s=<machine>: this connection belongs on another machine (a match or a room there): Fly's proxy takes the reply's
+    // fly-replay header and hands the connection to that machine
+    const want = query ? new URLSearchParams(query).get('s') : null;
+    if (want && want !== this.shardId && this.opts.flyReplay && /^[A-Za-z0-9_-]{1,64}$/.test(want)) {
+      try { socket.write('HTTP/1.1 409 Conflict\r\nfly-replay: instance=' + want + '\r\nConnection: close\r\nContent-Length: 0\r\n\r\n'); } catch (e) { /* gone */ }
+      socket.destroy(); return;
+    }
     const origin = req.headers.origin, allow = this.opts.allowedOrigins || [];
     if (origin && allow.length && !allow.includes(origin)) return reject(403, 'Forbidden');
     const ip = this._ip(req);
@@ -106,16 +134,18 @@ export class GameServer {
   // ------------------------------------------------------------------------------------------------ sessions
   _connected(ws, req, ip) {
     if (req.socket.setNoDelay) req.socket.setNoDelay(true); // no Nagle delay: small packets go out at once
-    const sess = { id: ++this.connSeq, ws, ip, player: null, lim: connectionLimits(), queued: null, room: null, party: null, match: null, slot: -1, bad: 0, rtt: 0, at: nowMs(), lastMsg: nowMs(), lastPing: 0, bytesOut: 0, closed: false, sb: null, region: '', tzo: null };
-    this.sessions.add(sess); this.perIp.set(ip, (this.perIp.get(ip) || 0) + 1); this.stats.connections++;
+    const sess = { id: ++this.connSeq, ws, ip, player: null, lim: connectionLimits(), queued: null, room: null, party: null, match: null, slot: -1, bad: 0, rtt: 0, at: nowMs(), lastMsg: nowMs(), lastPing: 0, busyAt: 0, bytesOut: 0, closed: false, sb: null, region: '', tzo: null };
+    this.sessions.add(sess); this.bySid.set(sess.id, sess); this.perIp.set(ip, (this.perIp.get(ip) || 0) + 1); this.stats.connections++;
     sess.helloTimer = setTimeout(() => { if (!sess.player) this._close(sess, CLOSE.HELLO, 'hello timeout'); }, LIMITS.helloTimeoutMs);
     ws.on('message', (data, isBinary) => this._message(sess, data, isBinary));
     ws.on('close', () => this._closed(sess));
     ws.on('error', e => this.log.debug('socket error', { conn: sess.id, err: e.message }));
   }
+  // a connection in a match, a queue or a party that is starting (pinged every 2 s; the game pings twice a second)
+  _busy(s) { return !!(s.match || s.queued || (s.party && s.party.state !== 'idle')); }
   _closed(sess) {
     if (sess.closed) return; sess.closed = true;
-    clearTimeout(sess.helloTimer); this.sessions.delete(sess);
+    clearTimeout(sess.helloTimer); this.sessions.delete(sess); this.bySid.delete(sess.id);
     const n = (this.perIp.get(sess.ip) || 1) - 1; if (n > 0) this.perIp.set(sess.ip, n); else this.perIp.delete(sess.ip);
     if (!sess.player) return;
     if (this.online.get(sess.player.id) === sess) this.online.delete(sess.player.id);
@@ -130,6 +160,12 @@ export class GameServer {
   sendJson(sess, obj) {
     if (!sess || !sess.ws || sess.ws.readyState !== 1) return false;
     const s = JSON.stringify(obj); sess.bytesOut += s.length; this.stats.bytesOut += s.length + (s.length < 126 ? 2 : 4); this.stats.framesOut++;
+    sess.ws.send(s); return true;
+  }
+  // a message already in JSON (from a match worker)
+  sendRaw(sess, s) {
+    if (!sess || !sess.ws || sess.ws.readyState !== 1) return false;
+    sess.bytesOut += s.length; this.stats.bytesOut += s.length + (s.length < 126 ? 2 : 4); this.stats.framesOut++;
     sess.ws.send(s); return true;
   }
   // droppable: a snapshot may be skipped for a connection that is falling behind (the next one supersedes it)
@@ -245,12 +281,13 @@ export class GameServer {
       sess.client = typeof m.client === 'string' && m.client.length <= 32 ? m.client : ''; // (which game: what it can play in a party)
       const match = this.inMatch.get(player.id);
       const ratings = Object.fromEntries(Object.entries(player.ratings).map(([k, v]) => [k, { r: Math.round(v.r), rd: Math.round(v.rd), games: v.games }]));
-      this.sendJson(sess, { t: 'welcome', id: player.id, token, name: player.name, nameChanged: nm.changed || undefined, ratings, serverTime: nowMs(), proto: PROTOCOL_VERSION, resume: match && match.active ? match.id : null, modes: Object.keys(MODE_INFO), caps: CAPS, partyModes: this.partyModes() });
+      this.sendJson(sess, { t: 'welcome', id: player.id, token, name: player.name, nameChanged: nm.changed || undefined, ratings, serverTime: nowMs(), proto: PROTOCOL_VERSION, shard: this.shardId, resume: match && match.active ? match.id : null, modes: Object.keys(MODE_INFO), caps: CAPS, partyModes: this.partyModes() });
       if (match && match.active) { const p = match.playerById(player.id); if (p && p.st !== 'left') { sess.match = match; sess.slot = p.slot; match.onReconnect(p, sess); } else this.inMatch.delete(player.id); }
       if (!sess.match) this._roomBack(sess);
       this._partyBack(sess);
     } catch (e) {
-      this.log.error('hello failed', { err: e.stack || e.message }); this.sendError(sess, 'server', 'could not sign in', m.r, true); this._close(sess, CLOSE.KICKED, 'server error');
+      // (not fatal: a store that couldn't be reached is usually back in a moment, and the phone reconnects by itself)
+      this.log.error('hello failed', { err: e.stack || e.message }); this.sendError(sess, 'busy', 'could not sign in; trying again', m.r); this._close(sess, CLOSE.AWAY, 'server busy');
     } finally {
       sess.helloing = false;
       const queued = sess.pending || []; sess.pending = null;
@@ -269,10 +306,15 @@ export class GameServer {
       case 'cancelQueue': this._unqueue(sess, 'cancelled'); this.sendJson(sess, { t: 'queueLeft', r: m.r }); return;
       case 'createRoom': {
         if (!MODE_INFO[m.mode]) return this.sendError(sess, 'bad_mode', 'unknown mode', m.r);
-        if (sess.match || sess.room) return this.sendError(sess, 'busy', 'already in a match or room', m.r);
+        if (sess.match || sess.room || sess.creating) return this.sendError(sess, 'busy', 'already in a match or room', m.r);
         this.mm.remove(sess);
-        const room = new Room(m.mode, sess); room.code = uniqueCode(this.rooms); room.members.push(roomMember(sess)); this.rooms.set(room.code, room); sess.room = room;
-        this.sendJson(sess, Object.assign(room.view(), { r: m.r })); return;
+        sess.creating = true;
+        this._claimCode().then(code => {
+          sess.creating = false; if (sess.closed || sess.match || sess.room) { this.store.releaseRoom(code, this.shardId).catch(() => {}); return; }
+          const room = new Room(m.mode, sess); room.code = code; room.members.push(roomMember(sess)); this.rooms.set(room.code, room); sess.room = room;
+          this.sendJson(sess, Object.assign(room.view(), { r: m.r }));
+        }, e => { sess.creating = false; this.log.error('room code failed', { err: e.message }); this.sendError(sess, 'busy', 'could not make a room; try again', m.r); });
+        return;
       }
       case 'joinRoom': {
         const code = typeof m.code === 'string' ? m.code.toUpperCase().trim() : '';
@@ -281,7 +323,13 @@ export class GameServer {
         const room = /^[A-Z0-9]{5}$/.test(code) ? this.rooms.get(code) : null;
         if (!room) {
           if (!sess.lim.join.take(1, now)) return this.sendError(sess, 'rate', 'too many wrong codes; wait a little', m.r);
-          return this.sendError(sess, 'not_found', 'no room with that code', m.r);
+          if (!/^[A-Z0-9]{5}$/.test(code)) return this.sendError(sess, 'not_found', 'no room with that code', m.r);
+          // a room on another machine: the phone reconnects there (?s=) and joins it
+          this.store.findRoom(code).then(shard => {
+            if (shard && shard !== this.shardId) { sess.lim.join.tokens = Math.min(sess.lim.join.burst, sess.lim.join.tokens + 1); this.sendJson(sess, { t: 'error', code: 'room_elsewhere', message: 'that room is on another server', shard, r: m.r }); }
+            else this.sendError(sess, 'not_found', 'no room with that code', m.r);
+          }, () => this.sendError(sess, 'busy', 'could not look up the room; try again', m.r));
+          return;
         }
         if (room.members.length >= room.need) return this.sendError(sess, 'full', 'that room is full', m.r);
         if (room.match) return this.sendError(sess, 'busy', 'that room is playing', m.r);
@@ -537,10 +585,16 @@ export class GameServer {
     const room = sess.room; if (!room) return;
     room.members = room.members.filter(s => s !== sess); room.ready.delete(pid); sess.room = null;
     if (this.roomAway.get(pid) === sess) { this.roomAway.delete(pid); clearTimeout(sess.awayTimer); }
-    if (!room.members.length) { this.rooms.delete(room.code); return; }
+    if (!room.members.length) { this._dropRoom(room); return; }
     if (room.host === pid) room.host = room.members[0].roomPid;
     for (const s of room.members) this.sendJson(s, room.view());
   }
+  // a room code no machine is using: claimed in the shared store, so it is unique across every machine
+  async _claimCode() {
+    for (let i = 0; i < 8; i++) { const code = uniqueCode(this.rooms); if (await this.store.claimRoom(code, this.shardId)) return code; }
+    throw new Error('no free room code');
+  }
+  _dropRoom(room) { this.rooms.delete(room.code); this.store.releaseRoom(room.code, this.shardId).catch(() => {}); }
   // A member's connection dropped (say a phone that went to another app to send the room code): their place is kept for
   // roomGrace seconds, so the code still works and they come back into the room when they reconnect.
   _roomAway(sess) {
@@ -564,7 +618,7 @@ export class GameServer {
   // it was made from (a match called off before it began puts them back in line)
   _startMatch(mode, sessions, { room = null, rated = true, seed, parties = [], tickets = null } = {}) {
     for (const s of sessions) this.mm.remove(s);
-    const match = new Match(this, { mode, sessions, rated, room, seed });
+    const match = this.pool ? this.pool.create(this, { mode, sessions, rated, room, seed }) : new Match(this, { mode, sessions, rated, room, seed });
     match.parties = parties; match.tickets = tickets;
     this.matches.add(match); this.stats.matchesStarted++;
     if (room) room.match = match;
@@ -608,7 +662,7 @@ export class GameServer {
     if (match.room) {
       const room = match.room; room.match = null; room.ready = new Map(room.members.map(s => [s.roomPid, false]));
       room.members = room.members.filter(s => !s.closed);
-      if (!room.members.length) this.rooms.delete(room.code); else for (const s of room.members) this.sendJson(s, room.view());
+      if (!room.members.length) this._dropRoom(room); else for (const s of room.members) this.sendJson(s, room.view());
     }
     this.log.info('match closed', { match: match.id, cancelled, reason });
   }
@@ -669,14 +723,25 @@ export class GameServer {
     }
     // the server's own pings (they measure each connection's round trip): every 2 s in a match, a queue or a party
     // that is starting; every idlePing seconds for a connection that is only waiting in the lobby, so a phone's radio
-    // can rest. A connection that has said nothing for silentKick seconds is gone (a heartbeat comes every 20 s).
+    // can rest
     if (now - this._lastPing >= 2000) {
-      this._lastPing = now; const b = new Uint8Array(codec.encodeSPing(now)), idle = (this.rules.idlePing ?? 20) * 1000, silent = (this.rules.silentKick ?? 75) * 1000;
-      for (const s of [...this.sessions]) {
-        if (!s.player) continue;
-        if (now - s.lastMsg > silent) { this.log.info('silent connection closed', { conn: s.id, player: s.player.id }); try { s.ws && s.ws.terminate(); } catch (e) { /* gone */ } continue; }
-        if (!(s.match || s.queued || (s.party && s.party.state !== 'idle')) && now - s.lastPing < idle) continue;
+      this._lastPing = now; const b = new Uint8Array(codec.encodeSPing(now)), idle = (this.rules.idlePing ?? 20) * 1000;
+      for (const s of this.sessions) {
+        if (!s.player || (!this._busy(s) && now - s.lastPing < idle)) continue;
         s.lastPing = now; this.sendBinary(s, b, true);
+      }
+    }
+    // a connection that has said nothing for a while is gone, closed so a match shows the player as away and holds their
+    // place: silentMs for one that is busy (pinged every 2 s, and the game pings twice a second), counted from when it got
+    // busy at the earliest (the game, on its lobby heartbeat until then, hears a moment later); silentKick seconds for one
+    // only waiting in the lobby (a heartbeat every 20 s)
+    if (now - this._lastSilent >= 1000) {
+      this._lastSilent = now;
+      const quick = this.opts.silentMs ?? LIMITS.silentMs, slow = (this.rules.silentKick ?? 75) * 1000;
+      for (const s of [...this.sessions]) {
+        const busy = this._busy(s); if (!busy) s.busyAt = 0; else if (!s.busyAt) s.busyAt = now;
+        const quiet = busy ? quick : slow;
+        if (quiet > 0 && now - Math.max(s.lastMsg, s.busyAt) > quiet) { this.stats.silent = (this.stats.silent || 0) + 1; this.log.info('silent connection closed', { conn: s.id, player: s.player && s.player.id }); try { s.ws && s.ws.terminate(); } catch (e) { /* gone */ } this._closed(s); }
       }
     }
   }
@@ -688,11 +753,14 @@ export class GameServer {
     this.log.info('shutting down', { connections: this.sessions.size, matches: this.matches.size });
     for (const p of this.parties.values()) for (const x of p.members) clearTimeout(x.awayTimer);
     for (const m of [...this.matches]) { if (m.phase === 'play' || m.phase === 'countdown' || m.phase === 'consensus') m.cancel('server_shutdown'); else m.close('server_shutdown'); }
+    if (this.pool) await this.pool.drain(Math.min(1000, this.opts.shutdownGraceMs ?? 3000)); // (the workers' last words to the players)
     for (const s of [...this.sessions]) { this.sendJson(s, { t: 'server', msg: 'shutdown' }); this._close(s, CLOSE.AWAY, 'server shutdown'); }
     const grace = this.opts.shutdownGraceMs ?? 3000;
     await new Promise(resolve => { const t = setTimeout(resolve, grace); const iv = setInterval(() => { if (!this.sessions.size) { clearTimeout(t); clearInterval(iv); resolve(); } }, 20); setTimeout(() => clearInterval(iv), grace + 10); });
     for (const s of [...this.sessions]) { try { s.ws && s.ws.terminate(); } catch (e) { /* gone */ } this._closed(s); }
     await new Promise(resolve => this.http.close(() => resolve()));
+    if (this.storeApi) await new Promise(resolve => this.storeApi.close(() => resolve()));
+    if (this.pool) await this.pool.stop();
     await this.store.close(); this.push.close();
     this.log.info('stopped');
   }

@@ -10,7 +10,7 @@ import { netSim, PROFILES } from './netsim.js';
 export const FAST_RULES = { matchT: 8, sdT: 25, countdown: 0.6, startLead: 0.1, layoutTimeout: 5, rematchWindow: 4, weather: false, items: false, slamFirst: 0.5, reconnectWindow: 3, afkWarn: 1.5, afkForfeit: 4, idleForfeit: 30, overtime: 0 };
 
 export async function startServer(rules = {}, extra = {}) {
-  const srv = await createGameServer(Object.assign({ port: 0, host: '127.0.0.1', store: new MemoryStore(), log: createLogger({ level: process.env.RM_LOG || 'silent' }), rules: Object.assign({}, FAST_RULES, rules), maxPerIp: 2000, maxConnections: 5000, shutdownGraceMs: 200 }, extra));
+  const srv = await createGameServer(Object.assign({ port: 0, host: '127.0.0.1', store: new MemoryStore(), log: createLogger({ level: process.env.RM_LOG || 'silent' }), rules: Object.assign({}, FAST_RULES, rules), maxPerIp: 2000, maxConnections: 5000, shutdownGraceMs: 200, matchWorkers: process.env.RM_MATCH_WORKERS || 0 }, extra)); // (RM_MATCH_WORKERS: run the suite with matches on worker threads)
   srv.url = 'ws://127.0.0.1:' + srv.port + '/ws';
   return srv;
 }
@@ -26,7 +26,8 @@ export async function until(fn, ms = 10000, step = 20) {
   for (;;) { const v = fn(); if (v) return v; if (Date.now() - t0 > ms) throw new Error('condition not met in ' + ms + ' ms'); await sleep(step); }
 }
 // the server's match for a player
-export const matchOf = (srv, id) => srv.inMatch.get(id) || [...srv.matches].find(m => m.P.some(p => p.id === id)) || null;
+const inside = m => (m && m.W && m.W.host ? m.W.host.matches.get(m.id) || m : m); // (matches on an inline worker: the match itself)
+export const matchOf = (srv, id) => inside(srv.inMatch.get(id) || [...srv.matches].find(m => m.P.some(p => p.id === id))) || null;
 
 // key numbers for the summary printed at the end of `npm test`
 export function metric(key, value, unit = '', note = '') {

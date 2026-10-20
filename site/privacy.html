@@ -27,6 +27,7 @@
 <link rel="preload" href="fonts/figtree-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/figtree-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/figtree-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/figtree-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/site.css">
 <script src="js/config.js" defer></script>
 <script src="js/site.js" defer></script>
@@ -36,10 +37,10 @@
 <!-- header -->
 <header class="top">
   <div class="wrap">
-    <a class="brand" href="./"><img src="img/icon-96.webp" alt="" width="40" height="40">Roll Model</a>
+    <a class="orb" href="./" aria-label="Back to the home page"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M12.6 7.4 6.2 13.6l6.4 6.2" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.8 13.6h11a6.2 6.2 0 0 1 0 12.4h-5.6" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round"/></svg><span>Home</span></a>
+    <a class="brand" href="./"><img src="img/icon-96.webp" alt="" width="42" height="42"><span>Roll Model</span></a>
     <nav class="nav" aria-label="Main">
-      <a href="./">Home</a>
-      <a class="pill" href="support.html">Support</a>
+      <a class="btn btn-sm" href="support.html">Support</a>
     </nav>
   </div>
 </header>
@@ -47,9 +48,9 @@
 
 <main id="main" class="page">
   <div class="wrap">
-    <article class="doc">
+    <article class="doc sheet">
       <!-- doc:priv -->
-      <header class="doc-head"><p class="eyebrow">Roll Model</p><h1>Privacy Policy</h1><p>The same words as in the game, under Settings › Privacy Policy.</p></header>
+      <header class="doc-head"><div class="ban kc-aqua"><p class="kick">Roll Model</p><h1>Privacy Policy</h1><i class="flag" aria-hidden="true"></i></div><p>The same words as in the game, under Settings › Privacy Policy.</p></header>
       <div class="prose"><p>Updated October 20, 2026.</p><h2>On this device</h2><p>Your progress (your dabs, items, ranks and settings) is saved on this device. You don’t need an account to play.</p><h2>Your username</h2><p>Your username is kept on our server so no one else can take it. Other players can see it, with your paint colour and rank.</p><h2>Your account</h2><p>If you make an account, we keep your username, your email, your first name, your birth year, and when you agreed to these terms. Your email, name and birth year are private: other players never see them. We ask for your birth year because online play is for players 13 and older.</p><p>We use your email only for your account: a welcome email that confirms it, a link to reset your password when you ask for one, and a note if your password changes. No newsletters, and we never share it.</p><p>While you’re signed in, we also keep a copy of your game progress (your dabs, items, ranks, unlocks and lessons done) with your account, so you can log in on another phone and pick up where you left off. Log out leaves it with your account and starts this device fresh.</p><p>Your password is handled by our sign-in provider, Supabase. It’s stored scrambled (hashed), never in a form anyone can read, not even us.</p><h2>Playing online</h2><p>To run friends and online matches we keep your friend code, your friends, friend requests and blocks, invites to play, your Time trial scores for the friends board, records of your online matches, and when you were last online.</p><h2>Play stats</h2><p id="statsP">To make the game better, it sends us anonymous stats about how it’s played: the modes and canvases you play and how matches go, how far you’ve got in the lessons, your rank and dabs, what you look at and buy in the Paint Shop, what you craft, and whether ads you chose to watch finished. They go with a random number made for this copy of the game, not your name or anything that identifies your device. While you’re signed in, they’re linked to your account. We use them only to improve the game, never for ads, and we don’t sell them. You can turn them off here.</p><p class="note"><b>Where’s the switch?</b>In the game: <span class="path">Settings › Privacy Policy</span>, then Turn off play stats.</p><h2>Who has it</h2><p>We don’t sell your information. Supabase stores it for us, Resend sends our account emails, and online matches run on our game server.</p><h2>Ads</h2><p id="adsP">In the iPhone app you can choose to watch an ad, for example to finish crafting a stroke right away. An ad only plays when you tap to watch one. Ads come from Google AdMob, which gets some information from your device to show an ad and count it: your IP address (which gives a rough location), the kind of device, an identifier for the device that’s only shared within our apps, and how the ad was watched. The game doesn’t ask to track you across other companies’ apps. If you told us you’re under 13, you only get ads that are fit for children, and they aren’t personalised. Where the law asks for it, Google asks for your consent before your first ad.</p><h2>Deleting it</h2><p>Settings › Delete account removes your account and everything above from our server for good. The play stats stay, but no longer linked to you. Restart Game in Settings clears this device.</p></div>
       <section class="aside" aria-labelledby="site-note"><h2 id="site-note">This website</h2><p>This website has no cookies, ads, analytics or trackers, and loads nothing from anyone else. The forgot password, reset password and confirm email pages send what you type straight to our sign-in provider, Supabase, and keep nothing in your browser.</p></section>
       <!-- /doc -->
@@ -67,7 +68,6 @@
         <li><a href="privacy.html">Privacy Policy</a></li>
         <li><a href="terms.html">Terms of Service</a></li>
         <li><a href="support.html">Support</a></li>
-        <li><a href="credits.html">Credits</a></li>
       </ul>
     </nav>
     <p class="legal"><span>© <span data-year>2026</span> Roll Model. A Marcelin Game.</span><span>No cookies, no trackers. Just paint.</span></p>

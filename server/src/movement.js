@@ -24,6 +24,8 @@ export const MOVE = Object.freeze({
   // phone so slow its game runs in slow motion: the game caps a frame at 50 ms, so below 20 fps time stretches)
   DESCENT: 2.0, // m/s the ceiling comes down afterwards
   HOP_VY: G.JUMP_V * 1.15, // an implied hop: the biggest jump-like launch (pot exits, the countdown leap, assists)
+  HOP_SEEN_MS: 450, // ... taken as a hop when first seen in the air up to this long after leaving the ground (rising in
+  // the first 250 ms; after that, near the top of it too)
   FALL_Y: -3, // below this with nothing underneath: fallen
   PATH_STEP: 0.25,
   STILL_M: 0.35, // how far a blob that should not move (countdown, flattened) may drift
@@ -123,8 +125,14 @@ export class Mover {
     if (grounded && support > P.y + G.STEP + 0.12 + rampRise && support > this.groundY + G.STEP + 0.12 + rampRise && support > this.ceilingAt(t)) return { ok: false, reason: 'climb', hard: false };
     let fell = false;
     if (!grounded) {
-      // leaving the ground going up: a hop (the action may come a moment later; the referee does not need it)
-      if (!this.airborne && (s.vy || 0) > 0.5 && t - this.groundT < 250) this.launch(Math.min(s.vy, MOVE.HOP_VY), t, this.groundY);
+      // leaving the ground going up: a hop (the action may come a moment later; the referee does not need it). The
+      // report from the moment of take-off may not be the one seen (30 a second, or a stalled link): the speed at take-off
+      // is worked out from the height and the time since the ground, never more than the biggest hop. (Up to 450 ms
+      // after: well inside a hop's rise and fall of about 750 ms, and a stall's worth of missed reports.)
+      if (!this.airborne && (s.vy || 0) > (t - this.groundT < 250 ? 0.5 : -3) && t - this.groundT < MOVE.HOP_SEEN_MS) {
+        const da = Math.max(0, (t - this.groundT) / 1000), rise = da > 0.01 ? (y - this.groundY + 0.5 * G.GRAV * da * da) / da : 0;
+        this.launch(Math.min(MOVE.HOP_VY, Math.max(s.vy || 0, (s.vy || 0) + G.GRAV * da, rise)), this.groundT, this.groundY);
+      }
       if (support === -Infinity && y < MOVE.FALL_Y) fell = true;
       else if (y > this.ceilingAt(t) + (env.ceilExtra || 0)) return { ok: false, reason: y > this.groundY + 2.2 ? 'fly' : 'float', hard: false, detail: { y: +y.toFixed(2), ceil: +this.ceilingAt(t).toFixed(2), groundY: +this.groundY.toFixed(2), airMs: Math.round(t - this.groundT), vy: s.vy } };
     }

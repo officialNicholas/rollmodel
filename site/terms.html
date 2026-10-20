@@ -27,6 +27,7 @@
 <link rel="preload" href="fonts/figtree-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/figtree-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/figtree-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/figtree-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/site.css">
 <script src="js/config.js" defer></script>
 <script src="js/site.js" defer></script>
@@ -36,10 +37,10 @@
 <!-- header -->
 <header class="top">
   <div class="wrap">
-    <a class="brand" href="./"><img src="img/icon-96.webp" alt="" width="40" height="40">Roll Model</a>
+    <a class="orb" href="./" aria-label="Back to the home page"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M12.6 7.4 6.2 13.6l6.4 6.2" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.8 13.6h11a6.2 6.2 0 0 1 0 12.4h-5.6" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round"/></svg><span>Home</span></a>
+    <a class="brand" href="./"><img src="img/icon-96.webp" alt="" width="42" height="42"><span>Roll Model</span></a>
     <nav class="nav" aria-label="Main">
-      <a href="./">Home</a>
-      <a class="pill" href="support.html">Support</a>
+      <a class="btn btn-sm" href="support.html">Support</a>
     </nav>
   </div>
 </header>
@@ -47,9 +48,9 @@
 
 <main id="main" class="page">
   <div class="wrap">
-    <article class="doc">
+    <article class="doc sheet">
       <!-- doc:tos -->
-      <header class="doc-head"><p class="eyebrow">Roll Model</p><h1>Terms of Service</h1><p>The same words as in the game, under Settings › Terms of Service.</p></header>
+      <header class="doc-head"><div class="ban kc-aqua"><p class="kick">Roll Model</p><h1>Terms of Service</h1><i class="flag" aria-hidden="true"></i></div><p>The same words as in the game, under Settings › Terms of Service.</p></header>
       <div class="prose"><p>Updated October 15, 2026. Roll Model is still being made, and these terms will grow with it.</p><h2>Play fair</h2><p>No cheating, hacking, or using bugs to win.</p><h2>Be kind</h2><p>Pick a username that’s friendly to everyone: no swearing, nothing hateful, and no pretending to be someone else. We can change or remove a username that breaks these rules, and close an account that keeps breaking them.</p><h2>Your account</h2><p>You need to be 13 or older to make an account and play online. Keep your password to yourself: you’re responsible for what happens on your account. You can delete it any time in Settings.</p><h2>Changes</h2><p>We may update these terms as the game grows. The date at the top says when they last changed.</p></div>
       <!-- /doc -->
       <p class="ask">Questions? Write to <a data-config="email" href="mailto:support@playrollmodel.com">support@playrollmodel.com</a>.</p>
@@ -66,7 +67,6 @@
         <li><a href="privacy.html">Privacy Policy</a></li>
         <li><a href="terms.html">Terms of Service</a></li>
         <li><a href="support.html">Support</a></li>
-        <li><a href="credits.html">Credits</a></li>
       </ul>
     </nav>
     <p class="legal"><span>© <span data-year>2026</span> Roll Model. A Marcelin Game.</span><span>No cookies, no trackers. Just paint.</span></p>

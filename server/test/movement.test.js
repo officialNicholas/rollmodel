@@ -155,3 +155,18 @@ test('a blob that must stay put (countdown, flattened) may not move', () => {
   assert.equal(m.check({ x: 0, y: 0, z: -20, yaw: 0 }, 40, env).reason, 'time', 'older than the last report: ignored');
   assert.equal(MOVE.TOL, 0.05);
 });
+
+test('a hop first seen well after take-off (the reports in between missed) is not floating', () => {
+  const L = flat(), m = new Mover(L), env = { rainMul: 1, turfOwn: () => false };
+  for (const late of [33, 100, 200, 240, 300, 360]) {
+    m.reset({ x: -20, y: 0, z: -20, yaw: 0 }, 1000);
+    for (let t = 1033; t <= 1100; t += 33) assert.ok(m.check({ x: -20, y: 0, z: -20, yaw: 0, vy: 0 }, t, env).ok);
+    // the game's own hop from t = 1100: up at JUMP_V against gravity; nothing reported until `late` ms in, and no jump action
+    let bad = null;
+    for (let a = late; a <= 700; a += 33) {
+      const s = a / 1000, vy = G.JUMP_V - G.GRAV * s, y = Math.max(0, G.JUMP_V * s - 0.5 * G.GRAV * s * s);
+      const r = m.check({ x: -20, y, z: -20, yaw: 0, vy: y > 0 ? vy : 0 }, 1100 + a, env); if (!r.ok) { bad = [a, r.reason, r.detail]; break; }
+    }
+    assert.equal(bad, null, 'first seen ' + late + ' ms after take-off: ' + JSON.stringify(bad));
+  }
+});

@@ -214,8 +214,8 @@ test('a private room cannot be joined without its code, and guessing is rate lim
     const g = new Raw(srv.url); await g.hello();
     const codes = ['AAAAA', 'BBBBB', 'CCCCC', 'DDDDD', 'EEEEE', 'FFFFF', 'GGGGG', 'HHHHH'].filter(x => x !== room.code);
     for (const [i, code] of codes.entries()) g.send({ t: 'joinRoom', code, r: 10 + i });
-    await g.wait(m => m.r === 10 + codes.length - 1);
-    const answers = g.msgs.filter(m => m.r >= 10).map(m => m.code);
+    await until(() => g.msgs.filter(m => m.r >= 10).length === codes.length, 5000); // (answered by request id, in any order)
+    const answers = g.msgs.filter(m => m.r >= 10).sort((a, b) => a.r - b.r).map(m => m.code);
     assert.equal(answers.filter(a => a === 'not_found').length, 6); assert.ok(answers.slice(6).every(a => a === 'rate'), JSON.stringify(answers));
     // and acting in a match you are not in does nothing
     g.send({ t: 'act', a: 'pound', n: 1 }); const ack = await g.wait(m => m.t === 'ack'); assert.equal(ack.reason, 'not_in_match');

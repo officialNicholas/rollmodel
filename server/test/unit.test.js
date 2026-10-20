@@ -2,10 +2,10 @@
 // schedules, matchmaking windows, and remote-player sampling.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { canonicalLayout, layoutHash, hashString, layoutFromStage, codec, FLAGS, RemoteTrack, ClockSync, PROTOCOL_VERSION as SDK_PROTO } from '../client/rmnet.js';
+import { canonicalLayout, layoutHash, hashString, layoutFromStage, codec, FLAGS, RemoteTrack, ClockSync, RMNet, PROTOCOL_VERSION as SDK_PROTO } from '../client/rmnet.js';
 import { Level, inR, rampH } from '../src/geometry.js';
 import { validateLayout, fromCanonical } from '../src/layout.js';
 import { glicko2, rateMatch } from '../src/rating.js';
@@ -155,7 +155,7 @@ test('the JSON file store keeps players by a hash of their token', async () => {
   const { player, token } = await s.create({ name: 'Blob' });
   await s.update(player.id, { ratings: Object.assign({}, player.ratings, { duel: { r: 1600, rd: 200, vol: 0.06, games: 3 } }) });
   await s.flag(player.id, 'test', { a: 1 }); await s.recordMatch({ matchId: 'm1' }); await s.flush();
-  const raw = readFileSync(file, 'utf8'); assert.ok(!raw.includes(token), 'the token itself is never written');
+  const raw = (existsSync(file) ? readFileSync(file, 'utf8') : '') + readFileSync(file + '.log', 'utf8'); assert.ok(!raw.includes(token), 'the token itself is never written');
   const s2 = new JsonFileStore(file); await s2.init();
   const again = await s2.getByToken(token); assert.equal(again.id, player.id); assert.equal(again.ratings.duel.r, 1600); assert.equal(again.flags.length, 1);
   assert.equal(await s2.getByToken('nope-nope-nope-nope-nope'), null); assert.equal(await s2.getByToken(5), null);
@@ -199,4 +199,59 @@ test('remote sampling interpolates, extrapolates briefly, then holds', () => {
   // clock: the lowest round trip wins
   const c = new ClockSync(); c.add(0, 1100, 100); c.add(200, 1260, 220); assert.equal(c.offset, 1260 + 10 - 220);
   assert.equal(KO_R, 3.34);
+});
+
+test('drawing a remote player: a leap back after a stall glides instead of popping; real moves and teleports pass through', () => {
+  let now = 0; const net = new RMNet({ url: 'ws://x', now: () => now, autoReconnect: false });
+  const at = (x, flags = 0) => { const o = { x, y: 0, z: 0, flags }; net._smoothed(1, o); return o.x; };
+  // steady running at 5.4 m/s, 60 frames a second: drawn exactly where sampled
+  let x = 0; for (let i = 0; i < 30; i++) { now += 16.7; x += 5.4 * 0.0167; assert.ok(Math.abs(at(x) - x) < 1e-9); }
+  // a stall's late states pull the sample 1.2 m back in one frame: the drawn position barely moves, then eases back
+  now += 16.7; const before = x; x -= 1.2; const d0 = at(x);
+  assert.ok(Math.abs(d0 - before) < 0.35, 'no pop (' + (d0 - before).toFixed(2) + ' m)');
+  let last = d0; for (let i = 0; i < 30; i++) { now += 16.7; const d = at(x); assert.ok(Math.abs(d - last) < 0.35, 'each frame a small step'); last = d; }
+  assert.ok(Math.abs(last - x) < 0.02, 'back on the sample within half a second (' + (last - x).toFixed(3) + ')');
+  // a respawn, more than 5 m away: straight there
+  now += 16.7; x += 9; assert.equal(at(x), x);
+  // knocked out: never smoothed
+  now += 16.7; x -= 2; assert.equal(at(x, FLAGS.KO), x);
+});
+
+test('the file store: a change is a short line in the journal, the snapshot is rebuilt now and then, and both load back', async () => {
+  const dir = mkdtempSync(path.join(tmpdir(), 'rmjournal-')), file = path.join(dir, 'store.json');
+  const s = new JsonFileStore(file, { delayMs: 5, chunk: 7, compactBytes: 1e9 }); await s.init();
+  const made = []; for (let i = 0; i < 60; i++) made.push(await s.create({ name: 'P' + i }));
+  await s.flush();
+  const log1 = statSync(file + '.log').size;
+  // one change: one line more, not everyone again
+  await s.update(made[3].player.id, { name: 'Renamed' }); await s.flush();
+  const grew = statSync(file + '.log').size - log1; assert.ok(grew > 0 && grew < 1000, 'one player\'s line (' + grew + ' bytes)');
+  // enough changes and the journal is folded into a fresh snapshot (written 7 players at a time)
+  s.compactBytes = 20000;
+  for (let k = 0; k < 4; k++) for (const m of made) await s.update(m.player.id, { stats: { matches: k + 1, wins: 0, kos: 0 } });
+  await s.flush(); while (s._compacting) await s._compacting;
+  assert.ok(existsSync(file), 'a snapshot was written'); assert.ok((existsSync(file + '.log') ? statSync(file + '.log').size : 0) < 20000, 'and the journal started over');
+  await s.recordMatch({ matchId: 'mA' }); await s.update(made[5].player.id, { name: 'Last' }); await s.flush();
+  const s2 = new JsonFileStore(file); await s2.init();
+  assert.equal(s2.players.size, 60); assert.equal((await s2.get(made[3].player.id)).name, 'Renamed'); assert.equal((await s2.get(made[5].player.id)).name, 'Last');
+  assert.equal((await s2.get(made[9].player.id)).stats.matches, 4); assert.equal(s2.matches.filter(m => m.matchId === 'mA').length, 1);
+  assert.equal((await s2.getByToken(made[0].token)).id, made[0].player.id);
+  // shutting down folds everything into the snapshot
+  await s.close(); const snap = JSON.parse(readFileSync(file, 'utf8')); assert.equal(snap.players.length, 60);
+  assert.ok(snap.players.some(p => p.name === 'Last'));
+});
+
+test('the SDK starts its clock again on another machine (or a restarted one): each counts time from its own start', () => {
+  let now = 1000; const net = new RMNet({ url: 'ws://x', now: () => now, autoReconnect: false });
+  try {
+  for (let i = 0; i < 10; i++) { now += 50; net._clock.add(now - 20, 500000 + now - 10, now); } // (machine m1: its clock 500 s ahead of ours)
+  net._onJson({ t: 'welcome', id: 'p', token: 't', name: 'n', shard: 'm1', serverTime: 500000 + now });
+  assert.ok(Math.abs(net.serverNow() - (500000 + now)) < 30);
+  net._onJson({ t: 'welcome', id: 'p', token: 't', name: 'n', shard: 'm2', serverTime: 20000 + now }); // moved to m2, which started later
+  assert.ok(Math.abs(net.serverNow() - (20000 + now)) < 5, "on m2's clock at once (" + (net.serverNow() - (20000 + now)) + ')');
+  assert.equal(net._clock.n, 0, 'old samples gone');
+  for (let i = 0; i < 6; i++) { now += 50; net._clock.add(now - 20, 20000 + now - 10, now); } // (pings on m2)
+  net._onJson({ t: 'welcome', id: 'p', token: 't', name: 'n', shard: 'm2', serverTime: 90000 + now }); // the same machine, restarted
+  assert.ok(Math.abs(net.serverNow() - (90000 + now)) < 5);
+  } finally { net.close(); }
 });

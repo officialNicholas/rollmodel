@@ -10,14 +10,17 @@ import { performance } from 'node:perf_hooks';
 import { sleep, metric, stats } from './helpers/harness.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const ROOMS = +(process.env.RM_LOAD_ROOMS || 100), PER = 4, N = ROOMS * PER, SECONDS = +(process.env.RM_LOAD_SECONDS || 10), WORKERS = 2;
+const MODE = process.env.RM_LOAD_MODE === 'duel' ? 'duel' : 'ffa'; // (RM_LOAD_MODE=duel: rooms of 2)
+const ROOMS = +(process.env.RM_LOAD_ROOMS || 100), PER = MODE === 'duel' ? 2 : 4, N = ROOMS * PER, SECONDS = +(process.env.RM_LOAD_SECONDS || 10), WORKERS = +(process.env.RM_LOAD_BOTPROCS || 2);
+// (MATCH_WORKERS in the environment reaches the server too: matches on worker threads)
 
 function startServer() {
   const env = Object.assign({}, process.env, {
     PORT: '0', HOST: '127.0.0.1', PRINT_PORT: '1', LOG_LEVEL: 'info', DATA_FILE: 'memory', MAX_PER_IP: '5000', MAX_CONNECTIONS: '10000',
     RULES: JSON.stringify({ sdT: SECONDS + 40, countdown: 1, startLead: 0.2, layoutTimeout: 90, weather: false, items: true, afkForfeit: 120, idleForfeit: 300, reconnectWindow: 60 }),
   });
-  const child = spawn(process.execPath, ['src/index.js'], { cwd: root, env, stdio: ['ignore', 'pipe', 'inherit'] });
+  const child = spawn(process.execPath, [...(process.env.RM_SERVER_NODE_ARGS || '').split(' ').filter(Boolean), 'src/index.js'], // (RM_SERVER_NODE_ARGS: say --cpu-prof, to see where the server's time goes)
+    { cwd: root, env, stdio: ['ignore', 'pipe', 'inherit'] });
   const warnings = [];
   const port = new Promise((resolve, reject) => {
     let buf = ''; child.stdout.on('data', d => { buf += d; const m = buf.match(/PORT=(\d+)/); if (m) resolve(+m[1]); for (const l of String(d).split('\n')) if (/"level":"(warn|error)"|"msg":"violation"/.test(l)) warnings.push(l); });
@@ -41,7 +44,7 @@ test('load: ' + ROOMS + ' rooms of ' + PER + ' bots', { timeout: 300000 }, async
   try {
     await Promise.all(workers.map(w => w.ready));
     const t0 = performance.now(), share = Math.ceil(ROOMS / WORKERS);
-    const started = await Promise.all(workers.map((w, i) => w.ask({ t: 'setup', url, firstRoom: i * share, rooms: Math.max(0, Math.min(share, ROOMS - i * share)), per: PER, mode: 'ffa' }, 'started')));
+    const started = await Promise.all(workers.map((w, i) => w.ask({ t: 'setup', url, firstRoom: i * share, rooms: Math.max(0, Math.min(share, ROOMS - i * share)), per: PER, mode: MODE }, 'started')));
     for (const s of started) assert.equal(s.t, 'started', JSON.stringify(s));
     metric('load.setup', Math.round(performance.now() - t0), 'ms', N + ' players connected, in rooms, maps agreed, matches started');
     const h0 = await health(port), m0 = await Promise.all(workers.map(w => w.ask({ t: 'mark' }, 'marked'))), c0 = performance.now();
@@ -53,13 +56,18 @@ test('load: ' + ROOMS + ' rooms of ' + PER + ' bots', { timeout: 300000 }, async
     const down = (h1.stats.bytesOut - h0.stats.bytesOut) / N / secs, frames = (h1.stats.framesOut - h0.stats.framesOut) / N / secs;
     const sr = stats(rep.flatMap(r => r.snapRates)), interp = stats(rep.flatMap(r => r.interp));
     const corrections = rep.reduce((a, r) => a + r.corrections, 0), kicked = rep.flatMap(r => r.kicked);
-    metric('load.players', N, '', ROOMS + ' Showdown matches of ' + PER + ', bots in ' + WORKERS + ' processes');
+    metric('load.players', N, '', ROOMS + (MODE === 'duel' ? ' duels' : ' Showdown matches') + ' of ' + PER + ', bots in ' + WORKERS + ' processes');
     metric('load.tick.p50', h1.tick.p50, 'ms', 'server tick for all ' + ROOMS + ' matches (timers, snapshots), median, wall clock');
     metric('load.tick.p99', h1.tick.p99, 'ms', 'server tick, 99th percentile, wall clock (one tick is 33 ms; the bots share this 4-core machine)');
     metric('load.tick.cpuP50', h1.tick.cpuP50, 'ms', 'processor time of a tick, median');
     metric('load.tick.cpuP99', h1.tick.cpuP99, 'ms', 'processor time of a tick, 99th percentile');
     metric('load.cpu', +(h1.cpu * 100).toFixed(1), '%', 'server processor time, share of one core (all ' + N + ' players: checking every state, ticks, sockets)'); metric('load.elu', +(h1.elu * 100).toFixed(1), '%', 'server event loop busy (wall clock; includes waiting for a core when the machine is busy)');
     metric('load.mem', h1.memMB, 'MB', 'server memory (resident)');
+    if (h1.workers) {
+      metric('load.mainCpu', +(h1.mainCpu * 100).toFixed(1), '%', 'main thread processor time, share of one core (sockets, lobby)');
+      h1.workers.forEach(w => metric('load.worker' + w.worker, +(w.cpu * 100).toFixed(1), '%', 'match worker ' + w.worker + ' processor time, share of a core (' + w.players + ' players; tick p99 ' + (w.tick ? w.tick.p99.toFixed(1) : '-') + ' ms)'));
+      for (const w of h1.workers) assert.ok(w.tick && w.tick.cpuP99 < 33, 'worker ' + w.worker + ': a tick fits in one tick');
+    }
     metric('load.down', Math.round(down), 'B/s', 'server to each player (WebSocket payload and framing)');
     metric('load.downIp', Math.round(down + frames * 40), 'B/s', 'server to each player with TCP/IP headers (about 40 bytes a packet)');
     metric('load.up', Math.round(up), 'B/s', 'each player to the server');

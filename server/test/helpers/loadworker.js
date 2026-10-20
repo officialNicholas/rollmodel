@@ -24,7 +24,7 @@ process.on('message', async m => {
     } else if (m.t === 'mark') {
       send({ t: 'marked', bytesOut: bots.reduce((a, b) => a + b.net.stats().bytesOut, 0) });
     } else if (m.t === 'report') {
-      send({ t: 'report', bytesOut: bots.reduce((a, b) => a + b.net.stats().bytesOut, 0), snapRates: bots.map(b => b.net.stats().snapshotsPerSec), interp: bots.map(b => b.net.stats().interpDelay), corrections: bots.reduce((a, b) => a + b.stats.corrections, 0), kicked: bots.filter(b => b.kicked).map(b => b.kicked), events: bots.filter(b => b.events.length).map(b => b.events).slice(0, 5) });
+      send({ t: 'report', bytesOut: bots.reduce((a, b) => a + b.net.stats().bytesOut, 0), snapRates: bots.map(b => b.net.stats().snapshotsPerSec), interp: bots.map(b => b.net.stats().interpDelay), corrections: bots.reduce((a, b) => a + b.stats.corrections, 0), why: bots.flatMap(b => b.events.filter(e => e[0] === 'correction').map(e => e[1])), zero: bots.filter(b => b.net.stats().snapshotsPerSec < 20).map(b => ({ n: b.net.name, shard: b.net._shard, connected: b.net.connected, match: !!b.net.match, ended: !!b.ended, out: b.out, dead: b.dead })).slice(0, 8), kicked: bots.filter(b => b.kicked).map(b => b.kicked), events: bots.filter(b => b.events.length).map(b => b.events).slice(0, 5) });
     } else if (m.t === 'quit') {
       for (const b of bots) b.close();
       setTimeout(() => process.exit(0), 200);

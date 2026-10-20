@@ -2,12 +2,14 @@
 // forfeits, a second device with the same token takes over, and AFK or idle players are removed.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { FLAGS, RMNet } from '../client/rmnet.js';
+import { performance } from 'node:perf_hooks';
+import { FLAGS, RMNet, codec } from '../client/rmnet.js';
+import { flatLayout } from './helpers/layouts.js';
 import { startServer, makeBots, until, sleep, matchOf, metric } from './helpers/harness.js';
 import { netSim, PROFILES } from './helpers/netsim.js';
 
-async function duel(rules, opts = {}) {
-  const srv = await startServer(rules);
+async function duel(rules, opts = {}, extra = {}) {
+  const srv = await startServer(rules, extra);
   const [A, B] = makeBots(srv, 2, Object.assign({ profile: 'rtt60', behavior: 'wander', prefix: 'ses' }, opts));
   await Promise.all([A, B].map(b => b.connect()));
   await A.net.queue('duel'); await B.net.queue('duel');
@@ -30,6 +32,33 @@ test('a dropped connection that comes back within the window picks the match up 
     const end = await c.A.wait('matchEnd', () => true, 15000);
     assert.equal(end.results.find(x => x.slot === c.A.slot).left, false, 'not a forfeit');
     assert.equal(c.A.stats.corrections, 0);
+  } finally { await c.close(); }
+});
+
+test('a link that goes silent without closing: the phone notices, reconnects and picks the match up again', async () => {
+  const c = await duel({ matchT: 12, reconnectWindow: 20, afkWarn: 5, afkForfeit: 15 });
+  try {
+    const resumed = c.A.wait('resume', () => true, 10000), t0 = Date.now();
+    c.A.net.ws.blackhole(); // a tunnel, or Wi-Fi handing over to 4G: nothing arrives either way, and nothing closes
+    const r = await resumed, ms = Date.now() - t0;
+    metric('session.silentResumeMs', ms, 'ms', 'link gone silent to resumed match (the SDK notices after 3 s of nothing)');
+    assert.ok(ms < 5000, 'resumed in ' + ms + ' ms');
+    assert.equal(r.matchId, matchOf(c.srv, c.B.id).id); assert.equal(r.you, c.A.slot);
+    const end = await c.A.wait('matchEnd', () => true, 15000);
+    assert.equal(end.results.find(x => x.slot === c.A.slot).left, false, 'not a forfeit');
+  } finally { await c.close(); }
+});
+
+test('the server closes a connection that has gone silent, so the match holds the player\'s place', async () => {
+  const c = await duel({ matchT: 30, reconnectWindow: 20, afkWarn: 5, afkForfeit: 15 }, {}, { silentMs: 1500 });
+  try {
+    const away = c.B.wait('playerAway', m => m.slot === c.A.slot, 5000), t0 = Date.now();
+    c.A.net.deadMs = 0; c.A.net.autoReconnect = false; c.A.stop(); // (an older client, or an app iOS has suspended)
+    c.A.net.ws.blackhole();
+    await away; const ms = Date.now() - t0;
+    assert.ok(ms < 3500, 'away after ' + ms + ' ms');
+    assert.equal(matchOf(c.srv, c.B.id).phase, 'play', 'the match goes on, the place held');
+    await until(() => { const r = c.B.net.remote(c.A.slot); return r && (r.flags & FLAGS.AWAY); }, 3000);
   } finally { await c.close(); }
 });
 
@@ -91,4 +120,27 @@ test('idle: a player who sends but never moves is removed', async () => {
     const left = await c.B.wait('playerLeft', m => m.slot === c.A.slot, 8000);
     assert.equal(left.reason, 'idle');
   } finally { await c.close(); }
+});
+
+test('put out of a pot by the server while their own way out was on its way: judged from when they left', async () => {
+  const srv = await startServer({ matchT: 30 });
+  const [A, B] = makeBots(srv, 2, { behavior: 'script', layoutFor: () => flatLayout(26.4), prefix: 'ex' });
+  A.o.script = B.o.script = bot => { bot.input = { speedK: 0 }; };
+  try {
+    await Promise.all([A, B].map(b => b.connect()));
+    await A.net.queue('duel'); await B.net.queue('duel');
+    await Promise.all([A, B].map(b => b.wait('start')));
+    await until(() => A.net.serverNow() > A.startAt + 300, 5000);
+    A.stop(); // (this test speaks for A)
+    const m = matchOf(srv, A.id), p = m.P[A.slot], pot = m.pots[0], now = performance.now();
+    p.st = 'hide'; p.pot = 0; pot.occ = p.slot; p.mover.reset({ x: pot.x, y: pot.y, z: pot.z, yaw: 0 }, now - 1000);
+    m._eject(p, 'empty', null); // the pot ran dry, here, now
+    p.lagEst = 400; p.jit = 0; // (a slow link: A's own exit, 400 ms ago, is only arriving now)
+    m.onAction(p, { t: 'act', a: 'exitPot', n: 1, ts: now - 400 }, performance.now());
+    // where A really is: popped out 400 ms ago and rolled 2 m away since (5 m/s)
+    const c0 = m.stats.corrections;
+    m.onState(p, codec.encodeState({ x: pot.x, y: pot.y, z: pot.z + 2, yaw: 0, spd: 5, vy: 0, flags: 0 }, 1, performance.now(), p.cid & 0xff), performance.now());
+    assert.equal(m.stats.corrections, c0, 'not corrected');
+    assert.ok(Math.abs(p.latest.z - (pot.z + 2)) < 0.01, 'the report was taken');
+  } finally { A.close(); B.close(); await srv.close(); }
 });

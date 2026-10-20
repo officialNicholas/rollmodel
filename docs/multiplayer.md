@@ -267,7 +267,7 @@ Settings are environment variables:
 |---|---|---|
 | `PORT` | 8080 | Port to listen on |
 | `HOST` | 0.0.0.0 | Address to listen on |
-| `DATA_FILE` | ./data/store.json | Where players and ratings are saved (`memory` keeps nothing) |
+| `DATA_FILE` | ./data/store.json | Where players and ratings are saved (`memory` keeps nothing): a snapshot, plus a journal of changes beside it (`.log`) folded in now and then |
 | `LOG_LEVEL` | info | debug, info, warn, error or silent; logs are one JSON object per line |
 | `ALLOWED_ORIGINS` | (any) | Web pages allowed to connect, comma separated; the iOS app's page is `rollmodel://localhost` |
 | `MAX_CONNECTIONS` | 5000 | Connections at once |
@@ -275,10 +275,15 @@ Settings are environment variables:
 | `TRUST_PROXY` | 0 | 1 when behind a proxy that sets X-Forwarded-For |
 | `SNAPSHOT_HZ` | 30 | Snapshots a second (20 saves about a third of the server's work and bandwidth) |
 | `SHUTDOWN_GRACE_MS` | 3000 | How long a shutdown waits for connections to close |
-| `RULES` | | JSON to change match rules (for example `{"matchT":60}`), and the lobby's: `partyModes` (`["duel","ffa","duo"]`), `partyGrace` (60), `idlePing` (20), `silentKick` (75); see `server/src/constants.js` |
+| `MATCH_WORKERS` | 0 | Matches on worker threads: `auto` is one per core but the main thread's (which keeps the sockets and the lobby); 0 runs them on the main thread |
+| `RULES` | | JSON to change match rules (for example `{"matchT":60}`), and the lobby's: `partyModes` (`["duel","trio","ffa","duo"]`), `partyGrace` (60), `idlePing` (20), `silentKick` (75); see `server/src/constants.js` |
 | `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_KEY_P8`, `APNS_BUNDLE_ID` | | Apple's push service, for party invites to a closed game (v391): the key's id, your team id, the .p8 key itself (its whole text) and the app's bundle id. Fly secrets, never in a file. Unset: no notifications |
 | `APNS_PRODUCTION` | 0 | 1 sends a token that doesn't say which service it's for to Apple's production service (the app says: Xcode builds are the sandbox, TestFlight and the App Store production) |
 | `SUPABASE_URL`, `SUPABASE_KEY` | the game's | The Supabase project and its publishable key, for `rm_invite_push` (only asked when a notification is due) |
+| `INTERNAL_KEY` | | Several machines: the shared secret for the store machine's private API |
+| `STORE_URL` | | Several machines, on the game machines: the store machine (`http://store.process.rollmodel-game.internal:8081`) |
+| `INTERNAL_PORT` | 8081 | The store machine's private API (never public) |
+| `SHARD_ID` / `FLY_REPLAY` | Fly's machine id / on on Fly (off in `fly.toml`: one machine) | This machine, and handing a connection meant for another machine to it |
 
 Stopping the server (Ctrl+C, or a SIGTERM from the host) is graceful: running matches are called off without rating
 changes, everyone is told, and the data file is saved.
@@ -289,13 +294,15 @@ The live server is the Fly.io app `rollmodel-game` (in the personal organization
 
 - **Address:** `https://rollmodel-game.fly.dev` (check it at `/health`); the game connects to
   `wss://rollmodel-game.fly.dev/ws`. The address is baked into the game from `tools/online_config.json`.
-- **Machine:** one shared-cpu-1x machine with 512 MB in Chicago (`ord`), always on (no stopping when idle, so the first
-  player of the day does not wait for a cold start), with a 1 GB volume `rm_data` mounted at `/data` for the data file.
-  One machine handles several hundred players (see the load test above); a second region can come later.
+- **Machines:** one performance-2x machine (two dedicated cores, 4 GB) in Chicago (`ord`), matches on a worker thread
+  beside the lobby (`MATCH_WORKERS=auto`), and a 1 GB volume `rm_data` at `/data` for the data file: about 1,000
+  players at once. One machine on purpose: parties, invites and queues live in its memory. `server/fly.scale.toml` is
+  the later setup for 5,000 (six game machines and a store machine), once parties are shared between machines; see
+  docs/net-scale.md. Always on (no stopping when idle). (Before October 2026: a shared-cpu-1x with 512 MB.)
 - **Settings** live in `server/fly.toml`: `TRUST_PROXY=1` (the server reads the player's address from Fly's
   `Fly-Client-IP`), `DATA_FILE=/data/store.json`, and `RULES={"items":false}`, which keeps pick-ups off online until the
   game shows the server's pick-ups.
-- **Deploying a new version:** `cd server && fly deploy`. Fly builds the image from `server/Dockerfile` and replaces the
+- **Deploying a new version:** `cd server && fly deploy --ha=false`. Fly builds the image from `server/Dockerfile` and replaces the
   machine; a running match is called off without rating changes (the graceful stop above). From a network that
   inspects TLS (where Fly's remote builder cannot connect), build the image locally and deploy that instead:
 

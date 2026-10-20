@@ -5,6 +5,11 @@
 //   SNAPSHOT_HZ (30)  SHUTDOWN_GRACE_MS (3000)  RULES (JSON object overriding rules, for test servers)
 //   Notifications (v391, src/push.js): APNS_KEY_ID, APNS_TEAM_ID, APNS_KEY_P8, APNS_BUNDLE_ID, APNS_PRODUCTION,
 //   SUPABASE_URL, SUPABASE_KEY. Set as Fly secrets, never in a file; with no key, no notifications
+//   MATCH_WORKERS (0: matches run on the main thread; a number, or 'auto' for one per core but the main thread's)
+//   Several machines (docs/net-scale.md): INTERNAL_KEY (a shared secret; with it, the machine that keeps the data file
+//   serves it to the others on INTERNAL_PORT, 8081, on the private network), STORE_URL (on the others: that machine,
+//   say http://<machine id>.vm.rollmodel-game.internal:8081), SHARD_ID (this machine; Fly's FLY_MACHINE_ID by default),
+//   FLY_REPLAY (1: hand a connection meant for another machine to it, via Fly's proxy; on by default on Fly)
 import { pushFromEnv } from './push.js';
 export function configFromEnv(env = process.env) {
   const int = (k, d, lo, hi) => { const v = parseInt(env[k], 10); return Number.isFinite(v) && v >= lo && v <= hi ? v : d; };
@@ -21,6 +26,11 @@ export function configFromEnv(env = process.env) {
     maxPerIp: int('MAX_PER_IP', 64, 1, 1e6),
     trustProxy: env.TRUST_PROXY === '1' || env.TRUST_PROXY === 'true',
     shutdownGraceMs: int('SHUTDOWN_GRACE_MS', 3000, 0, 60000),
+    matchWorkers: env.MATCH_WORKERS === 'auto' ? 'auto' : int('MATCH_WORKERS', 0, 0, 64),
+    // (on Fly the machines in the 'store' process group keep the data and serve it; the 'game' ones use STORE_URL)
+    internalKey: env.INTERNAL_KEY || '', internalPort: env.INTERNAL_KEY ? int('INTERNAL_PORT', 8081, 0, 65535) : undefined, internalHost: env.INTERNAL_HOST || '::',
+    storeUrl: env.FLY_PROCESS_GROUP === 'store' ? '' : env.STORE_URL || '', shardId: env.SHARD_ID || env.FLY_MACHINE_ID || 'local',
+    flyReplay: env.FLY_REPLAY ? env.FLY_REPLAY === '1' : !!env.FLY_MACHINE_ID,
     rules,
     push: pushFromEnv(env),
   };
