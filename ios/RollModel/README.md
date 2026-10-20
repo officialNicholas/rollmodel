@@ -17,6 +17,13 @@ This is the same app you already have in App Store Connect: bundle ID `studio.pr
 
 Plug in your iPhone, pick it as the run destination and press **Run**. The first time, the phone asks you to turn on Developer Mode in Settings > Privacy & Security.
 
+## Party invites with the game closed (v391)
+
+- **Push Notifications is on for the app.** The project has an entitlements file now (`RollModel/RollModel.entitlements`, `aps-environment`), so **Signing & Capabilities** lists **Push Notifications**. With "Automatically manage signing" on, Xcode turns it on for the bundle ID the first time it signs; if it asks, click **Fix Issue** or **Try Again**. Builds for TestFlight and the App Store use Apple's production service by themselves.
+- **Only after a yes.** The app registers for notifications only once the player has said yes to them (to a craft's nudge, or to the game's own "Get a nudge?" card the first time they invite a friend or join a party). Its device token goes to the game, which keeps it with the player's account; logging out takes it back.
+- **Tapping an invite** opens the game on it: the invite's card at the top of the lobby, with **Join**.
+- **Sending them** is the game server's job, with an APNs key from your Apple developer account: the steps are in `docs/party-v391.md`. Until the key is set, invites reach games that are open, as before. (NotifyBridge.swift, AppDelegate.swift)
+
 ## iPhone Duo
 
 - **Build with Xcode 27.1 or newer** (the iOS 27.1 SDK). Built with an older Xcode, the app still runs on iPhone Duo but in a smaller window: in the middle of the open screen, and beside the status bar and camera on the closed one.

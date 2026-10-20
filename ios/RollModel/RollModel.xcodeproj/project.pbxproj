@@ -44,6 +44,7 @@
 		CE19A29E3E7364164222C56E /* Game */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Game; sourceTree = "<group>"; };
 		2FCB0B10CB485B242248A929 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		FC90AEE7718CFADA84B0EFC1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		0836C8CF010A264DB8D0C95D /* RollModel.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RollModel.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,6 +87,7 @@
 				3C10E1B9663786B5B539DB02 /* Assets.xcassets */,
 				FC90AEE7718CFADA84B0EFC1 /* PrivacyInfo.xcprivacy */,
 				2FCB0B10CB485B242248A929 /* Info.plist */,
+				0836C8CF010A264DB8D0C95D /* RollModel.entitlements */,
 			);
 			path = RollModel;
 			sourceTree = "<group>";
@@ -134,6 +136,11 @@
 				TargetAttributes = {
 					46C7E7569A08325975B008EC = {
 						CreatedOnToolsVersion = 15.0;
+						SystemCapabilities = {
+							com.apple.Push = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -321,6 +328,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = RollModel/RollModel.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = "";
@@ -354,6 +362,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = RollModel/RollModel.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = "";
