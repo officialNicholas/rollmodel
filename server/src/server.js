@@ -346,11 +346,15 @@ export class GameServer {
         return;
       }
       case 'setName': {
+        // a new name (the game renamed you): the party sees it at once, the next match too. One the filter turns away, or
+        // none, leaves the name there is, as at hello
         const nm = sanitizeName(m.name);
+        if (nm.reason === 'profanity' || nm.reason === 'empty' || nm.reason === 'missing') return this.sendJson(sess, { t: 'name', name: sess.player.name, changed: true, r: m.r });
         this.store.update(sess.player.id, { name: nm.name }).then(p => {
-          if (p) sess.player.name = p.name; this.sendJson(sess, { t: 'name', name: nm.name, changed: nm.changed, r: m.r });
+          if (sess.closed || !sess.player) return;
+          if (p) sess.player.name = p.name; this.sendJson(sess, { t: 'name', name: sess.player.name, changed: nm.changed, r: m.r });
           const me = p && sess.party && sess.party.member(sess.player.id); if (me) { me.name = p.name; this._partySend(sess.party); } // (the party sees it too)
-        });
+        }, e => { this.log.warn('rename failed', { player: sess.player && sess.player.id, err: e && e.message }); this.sendError(sess, 'busy', 'could not change the name; try again', m.r); });
         return;
       }
       case 'layout': {

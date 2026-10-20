@@ -279,6 +279,23 @@ test('a solo player in a party of one can still find a match; a bigger party rea
   } finally { for (const p of [A, B, C]) p.close(); await srv.close(); }
 });
 
+test('a new name: the party sees it at once and the next match carries it; one the filter turns away keeps the old (v396)', async () => {
+  const srv = await startServer();
+  const [A, B] = people(srv, 2, { prefix: 'Nm' });
+  try {
+    await Promise.all([A, B].map(p => p.connect()));
+    const v = await A.partyCreate(); await B.partyJoin(v.code); await until(() => A.party && A.party.members.length === 2);
+    assert.equal(await A.setName('whompwhomp'), 'whompwhomp');
+    await until(() => B.party.members.some(m => m.id === A.id && m.name === 'whompwhomp'));
+    assert.equal(await A.setName('shit_head'), 'whompwhomp', 'turned away: the name stays');
+    await sleep(150); assert.ok(B.party.members.some(m => m.id === A.id && m.name === 'whompwhomp'));
+    // the next match: the new name on the other player's roster
+    await B.partyVote('duel'); await A.partyVote('duel'); await A.partyReady(true); await B.partyReady(true);
+    const found = await B.wait('matchFound', () => true, 15000);
+    assert.equal(found.players.find(p => p.id === A.id).name, 'whompwhomp');
+  } finally { for (const p of [A, B]) p.close(); await srv.close(); }
+});
+
 test('a connection waiting in the lobby is pinged slowly; one that goes silent is closed', async () => {
   const srv = await startServer({ idlePing: 3, silentKick: 2.5 });
   const [A] = people(srv, 1, { autoReconnect: false });

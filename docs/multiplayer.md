@@ -337,7 +337,7 @@ await net.joinRoom('K7PQX');                                    // rejects with 
 await net.leaveRoom();
 net.ready(true);                                                // in a room: the match starts when everyone is ready
 net.rematch(true);                                              // after a match: vote for a rematch (false: leave)
-await net.setName('New name');                                  // returns the cleaned-up name
+await net.setName('New name');                                  // returns the name the server keeps (cleaned up; the old one if the filter turns it away); a party sees it at once
 net.close();                                                    // leave for good (no reconnect)
 net.setBeat(500);                                               // ping twice a second from now on (a heartbeat in the lobby: 20000)
 ```
