@@ -4994,6 +4994,18 @@ html.fv #pause .card>.psets{grid-column:1/-1}
 @keyframes jackout{to{opacity:0;transform:rotate(-6deg) scale(.6) translateY(10px)}}
 @keyframes jcoin{0%{opacity:1;transform:rotate(var(--a)) translateY(0) scale(.6)}100%{opacity:0;transform:rotate(var(--a)) translateY(-62px) scale(1)}}
 @media (prefers-reduced-motion:reduce){#repRow .jackpot,#repRow .jackpot .jcoin{animation:none}}
+/* (v410) commissions all done: the panel's stamp, and the plate's full ring and DONE stamp */
+#commModal .card.alldone>.cnote.small{display:none}
+.cdone{display:grid;justify-items:center;gap:12px;padding:14px 0 8px}
+.cstampbig{display:inline-flex;flex-direction:column;align-items:center;gap:4px;padding:14px 22px 12px;border:4px solid #1C9E4B;border-radius:12px;color:#1C9E4B;font:900 30px/1 var(--font-head);letter-spacing:.03em;text-transform:uppercase;text-align:center;rotate:-6deg;box-shadow:inset 0 0 0 3px #F6F1E6,inset 0 0 0 5px #1C9E4B;background:rgba(45,190,96,.08);mix-blend-mode:multiply}
+.cstampbig svg{width:34px;height:34px}
+.cstampbig small{font:900 13px/1 var(--font-head);letter-spacing:.14em;opacity:.85}
+.cdone.thump .cstampbig{animation:cthump .5s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes cthump{0%{opacity:0;transform:scale(2.2)}55%{opacity:1;transform:scale(.94)}100%{opacity:1;transform:scale(1)}}
+.cdone .cnote{margin:0;max-width:300px}
+@media (prefers-reduced-motion:reduce){.cdone.thump .cstampbig{animation:none}}
+#commBtn .cdst{position:absolute;z-index:3;top:4px;right:2px;display:none;padding:3px 5px 2px;border:2px solid #1C9E4B;border-radius:5px;background:#F6F1E6;color:#1C9E4B;font:900 10px/1 var(--font-head);letter-spacing:.08em;rotate:12deg;box-shadow:0 2px 0 rgba(23,19,32,.18);pointer-events:none}
+#commBtn.alldone:not(.locked) .cdst{display:block}
 /* (v407) the victory emotes: hearts popping out, and their icons on the tags */
 .emheart{position:fixed;z-index:400;width:26px;height:24px;margin:-12px 0 0 -13px;pointer-events:none;opacity:0;animation:emheart 1.5s cubic-bezier(.2,.7,.3,1) forwards}
 .emheart svg{display:block;width:100%;height:100%;filter:drop-shadow(0 2px 0 rgba(23,19,32,.3))}
@@ -5220,7 +5232,7 @@ html.fv #pause .card>.psets{grid-column:1/-1}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 409</p>
+      <p class="ver">Version 410</p>
     </div>
   </div>
 
@@ -22406,13 +22418,23 @@ function commProgress(info) {
 // (v276) a finished job keeps its reward on its card under the Completed ribbon until you claim it
 const COMM_CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12.5l4.6 4.6L19.5 6.7" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const commUnclaimed = c => { c = c || commState(); return c.done.filter(id => !c.claimed.includes(id)); };
-function commBadgePaint() { const n = commsDue() ? commUnclaimed().length : 0, b = $('commBadge'); b.hidden = n <= 0; b.textContent = n; b.classList.toggle('claim', n > 0); if (n > 0) { AU.xwant('ribbon'); AU.xwant('coins'); AU.xwant('coin'); } }
+function commBadgePaint() { commRingPaint(); const n = commsDue() ? commUnclaimed().length : 0, b = $('commBadge'); b.hidden = n <= 0; b.textContent = n; b.classList.toggle('claim', n > 0); if (n > 0) { AU.xwant('ribbon'); AU.xwant('coins'); AU.xwant('coin'); } }
+
+// (v410) the day's jobs done: each job's share (part-done ones in part) for the plate's ring; all done and claimed for the panel's stamp
+function commFrac() { const c = commState(); if (!c.active.length) return 0; let f = 0; for (const id of c.active) { const k = COMMS.find(x => x.id === id); f += c.done.includes(id) ? 1 : k ? Math.min(1, (c.prog[id] || 0) / k.n) : 0; } return f / c.active.length; }
+const commAllDone = () => { const c = commState(); return c.active.length > 0 && c.active.every(id => c.done.includes(id)); };
+function commRingPaint() { const f = commFrac(), b = $('commBtn'); $('commArc').setAttribute('stroke-dasharray', (100 * f).toFixed(2) + ' 100'); b.classList.toggle('alldone', f >= 1);
+  if (!b.querySelector('.cdst')) { const st = document.createElement('i'); st.className = 'cdst'; st.setAttribute('aria-hidden', 'true'); st.textContent = 'Done'; b.appendChild(st); } }
 function renderComms() { const c = commState(), seen = store.commSeen || 0, note = '<p class="cnote">Every commission done. The critics are speechless.</p>';
   const cards = c.active.map(id => { const k = COMMS.find(x => x.id === id), di = c.done.indexOf(id), fin = di >= 0, got = fin && c.claimed.includes(id), p = fin ? k.n : c.prog[id] || 0;
     return '<div class="comm' + (fin ? ' fin' + (di >= seen ? ' fresh' : '') + (got ? ' got' : ' claim') : '') + '" data-id="' + id + '" style="--p:' + Math.round(100 * p / k.n) + '"><div class="ring" data-n="' + p + '/' + k.n + '"></div><div class="ct"><b>' + k.t + '</b><small>' + k.d + '</small></div><b class="cr"><span>+' + COMM_XP + ' XP</span><span>+' + COMM_DABS + DROP_SVG + '</span></b>'
       + (fin ? '<i class="cstripe">' + COMM_CHECK + 'Completed</i>' : '')
       + (fin && !got ? '<button class="cclaim" type="button" data-id="' + id + '"><span>Claim reward</span><b>+' + COMM_DABS + DROP_SVG + '</b><b>+' + COMM_XP + ' XP</b></button>' : '') + '</div>'; }).join('');
-  $('commList').innerHTML = cards + (!cards || c.active.every(id => c.done.includes(id)) ? note : ''); }
+  const all = c.active.length > 0 && c.active.every(id => c.done.includes(id) && c.claimed.includes(id)); $('commModal').querySelector('.card').classList.toggle('alldone', all);
+  if (all) { const thump = store.commStamp !== c.day; if (thump) { store.commStamp = c.day; save(); } // (v410: done for the day; it thumps down once a day)
+    $('commList').innerHTML = '<div class="cdone' + (thump ? ' thump' : '') + '"><b class="cstampbig" role="img" aria-label="Done for the day">' + COMM_CHECK + 'Done for the day<small>All three commissions</small></b><p class="cnote">The critics are speechless. A fresh set of jobs comes in when the clock runs out.</p></div>';
+    if (thump && !reduceMotion) setTimeout(() => { if (!$('commModal').hidden) { AU.xplay('ribbon', { v: 0.7 }) || AU.pop(); hap('success'); } }, 260); commRingPaint(); return; }
+  $('commList').innerHTML = cards + (!cards || c.active.every(id => c.done.includes(id)) ? note : ''); commRingPaint(); }
 // your dabs counter, lifted over the panel's dim (a copy of it in the same place) so you can watch the claim land
 function commWallet(on, mid) {
   const m = $(mid || 'commModal'), wid = mid ? mid + 'Wallet' : 'commWallet'; let w = $(wid); if (!on) { if (w) w.remove(); return; }
@@ -22449,6 +22471,7 @@ function commClaim(id, btn) {
   AU.xplay('coins', { v: 0.8 }) || AU.power(); hap('success');
   commXp(btn); commCoins(btn, from, store.drops); commBadgePaint();
   setTimeout(() => { if (card.isConnected) { card.classList.remove('claim'); card.classList.add('got'); btn.remove(); } }, 1350); // (the button folds away; the card is a finished one)
+  if (c.active.every(k => c.claimed.includes(k))) setTimeout(() => { if (!$('commModal').hidden) renderComms(); }, 1700); // (v410: that was the last: done for the day)
 }
 $('commList').addEventListener('click', e => { const b = e.target.closest('.cclaim'); if (!b || b.disabled) return; AU.init(); commClaim(b.dataset.id, b); });
 function openComms() { if (state !== 'menu' || lookOpen || lkOn() || !commsDue()) return;
@@ -23530,7 +23553,7 @@ const commFmt = ms => { const s = Math.ceil(ms / 1000), h = Math.floor(s / 3600)
 let commDay = '', commTxt = '';
 function commTick() {
   const ms = commLeft(), txt = commFmt(ms);
-  if (txt !== commTxt) { commTxt = txt; $('commTimer').textContent = txt; $('commNext').textContent = txt; $('commArc').setAttribute('stroke-dasharray', (100 * ms / 864e5).toFixed(2) + ' 100');
+  if (txt !== commTxt) { commTxt = txt; $('commTimer').textContent = txt; $('commNext').textContent = txt; commRingPaint();
     const h = Math.floor(ms / 36e5), mi = Math.floor(ms % 36e5 / 6e4); $('commBtn').setAttribute('aria-label', 'Commissions. A fresh set in ' + (h ? h + ' h ' : '') + mi + ' min'); }
   const day = new Date().toDateString(); if (day !== commDay) { const first = !commDay; commDay = day; if (!first && state === 'menu') { renderLobbyUI(); if (!$('commModal').hidden) renderComms(); } } // (a new day: the new set)
 }
