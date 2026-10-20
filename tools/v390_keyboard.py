@@ -5,7 +5,8 @@ hid the character; only the "What do we call you?" card should move up).
   how tall the keyboard is ("nativekeyboard", window.__NATIVE.kb) and how long it takes to come up.
 - In a browser the keyboard's height comes from the visual viewport, and the page is put back if the browser scrolled it.
 - The intro's name card rises whole (its Back and Next with it) to sit just above the keyboard, in step with it, and settles back down when
-  the keyboard goes. The scene behind it, and the character, don't move.
+  the keyboard goes. The scene stays where it is; the camera only eases to keep the character in the clear space above the card, as it
+  does whenever a card comes or goes.
 - Any other field (the account form, a friend code): the panel it's in scrolls it into view if it can, otherwise its card (or its page)
   rises just far enough to show it above the keyboard. Never the field itself off the top of the screen."""
 
@@ -63,4 +64,8 @@ def apply(s):
     # the intro's name card rises whole
     s = rep(s, """'<form class="flpanel" id="flName" hidden autocomplete="off" aria-labelledby="flNameT">""",
                """'<form class="flpanel" id="flName" hidden autocomplete="off" data-kblift aria-labelledby="flNameT">""")
+    # the intro frames the character in the clear part of the screen: above the card (as it rises) and clear of the keyboard too
+    s = rep(s, "if (c && c.width > 0) { if (W > H * 1.05) r.x0 = c.right - sr.left + 8; else r.y1 = c.top - sr.top - 8; }\n    return free = r;",
+               "if (c && c.width > 0) { if (W > H * 1.05) r.x0 = c.right - sr.left + 8; else r.y1 = c.top - sr.top - 8; }\n"
+               "    if (KB.h > 40) r.y1 = Math.min(r.y1, H - KB.h - 8); // (v390: and above the keyboard)\n    return free = r;")
     return s

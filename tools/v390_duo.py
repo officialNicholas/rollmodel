@@ -68,7 +68,9 @@ def vote(s):
                "function galMid() { const cw = gallery.clientWidth; if (!galFold()) return cw / 2; return Math.max(60, FOLD.a / 2 - gallery.getBoundingClientRect().left); }\n")
     s = rep(s, "    const pl = Math.max(12, Math.round(cw / 2 - fl - fw / 2)), pr = Math.max(12, Math.round(cw / 2 + fl + fw / 2 - ww)); if (pl + ',' + pr !== gpW)",
                "    const A = galMid(), pl = Math.max(12, Math.round(A - fl - fw / 2)), pr = Math.max(12, Math.round(cw - A + fl + fw / 2 - ww));\n"
-               "    { const g = galFold() ? Math.max(16, Math.round((FOLD.b + innerWidth) / 2 - FOLD.a / 2 - ww)) + 'px' : ''; if (gallery.style.columnGap !== g) gallery.style.columnGap = g; } // (v390: a screen apart)\n"
+               "    { const g = galFold() ? Math.max(16, Math.round((FOLD.b + innerWidth) / 2 - FOLD.a / 2 - ww)) + 'px' : ''; if (gallery.style.columnGap !== g) gallery.style.columnGap = g;\n"
+               "      const sl = galFold() ? Math.max(0, Math.round(2 * A - cw)) + 'px' : '', sr = galFold() ? Math.max(0, Math.round(cw - 2 * A)) + 'px' : ''; // (and the snap's centre there too)\n"
+               "      if (gallery.style.scrollPaddingLeft !== sl) gallery.style.scrollPaddingLeft = sl; if (gallery.style.scrollPaddingRight !== sr) gallery.style.scrollPaddingRight = sr; } // (v390: a screen apart)\n"
                "    if (pl + ',' + pr !== gpW)")
     s = rep(s, "    if (gallery.scrollWidth > cw + 4) gallery.scrollLeft = on.offsetLeft + fl + fw / 2 - cw / 2; };",
                "    if (gallery.scrollWidth > cw + 4) gallery.scrollLeft = on.offsetLeft + fl + fw / 2 - A; };")
