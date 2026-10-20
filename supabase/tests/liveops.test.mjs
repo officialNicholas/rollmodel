@@ -391,7 +391,7 @@ test('adm_player: the whole picture of one player, or null', async () => {
   const x = await call(A.claims, 'adm_player', [p.id]);
   assert.equal(x.id, p.id); assert.equal(x.name, p.name); assert.equal(x.code, p.code); assert.equal(x.rank, 3);
   assert.equal(x.account, true); assert.equal(x.anonymous, false); assert.equal(x.admin, false); assert.equal(x.friends, 0); assert.equal(x.blocked_by_them, 0);
-  assert.deepEqual([x.details.first_name, x.details.last_name, x.details.birth_year, x.details.terms], ['Dana', 'Lee', 2001, '2026-10']);
+  assert.deepEqual([x.details.first_name, x.details.last_name, x.details.birth_year, x.details.terms], ['Dana', null, 2001, '2026-10']); // (v391: no last name kept)
   assert.deepEqual([x.save.rank, x.save.xp, x.save.drops, x.save.items], [3, 250, 333, 2]); // (250 xp: 100 for rank 2, 145 more for rank 3)
   assert.equal(x.installs.length, 1); assert.deepEqual([x.installs[0].iid, x.installs[0].platform, x.installs[0].game_ver, x.installs[0].sessions, x.installs[0].tut], [iid, 'ios', 354, 1, 'done']);
   assert.ok(x.last_sign_in_at && x.created_at && x.last_seen);

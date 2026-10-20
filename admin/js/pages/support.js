@@ -130,7 +130,7 @@ function playerView(d, ctx) {
       facts([
         ...emailRow(d.email),
         ['First name', det.first_name || 'n/a'],
-        ['Last name', det.last_name || 'n/a'],
+        ...(det.last_name ? [['Last name', det.last_name]] : []), // (v391: only older accounts have one)
         ['Birth year', det.birth_year == null ? 'n/a' : String(det.birth_year)],
         ['Terms agreed', (det.terms ? 'Version ' + det.terms : 'n/a') + (det.agreed_at ? ', ' + dateTime(det.agreed_at) : '')],
       ]),

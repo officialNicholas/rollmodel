@@ -25,6 +25,8 @@ shouldn't.
    5. `supabase/migrations/20261019000000_email.sql` (v355: players' emails, the welcome email, Forgot password and the
       reset link, the "password changed" notice. Sending them needs three more things, at the top of that file: pg_net
       turned on, your Resend key in the Vault, and your website and addresses. Until then, emails are saved but not sent)
+   6. `supabase/migrations/20261020010000_first_name.sql` (v391: an account asks for a first name only; the last names
+      kept so far are cleared. Run it before v391 of the game is out: until it's run, making an account in v391 fails)
 4. **Send me two values.** Dashboard > Project Settings > API Keys (or Data API):
    - the **Project URL** (`https://<something>.supabase.co`);
    - the **publishable key** (`sb_publishable_...`), or the older **anon public** key if that's what the project shows.

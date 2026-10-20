@@ -91,15 +91,23 @@ test('accounts: only for real (not anonymous) players, 13 or older, details kept
   const young = new Date(Date.now() - 12 * 365.25 * 864e5).toISOString().slice(0, 10);
   assert.deepEqual(await call(a.id, 'rm_account_save', ['Ada', 'Lovelace', young, 'v1']), { ok: false, why: 'age' });
   assert.deepEqual(await call(a.id, 'rm_account_save', ['', 'Lovelace', '2000-01-02', 'v1']), { ok: false, why: 'first' });
-  assert.deepEqual(await call(a.id, 'rm_account_save', ['Ada', 'Love<3', '2000-01-02', 'v1']), { ok: false, why: 'last' });
   assert.deepEqual(await call(a.id, 'rm_account_save', ['Ada', 'Lovelace', '2000-01-02', 'Bad Terms!']), { ok: false, why: 'terms' });
   assert.deepEqual(await call(a.id, 'rm_account_save', ['  Ada  Maria ', "O'Brien-Lovelace", '2000-01-02', 'tos-2026-10']), { ok: true });
   const acc = await call(a.id, 'rm_account', []);
-  assert.equal(acc.username, a.name); assert.equal(acc.first_name, 'Ada Maria'); assert.equal(acc.last_name, "O'Brien-Lovelace"); assert.equal(acc.birthday, '2000-01-02');
+  assert.equal(acc.username, a.name); assert.equal(acc.first_name, 'Ada Maria'); assert.equal(acc.last_name, null); // (v391: not kept) assert.equal(acc.birthday, '2000-01-02');
   const me = await call(a.id, 'rm_me', [null, null, null]); assert.equal(me.account, true); assert.equal(me.anon, false);
   assert.match(await anonCall('rm_login_email', [a.name.toUpperCase()]), /^u[0-9a-f]{32}@rollmodel\.invalid$/);
   await assert.rejects(as(a.id, 'select * from public.accounts'), /permission denied/);
   const b = await player('Snoop'); assert.equal(await call(b.id, 'rm_account', []), null); // (someone else sees nothing)
+});
+
+test('accounts: a first name is enough (v391); a last name an older game still sends is taken and not kept', async () => {
+  const a = await player('First'); await makePermanent(a.id);
+  for (const last of ['', null, '   ', 'Lovelace', 'Love<3']) {
+    assert.deepEqual(await call(a.id, 'rm_account_save', ['Ada', last, '2000-01-02', 'v1']), { ok: true }, JSON.stringify(last));
+    assert.equal((await call(a.id, 'rm_account', [])).last_name, null);
+  }
+  assert.deepEqual(await call(a.id, 'rm_account_save', ['', null, '2000-01-02', 'v1']), { ok: false, why: 'first' }); // (the first name is still needed)
 });
 
 test('deleting an account takes everything with it, and frees the username', async () => {
