@@ -4966,7 +4966,7 @@ html.fh .tutgo .tgcard .tava{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 387</p>
+      <p class="ver">Version 388</p>
     </div>
   </div>
 
@@ -12231,7 +12231,7 @@ float fxStars(vec3 p, float sc, float dens, float r, float t, float tw, out floa
   if (aHash(i + 11.3) > dens) return 0.0;
   float d = length(f - (0.25 + 0.5 * h)), rr = r * (0.6 + 0.8 * h.x), aa = 0.5 * fw + 0.01;
   float s = 1.0 - smoothstep(rr - aa, rr + aa, d); s += 0.3 * (1.0 - smoothstep(0.0, rr * 3.2, d));
-  float w = mix(1.0, 0.5 + 0.5 * sin(t * (1.1 + 2.4 * h.y) + h.x * 40.0), tw); w *= w;
+  float w = mix(1.0, 0.55 + 0.45 * sin(t * (1.1 + 2.4 * h.y) + h.x * 40.0), tw); w = 0.25 + 0.75 * w * w;
   return s * w * (1.0 - smoothstep(0.6, 1.3, fw));
 }
 // cells (the lava's plates): the nearest and second nearest distance, and the nearest one's own random number
@@ -12307,10 +12307,10 @@ if (uFx.x > 0.5) {
     float a = smoothstep(0.5, 0.82, n1 * 0.65 + n2 * 0.45), b = smoothstep(0.55, 0.85, n2 * 0.7 + (1.0 - n1) * 0.4);
     vec3 neb = vec3(0.42, 0.04, 0.32) * a + vec3(0.03, 0.12, 0.5) * b; col += neb * 0.55;
     float band = exp(-pow((cp.y * 0.8 + cp.x * 1.1 - cp.z * 0.4 - 0.75) / 0.16, 2.0)) * (0.6 + 0.6 * n2); col += vec3(0.25, 0.16, 0.35) * band * 0.3;
-    float h1 = 0.0, h2 = 0.0; float s1 = fxStars(cp, 46.0, 0.45, 0.07, t, 0.55, h1); float s2 = fxStars(cp + 7.3, 15.0, 0.32, 0.05, t, 1.0, h2);
+    float h1 = 0.0, h2 = 0.0; float s1 = fxStars(cp, 46.0, 0.58, 0.08, t, 0.55, h1); float s2 = fxStars(cp + 7.3, 15.0, 0.42, 0.06, t, 1.0, h2);
     vec3 c1 = mix(vec3(0.75, 0.85, 1.0), vec3(1.0, 0.86, 0.7), h1), c2 = mix(vec3(0.8, 0.9, 1.0), vec3(1.0, 0.75, 0.95), h2);
-    col += c1 * s1 * 0.5 + c2 * s2 * 0.6;
-    glow = c1 * s1 * 1.1 + c2 * s2 * 2.6 + neb * 0.22 + vec3(0.3, 0.28, 0.9) * fxFr * 0.35;
+    col += c1 * s1 * 0.7 + c2 * s2 * 0.8;
+    glow = c1 * s1 * 2.4 + c2 * s2 * 5.0 + neb * 0.22 + vec3(0.3, 0.28, 0.9) * fxFr * 0.35;
     sFxRough = 0.22;
   } else if (k < 2.5) {
     // LAVA: near-black basalt broken into uneven plates, the cracks between them molten (a yellow-white core, orange to deep red at
@@ -12320,24 +12320,23 @@ if (uFx.x > 0.5) {
     float crack = 1.0 - smoothstep(w * 0.5 - aa, w + aa, e), core = 1.0 - smoothstep(0.0, w * 0.4 + aa, e);
     float heat = smoothstep(0.25, 0.85, aNoise(cp * 3.2 + vec3(0.0, -t * 0.45, t * 0.12)) * 0.65 + aNoise(cp * 7.0 + vec3(t * 0.3, -t * 0.7, 0.0)) * 0.35);
     float breathe = 0.5 + 0.5 * sin(t * (0.8 + 1.4 * v.z) + v.z * 30.0);
-    vec3 crust = vec3(0.016, 0.012, 0.011) * (0.55 + 0.9 * aNoise(cp * 26.0)) + vec3(0.11, 0.022, 0.0) * (1.0 - smoothstep(0.0, 0.16, e)) * (0.25 + 0.75 * heat);
+    vec3 crust = vec3(0.016, 0.012, 0.011) * (0.55 + 0.9 * aNoise(cp * 26.0)) + vec3(0.42, 0.035, 0.0) * (1.0 - smoothstep(0.0, 0.2, e)) * (0.45 + 0.55 * heat);
     float vein = smoothstep(0.78, 0.96, aNoise(cp * 17.0 + vec3(0.0, -t * 0.25, 0.0))) * (1.0 - crack) * (0.3 + 0.7 * breathe);
-    vec3 hot = mix(vec3(1.1, 0.12, 0.0), vec3(2.0, 0.65, 0.04), heat); hot = mix(hot, vec3(2.6, 1.75, 0.55), core * (0.35 + 0.65 * heat));
-    float molten = max(crack * mix(0.35, 1.0, heat) * mix(0.75, 1.0, breathe), vein * 0.45);
+    vec3 hot = mix(vec3(2.4, 0.16, 0.01), vec3(2.6, 0.8, 0.05), heat); hot = mix(hot, vec3(2.6, 1.75, 0.55), core * (0.35 + 0.65 * heat));
+    float molten = max(crack * mix(0.6, 1.0, heat) * mix(0.8, 1.0, breathe), vein * 0.55), halo = (1.0 - smoothstep(w, w + 0.12, e)) * (1.0 - crack);
     molten = max(molten, sGill * (0.3 + 0.55 * heat));
     col = mix(crust, hot * 0.22, molten);
-    glow = hot * molten * 1.5 + vec3(0.5, 0.08, 0.0) * fxFr * 0.22 * heat;
+    glow = hot * molten * 1.7 + vec3(1.1, 0.06, 0.0) * halo * (0.35 + 0.45 * heat) + vec3(0.6, 0.08, 0.0) * fxFr * 0.3 * heat;
     sFxRough = mix(0.8, 0.35, molten);
   } else if (k < 3.5) {
-    // RAINBOW: candy bands of every colour slanting round the body, drifting slowly along it, a softer pastel on the belly
-    float u = cp.y * 1.15 + cp.x * 0.55 + cp.z * 0.35 + 0.05 * sin(cp.x * 7.0 + cp.z * 5.0 + t * 0.9);
-    float hb = (u * 0.9 - t * 0.08) * 7.0, hf = fract(hb), hq = (floor(hb) + smoothstep(0.78, 1.0, hf)) / 7.0;
-    vec3 c = pow(fxHsv(fract(hq), 0.74, 1.0), vec3(2.2));
-    float seam = 1.0 - smoothstep(0.0, 0.07, abs(hf - 0.89));   // (a thin light line where one band meets the next)
-    c = mix(c, vec3(1.0), 0.28 * sBelly + 0.18 * sGill); c = mix(c, vec3(1.0), 0.35 * seam);
-    col = c * 0.92;
-    glow = c * 0.12 + mix(c, vec3(1.0), 0.5) * fxFr * 0.35;
-    sFxRough = 0.3;
+    // RAINBOW: holographic foil: the colour turns with the angle it's seen from and swirls slowly across the body, pearly, white glints
+    float wv = fxFbm(cp * 2.2 + vec3(0.0, t * 0.06, 0.0));
+    float hh = fract(1.1 * (1.0 - dot(fxN, fxV)) + wv * 0.9 + cp.y * 0.35 - t * 0.05);
+    vec3 c = mix(pow(fxHsv(hh, 0.66, 1.0), vec3(2.2)), vec3(1.0), 0.1);
+    float hu = 0.0, gl = fxStars(cp, 52.0, 0.3, 0.06, t, 1.0, hu);
+    col = c * 0.9 + gl * 0.4;
+    glow = c * 0.22 + vec3(1.0) * gl * 2.2 + c * fxFr * 0.5;
+    sFxRough = 0.18; sFxMetal = 0.35;
   } else if (k < 4.5) {
     // MATRIX: a black screen of green code: glyphs of lit pixels in cells, streams of them raining down the body in most columns,
     // each stream's head bright white-green and its trail fading behind it; the glyphs flicker as it passes
@@ -12359,13 +12358,13 @@ if (uFx.x > 0.5) {
     // flash on their own now and then; a finer dust of tiny glints between them; a pearly sheen at the edges
     vec3 tc = max(uTeam, vec3(0.0)), q = cp * 62.0, i = floor(q), f = fract(q), h = aHash3(i + 1.3); float fw = length(fwidth(q));
     vec3 fn = normalize(fxN + (h - 0.5) * 1.5), L = normalize(vec3(0.35, 0.8, 0.5)), H = normalize(L + fxV);
-    float spec = pow(saturate(dot(fn, H)), 26.0), flash = pow(max(0.0, sin(t * (1.6 + 2.6 * h.y) + h.z * 60.0)), 10.0);
+    float spec = pow(saturate(dot(fn, H)), 18.0), flash = pow(max(0.0, sin(t * (1.6 + 2.6 * h.y) + h.z * 60.0)), 8.0);
     float r = length(f - (0.3 + 0.4 * h.zxy)), shape = 1.0 - smoothstep(0.16, 0.34, r), far = smoothstep(0.5, 1.1, fw);
     float sp = mix((spec * 3.0 + flash * 2.2) * shape, 0.25, far);
     vec3 q2 = cp * 150.0, h2 = aHash3(floor(q2) + 7.7); float r2 = length(fract(q2) - 0.5), fw2 = length(fwidth(q2));
     float dust = pow(saturate(dot(normalize(fxN + (h2 - 0.5) * 1.6), H)), 40.0) * (1.0 - smoothstep(0.12, 0.3, r2)) * (1.0 - smoothstep(0.5, 1.0, fw2));
     col = tc * (0.38 + 0.5 * h.x) + vec3(0.9, 0.8, 1.0) * 0.05 * fxFr + tc * 0.1 * sBelly;
-    glow = mix(tc, vec3(1.0), 0.45) * (sp * 1.6 + dust * 1.2) + mix(tc, vec3(1.0, 0.85, 0.95), 0.3) * fxFr * 0.2;
+    glow = mix(tc, vec3(1.0), 0.5) * (sp * 3.2 + dust * 2.6) + mix(tc, vec3(1.0, 0.85, 0.95), 0.3) * fxFr * 0.2;
     sFxRough = 0.28; sFxMetal = 0.55;
   }
   // swept up over the body from the ground, a bright seam where it's arriving (uFx.y 0..1; at 1 it's all on)
@@ -21350,9 +21349,9 @@ const WEAR = [{ id: 'pirate', name: 'Pirate hat', slot: 'head', stage: 'island' 
   { id: 'tophat', name: 'Top hat', slot: 'head', stage: 'blank' }, { id: 'bowtie', name: 'Bow tie', slot: 'neck', stage: 'blank' }, { id: 'pearls', name: 'Pearl necklace', slot: 'neck', stage: 'blank' }, { id: 'tiara', name: 'Tiara', slot: 'head', stage: 'blank' }, { id: 'lashes', name: 'Lashes', slot: 'lash', stage: 'blank' }, { id: 'glasses', name: 'Glasses', slot: 'eye', stage: 'blank' }, { id: 'beanie', name: 'Beanie', slot: 'head', stage: 'blank' }, { id: 'party', name: 'Party hat', slot: 'head', stage: 'blank' }, { id: 'monocle', name: 'Monocle', slot: 'eye', stage: 'blank' }, { id: 'stache', name: 'Mustache', slot: 'mouth', stage: 'blank' }, { id: 'scarf', name: 'Scarf', slot: 'neck', stage: 'blank' }, { id: 'antennae', name: 'Bouncy antennae', slot: 'head', stage: 'blank' }, { id: 'snorkel', name: 'Snorkel mask', slot: 'eye', stage: 'blank' }, { id: 'propcap', name: 'Propeller cap', slot: 'head', stage: 'blank' }, { id: 'floaties', name: 'Arm floaties', slot: 'arms', stage: 'blank' }, { id: 'cape', name: 'Hero cape', slot: 'back', stage: 'blank' },
   { id: 'hat', name: 'Witch hat', slot: 'head', season: 1, stage: 'halloween' }, { id: 'halo', name: 'Halo', slot: 'head', season: 1, stage: 'halloween' }, { id: 'fangs', name: 'Fangs', slot: 'mouth', season: 1, stage: 'halloween' }, { id: 'hockey', name: 'Hockey mask', slot: 'eye', season: 1, stage: 'halloween' }, { id: 'bunny', name: 'Bunny ears', slot: 'head', season: 1, stage: 'halloween' }, { id: 'skull', name: 'Skull bow', slot: 'head', season: 1, stage: 'halloween' }];
 // (v387) the skins: the whole body's look, one at a time, always in stock
-const SKINS = [{"id": "galaxy", "name": "Galaxy", "slot": "skin", "stage": "blank", "desc": "Deep space, its stars twinkling"}, {"id": "lava", "name": "Lava", "slot": "skin", "stage": "blank", "desc": "Molten cracks, glowing as the heat flows"}, {"id": "rainbow", "name": "Rainbow", "slot": "skin", "stage": "blank", "desc": "Every colour, drifting slowly round you"}, {"id": "matrix", "name": "Matrix", "slot": "skin", "stage": "blank", "desc": "Green code raining down you"}, {"id": "glitter", "name": "Glitter", "slot": "skin", "stage": "blank", "desc": "Sparkling all over, in your paint colour"}];
+const SKINS = [{"id": "galaxy", "name": "Galaxy", "slot": "skin", "stage": "blank", "desc": "Deep space, its stars twinkling"}, {"id": "lava", "name": "Lava", "slot": "skin", "stage": "blank", "desc": "Molten cracks, glowing as the heat flows"}, {"id": "rainbow", "name": "Rainbow", "slot": "skin", "stage": "blank", "desc": "Holographic, its colours shifting as you move"}, {"id": "matrix", "name": "Matrix", "slot": "skin", "stage": "blank", "desc": "Green code raining down you"}, {"id": "glitter", "name": "Glitter", "slot": "skin", "stage": "blank", "desc": "Sparkling all over, in your paint colour"}];
 WEAR.push(...SKINS);
-const SKIN_SW = {"galaxy": "<radialGradient id=\"skg1\" cx=\"35%\" cy=\"35%\" r=\"75%\"><stop offset=\"0\" stop-color=\"#5B2A9A\"/><stop offset=\".55\" stop-color=\"#1A0F45\"/><stop offset=\"1\" stop-color=\"#070616\"/></radialGradient><circle cx=\"20\" cy=\"20\" r=\"16\" fill=\"url(#skg1)\" stroke=\"#171320\" stroke-width=\"2.4\"/><circle cx=\"14\" cy=\"15\" r=\"1.4\" fill=\"#fff\"/><circle cx=\"25\" cy=\"12\" r=\"1\" fill=\"#fff\"/><circle cx=\"24\" cy=\"25\" r=\"1.6\" fill=\"#FFE8F7\"/><circle cx=\"12\" cy=\"25\" r=\".9\" fill=\"#fff\"/><circle cx=\"29\" cy=\"19\" r=\".8\" fill=\"#fff\"/>", "lava": "<radialGradient id=\"skg2\" cx=\"40%\" cy=\"35%\" r=\"75%\"><stop offset=\"0\" stop-color=\"#3A2622\"/><stop offset=\"1\" stop-color=\"#140C0A\"/></radialGradient><circle cx=\"20\" cy=\"20\" r=\"16\" fill=\"url(#skg2)\" stroke=\"#171320\" stroke-width=\"2.4\"/><path d=\"M8 17l7 2 4-5 6 4 7-3M12 28l5-6 7 2 3 6M19 19l-1 4\" fill=\"none\" stroke=\"#FF8A1E\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>", "rainbow": "<clipPath id=\"skc3\"><circle cx=\"20\" cy=\"20\" r=\"16\"/></clipPath><g clip-path=\"url(#skc3)\" transform=\"rotate(-30 20 20)\"><rect x=\"0\" y=\"2\" width=\"40\" height=\"6\" fill=\"#FF4D6D\"/><rect x=\"0\" y=\"8\" width=\"40\" height=\"6\" fill=\"#FF9F1C\"/><rect x=\"0\" y=\"14\" width=\"40\" height=\"6\" fill=\"#FFE14D\"/><rect x=\"0\" y=\"20\" width=\"40\" height=\"6\" fill=\"#3DDC84\"/><rect x=\"0\" y=\"26\" width=\"40\" height=\"6\" fill=\"#3A86FF\"/><rect x=\"0\" y=\"32\" width=\"40\" height=\"6\" fill=\"#9B5DE5\"/></g><circle cx=\"20\" cy=\"20\" r=\"16\" fill=\"none\" stroke=\"#171320\" stroke-width=\"2.4\"/>", "matrix": "<circle cx=\"20\" cy=\"20\" r=\"16\" fill=\"#03140A\" stroke=\"#171320\" stroke-width=\"2.4\"/><g fill=\"#2BFF6A\"><rect x=\"11\" y=\"9\" width=\"2.4\" height=\"3\"/><rect x=\"11\" y=\"14\" width=\"2.4\" height=\"3\" opacity=\".7\"/><rect x=\"11\" y=\"19\" width=\"2.4\" height=\"3\" opacity=\".4\"/><rect x=\"18\" y=\"13\" width=\"2.4\" height=\"3\"/><rect x=\"18\" y=\"18\" width=\"2.4\" height=\"3\" opacity=\".7\"/><rect x=\"18\" y=\"23\" width=\"2.4\" height=\"3\" opacity=\".45\"/><rect x=\"25\" y=\"8\" width=\"2.4\" height=\"3\" opacity=\".5\"/><rect x=\"25\" y=\"13\" width=\"2.4\" height=\"3\" opacity=\".8\"/><rect x=\"25\" y=\"18\" width=\"2.4\" height=\"3\"/><rect x=\"25\" y=\"23\" width=\"2.4\" height=\"3\" fill=\"#D8FFE4\"/></g>", "glitter": "<circle cx=\"20\" cy=\"20\" r=\"16\" fill=\"#E8457A\" stroke=\"#171320\" stroke-width=\"2.4\"/><g fill=\"#fff\"><path d=\"M14 11l1 3 3 1-3 1-1 3-1-3-3-1 3-1z\"/><path d=\"M26 20l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z\"/><circle cx=\"18\" cy=\"26\" r=\"1.1\"/><circle cx=\"24\" cy=\"12\" r=\".9\"/><circle cx=\"11\" cy=\"21\" r=\".8\"/></g>"};
+const SKIN_SW = {"galaxy": "<radialGradient id=\"skg1\" cx=\"35%\" cy=\"35%\" r=\"75%\"><stop offset=\"0\" stop-color=\"#5B2A9A\"/><stop offset=\".55\" stop-color=\"#1A0F45\"/><stop offset=\"1\" stop-color=\"#070616\"/></radialGradient><circle cx=\"20\" cy=\"20\" r=\"16\" fill=\"url(#skg1)\" stroke=\"#171320\" stroke-width=\"2.4\"/><circle cx=\"14\" cy=\"15\" r=\"1.4\" fill=\"#fff\"/><circle cx=\"25\" cy=\"12\" r=\"1\" fill=\"#fff\"/><circle cx=\"24\" cy=\"25\" r=\"1.6\" fill=\"#FFE8F7\"/><circle cx=\"12\" cy=\"25\" r=\".9\" fill=\"#fff\"/><circle cx=\"29\" cy=\"19\" r=\".8\" fill=\"#fff\"/>", "lava": "<radialGradient id=\"skg2\" cx=\"40%\" cy=\"35%\" r=\"75%\"><stop offset=\"0\" stop-color=\"#3A2622\"/><stop offset=\"1\" stop-color=\"#140C0A\"/></radialGradient><circle cx=\"20\" cy=\"20\" r=\"16\" fill=\"url(#skg2)\" stroke=\"#171320\" stroke-width=\"2.4\"/><path d=\"M8 17l7 2 4-5 6 4 7-3M12 28l5-6 7 2 3 6M19 19l-1 4\" fill=\"none\" stroke=\"#FF8A1E\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>", "rainbow": "<linearGradient id=\"skg3\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#FF9AD5\"/><stop offset=\".3\" stop-color=\"#9FE8FF\"/><stop offset=\".55\" stop-color=\"#B9FFB0\"/><stop offset=\".8\" stop-color=\"#FFF09A\"/><stop offset=\"1\" stop-color=\"#C9A6FF\"/></linearGradient><circle cx=\"20\" cy=\"20\" r=\"16\" fill=\"url(#skg3)\" stroke=\"#171320\" stroke-width=\"2.4\"/><path d=\"M10 22c4-6 9-8 15-6M13 28c5-3 10-4 14-2\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2\" stroke-linecap=\"round\" opacity=\".8\"/><circle cx=\"26\" cy=\"12\" r=\"1.5\" fill=\"#fff\"/>", "matrix": "<circle cx=\"20\" cy=\"20\" r=\"16\" fill=\"#03140A\" stroke=\"#171320\" stroke-width=\"2.4\"/><g fill=\"#2BFF6A\"><rect x=\"11\" y=\"9\" width=\"2.4\" height=\"3\"/><rect x=\"11\" y=\"14\" width=\"2.4\" height=\"3\" opacity=\".7\"/><rect x=\"11\" y=\"19\" width=\"2.4\" height=\"3\" opacity=\".4\"/><rect x=\"18\" y=\"13\" width=\"2.4\" height=\"3\"/><rect x=\"18\" y=\"18\" width=\"2.4\" height=\"3\" opacity=\".7\"/><rect x=\"18\" y=\"23\" width=\"2.4\" height=\"3\" opacity=\".45\"/><rect x=\"25\" y=\"8\" width=\"2.4\" height=\"3\" opacity=\".5\"/><rect x=\"25\" y=\"13\" width=\"2.4\" height=\"3\" opacity=\".8\"/><rect x=\"25\" y=\"18\" width=\"2.4\" height=\"3\"/><rect x=\"25\" y=\"23\" width=\"2.4\" height=\"3\" fill=\"#D8FFE4\"/></g>", "glitter": "<circle cx=\"20\" cy=\"20\" r=\"16\" fill=\"#E8457A\" stroke=\"#171320\" stroke-width=\"2.4\"/><g fill=\"#fff\"><path d=\"M14 11l1 3 3 1-3 1-1 3-1-3-3-1 3-1z\"/><path d=\"M26 20l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z\"/><circle cx=\"18\" cy=\"26\" r=\"1.1\"/><circle cx=\"24\" cy=\"12\" r=\".9\"/><circle cx=\"11\" cy=\"21\" r=\".8\"/></g>"};
 const WEAR_WHERE = { island: 'Palette Island', blank: 'Blank Canvas', halloween: 'the Spooky SZN stages' };
 // the eyes' color: five to pick from (lin: the iris in the shader, css: on the picker and the basin's eyes)
 const EYE_COLS = { brown: { name: 'Brown', lin: [0.16, 0.06, 0.035], css: '#8A5636' }, blue: { name: 'Blue', lin: [0.03, 0.1, 0.32], css: '#3B7BE0' }, green: { name: 'Green', lin: [0.04, 0.18, 0.05], css: '#46A853' },

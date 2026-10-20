@@ -1,4 +1,4 @@
-# v387: Skins
+# v387: Skins (v388: brighter, a new Rainbow)
 
 Five premium looks for the whole body, bought with dabs in the Paint Shop. A skin repaints the character's skin from head to tail
 (body, head, gills, legs, tail), and each one moves a little.
@@ -7,7 +7,7 @@ Five premium looks for the whole body, bought with dabs in the Paint Shop. A ski
 | --- | --- | --- | --- |
 | Galaxy | 2000 | Deep space: dark blue-violet with magenta and blue nebulae and a dusty band across it | Its stars twinkle; the nebulae stay still |
 | Lava | 1750 | Near-black basalt broken into uneven plates, the cracks between them molten (yellow-white core, orange to red edges) | Heat flows up through the cracks so each one brightens and dims in turn; the plates breathe; faint veins glow |
-| Rainbow | 1500 | Candy bands of every colour slanting round the body, a thin light line between bands, softer on the belly | The bands drift slowly along the body |
+| Rainbow | 1500 | Holographic foil: every colour, pearly, with white glints | The colour turns with the angle you see it from and swirls slowly across the body (v388) |
 | Matrix | 1750 | A black screen with green code: glyphs of lit pixels in cells | Streams of code rain down the body, each with a bright white-green head and a fading trail; glyphs flicker as it passes |
 | Glitter | 1250 | Glitter flakes in your own paint colour, a finer dust of glints between them | Flakes catch the light as you move and turn, and some flash on their own |
 
@@ -37,3 +37,12 @@ Five premium looks for the whole body, bought with dabs in the Paint Shop. A ski
 - The face is a little calmer on the busy skins (Matrix), so expressions still read.
 - Far away, fine detail (stars, glyphs, flakes) fades to its average instead of shimmering.
 - The old slime (only used if the axolotl never loads) has no skins.
+
+## v388
+
+- Lava: the red runs hotter and wider: a vivid red edge round every crack and a red glow spilling onto the rock beside it; even the
+  coolest cracks stay lit.
+- Galaxy: more stars, brighter, and the twinkle never drops one out entirely.
+- Glitter: more flakes catch the light, and they and the dust between them flare much brighter.
+- Rainbow: the candy stripes are gone. Three designs were tried (holographic foil, tie-dye swirls, a smooth head-to-tail rainbow); the
+  foil was kept.
