@@ -145,6 +145,7 @@ function trialPass(x, y, z) {
 }
 // the look, each frame: rising out of the floor, its glow breathing (brighter as you come close), sparkles running along it; through,
 // a flash and it swells and is gone; the pointer to it when it's off screen or far off
+let trHudY = 0, trHudAt = -9; const trHudBot = () => { if (clock - trHudAt > 0.5) { trHudAt = clock; const e = document.querySelector('.hud .score'); trHudY = e && e.offsetParent ? e.getBoundingClientRect().bottom : 0; } return trHudY; };
 const trBack = u => { const c = 1.9; return 1 + (c + 1) * Math.pow(u - 1, 3) + c * Math.pow(u - 1, 2); };
 function trialDraw(playing, dt) {
   if (TR.on && (state === 'dead' || state === 'menu')) { TR.on = false; TR.out = 0; } // (the match is over: it goes with it)
@@ -166,7 +167,7 @@ function trialDraw(playing, dt) {
   if (TR.on && TR.k > 0.3 && playing && P.st !== 'ko') { tv1.set(TR.x, TR.y + TR_R + 0.5, TR.z).project(camera); const W = viewW, Hh = viewH, behind = tv1.z > 1; let x = behind ? -tv1.x : tv1.x, y = behind ? -tv1.y : tv1.y;
     const on = !behind && Math.abs(x) < 0.9 && Math.abs(y) < 0.78, far = Math.hypot(TR.x - P.x, TR.z - P.z) > 9;
     if (on && !far) { if (el._on) { el._on = false; el.classList.remove('on'); } }
-    else { let px, py, rot; if (on) { px = (x * 0.5 + 0.5) * W; py = (-y * 0.5 + 0.5) * Hh - 30 - Math.abs(Math.sin(clock * 5)) * 6; rot = 180; } else { const m = Math.max(Math.abs(x) / 0.86, Math.abs(y) / 0.72, 1e-3); x /= m; y /= m; px = (x * 0.5 + 0.5) * W; py = (-y * 0.5 + 0.5) * Hh; rot = Math.atan2(x, y) * 180 / Math.PI; }
+    else { let px, py, rot; if (on) { px = (x * 0.5 + 0.5) * W; py = Math.max((-y * 0.5 + 0.5) * Hh - 30 - Math.abs(Math.sin(clock * 5)) * 6, trHudBot() + 26); rot = 180; } /* (never over the score card) */ else { const m = Math.max(Math.abs(x) / 0.86, Math.abs(y) / 0.72, 1e-3); x /= m; y /= m; px = (x * 0.5 + 0.5) * W; py = (-y * 0.5 + 0.5) * Hh; rot = Math.atan2(x, y) * 180 / Math.PI; }
       if (!el._on) { el._on = true; el.classList.add('on'); } el.classList.toggle('edge', !on); el.style.transform = 'translate(' + px.toFixed(1) + 'px,' + py.toFixed(1) + 'px)'; el.children[1].style.transform = 'rotate(' + rot.toFixed(0) + 'deg)'; } }
   else if (el._on) { el._on = false; el.classList.remove('on'); }
 }
