@@ -7,6 +7,7 @@ export const G = Object.freeze({
   SLOPE_MAX: 1.4, // rolling down a ramp
   GIANT_SPD: 1.75, GIANT_CAP: 1.9,
   ROLL_T: 0.5, ROLL_DASH: 0.32, ROLL_CD: 1.5, ROLL_COST: 0.03, DASH_T: 0.35,
+  PERFECT_DODGE: 0.15, // (v405) a roll begun this close before a pound lands: a perfect dodge, the roll straight back
   GRAV: 15, FALL_K: 1.45, JUMP_V: 5.6,
   PR: 0.34, STEP: 0.32, TW: 0.8,
   SLAM_CD: 6, SLAM_FIRST: 4, SLAM_COST: 0.25, POUND_MIN: 0.249, SLAM_R: 3, MISSILE_R: 4, MISSILE_SPD: 2.6, GIANT_SLAM: 1.5,

@@ -441,7 +441,12 @@ export class Match {
     const B = h.B, A = h.by;
     if (B.st !== 'play' && B.st !== 'hide') return;
     const safe = this._safeAt(B, h.ts);
-    if (safe) { this._all({ t: 'dodged', slot: B.slot, by: A.slot, how: safe }); if (h.n !== undefined) this._ack(A, h.n, h.kind, false, 'dodged'); return; }
+    if (safe) {
+      // (v405) a roll begun in the last moment before the landing (on the target's own clock) is a perfect dodge: its roll is back at once
+      const perfect = safe === 'roll' && h.ts - B.rollStart <= G.PERFECT_DODGE * 1000 + 20;
+      if (perfect) B.rollReadyAt = Math.min(B.rollReadyAt, h.ts);
+      this._all({ t: 'dodged', slot: B.slot, by: A.slot, how: safe, perfect: perfect || undefined }); if (h.n !== undefined) this._ack(A, h.n, h.kind, false, 'dodged'); return;
+    }
     if (h.kind === 'stomp') { this._flatten(B, A, now); if (h.n !== undefined) this._ack(A, h.n, 'stomp', true); return; }
     if ((B.effects.giant || 0) > h.ts && this.items) { this.items.unGiant(B, A); return; }
     this._ko(B, A, this._hiddenAt(B, h.ts) ? 'coffin' : 'pound');

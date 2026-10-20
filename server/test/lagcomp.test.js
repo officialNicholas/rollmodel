@@ -13,7 +13,7 @@ const stage = () => ({ arena: 26.4, boxes: [], ramps: [], holes: [], pots: [[-20
 
 // target: the rendered distance the attacker wants at the moment its pound lands; roll: when the target rolls,
 // relative to the moment the pound lands (ms, on the target's own clock), or null
-async function scenario({ target, roll = null, claimFar = false }) {
+async function scenario({ target, roll = null, claimFar = false, again = 0 }) {
   const srv = await startServer({ matchT: 20, slamFirst: 0.2 });
   const [A, B] = makeBots(srv, 2, { profile: 'rtt150', behavior: 'script', layoutFor: stage, prefix: 'lag' });
   const out = { ko: null, dodged: null, land: null };
@@ -39,6 +39,7 @@ async function scenario({ target, roll = null, claimFar = false }) {
   B.o.script = (bot, dt, sNow) => {
     bot.input = { yaw: Math.PI / 2, speedK: 1 };
     if (roll !== null && landAt && !rolled && sNow >= landAt + roll) { rolled = true; if (bot.body.roll()) bot.net.action('roll').then(r => { out.rollOk = r.ok; }); }
+    if (again && landAt && rolled && !out.again && sNow >= landAt + again) { out.again = 'sent'; bot.net.action('roll').then(r => { out.again = r.ok ? 'ok' : r.reason || 'no'; }); }
   };
   try {
     await Promise.all([A, B].map(b => b.connect()));
@@ -80,6 +81,15 @@ test('a target that rolled in time is safe, even though the attacker saw it befo
   assert.ok(r.land.seen < KO_R, 'on the attacker\'s screen it was a hit');
   assert.equal(r.rollOk, true);
   assert.equal(r.ko, null, 'not knocked out'); assert.ok(r.dodged, 'a dodge'); assert.equal(r.dodged.how, 'roll');
+});
+
+test('a perfect dodge (a roll begun just before the landing) gets the roll straight back; an early one does not', async () => {
+  const r = await scenario({ target: 2.4, roll: -70, again: 300 }); // rolls 70 ms before the landing, and again 300 ms after it
+  assert.equal(r.ko, null, 'not knocked out'); assert.ok(r.dodged, 'a dodge'); assert.equal(r.dodged.how, 'roll'); assert.equal(r.dodged.perfect, true, 'a perfect dodge');
+  assert.equal(r.again, 'ok', 'the roll is back at once');
+  const e = await scenario({ target: 2.4, roll: -420, again: 300 }); // 420 ms before: still safe, not perfect
+  assert.equal(e.ko, null); assert.ok(e.dodged); assert.equal(e.dodged.perfect, undefined, 'an ordinary dodge');
+  assert.notEqual(e.again, 'ok', 'the roll is still cooling down');
 });
 
 test('a roll that comes too late does not save the target', async () => {
