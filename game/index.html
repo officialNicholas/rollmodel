@@ -1925,6 +1925,7 @@ body.homeon .corner{display:none}
 .sw{width:46px;height:46px}
 .sw i{width:38px;height:38px;margin:0;border:0;border-radius:0;transform:none;background:var(--c);-webkit-mask:url(art/m_splat2.webp) center/contain no-repeat;mask:url(art/m_splat2.webp) center/contain no-repeat;box-shadow:none;filter:drop-shadow(1px 2px 0 rgba(23,19,32,.25))}
 .sw[aria-pressed="true"]{transform:scale(1.28)}
+.sw[data-c="grey"] i{background:#BEB5D3;filter:drop-shadow(1px 2px 0 rgba(23,19,32,.38))} /* (v407: the pale pearl, deeper so it shows on the paper) */
 .sw[aria-pressed="true"] i{box-shadow:none;filter:drop-shadow(0 0 0 var(--black)) drop-shadow(1px 2px 0 rgba(23,19,32,.35))}
 .sw[aria-pressed="true"]::after{content:"";position:absolute;left:50%;bottom:-3px;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:var(--black)}
 .sw{position:relative}
@@ -4993,6 +4994,18 @@ html.fv #pause .card>.psets{grid-column:1/-1}
 @keyframes jackout{to{opacity:0;transform:rotate(-6deg) scale(.6) translateY(10px)}}
 @keyframes jcoin{0%{opacity:1;transform:rotate(var(--a)) translateY(0) scale(.6)}100%{opacity:0;transform:rotate(var(--a)) translateY(-62px) scale(1)}}
 @media (prefers-reduced-motion:reduce){#repRow .jackpot,#repRow .jackpot .jcoin{animation:none}}
+/* (v407) the victory emotes: hearts popping out, and their icons on the tags */
+.emheart{position:fixed;z-index:400;width:26px;height:24px;margin:-12px 0 0 -13px;pointer-events:none;opacity:0;animation:emheart 1.5s cubic-bezier(.2,.7,.3,1) forwards}
+.emheart svg{display:block;width:100%;height:100%;filter:drop-shadow(0 2px 0 rgba(23,19,32,.3))}
+@keyframes emheart{0%{transform:translate(0,0) scale(.2) rotate(var(--r));opacity:0}16%{transform:translate(calc(var(--dx) * .3),-16px) scale(calc(var(--s) * 1.18)) rotate(var(--r));opacity:1}72%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(calc(var(--s) * .8)) rotate(calc(var(--r) * -1));opacity:0}}
+@media (prefers-reduced-motion:reduce){.emheart{animation-duration:.9s}}
+.lkcard .emico{width:74%;height:auto;max-height:84%}
+/* (v407) upright: the window's buttons clear of the ink band behind the tabs */
+@media (max-aspect-ratio:1/1){
+  :is(#mStrokes,#mLocker).sgp .sgfoot{bottom:26px}
+  :is(#mStrokes,#mLocker).sgp .sgrot{bottom:106px}
+  :is(#mStrokes,#mLocker).sgp.sgnoted .sgrot{bottom:122px}
+}
 /* (v406) the canvas vote on a landscape phone: the controls in one row, the note under the title, and the painting you're on sized
    by the script (--ww, --fb) so it and its name plate fit the row the paintings have */
 .wnote{display:none}
@@ -5013,6 +5026,20 @@ html.fv #pause .card>.psets{grid-column:1/-1}
   html:not(.fold) .mworld .frame{min-width:0;aspect-ratio:auto;border-width:var(--fb,34px)}
   html:not(.fold) .mworld .frame img.art{height:auto;aspect-ratio:320/220}
 }
+/* (v407) the time trial's rings: the pointer to the next one, the +2 that pops where you went through, and the clock's */
+.ringptr i{inset:3px;display:grid;place-items:center;background:radial-gradient(circle at 50% 36%,#FFFFFF,#FFF4C4 55%,#FFD45A);box-shadow:0 0 14px 5px rgba(255,196,40,.75);animation:none}
+.ringptr.edge i{animation:orbpulse .7s ease-in-out infinite alternate}
+.ringptr i svg{width:24px;height:24px;display:block}
+.ringadd{position:absolute;left:0;top:0;z-index:7;pointer-events:none;font:900 34px/1 var(--font-head);font-style:italic;letter-spacing:-.01em;color:#FFD23F;-webkit-text-stroke:2.5px #171320;paint-order:stroke fill;text-shadow:0 3px 0 #171320;opacity:0;white-space:nowrap;transform:translate(var(--x,0),var(--y,0)) translate(-50%,-50%);will-change:transform,opacity}
+.ringadd small{font-size:.55em;margin-left:1px}
+.ringadd.on{animation:ringadd .95s cubic-bezier(.2,.8,.3,1) forwards}
+@keyframes ringadd{0%{opacity:0;transform:translate(var(--x,0),var(--y,0)) translate(-50%,-50%) scale(.4)}16%{opacity:1;transform:translate(var(--x,0),var(--y,0)) translate(-50%,-85%) scale(1.18)}70%{opacity:1;transform:translate(var(--x,0),var(--y,0)) translate(-50%,-150%) scale(1)}100%{opacity:0;transform:translate(var(--x,0),var(--y,0)) translate(-50%,-185%) scale(.96)}}
+.clkadd{position:absolute;left:0;top:0;z-index:1;pointer-events:none;font:900 14px/1 var(--font-head);font-style:italic;color:#D99200;opacity:0;white-space:nowrap;transform:translate(-50%,0)}
+.clkadd.on{animation:clkadd .9s ease-out forwards}
+@keyframes clkadd{0%{opacity:0;transform:translate(-50%,-2px) scale(.6)}18%{opacity:1;transform:translate(-50%,3px) scale(1.15)}100%{opacity:0;transform:translate(-50%,15px) scale(1)}}
+.clock.bonus{animation:clkbonus .55s cubic-bezier(.3,1.6,.5,1)}
+@keyframes clkbonus{0%{transform:rotate(2deg) scale(1)}35%{transform:rotate(2deg) scale(1.3);color:#C98A00}100%{transform:rotate(2deg) scale(1)}}
+@media (prefers-reduced-motion:reduce){.ringadd.on{animation:ringfade .95s linear forwards}.clkadd.on{animation:ringfade .9s linear forwards}.clock.bonus{animation:none}@keyframes ringfade{0%,70%{opacity:1}100%{opacity:0}}}
 </style>
 
 <div id="stage">
@@ -5023,6 +5050,8 @@ html.fv #pause .card>.psets{grid-column:1/-1}
   <div class="orbptr" id="orbPtr"><i></i><u><b></b></u></div>
   <div class="orbptr itemptr" id="itemPtr"><i></i><u><b></b></u></div>
   <div class="orbptr giftptr" id="giftPtr"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 11h15v9.2a1.6 1.6 0 0 1-1.6 1.6H6.1a1.6 1.6 0 0 1-1.6-1.6z" fill="#FFC61A" stroke="#1A1030" stroke-width="1.7"/><rect x="3" y="7.4" width="18" height="4.4" rx="1.4" fill="#FFD54F" stroke="#1A1030" stroke-width="1.7"/><path d="M10.4 7.6h3.2v14.1h-3.2z" fill="#FF3FA4"/><path d="M12 7.4C10.6 4 7.4 3.4 6.9 5.3c-.4 1.6 2 2.1 5.1 2.1zM12 7.4c1.4-3.4 4.6-4 5.1-2.1.4 1.6-2 2.1-5.1 2.1z" fill="#FF3FA4" stroke="#1A1030" stroke-width="1.4" stroke-linejoin="round"/></svg></i><u><b></b></u></div>
+  <div class="orbptr ringptr" id="ringPtr" aria-hidden="true"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.6 20V13.2a7.4 7.4 0 0 1 14.8 0V20" fill="none" stroke="#1A1030" stroke-width="5.4" stroke-linecap="round"/><path d="M4.6 20V13.2a7.4 7.4 0 0 1 14.8 0V20" fill="none" stroke="#FFC21A" stroke-width="2.6" stroke-linecap="round"/></svg></i><u><b></b></u></div>
+  <b class="ringadd" id="ringAdd" aria-hidden="true"></b>
   <div class="foeptr" id="foePtr"><i></i><u><b></b></u></div>
   <div class="foeptr two" id="foePtr2"><i></i><u><b></b></u></div>
   <div class="foeptr three" id="foePtr3"><i></i><u><b></b></u></div>
@@ -5037,7 +5066,7 @@ html.fv #pause .card>.psets{grid-column:1/-1}
     <div class="top">
       <div class="left"><button class="ib" id="pauseBtn" type="button" aria-label="Pause"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/></svg></button><div class="lives" id="lives" aria-label="Lives" hidden></div></div>
       <div class="score">
-        <div class="vsrow"><span class="vsn you" id="pct" aria-label="Your coverage">0%</span><span class="clock" id="clock" aria-label="Time left">1:00</span><span class="vsr"><span class="vsn cpu" id="pctC" aria-label="Rival coverage">0%</span><span class="vsn cpu2" id="pctC2" aria-label="Second rival coverage">0%</span></span></div>
+        <div class="vsrow"><span class="vsn you" id="pct" aria-label="Your coverage">0%</span><span class="clock" id="clock" aria-label="Time left">1:00</span><b class="clkadd" id="clkAdd" aria-hidden="true"></b><span class="vsr"><span class="vsn cpu" id="pctC" aria-label="Rival coverage">0%</span><span class="vsn cpu2" id="pctC2" aria-label="Second rival coverage">0%</span></span></div>
         <div class="tug" id="meter"><i class="tYou" id="tugYou"></i><i class="tCpu" id="tugCpu"></i><i class="tCpu2" id="tugCpu2"></i></div>
         <div class="sdbar" id="sdBar" hidden role="img" aria-label="Hearts"></div>
         <div class="zchip" id="zChip" hidden role="status"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5M9 9l-4-4M15 9l4-4M9 15l-4 4M15 15l4 4"/></svg><span>Closing in</span><b id="zChipN">15</b></div>
@@ -5152,7 +5181,7 @@ html.fv #pause .card>.psets{grid-column:1/-1}
         <div class="evcard" data-ev="vs" style="--ec:#E3122F"><button class="evmain" id="evVs" type="button" aria-expanded="false" aria-controls="evVsPick"><span class="evbar"></span><span class="evtop"><span class="evic" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M32 3l7 12 13-4-3 13 12 7-12 7 3 13-13-4-7 12-7-12-13 4 3-13L3 31l12-7-3-13 13 4z" fill="#fff" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M17 24l5 16 5-16M45 25.5c-1.6-1.6-6-2.2-8 .4-2.4 3 1 5 4 6.4 3.4 1.6 4.4 4.2 1.8 6.6-2.4 2-6.6 1-8.6-.8" fill="none" stroke="#171320" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 24l5 16 5-16M45 25.5c-1.6-1.6-6-2.2-8 .4-2.4 3 1 5 4 6.4 3.4 1.6 4.4 4.2 1.8 6.6-2.4 2-6.6 1-8.6-.8" fill="none" stroke="#E3122F" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="evtx"><b>Versus CPU</b><small>1v1 or a 3-way</small></span></span><span class="evart" aria-hidden="true"><img id="evVsArt" alt=""></span></button><div class="evdrop" id="evVsPick" hidden role="group" aria-label="How many rivals"><button type="button" data-m="duel"><b>1 v 1</b><small>You and one rival</small></button><button type="button" data-m="trio"><b>3-way</b><small>You and two rivals</small></button></div></div>
         <div class="evcard" data-ev="match" style="--ec:#19B7A5"><button class="evmain" id="evMatch" type="button"><span class="evbar"><i>Live online</i></span><span class="evtop"><span class="evic" aria-hidden="true"><svg viewBox="0 0 64 64"><circle cx="32" cy="28" r="22" fill="#8FDCF3" stroke="#171320" stroke-width="3.2"/><path d="M10 28h44M32 6c-8 7-8 37 0 44M32 6c8 7 8 37 0 44M14 16h36M14 40h36" fill="none" stroke="#171320" stroke-width="2.4"/><circle cx="15" cy="49" r="9" fill="#E3122F" stroke="#171320" stroke-width="3"/><circle cx="49" cy="49" r="9" fill="#2E9BFF" stroke="#171320" stroke-width="3"/><circle cx="12.5" cy="47.5" r="1.6" fill="#171320"/><circle cx="17.5" cy="47.5" r="1.6" fill="#171320"/><circle cx="46.5" cy="47.5" r="1.6" fill="#171320"/><circle cx="51.5" cy="47.5" r="1.6" fill="#171320"/></svg></span><span class="evtx"><b>Play online</b><small>1v1, 3-way or Showdown</small></span></span><span class="evart" aria-hidden="true"><img id="evMatchArt" alt=""></span></button><i class="evlock" id="evMatchLock" aria-hidden="true"></i><i class="evnew" aria-hidden="true">New!</i></div>
         <div class="evcard" data-ev="showdown" style="--ec:#8E5CFF"><button class="evmain" id="evShow" type="button" aria-expanded="false" aria-controls="evShowPick"><span class="evbar"><i>Last one standing</i></span><span class="evtop"><span class="evic" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M32 6C18 6 9 15.5 9 28c0 7 3 12 8 15v7c0 2.5 2 4 4.5 4h21c2.5 0 4.5-1.5 4.5-4v-7c5-3 8-8 8-15C55 15.5 46 6 32 6z" fill="#fff" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M18.5 25l8 8M26.5 25l-8 8M37.5 25l8 8M45.5 25l-8 8" stroke="#171320" stroke-width="4.2" stroke-linecap="round"/><path d="M29 41l3-4 3 4z" fill="#171320" stroke="#171320" stroke-width="2" stroke-linejoin="round"/><path d="M25 54v-5M32 54v-5M39 54v-5" stroke="#171320" stroke-width="2.8" stroke-linecap="round"/><path d="M16 18a17 17 0 0 1 10-7" fill="none" stroke="#D9D2F0" stroke-width="3" stroke-linecap="round"/></svg></span><span class="evtx"><b>Showdown</b><small>Free for all</small></span></span><span class="evart" aria-hidden="true"><img id="evShowArt" alt=""></span></button><div class="evdrop" id="evShowPick" hidden role="group" aria-label="Which Showdown"><button type="button" data-m="ffa"><b>Free-for-all</b><small>Four of you, one left</small></button><button type="button" data-m="duo"><b>2 v 2</b><small>You and a teammate</small></button></div></div>
-        <div class="evcard" data-ev="solo" style="--ec:#F29A3A"><button class="evmain" id="evSolo" type="button"><span class="evbar"><i>Weekly leaderboard</i></span><span class="evtop"><span class="evic" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M40 34v8c0 2-1.5 3-3.5 3H33v13" fill="none" stroke="#171320" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M40 34v8c0 2-1.5 3-3.5 3H33v13" fill="none" stroke="#C9C2E4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><rect x="27.5" y="48" width="11" height="13" rx="4" fill="#5B5580" stroke="#171320" stroke-width="3"/><rect x="6" y="14" width="40" height="20" rx="8" fill="#FFD84A" stroke="#171320" stroke-width="3.2"/><path d="M11 19h30" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"/><path d="M46 24h4c2 0 3 1 3 3v7h-13" fill="none" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M12 34v5a3 3 0 0 0 6 0v-5M26 34v8a3 3 0 0 0 6 0v-8" fill="#FFD84A" stroke="#171320" stroke-width="2.6"/></svg></span><span class="evtx"><b>Time trial</b><small>Just you, 60 seconds</small></span></span><span class="evart" aria-hidden="true"><img id="evSoloArt" alt=""></span></button></div>
+        <div class="evcard" data-ev="solo" style="--ec:#F29A3A"><button class="evmain" id="evSolo" type="button"><span class="evbar"><i>Weekly leaderboard</i></span><span class="evtop"><span class="evic" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M40 34v8c0 2-1.5 3-3.5 3H33v13" fill="none" stroke="#171320" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M40 34v8c0 2-1.5 3-3.5 3H33v13" fill="none" stroke="#C9C2E4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><rect x="27.5" y="48" width="11" height="13" rx="4" fill="#5B5580" stroke="#171320" stroke-width="3"/><rect x="6" y="14" width="40" height="20" rx="8" fill="#FFD84A" stroke="#171320" stroke-width="3.2"/><path d="M11 19h30" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"/><path d="M46 24h4c2 0 3 1 3 3v7h-13" fill="none" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M12 34v5a3 3 0 0 0 6 0v-5M26 34v8a3 3 0 0 0 6 0v-8" fill="#FFD84A" stroke="#171320" stroke-width="2.6"/></svg></span><span class="evtx"><b>Time trial</b><small>60 seconds. Rings add time</small></span></span><span class="evart" aria-hidden="true"><img id="evSoloArt" alt=""></span></button></div>
       </div>
     </div>
     <div class="mworld" id="mWorld" hidden>
@@ -5191,7 +5220,7 @@ html.fv #pause .card>.psets{grid-column:1/-1}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 406</p>
+      <p class="ver">Version 407</p>
     </div>
   </div>
 
@@ -5230,6 +5259,15 @@ html.fv #pause .card>.psets{grid-column:1/-1}
       <p class="cnote delerr" id="delErr" role="alert"></p>
       <button class="btn play sm" id="delNo" type="button">Keep it</button>
       <button class="btn delyes" id="delYes" type="button">Delete for good</button>
+    </div>
+  </div>
+
+  <div class="modal" id="turnModal" hidden>
+    <div class="card" role="alertdialog" aria-modal="true" aria-labelledby="turnTitle" aria-describedby="turnNote">
+      <h2 class="ctitle" id="turnTitle">Play wide?</h2>
+      <p class="cnote" id="turnNote"></p>
+      <button class="btn play sm" id="turnYes" type="button">Switch</button>
+      <button class="btn" id="turnNo" type="button">Not now</button>
     </div>
   </div>
 
@@ -15413,7 +15451,7 @@ function trapPop(T, B, harmless) {
   const i = trapList.indexOf(T); if (i >= 0) trapList.splice(i, 1); scene.remove(T.g); trapForget(T);
   if (!B && harmless) { for (let k = 0; k < 8; k++) { const a = Math.random() * 6.283; spawnPart(T.x, T.y + 0.2, T.z, Math.cos(a) * 0.7, 0.8 + Math.random() * 0.8, Math.sin(a) * 0.7, 0.3, steamMat, 0.7); } return; } // (fizzled out)
   const col = TEAMS[T.owner.team].wet;
-  addSplat(T.x, T.y, T.z, Math.random() * 6.283, TRAP_SPLAT, dryClock, false, false, T.code);
+  addSplat(T.x, T.y, T.z, Math.random() * 6.283, T.small ? TRAP_SPLAT * 0.5 : TRAP_SPLAT, dryClock, false, false, T.code); // (v407: small when a pound busted it)
   shockwave(T.x, T.y + 0.1, T.z, 2.8, col); shockwave(T.x, T.y + 0.1, T.z, 1.5, 0xFFFFFF);
   for (let k = 0; k < 22; k++) { const a = Math.random() * 6.283, v = 2.5 + Math.random() * 4.5; spawnPart(T.x, T.y + 0.3, T.z, Math.cos(a) * v, 2 + Math.random() * 4, Math.sin(a) * v, 0.35 + Math.random() * 0.3, tmat(T.owner), 0.55 + Math.random() * 0.4); }
   if (Math.hypot(T.x - P.x, T.z - P.z) < 20) { AU.at(T.x, T.z); AU.burst(0.8); AU.splat(0.9); }
@@ -15437,7 +15475,7 @@ let frostHeld = false;
 function startFreeze(D) {
   const F = { by: D, t: 0, fx: 0, roll: new Map() };
   for (const B of ACTIVE) if (B !== D && !ally(B, D) && B.ai) F.roll.set(B, Math.random() < (diff === 'easy' ? 0.1 : diff === 'hard' ? 0.45 : 0.25)); // (a CPU sometimes nails the roll)
-  frzList.push(F); D.wob = 1; D.squash = 0.7; emote(D, 'glee', 1.2); AU.whoosh();
+  frzList.push(F); D.wob = 1; D.squash = 0.7; emote(D, 'glee', 1.2); AU.whoosh(); if (AU.xwant) { AU.xwant('ice_crunch'); AU.xwant('ice_break'); } // (v407)
   $('frost').classList.add('wind');
   if (D === P) { shake = Math.max(shake, 0.15); buzz([10, 40, 10]); banner('Flash freeze!', 'Here it comes'); }
   else if (ally(D, P)) banner(nameOf(D) + '’s flash freeze!', 'It freezes your rivals'); else { banner(nameOf(D) + '’s flash freeze!', say('Roll right at the flash, or hide in a ' + potWord(), 'Shift right at the flash, or hide in a ' + potWord())); AU.spot(); }
@@ -15473,7 +15511,7 @@ function freezeFlash(F) {
 }
 function thawFx(D) {
   for (let k = 0; k < 14; k++) { const a = Math.random() * 6.283, v = 1.5 + Math.random() * 2.5; spawnPart(D.x, D.y + 0.4, D.z, Math.cos(a) * v, 1.5 + Math.random() * 2.5, Math.sin(a) * v, 0.2 + Math.random() * 0.15, k % 2 ? boilPartMat : puHaloMat, 0.5 + Math.random() * 0.3); }
-  if (hearable(D)) AU.pop();
+  if (D === P || hearable(D)) { const v = D === P ? 1 : clamp(1.1 - Math.hypot(D.x - P.x, D.z - P.z) / 24, 0.35, 0.85); if (!(AU.xplay && AU.xplay('ice_break', { v, rate: 0.96 + Math.random() * 0.08 }))) AU.pop(); } // (v407: a shatter)
 }
 function iceFrame(rdt) {
   for (const D of ACTIVE) {
@@ -17078,6 +17116,9 @@ function makeAudio() {
     flipBack() { return P_('flipback', { vary: 0 }); },
   };
 
+  let wakeG = null; // (v407: the output's own gate, shut while the sound is away so a restart can't blip)
+  function hush() { if (!ctx || !wakeG) return; const t = ctx.currentTime; wakeG.gain.cancelScheduledValues(t); wakeG.gain.setValueAtTime(0, t); }
+  function unhush() { if (!ctx || !wakeG || ctx.state !== 'running') return; const t = ctx.currentTime; wakeG.gain.cancelScheduledValues(t); wakeG.gain.setValueAtTime(0, t); wakeG.gain.setValueAtTime(0, t + 0.12); wakeG.gain.linearRampToValueAtTime(1, t + 0.4); }
   function build(c, live) {
     ctx = c;
     const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -4; lim.knee.value = 2; lim.ratio.value = 20; lim.attack.value = 0.001; lim.release.value = 0.12; const trimO = ctx.createGain(); trimO.gain.value = 0.9; lim.connect(trimO); trimO.connect(ctx.destination); /* (headroom: the limiter catches earlier, and the output sits under full scale) */
@@ -17086,7 +17127,7 @@ function makeAudio() {
     const hi = ctx.createBiquadFilter(); hi.type = 'highshelf'; hi.frequency.value = 7500; hi.gain.value = 0; hi.connect(comp);
     const lo = ctx.createBiquadFilter(); lo.type = 'lowshelf'; lo.frequency.value = 110; lo.gain.value = 0; lo.connect(hi);
     const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 45; const trimI = ctx.createGain(); trimI.gain.value = 0.7; hp.connect(trimI); trimI.connect(lo); /* (a quieter feed into the bus: about 3 dB under where it was, so the clipper stays out of the way) */
-    out = ctx.createGain(); out.gain.value = store.muted ? 0 : 1; out.connect(hp);
+    wakeG = ctx.createGain(); wakeG.gain.value = 1; wakeG.connect(hp); out = ctx.createGain(); out.gain.value = store.muted ? 0 : 1; out.connect(wakeG);
     sfx = ctx.createGain(); sfx.gain.value = store.sfxOff ? 0 : 0.95; sfx.connect(out);
     musLP = ctx.createBiquadFilter(); musLP.type = 'lowpass'; musLP.frequency.value = 20000; musLP.Q.value = 0.8; musGate = ctx.createGain(); musGate.gain.value = store.musicOff ? 0 : 1; musLP.connect(musGate); musGate.connect(out);
     musDuck = ctx.createGain(); musDuck.connect(musLP);
@@ -17164,7 +17205,7 @@ function makeAudio() {
   // the song that was playing picks up where it was, muffled again if the game is paused. awayHid: the sound has been away (hidden or
   // interrupted) and hasn't been heard to run since; stuck: a wake didn't get the clock moving, so the next touch starts afresh
   let awayHid = false, stuck = false, retry = 0, renewAt = -1e9, checkId = 0, renews = 0;
-  function watch(c) { c.onstatechange = () => { if (c === ctx && c.state === 'interrupted') awayHid = true; }; }
+  function watch(c) { c.onstatechange = () => { if (c !== ctx) return; if (c.state === 'interrupted') awayHid = true; if (c.state === 'running') unhush(); else hush(); }; }
   function renew() {
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
     if (!stuck && ctx && ctx.state === 'running' && performance.now() - renewAt < 1500) { check(); return true; } // (two signals for one return)
@@ -17173,7 +17214,7 @@ function makeAudio() {
     if (timer) { clearInterval(timer); timer = 0; }
     if (old) { old.onstatechange = null; try { const p = old.close(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
     trk = null; chA = null; LP = null; stuck = false; renewAt = performance.now(); renews++;
-    build(c, true); watch(c);
+    build(c, true); watch(c); if (c.state === 'running') unhush(); else hush();
     const rain = mood.rain, siz = mood.sizzle; mood.sizzle = 0; if (rain) api.rain(rain); if (siz) api.sizzle(siz);
     if (key && TRK[key] && TRK[key].buf) { trkGo(key, 0, 0.5, true, pos); if (mode === 'pause' || mode === 'vs') api.music(mode); }
     else if (mode !== 'none') { lastMode = 'none'; api.music(mode); }
@@ -17312,7 +17353,7 @@ function makeAudio() {
     muted(m) { if (ctx) out.gain.setTargetAtTime(m ? 0 : 1, T(), 0.04); },
     // the music and the effects apart (the effects' reverb and echo sends with them)
     mix(mOn, sOn) { if (!ctx) return; const t = T(); musGate.gain.setTargetAtTime(mOn ? 1 : 0, t, 0.05); sfx.gain.setTargetAtTime(sOn ? 0.95 : 0, t, 0.04); verb.gain.setTargetAtTime(sOn ? 1 : 0, t, 0.04); echo.gain.setTargetAtTime(sOn ? 1 : 0, t, 0.04); out.gain.setTargetAtTime(mOn || sOn ? 1 : 0, t, 0.04); },
-    suspend(h) { if (!ctx) return; if (h) { awayHid = true; ctx.suspend().catch(() => {}); } else api.wake(); },
+    suspend(h) { if (!ctx) return; if (h) { awayHid = true; hush(); const c = ctx; setTimeout(() => { if (c === ctx && document.hidden) c.suspend().catch(() => {}); }, 100); } else api.wake(); },
     // back from the background, a call or the app switcher: the sound can come back suspended or "interrupted", and a resume that
     // isn't from a tap may be refused. So try now (a full stop-and-start when the app says it's back, which also re-joins the phone's
     // audio), and again on the next touch. The song picks up where it was, or starts if it never got going
@@ -17325,8 +17366,8 @@ function makeAudio() {
         if (trkWant && TRK[trkWant] && TRK[trkWant].buf && (!trk || trk.key !== trkWant) && lastMode !== 'pause') return trkGo(trkWant, 0.3, 0.8);
         // the phone may have stopped the song's player while the app was away: start a fresh one at the same spot (seamless if the old one was fine)
         if (kick && trk && TRK[trk.key] && trk.t0 !== undefined) { const R = TRK[trk.key], el = T() - trk.t0, b = Math.min(R.b, R.buf.duration), L = Math.max(0.5, b - R.a); trkGo(trk.key, 0.15, 0.15, true, el < b ? el : R.a + ((el - R.a) % L)); } };
-      const go = () => { if (!ctx || ctx.state === 'running') return after(); ctx.resume().then(after, () => {}); };
-      if (kick && ctx.state === 'running') ctx.suspend().then(go, go); else go();
+      const go = () => { if (!ctx || ctx.state === 'running') { unhush(); return after(); } ctx.resume().then(() => { unhush(); after(); }, () => {}); };
+      hush(); if (kick && ctx.state === 'running') { const c = ctx; setTimeout(() => { if (c === ctx) c.suspend().then(go, go); }, 100); } else go();
       wakeArm = true; check();
     },
     get renews() { return renews; },
@@ -17438,7 +17479,7 @@ function newBlob(team, cpu) {
 }
 const P = newBlob(0, false), H = newBlob(1, true), H2 = newBlob(2, true), H3 = newBlob(3, true); // you, the holy water, and in a 3-way, wolfsbane
 // modes: solo (just you against the clock), duel (you vs the holy water), trio (all three, everyone for themselves, on a bigger canvas)
-const MODES = [['solo', 'Time trial', 'Just you, 60 seconds'], ['duel', '1v1', 'You and one rival'], ['trio', '3-way', 'You and two rivals'], ['ffa', 'Showdown', 'Four of you, three hearts each'], ['duo', 'Showdown 2v2', 'You and a teammate, three hearts each']];
+const MODES = [['solo', 'Time trial', 'Just you, 60 seconds + rings'], ['duel', '1v1', 'You and one rival'], ['trio', '3-way', 'You and two rivals'], ['ffa', 'Showdown', 'Four of you, three hearts each'], ['duo', 'Showdown 2v2', 'You and a teammate, three hearts each']];
 let mode = MODES.some(m => m[0] === store.mode) ? store.mode : 'duel', ACTIVE = [P, H], SIDE = [0, 1, 2, 3]; // (SIDE: who's with whom, by team; in 2v2 you and your teammate are one side)
 function isShow() { return mode === 'ffa' || mode === 'duo'; }
 const sideOf = D => SIDE[D.team], ally = (A, B) => !!A && !!B && A !== B && SIDE[A.team] === SIDE[B.team];
@@ -17535,7 +17576,7 @@ function resetRun() {
   camYaw = P.yaw; camYawV = 0; look.spd = 0; look.lean = 0; look.drop = 0; look.flat = 1; look.roll = 0; Object.assign(lookC, { spd: 0, lean: 0, drop: 0, flat: 1, roll: 0, flatK: 0 }); lookFlatP = 0; aimRing.visible = false; arrow.visible = false;
   drop.visible = true; shadowBlob.visible = true; LH.drop.visible = LH.shadow.visible = mode !== 'solo' && !tutFlat; L2.drop.visible = L2.shadow.visible = mode === 'trio' || isShow(); Object.assign(L2.look, { spd: 0, lean: 0, drop: 0, flat: 1, roll: 0, flatK: 0 }); L3.drop.visible = L3.shadow.visible = isShow() && ACTIVE.includes(H3); Object.assign(L3.look, { spd: 0, lean: 0, drop: 0, flat: 1, roll: 0, flatK: 0 }); hud.classList.toggle('trio', mode === 'trio'); hud.classList.toggle('sdmode', isShow()); hud.classList.toggle('solo', mode === 'solo');
   runT = 0; matchLeft = mode === 'solo' ? SOLO_T : isShow() ? SD_T : MATCH_T; lastCount = 99; overtimeUsed = false; rainsSeen = 0; lastLead = 0; lastLeadT = -9; leadAcc = 0; deathReason = null; outro = false; outroAge = 0; celebrating = false; hold = 0; slow = 0; dangerK = 0;
-  shots.length = 0; drawShots();
+  shots.length = 0; drawShots(); trialReset();
   suck.forEach(q => { q.s.visible = false; suckFree.push(q); }); suck.length = 0; fxRings.forEach(f => { f.m.visible = false; fxFree.push(f); }); fxRings.length = 0; poolList.forEach(pl => { pl.items.length = 0; pl.im.count = 0; pl.im.visible = false; }); sprDrops.length = 0; sprJets.length = 0; debris.forEach(d => scene.remove(d.m)); debris.length = 0; geysers.forEach(q => scene.remove(q.m)); geysers.length = 0; confs.forEach(c => scene.remove(c.m)); confs.length = 0;
   $('pw').hidden = true; $('wx').hidden = true; kbCharge = false; AU.chargeStop(); AU.sizzle(0);
   dryClock = 0; wxPhase = 'clear'; wxLeft = 22 + Math.random() * 8; speedMul = 1; sunsSeen = 0; heatCrack = 0;
@@ -17554,7 +17595,7 @@ let keysUI = !!(window.matchMedia && matchMedia('(hover: hover) and (pointer: fi
 const say = (touch, keys) => keysUI ? keys : touch;
 function paintHow() {
   const pw = potWord(), riv = mode === 'trio' ? 'a rival' : 'your rival';
-  $('howGoal').textContent = isShow() ? (mode === 'duo' ? 'Two against two, three hearts each. A knock-out costs a heart and with none left you\'re out. The last pair standing wins.' : 'Four of you, three hearts each. A knock-out costs a heart and with none left you\'re out. The last one standing wins.') : mode === 'solo' ? 'Cover as much of the canvas as you can in 60 seconds, and beat your best.' : mode === 'trio' ? 'Cover more of the canvas than both rivals in 90 seconds. Paint over their colors to take ground back.' : 'Cover more of the canvas than your rival in 90 seconds. Paint over their color to take ground back.';
+  $('howGoal').textContent = isShow() ? (mode === 'duo' ? 'Two against two, three hearts each. A knock-out costs a heart and with none left you\'re out. The last pair standing wins.' : 'Four of you, three hearts each. A knock-out costs a heart and with none left you\'re out. The last one standing wins.') : mode === 'solo' ? 'Cover as much of the canvas as you can. You start with 60 seconds, and every gold ring you roll through adds 2 more.' : mode === 'trio' ? 'Cover more of the canvas than both rivals in 90 seconds. Paint over their colors to take ground back.' : 'Cover more of the canvas than your rival in 90 seconds. Paint over their color to take ground back.';
   $('howInk').textContent = 'Your color is a fast lane that refills your paint. A rival\'s color slows you down. Run dry and you crawl, except on your own color, and you have 4 seconds to reach a ' + pw + ' or your color before you dry up.';
   $('howRoll').textContent = 'Roll into ' + riv + ' to stun it for 2 seconds. Pound to splat a circle. Anything inside is out for a few seconds. Jump it, or time a roll: rolling makes you untouchable for half a second.';
   $('howFling').textContent = 'Fling into ' + riv + ' to knock it flying, or pound mid-fling to fire a missile that steers toward it. Ram it while you\'re faster, or land on it, to flatten it.';
@@ -18358,6 +18399,9 @@ function slamLand(D) {
   D.slam = false; D.missile = false; D.flingC = 0; D.squash = 1; D.spd = missile ? cfg.speed * 0.85 : 0; // a missile skids on out of its blast
   const hitP = rivals.filter(r => r.on && Math.abs(r.y - D.y) < 0.3 && Math.hypot(r.x - D.x, r.z - D.z) < R * 0.5 + r.rad);
   if (hitP.length) { hitP.forEach(splashPuddle); D.inkRush = true; if (hearable(D)) AU.sprinkle(D === P ? 1 : 0.6); const wn = washOut(D, D.x, D.y, D.z, R * WASH_K); if (D === P) { AU.splashWater(); setTimeout(() => AU.power(), 180); popText(wn > 10 ? 'Watered down!' : 'Refilled!'); } }
+  // (v407) a rival's trap inside the pound's paint goes off, harmlessly: its burst under, the pound's paint over it
+  for (let i = trapList.length - 1; i >= 0; i--) { const T = trapList[i]; if (T.owner === D || ally(D, T.owner) || Math.abs(T.y - D.y) > 0.8 || Math.hypot(T.x - D.x, T.z - D.z) > R * 0.9) continue;
+    T.small = true; trapPop(T, null, false); if (D === P) popText('Trap busted!'); else if (T.owner === P) popText(nameOf(D) + ' busted your trap'); }
   addSplat(D.x, D.y, D.z, D.yaw, R, dryClock, false, true, tcode(D)); shockwave(D.x, D.y, D.z, R, D === P ? 0xFFFFFF : 0xBFE3FF); shockwave(D.x, D.y, D.z, R * 0.6); splash(D, missile ? 3.5 : 2); burst2(D, missile ? 50 : 30);
   if (missile) { missileBoom(D, R); burst(D, TEAMS[D.team].wet, 30); const fx = Math.sin(D.yaw), fz = Math.cos(D.yaw), ax = D.x + fx * 2.4, az = D.z + fz * 2.4; if (Math.abs(surfaceUnder(ax, az, D.y + 0.3) - D.y) < 0.05) addSplat(ax, D.y, az, D.yaw, R * 0.5, dryClock, false, true, tcode(D)); }
   const dp = Math.hypot(D.x - P.x, D.z - P.z);
@@ -18600,7 +18644,7 @@ function endMatch() {
   aimRing.visible = false; arrow.visible = false; hintEl.classList.remove('on'); if (kof) kofOpen(); // (out at the buzzer: the flood parts for the ending)
   AU.chargeStop(); AU.roll(0, 0); AU.sizzle(0); AU.music('end'); AU.horn();
   if (!hardPhase) { hardPhase = true; hardStart = dryClock; } // the painting dries as the camera pulls back
-  endInfo = { you, cpu, cpu2, win, winner, time: runT, mode, kos, tot };
+  endInfo = { you, cpu, cpu2, win, winner, time: runT, mode, kos, tot, rings: mode === 'solo' ? TR.n : 0 };
   const key = mode === 'duel' ? '' : mode; // a best and a win count per mode (and per skill, against CPUs)
   store.wins = store.wins || {}; store.played = store.played || {}; store.bestCov = store.bestCov || {};
   const slot = NM ? 'online' : mode === 'solo' ? 'solo' : key + diff, prev = mode === 'solo' ? ttBest(TH.id) : store.bestCov[slot] || 0, newBest = ry > prev; endInfo.best = Math.max(prev, ry); endInfo.prevBest = prev;
@@ -18618,7 +18662,7 @@ function endMatch() {
   const drops = Math.round(8 + ry * 0.35 + (win > 0 ? 30 : win === 0 && mode !== 'solo' ? 12 : 0) + (newBest ? 10 : 0) + (mode === 'trio' ? 6 : 0)); store.drops = (store.drops || 0) + drops; endInfo.drops = drops; jackpotPay(win);
   stMatch(); save(); tutEndMatch();
   if (!tutWinDue) banner(mode === 'solo' ? "Time's up!" : 'Time!', '', false); buzz([40, 30, 40]); slow = 0.6; // (v304: the lesson ends on its own word, Basics Complete)
-  if (mode === 'solo' ? newBest : win > 0) celebrating = true;
+  if (mode === 'solo' || win > 0) celebrating = true;
   setTimeout(() => { if (id !== runId || state !== 'dead') return; startTally(); }, tutWinDue ? 800 : 1450); // (v304: and that comes up a little sooner)
 }
 // percentages for display: always whole numbers
@@ -18733,8 +18777,8 @@ function updateWeather(dt) {
     else setWx('clear', 14 + Math.random() * 8);
   }
   else if (wxPhase === 'warn') { setWx('sun', SUN_TIME); dryPuddles(); sunsSeen++; hardPhase = true; hardStart = dryClock; AU.heatOn(); flashScreen(); }
-  else if (wxPhase === 'sun') { setWx('dusk', DUSK_TIME); AU.dusk(); wxBanner('The heat breaks', sunsSeen > 1 ? '' : 'Hard paint slows you until the rain.'); }
-  else if (wxPhase === 'dusk') { setWx('rain', RAIN_TIME); rewetAll(); AU.thunder(); wxBanner('Rain!', rainsSeen++ ? '' : 'Hard paint softens'); rainPuddles(); }
+  else if (wxPhase === 'sun') { setWx('dusk', DUSK_TIME); AU.dusk(); wxBanner('The heat breaks', ''); }
+  else if (wxPhase === 'dusk') { setWx('rain', RAIN_TIME); rewetAll(); AU.thunder(); rainsSeen++; wxBanner('Rain!', ''); rainPuddles(); }
   else { if (hardPhase) rewetAll(); setWx('clear', 16 + Math.random() * 8); }
 }
 function stepBlob(D, dt) {
@@ -18771,7 +18815,7 @@ function stepBlob(D, dt) {
     return;
   }
   // sunrise: out in the open the sun burns you away; coffins and shadows keep you safe
-  D.exposed = wxPhase === 'sun' && D.skill !== 'repel' && D.giantT <= 0 && !D.turret && !(D.sunGrace > 0) && !inShadow(D.x, D.z, D.y);
+  D.exposed = wxPhase === 'sun' && !D.air && D.skill !== 'repel' && D.giantT <= 0 && !D.turret && !(D.sunGrace > 0) && !inShadow(D.x, D.z, D.y); // (v407: not up in the air)
   if (D.exposed) { D.paint -= BURN_RATE * 2.4 * dt; burnFx(D, dt); if (D.paint <= 0) { D.paint = 0; if (!D.dry && D.st === 'play') goDry(D); } } // (the sun dries you out; it no longer knocks you out)
   if (wxPhase === 'rain' && D.skill !== 'repel' && !roofOver(D)) { if (D.dilT <= 0) dilute(D, true); D.dilT = Math.max(D.dilT, RAIN_DIL); } // (out in the rain: watered down till a moment after it stops)
   if (D.stunGuard > 0) D.stunGuard -= dt;
@@ -18874,6 +18918,142 @@ function endSettle(dt) {
   }
 }
 function endFloor(D) { for (let r = 0.5; r <= 6; r += 0.5) for (let k = 0; k < 16; k++) { const a = k / 16 * 6.2832, x = D.x + Math.sin(a) * r, z = D.z + Math.cos(a) * r; if (surfaceUnder(x, z, D.y + STEP, true) > -Infinity && !blockedAt(x, z, D.y)) return { id: runId, x, z }; } return { id: runId }; }
+// ---------- (v407) the time trial's rings: a gold arch on the floor, one at a time; through it, 2 more seconds ----------
+const TR_R = 1.6, TR_TUBE = 0.15, TR_ADD = 2;
+const TR = { on: false, x: 0, y: 0, z: 0, yaw: 0, k: 0, out: 0, wait: 0, n: 0, px: 0, pz: 0, py: 0, have: false, last: [], streak: 0, lastAt: -9, near: 0 };
+const trG = new THREE.Group(); trG.visible = false; scene.add(trG);
+const trBody = new THREE.Group(); trG.add(trBody);
+const trMat = toon(0xFFC21A, { emissive: new THREE.Color(0xFF9800), emissiveIntensity: 0.55 }, { roughness: 0.32, metalness: 0.45 });
+const trOutline = new THREE.MeshBasicMaterial({ color: C.outline, side: THREE.BackSide });
+{ const arch = new THREE.Mesh(new THREE.TorusGeometry(TR_R, TR_TUBE, SEG(10), SEG(44), Math.PI), trMat), hull = new THREE.Mesh(new THREE.TorusGeometry(TR_R, TR_TUBE + 0.045, SEG(10), SEG(44), Math.PI), trOutline);
+  arch.castShadow = true; trBody.add(arch); trBody.add(hull);
+  // its feet: a stubby collar where each end meets the floor
+  for (const sx of [-1, 1]) { const f = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.3, 0.16, SEG(14)), trMat), fh = new THREE.Mesh(new THREE.CylinderGeometry(0.29, 0.34, 0.2, SEG(14)), trOutline);
+    f.position.set(sx * TR_R, 0.06, 0); fh.position.copy(f.position); trBody.add(f); trBody.add(fh); } }
+// the sheen inside the arch: rings of light running out from its middle, faint, so you can see it's a way through
+const trFilmU = { uT: { value: 0 }, uK: { value: 0 } };
+const trFilm = new THREE.Mesh(new THREE.CircleGeometry(TR_R - TR_TUBE * 0.6, SEG(28), 0, Math.PI), new THREE.ShaderMaterial({ uniforms: trFilmU, transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, fog: false,
+  vertexShader: 'varying vec2 vP; void main() { vP = position.xy; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+  fragmentShader: 'uniform float uT, uK; varying vec2 vP; void main() { float r = length(vP) / ' + (TR_R - TR_TUBE * 0.6).toFixed(3) + '; float w = 0.5 + 0.5 * sin(r * 11.0 - uT * 6.0); float a = (0.07 + 0.2 * r * r) * (0.5 + 0.5 * w) * smoothstep(1.0, 0.9, r) * uK; gl_FragColor = vec4(vec3(1.0, 0.8, 0.28) * a, a); }' }));
+trFilm.renderOrder = 6; trBody.add(trFilm);
+// a warm glow on the floor under it, and sparkles running along it
+const trGlow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: glowTex, color: 0xFFC83C, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4, fog: false }));
+trGlow.scale.set(TR_R * 2 + 1.6, 1, 2.4); trGlow.position.y = 0.04; trGlow.renderOrder = 5; trG.add(trGlow);
+const trSparks = []; for (let i = 0; i < 5; i++) { const sp = glowSprite(0.5); sp.material.color.set(0xFFE27A); trBody.add(sp); trSparks.push(sp); }
+const trFlash = glowSprite(4.2); trFlash.material.color.set(0xFFF1B0); trFlash.position.y = TR_R * 0.55; trG.add(trFlash);
+const trPartMats = [0xFFD23F, 0xFFF3B8, 0xFFB000].map(c => new THREE.MeshBasicMaterial({ color: c }));
+function trialReset() {
+  TR.on = false; TR.k = 0; TR.out = 0; TR.n = 0; TR.wait = mode === 'solo' ? 0.25 : 0; TR.last.length = 0; TR.streak = 0; TR.lastAt = -9; TR.have = false; TR.near = 0; trG.visible = false;
+  const el = $('ringPtr'); if (el && el._on) { el._on = false; el.classList.remove('on'); }
+  if (mode === 'solo' && AU.xwant) AU.xwant('t_ring');
+}
+// can the arch stand here, turned this way: flat open floor at its height across the arch and a couple of steps either side of it
+// (the way in and out), nothing standing through the arch, nothing low over its middle
+function trialFits(x, z, h, yaw) {
+  const ax = Math.cos(yaw), az = -Math.sin(yaw), fx = Math.sin(yaw), fz = Math.cos(yaw);
+  for (let iu = -2; iu <= 2; iu++) { const u = iu / 2 * (TR_R + 0.3);
+    for (let iv = -2; iv <= 2; iv++) { const v = iv * 1.15, px = x + ax * u + fx * v, pz = z + az * u + fz * v, g = surfaceUnder(px, pz, h + STEP, true);
+      if (!(Math.abs(g - h) < 0.12) || blockedAt(px, pz, h + 0.05)) return false; } }
+  for (let k = 0; k <= 8; k++) { const a = k / 8 * Math.PI, c = Math.cos(a) * TR_R, py = h + Math.sin(a) * TR_R, px = x + ax * c, pz = z + az * c;
+    if (solidThrough(px, pz, py) || solidThrough(px, pz, py + TR_TUBE)) return false; }
+  // the drifting clouds (MOVERS) aren't solid, so nothing above sees them: keep the arch out of the whole run of each one at its height
+  for (const m of MOVERS) { if (!m.on || h + TR_R + TR_TUBE < m.y0 - 0.3 || h > m.y1 + 0.3) continue;
+    const ex = (m.axis === 'x' ? m.amp : 0) + m.hw + TR_R + 0.9, ez = (m.axis === 'z' ? m.amp : 0) + m.hw + TR_R + 0.9;
+    if (Math.abs(x - m.x) < ex && Math.abs(z - m.z) < ez) return false; }
+  return !solidThrough(x, z, h + 0.5) && !solidThrough(x, z, h + 1.1);
+}
+// the next ring: somewhere you can roll to from here, by the CPUs' map (its own distances: the CPUs' costs aren't kept up in a time
+// trial), mostly where the canvas is still bare and a little ahead of you, not where one just was; then turned to face the way in
+const trD = { dist: null, prev: null, hi: null, hd: null };
+function trialSpawn() {
+  const nodes = NAV.nodes, NNn = nodes.length; if (!NNn || !NAV.nbOff) { TR.wait = 0.5; return; }
+  let src = NAV.at(P.x, P.z, P.y); if (!src) { const g = surfaceUnder(P.x, P.z, P.y + 0.5, true); if (g > -Infinity) src = NAV.at(P.x, P.z, g); }
+  if (!src) { TR.wait = 0.3; return; }
+  if (!trD.dist || trD.dist.length < NNn) { const c = NNn + 512; trD.dist = new Float32Array(c); trD.prev = new Int32Array(c); trD.hi = new Int32Array(c * 9); trD.hd = new Float32Array(c * 9); }
+  const dist = trD.dist, prev = trD.prev, hi = trD.hi, hd = trD.hd, off = NAV.nbOff, to = NAV.nbTo, wt = NAV.nbW; dist.fill(Infinity, 0, NNn); prev.fill(-1, 0, NNn);
+  let hn = 0; const push = (i, d) => { let k = hn++; hi[k] = i; hd[k] = d; while (k > 0) { const p = (k - 1) >> 1; if (hd[p] <= hd[k]) break; const ti = hi[p], td = hd[p]; hi[p] = hi[k]; hd[p] = hd[k]; hi[k] = ti; hd[k] = td; k = p; } };
+  dist[src.id] = 0; push(src.id, 0);
+  while (hn) { const i = hi[0], d = hd[0]; hn--; hi[0] = hi[hn]; hd[0] = hd[hn];
+    let k = 0; for (;;) { const l = k * 2 + 1, r = l + 1; let m = k; if (l < hn && hd[l] < hd[m]) m = l; if (r < hn && hd[r] < hd[m]) m = r; if (m === k) break; const ti = hi[m], td = hd[m]; hi[m] = hi[k]; hd[m] = hd[k]; hi[k] = ti; hd[k] = td; k = m; }
+    if (d > dist[i] || d > 30) continue;
+    for (let e = off[i], e1 = off[i + 1]; e < e1; e++) { const j = to[e], nd = d + wt[e]; if (nd < dist[j]) { dist[j] = nd; prev[j] = i; if (hn < hi.length) push(j, nd); } } }
+  const first = TR.n === 0, lo = first ? 6 : 9, hiD = first ? 14 : 24, want = first ? 9 : 15, E = zoneEdge() - 3, fx = Math.sin(P.yaw), fz = Math.cos(P.yaw), cand = [];
+  for (const n of nodes) { const d = dist[n.id]; if (!(d >= lo && d <= hiD) || n.edge > 0.5 || Math.abs(n.x) > E || Math.abs(n.z) > E) continue;
+    let skip = false; for (const q of TR.last) if (Math.hypot(q[0] - n.x, q[1] - n.z) < 7) { skip = true; break; }
+    if (!skip) for (const p of pots) if (Math.hypot(p.x - n.x, p.z - n.z) < TR_R + 1.5) { skip = true; break; }
+    if (skip) continue;
+    let bare = 0, all = 0; for (let e = NAV.dOff[n.id], e1 = NAV.dOff[n.id + 1]; e < e1; e++) { const m = NAV.dIds[e]; for (let q = NAV.smOff[m], q1 = NAV.smOff[m + 1]; q < q1; q++) { all++; if (!painted[NAV.smIdx[q]]) bare++; } }
+    const dx = n.x - P.x, dz = n.z - P.z, ahead = (dx * fx + dz * fz) / (Math.hypot(dx, dz) || 1);
+    cand.push([(all ? bare / all : 0.5) * 1.2 + ahead * (first ? 1.4 : 0.35) - Math.abs(d - want) / 18 + Math.random() * 0.3, n]); }
+  cand.sort((a, b) => b[0] - a[0]);
+  for (let i = 0; i < cand.length && i < 60; i++) { const n = cand[i][1];
+    let q = n.id; for (let k = 0; k < 4 && prev[q] >= 0; k++) q = prev[q]; // (the way you'd come in: a few steps back along the way there)
+    const qn = nodes[q], base = q !== n.id ? Math.atan2(n.x - qn.x, n.z - qn.z) : Math.atan2(n.x - P.x, n.z - P.z);
+    for (const o of [0, 0.4, -0.4, 0.8, -0.8, 1.5708]) if (trialFits(n.x, n.z, n.h, base + o)) return trialPlace(n.x, n.h, n.z, base + o); }
+  TR.wait = 0.5; // (nowhere this time: again in a moment)
+}
+function trialPlace(x, y, z, yaw) {
+  Object.assign(TR, { on: true, k: 0, x, y, z, yaw, near: 0 }); TR.last.push([x, z]); if (TR.last.length > 4) TR.last.shift();
+  for (let i = 0; i < 14; i++) { const a = i / 13 * Math.PI, c = Math.cos(a) * TR_R, ax = Math.cos(yaw), az = -Math.sin(yaw); spawnPart(x + ax * c, y + 0.1, z + az * c, (Math.random() - 0.5) * 1.4, 2.5 + Math.random() * 2.5, (Math.random() - 0.5) * 1.4, 0.55, trPartMats[i % 3], 0.5, 0.7); }
+  if (TR.n === 0) hint('rings', say('Roll through the rings for 2 more seconds', 'Roll through the rings for 2 more seconds'), 3);
+}
+// through it: under the arch, from one side to the other (either way), going there by rolling, flinging or hopping
+function trialTick(dt) {
+  if (!TR.on && TR.wait > 0) { TR.wait -= dt; if (TR.wait <= 0) trialSpawn(); }
+  const ok = P.st === 'play';
+  if (TR.on && TR.k > 0.35 && ok && TR.have) {
+    const fx = Math.sin(TR.yaw), fz = Math.cos(TR.yaw), ax = Math.cos(TR.yaw), az = -Math.sin(TR.yaw);
+    const s0 = (TR.px - TR.x) * fx + (TR.pz - TR.z) * fz, s1 = (P.x - TR.x) * fx + (P.z - TR.z) * fz;
+    if ((s0 < 0) !== (s1 < 0) && Math.hypot(P.x - TR.px, P.z - TR.pz) < 3) { // (a jump across the map, a respawn, is never a pass)
+      const t = s0 / (s0 - s1), cx = TR.px + (P.x - TR.px) * t, cz = TR.pz + (P.z - TR.pz) * t, cy = TR.py + (P.y - TR.py) * t;
+      const lat = (cx - TR.x) * ax + (cz - TR.z) * az, inner = TR_R - TR_TUBE;
+      if (Math.abs(lat) < inner - 0.05 && cy - TR.y < Math.sqrt(inner * inner - lat * lat) - 0.15) trialPass(cx, cy, cz);
+    }
+  }
+  TR.px = P.x; TR.pz = P.z; TR.py = P.y; TR.have = ok;
+}
+function trialPass(x, y, z) {
+  TR.on = false; TR.out = 1; TR.n++; TR.wait = 0.4; matchLeft += TR_ADD;
+  TR.streak = runT - TR.lastAt < 9 ? Math.min(TR.streak + 1, 7) : 0; TR.lastAt = runT; // (one after another: the chime climbs a step each)
+  if (!(AU.xplay && AU.xplay('t_ring', { v: 0.8, rate: Math.pow(2, TR.streak / 12) }))) AU.power();
+  hap('select');
+  const ax = Math.cos(TR.yaw), az = -Math.sin(TR.yaw), mx = P.x - TR.px, mz = P.z - TR.pz, ml = Math.hypot(mx, mz) || 1, dx = mx / ml, dz = mz / ml;
+  for (let i = 0; i < 30; i++) { const a = (i + 0.5) / 30 * Math.PI, c = Math.cos(a), s = Math.sin(a), sp = 2.5 + Math.random() * 3;
+    spawnPart(TR.x + ax * c * TR_R, TR.y + s * TR_R, TR.z + az * c * TR_R, (ax * c) * sp + dx * 2.5, s * sp + 1.5, (az * c) * sp + dz * 2.5, 0.5 + Math.random() * 0.35, trPartMats[i % 3], 0.55 + Math.random() * 0.45, 0.6); }
+  // the +2: where you went through, and on the clock
+  const el = $('ringAdd'); tv1.set(TR.x, TR.y + TR_R * 0.75, TR.z).project(camera);
+  if (tv1.z < 1) { el.innerHTML = '+' + TR_ADD + '<small>s</small>'; el.style.setProperty('--x', ((tv1.x * 0.5 + 0.5) * viewW).toFixed(1) + 'px'); el.style.setProperty('--y', ((-tv1.y * 0.5 + 0.5) * viewH).toFixed(1) + 'px'); restartCls(el, 'on'); }
+  const ck = $('clock'), ca = $('clkAdd'); restartCls(ck, 'bonus');
+  if (ca) { ca.textContent = '+' + TR_ADD; ca.style.left = (ck.offsetLeft + ck.offsetWidth / 2).toFixed(0) + 'px'; ca.style.top = (ck.offsetTop + ck.offsetHeight + 2).toFixed(0) + 'px'; restartCls(ca, 'on'); }
+}
+// the look, each frame: rising out of the floor, its glow breathing (brighter as you come close), sparkles running along it; through,
+// a flash and it swells and is gone; the pointer to it when it's off screen or far off
+let trHudY = 0, trHudAt = -9; const trHudBot = () => { if (clock - trHudAt > 0.5) { trHudAt = clock; const e = document.querySelector('.hud .score'); trHudY = e && e.offsetParent ? e.getBoundingClientRect().bottom : 0; } return trHudY; };
+const trBack = u => { const c = 1.9; return 1 + (c + 1) * Math.pow(u - 1, 3) + c * Math.pow(u - 1, 2); };
+function trialDraw(playing, dt) {
+  if (TR.on && (state === 'dead' || state === 'menu')) { TR.on = false; TR.out = 0; } // (the match is over: it goes with it)
+  if (TR.on) TR.k = Math.min(1, TR.k + dt / 0.45);
+  if (TR.out > 0) TR.out = Math.max(0, TR.out - dt / 0.34);
+  const show = TR.on || TR.out > 0; trG.visible = show;
+  if (show) {
+    const k = TR.on ? TR.k : 1, u = TR.on ? 0 : 1 - TR.out, rise = 1 - Math.pow(1 - k, 3);
+    const near = TR.on && P.st === 'play' ? clamp(1 - (Math.hypot(P.x - TR.x, P.z - TR.z) - 2) / 6, 0, 1) : 0; TR.near += (near - TR.near) * Math.min(1, dt * 6);
+    const sc = (TR.on ? Math.max(0.01, trBack(k)) : (u < 0.35 ? 1 + 0.45 * Math.sin(u / 0.35 * Math.PI / 2) : 1.45 * (1 - (u - 0.35) / 0.65))) * (1 + 0.025 * Math.sin(clock * 4));
+    trG.position.set(TR.x, TR.y, TR.z); trG.rotation.y = TR.yaw; trBody.position.y = -0.55 * (1 - rise); trBody.scale.setScalar(Math.max(0.01, sc));
+    trMat.emissiveIntensity = TR.on ? 0.45 + 0.2 * Math.sin(clock * 5) + 0.45 * TR.near : 0.9 + 1.4 * (1 - u);
+    trFilmU.uT.value = clock; trFilmU.uK.value = (TR.on ? k * (0.8 + 0.6 * TR.near) : 1 - u);
+    trGlow.material.opacity = (TR.on ? 0.45 + 0.15 * Math.sin(clock * 5) + 0.2 * TR.near : 0.7 * (1 - u)) * rise;
+    trSparks.forEach((sp, i) => { const a = ((clock * 0.55 + i / trSparks.length) % 1) * Math.PI; sp.position.set(Math.cos(a) * TR_R, Math.sin(a) * TR_R, 0); sp.material.opacity = 0.9 * Math.sin(a) * (TR.on ? 1 : 1 - u); sp.scale.setScalar(0.42 + 0.12 * Math.sin(clock * 9 + i)); });
+    trFlash.visible = !TR.on; if (!TR.on) { trFlash.material.opacity = Math.max(0, 1 - u * 1.6); trFlash.scale.setScalar(2.5 + 4 * u); }
+  }
+  const el = $('ringPtr');
+  if (TR.on && TR.k > 0.3 && playing && P.st !== 'ko') { tv1.set(TR.x, TR.y + TR_R + 0.5, TR.z).project(camera); const W = viewW, Hh = viewH, behind = tv1.z > 1; let x = behind ? -tv1.x : tv1.x, y = behind ? -tv1.y : tv1.y;
+    const on = !behind && Math.abs(x) < 0.9 && Math.abs(y) < 0.78, far = Math.hypot(TR.x - P.x, TR.z - P.z) > 9;
+    if (on && !far) { if (el._on) { el._on = false; el.classList.remove('on'); } }
+    else { let px, py, rot; if (on) { px = (x * 0.5 + 0.5) * W; py = Math.max((-y * 0.5 + 0.5) * Hh - 30 - Math.abs(Math.sin(clock * 5)) * 6, trHudBot() + 26); rot = 180; } /* (never over the score card) */ else { const m = Math.max(Math.abs(x) / 0.86, Math.abs(y) / 0.72, 1e-3); x /= m; y /= m; px = (x * 0.5 + 0.5) * W; py = (-y * 0.5 + 0.5) * Hh; rot = Math.atan2(x, y) * 180 / Math.PI; }
+      if (!el._on) { el._on = true; el.classList.add('on'); } el.classList.toggle('edge', !on); el.style.transform = 'translate(' + px.toFixed(1) + 'px,' + py.toFixed(1) + 'px)'; el.children[1].style.transform = 'rotate(' + rot.toFixed(0) + 'deg)'; } }
+  else if (el._on) { el._on = false; el.classList.remove('on'); }
+}
 function step(dt) {
   clock += dt; stepNo++; updateMovers();
   // the buzzer went while a pound was already in the air: only that pound plays out, and its splat counts
@@ -18889,7 +19069,7 @@ function step(dt) {
     if (dangerK > 0) dangerK -= dt;
     for (const D of ACTIVE) if (D.cpu) aiStep(D, dt);
     for (const D of ACTIVE) if (NM && D !== P) netPuppet(D, dt); else stepBlob(D, dt);
-    if (NM) netContact(); else { blobContact(); updateOrb(dt); } updateShots(dt); boomTick(dt); if (tut) tutStep(dt); else if (tut2) tut2Step(dt); else if (tut3) tut3Step(dt);
+    if (NM) netContact(); else { blobContact(); updateOrb(dt); if (mode === 'solo' && !tut) trialTick(dt); } updateShots(dt); boomTick(dt); if (tut) tutStep(dt); else if (tut2) tut2Step(dt); else if (tut3) tut3Step(dt);
     // a handful of tips, once each
     if (runT > 5) hint('jump', say('Tap to jump', 'Space to jump'), 2.4);
     if (runT > 10 && !P.dry) hint('hold', say('Pull down and let go to fling', 'Hold S, let go to fling'), 2.8);
@@ -19795,6 +19975,7 @@ function aiTryPound(D, dt) {
     const lx = o.x + Math.sin(o.yaw) * o.spd * tl, lz = o.z + Math.cos(o.yaw) * o.spd * tl;
     if (tl > 0.25 && tl < 0.66 && Math.hypot(lx - D.x, lz - D.z) < KO_R - 0.7 && Math.random() < Math.min(1, dt * AI.pound)) return useSlam(D);
   }
+  if (trapList.length && D.paint > SLAM_COST + 0.12 && !hiding && trapList.some(T => T.owner !== D && !ally(D, T.owner) && Math.abs(T.y - D.y) < 0.4 && Math.hypot(T.x - D.x, T.z - D.z) < SLAM_R * 0.6) && Math.random() < Math.min(1, dt * AI.pound * 0.6)) return useSlam(D); // (v407: bust a rival's trap)
   if (ai.mode === 'puddle' && ai.puddle && ai.puddle.on && Math.hypot(ai.puddle.x - D.x, ai.puddle.z - D.z) < SLAM_R * 0.5 + ai.puddle.rad - 0.6) { ai.puddle = null; ai.thinkT = 0; return useSlam(D); }
   // you're hiding in a coffin close by: save the pound for that
   const reserve = (AI.coffinHunt > 0 && o && o.st === 'hide' && o.imm <= 0.3 && !sunny && Math.hypot(o.x - D.x, o.z - D.z) < 14) || ai.attackT > 0;
@@ -20312,10 +20493,10 @@ function blobVisual(D, V, dt, ke, kf) {
   }
   if (D === P && state === 'menu' && FL && FL.jin && FL.jin.ph !== 'crawl') { const q = FL.jin; hop = q.hop; sq = q.sq; rise = q.rise; spinY = 0; } // (v257: coming in after the intro; v264: the crawl-out poses itself)
   const isc = D === P && lookIntro && state === 'menu' ? V.introSc : 1;
-  if (vic && D.vicPose) { const vp = D.vicPose; hop = vp.hop; sq = vp.sq; rise = vp.rise; spinY = vp.spin; }
+  if (D.vicPose) { const vp = D.vicPose; hop = vp.hop; sq = vp.sq; rise = vp.rise; spinY = vp.spin; }
   if (D.ip && (state !== 'menu' || vsSnap)) { const ip = D.ip; hop += ip.hop; if (ip.sq !== null) sq = ip.sq; if (ip.rise !== null) rise = ip.rise; spinY += ip.spin; }
   if (V.turK > 0.01) { sq = Math.max(sq, 0.2 * V.turK); hop += 0.3 * rad * V.turK; } // sat down in the mount (lifted onto it)
-  if (D.turret && D.st === 'play' && !(vic && D.vicPose)) sq = Math.max(sq, 0.16 + 0.22 * D.turret.kick); // a turret squats into a dome on its mount, and kicks with each shot
+  if (D.turret && D.st === 'play' && !(D.vicPose)) sq = Math.max(sq, 0.16 + 0.22 * D.turret.kick); // a turret squats into a dome on its mount, and kicks with each shot
   U.gSquash.value = sq; U.gRise.value = rise;
   if (D.charging) U.gWob.value = 0.6 + D.charge * 1.4;
   const fk = V.flatK;
@@ -20344,7 +20525,7 @@ function blobVisual(D, V, dt, ke, kf) {
   V.root.position.set(D.x, D.y + D.stepOff + rad * isc * (0.82 + 0.18 * (1 - L.flat)) * (1 - 0.68 * fk) + (hidden ? 0.3 + (D.pot && D.pot.lift || 0) : 0) + hop, D.z);
   if (D === P && idle.sway) { const sc = idle.sway * 0.035 * rad / PR, yw = yawD + spinY; V.scootX = -Math.cos(yw) * sc; V.scootZ = Math.sin(yw) * sc; V.root.position.x += V.scootX; V.root.position.z += V.scootZ; } else V.scootX = V.scootZ = 0; V.misK = (V.misK || 0) + (((D.missile && D.slam) ? 1 : 0) - (V.misK || 0)) * Math.min(1, dt * 14); if (V.root.rotation.order !== 'YXZ') V.root.rotation.order = 'YXZ';
   if (D.rollOutT > 0) D.rollOutT = D.st === 'play' ? Math.max(0, D.rollOutT - dt) : 0; // (rolling out of a basin: one tumble, easing out as it lands)
-  const IPr = state === 'intro' || state === 'play' ? D.ip : null; // (an intro's pose: a flip, a wobble)
+  const IPr = state === 'intro' || state === 'play' || D.vicPose ? D.ip : null; // (an intro's pose: a flip, a wobble)
   V.root.rotation.set(V.misK * (D.missile && D.slam ? clamp(Math.atan2(-D.vy, Math.max(1, D.spd)), 0, 1.2) : 0.25) + (D.rollT > ROLL_T - ROLL_DASH ? 6.2832 * (1 - Math.pow((D.rollT - ROLL_T + ROLL_DASH) / ROLL_DASH, 2)) : 0) + (D.rollOutT > 0 ? 6.2832 * (1 - Math.pow(D.rollOutT / ROLL_OUT_T, 1.6)) : 0) + (D.dashT > 0 && D.st === 'play' ? (D.dashDir < 0 ? -1 : 1) * 6.2832 * (1 - Math.pow(D.dashT / DASH_T, 1.5)) : 0) + V.pullLean + (IPr ? IPr.pitch : 0) + (D === P && lkDip && lkDip.pose ? lkDip.pose.pitch : 0) + (D === P && lookIntro && lookIntro.crawl ? lookIntro.pose.pitch : 0), yawD + spinY, (D === P && idle.sway ? idle.sway * 0.06 : 0) + (D === P ? idle.bank : 0) + (D.shimNow ? D.shimNow.shove * 0.05 : 0) + (IPr ? IPr.roll : 0), 'YXZ');
   V.yawDraw = V.root.userData.yawDraw = yawD + spinY;
   if (V.tum && (tumX || tumZ)) { const c = Math.cos(V.yawDraw), s = Math.sin(V.yawDraw), lx = V.tum.wx * c - V.tum.wz * s, lz = V.tum.wx * s + V.tum.wz * c;
@@ -20521,7 +20702,7 @@ function makePotEyes(D) {
   g.visible = false; scene.add(g); return { g, mat, cmat, eyes, k: 0, t: 0, blink: 1.5, iris: 'brown', x: 0, y: 0, z: 0 };
 }
 function potEyes(D, V, dt) {
-  const cr = (D.introCrawl && D.introCrawl.t < 0.14 ? D.introCrawl : null) || (D.introAct && D.introAct.kind === 'twister' && D.introAct.t < 0.16 ? D.introAct : null), E = D.potEyes || (D.potEyes = makePotEyes(D)), p = D.pot || (cr && cr.p), show = (D.st === 'hide' || !!cr) && !!p && (state !== 'intro' || D.peeked); // (the eyes stay a moment as the head comes up under them)
+  const cr = (D.introCrawl && D.introCrawl.t < 0.14 ? D.introCrawl : null) || (D.introAct && D.introAct.kind === 'twister' && D.introAct.t < 0.16 ? D.introAct : null), E = D.potEyes || (D.potEyes = makePotEyes(D)), p = D.pot || (cr && cr.p), show = (D.st === 'hide' || !!cr) && !!p && p.rvAt === undefined && (state !== 'intro' || D.peeked); // (the eyes stay a moment as the head comes up under them)
   if (show) { E.t += dt; const lq = p.liq ? p.liq.getWorldPosition(potEyeV) : potEyeV.set(p.x, p.y + 0.4, p.z); E.x = p.x; E.y = lq.y; E.z = p.z; } else E.t = 0;
   E.k = show ? Math.min(1, Math.max(0, (E.t - (state === 'intro' ? 0 : 0.28)) / 0.36)) : Math.max(0, E.k - dt / 0.08);
   E.g.visible = E.k > 0.001; if (!E.g.visible) return;
@@ -20549,11 +20730,11 @@ function slimeVisual(D, V, dt, sq, rise, rad, gy, hop, fxK, fxL) {
   if (flA0 && !V.flOn) { V.flOn = true; V.flV0 = Math.max(1, D.vy || 1); } else if (!flA0) V.flOn = false;
   let tl0 = 9; if (flA0) { const gg = surfaceUnder(D.x, D.z, D.y + STEP, true), hh = Math.max(0, D.y - (gg > -Infinity ? gg : D.y - 9)), vy = D.vy || 0, g2 = GRAV * 1.45; tl0 = vy > 0 ? vy / GRAV + Math.sqrt(2 * (hh + vy * vy / (2 * GRAV)) / g2) : (vy + Math.sqrt(vy * vy + 2 * g2 * hh)) / g2; } /* (how soon it lands) */
   const flK0 = flA0 ? smoothstep(0.3, 0.78, D.flingC || 0) * (tl0 > (V.balled ? 0.22 : 0.3) ? 1 : 0) : 0; /* (a ball for the whole flight, back to the axolotl just before it lands) */
-  const ballOn = I.kind === 'axo' && ((D.st === 'play' && (state === 'play' || state === 'dead') && (flK0 > (V.balled ? 0.12 : 0.3) || D.rollOutT > (V.balled ? 0.1 : 0.16) || D.dashT > (V.balled ? 0.05 : 0.1) || D.rollT > (V.balled ? ROLL_T - ROLL_DASH : ROLL_T - ROLL_DASH + 0.06))) || !!(vic && D.vicPose && D.vicPose.ball) || !!(D === P && state === 'menu' && FL && FL.jin && FL.jin.ball)); /* (the dodge roll: a ball for its tumble, the axolotl back as it comes round onto its feet) */
-  if (ballOn !== !!V.balled) { V.balled = ballOn; if (D.st === 'play' && (I.root.visible || V.oldBlob.visible)) ballPoof(D, ballOn); }
+  const ballOn = I.kind === 'axo' && ((D.st === 'play' && (state === 'play' || state === 'dead') && (flK0 > (V.balled ? 0.12 : 0.3) || D.rollOutT > (V.balled ? 0.1 : 0.16) || D.dashT > (V.balled ? 0.05 : 0.1) || D.rollT > (V.balled ? ROLL_T - ROLL_DASH : ROLL_T - ROLL_DASH + 0.06))) || !!(D.vicPose && D.vicPose.ball) || !!(D === P && state === 'menu' && FL && FL.jin && FL.jin.ball)); /* (the dodge roll: a ball for its tumble, the axolotl back as it comes round onto its feet) */
+  if (ballOn !== !!V.balled) { V.balled = ballOn; if (D.st === 'play' && !D.vicPose && (I.root.visible || V.oldBlob.visible)) ballPoof(D, ballOn); }
   if (V.balled) { U.gRise.value *= 0.3; U.gDrop.value *= 0.35; } // (a ball: drawn out along its flight only a little, never into a column)
-  const tur = !!D.turret && D.st === 'play', on = (L.roll < 0.5 || D.st === 'hide') && !tur && !V.balled && !(D === P && lookIntro && lookIntro.t < (lookIntro.vis !== undefined ? lookIntro.vis : IN_LAND)), was = I.root.visible; // (on the mount the blob is the paint in the dome: hidden)
-  I.root.visible = on; V.oldBlob.visible = !on && !tur && !(D === P && lookIntro && lookIntro.crawl); if (!on) return;
+  const tur = !!D.turret && D.st === 'play', on = (L.roll < 0.5 || D.st === 'hide') && !tur && !V.balled && !(D === P && lookIntro && lookIntro.t < (lookIntro.vis !== undefined ? lookIntro.vis : IN_LAND)), was = I.root.visible || !!V.potHid; // (on the mount the blob is the paint in the dome: hidden)
+  I.root.visible = on; V.oldBlob.visible = !on && !tur && !(D === P && lookIntro && lookIntro.crawl); if (!on) { V.potHid = false; return; }
   if (!was) { if (I.kind === 'axo') I.ax.fresh = true; if (lookIntro) { if (!reduceMotion) I.popIn(); } else { I.st.formK = 0; I.st.pop = 1; I.st.earKick = 1; } }
   I.setForm(D.giantT > 0 ? 'giant' : 'slime');
   I.setColor(D === P && lkDip && !lkDip.swapped ? lkDip.oldC : V.mat.color); const op = V.mat.opacity; for (const k in I.mats) { I.mats[k].body.opacity = op; I.mats[k].ink.opacity = op; }
@@ -20582,16 +20763,17 @@ function slimeVisual(D, V, dt, sq, rise, rad, gy, hop, fxK, fxL) {
   else V.sink = (V.sink || 0) + (0 - (V.sink || 0)) * Math.min(1, dt * 18);
   { const RM = I.U.sRim.value; if (D.introCrawl) RM.fromArray(D.introCrawl.rim); else if (RM.w !== 0) RM.set(0, 0, 0, 0); I.noGhost = !!D.introCrawl || inPot || !!(D.ip && D.ip.sink > 0.05) || !!(D === P && lookIntro && lookIntro.crawl); }
   I.root.position.y = -V.sink;
+  V.potHid = inPot && V.sink > BASIN_DEEP * 0.5; if (V.potHid) I.root.visible = false; // (v407: down in a coffin or a can, only its eyes show)
   { const bk = D === P && lookIntro && lookIntro.crawl ? lookIntro.back : 0, ps = I.root.parent ? I.root.parent.scale.z || 1 : 1; I.root.position.x = 0; I.root.position.z = -bk / ps; } // (the locker's crawl-out: still back in the pool by this much, in metres; its parent is already turned its way and scaled)
   V.slimeWatchT = D.ip && D.ip.watch ? D.ip.watch : basin ? introWatch(D) : inPot ? slimeWatch(D, V) : null;
   // the menu's little hops are jumps to the slime: it tucks and curls a little, its ears float and slap down, its tail swings with a spin
-  const mHop = state === 'menu' || (vic && D.vicPose) ? Math.max(0, hop || 0) : 0, hv = dt > 0 ? (mHop - (V.pHop || 0)) / dt : 0; V.pHop = mHop;
+  const mHop = state === 'menu' || (D.vicPose) ? Math.max(0, hop || 0) : 0, hv = dt > 0 ? (mHop - (V.pHop || 0)) / dt : 0; V.pHop = mHop;
   const hopAir = mHop > 0.015;
   // the paint it's sitting in. Moving through it, it washes up to its middle (and the same as it lands back in it: a hop on the customize
   // screen, a jump in play), with a little slosh past and back; still, it slowly runs back down, over about half a minute, until there's
   // just a little left round its bottom, as it's always sitting in a puddle of it. Out of paint (or off the canvas) it runs off altogether.
   // Dressing it up, it starts out in its paint
-  const dressing = (state === 'menu' && lookOpen && D === P) || !!(vic && D.vicPose);
+  const dressing = (state === 'menu' && lookOpen && D === P) || !!(D.vicPose);
   const inPaint = dressing || (state === 'play' && D.st === 'play' && !D.dry) || (state === 'intro' && D.introOut && D.shook);
   const airW = hopAir || !!V.vAir, landW = !!V.airW && !airW && inPaint; V.airW = airW;
   if (dressing && !V.wasDress) V.wade = Math.max(V.wade || 0, 1); V.wasDress = dressing;
@@ -20633,7 +20815,7 @@ function slimeVisual(D, V, dt, sq, rise, rad, gy, hop, fxK, fxL) {
   V.glance = (V.glance || 0) + (gT - (V.glance || 0)) * Math.min(1, dt * 6); o.glance = V.glance;
   o.drop = U.gDrop.value; o.squash = I.form === 'turret' ? 0.1 * (D.turret ? D.turret.kick : 0) : sq; o.rise = rise; o.wob = Math.min(2.2, U.gWob.value) * 0.6;
   o.yaw = V.yawDraw; o.aimPitch = V.turPitch || 0; o.speed = vAir ? 0 : D.spd; o.rad = rad; o.look = V.slimeLook || null;
-  const VJ = vic && D.vicPose ? D.vicPose : null; // (a victory jump: sprung off its tail and hands, stretched out through the air, reaching down to land)
+  const VJ = D.vicPose ? D.vicPose : null; // (a victory jump: sprung off its tail and hands, stretched out through the air, reaching down to land)
   o.coil = VJ ? VJ.coil : 0; o.kick = VJ ? VJ.kick : 0; o.coilSide = VJ ? VJ.side : 1; o.leapTip = VJ ? 0.1 : 1; if (VJ && hopAir && hv < 0) brace = Math.max(brace, 1 - smoothstep(0.03, 0.24, mHop * 2.6));
   o.leap = (vAir && D.st === 'play' && !hopAir && !D.slam && !D.missile && !D.rocket && !D.turret && !(D.giantT > 0) && !TM) || !!(VJ && VJ.leap && hopAir); o.hover = state === 'intro' && !D.pot && !D.introLeap && !D.introOut && !D.introCrawl && !D.introAct; o.maxBall = hopAir ? 0.3 : 1; o.hang = D.rocket && D.st === 'play' ? (D.rocket.ph === 'dive' && !D.rocket.slow ? 0.35 : 1) : 0;
   o.climb = I.kind === 'axo' && D.introCrawl && D.introCrawl.path ? climbOf(D) : I.kind === 'axo' && D === P && lookIntro && lookIntro.cl && state === 'menu' ? lookIntro.cl : null; // (v252: the locker's crawl-out climbs its own hole)
@@ -20650,7 +20832,7 @@ function slimeVisual(D, V, dt, sq, rise, rad, gy, hop, fxK, fxL) {
   o.ballK = IPo ? IPo.ballK : null; const showK = D === P && state === 'menu' && (lookOpen || menuPage === 'home'); o.headRoll = showK ? idle.roll : 0; o.headPitch = showK ? idle.pitch : 0; o.earCover = showK ? idle.earCover : 0; o.hand = IPo ? IPo.hand : showK ? idle.hand : 0; o.wave = IPo ? IPo.wave : showK ? idle.wave || 0 : 0; o.earUp = IPo ? IPo.earUp : 0; o.bendK = IPo ? IPo.bendK : null;
   if (IPo) { if (IPo.curl !== null) o.curl = IPo.curl; if (IPo.leap !== null) o.leap = IPo.leap; if (IPo.leapTip !== null) o.leapTip = IPo.leapTip; if (IPo.coil) { o.coil = IPo.coil; o.coilSide = IPo.side || 1; } if (IPo.kick) o.kick = IPo.kick;
     if (IPo.push !== null) o.push = IPo.push; if (IPo.shove !== null) o.shove = IPo.shove; if (IPo.brace !== null) o.brace = IPo.brace; if (IPo.flail !== null) o.flail = IPo.flail; if (IPo.dizzy !== null) o.dizzy = IPo.dizzy; }
-  { const vp = vic && D.vicPose; o.menace = vp ? vp.menace || 0 : 0; o.slam = vp ? vp.slam || 0 : 0; } // (v274: the winner's stance)
+  { const vp = D.vicPose; o.menace = vp ? vp.menace || 0 : 0; o.slam = vp ? vp.slam || 0 : 0; } // (v274: the winner's stance)
   o.D = D; (I.kind === 'axo' ? AXOC : SLIME).update(I, o);
   V.potK = (V.potK || 1) + ((inPot ? 1.3 : 1) - (V.potK || 1)) * Math.min(1, dt * 12); if (V.potK !== 1) I.root.scale.multiplyScalar(V.potK);
   if (V.tur) V.tur.visible = !!D.turret && D.st === 'play' && (V.turK || 0) > 0.02;
@@ -20819,12 +21001,13 @@ function visuals(dt, rdt) {
     if (p.deco) p.deco(p, rdt, bo);
     // sucked down into the ground with a twist, or bursting back up with a little overshoot
     let sk = 0; if (p.st === 'sink') sk = ease(p.t / SINK_T); else if (p.st === 'rise') { const u = Math.min(1, p.t / RISE_T) - 1; sk = -(2.70158 * u * u * u + 1.70158 * u * u); }
+    if (p.rvAt !== undefined) sk = potRiseK(p); // (v407: coming up in the reveal)
     const sp = Math.max(0, sk); p.inner.position.y = -(p.sinkD || 0.78) * sk; p.inner.rotation.y = sk * 1.6; if (sk) { p.inner.scale.x *= 1 - 0.3 * sp; p.inner.scale.z *= 1 - 0.3 * sp; p.inner.scale.y *= 1 - 0.45 * sp; }
     if (p.st === 'sink') p.inner.position.x = Math.sin(clock * 47) * 0.04 * (1 - sp);
     else p.inner.position.x = 0;
     const low = potUp(p) && playing && P.st === 'play' && !p.occ && (P.paint < 0.4 || wxPhase === 'warn' || P.exposed) && p.ink > 0.3; // also point the way to cover at sunrise
     p.ring.material.color.copy(p.occ ? TEAM_COLS[p.occ.team] : COL_INK);
-    p.ring.visible = p.ink > 0.02 && potUp(p); p.ring.material.uniforms.uFill.value = Math.min(1, p.ink); p.ring.material.opacity = (low ? 0.9 : 0.72) + Math.sin(clock * (low ? 7 : 3) + p.phase) * 0.1; p.ring.scale.setScalar(1 + (low ? 0.25 + 0.15 * Math.sin(clock * 7) : 0));
+    p.ring.visible = p.ink > 0.02 && potUp(p) && p.rvAt === undefined; p.ring.material.uniforms.uFill.value = Math.min(1, p.ink); p.ring.material.opacity = (low ? 0.9 : 0.72) + Math.sin(clock * (low ? 7 : 3) + p.phase) * 0.1; p.ring.scale.setScalar(1 + (low ? 0.25 + 0.15 * Math.sin(clock * 7) : 0));
     if (low) { const d = Math.hypot(p.x - P.x, p.z - P.z) + Math.abs(p.y - P.y) * 3; if (d < nd) { nd = d; near = p; } }
   }
   for (const p of pots) if (p.tele.visible) { const k = clamp(1 - (DOWN_T - p.t) / TELE_T, 0, 1); p.tele.material.opacity = 0.65 * k; p.tele.scale.setScalar(0.3 + 0.8 * k + Math.sin(clock * 31 + p.phase) * 0.035 * k); }
@@ -20870,6 +21053,7 @@ function visuals(dt, rdt) {
         if (el._ty !== ty) { el._ty = ty; el.children[0].innerHTML = ITEM_ICON[ty] || ''; }
         if (!el._on) { el._on = true; el.classList.add('on'); } el.classList.toggle('edge', !on); el.style.transform = 'translate(' + px.toFixed(1) + 'px,' + py.toFixed(1) + 'px)'; el.children[1].style.transform = 'rotate(' + rot.toFixed(0) + 'deg)'; } }
     else if (el._on) { el._on = false; el.classList.remove('on'); } }
+  trialDraw(playing, dt); // (v407)
   // the holy water off screen: an edge marker, red when its pound is coming down near you or it's lining up a fling at you
   foePointer($('foePtr'), H, playing && mode !== 'solo'); foePointer($('foePtr2'), H2, playing && (mode === 'trio' || isShow())); foePointer($('foePtr3'), H3, playing && mode === 'ffa');
   // rain puddles: a soft rim, and steam curling up while one dries
@@ -21033,9 +21217,9 @@ function visuals(dt, rdt) {
     if (P.dry && P.st === 'play') { const n = Math.max(1, Math.ceil(DRY_KO - (P.dryT || 0))); if (n !== dryShown) { if (!dryShown) $('tdryW').textContent = 'Find a ' + potWord(); dryShown = n; $('tdryN').textContent = n; if (playing) { AU.count(n); buzz(n <= 2 ? [14, 30, 14] : 10); } } } else dryShown = 0; bar.classList.toggle('giant', P.giantT > 0 && P.st === 'play');
     EDGE.f[0] = burning; EDGE.f[1] = ((dangerK > 0 && P.st === 'play') || foes(P).some(F => F.slam && (hc => Math.hypot(hc.x - P.x, hc.z - P.z))(slamCenter(F)) < slamRadius(F) + PR + 1)) && !burning; EDGE.f[2] = P.paint < 0.22 && P.st === 'play' && !(dangerK > 0) && !burning; EDGE.fT = performance.now();
     // one weather chip
-    const wx = $('wx'), wxOn = wxPhase !== 'clear' && !(bannerWx && performance.now() < bannerUntil);
+    const wx = $('wx'), wxOn = wxPhase !== 'clear' && wxPhase !== 'dusk' && !(bannerWx && performance.now() < bannerUntil); // (v407: no hard paint chip)
     if (wx.hidden === wxOn) wx.hidden = !wxOn;
-    if (wxOn) { const tx = wxPhase === 'warn' ? 'Heat in ' + Math.ceil(wxLeft) : wxPhase === 'sun' ? (burning ? 'Hide! ' : 'Safe ') + Math.ceil(wxLeft) + 's' : wxPhase === 'dusk' ? 'Hard paint ' + Math.ceil(wxLeft) + 's' : 'Rain ' + Math.ceil(wxLeft) + 's'; if (wxShown !== tx) { wxShown = tx; wx.innerHTML = (wxPhase === 'rain' ? RAIN_SVG : wxPhase === 'dusk' ? CLOUD_SVG : SUN_SVG) + '<span>' + tx + '</span>'; wx.className = 'chip wx ' + wxPhase + (wxPhase === 'sun' ? (burning ? ' burn' : ' safe') : ''); } }
+    if (wxOn) { const tx = wxPhase === 'warn' ? 'Heat in ' + Math.ceil(wxLeft) : wxPhase === 'sun' ? (burning ? 'Hide! ' : 'Safe ') + Math.ceil(wxLeft) + 's' : wxPhase === 'dusk' ? '' : 'Rain ' + Math.ceil(wxLeft) + 's'; if (wxShown !== tx) { wxShown = tx; wx.innerHTML = (wxPhase === 'rain' ? RAIN_SVG : wxPhase === 'dusk' ? CLOUD_SVG : SUN_SVG) + '<span>' + tx + '</span>'; wx.className = 'chip wx ' + wxPhase + (wxPhase === 'sun' ? (burning ? ' burn' : ' safe') : ''); } }
     // knocked out: count down to the comeback
     const kt = P.st === 'ko' && !kof ? 'Back in ' + Math.max(1, Math.ceil(P.koT)) : '';
     if (kt !== koShown) { koShown = kt; if (kt) { hintText.textContent = kt; hintEl.classList.add('on'); } else if (hintTimer <= 0) hintEl.classList.remove('on'); }
@@ -21488,7 +21672,7 @@ function startVictory() {
   if (info.show) feat = info.winners.slice().sort((a, b) => (b === P) - (a === P) || ally(b, P) - ally(a, P)).slice(0, 2);
   else if (solo || info.winner) feat = [solo ? P : info.winner];
   else { const tie = board.find(e => e.D !== P && e.pct === info.tot[0]); feat = tie ? [P, tie.D] : [P]; }
-  const happy = info.show ? !info.draw || feat.length > 1 : solo ? info.newBest : true, lead = feat[0], col = new THREE.Color(TEAMS[lead.team].wet);
+  const happy = info.show ? !info.draw || feat.length > 1 : true, lead = feat[0], col = new THREE.Color(TEAMS[lead.team].wet);
   // (the camera well off the sun's side: the winner lit hard from one side, the other side in shadow)
   vic = { t: 0, feat, happy, yaw: Math.atan2(sun.position.x, sun.position.z) - 1.05, name: '', ghost: '', slamAt: 0, po: [], nameTop: 100, nameBot: 200, lh: 100, cy: 0.5, room: 0.4,
     saved: feat.map(D => ({ D, x: D.x, y: D.y, z: D.z, yaw: D.yaw, st: D.st, paint: D.paint, power: D.power, vis: lookRoot(D).visible, ip: D.ip })) };
@@ -21500,7 +21684,7 @@ function startVictory() {
     const V = D === P ? VP : D.look.V; Object.assign(V.look, { spd: 0, lean: 0, drop: 0, flat: 1, roll: 0 }); V.flatK = 0; V.gk = 1; V.misK = 0; V.turPitch = 0; // its plain round self, not mid-roll or still a roller
     if (V.slime) V.slime.setForm('slime'); // (and not still a turret, a giant or a rocket)
     D.ip = null; const ip = ipReset(D); ip.expr = happy ? 'menace' : 'focus'; ip.watch = { yaw: 0, pitch: 0.85, look: [0, 0] }; // (its face and where it looks: its own, for the screen)
-    lookRoot(D).visible = true; vicLayer(D, true);
+    lookRoot(D).visible = true; vicLayer(D, true); D.vicEm = vicEmOf(D); // (v407)
   });
   vicU.uA.value.copy(col); vicU.uB.value.copy(col).multiplyScalar(0.3); vicU.uC.value.copy(col).lerp(COL_WHITE, 0.6); vicU.uK.value = 0; vicU.uT.value = 0; vicU.uFlash.value = 0; vicU.uShock.value.set(0, 0, 0, 0); vicU.uSplat.value.set(0, 0, 0, 0);
   vicRim.color.copy(col).lerp(COL_WHITE, 0.3);
@@ -21509,7 +21693,7 @@ function startVictory() {
   const me = board.find(e => e.D === P); let w;
   if (info.show) w = sdVicWords(info, feat, me);
   else if (solo) { const you = Math.round(info.you), tt = info.tt || { rank: 1, runs: 1 }; w = { kick: info.newBest ? 'Best this week' : "Time's up", name: playerName(), ghost: you + '%',
-    stats: vicStat(you, '%', 'Canvas painted', true) + vicStat(ttOrd(tt.rank), '', 'This week', false) + (!info.newBest ? vicStat(info.best, '%', 'Week best', false) : info.prevBest ? vicStat('+' + (you - info.prevBest), '%', 'On the week best', false) : vicStat(tt.runs, '', tt.runs === 1 ? 'Run this week' : 'Runs this week', false)) }; }
+    stats: vicStat(you, '%', 'Canvas painted', true) + vicStat(ttOrd(tt.rank), '', 'This week', false) + (info.rings ? vicStat(info.rings, '', info.rings === 1 ? 'Ring' : 'Rings', false) : '') + (!info.newBest ? vicStat(info.best, '%', 'Week best', false) : info.prevBest ? vicStat('+' + (you - info.prevBest), '%', 'On the week best', false) : vicStat(tt.runs, '', tt.runs === 1 ? 'Run this week' : 'Runs this week', false)) }; }
   else if (feat.length > 1 || !info.winner) w = { kick: 'Dead even', name: feat.length > 1 ? playerName() + ' & ' + nameOf(feat[1]) : playerName(), ghost: '', stats: vicStat(me.pct, '%', 'Each', true) + vicStat(vicClock(info.time || 0), '', 'Time', false) };
   else { const k = info.kos[lead.team] || 0, cov = Math.round([info.you, info.cpu, info.cpu2][lead.team] || 0), lead2 = board[1] ? board[0].pct - board[1].pct : 0;
     w = { kick: lead === P ? 'Victory' : 'Winner', name: nameOf(lead), ghost: '1', stats: vicStat(cov, '%', 'Canvas', true) + vicStat(k, '', k === 1 ? 'KO' : 'KOs', false) + vicStat('+' + lead2, '', 'Winning margin', false) }; }
@@ -21522,15 +21706,69 @@ function startVictory() {
   if (document.fonts && document.fonts.check && !document.fonts.check(VIC_FACE)) document.fonts.load(VIC_FACE).then(() => { if (vic) vicFit(); }).catch(() => {}); // (drawn again in its own face when it's in)
   hud.classList.add('off'); hintEl.classList.remove('on'); bannerEl.classList.remove('on'); $('vig').className = 'vig'; edgeReset();
   const id = runId;
-  AU.whoosh(); setTimeout(() => { if (!vic || id !== runId) return; AU.splat(1.2); const won = solo ? info.newBest : info.show ? info.win > 0 : info.winner === P; AU.sting(won ? 'win' : info.winner ? 'lose' : 'draw'); /* (v300: no announcer line on the results) */ AU.music(won ? 'win' : 'lost'); buzz(won ? [30, 40, 30] : 20); }, 420);
+  AU.whoosh(); setTimeout(() => { if (!vic || id !== runId) return; AU.splat(1.2); const won = solo ? true : info.show ? info.win > 0 : info.winner === P; AU.sting(won ? 'win' : info.winner ? 'lose' : 'draw'); /* (v300: no announcer line on the results) */ AU.music(won ? 'win' : 'lost'); buzz(won ? [30, 40, 30] : 20); }, 420);
 }
 // each featured blob drops in, splats down and hunkers into its stance; then rears a hand up and slams it down (once), and holds there,
 // breathing hard, its tail lashing
+// ---------- (v407) the victory emotes. Each one's time e runs from the end of its drop-in; its big moment at EM_HIT, where the slam
+// has always landed. A pose writes the stance (o: the same fields as the victory's own pose) and the body's extras (ip: a flip, a
+// roll, a hand, a wave, the ears, a tuck); k scales its height (the locker's window is closer) ----------
+const EM_HIT = 0.91, VIC_E0 = VIC_SLAM - EM_HIT;
+function emClear(ip) { ip.pitch = 0; ip.roll = 0; ip.hand = 0; ip.wave = 0; ip.earUp = 0; ip.curl = null; }
+const EM_POSE = {
+  slam(e, o) { const s0 = EM_HIT - 0.44; o.menace = smoothstep(-0.35, 0.1, e);
+    if (e > s0 && e < EM_HIT - 0.06) o.slam = smoothstep(s0, EM_HIT - 0.16, e); else if (e >= EM_HIT - 0.06 && e < EM_HIT) o.slam = (EM_HIT - e) / 0.06;
+    const k = e - EM_HIT; if (k > 0 && k < 0.5) o.sq += 0.3 * Math.exp(-k * 10) * Math.min(1, k / 0.03);
+    o.expr = e > EM_HIT - 0.3 && e < EM_HIT + 0.5 ? 'angry' : 'menace'; },
+  // sinks down, springs, a tucked backflip, a hard landing; then its ground held, a hand thrown up
+  flip(e, o, ip, k) { const T0 = 0.38; o.menace = smoothstep(EM_HIT + 0.15, EM_HIT + 0.6, e); if (e < 0) return;
+    if (e < T0) { const u = e / T0; o.sq = Math.max(o.sq, 0.55 * smoothstep(0, 1, u)); ip.earUp = -0.5 * u; o.expr = 'focus'; }
+    else if (e < EM_HIT) { const u = (e - T0) / (EM_HIT - T0); o.hop = k < 1 ? 0.34 * Math.sin(Math.PI * u) * (1 - Math.pow(Math.sin(Math.PI * u), 6)) : 0.42 * 4 * u * (1 - u); o.ball = k === 1 && u > 0.14 && u < 0.86; /* (the locker's window: its own body over, low, so it stays in the window) */ ip.pitch = -6.2832 * (k < 1 ? smoothstep(0.2, 0.8, u) : smoothstep(0.06, 0.94, u));
+      ip.curl = Math.min(1, 1.7 * Math.sin(Math.PI * clamp((u - 0.08) / 0.84, 0, 1))); o.rise = u < 0.18 ? 0.55 * (1 - u / 0.18) : 0; ip.earUp = 0.8; o.expr = 'glee'; }
+    else { const q = e - EM_HIT; o.sq = Math.max(o.sq, 0.75 * Math.exp(-q * 7) * Math.min(1, q / 0.03)); o.expr = q < 0.55 ? 'angry' : 'smirk';
+      if (q > 0.85 && q < 1.8) ip.hand = smoothstep(0.85, 1.0, q) * (1 - smoothstep(1.55, 1.8, q)); } },
+  // winds back, two spins faster and faster, ears out; stops dead facing you, a hand up high and held, then the menace stance
+  spin(e, o, ip, k) { const T0 = 0.25; if (e < 0) return;
+    if (e < T0) { const u = smoothstep(0, 1, e / T0); o.sq = 0.35 * u; o.spin = -0.55 * u; o.expr = 'smirk'; }
+    else if (e < EM_HIT) { const u = (e - T0) / (EM_HIT - T0); o.spin = -0.55 + (0.55 + 6.2832 * 2) * Math.pow(u, 1.7); o.rise = 0.35 * Math.sin(Math.PI * u); o.hop = 0.12 * k * Math.sin(Math.PI * u); ip.earUp = 0.9 * Math.sin(Math.PI * Math.min(1, u * 1.15)); o.expr = 'glee'; }
+    else { const q = e - EM_HIT; o.spin = 6.2832 * 2 + 0.22 * Math.sin(q * 18) * Math.exp(-q * 6); o.slam = smoothstep(0, 0.08, q) * (1 - smoothstep(1.4, 1.75, q)); o.menace = smoothstep(0.1, 0.5, q);
+      o.sq = 0.4 * Math.exp(-q * 9) * Math.min(1, q / 0.03); o.expr = q < 1.5 ? 'smirk' : 'menace'; } },
+  // three happy bounces rocking side to side; a big wave at you, ears up, hearts
+  hearts(e, o, ip, k) { o.menace = 0; if (e < 0) return;
+    if (e < EM_HIT) { const ph = e / 0.3, n = Math.floor(ph), u = ph - n; o.hop = n < 3 ? 0.2 * k * Math.sin(Math.PI * u) : 0; o.sq = u > 0.85 ? (u - 0.85) / 0.15 * 0.35 : u < 0.1 ? 0.35 * (1 - u / 0.1) : 0;
+      ip.roll = 0.1 * Math.sin(e * 10.5); ip.earUp = 0.5 * Math.sin(Math.PI * u); o.expr = 'glee'; }
+    else { const q = e - EM_HIT; ip.wave = smoothstep(0, 0.15, q) * (1 - smoothstep(1.6, 1.9, q)); ip.roll = 0.09 * Math.sin(q * 4.2) * smoothstep(0, 0.3, q); ip.earUp = 0.35;
+      o.sq = 0.3 * Math.exp(-q * 8) * Math.min(1, q / 0.03); o.hop = q < 0.25 ? 0.12 * k * Math.sin(Math.PI * q / 0.25) : 0; o.expr = q < 1.9 ? 'cute' : 'content'; } } };
+// the sounds and the hearts before and after the big moment (the moment itself: the victory's own, or the locker's)
+const EM_CUES = { flip: [[0.38, 'whoosh']], spin: [[0.25, 'whoosh'], [0.62, 'whoosh']], hearts: [[0.3, 'bop'], [0.6, 'bop'], [EM_HIT + 0.45, 'heart'], [EM_HIT + 0.95, 'heart'], [EM_HIT + 1.45, 'heart']] };
+function emCueRun(id, e0, e1, fire) { for (const [at, k] of EM_CUES[id] || []) if (e0 < at && e1 >= at) fire(k); }
+const EM_HEART = '<svg viewBox="0 0 26 24" aria-hidden="true"><path d="M13 22.2C6.2 17.4 1.6 13.2 1.6 8.1 1.6 4.6 4.3 2 7.6 2c2.2 0 4.2 1.2 5.4 3.1C14.2 3.2 16.2 2 18.4 2c3.3 0 6 2.6 6 6.1 0 5.1-4.6 9.3-11.4 14.1z" fill="#FF5C9A" stroke="#171320" stroke-width="2.2" stroke-linejoin="round"/><path d="M6.4 6.6c.7-1 1.8-1.5 3-1.3" fill="none" stroke="#FFD0E2" stroke-width="2" stroke-linecap="round"/></svg>';
+// hearts popping out from a point on the screen, drifting up and away
+function emHearts(x, y, n, sc) {
+  if (!(x >= 0) || !(y >= 0)) return; for (let i = 0; i < n; i++) { const h = document.createElement('i'), a = (i / Math.max(1, n - 1) - 0.5) * 2;
+    h.className = 'emheart'; h.innerHTML = EM_HEART; h.style.left = (x + a * 18) + 'px'; h.style.top = y + 'px';
+    h.style.setProperty('--dx', Math.round(a * 46 + (Math.random() - 0.5) * 16) + 'px'); h.style.setProperty('--dy', Math.round(-70 - Math.random() * 40) + 'px'); h.style.setProperty('--r', Math.round(a * 16) + 'deg'); h.style.setProperty('--s', String(sc || 1)); h.style.animationDelay = (i * 0.07).toFixed(2) + 's';
+    document.body.appendChild(h); setTimeout(() => h.remove(), 1900); } }
+// which emote a winner does: its own (yours, or another player's as their look says), else a CPU's pick for this match
+function vicEmOf(D) { const w = lookOf(D), v = w && emoteOk(w.emote); if (v) return v; if (D === P || NM) return 'slam'; return ['slam', 'slam', 'flip', 'spin', 'hearts', 'slam'][((runId || 0) * 7 + D.team * 5) % 6]; }
+// the victory's cues: a whoosh, a bop, hearts round its head
+function emVicCue(k, n) { if (!vic) return; if (k === 'whoosh') AU.whoosh(); else if (k === 'bop') AU.pop(); else if (k === 'heart') { const D = vic.feat[0]; vicV.set(D.x, D.y + 0.72, D.z).project(vicCam); emHearts((vicV.x * 0.5 + 0.5) * viewW, (0.5 - vicV.y * 0.5) * viewH, n || 2, 1.35); if (n) return; AU.pop(); } }
+// the icons on their tags
+function emIcon(id) {
+  const ink = '#171320', g = {
+    slam: '<path d="M6 31.5c3-2.4 6.2-3.1 9.4-2.1M34 31.5c-3-2.4-6.2-3.1-9.4-2.1M9 24.5l3.4 2.2M31 24.5l-3.4 2.2" stroke="#FFD23F" stroke-width="2.6" stroke-linecap="round" fill="none"/><ellipse cx="20" cy="33" rx="13" ry="3.4" fill="#FF5C5C" stroke="' + ink + '" stroke-width="2.2"/><path d="M20 4v20" stroke="' + ink + '" stroke-width="7" stroke-linecap="round"/><path d="M20 4v20" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/><path d="M12.5 18.5 20 27l7.5-8.5z" fill="#FFFFFF" stroke="' + ink + '" stroke-width="2.4" stroke-linejoin="round"/>',
+    flip: '<path d="M29.6 12.4A11 11 0 1 0 31 22" fill="none" stroke="' + ink + '" stroke-width="7" stroke-linecap="round"/><path d="M29.6 12.4A11 11 0 1 0 31 22" fill="none" stroke="#5BE07E" stroke-width="3.2" stroke-linecap="round"/><path d="M24.5 11.6l6.6 1.6 1.2-6.8" fill="none" stroke="' + ink + '" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="18" r="4.2" fill="#FFFFFF" stroke="' + ink + '" stroke-width="2.2"/>',
+    spin: '<path d="M20 6.5l3.2 8.3 8.3 3.2-8.3 3.2L20 29.5l-3.2-8.3L8.5 18l8.3-3.2z" fill="#FFD23F" stroke="' + ink + '" stroke-width="2.3" stroke-linejoin="round"/><path d="M6.5 30.5c4.6 3.4 22.4 3.4 27 0M9 9c-3.5 3-4.8 6.4-4.1 10" fill="none" stroke="#7CC8FF" stroke-width="2.6" stroke-linecap="round"/><path d="M31.5 7.5l.9 2.3 2.3.9-2.3.9-.9 2.3-.9-2.3-2.3-.9 2.3-.9z" fill="#FFFFFF"/>',
+    hearts: '<g transform="translate(5 8) scale(1.15)">' + EM_HEART.replace(/^<svg[^>]*>|<\/svg>$/g, '') + '</g><g transform="translate(25 4) scale(.48) rotate(14)">' + EM_HEART.replace(/^<svg[^>]*>|<\/svg>$/g, '') + '</g>' }[id] || '';
+  return '<svg class="emico" viewBox="0 0 40 40" aria-hidden="true">' + g + '</svg>';
+}
 function vicPose(i, t) {
   const tt = t - 0.1 - i * 0.14, o = { hop: 0, sq: 0, rise: 0, spin: 0, coil: 0, kick: 0, leap: false, side: 1, twirl: 0, ball: false, stand: false, menace: 0, slam: 0 };
   if (tt < 0) o.hop = 6;
   else if (tt < 0.3) { const u = tt / 0.3; o.hop = 4.2 * (1 - u * u); }
   else if (tt < 0.7) { const u = (tt - 0.3) / 0.4; o.sq = 0.9 * Math.pow(1 - u, 1.8); o.hop = u > 0.35 ? Math.sin((u - 0.35) / 0.65 * Math.PI) * 0.1 : 0; }
+  { const D = vic.feat[i], em = vic.happy && D.vicEm && D.vicEm !== 'slam' ? D.vicEm : ''; if (D.ip) emClear(D.ip); // (v407: an emote of its own)
+    if (em) { o.em = em; EM_POSE[em](tt - VIC_E0, o, D.ip, 1); o.rise += 0.045 * Math.sin(t * 2.3) * o.menace; return o; } }
   o.menace = (vic.happy ? 1 : 0.45) * smoothstep(0.4, 0.85, tt);
   if (vic.happy) { const s0 = VIC_SLAM - 0.44;
     if (tt > s0 && tt < VIC_SLAM - 0.06) o.slam = smoothstep(s0, VIC_SLAM - 0.16, tt); else if (tt >= VIC_SLAM - 0.06 && tt < VIC_SLAM) o.slam = (VIC_SLAM - tt) / 0.06;
@@ -21543,12 +21781,12 @@ function vicPose(i, t) {
 function vicWatch(D, i, t, rdt) {
   const ip = D.ip; if (!ip || !ip.watch) return; const W = ip.watch, tt = t - 0.1 - i * 0.14, two = vic.feat.length > 1, O = two ? vic.feat[1 - i] : null;
   const rel = a => clamp(wrapA(a - D.yaw), -1.1, 1.1), toCam = rel(Math.atan2(vicCam.position.x - D.x, vicCam.position.z - D.z)), toO = O ? rel(Math.atan2(O.x - D.x, O.z - D.z)) : 0;
-  const side = vic.happy ? (tt < VIC_SLAM - 0.4 ? 1 : tt > 4.6 && tt < 5.5 ? smoothstep(4.6, 4.8, tt) * (1 - smoothstep(5.3, 5.5, tt)) : 0) : 1;
-  const tgt = two && tt < VIC_SLAM - 0.3 ? toO : toCam, hy = side > 0 && !two ? tgt * (1 - 0.75 * side) - 0.28 * side * Math.sign(tgt || 1) : tgt;
+  const em = D.vicPose && D.vicPose.em, side = em ? 0 : vic.happy ? (tt < VIC_SLAM - 0.4 ? 1 : tt > 4.6 && tt < 5.5 ? smoothstep(4.6, 4.8, tt) * (1 - smoothstep(5.3, 5.5, tt)) : 0) : 1;
+  const tgt = two && tt < (em ? 0.6 : VIC_SLAM - 0.3) ? toO : toCam, hy = side > 0 && !two ? tgt * (1 - 0.75 * side) - 0.28 * side * Math.sign(tgt || 1) : tgt;
   W.yaw += (hy * 1.1 - W.yaw) * (1 - Math.exp(-rdt * (tt > VIC_SLAM - 0.45 && tt < VIC_SLAM ? 22 : 7))); // (snapped round for the slam)
   W.pitch = 0.85 + (vic.happy ? -0.1 : -0.22) * smoothstep(0.5, 1.0, tt);
   W.look[0] = clamp((tgt - hy) * 0.22, -0.13, 0.13) * (side > 0 ? 1 : 0.4); W.look[1] = vic.happy ? 0.03 : -0.04;
-  ip.expr = !vic.happy ? 'focus' : tt > VIC_SLAM - 0.3 && tt < VIC_SLAM + 0.5 ? 'angry' : 'menace';
+  ip.expr = em ? D.vicPose.expr || (em === 'hearts' ? 'happy' : 'menace') : !vic.happy ? 'focus' : tt > VIC_SLAM - 0.3 && tt < VIC_SLAM + 0.5 ? 'angry' : 'menace';
 }
 // the layout: the name's block under the event line, the winner in the room between it and the words at the foot (portrait), or on the
 // left in front of its name with the words in a column on the right (landscape)
@@ -21556,7 +21794,7 @@ function vicFit() {
   if (!vic) return; const land = vicLand(), H = Math.max(1, viewH); vicEl.classList.toggle('land', land);
   const meta = $('vStage'), panel = $('vPanel'), mb = meta.offsetTop + meta.offsetHeight;
   vic.nameTop = land ? Math.max(mb + 48, H * 0.2) : mb + 46; vicDrawName(); $('vKick').style.top = Math.round(vic.nameTop - 38) + 'px';
-  if (land) { vic.cy = clamp((vic.nameTop + vic.nameBot) / 2 / H + (vic.feat.length > 1 ? 0.24 : 0.14), 0.45, 0.68); vic.room = 0.74; } // (a pair lower: it covers less of its two names)
+  if (land) { vic.cy = vic.feat.length > 1 ? clamp((vic.nameTop + vic.nameBot) / 2 / H + 0.24, 0.45, 0.68) : clamp(vic.nameBot / H + 0.27, 0.5, 0.66); vic.room = vic.feat.length > 1 ? 0.74 : 0.68; } /* (v407: one alone below its name) */ // (a pair lower: it covers less of its two names)
   else { vic.y0 = vic.nameBot - vic.lh * 0.4; vic.y1 = panel.offsetTop - 10; }
 }
 window.addEventListener('resize', () => { if (vic) vicFit(); });
@@ -21571,22 +21809,26 @@ function vicFrame(rdt) {
   // the framing: as big as fits across; in portrait the top of its head into the foot of its name and its feet clear of the words (its
   // middle, 0.42 m up, is the point the view is centred on); in landscape the floor-to-hat height in 74% of the screen
   let dist = (n > 1 ? (land ? 1.3 : 0.92) : land ? 0.66 : 0.56) / th / (land ? 0.62 : 1), cy; // (portrait: big, a tail run off the edge if need be; landscape: in the left 62%)
-  if (land) { dist = Math.max(dist, (VIC_HT + 0.05) / (2 * tv * 0.74)); cy = vic.cy || 0.5; }
+  if (land) { dist = Math.max(dist, (VIC_HT + 0.05) / (2 * tv * (vic.room || 0.74))); cy = vic.cy || 0.5; }
   else { const y0 = vic.y0 || Hh * 0.3, y1 = Math.max(y0 + 60, vic.y1 || Hh * 0.7); if (y0 + 0.98 * ppm(dist) > y1) dist = 0.98 * Hh / (2 * tv * (y1 - y0)); cy = clamp((y0 + 0.52 * ppm(dist) + Math.max(0, y1 - y0 - 0.98 * ppm(dist)) * (n > 1 ? 0.45 : 0.3)) / Hh, 0.25, 0.7); }
   dist *= push; const cx = land ? 0.31 : n > 1 ? 0.5 : 0.45; vicU.uCen.value.set(cx, 1 - cy); // (one alone a little left of centre: turned, its head comes to the middle)
   vicCam.setViewOffset(W, Hh, (0.5 - cx) * W, (0.5 - cy) * Hh, W, Hh);
   // (low, looking up at it; jolted by the slam)
   vicCam.position.set(mx + Math.sin(a) * dist, my + 0.18, mz + Math.cos(a) * dist); vicV.set(mx, my + 0.42, mz);
-  const sk = vic.slamAt ? Math.max(0, 1 - (t - vic.slamAt) / 0.32) : 0; if (sk > 0 && !reduceMotion) { const e = sk * sk * dist * 0.022; vicCam.position.x += Math.sin(t * 91) * e; vicCam.position.y += Math.cos(t * 77) * e; vicV.y += Math.sin(t * 63) * e * 0.5; }
+  const sk = vic.slamAt && !vic.soft ? Math.max(0, 1 - (t - vic.slamAt) / 0.32) : 0; if (sk > 0 && !reduceMotion) { const e = sk * sk * dist * 0.022; vicCam.position.x += Math.sin(t * 91) * e; vicCam.position.y += Math.cos(t * 77) * e; vicV.y += Math.sin(t * 63) * e * 0.5; }
   vicCam.lookAt(vicV);
   // the rim: behind it and up, on the side away from the sun
   vicRim.position.set(mx - Math.sin(a) * 3 - Math.cos(a) * 1.6, my + 2.4, mz - Math.cos(a) * 3 + Math.sin(a) * 1.6); vicRim.target.position.set(mx, my + 0.4, mz); vicRim.target.updateMatrixWorld();
   // the slam lands: a flash, a ring, its paint splattered over the poster behind it, the camera jolted
+  const em0 = vic.happy ? vic.feat[0].vicEm || 'slam' : ''; // (v407: the lead winner's emote: its cues, and its big moment)
+  if (em0) { const e = t - 0.1 - VIC_E0, e0 = vic.emE === undefined ? -9 : vic.emE; vic.emE = e; emCueRun(em0, e0, e, k => emVicCue(k)); }
   if (vic.happy && !vic.slamAt && t >= VIC_SLAM + 0.1) { vic.slamAt = t; const D = vic.feat[0];
-    vicV.set(D.x + Math.sin(D.yaw) * 0.3, D.y + 0.05, D.z + Math.cos(D.yaw) * 0.3).project(vicCam); const ux = vicV.x * 0.5 + 0.5, uy = vicV.y * 0.5 + 0.5;
+    if (em0 === 'hearts') { vic.soft = true; emVicCue('heart', 4); AU.pop(); AU.vox('giggle'); buzz([12, 40, 12]); }
+    else { const sp = em0 === 'spin', fl = em0 === 'flip';
+    vicV.set(D.x + (sp || fl ? 0 : Math.sin(D.yaw) * 0.3), D.y + (sp ? 0.45 : 0.05), D.z + (sp || fl ? 0 : Math.cos(D.yaw) * 0.3)).project(vicCam); const ux = vicV.x * 0.5 + 0.5, uy = vicV.y * 0.5 + 0.5;
     vicU.uShock.value.set(ux, uy, t, 1); vicU.uSplat.value.set(vicU.uCen.value.x, vicU.uCen.value.y + 0.07, t, land ? 0.62 : 0.48); // (the splat bursts out round it, the ring from its hand)
-    AU.slam(); AU.splat(1.4); AU.vox('hyah'); buzz([45]); }
-  vicU.uFlash.value = vic.slamAt && !reduceMotion ? 0.2 * Math.pow(Math.max(0, 1 - (t - vic.slamAt) / 0.14), 2) : 0;
+    if (sp) { AU.power(); AU.splat(0.9); AU.vox('hoh'); buzz([25, 30, 45]); } else { AU.slam(); AU.splat(1.4); AU.vox('hyah'); buzz([45]); } } }
+  vicU.uFlash.value = vic.slamAt && !vic.soft && !reduceMotion ? (em0 === 'spin' ? 0.3 : 0.2) * Math.pow(Math.max(0, 1 - (t - vic.slamAt) / 0.14), 2) : 0;
   if (t > 9) endVictory();
 }
 function restoreVictory() {
@@ -21668,7 +21910,7 @@ function kofFrame(rdt) {
 }
 function kofOpen() { if (!kof) return; if (kof.ph === 'wait') return kofEnd(); kof.ph = 'out'; kof.t = 0; kofEl.classList.remove('badge'); kofEl.classList.add('out'); AU.kpart(); }
 function kofEnd() { kof = null; kofEl.hidden = true; kofEl.classList.remove('badge', 'out'); }
-function abortReveal() { if (state === 'reveal') { state = 'intro'; introT = 0; } const el = $('reveal'); if (el) el.hidden = true; }
+function abortReveal() { potRiseEnd(); if (state === 'reveal') { state = 'intro'; introT = 0; } const el = $('reveal'); if (el) el.hidden = true; }
 function abortVictory() { if (vic) restoreVictory(); vicEl.hidden = true; vicEl.classList.remove('out'); if (tal) hideTally(); }
 vicEl.addEventListener('click', () => { AU.init(); endVictory(); });
 const vicKey = new THREE.Color(0xFFF4E8), keySave = new THREE.Color();
@@ -21960,7 +22202,13 @@ const NO_IRIS = k => k === 'dot' || k === 'zombie'; // (styles whose iris color 
 const WEAR_CAT = { head: 'head', side: 'head', eye: 'face', lash: 'face', mouth: 'face', neck: 'cloth', back: 'cloth', arms: 'cloth', skin: 'skin' };
 for (const w of WEAR) w.cat = WEAR_CAT[w.slot] || 'face';
 // things to find and buy that are not worn on the body: an eye style
-const EXTRA = [{ id: 'zombie', name: 'Zombie eyes', slot: 'eyes', cat: 'eyes', season: 1, stage: 'halloween', gift: 1 }], ITEMS = WEAR.concat(EXTRA); // (v330: the Sly eyes are everyone's from the start; the Zombie eyes, the one style to find, are a free gift)
+// (v407) the victory emotes: things to buy that are not worn on the body. Slam is everyone's
+const EMOTE_ITEMS = [{ id: 'slam', name: 'Slam', slot: 'emote', cat: 'emote', stage: 'blank', desc: 'Down low, a hand reared up and slammed down' },
+  { id: 'hearts', name: 'Lovestruck', slot: 'emote', cat: 'emote', stage: 'blank', desc: 'A few happy bounces, a big wave and hearts' },
+  { id: 'flip', name: 'Backflip', slot: 'emote', cat: 'emote', stage: 'blank', desc: 'Springs up, curls into a ball, flips and lands hard' },
+  { id: 'spin', name: 'Showstopper', slot: 'emote', cat: 'emote', stage: 'blank', desc: 'Spins up fast and stops dead, a hand held high' }];
+const emoteOk = v => typeof v === 'string' && EMOTE_ITEMS.some(w => w.id === v) ? v : null;
+const EXTRA = [{ id: 'zombie', name: 'Zombie eyes', slot: 'eyes', cat: 'eyes', season: 1, stage: 'halloween', gift: 1 }].concat(EMOTE_ITEMS), ITEMS = WEAR.concat(EXTRA); // (v330: the Sly eyes are everyone's from the start; the Zombie eyes, the one style to find, are a free gift)
 let lookCat = 'paint'; // the category open in the locker
 // showing off new eyes: the camera moves in on its face and it pulls a funny face (kind 0 an eye roll, 1 wide-eyed darting glances, 2 a
 // surprised look up then a flutter of blinks)
@@ -21985,6 +22233,7 @@ if (!Array.isArray(store.bought)) { store.bought = [...BOUGHT]; }
 for (const w of EXTRA) if (w.gift && OWNED.has(w.id) && !BOUGHT.has(w.id)) { BOUGHT.add(w.id); store.bought = [...BOUGHT]; } // (v330: found but never bought: a gift is yours)
 if (!(store.drops >= 0)) store.drops = 0;
 const bought = id => BOUGHT.has(id);
+OWNED.add('slam'); BOUGHT.add('slam'); Object.assign(PRICES, { hearts: 420, flip: 600, spin: 750 }); // (v407: Slam is everyone's; the others' prices)
 // ---------- (v354) play stats for the admin dashboard, and live prices. Anonymous stats go to the game's Supabase project (rm_track):
 // a random id for this install (never a name or a device id), the install's state now, and events (sessions, matches, the tutorial
 // steps reached, Paint Shop looks and buys, dabs earned, crafts and ad skips, rewarded ads, ranks). Batched, sent about once a minute
@@ -22092,7 +22341,7 @@ function showDrops() { setTimeout(() => { if (typeof lkPlusPlace === 'function')
 const owns = id => OWNED.has(id);
 function unlockItem(id) { if (OWNED.has(id)) return false; OWNED.add(id); store.owned = [...OWNED]; store.fresh = [...new Set([...(store.fresh || []), id])]; store.seen = store.seen || {}; store.seen.look = 0; save(); $('lookBtn').classList.add('hot'); return true; }
 if (typeof store.itemIn !== 'number') store.itemIn = 4 + Math.floor(Math.random() * 5); // matches to go before the next item can turn up
-const myLook = (() => { const l = Object.assign({}, store.look || {}); if (l.head && l.side) l.side = null; const ok = (v, slot) => WEAR.some(w => w.id === v && w.slot === slot) && BOUGHT.has(v) ? v : null; return { eyes: EYE_STYLES[l.eyes] ? l.eyes : 'round', head: ok(l.head, 'head'), back: ok(l.back, 'back'), mouth: ok(l.mouth, 'mouth'), eye: ok(l.eye, 'eye'), side: ok(l.side, 'side'), neck: ok(l.neck, 'neck'), lash: ok(l.lash, 'lash'), arms: ok(l.arms, 'arms'), skin: ok(l.skin, 'skin'), iris: ['brown', 'blue', 'green', 'violet', 'gold'].includes(l.iris) ? l.iris : 'brown' }; })();
+const myLook = (() => { const l = Object.assign({}, store.look || {}); if (l.head && l.side) l.side = null; const ok = (v, slot) => WEAR.some(w => w.id === v && w.slot === slot) && BOUGHT.has(v) ? v : null; return { eyes: EYE_STYLES[l.eyes] ? l.eyes : 'round', head: ok(l.head, 'head'), back: ok(l.back, 'back'), mouth: ok(l.mouth, 'mouth'), eye: ok(l.eye, 'eye'), side: ok(l.side, 'side'), neck: ok(l.neck, 'neck'), lash: ok(l.lash, 'lash'), arms: ok(l.arms, 'arms'), skin: ok(l.skin, 'skin'), iris: ['brown', 'blue', 'green', 'violet', 'gold'].includes(l.iris) ? l.iris : 'brown', emote: (v => v && (v === 'slam' || BOUGHT.has(v)) ? v : null)(emoteOk(l.emote)) }; })();
 const colorOf = () => PALETTE.find(p => p.id === colorId) || PALETTE[0];
 function setColor(id) {
   const c = PALETTE.find(p => p.id === id) || PALETTE[0], css = '#' + c.hex.toString(16).padStart(6, '0').toUpperCase(); colorId = c.id;
@@ -22130,7 +22379,7 @@ function renderModes() {
   if (!el.children.length) { let h = ''; for (const [k, name, tag] of MODES) h += '<button type="button" data-m="' + k + '" title="' + tag + '">' + name + '</button>'; el.innerHTML = h; }
   for (const b of el.children) b.setAttribute('aria-pressed', String(b.dataset.m === mode));
   $('stages').hidden = mode === 'solo'; const sn = $('soloNote'); sn.hidden = false;
-  if (mode === 'solo') sn.textContent = 'Cover as much as you can in 60 seconds. Every canvas has its own board this week.';
+  if (mode === 'solo') sn.textContent = 'Cover as much as you can in 60 seconds. Every ring you roll through adds 2 more. Every canvas has its own board this week.';
 }
 // switching mode builds a canvas for it (a 3-way one is bigger) and changes who's standing in the menu
 function setMode(m) { mode = m; store.mode = mode; save(); applyMode(); renderModes(); if (state === 'menu') { freshMap(); resetRun(); decorate(); menuPose(); renderStages(); } renderLobbyUI(); }
@@ -23935,7 +24184,7 @@ canvas.addEventListener('pointerup', endLookDrag); canvas.addEventListener('poin
 // a tap tries it on and Buy keeps it on. Drag spins you round, and you turn back to face the front after a moment ----------
 const LKR = { filt: 'all', stickY: 0, tab: 'mine', sel: null, prev: null, got: new Set(), scr: { mine: 0, shop: 0 }, anim: false, from: 'mine', toastT: 0 };
 function lkOn() { return menuPage === 'locker'; }
-const LK_CAT = { skin: 'Skins', head: 'Headgear', face: 'Facial', cloth: 'Clothing', eyes: 'Eyes' };
+const LK_CAT = { skin: 'Skins', head: 'Headgear', face: 'Facial', cloth: 'Clothing', eyes: 'Eyes', emote: 'Emotes' };
 const LK_POP = { tophat: 'top', bowtie: 'bow' }; // (the piece a wearable is, where its name isn't the item's)
 const LK_PAD = 0.62; // (the pad in dress mode: a podium, this much of the demo's)
 // (v337) the dress view this much closer than one that fits the pad, aimed this high (the middle of you, a hat included); the
@@ -23943,7 +24192,7 @@ const LK_PAD = 0.62; // (the pad in dress mode: a podium, this much of the demo'
 const LK_ZOOM = 2, LK_FZOOM = 1.7, LK_TY = 0.4, LK_HOPF = 0.6;
 const LK_PEN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l1-4.2L15.4 5.4a1.9 1.9 0 0 1 2.7 0l.5.5a1.9 1.9 0 0 1 0 2.7L8.7 18.5z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M13.6 7.2l3.2 3.2" stroke="currentColor" stroke-width="2.4"/></svg>';
 const lkItem = id => ITEMS.find(w => w.id === id);
-const lkWorn = w => w.slot === 'eyes' ? myLook.eyes === w.id : myLook[w.slot] === w.id;
+const lkWorn = w => w.slot === 'eyes' ? myLook.eyes === w.id : w.slot === 'emote' ? (myLook.emote || 'slam') === w.id : myLook[w.slot] === w.id;
 const lkForSale = w => !bought(w.id) && (owns(w.id) || !needFind(w));
 // how you'd look with it on: one thing per category (the face's spots apart), as the locker always had it
 function lkWith(look, w) { const L = Object.assign({}, look); if (w.slot === 'eyes') { L.eyes = w.id; return L; } if (w.cat !== 'face') for (const o of WEAR) if (o.cat === w.cat && o.slot !== w.slot && L[o.slot] === o.id) L[o.slot] = null; L[w.slot] = w.id; return L; }
@@ -23954,7 +24203,7 @@ const LK_PICS = new Map();
 function lkPicUrl(w) { if (LK_PICS.has(w.id)) return LK_PICS.get(w.id); let u = ''; try { u = shopPic(w); } catch (e) { u = ''; } if (!u) return '';
   if (u.startsWith('data:') && window.Blob && window.URL && URL.createObjectURL) try { const b = atob(u.slice(u.indexOf(',') + 1)), a = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); u = URL.createObjectURL(new Blob([a], { type: 'image/png' })); } catch (e) {}
   LK_PICS.set(w.id, u); return u; }
-function lkPic(w) { if (w.slot === 'eyes') return ES_ICON_T[w.id] || ''; if (w.slot === 'skin') return ptHtml(ptSpec(colorOf().hex, { eyes: myLook.eyes, iris: myLook.iris, skin: w.id }), 'stimg lkskin', '<svg viewBox="0 0 40 40" aria-hidden="true">' + SKIN_SW[w.id] + '</svg>'); const u = lkPicUrl(w); return u ? '<img class="stimg" src="' + u + '" alt="" draggable="false">' : '<svg viewBox="0 0 40 40" aria-hidden="true">' + WEAR_ICON[w.id] + '</svg>'; }
+function lkPic(w) { if (w.slot === 'emote') return emIcon(w.id); if (w.slot === 'eyes') return ES_ICON_T[w.id] || ''; if (w.slot === 'skin') return ptHtml(ptSpec(colorOf().hex, { eyes: myLook.eyes, iris: myLook.iris, skin: w.id }), 'stimg lkskin', '<svg viewBox="0 0 40 40" aria-hidden="true">' + SKIN_SW[w.id] + '</svg>'); const u = lkPicUrl(w); return u ? '<img class="stimg" src="' + u + '" alt="" draggable="false">' : '<svg viewBox="0 0 40 40" aria-hidden="true">' + WEAR_ICON[w.id] + '</svg>'; }
 // a hang tag: the item's picture, and a strip: Equipped, its price, or Find it
 function lkCard(w, tab) {
   const own = bought(w.id), found = own || owns(w.id) || !needFind(w), on = own && lkWorn(w), n = store.drops || 0, broke = !own && found && n < PRICE(w), sel = LKR.sel === 'w:' + w.id;
@@ -23971,14 +24220,17 @@ function lkMineHtml() {
   h += '<p class="lksec">Eyes</p><div class="lkeyes"><div class="lkstyles" role="group" aria-label="Eye style">' + Object.keys(EYE_STYLES).map(k => { const it = EXTRA.find(x => x.id === k), lk = !!it && !bought(k);
     return '<button class="eyes' + (lk ? ' locked' : '') + (it && !lk && fresh.has(k) ? ' fresh' : '') + '" type="button" data-k="e:' + k + '" aria-label="' + EYE_STYLES[k] + ' eyes' + (lk ? (it.gift ? ', a free gift on the Spooky SZN stages' : ', in the Paint Shop') : '') + '" aria-pressed="' + (myLook.eyes === k) + '">' + ES_ICON_T[k] + (lk ? LOCK_ICON : '') + '</button>'; }).join('') + '</div>';
   const ni = NO_IRIS(myLook.eyes); h += '<div class="lkirises' + (ni ? ' off' : '') + '" role="group" aria-label="Eye colour"' + (ni ? ' aria-disabled="true"' : '') + '>' + EYE_KEYS.map(k => '<button class="eyec" type="button" data-k="i:' + k + '" style="--ic:' + EYE_COLS[k].css + '" aria-label="' + EYE_COLS[k].name + ' eyes" aria-pressed="' + (myLook.iris === k) + '"><i></i></button>').join('') + '</div></div>';
+  { const ems = EMOTE_ITEMS.filter(w => bought(w.id)).sort((a, b) => a.id === 'slam' ? -1 : b.id === 'slam' ? 1 : PRICE(a) - PRICE(b)), sale = EMOTE_ITEMS.filter(lkForSale).length; // (v407: your emotes, Slam first)
+    h += '<p class="lksec">' + LK_CAT.emote + '<i>' + ems.length + '</i></p>' + grid(ems.map(w => lkCard(w, 'mine')).join('')) + (sale ? '<p class="lknone"><button class="lkgo" type="button" data-go="shop" data-f="emote">The Paint Shop has ' + sale + ' more</button></p>' : ''); }
   for (const c of ['skin', 'head', 'face', 'cloth']) { const mine = WEAR.filter(w => w.cat === c && bought(w.id)).sort((a, b) => PRICE(a) - PRICE(b)), sale = WEAR.filter(w => w.cat === c && lkForSale(w)).length;
     h += '<p class="lksec">' + LK_CAT[c] + (mine.length ? '<i>' + mine.length + '</i>' : '') + '</p>' + (mine.length ? grid(mine.map(w => lkCard(w, 'mine')).join('')) : '<p class="lknone">Nothing here yet.' + (sale ? ' <button class="lkgo" type="button" data-go="shop" data-f="' + c + '">The Paint Shop has ' + sale + '</button>' : '') + '</p>'); }
   return h;
 }
 // the shop: the season's finds first, under their banner, then everything else for sale (what this visit bought stays, as yours)
 // ---------- (v333) the Paint Shop's filters: All, the season, and each kind (the season's own of that kind first, under a heading) ----------
-const LK_FILT = [['all', 'All'], ['season', 'Spooky SZN'], ['skin', 'Skins'], ['head', 'Headgear'], ['face', 'Facial'], ['cloth', 'Clothing'], ['eyes', 'Eyes']];
+const LK_FILT = [['all', 'All'], ['season', 'Spooky SZN'], ['skin', 'Skins'], ['head', 'Headgear'], ['face', 'Facial'], ['cloth', 'Clothing'], ['eyes', 'Eyes'], ['emote', 'Emotes']];
 const LK_FI = {'skin': '<path d="M12 3.2l2.2 5.6 5.6 2.2-5.6 2.2L12 18.8l-2.2-5.6L4.2 11l5.6-2.2z" fill="#FFD23F"/><circle cx="18.6" cy="18.4" r="1.9" fill="#FF7BC8"/><circle cx="5.4" cy="18.6" r="1.3" fill="#7CC8FF"/>', 'all': '<rect x="4" y="4" width="7" height="7" rx="2" fill="currentColor"/><rect x="13" y="4" width="7" height="7" rx="2" fill="currentColor"/><rect x="4" y="13" width="7" height="7" rx="2" fill="currentColor"/><rect x="13" y="13" width="7" height="7" rx="2" fill="currentColor"/>', 'season': '<path d="M12 8.2c-1.3-.9-3.4-1-4.9-.1C5 9.3 4.2 11.6 4.2 13.6c0 3.3 2.2 5.9 5 5.9.9 0 1.9-.3 2.8-.8.9.5 1.9.8 2.8.8 2.8 0 5-2.6 5-5.9 0-2-.8-4.3-2.9-5.5-1.5-.9-3.6-.8-4.9.1z" fill="#FF8A2A"/><path d="M12 8.8v9.6M12 8.3c0-1.8.6-3.1 2-3.9"/>', 'head': '<path d="M3.5 18.2h17"/><path d="M7.2 18.2V8.4c0-1.1.9-2 2-2h5.6c1.1 0 2 .9 2 2v9.8"/><path d="M7.2 14.6h9.6"/>', 'face': '<circle cx="7.3" cy="13.4" r="3.7"/><circle cx="16.7" cy="13.4" r="3.7"/><path d="M11 12.8c.7-.6 1.3-.6 2 0M3.7 12.4 2.6 9.8M20.3 12.4l1.1-2.6"/>', 'cloth': '<path d="M10.2 12 4.2 8.3v7.4zM13.8 12l6-3.7v7.4z"/><rect x="10.2" y="10.2" width="3.6" height="3.6" rx="1" fill="currentColor"/>', 'eyes': '<path d="M2.8 12.2s3.4-5.4 9.2-5.4 9.2 5.4 9.2 5.4-3.4 5.4-9.2 5.4-9.2-5.4-9.2-5.4z"/><circle cx="12" cy="12.2" r="2.7" fill="currentColor"/>'}, LK_FSVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">';
+LK_FI.emote = '<path d="M17.6 7.2A7 7 0 1 0 18.6 14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M14.2 6.6l4 .9.8-4.1" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="11" r="2.4" fill="#FF7BC8"/>'; // (v407)
 const lkInF = (w, f) => f === 'all' || (f === 'season' ? !!w.season : w.cat === f);
 const lkFound = w => !bought(w.id) && owns(w.id) && needFind(w); // (a find that's for sale now: its tag says New)
 // the row: shown with more than one way to look (not in the lesson's shop, where the tips point at the flower and the fangs)
@@ -23999,7 +24251,7 @@ function lkShopHtml() {
     const sz = listed.filter(w => w.season).sort(by);
     if (sz.length) { const all = ITEMS.filter(w => w.season), got = all.filter(w => bought(w.id) || owns(w.id)).length;
       h += '<div class="lkszn" role="heading" aria-level="4"><span class="sbart" style="--sbbg:url(art/shop_hw_bg.webp)"></span><span class="lkszt"><i>Season One</i><b>Spooky SZN</b><small><u style="--p:' + (all.length ? got / all.length : 0).toFixed(3) + '"></u>' + got + ' of ' + all.length + ' found</small></span><img class="lkpump" src="art/shop_hw_pump.webp" alt="" draggable="false"></div>' + grid(sz); }
-    if (f === 'all') for (const c of ['skin', 'head', 'face', 'cloth', 'eyes']) { const l = listed.filter(w => !w.season && w.cat === c).sort(by); if (l.length) h += '<p class="lksec' + (c === 'skin' ? ' lkprem' : '') + '">' + (c === 'skin' ? LK_FSVG + LK_FI.skin + '</svg>' : '') + LK_CAT[c] + '</p>' + grid(l); }
+    if (f === 'all') for (const c of ['skin', 'emote', 'head', 'face', 'cloth', 'eyes']) { const l = listed.filter(w => !w.season && w.cat === c).sort(by); if (l.length) h += '<p class="lksec' + (c === 'skin' ? ' lkprem' : '') + '">' + (c === 'skin' ? LK_FSVG + LK_FI.skin + '</svg>' : '') + LK_CAT[c] + '</p>' + grid(l); }
   } else {
     const sz = listed.filter(w => w.season && w.cat === f).sort(by), yr = listed.filter(w => !w.season && w.cat === f).sort(by);
     if (sz.length) h += '<p class="lksec">' + LK_FSVG + LK_FI.season + '</svg>Spooky SZN</p>' + grid(sz);
@@ -24054,8 +24306,8 @@ function lkShowRender() {
   if (w) { const own = bought(w.id), found = own || owns(w.id) || !needFind(w), on = own && lkWorn(w), where = WEAR_WHERE[w.stage], p = PRICE(w);
     kind = w.season ? 'Spooky SZN · ' + LK_CAT[w.cat] : LK_CAT[w.cat]; name = w.name;
     line = own ? (needFind(w) ? 'Found on ' + where : 'From the Paint Shop') : found ? (owns(w.id) && needFind(w) ? 'You found it on ' + where : 'In stock now') : 'Found on ' + where + ' only';
-    if (w.slot === 'skin') line = w.desc; // (v387)
-    if (own) { if (on) { doH = ST_CHECK + 'Equipped'; doCls = 'on'; doDis = true; doLab = w.name + ' is equipped'; off = w.slot !== 'eyes'; } else { doH = 'Equip'; doLab = 'Put on the ' + w.name.toLowerCase(); } }
+    if (w.slot === 'skin' || w.slot === 'emote') line = w.desc; // (v387)
+    if (own) { if (on) { doH = ST_CHECK + 'Equipped'; doCls = 'on'; doDis = true; doLab = w.name + ' is equipped'; off = w.slot !== 'eyes' && w.slot !== 'emote'; } else { doH = 'Equip'; doLab = 'Put on the ' + w.name.toLowerCase(); } }
     else if (found) { if (n >= p) { doH = 'Buy<small>' + DROP_SVG + p + '</small>'; doCls = 'craft'; doLab = 'Buy the ' + w.name.toLowerCase() + ' for ' + p + ' dabs'; } else { doH = DROP_SVG + p; doDis = true; doLab = w.name + ', ' + p + ' dabs'; note = 'You need ' + (p - n) + ' more dabs. Matches pay in dabs'; } }
     else { doH = STROKE_LOCK + 'Find it'; doDis = true; doLab = w.name + ' is locked'; note = 'Find it on ' + where + ', then it’s for sale here'; } }
   else if (k === 'c') { const c = PALETTE.find(q => q.id === id) || colorOf(); kind = 'Your paint'; name = c.name; line = 'Everything you roll over turns ' + c.name.toLowerCase(); }
@@ -24093,11 +24345,12 @@ function lkTap(key) {
   if (k === 'e') return lkEyes(id);
   if (k === 'i') return lkIris(id);
   const w = lkItem(id); if (!w) return; const again = LKR.sel === key; LKR.sel = key;
-  const off = bought(w.id) && lkWorn(w) && w.slot !== 'eyes'; // (v363: on already, a tap takes it off; eyes only swap)
-  if (LKR.tab === 'mine') { if (!lkWorn(w)) { lkPutOn(w); AU.pop(); buzz(5); } else if (off) lkTakeOff(w); else { AU.ui(); buzz(4); kick($('lkBan'), 'bump'); lkFreshOff(w.id); } }
+  const off = bought(w.id) && lkWorn(w) && w.slot !== 'eyes' && w.slot !== 'emote'; // (v363: on already, a tap takes it off; eyes only swap)
+  if (LKR.tab === 'mine') { if (!lkWorn(w)) { lkPutOn(w); AU.pop(); buzz(5); } else if (off) lkTakeOff(w); else { if (w.slot === 'emote') sgDressReact(w); else { AU.ui(); buzz(4); kick($('lkBan'), 'bump'); } lkFreshOff(w.id); } } // (v407: an emote on already plays again)
   else if (!again) { if (!bought(w.id)) stView(w); LKR.prev = bought(w.id) ? null : lkWith(myLook, w); lkDress(); sgDressReact(w); AU.pop(); buzz(5); }
   else if (off) lkTakeOff(w);
   else if (bought(w.id) && !lkWorn(w)) { lkPutOn(w); AU.pop(); buzz(5); } // (and back on, as in your locker)
+  else if (w.slot === 'emote') sgDressReact(w);
   else { AU.ui(); buzz(4); kick($('lkBan'), 'bump'); }
   lkTabs(); lkPaneRender(); lkShowRender(); lkKick(key);
 }
@@ -24164,7 +24417,7 @@ $('lkPanel').addEventListener('click', e => { const t = e.target.closest('[data-
   if (t.id === 'lkNameBtn') { AU.ui(); openName(false); return; } if (t.dataset.go) { if (t.dataset.f) { LKR.filt = t.dataset.f; LKR.scr.shop = 0; } lkSetTab(t.dataset.go); return; } if (t.dataset.f) { lkFilt(t.dataset.f); return; } lkTap(t.dataset.k); });
 $('lkDo').addEventListener('click', () => { AU.init(); const w = LKR.sel && LKR.sel[0] === 'w' && lkItem(LKR.sel.slice(2)); if (!w) return;
   if (bought(w.id)) { if (!lkWorn(w)) { lkPutOn(w); AU.pop(); buzz(5); lkTabs(); lkPaneRender(); lkShowRender(); } return; } lkBuy(w); });
-$('lkOff').addEventListener('click', () => { AU.init(); const w = LKR.sel && LKR.sel[0] === 'w' && lkItem(LKR.sel.slice(2)); if (!w || w.slot === 'eyes' || !lkWorn(w)) return;
+$('lkOff').addEventListener('click', () => { AU.init(); const w = LKR.sel && LKR.sel[0] === 'w' && lkItem(LKR.sel.slice(2)); if (!w || w.slot === 'eyes' || w.slot === 'emote' || !lkWorn(w)) return;
   lkTakeOff(w);
   lkTabs(); lkPaneRender(); lkShowRender(); setTimeout(() => { if (lkOn() && !$('lkDo').hidden) $('lkDo').focus({ preventScroll: true }); }, 30); });
 $('lkUnlockLink').addEventListener('click', () => { AU.init(); AU.ui(); $('lkUnlockLink').hidden = true; $('lkUnlockForm').hidden = false; setTimeout(() => $('lkUnlockCode').focus(), 30); });
@@ -24209,8 +24462,27 @@ function sgDress(dt) {
 }
 // a thing put on or tried on: it pops in, a hop and a happy face; on the face, the camera comes in close; worn at the side or
 // on the back, you turn to show it, then back
+// (v407) an emote on you in the locker's window: tried on or picked, it plays; its big moment with the window's own rings and bursts
+function sgEmote(id) {
+  const dur = EM_HIT + 2.15; SGD.act = { k: 'emote', id, dur, t: 0, e: -9 }; SGD.moodT = 0; SGD.fzT = 0; SGD.dV = 0; SGD.dyaw = wrapA(SGD.dyaw); SGD.dyawTo = 0; SGD.dHold = 0;
+  DRESS_POKE.until = performance.now() + dur * 1000; AU.pop();
+}
+function emLocker(a, D, ip) {
+  const e = a.t - 0.2, e0 = a.e, o = D.vicPose || (D.vicPose = {}); a.e = e;
+  Object.assign(o, { hop: 0, sq: 0, rise: 0, spin: 0, coil: 0, kick: 0, leap: false, side: 1, twirl: 0, ball: false, stand: false, menace: 0, slam: 0, em: a.id, expr: null });
+  emClear(ip); (EM_POSE[a.id] || EM_POSE.slam)(e, o, ip, 0.55);
+  if (a.id === 'flip') { const z = smoothstep(0.05, 0.35, e) * (1 - smoothstep(EM_HIT + 0.05, EM_HIT + 0.5, e)); if (z > 0) SGD.dk = Math.min(SGD.dk, 1 - 0.75 * z); } // (the window draws back for it to go over)
+  ip.hop = o.hop; o.hop = 0; SGD.actFace = o.expr || (a.id === 'hearts' ? 'happy' : 'smirk'); // (the hop on the body's own, so the window rises with it)
+  emCueRun(a.id, e0, e, k => { if (k === 'whoosh') AU.whoosh(); else if (k === 'bop') AU.pop(); else if (k === 'heart') emStageHearts(2); });
+  if (e0 < EM_HIT && e >= EM_HIT) { const c = SGD.A.col;
+    if (a.id === 'hearts') { emStageHearts(4); AU.pop(); AU.vox('giggle', 0.8); }
+    else if (a.id === 'spin') { sgRing(0, 0, 0.9, 0xFFE23C); sgRing(0, 0, 0.55, 0xFFFFFF); sgFlash('w'); if (!reduceMotion) sgBurst(0, 0, COL_WHITE, 10, 3.6, 2.2); AU.power(); AU.vox('hoh', 0.8); }
+    else { sgRing(0, 0, 0.95, TEAMS[0].wet); sgRing(0, 0, 0.55, 0xFFFFFF); if (!reduceMotion) { sgBurst(0, 0, c, 14, 3.8, 2.4); sgShk(0.35); } AU.slam(); AU.splat(1); AU.vox('hyah', 0.7); } }
+}
+function emStageHearts(n) { const r = $('lkStage').getBoundingClientRect(); if (r.width) emHearts(r.left + r.width / 2, r.top + r.height * 0.36, n, 0.9); }
+function emEnd(D) { D.vicPose = null; if (D.ip) emClear(D.ip); }
 function sgDressReact(w) {
-  if (!SGD.built) return; sgActEnd(); const D = SGD.A.D;
+  if (!SGD.built) return; sgActEnd(); if (w.slot === 'emote') return sgEmote(w.id); const D = SGD.A.D;
   SGD.popId = w.slot === 'eyes' || w.id === 'lashes' || w.id === 'patch' ? null : w.id; SGD.popT = 0;
   D.squash = Math.max(D.squash, 0.45); D.wob = Math.max(D.wob, 0.7); SGD.mood = w.slot === 'eyes' ? 'smirk' : 'glee'; SGD.moodT = 1.1;
   SGD.fzT = w.cat === 'face' || w.slot === 'eyes' ? 2.6 : 0;
@@ -24230,7 +24502,7 @@ function sgDressCheer() { if (!SGD.built) return; sgActEnd(); const D = SGD.A.D;
 // surprise, a blep, a smirk, a sneeze, a wet-dog shake, a twirl. One at a time; taps do nothing until it's done; never the same twice running
 const POKE_DRESS = [['hop', 0.75], ['wave', 1.6], ['hand', 1.3], ['ears', 1.3], ['blep', 1.4], ['smirk', 1.4], ['sneeze', 1.9], ['shake', 1.3], ['twirl', 1.1]];
 const DRESS_POKE = { q: [], last: '', n: 0, until: 0 };
-function sgActEnd() { const a = SGD.act; SGD.act = null; SGD.actFace = null; if (!a || !SGD.built) return; const ip = SGD.A.D.ip; ip.hop = 0; ip.wave = 0; ip.hand = 0; ip.earUp = 0; ip.sq = null; ip.rise = null; }
+function sgActEnd() { const a = SGD.act; SGD.act = null; SGD.actFace = null; if (!a || !SGD.built) return; const ip = SGD.A.D.ip; ip.hop = 0; ip.wave = 0; ip.hand = 0; ip.earUp = 0; ip.sq = null; ip.rise = null; if (a.k === 'emote') emEnd(SGD.A.D); }
 function sgDressPoke() {
   if (!SGD.built) return; const now = performance.now(); if (now < DRESS_POKE.until) return; // (still busy with the last one)
   const [k, dur] = pokeNext(DRESS_POKE, reduceMotion ? POKE_DRESS.filter(x => x[0] !== 'twirl') : POKE_DRESS); DRESS_POKE.until = now + (dur + 0.25) * 1000;
@@ -24243,7 +24515,8 @@ function sgDressPoke() {
 function sgActStep(dt) {
   const a = SGD.act; if (!a) return; a.t += dt; const u = Math.min(1, a.t / a.dur), D = SGD.A.D, ip = D.ip, k = smoothstep(0.04, 0.2, u) * (1 - smoothstep(0.78, 0.96, u)), I = SGD.A.V.slime, AX = I && I.ax && I.ax.A;
   ip.hop = 0; ip.wave = 0; ip.hand = 0; ip.earUp = 0; ip.sq = null; ip.rise = null; SGD.actFace = null;
-  if (a.k === 'hop') { ip.hop = Math.sin(u * Math.PI) * 0.42; ip.sq = u > 0.84 ? (u - 0.84) / 0.16 * 0.45 : null; SGD.actFace = 'glee'; if (u > 0.9 && !a.f1) { a.f1 = true; D.wob = Math.max(D.wob, 0.5); } }
+  if (a.k === 'emote') emLocker(a, D, ip);
+  else if (a.k === 'hop') { ip.hop = Math.sin(u * Math.PI) * 0.42; ip.sq = u > 0.84 ? (u - 0.84) / 0.16 * 0.45 : null; SGD.actFace = 'glee'; if (u > 0.9 && !a.f1) { a.f1 = true; D.wob = Math.max(D.wob, 0.5); } }
   else if (a.k === 'wave') { ip.wave = k; SGD.actFace = k > 0.2 ? 'happy' : null; }
   else if (a.k === 'hand') { ip.hand = a.side * k; SGD.actFace = k > 0.2 ? 'curious' : null; }
   else if (a.k === 'ears') { ip.earUp = k; SGD.actFace = u < 0.55 ? 'startle' : 'cute'; if (!a.f1) { a.f1 = true; if (AX) AX.kickGills(0, 1.0); } }
@@ -24959,9 +25232,9 @@ async function sbRpc(fn, args, keep) {
 }
 const frName = () => String(store.name || 'Rookie').slice(0, 16);
 const frWear = () => { const w = {}; for (const k of PT_SLOTS) if (myLook[k]) w[k] = myLook[k]; w.iris = myLook.iris; return w; };
-const frLook = () => ({ c: colorId, e: myLook.eyes, w: frWear() }); // (v331: and what you wear)
+const frLook = () => ({ c: colorId, e: myLook.eyes, w: frWear(), m: myLook.emote || undefined }); // (v407: m, your emote) // (v331: and what you wear)
 const frRank = () => repOf(store.xp || 0).lv;
-const frSig = () => frName() + '|' + colorId + '|' + myLook.eyes + '|' + frRank() + '|' + JSON.stringify(frWear());
+const frSig = () => frName() + '|' + colorId + '|' + myLook.eyes + '|' + frRank() + '|' + JSON.stringify(frWear()) + '|' + (myLook.emote || '');
 const frStatus = () => state === 'menu' ? 'lobby' : 'match';
 async function frStart() {
   if (!SB_CFG || FR.busy || FR.me || acOut()) return; FR.busy = true; FR.err = ''; const g = FR.gen = (FR.gen || 0) + 1; if (FR.open) frRender(); // (v306: signed out, nothing till you log in)
@@ -25357,7 +25630,7 @@ function netDress(m) {
     NAMES[D.team] = p.name ? hdOf(String(p.name).slice(0, 16)) : 'Rival'; // (a person, by their handle: v311_handles)
     const c = typeof L.c === 'string' && rivalColOf(L.c); if (c) rivalCol[D.team] = c;
     Lk.wearing = { head: ok(w, w.head, 'head'), back: ok(w, w.back, 'back'), mouth: ok(w, w.mouth, 'mouth'), eye: ok(w, w.eye, 'eye'), side: ok(w, w.side, 'side'), neck: ok(w, w.neck, 'neck'), lash: ok(w, w.lash, 'lash'), arms: ok(w, w.arms, 'arms'), skin: ok(w, w.skin, 'skin'), iris: EYE_KEYS.includes(w.iris) ? w.iris : 'brown', eyes: EYE_STYLES[L.e] ? L.e : 'round' };
-    NM.ranks.set(D, clamp(L.r | 0, 1, 999) || 1);
+    Lk.wearing.emote = emoteOk(L.m); NM.ranks.set(D, clamp(L.r | 0, 1, 999) || 1);
   }
   teamTint = true; teamHues();
 }
@@ -25431,8 +25704,8 @@ function netWx(p, prev, quiet) {
   const ph = p.ph, dur = +p.dur || 1;
   if (ph === 'warn') { setWx('warn', dur); if (!quiet) { AU.heatWarn(); wxBanner('Heat wave in ' + SUN_WARN, P.skill === 'repel' ? 'Weather Repel: the heat can’t touch you' : sunsSeen ? '' : 'Hide in a ' + potWord() + ' or the shade', true); } }
   else if (ph === 'sun') { setWx('sun', dur); dryPuddles(); sunsSeen++; hardPhase = true; hardStart = dryClock; if (!quiet) { AU.heatOn(); flashScreen(); } }
-  else if (ph === 'dusk') { setWx('dusk', dur); if (!quiet) { AU.dusk(); wxBanner('The heat breaks', sunsSeen > 1 ? '' : 'Hard paint slows you until the rain.'); } }
-  else if (ph === 'rain') { setWx('rain', dur); if (prev === 'dusk') rewetAll(); if (!quiet) { AU.thunder(); const n = rainsSeen++; wxBanner('Rain!', prev === 'dusk' ? (n ? '' : 'Hard paint softens') : P.skill === 'repel' ? 'Weather Repel: it rolls right off you' : n ? '' : rainFast(P) ? 'Faster, but your paint thins' : 'Your paint thins'); } rainPuddles(); }
+  else if (ph === 'dusk') { setWx('dusk', dur); if (!quiet) { AU.dusk(); wxBanner('The heat breaks', ''); } }
+  else if (ph === 'rain') { setWx('rain', dur); if (prev === 'dusk') rewetAll(); if (!quiet) { AU.thunder(); const n = rainsSeen++; wxBanner('Rain!', prev === 'dusk' ? '' : P.skill === 'repel' ? 'Weather Repel: it rolls right off you' : n ? '' : rainFast(P) ? 'Faster, but your paint thins' : 'Your paint thins'); } rainPuddles(); }
   else { if (hardPhase) rewetAll(); setWx('clear', dur); }
 }
 // ---- the rival, drawn from the server's snapshots
@@ -26955,7 +27228,7 @@ function beginMatch() {
     D.introY0 = Math.max(0, surfaceUnder(D.x, D.z, 3, true)); D.y = D.introY0 + INTRO_H; D.air = true; D.vy = 0; D.freeLand = true; D.formK = 0.12; D.fT = 0.34; D.fV = 0; D.wob = 0.8; }
   if (tut && tutFlat) for (const p of pots) if (p !== basins.get(P)) { p.st = 'down'; p.t = 0; p.g.visible = false; if (p.ring) p.ring.visible = false; if (p.tele) p.tele.visible = false; p.occ = null; p.next = null; } // (v356: the lesson's only basin is yours)
   camYaw = P.yaw; camYawV = 0; introCam(true); gyCam = P.introY0 || 0; camSnap = true;
-  if (!reduceMotion && !window.__noReveal && !NM) { state = 'reveal'; revealT = 0; revealA0 = P.yaw + 0.67 + 0.75; revealCam(); camera.position.copy(dPos); camera.lookAt(dLook); camera.updateMatrixWorld(); revealShow(); irisOpen(); AU.whoosh(); return; }
+  if (!reduceMotion && !window.__noReveal && !NM) { state = 'reveal'; revealT = 0; revealA0 = P.yaw + 0.67 + 0.75; revealCam(); camera.position.copy(dPos); camera.lookAt(dLook); camera.updateMatrixWorld(); potRiseStart(); revealShow(); irisOpen(); AU.whoosh(); return; }
   const v = tv1.set(P.x, P.y + 0.1, P.z).project(camera); irisOpen([(v.x * 0.5 + 0.5) * viewW, (0.5 - v.y * 0.5) * viewH]);
 }
 // the sweep: high over the far side of the canvas, round and down to where the intro's camera starts
@@ -26966,7 +27239,26 @@ function revealCam() {
   dPos.set(px + (dPos.x - px) * ww, py + (dPos.y - py) * ww, pz + (dPos.z - pz) * ww); dLook.set(lx + (dLook.x - lx) * ww, ly + (dLook.y - ly) * ww, lz + (dLook.z - lz) * ww);
 }
 function revealShow() { const el = $('reveal'); $('rvName').textContent = TH.label; $('rvSub').textContent = tutMatchDue() ? 'Tutorial \u00b7 learn the ropes' : (MODES.find(m => m[0] === mode) || MODES[0])[1] + ' \u00b7 ' + (mode === 'solo' ? '60 seconds' : 'CPU ' + (DIFFS.find(d => d[0] === diff) || DIFFS[0])[1]); el.hidden = false; el.className = 'reveal'; void el.offsetWidth; el.className = 'reveal on'; }
-function revealStep(rdt) { revealT += rdt; const el = $('reveal'); if (revealT >= REVEAL_T - 0.4 && el.className !== 'reveal out') el.className = 'reveal out'; if (revealT >= REVEAL_T) { state = 'intro'; introT = 0; setTimeout(() => { if (state !== 'reveal') el.hidden = true; }, 400); } }
+
+// (v407) the basins rise one by one in the stage reveal: p.rvAt is when (in revealT), only the look moves (p.st stays 'up')
+const RV_D = 0.75, RV_T0 = 0.35;
+function potRiseStart() {
+  const a = revealA0, R = ARENA * 1.5, cx = Math.sin(a) * R, cz = Math.cos(a) * R, mine = P.pot;
+  const up = pots.filter(p => potUp(p) && p.g.visible && p !== mine).sort((p, q) => Math.hypot(p.x - cx, p.z - cz) - Math.hypot(q.x - cx, q.z - cz));
+  if (mine && potUp(mine) && mine.g.visible) up.push(mine);
+  const n = up.length, gap = n > 1 ? Math.min(0.24, (REVEAL_T - 0.25 - RV_D - RV_T0) / (n - 1)) : 0;
+  up.forEach((p, i) => { p.rvAt = RV_T0 + i * gap; p.rvN = i; p.g.visible = false; });
+}
+function potRiseStep() {
+  for (const p of pots) { if (p.rvAt === undefined) continue;
+    if (!p.g.visible && revealT >= p.rvAt) { p.g.visible = true; shockwave(p.x, p.y, p.z, 1.3, 0xB89B82);
+      for (let i = 0; i < 12; i++) { const a = Math.random() * 6.283, sp = 1.2 + Math.random() * 2; spawnPart(p.x + Math.cos(a) * 0.6, p.y + 0.1, p.z + Math.sin(a) * 0.6, Math.cos(a) * sp, 1.6 + Math.random() * 2, Math.sin(a) * sp, 0.5 + Math.random() * 0.35, dustMat, 0.7 + Math.random() * 0.6); }
+      if (p.rvN % 2 === 0 || p === P.pot) { AU.at(p.x, p.z); AU.rise(); } }
+    if (revealT >= p.rvAt + RV_D) delete p.rvAt; }
+}
+function potRiseEnd() { for (const p of pots) if (p.rvAt !== undefined) { delete p.rvAt; if (potUp(p)) p.g.visible = true; } }
+const potRiseK = p => { const u = clamp((revealT - p.rvAt) / RV_D, 0, 1) - 1; return -(2.70158 * u * u * u + 1.70158 * u * u); };
+function revealStep(rdt) { revealT += rdt; potRiseStep(); const el = $('reveal'); if (revealT >= REVEAL_T - 0.4 && el.className !== 'reveal out') el.className = 'reveal out'; if (revealT >= REVEAL_T) { potRiseEnd(); state = 'intro'; introT = 0; setTimeout(() => { if (state !== 'reveal') el.hidden = true; }, 400); } }
 const fmtClock = s => { const t = Math.max(0, Math.ceil(s)); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); };
 function pause() {
   if (state !== 'play') return; if (NM) return netPause(); state = 'paused'; if (P.charging) clearCharge(P); kbCharge = false; AU.chargeStop(); AU.roll(0, 0); AU.sizzle(0);
@@ -27086,7 +27378,7 @@ function showEnd(img) {
   const covOf = D => Math.max(0, [info.you, info.cpu, info.cpu2][D.team] || 0);
   // the verdict
   const word = solo ? (info.newBest ? 'New best!' : 'Time!') : info.win > 0 ? 'Victory!' : info.win < 0 ? 'Defeat' : 'Draw', t = $('endTitle');
-  $('endWord').textContent = word; t.className = 'rtitle' + (solo ? (info.newBest ? '' : ' lose') : info.win < 0 ? ' lose' : info.win === 0 ? ' draw' : '');
+  $('endWord').textContent = word; t.className = 'rtitle' + (solo ? '' : info.win < 0 ? ' lose' : info.win === 0 ? ' draw' : '');
   t.setAttribute('aria-label', solo ? word : info.win > 0 ? 'Victory! You win' : info.win < 0 ? 'Defeat. ' + nameOf(info.winner) + ' wins' : 'Draw');
   paintName(); showRep(info);
   if (solo ? info.newBest : info.win > 0) setTimeout(() => hap('success'), 420); // (v351: as the verdict lands)
@@ -27741,7 +28033,8 @@ function iceTap(D) {
   D.iceShk = 1; const got = D.iceTap || 0, k = Math.min(ICE_TAP, ICE_TAP_MAX - got);
   if (k > 0.001) { D.iceTap = got + k; D.frozenT = Math.max(0.02, D.frozenT - k); D.stunT = Math.max(0.02, (D.stunT || 0) - k); }
   for (let i = 0; i < 3; i++) { const a = Math.random() * 6.283, v = 1.2 + Math.random() * 1.6; spawnPart(D.x + Math.cos(a) * 0.4, D.y + 0.45, D.z + Math.sin(a) * 0.4, Math.cos(a) * v, 1.4 + Math.random() * 1.6, Math.sin(a) * v, 0.12 + Math.random() * 0.08, i % 2 ? boilPartMat : puHaloMat, 0.45); }
-  if (D === P) { buzz(6); if (AU.tick) AU.tick(); restartCls($('frost'), 'crk'); } else if (hearable(D) && Math.random() < 0.35) { AU.at(D.x, D.z); if (AU.tick) AU.tick(); }
+  const crunch = v => (AU.xplay && AU.xplay('ice_crunch', { v, rate: 0.9 + Math.random() * 0.24 })) || (AU.tick && AU.tick()); // (v407: ice, not a ding)
+  if (D === P) { buzz(6); crunch(1.3); restartCls($('frost'), 'crk'); } else if (hearable(D) && Math.random() < 0.35) { AU.at(D.x, D.z); crunch(clamp(1.1 - Math.hypot(D.x - P.x, D.z - P.z) / 24, 0.35, 0.9)); }
 }
 addEventListener('pointerdown', e => { if (state === 'play' && P.frozenT > 0 && P.st === 'play' && !(e.target && e.target.closest && e.target.closest('#pauseBtn, .corner'))) iceTap(P); }, true);
 addEventListener('keydown', e => { if (state === 'play' && P.frozenT > 0 && P.st === 'play' && !e.repeat && e.key !== 'Escape' && e.key !== 'p' && e.key !== 'P') iceTap(P); }, true);
@@ -27967,6 +28260,20 @@ foldApply();
 function orientNative(v) { try { const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.orient; if (h) h.postMessage(v || ''); } catch (e) {} }
 function applyOrient() { const v = store.orient || ''; document.documentElement.dataset.orient = v; for (const b of $('orientPick').children) b.setAttribute('aria-pressed', String(b.dataset.o === v)); orientNative(v); checkRotate(); }
 function setOrient(v) { store.orient = v; save(); applyOrient(); heroT = 0; }
+// (v407) turning the phone on the main menu: offered the other way round (the app tells the game how it's held: 'nativeturn')
+{ const el = $('turnModal'); let want = '', quietTill = 0;
+  const free = () => state === 'menu' && menuPage === 'home' && !building && !lookOpen && !lkOn() && $('orient').hidden && !menu.classList.contains('tutoring') && !document.querySelector('.modal:not([hidden]):not(#turnModal)');
+  const close = () => { if (!el.hidden) el.hidden = true; want = ''; };
+  window.addEventListener('nativeturn', e => { const way = e && e.detail && e.detail.way; if (way !== 'port' && way !== 'land') return;
+    if (way === store.orient) { close(); quietTill = 0; return; } // (back the way it plays: the card goes, and the next turn may ask again)
+    if (!store.orient || roomy() || performance.now() < quietTill || !free()) return;
+    want = way; $('turnTitle').textContent = way === 'land' ? 'Play wide?' : 'Play upright?';
+    $('turnNote').textContent = 'You turned your phone. Switch the game to ' + (way === 'land' ? 'landscape' : 'portrait') + '? You can change it any time in Settings.';
+    el.hidden = false; AU.ui(); setTimeout(() => $('turnYes').focus({ preventScroll: true }), 30); });
+  $('turnYes').addEventListener('click', () => { const w = want; close(); if (!w) return; AU.init(); AU.ui(); setOrient(w); });
+  $('turnNo').addEventListener('click', () => { close(); AU.ui(); quietTill = performance.now() + 20000; });
+  el.addEventListener('click', e => { if (e.target === el) { close(); quietTill = performance.now() + 20000; } }); }
+
 function checkRotate() {
   const want = store.orient, el = $('rotate'); if (!want || !touchy() || !$('orient').hidden || window.__noRotate || roomy()) { el.hidden = true; return; }
   const land = viewW > viewH, wrong = want === 'land' ? !land : land;
