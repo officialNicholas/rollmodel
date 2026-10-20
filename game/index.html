@@ -4960,6 +4960,16 @@ html.fh .pyevh{display:none}
 .pyline .onmys{width:38px;height:38px;color:#fff;opacity:.9;background:rgba(255,255,255,.08);font-size:18px}
 .pyvs{font:400 15px/1 var(--font-display);font-style:normal;text-transform:uppercase;color:#FFD24A;text-shadow:0 2px 0 #171320,1.2px 0 0 #171320,-1.2px 0 0 #171320}
 @media (max-height:520px) and (min-aspect-ratio:1/1){.pyf .frface{width:34px;height:34px}.pyline .onmys{width:32px;height:32px;font-size:15px}.pyside{padding:3px}}
+
+/* (v397) the locker's + on the counter's top-left corner, a size smaller, with a bigger place to tap */
+.dplus.lk{width:28px;height:28px;border-radius:8px}.dplus.lk svg{width:15px;height:15px}
+.dplus.lk::after{content:"";position:absolute;inset:-8px}
+
+/* (v399) Settings in the pause menu, where the Turning slider was */
+#pause .psets{display:flex;align-items:center;justify-content:center;gap:9px}
+#pause .psets svg{width:20px;height:20px;flex:none}
+@media (min-aspect-ratio:1/1){#pause .card>.psets{grid-column:2;align-self:center}}
+html.fv #pause .card>.psets{grid-column:1/-1}
 </style>
 
 <div id="stage">
@@ -5138,7 +5148,7 @@ html.fh .pyevh{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 394</p>
+      <p class="ver">Version 401</p>
     </div>
   </div>
 
@@ -5193,7 +5203,7 @@ html.fh .pyevh{display:none}
     <div class="card" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
       <h2 class="ctitle" id="pauseTitle">Paused</h2>
       <div class="pscore"><b class="you" id="pauseYou">0%</b><span id="pauseClock">1:30 left</span><b class="cpu" id="pauseCpu">0%</b></div>
-      <div class="pturn" role="group" aria-labelledby="pTurnLab"><div class="pthd"><span class="ptlab" id="pTurnLab">Turning</span><b class="trnv" id="pTurnVal">80%</b></div><div class="trn"><span class="trnl" aria-hidden="true">Gentle</span><input type="range" id="pTurnPick" min="50" max="150" step="5" value="80" aria-label="Turning speed"><span class="trnl" aria-hidden="true">Quick</span></div></div>
+      <button class="btn psets" id="pauseSet" type="button" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8z" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M10.3 2.8h3.4l.5 2.6 1.7.9 2.4-1.2 2.4 2.4-1.2 2.4.9 1.7 2.6.5v3.4l-2.6.5-.9 1.7 1.2 2.4-2.4 2.4-2.4-1.2-1.7.9-.5 2.6h-3.4l-.5-2.6-1.7-.9-2.4 1.2-2.4-2.4 1.2-2.4-.9-1.7-2.6-.5v-3.4l2.6-.5.9-1.7-1.2-2.4 2.4-2.4 2.4 1.2 1.7-.9z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><span>Settings</span></button>
       <button class="btn play sm" id="resumeBtn" type="button">Resume</button>
       <div class="row"><button class="btn" id="restartBtn" type="button">Restart</button><button class="btn" id="quitBtn" type="button">Menu</button></div>
     </div>
@@ -5238,8 +5248,8 @@ html.fh .pyevh{display:none}
     <div class="board" id="board" role="list" aria-label="Scores"></div>
     <div class="reprow" id="repRow" hidden><div class="repl"><small>Reputation</small><b id="repRowName">Fresh Paint</b></div><div class="xpmeter" id="xpMeter" role="meter" aria-label="Reputation"></div><b class="xpgain" id="xpGain">+0<small>XP</small></b><b class="dropgain" id="dropGain" hidden>+0<small>dabs</small></b></div>
     <div class="commdone" id="commDone"></div>
-    <button class="btn play two" id="endBtn" type="button"><span>Rematch</span><small>New canvas</small></button>
-    <div class="row"><button class="btn" id="replayBtn" type="button">Same canvas</button><button class="btn" id="menuBtn" type="button">Menu</button></div>
+    <button class="btn play two" id="endBtn" type="button"><span>Continue</span><small>New canvas</small></button>
+    <div class="row"><button class="btn" id="replayBtn" type="button">Rematch</button><button class="btn" id="menuBtn" type="button">Menu</button></div>
   </section>
 
   <section class="orient" id="orient" hidden role="dialog" aria-modal="true" aria-labelledby="orientTitle">
@@ -5724,9 +5734,14 @@ const RMNetSDK = (() => {
   // ---------------------------------------------------------------------------------------------------------------
   class RMNet {
     // opts: { url, name, look, token, WebSocket?, now?, autoReconnect = true, sendHz = 30, minInterp = 60, maxInterp = 200,
-    //         maxExtrapolate = 250, client?, sb? (the player's Supabase user id: invites and pokes find them by it),
-    //         zone?, tzo? (the time zone and its offset: matchmaking looks near first; the browser's own by default),
-    //         beat = 500 (ms between pings once connected; setBeat changes it: slow while just waiting in the lobby) }
+    //         maxExtrapolate = 250, deadMs = 3000, smoothMs = 90, client?, sb? (the player's Supabase user id: invites and
+    //         pokes find them by it), zone?, tzo? (the time zone and its offset: matchmaking looks near first; the browser's
+    //         own by default), beat = 500 (ms between pings once connected; setBeat changes it: slow while just waiting in
+    //         the lobby) }
+    // deadMs: a connection that has brought nothing for this long is taken as lost and opened again. The server
+    // answers every ping and sends 30 snapshots a second in a match, so silence that long means the link is gone
+    // without having closed (a phone in a tunnel, Wi-Fi handing over to 4G), which otherwise goes unnoticed for minutes.
+    // On a slow beat the answers come no faster than the pings: then two beats and a second.
     constructor(opts = {}) {
       this.url = opts.url; this.name = opts.name || 'Player'; this.look = opts.look === undefined ? null : opts.look;
       this.token = opts.token || null; this.client = opts.client || null; this.sb = opts.sb || null;
@@ -5737,6 +5752,11 @@ const RMNetSDK = (() => {
       this.autoReconnect = opts.autoReconnect !== false;
       this.sendInterval = 1000 / (opts.sendHz || 30);
       this.maxExtrapolate = opts.maxExtrapolate === undefined ? 250 : opts.maxExtrapolate;
+      this.deadMs = opts.deadMs === undefined ? 3000 : opts.deadMs; this._lastRx = 0;
+      this.smoothMs = opts.smoothMs === undefined ? 90 : opts.smoothMs; this._smooth = new Map();
+      // a server spread over several machines: the one this connection is on (from the welcome), and the one the next
+      // connection asks for (?s=): the same machine to pick up a match or a room, the room's own machine to join one
+      this._shard = null; this._target = null;
       this.id = null; this.ratings = null; this.connected = false; this.match = null; this.slot = -1; this.room = null;
       this.ws = null; this._h = new Map(); this._closing = false; this._attempt = 0; this._retryTimer = null;
       this._clock = new ClockSync(); this._interp = new InterpDelay(opts.minInterp || 60, opts.maxInterp || 200);
@@ -5754,7 +5774,7 @@ const RMNetSDK = (() => {
     // ---- connection ----
     // resolves with the welcome message; rejects if the server refuses (for example a protocol version mismatch)
     connect() {
-      this._closing = false; clearTimeout(this._retryTimer);
+      this._closing = false; clearTimeout(this._retryTimer); this._target = this.match || this.room ? this._shard : null;
       if (this.ws) { const old = this.ws; this.ws = null; try { old.close(1000, 'reconnect'); } catch (e) { /* already closed */ } }
       return new Promise((resolve, reject) => {
         const offW = this.on('welcome', w => { offW(); offE(); resolve(w); });
@@ -5768,30 +5788,41 @@ const RMNetSDK = (() => {
     }
     _open() {
       let ws;
-      try { ws = new this.WS(this.url); } catch (e) { this._scheduleReconnect(); return; }
+      let url = this.url;
+      if (this._target) { url = url.replace(/([?&])s=[^&]*(&|$)/, (m, a, b) => (b ? a : '')); url += (url.includes('?') ? '&' : '?') + 's=' + encodeURIComponent(this._target); }
+      try { ws = new this.WS(url); } catch (e) { this._scheduleReconnect(); return; }
       this.ws = ws; ws.binaryType = 'arraybuffer';
       ws.onopen = () => {
         if (this.ws !== ws) return;
-        this._attempt = 0; this.connected = true; this._emit('open', {});
+        this._attempt = 0; this.connected = true; this._lastRx = this._now(); this._emit('open', {});
         this._sendJ({ t: 'hello', v: PROTOCOL_VERSION, token: this.token || undefined, name: this.name, look: this.look, client: this.client || undefined,
           sb: this.sb || undefined, zone: this.zone || undefined, tzo: fin(this.tzo) ? this.tzo : undefined });
         this._startPings();
       };
       ws.onmessage = ev => { if (this.ws === ws) this._onMessage(ev.data); };
       ws.onerror = () => { /* followed by close */ };
-      ws.onclose = ev => {
-        if (this.ws !== ws) return;
-        this.connected = false; this.ws = null; this._stopPings();
-        for (const [, w] of this._waits) w.reject(Object.assign(new Error('disconnected'), { code: 'disconnected' }));
-        this._waits.clear();
-        const again = !this._closing && this.autoReconnect && !this._noRetry;
-        this._emit('close', { code: ev && ev.code, reason: ev && ev.reason, willReconnect: again });
-        if (again) this._scheduleReconnect();
-      };
+      ws.onclose = ev => { if (this.ws === ws) this._lost(ev); };
+    }
+    _lost(ev) {
+      this.connected = false; this.ws = null; this._stopPings();
+      for (const [, w] of this._waits) w.reject(Object.assign(new Error('disconnected'), { code: 'disconnected' }));
+      this._waits.clear();
+      const again = !this._closing && this.autoReconnect && !this._noRetry;
+      this._emit('close', { code: ev && ev.code, reason: ev && ev.reason, willReconnect: again });
+      if (again) this._scheduleReconnect();
+    }
+    // a link gone silent: let the old socket go (closing a dead one can take minutes to report) and start again
+    _dead() {
+      const ws = this.ws; if (!ws) return;
+      ws.onopen = ws.onmessage = ws.onclose = ws.onerror = null;
+      try { ws.close(4000, 'silent'); } catch (e) { /* already closed */ }
+      this._lost({ code: 4000, reason: 'silent' });
     }
     _scheduleReconnect() {
       if (this._closing || !this.autoReconnect) return;
       const base = Math.min(8000, 400 * Math.pow(2, this._attempt)), delay = Math.round(base * (0.75 + Math.random() * 0.5));
+      // (back to the machine running our match or room; after a few failures it may be gone, so any machine)
+      this._target = (this.match || this.room) && this._attempt < 4 ? this._shard : null;
       this._attempt++; this._emit('reconnecting', { attempt: this._attempt, delay });
       clearTimeout(this._retryTimer); this._retryTimer = setTimeout(() => this._open(), delay);
     }
@@ -5814,23 +5845,49 @@ const RMNetSDK = (() => {
       this._stopPings(); this._pingsSent = 0;
       // a quick burst to start with, then one every `beat` ms: two a second by default (9 bytes each way: cheap, and it
       // keeps a phone's radio awake for a match); a game waiting in its lobby slows it to a heartbeat (setBeat)
-      const tick = () => { this._sendB(codec.encodePing(this._now())); this._pingsSent++; this._pingAt = this._now(); this._pingTimer = setTimeout(tick, this._pingsSent < 8 ? 100 : this.beat); };
-      tick();
+      this._pingDue = this._now(); this._ping();
+    }
+    // one ping, and the next one set; first, is the link still there?
+    _ping() {
+      const now = this._now();
+      // (if this page was itself stalled, a long frame or a suspended app, what arrived meanwhile hasn't been read yet:
+      // the link gets a fresh deadMs from now)
+      if (now - this._pingDue > 1500) this._lastRx = Math.max(this._lastRx, now - 500);
+      if (this.deadMs > 0 && this.connected && now - this._lastRx > Math.max(this.deadMs, 2 * this.beat + 1000)) { this._dead(); return; }
+      this._sendB(codec.encodePing(now)); this._pingsSent++; this._pingAt = now;
+      const gap = this._pingsSent < 8 ? 100 : this.beat; this._pingDue = now + gap; this._pingTimer = setTimeout(() => this._ping(), gap);
     }
     _stopPings() { clearTimeout(this._pingTimer); this._pingTimer = null; }
     // ms between pings from now on (a quicker one starts at once)
     setBeat(ms) {
       ms = clamp(Math.round(+ms || 500), 100, 60000); if (ms === this.beat) return; const quicker = ms < this.beat; this.beat = ms;
       if (!this._pingTimer || this._pingsSent < 8) return;
-      clearTimeout(this._pingTimer); const tick = () => { this._sendB(codec.encodePing(this._now())); this._pingsSent++; this._pingAt = this._now(); this._pingTimer = setTimeout(tick, this.beat); };
-      this._pingTimer = setTimeout(tick, quicker ? 0 : Math.max(0, this.beat - (this._now() - (this._pingAt || 0))));
+      // (quicker: the last answer may be a slow beat old, so the link gets a fresh deadMs from now)
+      const now = this._now(); if (quicker) this._lastRx = Math.max(this._lastRx, now);
+      clearTimeout(this._pingTimer); const gap = quicker ? 0 : Math.max(0, this.beat - (now - (this._pingAt || 0)));
+      this._pingDue = now + gap; this._pingTimer = setTimeout(() => this._ping(), gap);
     }
 
     // ---- lobby ----
     queue(mode) { return this._request({ t: 'queue', mode }); }
     cancelQueue() { return this._request({ t: 'cancelQueue' }); }
     createRoom(mode) { return this._request({ t: 'createRoom', mode }).then(r => r.code); }
-    joinRoom(code) { return this._request({ t: 'joinRoom', code: String(code || '').toUpperCase() }); }
+    // (a room on another machine: the connection moves there, quietly, and joins it)
+    joinRoom(code) {
+      const msg = () => ({ t: 'joinRoom', code: String(code || '').toUpperCase() });
+      return this._request(msg()).catch(e => { if (e.code !== 'room_elsewhere' || !e.shard) throw e; return this._switch(e.shard).then(() => this._request(msg())); });
+    }
+    // to another machine of the same server, without telling the game the connection dropped: it hears the new welcome
+    _switch(shard) {
+      return new Promise((resolve, reject) => {
+        const old = this.ws; this.ws = null; this.connected = false; this._stopPings();
+        if (old) { old.onopen = old.onmessage = old.onclose = old.onerror = null; try { old.close(1000, 'switch'); } catch (e) { /* closed */ } }
+        const done = f => { clearTimeout(to); offW(); offF(); f(); };
+        const to = setTimeout(() => done(() => reject(Object.assign(new Error('could not reach the room'), { code: 'timeout' }))), 10000);
+        const offW = this.on('welcome', () => done(resolve)), offF = this.on('fatal', e => done(() => reject(Object.assign(new Error(e.message || e.code), { code: e.code }))));
+        this._target = shard; this._open();
+      });
+    }
     leaveRoom() { return this._request({ t: 'leaveRoom' }); }
     ready(on = true) { return this._sendJ({ t: 'ready', ready: !!on }); }
     rematch(vote = true) { return this._sendJ({ t: 'rematch', vote: !!vote }); }
@@ -5902,12 +5959,31 @@ const RMNetSDK = (() => {
     renderTime() { return this.serverNow() - this._interp.value(this._now()); }
     // id: a player id or a slot number. Returns the remote player's state at renderTime (default: now minus the
     // interpolation delay), or null if nothing has arrived yet.
+    // Without a renderTime this is where to draw them now, smoothed: when late states arrive after a stall (TCP holds
+    // everything behind a lost packet) the sampled position can leap back from where it was extrapolated to. A leap
+    // faster than anyone moves is not shown at once but eased out over about smoothMs (as an offset that fades), so the
+    // rival glides back instead of popping. Teleports (respawn, more than 5 m), knock-outs and pots are never smoothed.
     remote(id, renderTime) {
       const slot = typeof id === 'number' ? id : this._slotOf(id); const tr = this._tracks.get(slot); if (!tr) return null;
       const R = renderTime === undefined ? this.renderTime() : renderTime;
       const o = tr.sample(R, this.maxExtrapolate); if (!o) return null;
       this._samples++; if (o.extrapolated) this._extrap++;
-      o.slot = slot; o.id = this._idOf(slot); return o;
+      o.slot = slot; o.id = this._idOf(slot);
+      if (renderTime === undefined && this.smoothMs > 0) this._smoothed(slot, o);
+      return o;
+    }
+    _smoothed(slot, o) {
+      const now = this._now(); let S = this._smooth.get(slot);
+      if (!S) { S = { x: o.x, z: o.z, t: now, ex: 0, ez: 0 }; this._smooth.set(slot, S); }
+      const dt = Math.min(0.25, Math.max(0, (now - S.t) / 1000)), k = Math.exp(-dt * 1000 / this.smoothMs);
+      let ex = S.ex, ez = S.ez; const e0 = Math.hypot(ex, ez);
+      if (e0 > 0) { const e1 = Math.max(e0 * k, e0 - 12 * dt); ex *= e1 / e0; ez *= e1 / e0; } // (fading, but never faster than 12 m/s, so a big gap glides)
+      const dx = o.x - S.x, dz = o.z - S.z, d = Math.hypot(dx, dz), lim = 0.04 + 16 * dt; // (16 m/s: faster than a whirl or a fling)
+      if (d >= TELEPORT_M || (o.flags & (FLAGS.KO | FLAGS.HIDE | FLAGS.OUT))) ex = ez = 0;
+      else if (d > lim) { ex -= dx / d * (d - lim); ez -= dz / d * (d - lim); }
+      const e = Math.hypot(ex, ez); if (e > 3) { ex *= 3 / e; ez *= 3 / e; } // (a bigger gap than that shows partly at once)
+      S.x = o.x; S.z = o.z; S.t = now; S.ex = ex; S.ez = ez;
+      o.x += ex; o.z += ez;
     }
     players() { return this.match ? this.match.players.slice() : []; }
     _slotOf(id) { if (!this.match) return -1; const p = this.match.players.find(q => q.id === id); return p ? p.slot : -1; }
@@ -5926,6 +6002,7 @@ const RMNetSDK = (() => {
 
     // ---- incoming ----
     _onMessage(data) {
+      this._lastRx = this._now();
       if (typeof data === 'string') {
         this._st.bytesIn += data.length;
         let m; try { m = JSON.parse(data); } catch (e) { return; }
@@ -5953,19 +6030,21 @@ const RMNetSDK = (() => {
     _onJson(m) {
       if (m.r !== undefined && this._waits.has(m.r)) {
         const w = this._waits.get(m.r); this._waits.delete(m.r);
-        if (m.t === 'error') w.reject(Object.assign(new Error(m.message || m.code), { code: m.code })); else w.resolve(m);
+        if (m.t === 'error') w.reject(Object.assign(new Error(m.message || m.code), { code: m.code, shard: m.shard })); else w.resolve(m);
       }
       // A message carrying cid places our blob with authority (start, resume, correction, respawn, flat). From now on
       // our states carry that id, so the server can tell them from the ones we sent before we applied it.
       if (m.cid !== undefined && (m.slot === undefined || m.slot === this.slot)) this._corr = m.cid & 0xff;
       switch (m.t) {
         case 'welcome':
-          this.id = m.id; this.token = m.token; this.name = m.name; this.ratings = m.ratings || null; this._noRetry = false;
+          // another machine (or the same one restarted) counts time from its own start: the clock starts again from its pings
+          if ((m.shard || null) !== this._shard || (fin(m.serverTime) && this._clock.n && Math.abs(m.serverTime - this.serverNow()) > 1000)) { this._clock = new ClockSync(); if (fin(m.serverTime)) this._clock.offset = m.serverTime - this._now(); this._startPings(); }
+          this.id = m.id; this.token = m.token; this.name = m.name; this.ratings = m.ratings || null; this._noRetry = false; this._shard = m.shard || null;
           this._emit('welcome', m); if (m.token) this._emit('token', { token: m.token });
           break;
         case 'error':
           if (m.fatal) { this._noRetry = true; this._emit('fatal', m); }
-          this._emit('error', m);
+          if (m.code !== 'room_elsewhere') this._emit('error', m); // (that one the SDK deals with itself: joinRoom)
           break;
         case 'kicked': this._noRetry = true; this._emit('kicked', m); this._emit('fatal', { code: 'kicked', message: m.reason }); break;
         case 'room': this.room = m; this._emit('room', m); break;
@@ -5974,7 +6053,7 @@ const RMNetSDK = (() => {
         case 'partyLeft': this.party = null; this._emit('partyLeft', m); break;
         case 'matchFound': case 'resume':
           this.match = { id: m.matchId, mode: m.mode, seed: m.seed, opts: m.opts, players: m.players, layoutHash: null, startAt: m.startAt || null, endAt: m.endAt || null };
-          this.slot = m.you; this._tracks.clear(); this._clock.locked = true;
+          this.slot = m.you; this._tracks.clear(); this._smooth.clear(); this._clock.locked = true;
           this._emit(m.t, m);
           break;
         case 'start':
@@ -5991,7 +6070,7 @@ const RMNetSDK = (() => {
         case 'overtime': if (this.match) this.match.endAt = m.endAt; this._emit('overtime', m); break; // (versus: level at the buzzer, plays on once)
         case 'matchEnd': this._clock.locked = false; this._emit('matchEnd', m); break;
         case 'matchCancelled': case 'matchClosed':
-          this._emit(m.t, m); this.match = null; this.slot = -1; this._clock.locked = false; this._tracks.clear();
+          this._emit(m.t, m); this.match = null; this.slot = -1; this._clock.locked = false; this._tracks.clear(); this._smooth.clear();
           break;
         default: this._emit(m.t, m);
       }
@@ -13001,10 +13080,10 @@ function axoMaterial(tex, look, meta) {
   return mat;
 }
 
-return { FACE, EYE_COLS, EYE_STYLES, EYE_STYLE_K, EXPR, FACE_X, FACE_MX, pupilOf, FACE_EYE, FACE_KINDS, FACE_LIDS, makeFaceSheets, palette, Look, axoMaterial };
+return { FACE, EYE_COLS, EYE_STYLES, EYE_STYLE_K, EXPR, FACE_X, FACE_MX, pupilOf, FACE_EYE, FACE_KINDS, FACE_LIDS, makeFaceSheets, palette, Look, axoMaterial, FACE_FS };
 })();
 const { FACE, EYE_COLS, EYE_STYLES, EYE_STYLE_K, EXPR, pupilOf, FACE_EYE, FACE_KINDS, FACE_LIDS, makeFaceSheets, palette, Look, axoMaterial } = __look;
-return { DEG, loadMesh, texFromBytes, DQS_PARS, DQS_BASE, DQS_NORMAL, DQS_POS, dqsShader, dqsMaterial, Pose, LIMITS, limitsFor, Puppet, mirrorQ, rot, setRot, ease, Spring, Animator, FACE, EYE_COLS, EYE_STYLES, EYE_STYLE_K, EXPR, pupilOf, FACE_EYE, FACE_KINDS, FACE_LIDS, makeFaceSheets, palette, Look, axoMaterial, meshFrom };
+return { FACE_FS: __look.FACE_FS, DEG, loadMesh, texFromBytes, DQS_PARS, DQS_BASE, DQS_NORMAL, DQS_POS, dqsShader, dqsMaterial, Pose, LIMITS, limitsFor, Puppet, mirrorQ, rot, setRot, ease, Spring, Animator, FACE, EYE_COLS, EYE_STYLES, EYE_STYLE_K, EXPR, pupilOf, FACE_EYE, FACE_KINDS, FACE_LIDS, makeFaceSheets, palette, Look, axoMaterial, meshFrom };
 })();
 // ---------- the axolotl in the game: the slime's stand-in, answering the same calls (make, update, headTop, headSize, bodyPoint and each
 // character's own) on the axolotl runtime (AXO). Its two bodies (on all fours to get about, upright in the menus and its big moments)
@@ -14988,7 +15067,7 @@ function makePowerMesh(type) {
   const add = (geo, mat, pos, rot) => { const m = new THREE.Mesh(geo, mat); m.position.copy(pos); if (rot) m.rotation.set(rot[0], rot[1], rot[2]); m.castShadow = true; spin.add(m); const o = new THREE.Mesh(geo, outlineMat); o.position.copy(m.position); o.rotation.copy(m.rotation); o.scale.setScalar(1.16); spin.add(o); };
   const V = (x, y, z) => new THREE.Vector3(x, y, z);
   let eyes = null;
-  if (type === 'roller') { const K = ROLLER, rl = new THREE.Group(); rl.position.y = 0.05; spin.add(rl); for (const [geo, m] of [[K.roll, K.rollM], [K.solid, stGlossM], [K.wire, K.chromeM], [K.hull, outlineMat]]) { const o = new THREE.Mesh(geo, m); o.castShadow = m !== outlineMat; rl.add(o); } const fe = new THREE.Mesh(K.eyes, K.faceM); fe.position.y = 0.035; fe.renderOrder = 34; rl.add(fe); const fm = new THREE.Mesh(K.mouth, K.faceM); fm.renderOrder = 34; rl.add(fm); eyes = rl; }
+  if (type === 'roller') { const K = ROLLER, rl = new THREE.Group(); rl.position.y = 0.05; spin.add(rl); for (const [geo, m] of [[K.roll, K.rollM], [K.solid, stGlossM], [K.wire, K.chromeM], [K.hull, outlineMat]]) { const o = new THREE.Mesh(geo, m); o.castShadow = m !== outlineMat; rl.add(o); } const fe = new THREE.Mesh(K.eyes, K.faceM); fe.position.y = 0.035; fe.renderOrder = 34; rl.add(fe); eyes = rl; }
   else if (type === 'turret') { const R = TURRET_RIG, t = new THREE.Group(); t.position.y = -0.2; t.scale.setScalar(0.4); spin.add(t); for (const [geo, m] of [[R.baseG, turMetalM], [R.barrelG, turMetalM], [R.podG, turMetalM], [R.tankMetalG, turMetalM], [R.bandG, puIconMat]]) { const o = new THREE.Mesh(geo, m); o.castShadow = true; t.add(o); } for (const geo of [R.baseG, R.barrelG, R.hullG]) { const h = new THREE.Mesh(geo, outlineMat); h.scale.setScalar(1.08); t.add(h); }
     const ink = new THREE.Mesh(R.tankInkG, puIconMat); ink.position.y = R.tankInkY; t.add(ink); const gl = new THREE.Mesh(R.tankGlassG, turDomeM); gl.renderOrder = 44; t.add(gl); const ey = new THREE.Mesh(R.eyesG, turFaceM); ey.position.y = R.eyeY; ey.renderOrder = 34; t.add(ey); eyes = t; }
   else if (type === 'trap') { add(TRAP_G.ball, puIconMat, V(0, -0.04, 0)); add(TRAP_G.cap, trapCapM, V(0, 0.22, 0)); add(TRAP_G.fuse, trapCapM, V(0.05, 0.31, 0), [0, 0, -0.5]); add(TRAP_G.drip, puIconMat, V(-0.13, -0.24, 0.06)); add(TRAP_G.drip, puIconMat, V(0.12, -0.23, -0.05)); const sp = new THREE.Mesh(TRAP_G.spark, trapSparkM); sp.position.set(0.1, 0.39, 0); spin.add(sp); }
@@ -15464,7 +15543,7 @@ function shockTick(dt) {
 }
 
 // ---------- the giant orb: a glowing, color-shifting orb that drifts around the canvas. Touch it any way you can to grow three times your size for 4 seconds ----------
-const GIANT_T = 5, GIANT_K = 3, GIANT_SPD = 1.75, GIANT_SLAM = 1.5, GIANT_TURN = 0.7, /* (v314: your turning, as a giant) */ ORB_R = 0.42, ORB_PULL_R = 2.4;
+const GIANT_T = 6, GIANT_K = 3, GIANT_SPD = 1.75, GIANT_SLAM = 1.5, GIANT_TURN = 0.7, /* (v314: your turning, as a giant) */ ORB_R = 0.42, ORB_PULL_R = 2.4;
 // the orb's other gift, the rocket: how long the lift-off takes, how high over the canvas it goes, how long it can hang up there,
 // its speed across up there, its boost straight down (and the slower drift down if you leave it), and its blast: a giant's pound
 // and the third, the turret: how long it lasts, its rate of fire, the paint shot's speed, size and fall, the stun and shove a hit gives
@@ -17286,7 +17365,7 @@ function paintHow() {
   $('howFling').textContent = 'Fling into ' + riv + ' to knock it flying, or pound mid-fling to fire a missile that steers toward it. Ram it while you\'re faster, or land on it, to flatten it.';
   $('howBurst').textContent = 'Hide in a ' + pw + ' to refill. Swipe up mid-jump to dash forward, curled into a ball. Coming out of a ' + pw + ', you can swipe down to dash back as well. You can\'t be touched while you dash. Roll into a taken ' + pw + ' to kick out whoever\'s inside and climb in.';
   $('howSun').textContent = 'A heat wave bakes anything out in the open, so hide in a ' + pw + ' or the shade. Rain: everyone speeds up and puddles water your paint down. Pound a puddle to water down their paint all around it.';
-  $('howOrb').textContent = 'Roll up to the glowing orb (or jump into it) for a super move: go giant for 5 seconds, or ride a rocket and come down like a giant\'s pound. Roll into ' + riv + ' while you\'re giant and it\'s out.';
+  $('howOrb').textContent = 'Roll up to the glowing orb (or jump into it) for a super move: go giant for 6 seconds, or ride a rocket and come down like a giant\'s pound. Roll into ' + riv + ' while you\'re giant and it\'s out.';
   $('howItems').textContent = 'Transforms turn up on the canvas now and then: a roller, a turret, a paint trap or a whirlwind. Grab one and it waits in your hand; ' + say('tap its button', 'press F') + ' and you change into it. The roller lays wide stripes and refills you; the turret plants you and fires paint. You start every match holding the one you picked under Strokes. Picking up another drops the one you hold.';
   const el = $('howCtl'); if (el) el.innerHTML = keysUI ? '<kbd>A</kbd> <kbd>D</kbd> or the arrows steer. <kbd>Space</kbd> jumps, <kbd>Shift</kbd> rolls. Hold <kbd>S</kbd> to stop and load a fling, let go to fling. <kbd>E</kbd> pounds. <kbd>P</kbd> pauses, <kbd>M</kbd> mutes.' : 'Drag sideways to steer. Tap to jump, swipe up to roll, swipe up mid-jump to dash. Hold to stop, then pull down and let go to fling. The arrow button pounds.'; }
 paintHow();
@@ -18860,12 +18939,19 @@ function applyLayout(L) {
   MOVERS.forEach((m, i) => { const c = L.clouds[i]; setMover(m, c ? { on: true, x: c.x, z: c.z, axis: c.axis, amp: c.amp, period: c.period, ph: c.ph } : { on: false }); });
 }
 // ---------- placing things where they make sense ----------
+// (v398: the same binary heap, step for step, in two typed arrays kept between calls: no pair made for every push and pop, which was a
+// third of a canvas's layout time. Same order, same numbers: a seed lays out exactly the canvas it did)
+let NF_HI = new Int32Array(1024), NF_HD = new Float64Array(1024);
 function navField(srcs) {
-  const N = NN, d = new Float32Array(N).fill(Infinity), hi = [], hd = [];
-  const push = (i, v) => { let k = hi.length; hi.push(i); hd.push(v); while (k > 0) { const p = (k - 1) >> 1; if (hd[p] <= hd[k]) break; [hi[p], hi[k]] = [hi[k], hi[p]]; [hd[p], hd[k]] = [hd[k], hd[p]]; k = p; } };
-  const pop = () => { const i = hi[0], v = hd[0], li = hi.pop(), lv = hd.pop(); if (hi.length) { hi[0] = li; hd[0] = lv; let k = 0; for (;;) { const l = 2 * k + 1, r = l + 1; let m = k; if (l < hi.length && hd[l] < hd[m]) m = l; if (r < hi.length && hd[r] < hd[m]) m = r; if (m === k) break; [hi[m], hi[k]] = [hi[k], hi[m]]; [hd[m], hd[k]] = [hd[k], hd[m]]; k = m; } } return [i, v]; };
+  const N = NN, d = new Float32Array(N).fill(Infinity); let hi = NF_HI, hd = NF_HD, n = 0;
+  const push = (i, v) => { if (n === hi.length) { const a = new Int32Array(n * 2), b = new Float64Array(n * 2); a.set(hi); b.set(hd); NF_HI = hi = a; NF_HD = hd = b; }
+    let k = n++; hi[k] = i; hd[k] = v; while (k > 0) { const p = (k - 1) >> 1; if (hd[p] <= hd[k]) break; const ti = hi[p]; hi[p] = hi[k]; hi[k] = ti; const tv = hd[p]; hd[p] = hd[k]; hd[k] = tv; k = p; } };
   for (const [i, v] of srcs) if (v < d[i]) { d[i] = v; push(i, v); }
-  while (hi.length) { const [i, v] = pop(); if (v > d[i]) continue; const nb = NAV.nodes[i].nb; for (let e = 0; e < nb.length; e += 2) { const j = nb[e], nv = v + nb[e + 1]; if (nv < d[j]) { d[j] = nv; push(j, nv); } } }
+  while (n) {
+    const i = hi[0], v = hd[0]; n--;
+    if (n) { hi[0] = hi[n]; hd[0] = hd[n]; let k = 0; for (;;) { const l = 2 * k + 1, r = l + 1; let m = k; if (l < n && hd[l] < hd[m]) m = l; if (r < n && hd[r] < hd[m]) m = r; if (m === k) break; const ti = hi[m]; hi[m] = hi[k]; hi[k] = ti; const tv = hd[m]; hd[m] = hd[k]; hd[k] = tv; k = m; } }
+    if (v > d[i]) continue; const nb = NAV.nodes[i].nb; for (let e = 0; e < nb.length; e += 2) { const j = nb[e], nv = v + nb[e + 1]; if (nv < d[j]) { d[j] = nv; push(j, nv); } }
+  }
   return d;
 }
 // the part of the graph you can get around in both directions
@@ -19868,6 +19954,47 @@ function faceMood(D) {
   if (D.turret) return MOOD.turret;
   return MOOD.none;
 }
+// ---------- (v395) the character's own eyes on the roller and the turret: the axolotl's face shader, its eyes alone (no mouth), drawn
+// on a small curved card. The card shares the character's look (eye style, eye colour, lashes) and blinks on its own. Drawn twice per
+// pixel, over black and over white, so it lays only what the eyes add over whatever is under it ----------
+const EYE_MID = new THREE.Vector3(0, 0.39, 0.86).normalize();
+let eyeProgC = null;
+function eyeProg() {
+  if (eyeProgC) return eyeProgC;
+  const src = AXO.FACE_FS, a = src.indexOf('{') + 1, b = src.indexOf('vec4 mA = texture2D(fCol, fCell(fCells.y, cuv))');
+  const vs = 'varying vec2 vUv;\nvoid main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }';
+  const fs = 'uniform sampler2D fCol, fMsk; uniform vec4 fCells, fMix, fPupil, fComp, fLash; uniform vec3 fIris; uniform float fStyle, uOp; varying vec2 vUv;\n'
+    + 'vec2 fCell(float c, vec2 uv){ float col = mod(c, 4.0), row = floor(c * 0.25 + 0.01); return vec2((col + uv.x) * 0.25, 1.0 - (row + 1.0 - uv.y) / 10.0); }\n'
+    + 'float fCone(vec2 p, vec2 a, vec2 b, float w0, float w1) { vec2 ab = b - a; float t = clamp(dot(p - a, ab) / dot(ab, ab), 0.0, 1.0); float d = length(p - a - ab * t) - mix(w0, w1, t); return 1.0 - smoothstep(-0.004, 0.012, d); }\n'
+    + 'vec3 eyesOn(vec3 base, vec2 face) { vec4 diffuseColor = vec4(base, 1.0); vec3 vFace = vec3(face, 1.0); float sCatch = 0.0, sSlyM = 0.0;\n' + src.slice(a, b) + '\nreturn c; }\n'
+    + 'void main() { vec2 face = mix(vec2(-0.95, -0.3), vec2(0.95, 0.66), vUv); vec3 c0 = eyesOn(vec3(0.0), face), c1 = eyesOn(vec3(1.0), face), tr = clamp(c1 - c0, 0.0, 1.0);\n'
+    + '  float al = clamp(1.0 - (tr.r + tr.g + tr.b) / 3.0, 0.0, 1.0); gl_FragColor = vec4(c0 * 1.08, al) * uOp; // (a touch brighter: unlit, beside the lit body)\n  #include <tonemapping_fragment>\n  #include <colorspace_fragment>\n}';
+  return (eyeProgC = { vs, fs });
+}
+// a card w wide, curved round the surface it sits on (rx across, ry up and down: the roller curves only one way)
+function eyeCardGeo(w, rx, ry) { const h = w * 0.96 / 1.9, g = new THREE.PlaneGeometry(w, h, 16, 8), P = g.attributes.position;
+  for (let i = 0; i < P.count; i++) { const x = P.getX(i), y = P.getY(i); P.setZ(i, -(x * x) / (2 * rx) - (y * y) / (2 * ry)); } return g; }
+// the cards of one blob (one for the roller, one for the turret), on its character's look; null while there's no axolotl
+function eyeCards(V) {
+  if (V.eyeC) return V.eyeC;
+  const I = V.slime; if (!I || I.kind !== 'axo' || !I.ax || !I.ax.look) return null;
+  const U = I.ax.look.U, pr = eyeProg(), u = { fCol: U.fCol, fMsk: U.fMsk, fIris: U.fIris, fStyle: U.fStyle, fLash: U.fLash,
+    fCells: { value: new THREE.Vector4(0, 8, 0, 8) }, fMix: { value: new THREE.Vector4(0, 0, 0, 6) }, fPupil: { value: new THREE.Vector4(0, -0.03, 1, 0) }, fComp: { value: new THREE.Vector4(1, 1, 0, 0) }, uOp: { value: 1 } };
+  const mat = new THREE.ShaderMaterial({ uniforms: u, vertexShader: pr.vs, fragmentShader: pr.fs, transparent: true, depthWrite: false, blending: THREE.CustomBlending,
+    blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor, blendSrcAlpha: THREE.OneFactor, blendDstAlpha: THREE.OneMinusSrcAlphaFactor });
+  const mk = (w, rx, ry, parent) => { const m = new THREE.Mesh(eyeCardGeo(w, rx, ry), mat); m.renderOrder = 34; m.visible = false; m.layers.mask = parent.layers.mask; parent.add(m); return m; }; // (on its parent's layers: the Strokes page draws its own)
+  return (V.eyeC = { u, mat, mk, bt: 1 + Math.random() * 2, bk: 0, roll: null, tur: null });
+}
+function eyeBlink(E, dt) { E.bt -= dt; if (E.bt <= 0) { E.bk = 0.13; E.bt = 1.8 + Math.random() * 3.2; } if (E.bk > 0) E.bk -= dt; E.u.fMix.value.y = E.bk > 0 ? 1 : 0; }
+// the jelly's face (the roller, and the ball of a long slingshot): its old face parts away, nothing drawn on it, the character's eyes on
+// its front instead
+function itemEyes(V, U, dt, parts) {
+  const E = eyeCards(V); if (!E) return;
+  for (const o of parts) if (o) o.visible = false;
+  U.uFace.value.w = 0; eyeBlink(E, dt);
+  const c = E.roll || (E.roll = E.mk(2.0, 99, 1.15, V.oldBlob)), p = gooJS(faceAt(EYE_MID, U), U), s = 1 - 0.16 * U.gRoll.value;
+  c.visible = true; c.position.copy(p).multiplyScalar(1.03); faceQ(c, c.position); c.scale.setScalar(s);
+}
 function placeFace(dt) {
   const sq = gooU.gSquash.value;
   blinkT -= dt; if (blinkT <= 0) { blinkK = 0.12; blinkT = 1.8 + Math.random() * 3.2; } if (blinkK > 0) blinkK -= dt;
@@ -19906,6 +20033,7 @@ function placeFace(dt) {
   setFace(gooU, cell, size, mL + 8 * mR);
   for (const f of fangs) { f.visible = myLook.mouth === 'fangs'; const sd = f.userData.sd; f.position.copy(mp).add(openO ? tv1.set(sd * 0.042, 0.012, 0.02) : tv1.set(sd * (happy ? 0.085 : 0.058), 0.004, 0.02)); f.scale.setScalar(happy ? 1.15 : 1); }
   for (const c of cheeks) c.m.visible = false;
+  itemEyes(VP, gooU, dt, VP.oldFace || (VP.oldFace = [...eyes.map(it => it.e), ...pBrows, ...pArcs, ...fangs]));
   pGlint.position.copy(gooJS(tv2.set(-0.45, 0.6, 0.52).normalize())); pGlint.scale.set(1, 0.68, 0.4);
   pGlint2.position.copy(gooJS(tv2.set(-0.64, 0.3, 0.6).normalize())); pGlint2.scale.set(1, 1, 0.5);
   placeWear(pWear, gooU, myLook, P, false); beads.visible = state === 'menu' && !vic && gooU.gPud.value > 0.6; if (beads.visible) { beadMat.color.copy(dropMat.color); if (beadMat.emissive) beadMat.emissive.copy(dropMat.color); }
@@ -20024,7 +20152,10 @@ function blobVisual(D, V, dt, ke, kf) {
   if (V.tur) { const on = !!D.turret && D.st === 'play'; V.turK = (V.turK || 0) + ((on ? 1 : 0) - (V.turK || 0)) * Math.min(1, dt * (on ? 9 : 7)); const k = V.turK; V.tur.visible = k > 0.02 && D.st !== 'ko';
     if (V.tur.visible) { V.tur.scale.setScalar(Math.max(0.01, easeBack(Math.min(1, k * 1.1)))); V.turBarrel.position.copy(TURRET_RIG.dir).multiplyScalar(-0.22 * (D.turret ? D.turret.kick : 0)); const aimT = D.turret ? (D.turret.aim === undefined ? 0.4 : D.turret.aim) : 0.4; V.turPitch = (V.turPitch || 0) + (-(aimT - 0.4) * 0.6 - (V.turPitch || 0)) * Math.min(1, dt * 12); V.turBarrel.rotation.x = V.turPitch;
       const ink = V.tur.userData.ink; if (ink) { const col = TEAMS[D.team].wet; if (V.turCol !== col) { V.turCol = col; ink.material.color.setHex(col); const bd = V.tur.userData.band; if (bd) bd.material.color.setHex(col); } const lv = D.turret ? clamp(D.turret.t / TURRET_T, 0, 1) : (V.turLv === undefined ? 1 : V.turLv); V.turLv = V.turLv === undefined ? lv : V.turLv + (lv - V.turLv) * Math.min(1, dt * 8); ink.scale.set(1, Math.max(0.03, V.turLv), 1); }
-      const ey = V.tur.userData.eyes; if (ey) { V.turBT = (V.turBT === undefined ? 1.5 : V.turBT) - dt; if (V.turBT <= 0) { V.turBK = 0.12; V.turBT = 1.8 + Math.random() * 3; } if (V.turBK > 0) V.turBK -= dt; ey.scale.set(1, Math.min(V.turBK > 0 ? 0.1 : 1, 1 - 0.4 * (D.turret ? D.turret.kick : 0)), 1); } } }
+      const ey = V.tur.userData.eyes, EC = eyeCards(V);
+      if (EC) { if (ey) ey.visible = false; let t = EC.tur; if (!t) { t = EC.tur = EC.mk(1.85, 0.98, 0.98, V.tur); const n = new THREE.Vector3(0, 0.35, Math.sqrt(0.95 * 0.95 - 0.35 * 0.35)).normalize(); t.position.set(0, 0.05, 0).addScaledVector(n, 0.98); faceQ(t, n); }
+        t.visible = true; eyeBlink(EC, dt); }
+      else if (ey) { V.turBT = (V.turBT === undefined ? 1.5 : V.turBT) - dt; if (V.turBT <= 0) { V.turBK = 0.12; V.turBT = 1.8 + Math.random() * 3; } if (V.turBK > 0) V.turBK -= dt; ey.scale.set(1, Math.min(V.turBK > 0 ? 0.1 : 1, 1 - 0.4 * (D.turret ? D.turret.kick : 0)), 1); } } }
   if (D === P) { const on = !!D.turret && D.st === 'play' && state === 'play'; turretMark.g.visible = on; if (on) { const k = PR, ay = D.yaw + (D.turret.sw || 0), cy = Math.cos(ay), sy = Math.sin(ay), tp = TURRET_RIG.tip, x0 = D.x + (tp.x * cy + tp.z * sy) * k, z0 = D.z + (-tp.x * sy + tp.z * cy) * k, tt = turretTarget(D, x0, z0), md = tt.foe ? tt.d : TUR_MID, ma = tt.foe ? tt.a : ay, mx = x0 + Math.sin(ma) * md, mz = z0 + Math.cos(ma) * md, mg = tt.foe ? tt.foe.y : surfaceUnder(mx, mz, D.y + 8, true), gy = mg > -Infinity ? mg : D.y; // (v375: still in the lane's middle with no lock)
     turretMark.g.position.set(mx, gy + 0.05, mz); turretMark.g.scale.setScalar(tt.foe ? 1.25 + 0.1 * Math.sin(clock * 16) : 1); turretMark.mm.color.set(tt.foe ? 0xFFFFFF : TEAMS[D.team].wet).lerp(COL_WHITE, tt.foe ? 0 : 0.2); } }
   if (V.rk) { const R = D.rocket, on = !!R && D.st === 'play'; V.rkK = (V.rkK || 0) + ((on ? 1 : 0) - (V.rkK || 0)) * Math.min(1, dt * (on ? 10 : 7)); const k = V.rkK; V.rk.visible = k > 0.02 && D.st !== 'ko';
@@ -20336,6 +20467,7 @@ function placeFaceCpu(L, dt) {
   if (D.charging && D.charge > 0.3 && !scared) { cell = 5; size = 0.7 + 0.3 * D.charge; }
   if (F.mouth !== undefined) { cell = F.mouth; size = F.msz; }
   const mp = gooJS(mouthBase, U).multiplyScalar(1.02); setFace(U, cell, size, mL + 8 * mR);
+  itemEyes(L.V, U, dt, L.V.oldFace || (L.V.oldFace = [...L.eyes.map(it => it.e), ...L.eyes.map(it => it.br)]));
   L.glint.position.copy(gooJS(tv2.set(-0.42, 0.62, 0.55).normalize(), U)); L.glint.scale.set(1, 0.7, 0.4);
   L.glint2.position.copy(gooJS(tv2.set(-0.62, 0.32, 0.6).normalize(), U)); L.glint2.scale.set(1, 1, 0.5);
   placeWear(L.wear, U, L.wearing, D, true);
@@ -21566,6 +21698,8 @@ const hud = $('hud'), menu = $('menu'), end = $('end'), pauseEl = $('pause'), na
 function paintName() { const n = playerName(); NAMES[0] = n; nmSet($('nameShow'), store.name ? n : 'Name'); nmSet($('pbName'), n); nmSet($('lookNameTxt'), n); nmSet($('lkNameT'), n); { const b = $('lkName'); if (b && b.dataset.def === '1') nmSet(b, n); } }
 let nameFirst = false;
 function openName(first) {
+  if (!first && nameBusy()) return;
+  { const c = $('nameForm').querySelector('.cnote'); if (c) c.textContent = !first && acctReady() ? 'You’ll log in with your new name. Your friends, ranks and progress stay with you.' : 'It goes up in lights when you win.'; }
   nameFirst = !!first; const inp = $('nameInput');
   $('nameTitle').textContent = first ? "What's your name?" : 'Your username'; $('nameOk').textContent = first ? "Let's go" : 'Save';
   inp.value = cleanName(store.name) || randomName(); nameModal.hidden = false; inp.dispatchEvent(new Event('input'));
@@ -21574,7 +21708,7 @@ function openName(first) {
 function closeName() { if (nameModal.hidden) return; nameModal.hidden = true; nameFirst = false; try { $('nameInput').blur(); } catch (e) {} setTimeout(() => window.scrollTo(0, 0), 60); }
 $('nameForm').addEventListener('submit', e => {
   e.preventDefault(); AU.init();
-  unSubmit('nameInput', 'nameSt', 'nameOk', nm => { AU.ui(); store.name = nm; save(); paintName(); const go = nameFirst; closeName(); if (go) start(); }, acHas()); // (v306: a username, kept on the server first)
+  unSubmit('nameInput', 'nameSt', 'nameOk', nm => { AU.ui(); store.name = nm; save(); paintName(); ptNameSync(); const go = nameFirst; closeName(); if (go) start(); }, acHas()); // (v306: a username, kept on the server first)
 });
 $('nameDice').addEventListener('click', () => { AU.init(); AU.pop(); const inp = $('nameInput'); inp.value = randomName(); try { inp.focus({ preventScroll: true }); inp.select(); } catch (e) {} });
 $('nameInput').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') { e.preventDefault(); closeName(); } });
@@ -21870,7 +22004,7 @@ $('commModal').addEventListener('click', e => { if (e.target === $('commModal'))
 // ---------- strokes: your special stroke (what the orb gives you) and your skill; the Giant crafted free at rank 3 ----------
 const STROKE_ICON = { rocket: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4c9 6 14 18 14 32v6H18v-6C18 22 23 10 32 4z" fill="#F4EEE3" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M18 30l-9 10 9 4zM46 30l9 10-9 4z" fill="#E3122F" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><circle cx="32" cy="26" r="6" fill="#7CC8FF" stroke="#171320" stroke-width="3.2"/><path d="M25 44h14l-7 16z" fill="#F2C14E" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/></svg>', giant: '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="34" cy="30" r="24" fill="#E3122F" stroke="#171320" stroke-width="3.2"/><circle cx="26" cy="27" r="4.2" fill="#fff" stroke="#171320" stroke-width="2.4"/><circle cx="42" cy="27" r="4.2" fill="#fff" stroke="#171320" stroke-width="2.4"/><circle cx="27" cy="28" r="1.8" fill="#171320"/><circle cx="43" cy="28" r="1.8" fill="#171320"/><path d="M27 38q7 5 14 0" fill="none" stroke="#171320" stroke-width="2.6" stroke-linecap="round"/><circle cx="9" cy="54" r="6" fill="#F2C14E" stroke="#171320" stroke-width="2.6"/><path d="M14 46l6-4M12 60l6 2" fill="none" stroke="#171320" stroke-width="2.4" stroke-linecap="round"/></svg>', swim: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M6 40c6-6 12-6 18 0s12 6 18 0 12-6 18 0" fill="none" stroke="#7CC8FF" stroke-width="5" stroke-linecap="round"/><path d="M6 52c6-6 12-6 18 0s12 6 18 0 12-6 18 0" fill="none" stroke="#7CC8FF" stroke-width="5" stroke-linecap="round"/><path d="M12 22h26M30 12l12 10-12 10" fill="none" stroke="#171320" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>' };
 const SPECIALS = [{ id: 'rocket', name: 'Rocket', desc: 'Blast up over the canvas, then dive down in a splash.', does: ['Blast up high and hover over the canvas', 'Steer your mark, then dive down in a huge splash', 'Rivals under the splash get knocked out'] },
-  { id: 'giant', name: 'Giant', desc: 'Grow huge, paint wide, stomp rivals flat.', craft: 20, does: ['Grow three times your size for 5 seconds', 'Move faster, with paint that never runs dry while it lasts', 'Your ground pound lands half as wide again'] },
+  { id: 'giant', name: 'Giant', desc: 'Grow huge, paint wide, stomp rivals flat.', craft: 20, does: ['Grow three times your size for 6 seconds', 'Move faster, with paint that never runs dry while it lasts', 'Your ground pound lands half as wide again'] },
   { id: 'freeze', name: 'Flash Freeze', desc: 'A flash over the canvas: every rival frozen solid for 5 seconds.', craft: 25, does: ['A flash over the whole canvas', 'Every rival frozen solid for 5 seconds', 'Paint all you like while they’re stuck'] }];
 // v251: three skills, one on at a time. (v257) Crafted like the special strokes (Swim faster is yours from the start); a tap on one shows its card
 const SKILLS = [
@@ -21971,7 +22105,7 @@ function spinWait() { const d = new Date(), m = new Date(d.getFullYear(), d.getM
 function gToast(msg) { const o = document.querySelector('.gtoast'); if (o) o.remove(); const t = document.createElement('p'); t.className = 'gtoast'; t.setAttribute('role', 'status'); t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3200); }
 function dsToast(msg) { const t = $('dsToast'); if ($('dabStore').hidden) return gToast(msg); t.textContent = msg; t.hidden = false; clearTimeout(t._t); t._t = setTimeout(() => { t.hidden = true; }, 3600); }
 // the red dot on the +: today's spin is waiting (once the first lessons are done)
-function lkPlusPlace() { const c = $('lkCoin'), b = $('lkPlus'); if (!c || !b || !c.offsetParent || !b.offsetParent) return; const cr = c.getBoundingClientRect(), pr = b.offsetParent.getBoundingClientRect(); if (!(cr.width > 0)) return; b.style.left = (cr.left - pr.left - 36).toFixed(0) + 'px'; /* (just left of the counter, which sits in the page's corner) */ b.style.top = (cr.top - pr.top + (cr.height - 30) / 2).toFixed(0) + 'px'; }
+function lkPlusPlace() { const c = $('lkCoin'), b = $('lkPlus'); if (!c || !b || !c.offsetParent || !b.offsetParent) return; const cr = c.getBoundingClientRect(), pr = b.offsetParent.getBoundingClientRect(); if (!(cr.width > 0)) return; const ir = ($('lkCoinI') || c).getBoundingClientRect(); b.style.left = (Math.min(cr.left - 17, ir.left - 32) - pr.left).toFixed(0) + 'px'; /* (v397: on the counter's top-left corner, off the name's banner, clear of the coin) */ b.style.top = (cr.top - pr.top - 11).toFixed(0) + 'px'; }
 function dsDotPaint() { lkPlusPlace(); const on = spinReady() && store.tut && store.tut.ph === 'done'; for (const b of [$('dabsPlus'), $('lkPlus')]) { const d = b && b.querySelector('.dpdot'); if (d) d.hidden = !on; } }
 // ---- Get dabs
 function dsPaint() {
@@ -25213,7 +25347,7 @@ function netLeave() {
   const nm = NM; if (!nm) return; NM = null;
   try { if (nm.phase === 'end') nm.net.rematch(false); else nm.net.leaveMatch().catch(() => {}); } catch (e) {}
   if (nm.unsub) nm.unsub(); mode = nm.prevMode || mode; applyMode(); H.cpu = H2.cpu = H3.cpu = true; mapUsed = true; // (the offline game as it was: its mode, its field, CPU rivals)
-  const b = $('endBtn'); b.disabled = false; b.innerHTML = '<span>Rematch</span><small>New canvas</small>';
+  const b = $('endBtn'); b.disabled = false; b.innerHTML = '<span>Continue</span><small>New canvas</small>';
   setTimeout(() => { if (typeof onlineAfterMatch === 'function') onlineAfterMatch(); }, 0);
 }
 // pausing online: the menu comes up, the match goes on
@@ -25279,7 +25413,7 @@ function onNew() {
   const on = (ev, fn) => net.on(ev, d => { if (ON.net === net) fn(d || {}); }); // (a connection let go says nothing more)
   ON.net = net; ON.me = null; ON.lookSent = JSON.stringify(net.look);
   on('token', t => { if (t.token && t.token !== store.netTok) { store.netTok = t.token; save(); } }); // (who you are on the server, so your rating stays yours)
-  on('welcome', w => { ON.me = w; ON.fails = 0; ON.stale = ON.party ? Date.now() + 2500 : 0; onBack(); });
+  on('welcome', w => { ON.me = w; ON.fails = 0; ON.stale = ON.party ? Date.now() + 2500 : 0; ON.nameTold = w.name; ptNameSync(); onBack(); }); // (v396: a rename made while it connected)
   on('close', e => { ON.me = null; net.name = onName(); net.look = onLook(); net.sb = sbUid(); if (e.willReconnect) onLost(); }); // (the next hello says who you are now)
   on('queued', m => { ON.queued = { mode: m.mode || 'duel', at: ON.queued ? ON.queued.at : (m.requeued && ON.qAt) || Date.now(), party: !!m.party }; onBeat(); onUpd(); });
   on('queueLeft', () => { ON.queued = null; ON.cpu = false; onBeat(); onUpd(); });
@@ -25458,6 +25592,21 @@ function ptBusyTick() {
   if (!ON.party) return; const b = ptBusyNow(); if (b === ON.busy) return;
   const was = ON.busy; ON.busy = b; if (ON.net && ON.me) ON.net.partyBusy(b).catch(() => {});
   if ((was === 'locker' || was === 'shop') && !b) ptLookSync();
+}
+// (v396) your username on the game server too: a rename reaches it at once (a party's plates, the next match's rivals),
+// not only at the next connection. Told once per name per connection
+function ptNameSync() {
+  try {
+    const n = onName(); if (!ON.net || !n) return; ON.net.name = n;
+    if (!ON.me || n === ON.nameTold) return; ON.nameTold = n;
+    ON.net.setName(n).then(x => { if (ON.me) ON.me.name = x; }, () => { if (ON.nameTold === n) ON.nameTold = ''; });
+  } catch (e) {}
+}
+// not while a match is being found or played (the name others see is the one it began with): says so, and true
+function nameBusy() {
+  if (!onBusy()) return false;
+  AU.nope(); frToast('<span>' + (ON.match ? 'Change your name after the match' : 'Change your name when you’re not looking for a match') + '</span>');
+  return true;
 }
 function ptLookSync() { const l = onLook(), s = JSON.stringify(l); if (s === ON.lookSent || !ON.net) return; ON.lookSent = s; ON.net.look = l; if (ON.me && ON.party) ON.net.partyLook(l).catch(() => {}); }
 // a nudge from the game server: something new in your inbox (an invite, a friend request, an answer). Read it now
@@ -25940,7 +26089,7 @@ async function acRefresh(rt) {
 function acSync(r) {
   if (!r || r.ok === false || !r.id || !store.sbs) return;
   store.sbs = Object.assign({}, store.sbs, { perm: r.anon === false ? 1 : 0, acct: r.account ? 1 : 0 });
-  if (!r.needs_name && r.name) { store.sbs.name = r.name; if (store.name !== r.name) { store.name = r.name; paintName(); } }
+  if (!r.needs_name && r.name) { store.sbs.name = r.name; if (store.name !== r.name) { store.name = r.name; paintName(); } ptNameSync(); }
   save();
 }
 function acPaintAll() { try { paintName(); paintPBar(); } catch (e) {} /* (v311: handle or plain name) */ try { delPaint(); } catch (e) {} /* (v349) */ if (!$('sideMenu').hidden) acSetPaint(); if (menuPage === 'events') acMatchPaint(); if (FR.open) { FR.sig = ''; frRender(); } }
@@ -26731,7 +26880,8 @@ function showRep(info) {
   const r0 = repOf(info.xp0), r1 = repOf(info.xp0 + info.xp), up = r1.lv > r0.lv; row.hidden = false; row.classList.toggle('up', up);
   $('repRowName').textContent = r0.name; $('xpGain').innerHTML = '+' + info.xp + '<small>XP</small>'; xpFrame(m, (XP_FRAMES - 1) * r0.x / r0.need);
   const dg = $('dropGain'); dg.hidden = !(info.drops > 0); if (info.drops > 0) dg.innerHTML = '+' + info.drops + DROP_SVG + '<small>dabs</small>';
-  $('commDone').innerHTML = (info.comms || []).map((k, i) => '<div class="cd" style="animation-delay:' + (1.6 + i * 0.15).toFixed(2) + 's">Commission done: ' + k.t + '<b>Claim it in Commissions</b></div>').join('');
+  $('commDone').innerHTML = (repOf(info.xp0 + info.xp).lv >= COMM_RANK ? info.comms || [] : []).map( // (v399: locked, it waits quietly)
+    (k, i) => '<div class="cd" style="animation-delay:' + (1.6 + i * 0.15).toFixed(2) + 's">Commission done: ' + k.t + '<b>Claim it in Commissions</b></div>').join('');
   const t0 = performance.now(), dur = up ? 1700 : 1100, f0 = r0.x / r0.need, f1 = r1.x / r1.need;
   const step = () => { const u = clamp((performance.now() - t0 - 900) / dur, 0, 1), e = u * u * (3 - 2 * u); let f;
     if (up) { const half = 0.55; f = e < half ? f0 + (1 - f0) * (e / half) : f1 * ((e - half) / (1 - half)); if (e >= half && !row.classList.contains('lv')) { row.classList.add('lv'); $('repRowName').textContent = r1.name; $('repRowName').animate([{ transform: 'scale(1.6)' }, { transform: 'none' }], { duration: 420, easing: 'cubic-bezier(.3,1.6,.5,1)' }); AU.fanfare(); AU.say('levelup'); } }
@@ -26943,8 +27093,18 @@ if (store.perfHud && !APPSTORE) setTimeout(() => perfHudSet(true), 0);
 let LCOV = null;
 function lobbyCovered() { if (!LCOV) LCOV = ['setModal', 'howModal', 'docModal', 'acModal', 'nameModal', 'ttModal', 'pkModal', 'ibModal'].map(id => document.getElementById(id)).filter(Boolean); for (let i = 0; i < LCOV.length; i++) if (!LCOV[i].hidden) return true; return false; }
 function paintSettings() { try { $('lastErr').textContent = store.lastErr ? 'Last error: ' + store.lastErr : ''; } catch (e) {} for (const b of $('sfxPick').children) b.setAttribute('aria-pressed', String((b.dataset.v === 'off') === !!store.sfxOff)); for (const b of $('musPick').children) b.setAttribute('aria-pressed', String((b.dataset.v === 'off') === !!store.musicOff)); { const v = document.querySelector('#howModal .ver'); $('setVer').textContent = v ? v.textContent : ''; } for (const b of $('orientPick').children) b.setAttribute('aria-pressed', String(b.dataset.o === (store.orient || ''))); for (const b of $('gfxPick').children) b.setAttribute('aria-pressed', String(b.dataset.g === gfxPick)); $('gfxNote').textContent = GFX_NOTE[gfxPick]; $('setDone').textContent = gfxPick === GFX ? 'Done' : 'Restart to apply'; setFitSoon(); }
+let setInPlay = false;
+// (v399) from the pause menu: the rows that can't be used mid-match (Visuals restarts the game, Screen turns it, Restart Game, Delete account) hidden
+function setPlayRows(on) { for (const id of ['orientPick', 'gfxPick']) { const r = $(id).closest('.sopt'); if (r) r.hidden = on; } $('resetBtn').hidden = on; if (on) $('delAcBtn').hidden = true; else delPaint(); }
+function openSettingsInPlay() {
+  if (!(state === 'paused' || (NM && state === 'play')) || pauseEl.hidden) return;
+  setInPlay = true; pauseEl.hidden = true; gfxPick = GFX; paintSettings(); setPlayRows(true); if (window.__turnShow) window.__turnShow(); setModal.hidden = false; setFit();
+  setTimeout(() => $('setDone').focus({ preventScroll: true }), 30);
+}
 function openSettings() { if (state !== 'menu' || lookOpen || shopOpen || lkOn()) return; gfxPick = GFX; paintSettings(); delPaint(); if (window.__turnShow) window.__turnShow(); setModal.hidden = false; setFit(); netProbe(); setTimeout(() => $('gfxPick').querySelector('[aria-pressed="true"]').focus({ preventScroll: true }), 30); }
-function closeSettings() { if (setModal.hidden) return; setModal.hidden = true; $('hamBtn').focus({ preventScroll: true }); }
+function closeSettings() { if (setModal.hidden) return; setModal.hidden = true;
+  if (setInPlay) { setInPlay = false; setPlayRows(false); if (state === 'paused' || (NM && state === 'play')) { pauseEl.hidden = false; setTimeout(() => $('resumeBtn').focus({ preventScroll: true }), 30); } return; } // (v399: back to the pause menu)
+  $('hamBtn').focus({ preventScroll: true }); }
 function doneSettings() { if (gfxPick === GFX) return closeSettings(); store.gfx = gfxPick; save(); $('setDone').disabled = true; $('setDone').textContent = 'Restarting'; setTimeout(() => location.reload(), 120); }
 $('setBtn').addEventListener('click', uiClick(openSettings));
 const SM_SND_ON = '<svg viewBox="0 0 48 48"><path d="M7 18h8l11-9v30l-11-9H7z" fill="#fff" stroke="#171320" stroke-width="3" stroke-linejoin="round"/><path d="M32 17a9 9 0 0 1 0 14M36.5 12.5a15 15 0 0 1 0 23" fill="none" stroke="#171320" stroke-width="6.5" stroke-linecap="round"/><path d="M32 17a9 9 0 0 1 0 14M36.5 12.5a15 15 0 0 1 0 23" fill="none" stroke="#46E07A" stroke-width="3.2" stroke-linecap="round"/></svg>', SM_SND_OFF = '<svg viewBox="0 0 48 48"><path d="M7 18h8l11-9v30l-11-9H7z" fill="#fff" stroke="#171320" stroke-width="3" stroke-linejoin="round"/><path d="M32 18l10 12M42 18 32 30" fill="none" stroke="#171320" stroke-width="7" stroke-linecap="round"/><path d="M32 18l10 12M42 18 32 30" fill="none" stroke="#FF5A57" stroke-width="3.6" stroke-linecap="round"/></svg>';
@@ -27058,7 +27218,7 @@ function openStats() { if (state !== 'menu' || lookOpen || lkOn()) return; paint
 function closeStats() { if ($('statsModal').hidden) return; $('statsModal').hidden = true; pbar.focus({ preventScroll: true }); }
 $('statsClose').addEventListener('click', uiClick(closeStats));
 $('statsModal').addEventListener('click', e => { if (e.target === $('statsModal')) closeStats(); });
-$('stRename').addEventListener('click', uiClick(() => { $('statsModal').hidden = true; openName(false); }));
+$('stRename').addEventListener('click', uiClick(() => { if (nameBusy()) return; $('statsModal').hidden = true; openName(false); })); // (v396: Stats stays up when it can't be changed now)
 // friends, and a friend joining your lobby: soon
 function openFriends() { if (state !== 'menu') return; PB.ret = document.activeElement; FR.open = true; FR.note = ''; FR.menu = ''; FR.confirm = ''; frRender(); $('friendsModal').hidden = false; if (SB_CFG) { if (!FR.me) { if (acctReady()) frStart(); } else { FR.at = 0; frPoll(); } } setTimeout(() => $('frX').focus({ preventScroll: true }), 30); }
 function closeFriends() { if ($('friendsModal').hidden) return; FR.open = false; FR.menu = ''; FR.confirm = ''; $('friendsModal').hidden = true; if (PB.ret && PB.ret.focus) PB.ret.focus({ preventScroll: true }); }
@@ -27324,7 +27484,7 @@ function orbFade(D) {
 // ---------- (v256) a lesson waiting in the lobby (the Strokes page, commissions): the results lead only back to the lobby ----------
 function endGate() {
   const due = tutPh() === 'done' && ((!store.tut.strokes && strokesDue()) || (!store.tut.comms && commsDue())), eb = $('endBtn');
-  end.classList.toggle('gate', due); eb.innerHTML = due ? '<span>Main menu</span><small>Something new in the lobby</small>' : '<span>Rematch</span><small>New canvas</small>';
+  end.classList.toggle('gate', due); eb.innerHTML = due ? '<span>Main menu</span><small>Something new in the lobby</small>' : '<span>Continue</span><small>New canvas</small>';
   $('replayBtn').closest('.row').hidden = due;
   setTimeout(() => eb.focus({ preventScroll: true }), 30);
 }
@@ -27556,7 +27716,7 @@ window.addEventListener('resize', () => setTimeout(checkRotate, 0));
     if (state === 'play' && !NM && (turned || big)) pause();
     if (qInMatch && MOBILE) setQ(qLvl); }); }
 // (v295) the Turning slider in Settings (v299: and the same one in the pause menu; moving either moves both)
-{ const pairs = [[$('turnPick'), $('turnVal')], [$('pTurnPick'), $('pTurnVal')]];
+{ const pairs = [[$('turnPick'), $('turnVal')]]; // (v399: the pause menu's copy gone: Settings opens from there)
   const show = () => { const v = turnPct(); for (const [el, lab] of pairs) { el.value = String(v); el.style.setProperty('--v', ((v - 50) / 100 * 100).toFixed(1) + '%'); lab.textContent = v + '%'; el.setAttribute('aria-valuetext', v + '%'); } };
   let last = turnPct();
   for (const [el] of pairs) {
@@ -27570,6 +27730,7 @@ window.addEventListener('resize', () => setTimeout(checkRotate, 0));
 $('gfxPick').addEventListener('click', e => { const b = e.target.closest('button[data-g]'); if (!b || b.dataset.g === gfxPick) return; AU.ui(); gfxPick = b.dataset.g; paintSettings(); });
 $('srows').addEventListener('pointerdown', e => { const g = e.target.closest('.sgrp'); if (!g) return; for (const x of $('srows').children) x.classList.toggle('on', x === g); });
 $('setDone').addEventListener('click', uiClick(doneSettings));
+$('pauseSet').addEventListener('click', () => { AU.init(); AU.ui(); openSettingsInPlay(); }); // (v399)
 setModal.addEventListener('click', e => { if (e.target === setModal) closeSettings(); });
 pauseEl.addEventListener('click', e => { if (e.target === pauseEl) { AU.ui(); resume(); } });
 const SOUND_ON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 8.5a5 5 0 0 1 0 7M18.6 6a8.6 8.6 0 0 1 0 12" fill="none" stroke-width="2.2" stroke-linecap="round"/></svg>';
@@ -27824,8 +27985,11 @@ window.addEventListener('error', ev => { if (ev && (ev.error || ev.message)) fra
 // now, through the same passes (shadow, mirror, the HDR target) as in play; then a normal frame, in the same task, so nothing shows
 // (v256) the shaders compiled ahead of the warm-up render, without blocking the page where the browser can (the loading bar keeps
 // moving meanwhile); the warm-up render after finds them ready
+// (v398) WebKit (every iPhone browser, Safari): KHR_parallel_shader_compile is offered, but a shader is still made when it's linked
+const WK_LINK = (() => { const u = navigator.userAgent || ''; return /iPhone|iPad|iPod/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints > 1) || (/AppleWebKit/.test(u) && !/(Chrome|Chromium|Edg|OPR|Android)/.test(u)); })();
 async function warmCompile() {
   if (typeof renderer.compileAsync !== 'function' || !renderer.extensions.has('KHR_parallel_shader_compile')) return; // (v269: without it, compileAsync made every one at once: the warm-up's pieces make them instead)
+  if (WK_LINK) return; // (v398: WebKit says it has it, but still makes each one when it's linked: all at once froze the screen)
   const hid = []; scene.traverse(o => { if (!o.visible) { hid.push(o); o.visible = true; } });
   let p = null; try { p = renderer.compileAsync(scene, camera); } catch (e) {} // (every program asked for now; the browser builds them in the background)
   for (const o of hid) o.visible = false;
@@ -28005,6 +28169,27 @@ function delOpen() {
   $('delErr').textContent = ''; $('delYes').hidden = false; $('delYes').disabled = $('delNo').disabled = false; $('delYes').textContent = 'Delete for good'; $('delNo').textContent = 'Keep it';
   delModal.hidden = false; setTimeout(() => $('delNo').focus({ preventScroll: true }), 30);
 }
+// ---------- (v398) the match's shaders made ahead, in the background, while you're in the lobby or on a page that covers it. A few
+// at a time in the quiet moments (no touch for a while), each piece followed at once by a normal frame; what's left when Play is
+// pressed is all the New canvas has to make. And the first lesson's ground painted ahead while the lesson is due ----------
+const LWB = { busy: false, quiet: 0, tex: false };
+for (const t of ['pointerdown', 'pointermove', 'keydown', 'wheel']) addEventListener(t, () => { LWB.quiet = performance.now(); }, { capture: true, passive: true });
+const lwbCover = () => menuPage === 'events' || menuPage === 'worlds'; // (pages that hide the lobby: nothing drawn shows)
+const lwbOK = () => bootWarm && !LW.done && state === 'menu' && !document.hidden && !vic && !irisBusy && !prepOn && !building && !warming && !NM && !lookOpen && !shopOpen && !lkOn() && (lobbyOn() || lwbCover());
+async function lwbTick() {
+  if (LWB.busy || !lwbOK()) return;
+  const quiet = performance.now() - LWB.quiet; if (quiet < (lwbCover() ? 350 : 1500)) return;
+  LWB.busy = true;
+  try {
+    // the lesson's Blank Canvas ground, painted before the lesson asks for it
+    if (!LWB.tex && typeof tutMatchDue === 'function' && tutMatchDue() && THEME_BY.blank) { LWB.tex = true; themeMats(THEME_BY.blank); await twoFrames(); return; }
+    if (!LW.parts) { LW.i = 0; LW.parts = warmPieces(scene, lwbCover() ? 16 : 40); }
+    if (LW.i < LW.parts.length) { warmRender(LW.parts[LW.i], 2); LW.i++; try { renderFrame(); } catch (e) {} await gpuIdle(2500); }
+    else if (quiet > 2500 || lwbCover()) { warmRender(floatSet()); await gpuIdle(2500); LW.done = true; } // (the whole pass: the victory pose, the edge; then it's all done)
+  } catch (e) { console.error(e); }
+  finally { LWB.busy = false; }
+}
+setInterval(lwbTick, 300);
 function delClose() { if (delModal.hidden || AC.busy) return; delModal.hidden = true; delPaint(); const b = $('delAcBtn'); (b.hidden ? $('setDone') : b).focus({ preventScroll: true }); }
 $('delAcBtn').addEventListener('click', uiClick(delOpen));
 $('delNo').addEventListener('click', uiClick(delClose));
