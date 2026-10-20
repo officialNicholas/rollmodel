@@ -26,6 +26,7 @@ onModalEl), keeping the names the match module uses (ON, onlineOpen, onlineAfter
   minute)."""
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from v306_lobby import net_url  # (the game server's address, from tools/online_config.json, as v306 has it)
 
 def rep(s, a, b, n=1):
     c = s.count(a); assert c == n, (c, n, a[:160]); return s.replace(a, b)
@@ -168,7 +169,7 @@ JS = r"""
 // message, from then until onlineAfterMatch()), ON.open (the Online sheet is up), ON.v / ON.err (the sheet's state); and onLook(),
 // onName(), onUpd(), onlineOpen(), onlineClose(), onlineAfterMatch(). ON.party: the game server's view of your party
 // ({ id, code, leader, max, state, mode, modes, members, invites }) ----------
-const NET_URL = (() => { let u = 'wss://rollmodel-game.fly.dev/ws'; try { const o = window.__net || localStorage.getItem('rm.net'); if (o) u = String(o); } catch (e) {} // (a test server, for development)
+const NET_URL = (() => { let u = '__NET_URL__'; try { const o = window.__net || localStorage.getItem('rm.net'); if (o) u = String(o); } catch (e) {} // (a test server, for development)
   return /^(wss:\/\/|ws:\/\/(localhost|127\.0\.0\.1)[:/])[^\s"'<>\\]*$/.test(u) ? u : ''; })();
 const ON = { net: null, me: null, queued: null, room: null, match: null, inv: null, invites: [], open: false, gate: null, party: null,
   v: '', err: '', note: '', lost: 0, cp: null, cpEnd: null, ret: null, foundT: 0, unq: 0, qAt: 0, off: false, after: false, retryAt: 0, fails: 0, stale: 0,
@@ -762,7 +763,10 @@ function pyPlace(pbR) {
       pyV.set(x, -0.02, z).project(camera); at.push({ el, d, x: (pyV.x * 0.5 + 0.5) * viewW, y: (0.5 - pyV.y * 0.5) * viewH + 6, w: el._w || 0, h: el._h || 0 });
     }
     const near = (p, q) => q.d === 1 && Math.abs(p.x - q.x) < (p.w + q.w) / 2 + 3 && p.y < q.y + q.h + 3 && p.y + p.h > q.y - 3;
-    for (const p of at) { if (p.d !== 1) for (const q of at) if (near(p, q)) p.y = p.d ? q.y - 3 - p.h : q.y + q.h + 3; pyAt(p.el, p.x, p.y, 'plate'); }
+    // (and never down over the big button: sideways it reaches up beside the one standing on your right)
+    const now = performance.now(); if (!PY.pb || now - PY.pbT > 400) { PY.pbT = now; const r = $('homePlay').getBoundingClientRect(), sr = stage.getBoundingClientRect(); PY.pb = { l: r.left - sr.left, r: r.right - sr.left, t: r.top - sr.top }; }
+    for (const p of at) { if (p.d !== 1) for (const q of at) if (near(p, q)) p.y = p.d ? q.y - 3 - p.h : q.y + q.h + 3;
+      if (p.x + p.w / 2 > PY.pb.l && p.x - p.w / 2 < PY.pb.r && p.y + p.h > PY.pb.t - 2) p.y = PY.pb.t - 2 - p.h; pyAt(p.el, p.x, p.y, 'plate'); }
   }
   // reactions, over the head of whoever sent them
   if (PY.bubs.size) { const now = performance.now(); for (const [id, b] of PY.bubs) {
@@ -855,7 +859,7 @@ def apply(s):
     a = "// ---------- (v306) Online: matchmaking, private rooms and duel invites"
     assert s.count(a) == 1
     i = s.index(a); j = s.index("const onModalEl = $('onModal');\n", i)
-    s = s[:i] + JS.replace('__PLUS__', PLUS.replace("'", "\\'")).lstrip('\n') + s[j:]
+    s = s[:i] + JS.replace('__PLUS__', PLUS.replace("'", "\\'")).replace('__NET_URL__', net_url()).lstrip('\n') + s[j:]
     # the lobby holds still behind the new sheets too (v308's list of screens that cover it)
     s = rep(s, "['setModal', 'howModal', 'docModal', 'acModal', 'nameModal', 'ttModal']", "['setModal', 'howModal', 'docModal', 'acModal', 'nameModal', 'ttModal', 'pkModal', 'ibModal']")
     # ---- the page: the two sheets, the bell, the third spot, the party's layer and its dock

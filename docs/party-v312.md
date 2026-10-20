@@ -1,5 +1,7 @@
 # v312: Parties, Showdown online, and matchmaking that looks near you first
 
+(Made on the party branch around v312; brought into the game in v391, with notifications while the game is closed: `docs/party-v391.md`.)
+
 ![Upright: the Online sheet, inviting friends, the inbox, a party of four with reactions, Ready with one friend in Settings, the versus card of a Showdown of four online, its hearts and its standings](party-v312.jpg)
 
 ![Sideways: a party of four in the lobby, the Online sheet, the versus card of a Showdown of four online and its standings](party-v312-wide.jpg)

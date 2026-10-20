@@ -2,9 +2,9 @@
 
 This is how Roll Model is played against other people over the internet: a game server (in `server/`, running on
 Fly.io) and a small piece of code in the game, the RMNet SDK (`server/client/rmnet.js`), that talks to it. Since v306
-the game uses it for online duels (one against one), and since v312 for Showdown with real people (everyone for
-themselves, three or four of you, or two teams of two), parties of friends, and matchmaking that looks near you first;
-"In the game" below says how, and what is still off online.
+the game uses it for online duels (one against one), and since v391 for Showdown with real people (everyone for
+themselves, three or four of you, or two teams of two), parties of friends, and matchmaking that looks near you first
+(made around v312, brought onto the game in v391); "In the game" below says how, and what is still off online.
 
 ## How it works
 
@@ -94,7 +94,25 @@ server only does two things:
   joins the party with it. Declining tells the database and the party (who see "can't play right now").
 
 A friend who isn't connected finds the invite in their inbox (it is in the database) if they open the game within the
-2 minutes. Notifications while the game is closed would need Apple's push service; see "Decisions needed".
+2 minutes, and since v391 gets a notification on their iPhone (below).
+
+### Notifications while the game is closed (v391)
+
+- **The phone's address.** Once the player has said yes to notifications, the iPhone app registers for them and hands
+  the game its device token, which the game keeps with the player's account (`rm_push_token`; only the player writes
+  it, one account per phone at a time, five phones each; logging out takes it back with `rm_push_forget`).
+- **Sending.** The game's invite to the game server (`partyInvite`) carries the invite's Supabase id and the inviter's
+  own Supabase access token. When the friend has no connection to the server, the server asks Supabase, as the
+  inviter, for that invite's notification (`rm_invite_push`: only for the invite's sender, only while it's open, only
+  between friends with no block, and once per invite) and posts it to each of the friend's phones through Apple's push
+  service (`server/src/push.js`: token-based, an ES256 provider token renewed every 40 minutes, HTTP/2, one
+  connection per Apple service). It says "@handle invited you to their party. Tap to join!", runs out with the invite,
+  and carries the invite's id.
+- **Tapping it** opens the game on that invite: its card at the top of the lobby, held there until it's answered.
+- **The key** is read from the environment only (`APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_KEY_P8`, `APNS_BUNDLE_ID`,
+  `APNS_PRODUCTION`), set as Fly secrets; with no key the server sends nothing and says so once in its log. How to make
+  the key: `docs/party-v391.md`. The sender's own game can read the friend's token through `rm_invite_push` too, once
+  per invite; a token is no use without the app's APNs key.
 
 ### Matchmaking
 
@@ -248,6 +266,9 @@ Settings are environment variables:
 | `SNAPSHOT_HZ` | 30 | Snapshots a second (20 saves about a third of the server's work and bandwidth) |
 | `SHUTDOWN_GRACE_MS` | 3000 | How long a shutdown waits for connections to close |
 | `RULES` | | JSON to change match rules (for example `{"matchT":60}`), and the lobby's: `partyModes` (`["duel","ffa","duo"]`), `partyGrace` (60), `idlePing` (20), `silentKick` (75); see `server/src/constants.js` |
+| `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_KEY_P8`, `APNS_BUNDLE_ID` | | Apple's push service, for party invites to a closed game (v391): the key's id, your team id, the .p8 key itself (its whole text) and the app's bundle id. Fly secrets, never in a file. Unset: no notifications |
+| `APNS_PRODUCTION` | 0 | 1 sends a token that doesn't say which service it's for to Apple's production service (the app says: Xcode builds are the sandbox, TestFlight and the App Store production) |
+| `SUPABASE_URL`, `SUPABASE_KEY` | the game's | The Supabase project and its publishable key, for `rm_invite_push` (only asked when a notification is due) |
 
 Stopping the server (Ctrl+C, or a SIGTERM from the host) is graceful: running matches are called off without rating
 changes, everyone is told, and the data file is saved.
@@ -450,13 +471,15 @@ From the server: `welcome`, `error`, `kicked`, `queued`, `queueLeft`, `room`, `r
 player, 30 a second), PONG (17 bytes) and SPING (9 bytes). The exact byte layouts are written at the top of
 `rmnet.js`.
 
-## In the game (v306, v312)
+## In the game (v306, v391)
 
 The online game lives in build modules: `tools/v306_accounts.py` (the username and the account),
-`tools/v312_party.py` (the Online sheet's Versus and Showdown, parties, invites, the inbox and matchmaking; it took the
-place of v306's rooms in `tools/v306_lobby.py`, which still brings the SDK), `tools/v306_match.py` (the match) and
-`tools/v312_showdown.py` (the match for up to four). What a player sees, with pictures, is in `docs/online-v306.md`
-and `docs/party-v312.md`. The match works like this:
+`tools/v391_party.py` (the Online sheet's Versus and Showdown, parties, invites, the inbox, notifications and
+matchmaking; it took the place of v306's rooms in `tools/v306_lobby.py`, which still brings the SDK),
+`tools/v306_match.py` (the match) and `tools/v391_showdown_online.py` (the match for up to four). They were written as
+`tools/v312_party.py` and `tools/v312_showdown.py` on the party branch, around v312, and brought onto v390's game as
+modules applied last. What a player sees, with pictures, is in `docs/online-v306.md`, `docs/party-v312.md` and
+`docs/party-v391.md`. The match works like this:
 
 1. **The canvas.** When the server finds a match, both phones build the stage from the server's seed with the same fixed
    options (normal paint, none of the player's own canvas choices, the seven vote canvases) and send it back; the server
@@ -508,21 +531,17 @@ mode, rams and roll stuns between players, and pots moving to new spots.
    the game server to accept that account's token in `hello` in place of its own device token, so ratings, friends and
    invites to private rooms all hang off one identity, and logging in on a new phone brings your rating along.
 5. **Privacy policy and terms.** Online play stores a device token, a display name, ratings, match records and IP
-   addresses in logs, and flags suspected cheating. The App Store privacy labels, the privacy policy and the terms need
+   addresses in logs, and flags suspected cheating; since v391, each iPhone's notification token is kept with the
+   player's account (for party invites) until they log out or delete the account. The App Store privacy labels, the privacy policy and the terms need
    to say so, including how long things are kept and how to ask for deletion.
 6. **Name moderation.** Names are cleaned and a small list of bad words is refused. Before launch, decide on a bigger
    list (or a moderation service), a report button, and what happens to reported players.
 7. **Analytics.** What to measure (round trips by region, match length, abandon rate, cheat flags), where it goes, and
    whether players must agree first.
-8. **Notifications while the game is closed.** Invites and friend requests reach a game that is open (live) or opened
-   within the invite's 2 minutes (the inbox). Reaching a closed app needs Apple's push service: an APNs key (a .p8 from
-   the Apple developer account, with its key id and team id), the app asking the player's permission and registering
-   for remote notifications (its device token goes to Supabase, in a new table, one row per device), and something
-   that sends: a Supabase Edge Function (or the game server) that signs a JWT with the APNs key and posts to Apple's
-   HTTP/2 API when an invite or a request is made (a database trigger or webhook on `invites` and `friend_requests`).
-   Tapping the notification should open the game on the inbox. Decide whether to ask for permission at the first invite
-   (better than at launch), and what the notification says (the sender's handle, such as @number1, and never anything
-   private).
+8. **Notifications while the game is closed.** Built in v391 for party invites (see "Notifications while the game is
+   closed" above): the game asks in its own card the first time you invite someone or join a party, the game server
+   sends with an APNs key, and tapping one opens the game on the invite. It needs the key set on the server
+   (`docs/party-v391.md`). Friend requests could go the same way later.
 
 ## Next steps
 
