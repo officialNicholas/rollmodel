@@ -4232,6 +4232,11 @@ html.appstore #errLine,html.appstore #lastErr{display:none!important}
 :is(#mStrokes,#mLocker).sgp .sgcard .sgca{position:absolute;left:13%;right:13%;top:8%;bottom:7%;isolation:isolate}
 :is(#mStrokes,#mLocker).sgp .sgcard .sgca .stimg{position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:contain;filter:drop-shadow(1px 2px 0 rgba(23,19,32,.22))}
 :is(#mStrokes,#mLocker).sgp .sgcard .sgca svg{position:absolute;inset:12%;z-index:1;width:76%;height:76%}
+/* (v387) a skin's card: a round portrait of you in it, in a gold rim; the Skins heading in the shop */
+#mLocker .sgcard .sgca .lkskin{position:absolute;inset:6%;z-index:1;width:88%;height:88%;border-radius:50%;object-fit:cover;background:radial-gradient(circle at 50% 38%,#FFF8E2 0,#FBE3A0 48%,#E9B54A 100%);box-shadow:0 0 0 3px #171320,0 0 0 5.5px #F2C14E,0 3px 0 5.5px #171320}
+#mLocker .sgcard .sgca i.lkskin{display:block;background:none;box-shadow:none}#mLocker .sgcard .sgca i.lkskin svg{inset:0;width:100%;height:100%}
+#mLocker .lksec.lkprem{display:flex;align-items:center;gap:6px}#mLocker .lksec.lkprem svg{width:18px;height:18px;flex:none}
+
 :is(#mStrokes,#mLocker).sgp .sgcard .sgcf{display:flex;align-items:center;justify-content:center;min-height:21px;padding:4px 4px 5px;border-radius:3px 3px 11px 11px;background:#A9DC2C;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.4),inset 0 -2px 0 rgba(0,0,0,.12);color:var(--ink0);font:400 12px/1 var(--font-display);letter-spacing:.01em;white-space:nowrap;overflow:hidden}
 :is(#mStrokes,#mLocker).sgp .sgcard .sgcf b{font-weight:400;font-variant-numeric:tabular-nums}
 :is(#mStrokes,#mLocker).sgp .sgcard:active{transform:scale(.95)}
@@ -4961,7 +4966,7 @@ html.fh .tutgo .tgcard .tava{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 386</p>
+      <p class="ver">Version 387</p>
     </div>
   </div>
 
@@ -12214,7 +12219,27 @@ vec2 coatBeads(vec3 sp, float band){
   if (pres > 0.5) return vec2(0.0);
   vec3 hp = aHash3(i + 2.3); float r = mix(0.1, 0.25, hp.z * hp.z), dd = length(f - (0.25 + 0.5 * hp.xyz));
   float aa = 0.6 * fw + 0.02, m = (1.0 - smoothstep(r - aa, r + aa, dd)) * band * (1.0 - smoothstep(0.3, 0.8, fw));
-  return vec2(m, m > 0.0 ? r * sqrt(max(0.0, 1.0 - dd * dd / (r * r))) / 36.0 * 0.9 : 0.0); }`;
+  return vec2(m, m > 0.0 ? r * sqrt(max(0.0, 1.0 - dd * dd / (r * r))) / 36.0 * 0.9 : 0.0); }
+// (v387) the skin: uFx x which (0 none, 1 galaxy, 2 lava, 3 rainbow, 4 matrix, 5 glitter), y how far it has swept up over the body
+// (0..1), z the time (s); what it gives off (sFxGlow), how much of it there is here (sFxM), and its surface (rough, metal; -1: as it was)
+uniform vec4 uFx; vec3 sFxGlow = vec3(0.0); float sFxM = 0.0, sFxRough = -1.0, sFxMetal = -1.0;
+vec3 fxHsv(float h, float s, float v) { vec3 k = clamp(abs(mod(h * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0); return v * mix(vec3(1.0), k, s); }
+float fxFbm(vec3 p) { return 0.5 * aNoise(p) + 0.3 * aNoise(p * 2.03 + 5.1) + 0.2 * aNoise(p * 4.1 + 1.7); }
+// stars: one (or none) to a cell, round with a soft halo; tw how much they twinkle; far off (a cell under a pixel) they fade out
+float fxStars(vec3 p, float sc, float dens, float r, float t, float tw, out float hue) {
+  vec3 q = p * sc, i = floor(q), f = fract(q), h = aHash3(i + 3.7); hue = h.z; float fw = length(fwidth(q));
+  if (aHash(i + 11.3) > dens) return 0.0;
+  float d = length(f - (0.25 + 0.5 * h)), rr = r * (0.6 + 0.8 * h.x), aa = 0.5 * fw + 0.01;
+  float s = 1.0 - smoothstep(rr - aa, rr + aa, d); s += 0.3 * (1.0 - smoothstep(0.0, rr * 3.2, d));
+  float w = mix(1.0, 0.5 + 0.5 * sin(t * (1.1 + 2.4 * h.y) + h.x * 40.0), tw); w *= w;
+  return s * w * (1.0 - smoothstep(0.6, 1.3, fw));
+}
+// cells (the lava's plates): the nearest and second nearest distance, and the nearest one's own random number
+vec3 fxVor(vec3 p) { vec3 i = floor(p), f = fract(p); float f1 = 9.0, f2 = 9.0, id = 0.0;
+  for (int z = -1; z <= 1; z++) for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) { vec3 o = vec3(float(x), float(y), float(z)), c = i + o, r = o + 0.15 + 0.7 * aHash3(c) - f; float d = dot(r, r);
+    if (d < f1) { f2 = f1; f1 = d; id = aHash(c + 1.9); } else if (d < f2) f2 = d; }
+  return vec3(sqrt(f1), sqrt(f2), id); }
+`;
 // the skin: base tone, dorsal mottling, the belly, the tail fin's bands, spots, gill frills, cavities
 const SKIN_FS = `
 {
@@ -12269,6 +12294,89 @@ const SKIN_FS = `
   sAO = ao;
   diffuseColor.rgb = col;
 }`;
+// (v387) the skins
+const FX_FS = `
+if (uFx.x > 0.5) {
+  vec3 cp = vCp, col = diffuseColor.rgb, glow = vec3(0.0); float t = uFx.z, k = uFx.x;
+  vec3 fxN = normalize(vNormal), fxV = normalize(vViewPosition); float fxFr = pow(1.0 - saturate(dot(fxN, fxV)), 2.2);
+  float fFace = smoothstep(0.1, 0.5, vFace.z) * (1.0 - smoothstep(0.35, 0.8, sGill));   // (the face: a little calmer, so it reads)
+  if (k < 1.5) {
+    // GALAXY: deep space with still nebulae (magenta, blue), a dusty band across it, and two layers of stars that twinkle
+    float n1 = fxFbm(cp * 2.4 + 1.3), n2 = fxFbm(cp * 5.2 - 2.1);
+    col = mix(vec3(0.006, 0.005, 0.03), vec3(0.04, 0.014, 0.1), smoothstep(0.35, 0.75, n1));
+    float a = smoothstep(0.5, 0.82, n1 * 0.65 + n2 * 0.45), b = smoothstep(0.55, 0.85, n2 * 0.7 + (1.0 - n1) * 0.4);
+    vec3 neb = vec3(0.42, 0.04, 0.32) * a + vec3(0.03, 0.12, 0.5) * b; col += neb * 0.55;
+    float band = exp(-pow((cp.y * 0.8 + cp.x * 1.1 - cp.z * 0.4 - 0.75) / 0.16, 2.0)) * (0.6 + 0.6 * n2); col += vec3(0.25, 0.16, 0.35) * band * 0.3;
+    float h1 = 0.0, h2 = 0.0; float s1 = fxStars(cp, 46.0, 0.45, 0.07, t, 0.55, h1); float s2 = fxStars(cp + 7.3, 15.0, 0.32, 0.05, t, 1.0, h2);
+    vec3 c1 = mix(vec3(0.75, 0.85, 1.0), vec3(1.0, 0.86, 0.7), h1), c2 = mix(vec3(0.8, 0.9, 1.0), vec3(1.0, 0.75, 0.95), h2);
+    col += c1 * s1 * 0.5 + c2 * s2 * 0.6;
+    glow = c1 * s1 * 1.1 + c2 * s2 * 2.6 + neb * 0.22 + vec3(0.3, 0.28, 0.9) * fxFr * 0.35;
+    sFxRough = 0.22;
+  } else if (k < 2.5) {
+    // LAVA: near-black basalt broken into uneven plates, the cracks between them molten (a yellow-white core, orange to deep red at
+    // their edges), heat flowing up through them so each crack brightens and dims in turn; the plates breathe a little, faint veins glow
+    vec3 wp = cp * 4.4 + 0.5 * vec3(aNoise(cp * 2.6), aNoise(cp * 2.6 + 4.3), aNoise(cp * 2.6 + 8.9)) - 0.25;
+    vec3 v = fxVor(wp); float e = v.y - v.x, n = aNoise(cp * 11.0), aa = fwidth(e) + 0.008, w = 0.035 + 0.075 * n;
+    float crack = 1.0 - smoothstep(w * 0.5 - aa, w + aa, e), core = 1.0 - smoothstep(0.0, w * 0.4 + aa, e);
+    float heat = smoothstep(0.25, 0.85, aNoise(cp * 3.2 + vec3(0.0, -t * 0.45, t * 0.12)) * 0.65 + aNoise(cp * 7.0 + vec3(t * 0.3, -t * 0.7, 0.0)) * 0.35);
+    float breathe = 0.5 + 0.5 * sin(t * (0.8 + 1.4 * v.z) + v.z * 30.0);
+    vec3 crust = vec3(0.016, 0.012, 0.011) * (0.55 + 0.9 * aNoise(cp * 26.0)) + vec3(0.11, 0.022, 0.0) * (1.0 - smoothstep(0.0, 0.16, e)) * (0.25 + 0.75 * heat);
+    float vein = smoothstep(0.78, 0.96, aNoise(cp * 17.0 + vec3(0.0, -t * 0.25, 0.0))) * (1.0 - crack) * (0.3 + 0.7 * breathe);
+    vec3 hot = mix(vec3(1.1, 0.12, 0.0), vec3(2.0, 0.65, 0.04), heat); hot = mix(hot, vec3(2.6, 1.75, 0.55), core * (0.35 + 0.65 * heat));
+    float molten = max(crack * mix(0.35, 1.0, heat) * mix(0.75, 1.0, breathe), vein * 0.45);
+    molten = max(molten, sGill * (0.3 + 0.55 * heat));
+    col = mix(crust, hot * 0.22, molten);
+    glow = hot * molten * 1.5 + vec3(0.5, 0.08, 0.0) * fxFr * 0.22 * heat;
+    sFxRough = mix(0.8, 0.35, molten);
+  } else if (k < 3.5) {
+    // RAINBOW: candy bands of every colour slanting round the body, drifting slowly along it, a softer pastel on the belly
+    float u = cp.y * 1.15 + cp.x * 0.55 + cp.z * 0.35 + 0.05 * sin(cp.x * 7.0 + cp.z * 5.0 + t * 0.9);
+    float hb = (u * 0.9 - t * 0.08) * 7.0, hf = fract(hb), hq = (floor(hb) + smoothstep(0.78, 1.0, hf)) / 7.0;
+    vec3 c = pow(fxHsv(fract(hq), 0.74, 1.0), vec3(2.2));
+    float seam = 1.0 - smoothstep(0.0, 0.07, abs(hf - 0.89));   // (a thin light line where one band meets the next)
+    c = mix(c, vec3(1.0), 0.28 * sBelly + 0.18 * sGill); c = mix(c, vec3(1.0), 0.35 * seam);
+    col = c * 0.92;
+    glow = c * 0.12 + mix(c, vec3(1.0), 0.5) * fxFr * 0.35;
+    sFxRough = 0.3;
+  } else if (k < 4.5) {
+    // MATRIX: a black screen of green code: glyphs of lit pixels in cells, streams of them raining down the body in most columns,
+    // each stream's head bright white-green and its trail fading behind it; the glyphs flicker as it passes
+    vec3 g = cp / vec3(0.075, 0.1, 0.075), ci = floor(g), f = fract(g); float fw = length(fwidth(g));
+    float ch = aHash(vec3(ci.x, 7.0, ci.z)), spd = 3.0 + 5.0 * ch, len = 3.0 + 6.0 * fract(ch * 13.7), span = 24.0;
+    float d = mod(ci.y - mod(-t * spd + ch * 97.0, span), span), trail = exp(-d / len) * step(0.3, fract(ch * 7.31)), head = (1.0 - step(1.0, d)) * step(0.3, fract(ch * 7.31));
+    vec3 sp3 = f * vec3(3.0, 5.0, 3.0), sub = floor(sp3), sf = fract(sp3); float flick = floor(t * (4.0 + 6.0 * ch) + aHash(ci) * 5.0);
+    float bit = step(0.5, aHash(ci * 1.7 + sub * 0.31 + flick * 0.13 * (0.3 + trail)));
+    float px = step(0.14, sf.x) * step(sf.x, 0.86) * step(0.12, sf.y) * step(sf.y, 0.88) * step(0.14, sf.z) * step(sf.z, 0.86);
+    float inner = step(0.1, f.x) * step(f.x, 0.9) * step(0.06, f.y) * step(f.y, 0.94) * step(0.1, f.z) * step(f.z, 0.9);
+    float glyph = mix(bit * px * inner, 0.22, smoothstep(0.45, 1.0, fw));
+    float calm = 1.0 - 0.45 * fFace, lit = glyph * (trail + 0.06) * calm;
+    vec3 green = vec3(0.03, 1.0, 0.2), white = vec3(0.8, 1.0, 0.85);
+    col = vec3(0.002, 0.009, 0.004) + green * lit * 0.35;
+    glow = mix(green, white, head) * glyph * (trail * 2.2 + head * 2.6 + 0.08) * calm + green * 0.06 * fxFr;
+    sFxRough = 0.2;
+  } else {
+    // GLITTER: flakes in your paint colour, each tilted its own way, so as you move different ones catch the light and flare; some
+    // flash on their own now and then; a finer dust of tiny glints between them; a pearly sheen at the edges
+    vec3 tc = max(uTeam, vec3(0.0)), q = cp * 62.0, i = floor(q), f = fract(q), h = aHash3(i + 1.3); float fw = length(fwidth(q));
+    vec3 fn = normalize(fxN + (h - 0.5) * 1.5), L = normalize(vec3(0.35, 0.8, 0.5)), H = normalize(L + fxV);
+    float spec = pow(saturate(dot(fn, H)), 26.0), flash = pow(max(0.0, sin(t * (1.6 + 2.6 * h.y) + h.z * 60.0)), 10.0);
+    float r = length(f - (0.3 + 0.4 * h.zxy)), shape = 1.0 - smoothstep(0.16, 0.34, r), far = smoothstep(0.5, 1.1, fw);
+    float sp = mix((spec * 3.0 + flash * 2.2) * shape, 0.25, far);
+    vec3 q2 = cp * 150.0, h2 = aHash3(floor(q2) + 7.7); float r2 = length(fract(q2) - 0.5), fw2 = length(fwidth(q2));
+    float dust = pow(saturate(dot(normalize(fxN + (h2 - 0.5) * 1.6), H)), 40.0) * (1.0 - smoothstep(0.12, 0.3, r2)) * (1.0 - smoothstep(0.5, 1.0, fw2));
+    col = tc * (0.38 + 0.5 * h.x) + vec3(0.9, 0.8, 1.0) * 0.05 * fxFr + tc * 0.1 * sBelly;
+    glow = mix(tc, vec3(1.0), 0.45) * (sp * 1.6 + dust * 1.2) + mix(tc, vec3(1.0, 0.85, 0.95), 0.3) * fxFr * 0.2;
+    sFxRough = 0.28; sFxMetal = 0.55;
+  }
+  // swept up over the body from the ground, a bright seam where it's arriving (uFx.y 0..1; at 1 it's all on)
+  float front = uFx.y * 1.35 - 0.12, fxIn = uFx.y >= 0.999 ? 1.0 : smoothstep(-0.03, 0.03, front - cp.y), seam = (1.0 - smoothstep(0.0, 0.07, abs(cp.y - front))) * step(uFx.y, 0.999);
+  sFxM = fxIn; diffuseColor.rgb = mix(diffuseColor.rgb, col, fxIn); sFxGlow = glow * fxIn + vec3(1.0, 0.95, 0.85) * seam * 1.6;
+}
+`, FX_SURF = `
+if (sFxM > 0.0) { if (sFxRough >= 0.0) roughnessFactor = mix(roughnessFactor, sFxRough, sFxM); if (sFxMetal >= 0.0) metalnessFactor = mix(metalnessFactor, sFxMetal, sFxM); }
+`, FX_GLOW = `
+totalEmissiveRadiance += sFxGlow * (1.0 - sCoatM) * (1.0 - faceInk);   // (v387: what the skin gives off; never through the paint or the drawn face)
+`;
 // the face: the game's slime face shader (eye layer or blink, the eye styles, pupils where the whites show, then the mouth)
 const FACE_FS = `
 if (vFace.z > 0.01 && abs(vFace.x * fComp.x) < 0.985 && abs(vFace.y * fComp.y) < 0.985) {
@@ -12572,6 +12680,7 @@ class Look {
       uDetail: { value: new THREE.Vector4(0.0009, 26, 1.0, 0.0007) }, uDetail2: { value: new THREE.Vector4(0, 0, 0, 0) },
       uToon: { value: 0.82 },   // v10b: the toon look's strength (0 the plain material, 1 full) (v250: 0.7 -> 0.82)
       uTint: { value: new THREE.Vector4(1, 0, 1, 1) }, uTintTo: { value: new THREE.Vector4(1, 0, 1, 0) },
+      uFx: { value: new THREE.Vector4(0, 1, 0, 0) },   // (v387) the skin: which, how far it has swept up over the body, the time
     };
     this.meshU = {};   // per-mesh uniforms (the fade), by mesh name
     this.fangs = false; this.expr = 'neutral'; this.exprB = 'neutral'; this.exprK = 1; this.blinkT = 1 + Math.random() * 2; this.blinkK = 0; this.flut = 0; this.flutT = 0;
@@ -12589,6 +12698,8 @@ class Look {
     return this; }
   setIris(k) { const e = EYE_COLS[k]; if (e) this.U.fIris.value.set(...e.lin); else { const c = new THREE.Color(k); this.U.fIris.value.set(c.r, c.g, c.b); } this.iris = k; return this; }
   setEyeStyle(k) { this.U.fStyle.value = typeof k === 'string' ? (EYE_STYLE_K[k] || 0) : k; return this; }
+  // (v387) a skin by its name (none: the paint's own skin); swept on from the ground up, or there at once
+  setSkin(id, sweep) { const k = { galaxy: 1, lava: 2, rainbow: 3, matrix: 4, glitter: 5 }[id] || 0, u = this.U.uFx.value; if (u.x === k) return this; u.x = k; u.y = sweep && k ? 0 : 1; return this; }
   setPaint(level) { this.U.uCoat.value.x = level; return this; }
   setFangs(on) { this.fangs = !!on; return this; }
   setLashes(l, r = l) { this.U.fLash.value.x = l; this.U.fLash.value.y = r; return this; }
@@ -12628,7 +12739,7 @@ class Look {
     const pa = pupilOf(this.expr), pb = pupilOf(this.exprB), k = this.exprK, fang = this.fangs ? 6 : 0, ag = U.fStyle.value === 1, sl = U.fStyle.value === 4, xa = ag ? AGG[this.expr] : sl ? SLY[this.expr] : null, xb = ag ? AGG[this.exprB] : sl ? SLY[this.exprB] : null, ea = xa || EXPR[this.expr], eb = xb || EXPR[this.exprB];
     const fm = c => fang ? c + (c >= 32 ? 1 : c >= 24 ? 4 : 6) : c; U.fCells.value.set(ea[0], fm(ea[1]), eb[0], fm(eb[1])); U.fMix.value.set(k, shut ? 1 : 0, 1, 6);
     U.fPupil.value.set(this.look[0], this.look[1], pa.pu + (pb.pu - pa.pu) * k, pa.py + (pb.py - pa.py) * k);
-    U.fComp.value.set(1, 1, ag || sl ? (xa ? xa[2] : 0) + ((xb ? xb[2] : 0) - (xa ? xa[2] : 0)) * k : 0, ag ? (xa ? xa[3] : 0) + ((xb ? xb[3] : 0) - (xa ? xa[3] : 0)) * k : 0); U.uLag.value.w = this.t;
+    U.fComp.value.set(1, 1, ag || sl ? (xa ? xa[2] : 0) + ((xb ? xb[2] : 0) - (xa ? xa[2] : 0)) * k : 0, ag ? (xa ? xa[3] : 0) + ((xb ? xb[3] : 0) - (xa ? xa[3] : 0)) * k : 0); U.uLag.value.w = this.t; { const fx = U.uFx.value; fx.z = this.t; if (fx.y < 1) fx.y = Math.min(1, fx.y + dt * 0.95); } // (v387: the skin's time, and its sweep)
     if (this.coatMixT !== undefined) U.uCoatMix.value += (this.coatMixT - U.uCoatMix.value) * Math.min(1, dt * 3);
     // the paint's living state (v9b): the high water of the coat and of the wading band (they slip down after the level over a couple
     // of seconds: the runs the shader leaves above the edge reach up to them), the flow of the streaks (quicker while it drains) and
@@ -12651,11 +12762,11 @@ function axoMaterial(tex, look, meta) {
       .replace('#include <lights_physical_pars_fragment>', THREE.ShaderChunk.lights_physical_pars_fragment.replace('reflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );',
         'reflectedLight.directDiffuse += axoRamp( dot( geometryNormal, directLight.direction ) ) * directLight.color * BRDF_Lambert( material.diffuseColor );'))
       .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n' + FADE_FS)
-      .replace('#include <color_fragment>', '#include <color_fragment>\n' + SKIN_FS + FACE_FS + COAT_FS)
+      .replace('#include <color_fragment>', '#include <color_fragment>\n' + SKIN_FS + FX_FS + FACE_FS + COAT_FS).replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n' + FX_SURF)
       .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n' + BUMP_FS)
       .replace('#include <clearcoat_normal_fragment_maps>', '#include <clearcoat_normal_fragment_maps>\n#ifdef USE_CLEARCOAT\nclearcoatNormal = normalize(mix(clearcoatNormal, normal, max(max(sCoatM, sEyeM), sWetK)));\n#endif')
       .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\n' + LIT_FS)
-      .replace('#include <aomap_fragment>', '#include <aomap_fragment>\n' + LOOK_FS)
+      .replace('#include <aomap_fragment>', '#include <aomap_fragment>\n' + LOOK_FS + FX_GLOW)
       .replace('#include <colorspace_fragment>', '#include <colorspace_fragment>\n' + DEBUG_FS);
     if (meta.dqTex) dqsShader(sh, meta);
     const fc = (meta.face && meta.face.c) || meta.headAbs, fr = (meta.face && meta.face.r) || meta.headr;
@@ -12740,6 +12851,7 @@ const AXOC = (() => {
     I.setPatch = k => { look.U.fLash.value.z = k; };
     I.setIris = c => { look.U.fIris.value.set(c[0], c[1], c[2]); };
     I.setEyeStyle = k => look.setEyeStyle(k);
+    I.setSkin = (id, sweep) => look.setSkin(id, sweep); // (v387)
     I.setExpression = name => look.setExpression(name);
     I.face = (name, dur) => look.face(name, dur); // (v252: a face held over the game's own for a while)
     I.blink = () => look.blink();
@@ -13281,6 +13393,7 @@ function placeWear(W, U, look, D, withFangs) {
     if (!plain) { W.patch.visible = W.flower.visible = W.bow.visible = W.pearls.visible = W.glasses.visible = W.hockey.visible = W.skull.visible = W.scarf.visible = W.monocle.visible = W.stache.visible = W.snorkel.visible = W.floaties.visible = W.cape.visible = false; }
     // painted on (every form): the lashes (none under the patch), the patch and its strap, the eyes' color
     if (SI.setLashes) { const k = !off ? Math.min(1, pu * 1.4) : 0, lk = look.lash === 'lashes' ? k : 0, pt = look.eye === 'patch' ? k : 0; SI.setLashes(lk, pt > 0 ? 0 : lk); SI.setPatch(pt); SI.setIris((EYE_COLS[look.iris] || EYE_COLS.brown).lin); if (SI.setEyeStyle) SI.setEyeStyle(EYE_STYLE_K[look.eyes] || 0); }
+    if (SI.setSkin) SI.setSkin(look.skin || null, state === 'menu' && lkOn()); // (v387: swept on in the locker, there at once anywhere else)
     if (W.monocle.visible || W.stache.visible) { CH.headTop(SI, wv1, wq1, 0); /* (on the face, from the head's centre: the monocle over the right eye, the mustache under the nose) */
       if (W.monocle.visible) { W.monocle.position.copy(wv1).add(wv2.set(MONO_FIT.x, MONO_FIT.y, MONO_FIT.z).multiplyScalar(mk).applyQuaternion(wq1)); W.monocle.quaternion.copy(wq1).multiply(wearQ2.setFromEuler(wearE.set(-0.06 + S.tx * 0.2, 0, S.tz * 0.15))); W.monocle.scale.multiplyScalar(mk * MONO_FIT.s * (CH.faceK || 1)); }
       if (W.stache.visible) { W.stache.position.copy(wv1).add(wv2.set(STACHE_FIT.x, STACHE_FIT.y, STACHE_FIT.z).multiplyScalar(mk).applyQuaternion(wq1)); W.stache.quaternion.copy(wq1).multiply(wearQ2.setFromEuler(wearE.set(-0.1 + S.tx * 0.2, 0, S.tz * 0.15))); W.stache.scale.multiplyScalar(mk * STACHE_FIT.s * (CH.faceK || 1)); } }
@@ -19761,7 +19874,8 @@ function makeCpuLook(D, color) {
 const L2 = makeCpuLook(H2, TEAMS[2].wet), L3 = makeCpuLook(H3, TEAMS[3].wet);
 H.look = LH; H2.look = L2; H3.look = L3; L3.wear = makeWear(L3.body); L3.wearing = { head: null, back: null, mouth: null, eye: null, side: null, neck: null, lash: null, iris: 'brown' };
 LH.wear = makeWear(LH.body); L2.wear = makeWear(L2.body); LH.wearing = { head: null, back: null, mouth: null, eye: null, side: null, neck: null, lash: null, iris: 'brown' }; L2.wearing = { head: null, back: null, mouth: null, eye: null, side: null, neck: null, lash: null, iris: 'brown' };
-function rollRivalLooks() { rollRivalCols(); teamTint = true; teamHues(); const heads = [null, null, 'halo', 'hat', 'pirate', 'tophat', 'tiara', 'bunny', 'skull']; for (const L of [LH, L2, L3]) { const head = heads[Math.random() * heads.length | 0]; L.wearing = { head, back: null, mouth: Math.random() < 0.3 ? 'fangs' : null, eye: Math.random() < (head === 'pirate' ? 0.6 : 0.12) ? 'patch' : Math.random() < 0.14 ? 'glasses' : Math.random() < 0.1 ? 'hockey' : null, side: !head && Math.random() < 0.3 ? 'flower' : null, neck: Math.random() < (head === 'tophat' ? 0.6 : 0.15) ? 'bowtie' : Math.random() < 0.14 ? 'pearls' : null, lash: Math.random() < (head === 'tiara' ? 0.65 : 0.18) ? 'lashes' : null, iris: Math.random() < 0.45 ? 'brown' : EYE_KEYS[1 + (Math.random() * 4 | 0)], eyes: ['round', 'round', 'edgy', 'dot', 'sly'][(Math.random() * 5) | 0] }; } }
+function rollRivalLooks() { rollRivalCols(); teamTint = true; teamHues(); const heads = [null, null, 'halo', 'hat', 'pirate', 'tophat', 'tiara', 'bunny', 'skull']; for (const L of [LH, L2, L3]) { const head = heads[Math.random() * heads.length | 0]; L.wearing = { head, back: null, mouth: Math.random() < 0.3 ? 'fangs' : null, eye: Math.random() < (head === 'pirate' ? 0.6 : 0.12) ? 'patch' : Math.random() < 0.14 ? 'glasses' : Math.random() < 0.1 ? 'hockey' : null, side: !head && Math.random() < 0.3 ? 'flower' : null, neck: Math.random() < (head === 'tophat' ? 0.6 : 0.15) ? 'bowtie' : Math.random() < 0.14 ? 'pearls' : null, lash: Math.random() < (head === 'tiara' ? 0.65 : 0.18) ? 'lashes' : null, iris: Math.random() < 0.45 ? 'brown' : EYE_KEYS[1 + (Math.random() * 4 | 0)], eyes: ['round', 'round', 'edgy', 'dot', 'sly'][(Math.random() * 5) | 0],
+    skin: store.tut && store.tut.ph === 'done' && Math.random() < 0.125 ? (mode === 'duo' ? 'glitter' : SKINS[(Math.random() * SKINS.length) | 0].id) : null }; } } // (v387: a skin now and then)
 // ---------- the slime in the game: one per blob, riding its body group. The old jelly ball stays underneath as the bead of paint you drip
 // in as on the customize screen, and is the whole look if the slime's models never arrive ----------
 const vOf = D => D === P ? VP : D.look && D.look.V;
@@ -21235,6 +21349,10 @@ const EYES = [['round', 'Round'], ['googly', 'Googly'], ['sleepy', 'Sleepy'], ['
 const WEAR = [{ id: 'pirate', name: 'Pirate hat', slot: 'head', stage: 'island' }, { id: 'patch', name: 'Eye patch', slot: 'eye', stage: 'island' }, { id: 'flower', name: 'Flower', slot: 'side', stage: 'island' },
   { id: 'tophat', name: 'Top hat', slot: 'head', stage: 'blank' }, { id: 'bowtie', name: 'Bow tie', slot: 'neck', stage: 'blank' }, { id: 'pearls', name: 'Pearl necklace', slot: 'neck', stage: 'blank' }, { id: 'tiara', name: 'Tiara', slot: 'head', stage: 'blank' }, { id: 'lashes', name: 'Lashes', slot: 'lash', stage: 'blank' }, { id: 'glasses', name: 'Glasses', slot: 'eye', stage: 'blank' }, { id: 'beanie', name: 'Beanie', slot: 'head', stage: 'blank' }, { id: 'party', name: 'Party hat', slot: 'head', stage: 'blank' }, { id: 'monocle', name: 'Monocle', slot: 'eye', stage: 'blank' }, { id: 'stache', name: 'Mustache', slot: 'mouth', stage: 'blank' }, { id: 'scarf', name: 'Scarf', slot: 'neck', stage: 'blank' }, { id: 'antennae', name: 'Bouncy antennae', slot: 'head', stage: 'blank' }, { id: 'snorkel', name: 'Snorkel mask', slot: 'eye', stage: 'blank' }, { id: 'propcap', name: 'Propeller cap', slot: 'head', stage: 'blank' }, { id: 'floaties', name: 'Arm floaties', slot: 'arms', stage: 'blank' }, { id: 'cape', name: 'Hero cape', slot: 'back', stage: 'blank' },
   { id: 'hat', name: 'Witch hat', slot: 'head', season: 1, stage: 'halloween' }, { id: 'halo', name: 'Halo', slot: 'head', season: 1, stage: 'halloween' }, { id: 'fangs', name: 'Fangs', slot: 'mouth', season: 1, stage: 'halloween' }, { id: 'hockey', name: 'Hockey mask', slot: 'eye', season: 1, stage: 'halloween' }, { id: 'bunny', name: 'Bunny ears', slot: 'head', season: 1, stage: 'halloween' }, { id: 'skull', name: 'Skull bow', slot: 'head', season: 1, stage: 'halloween' }];
+// (v387) the skins: the whole body's look, one at a time, always in stock
+const SKINS = [{"id": "galaxy", "name": "Galaxy", "slot": "skin", "stage": "blank", "desc": "Deep space, its stars twinkling"}, {"id": "lava", "name": "Lava", "slot": "skin", "stage": "blank", "desc": "Molten cracks, glowing as the heat flows"}, {"id": "rainbow", "name": "Rainbow", "slot": "skin", "stage": "blank", "desc": "Every colour, drifting slowly round you"}, {"id": "matrix", "name": "Matrix", "slot": "skin", "stage": "blank", "desc": "Green code raining down you"}, {"id": "glitter", "name": "Glitter", "slot": "skin", "stage": "blank", "desc": "Sparkling all over, in your paint colour"}];
+WEAR.push(...SKINS);
+const SKIN_SW = {"galaxy": "<radialGradient id=\"skg1\" cx=\"35%\" cy=\"35%\" r=\"75%\"><stop offset=\"0\" stop-color=\"#5B2A9A\"/><stop offset=\".55\" stop-color=\"#1A0F45\"/><stop offset=\"1\" stop-color=\"#070616\"/></radialGradient><circle cx=\"20\" cy=\"20\" r=\"16\" fill=\"url(#skg1)\" stroke=\"#171320\" stroke-width=\"2.4\"/><circle cx=\"14\" cy=\"15\" r=\"1.4\" fill=\"#fff\"/><circle cx=\"25\" cy=\"12\" r=\"1\" fill=\"#fff\"/><circle cx=\"24\" cy=\"25\" r=\"1.6\" fill=\"#FFE8F7\"/><circle cx=\"12\" cy=\"25\" r=\".9\" fill=\"#fff\"/><circle cx=\"29\" cy=\"19\" r=\".8\" fill=\"#fff\"/>", "lava": "<radialGradient id=\"skg2\" cx=\"40%\" cy=\"35%\" r=\"75%\"><stop offset=\"0\" stop-color=\"#3A2622\"/><stop offset=\"1\" stop-color=\"#140C0A\"/></radialGradient><circle cx=\"20\" cy=\"20\" r=\"16\" fill=\"url(#skg2)\" stroke=\"#171320\" stroke-width=\"2.4\"/><path d=\"M8 17l7 2 4-5 6 4 7-3M12 28l5-6 7 2 3 6M19 19l-1 4\" fill=\"none\" stroke=\"#FF8A1E\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>", "rainbow": "<clipPath id=\"skc3\"><circle cx=\"20\" cy=\"20\" r=\"16\"/></clipPath><g clip-path=\"url(#skc3)\" transform=\"rotate(-30 20 20)\"><rect x=\"0\" y=\"2\" width=\"40\" height=\"6\" fill=\"#FF4D6D\"/><rect x=\"0\" y=\"8\" width=\"40\" height=\"6\" fill=\"#FF9F1C\"/><rect x=\"0\" y=\"14\" width=\"40\" height=\"6\" fill=\"#FFE14D\"/><rect x=\"0\" y=\"20\" width=\"40\" height=\"6\" fill=\"#3DDC84\"/><rect x=\"0\" y=\"26\" width=\"40\" height=\"6\" fill=\"#3A86FF\"/><rect x=\"0\" y=\"32\" width=\"40\" height=\"6\" fill=\"#9B5DE5\"/></g><circle cx=\"20\" cy=\"20\" r=\"16\" fill=\"none\" stroke=\"#171320\" stroke-width=\"2.4\"/>", "matrix": "<circle cx=\"20\" cy=\"20\" r=\"16\" fill=\"#03140A\" stroke=\"#171320\" stroke-width=\"2.4\"/><g fill=\"#2BFF6A\"><rect x=\"11\" y=\"9\" width=\"2.4\" height=\"3\"/><rect x=\"11\" y=\"14\" width=\"2.4\" height=\"3\" opacity=\".7\"/><rect x=\"11\" y=\"19\" width=\"2.4\" height=\"3\" opacity=\".4\"/><rect x=\"18\" y=\"13\" width=\"2.4\" height=\"3\"/><rect x=\"18\" y=\"18\" width=\"2.4\" height=\"3\" opacity=\".7\"/><rect x=\"18\" y=\"23\" width=\"2.4\" height=\"3\" opacity=\".45\"/><rect x=\"25\" y=\"8\" width=\"2.4\" height=\"3\" opacity=\".5\"/><rect x=\"25\" y=\"13\" width=\"2.4\" height=\"3\" opacity=\".8\"/><rect x=\"25\" y=\"18\" width=\"2.4\" height=\"3\"/><rect x=\"25\" y=\"23\" width=\"2.4\" height=\"3\" fill=\"#D8FFE4\"/></g>", "glitter": "<circle cx=\"20\" cy=\"20\" r=\"16\" fill=\"#E8457A\" stroke=\"#171320\" stroke-width=\"2.4\"/><g fill=\"#fff\"><path d=\"M14 11l1 3 3 1-3 1-1 3-1-3-3-1 3-1z\"/><path d=\"M26 20l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z\"/><circle cx=\"18\" cy=\"26\" r=\"1.1\"/><circle cx=\"24\" cy=\"12\" r=\".9\"/><circle cx=\"11\" cy=\"21\" r=\".8\"/></g>"};
 const WEAR_WHERE = { island: 'Palette Island', blank: 'Blank Canvas', halloween: 'the Spooky SZN stages' };
 // the eyes' color: five to pick from (lin: the iris in the shader, css: on the picker and the basin's eyes)
 const EYE_COLS = { brown: { name: 'Brown', lin: [0.16, 0.06, 0.035], css: '#8A5636' }, blue: { name: 'Blue', lin: [0.03, 0.1, 0.32], css: '#3B7BE0' }, green: { name: 'Green', lin: [0.04, 0.18, 0.05], css: '#46A853' },
@@ -21242,7 +21360,7 @@ const EYE_COLS = { brown: { name: 'Brown', lin: [0.16, 0.06, 0.035], css: '#8A56
 const EYE_KEYS = Object.keys(EYE_COLS);
 const EYE_STYLES = { round: 'Round', edgy: 'Aggressive', dot: 'Dot', sly: 'Sly', zombie: 'Zombie' }, EYE_STYLE_K = { round: 0, edgy: 1, dot: 2, zombie: 3, sly: 4 };
 const NO_IRIS = k => k === 'dot' || k === 'zombie'; // (styles whose iris color is fixed)
-const WEAR_CAT = { head: 'head', side: 'head', eye: 'face', lash: 'face', mouth: 'face', neck: 'cloth', back: 'cloth', arms: 'cloth' };
+const WEAR_CAT = { head: 'head', side: 'head', eye: 'face', lash: 'face', mouth: 'face', neck: 'cloth', back: 'cloth', arms: 'cloth', skin: 'skin' };
 for (const w of WEAR) w.cat = WEAR_CAT[w.slot] || 'face';
 // things to find and buy that are not worn on the body: an eye style
 const EXTRA = [{ id: 'zombie', name: 'Zombie eyes', slot: 'eyes', cat: 'eyes', season: 1, stage: 'halloween', gift: 1 }], ITEMS = WEAR.concat(EXTRA); // (v330: the Sly eyes are everyone's from the start; the Zombie eyes, the one style to find, are a free gift)
@@ -21261,7 +21379,7 @@ function eyeShowFace(E) {
 // what you've found so far (everything starts locked)
 const OWNED = new Set(Array.isArray(store.owned) ? store.owned.filter(id => ITEMS.some(w => w.id === id)) : []);
 // drops: paint earned at the end of a match. A found item goes on sale in the locker; it is worn once it is bought
-const PRICES = { sly: 545, flower: 145, pearls: 160, scarf: 180, bowtie: 185, stache: 195, beanie: 205, party: 240, monocle: 290, lashes: 220, glasses: 270, patch: 330, fangs: 400, tiara: 475, tophat: 580, bunny: 645, pirate: 695, hockey: 765, skull: 835, halo: 850, zombie: 975, hat: 1105, antennae: 195, floaties: 245, snorkel: 295, propcap: 345, cape: 480 }; // (v302: the five new everyday pieces; see docs/wearables-v302.md)
+const PRICES = { sly: 545, flower: 145, pearls: 160, scarf: 180, bowtie: 185, stache: 195, beanie: 205, party: 240, monocle: 290, lashes: 220, glasses: 270, patch: 330, fangs: 400, tiara: 475, tophat: 580, bunny: 645, pirate: 695, hockey: 765, skull: 835, halo: 850, zombie: 975, hat: 1105, antennae: 195, floaties: 245, snorkel: 295, propcap: 345, cape: 480, galaxy: 2000, lava: 1750, rainbow: 1500, matrix: 1750, glitter: 1250 }; // (v387: the skins) // (v302: the five new everyday pieces; see docs/wearables-v302.md)
 const OUTRIGHT = new Set(['flower', 'lashes', 'bowtie', 'pearls', 'beanie', 'party', 'monocle', 'stache', 'scarf', 'antennae', 'snorkel', 'propcap', 'floaties', 'cape']), needFind = w => !OUTRIGHT.has(w.id) && (!!w.season || w.slot === 'head'); // (in stock from the start: nothing to find, only dabs to pay) // (what has to be found on a canvas before it is for sale)
 const PRICE = w => { const t = store.tut && store.tut.price; if (t && t[w.id] >= 0) return t[w.id]; if (w.gift) return 0; /* (v330: a gift costs nothing) */ { const lp = stLive(w.id); if (lp >= 0) return lp; } /* (v354: a live price from the dashboard) */ return PRICES[w.id] || (w.season ? 850 : w.slot === 'head' ? 510 : 255); }; // (the lesson sets the flower's and the fangs' prices)
 const BOUGHT = new Set(Array.isArray(store.bought) ? store.bought.filter(id => OWNED.has(id)) : [...OWNED]);
@@ -21376,7 +21494,7 @@ function showDrops() { setTimeout(() => { if (typeof lkPlusPlace === 'function')
 const owns = id => OWNED.has(id);
 function unlockItem(id) { if (OWNED.has(id)) return false; OWNED.add(id); store.owned = [...OWNED]; store.fresh = [...new Set([...(store.fresh || []), id])]; store.seen = store.seen || {}; store.seen.look = 0; save(); $('lookBtn').classList.add('hot'); return true; }
 if (typeof store.itemIn !== 'number') store.itemIn = 4 + Math.floor(Math.random() * 5); // matches to go before the next item can turn up
-const myLook = (() => { const l = Object.assign({}, store.look || {}); if (l.head && l.side) l.side = null; const ok = (v, slot) => WEAR.some(w => w.id === v && w.slot === slot) && BOUGHT.has(v) ? v : null; return { eyes: EYE_STYLES[l.eyes] ? l.eyes : 'round', head: ok(l.head, 'head'), back: ok(l.back, 'back'), mouth: ok(l.mouth, 'mouth'), eye: ok(l.eye, 'eye'), side: ok(l.side, 'side'), neck: ok(l.neck, 'neck'), lash: ok(l.lash, 'lash'), arms: ok(l.arms, 'arms'), iris: ['brown', 'blue', 'green', 'violet', 'gold'].includes(l.iris) ? l.iris : 'brown' }; })();
+const myLook = (() => { const l = Object.assign({}, store.look || {}); if (l.head && l.side) l.side = null; const ok = (v, slot) => WEAR.some(w => w.id === v && w.slot === slot) && BOUGHT.has(v) ? v : null; return { eyes: EYE_STYLES[l.eyes] ? l.eyes : 'round', head: ok(l.head, 'head'), back: ok(l.back, 'back'), mouth: ok(l.mouth, 'mouth'), eye: ok(l.eye, 'eye'), side: ok(l.side, 'side'), neck: ok(l.neck, 'neck'), lash: ok(l.lash, 'lash'), arms: ok(l.arms, 'arms'), skin: ok(l.skin, 'skin'), iris: ['brown', 'blue', 'green', 'violet', 'gold'].includes(l.iris) ? l.iris : 'brown' }; })();
 const colorOf = () => PALETTE.find(p => p.id === colorId) || PALETTE[0];
 function setColor(id) {
   const c = PALETTE.find(p => p.id === id) || PALETTE[0], css = '#' + c.hex.toString(16).padStart(6, '0').toUpperCase(); colorId = c.id;
@@ -23156,7 +23274,7 @@ canvas.addEventListener('pointerup', endLookDrag); canvas.addEventListener('poin
 // a tap tries it on and Buy keeps it on. Drag spins you round, and you turn back to face the front after a moment ----------
 const LKR = { filt: 'all', stickY: 0, tab: 'mine', sel: null, prev: null, got: new Set(), scr: { mine: 0, shop: 0 }, anim: false, from: 'mine', toastT: 0 };
 function lkOn() { return menuPage === 'locker'; }
-const LK_CAT = { head: 'Headgear', face: 'Facial', cloth: 'Clothing', eyes: 'Eyes' };
+const LK_CAT = { skin: 'Skins', head: 'Headgear', face: 'Facial', cloth: 'Clothing', eyes: 'Eyes' };
 const LK_POP = { tophat: 'top', bowtie: 'bow' }; // (the piece a wearable is, where its name isn't the item's)
 const LK_PAD = 0.62; // (the pad in dress mode: a podium, this much of the demo's)
 // (v337) the dress view this much closer than one that fits the pad, aimed this high (the middle of you, a hat included); the
@@ -23175,7 +23293,7 @@ const LK_PICS = new Map();
 function lkPicUrl(w) { if (LK_PICS.has(w.id)) return LK_PICS.get(w.id); let u = ''; try { u = shopPic(w); } catch (e) { u = ''; } if (!u) return '';
   if (u.startsWith('data:') && window.Blob && window.URL && URL.createObjectURL) try { const b = atob(u.slice(u.indexOf(',') + 1)), a = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); u = URL.createObjectURL(new Blob([a], { type: 'image/png' })); } catch (e) {}
   LK_PICS.set(w.id, u); return u; }
-function lkPic(w) { if (w.slot === 'eyes') return ES_ICON_T[w.id] || ''; const u = lkPicUrl(w); return u ? '<img class="stimg" src="' + u + '" alt="" draggable="false">' : '<svg viewBox="0 0 40 40" aria-hidden="true">' + WEAR_ICON[w.id] + '</svg>'; }
+function lkPic(w) { if (w.slot === 'eyes') return ES_ICON_T[w.id] || ''; if (w.slot === 'skin') return ptHtml(ptSpec(colorOf().hex, { eyes: myLook.eyes, iris: myLook.iris, skin: w.id }), 'stimg lkskin', '<svg viewBox="0 0 40 40" aria-hidden="true">' + SKIN_SW[w.id] + '</svg>'); const u = lkPicUrl(w); return u ? '<img class="stimg" src="' + u + '" alt="" draggable="false">' : '<svg viewBox="0 0 40 40" aria-hidden="true">' + WEAR_ICON[w.id] + '</svg>'; }
 // a hang tag: the item's picture, and a strip: Equipped, its price, or Find it
 function lkCard(w, tab) {
   const own = bought(w.id), found = own || owns(w.id) || !needFind(w), on = own && lkWorn(w), n = store.drops || 0, broke = !own && found && n < PRICE(w), sel = LKR.sel === 'w:' + w.id;
@@ -23192,14 +23310,14 @@ function lkMineHtml() {
   h += '<p class="lksec">Eyes</p><div class="lkeyes"><div class="lkstyles" role="group" aria-label="Eye style">' + Object.keys(EYE_STYLES).map(k => { const it = EXTRA.find(x => x.id === k), lk = !!it && !bought(k);
     return '<button class="eyes' + (lk ? ' locked' : '') + (it && !lk && fresh.has(k) ? ' fresh' : '') + '" type="button" data-k="e:' + k + '" aria-label="' + EYE_STYLES[k] + ' eyes' + (lk ? (it.gift ? ', a free gift on the Spooky SZN stages' : ', in the Paint Shop') : '') + '" aria-pressed="' + (myLook.eyes === k) + '">' + ES_ICON_T[k] + (lk ? LOCK_ICON : '') + '</button>'; }).join('') + '</div>';
   const ni = NO_IRIS(myLook.eyes); h += '<div class="lkirises' + (ni ? ' off' : '') + '" role="group" aria-label="Eye colour"' + (ni ? ' aria-disabled="true"' : '') + '>' + EYE_KEYS.map(k => '<button class="eyec" type="button" data-k="i:' + k + '" style="--ic:' + EYE_COLS[k].css + '" aria-label="' + EYE_COLS[k].name + ' eyes" aria-pressed="' + (myLook.iris === k) + '"><i></i></button>').join('') + '</div></div>';
-  for (const c of ['head', 'face', 'cloth']) { const mine = WEAR.filter(w => w.cat === c && bought(w.id)).sort((a, b) => PRICE(a) - PRICE(b)), sale = WEAR.filter(w => w.cat === c && lkForSale(w)).length;
+  for (const c of ['skin', 'head', 'face', 'cloth']) { const mine = WEAR.filter(w => w.cat === c && bought(w.id)).sort((a, b) => PRICE(a) - PRICE(b)), sale = WEAR.filter(w => w.cat === c && lkForSale(w)).length;
     h += '<p class="lksec">' + LK_CAT[c] + (mine.length ? '<i>' + mine.length + '</i>' : '') + '</p>' + (mine.length ? grid(mine.map(w => lkCard(w, 'mine')).join('')) : '<p class="lknone">Nothing here yet.' + (sale ? ' <button class="lkgo" type="button" data-go="shop" data-f="' + c + '">The Paint Shop has ' + sale + '</button>' : '') + '</p>'); }
   return h;
 }
 // the shop: the season's finds first, under their banner, then everything else for sale (what this visit bought stays, as yours)
 // ---------- (v333) the Paint Shop's filters: All, the season, and each kind (the season's own of that kind first, under a heading) ----------
-const LK_FILT = [['all', 'All'], ['season', 'Spooky SZN'], ['head', 'Headgear'], ['face', 'Facial'], ['cloth', 'Clothing'], ['eyes', 'Eyes']];
-const LK_FI = {'all': '<rect x="4" y="4" width="7" height="7" rx="2" fill="currentColor"/><rect x="13" y="4" width="7" height="7" rx="2" fill="currentColor"/><rect x="4" y="13" width="7" height="7" rx="2" fill="currentColor"/><rect x="13" y="13" width="7" height="7" rx="2" fill="currentColor"/>', 'season': '<path d="M12 8.2c-1.3-.9-3.4-1-4.9-.1C5 9.3 4.2 11.6 4.2 13.6c0 3.3 2.2 5.9 5 5.9.9 0 1.9-.3 2.8-.8.9.5 1.9.8 2.8.8 2.8 0 5-2.6 5-5.9 0-2-.8-4.3-2.9-5.5-1.5-.9-3.6-.8-4.9.1z" fill="#FF8A2A"/><path d="M12 8.8v9.6M12 8.3c0-1.8.6-3.1 2-3.9"/>', 'head': '<path d="M3.5 18.2h17"/><path d="M7.2 18.2V8.4c0-1.1.9-2 2-2h5.6c1.1 0 2 .9 2 2v9.8"/><path d="M7.2 14.6h9.6"/>', 'face': '<circle cx="7.3" cy="13.4" r="3.7"/><circle cx="16.7" cy="13.4" r="3.7"/><path d="M11 12.8c.7-.6 1.3-.6 2 0M3.7 12.4 2.6 9.8M20.3 12.4l1.1-2.6"/>', 'cloth': '<path d="M10.2 12 4.2 8.3v7.4zM13.8 12l6-3.7v7.4z"/><rect x="10.2" y="10.2" width="3.6" height="3.6" rx="1" fill="currentColor"/>', 'eyes': '<path d="M2.8 12.2s3.4-5.4 9.2-5.4 9.2 5.4 9.2 5.4-3.4 5.4-9.2 5.4-9.2-5.4-9.2-5.4z"/><circle cx="12" cy="12.2" r="2.7" fill="currentColor"/>'}, LK_FSVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">';
+const LK_FILT = [['all', 'All'], ['season', 'Spooky SZN'], ['skin', 'Skins'], ['head', 'Headgear'], ['face', 'Facial'], ['cloth', 'Clothing'], ['eyes', 'Eyes']];
+const LK_FI = {'skin': '<path d="M12 3.2l2.2 5.6 5.6 2.2-5.6 2.2L12 18.8l-2.2-5.6L4.2 11l5.6-2.2z" fill="#FFD23F"/><circle cx="18.6" cy="18.4" r="1.9" fill="#FF7BC8"/><circle cx="5.4" cy="18.6" r="1.3" fill="#7CC8FF"/>', 'all': '<rect x="4" y="4" width="7" height="7" rx="2" fill="currentColor"/><rect x="13" y="4" width="7" height="7" rx="2" fill="currentColor"/><rect x="4" y="13" width="7" height="7" rx="2" fill="currentColor"/><rect x="13" y="13" width="7" height="7" rx="2" fill="currentColor"/>', 'season': '<path d="M12 8.2c-1.3-.9-3.4-1-4.9-.1C5 9.3 4.2 11.6 4.2 13.6c0 3.3 2.2 5.9 5 5.9.9 0 1.9-.3 2.8-.8.9.5 1.9.8 2.8.8 2.8 0 5-2.6 5-5.9 0-2-.8-4.3-2.9-5.5-1.5-.9-3.6-.8-4.9.1z" fill="#FF8A2A"/><path d="M12 8.8v9.6M12 8.3c0-1.8.6-3.1 2-3.9"/>', 'head': '<path d="M3.5 18.2h17"/><path d="M7.2 18.2V8.4c0-1.1.9-2 2-2h5.6c1.1 0 2 .9 2 2v9.8"/><path d="M7.2 14.6h9.6"/>', 'face': '<circle cx="7.3" cy="13.4" r="3.7"/><circle cx="16.7" cy="13.4" r="3.7"/><path d="M11 12.8c.7-.6 1.3-.6 2 0M3.7 12.4 2.6 9.8M20.3 12.4l1.1-2.6"/>', 'cloth': '<path d="M10.2 12 4.2 8.3v7.4zM13.8 12l6-3.7v7.4z"/><rect x="10.2" y="10.2" width="3.6" height="3.6" rx="1" fill="currentColor"/>', 'eyes': '<path d="M2.8 12.2s3.4-5.4 9.2-5.4 9.2 5.4 9.2 5.4-3.4 5.4-9.2 5.4-9.2-5.4-9.2-5.4z"/><circle cx="12" cy="12.2" r="2.7" fill="currentColor"/>'}, LK_FSVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">';
 const lkInF = (w, f) => f === 'all' || (f === 'season' ? !!w.season : w.cat === f);
 const lkFound = w => !bought(w.id) && owns(w.id) && needFind(w); // (a find that's for sale now: its tag says New)
 // the row: shown with more than one way to look (not in the lesson's shop, where the tips point at the flower and the fangs)
@@ -23220,7 +23338,7 @@ function lkShopHtml() {
     const sz = listed.filter(w => w.season).sort(by);
     if (sz.length) { const all = ITEMS.filter(w => w.season), got = all.filter(w => bought(w.id) || owns(w.id)).length;
       h += '<div class="lkszn" role="heading" aria-level="4"><span class="sbart" style="--sbbg:url(art/shop_hw_bg.webp)"></span><span class="lkszt"><i>Season One</i><b>Spooky SZN</b><small><u style="--p:' + (all.length ? got / all.length : 0).toFixed(3) + '"></u>' + got + ' of ' + all.length + ' found</small></span><img class="lkpump" src="art/shop_hw_pump.webp" alt="" draggable="false"></div>' + grid(sz); }
-    if (f === 'all') for (const c of ['head', 'face', 'cloth', 'eyes']) { const l = listed.filter(w => !w.season && w.cat === c).sort(by); if (l.length) h += '<p class="lksec">' + LK_CAT[c] + '</p>' + grid(l); }
+    if (f === 'all') for (const c of ['skin', 'head', 'face', 'cloth', 'eyes']) { const l = listed.filter(w => !w.season && w.cat === c).sort(by); if (l.length) h += '<p class="lksec' + (c === 'skin' ? ' lkprem' : '') + '">' + (c === 'skin' ? LK_FSVG + LK_FI.skin + '</svg>' : '') + LK_CAT[c] + '</p>' + grid(l); }
   } else {
     const sz = listed.filter(w => w.season && w.cat === f).sort(by), yr = listed.filter(w => !w.season && w.cat === f).sort(by);
     if (sz.length) h += '<p class="lksec">' + LK_FSVG + LK_FI.season + '</svg>Spooky SZN</p>' + grid(sz);
@@ -23275,6 +23393,7 @@ function lkShowRender() {
   if (w) { const own = bought(w.id), found = own || owns(w.id) || !needFind(w), on = own && lkWorn(w), where = WEAR_WHERE[w.stage], p = PRICE(w);
     kind = w.season ? 'Spooky SZN · ' + LK_CAT[w.cat] : LK_CAT[w.cat]; name = w.name;
     line = own ? (needFind(w) ? 'Found on ' + where : 'From the Paint Shop') : found ? (owns(w.id) && needFind(w) ? 'You found it on ' + where : 'In stock now') : 'Found on ' + where + ' only';
+    if (w.slot === 'skin') line = w.desc; // (v387)
     if (own) { if (on) { doH = ST_CHECK + 'Equipped'; doCls = 'on'; doDis = true; doLab = w.name + ' is equipped'; off = w.slot !== 'eyes'; } else { doH = 'Equip'; doLab = 'Put on the ' + w.name.toLowerCase(); } }
     else if (found) { if (n >= p) { doH = 'Buy<small>' + DROP_SVG + p + '</small>'; doCls = 'craft'; doLab = 'Buy the ' + w.name.toLowerCase() + ' for ' + p + ' dabs'; } else { doH = DROP_SVG + p; doDis = true; doLab = w.name + ', ' + p + ' dabs'; note = 'You need ' + (p - n) + ' more dabs. Matches pay in dabs'; } }
     else { doH = STROKE_LOCK + 'Find it'; doDis = true; doLab = w.name + ' is locked'; note = 'Find it on ' + where + ', then it’s for sale here'; } }
@@ -23435,6 +23554,7 @@ function sgDressReact(w) {
   D.squash = Math.max(D.squash, 0.45); D.wob = Math.max(D.wob, 0.7); SGD.mood = w.slot === 'eyes' ? 'smirk' : 'glee'; SGD.moodT = 1.1;
   SGD.fzT = w.cat === 'face' || w.slot === 'eyes' ? 2.6 : 0;
   SGD.dV = 0; SGD.dyaw = wrapA(SGD.dyaw); SGD.dyawTo = w.slot === 'back' ? 2.7 : w.slot === 'side' ? -0.8 : w.slot === 'arms' ? 0.75 : 0; SGD.dHold = SGD.dyawTo ? 2.2 : 0;
+  if (w.slot === 'skin') { SGD.popId = null; SGD.dyaw -= 6.2832; SGD.dyawTo = 0; SGD.dHold = 0; sgRing(0, 0, 0.8, 0xFFE23C); } // (v387: a skin: once round, to show it all)
   sgRing(0, 0, 0.6, 0xFFFFFF); if (!reduceMotion) sgBurst(0, 0, COL_WHITE, 6, 2.4, 1.2);
   setTimeout(() => { if (lkOn()) AU.vox(w.cat === 'cloth' ? 'giggle' : 'ooh', 0.9); }, 110);
 }
@@ -24227,7 +24347,7 @@ function frToast(html) { const t = document.createElement('div'); t.className = 
 // link, each look once. A page asks with ptHtml: the picture if it's made, else a placeholder (the drawn face inside it, for when no
 // portrait can be made) that the portrait takes the place of when it's ready. One every few frames, never mid-match.
 const PT = { built: false, ready: false, busy: false, fail: false, errs: 0, cool: 0, n: 0, jobs: [], map: new Map(), wait: document.getElementsByClassName('ptwait') };
-const PT_S = 256, PT_SS = 2, PT_FOV = 16, PT_X = -640, PT_Z = 640, PT_SLOTS = ['head', 'back', 'mouth', 'eye', 'side', 'neck', 'lash', 'arms'];
+const PT_S = 256, PT_SS = 2, PT_FOV = 16, PT_X = -640, PT_Z = 640, PT_SLOTS = ['head', 'back', 'mouth', 'eye', 'side', 'neck', 'lash', 'arms', 'skin'];
 // the pose and the light: the body turned this far from the face (rad), the lens this far round from the face's own line and above it,
 // where the eyes look (face units), the three lights (times LIGHT_K)
 const PT_K = Object.assign({ body: 0.22, turn: -0.12, el: 0.1, lookX: 0, lookY: 0.04, hemi: 0.5, key: 0.8, rim: 0.5 }, window.__ptK || {});
@@ -24547,7 +24667,7 @@ function netRival(fo) {
   const L = fo.look && typeof fo.look === 'object' ? fo.look : {}, w = L.w && typeof L.w === 'object' ? L.w : {}, ok = (v, slot) => typeof v === 'string' && WEAR.some(x => x.id === v && x.slot === slot) ? v : null;
   NAMES[1] = fo.name ? hdOf(String(fo.name).slice(0, 16)) : 'Rival'; // (v311: a person, by their handle)
   const c = typeof L.c === 'string' && rivalColOf(L.c); if (c) rivalCol[1] = c;
-  LH.wearing = { head: ok(w.head, 'head'), back: ok(w.back, 'back'), mouth: ok(w.mouth, 'mouth'), eye: ok(w.eye, 'eye'), side: ok(w.side, 'side'), neck: ok(w.neck, 'neck'), lash: ok(w.lash, 'lash'), arms: ok(w.arms, 'arms'), iris: EYE_KEYS.includes(w.iris) ? w.iris : 'brown', eyes: EYE_STYLES[L.e] ? L.e : 'round' };
+  LH.wearing = { head: ok(w.head, 'head'), back: ok(w.back, 'back'), mouth: ok(w.mouth, 'mouth'), eye: ok(w.eye, 'eye'), side: ok(w.side, 'side'), neck: ok(w.neck, 'neck'), lash: ok(w.lash, 'lash'), arms: ok(w.arms, 'arms'), skin: ok(w.skin, 'skin'), iris: EYE_KEYS.includes(w.iris) ? w.iris : 'brown', eyes: EYE_STYLES[L.e] ? L.e : 'round' };
   NM.foeRank = clamp(L.r | 0, 1, 999) || 1; teamTint = true; teamHues();
 }
 // the versus card stays up until the server says go (and at least a moment, to see who it is)
