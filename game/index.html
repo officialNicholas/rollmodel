@@ -563,6 +563,13 @@ button{font-family:var(--font-ui)}
   .slamBtn{position:absolute;margin:0;right:max(26px,calc(env(safe-area-inset-right) + 18px));bottom:max(22px,calc(env(safe-area-inset-bottom) + 14px));width:112px;height:76px}
   .slamBtn svg{width:46px;height:46px}
 }
+/* (v390) a wide screen taller than a phone's (iPhone Duo open, a small tablet): the pound button in the bottom right corner, as sideways */
+@media (min-height:521px) and (min-aspect-ratio:23/20){.slamBtn{position:absolute;margin:0;right:max(30px,calc(env(safe-area-inset-right) + 22px));bottom:max(28px,calc(env(safe-area-inset-bottom) + 18px))}html.fv .slamBtn{translate:none}}
+/* (v390) a near-square screen (iPhone Duo, an iPad): the match's pause and sound buttons further in from its rounded corners */
+html.roomy .hud{padding-top:max(22px,calc(env(safe-area-inset-top) + 10px));padding-left:max(24px,calc(env(safe-area-inset-left) + 12px));padding-right:max(24px,calc(env(safe-area-inset-right) + 12px))}
+html.roomy .corner{top:max(22px,calc(env(safe-area-inset-top) + 10px));right:max(24px,calc(env(safe-area-inset-right) + 12px))}
+/* (v390) and the ink band behind the Strokes page's and the Locker's tabs fades out at its ends (it can end short of the screen's edge there) */
+html.roomy :is(#mStrokes,#mLocker).sgp .sgtabs::before{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14%,#000 86%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 14%,#000 86%,transparent 100%)}
 /* cards: how to play and pause sit over a dimmed game */
 .modal{position:absolute;inset:0;z-index:12;display:grid;grid-template-columns:minmax(0,1fr);place-items:center;padding:16px;box-sizing:border-box;background:rgba(9,4,22,.62);animation:fadein .18s ease-out}
 @keyframes fadein{from{opacity:0}}
@@ -2214,6 +2221,7 @@ body.homeon .corner{display:none}
 .itemBtn:active{transform:translateY(3px) scale(.95)}
 .itemBtn.nope{animation:nope .35s}.itemBtn.tutup{z-index:8}
 .hud.off .itemBtn{pointer-events:none;opacity:0}
+@media (min-height:521px) and (min-aspect-ratio:23/20){.itemBtn{left:auto;right:max(150px,calc(env(safe-area-inset-right) + 142px));bottom:max(36px,calc(env(safe-area-inset-bottom) + 26px))}} /* (v390) */
 @media (max-height:520px) and (min-aspect-ratio:1/1){.itemBtn{left:auto;right:max(156px,calc(env(safe-area-inset-right) + 148px));bottom:max(22px,calc(env(safe-area-inset-bottom) + 14px));width:70px;height:70px}.itemBtn svg{width:34px;height:34px;margin-top:-10px}.itemBtn .ilbl{bottom:11px;font-size:9px}}
 @media (prefers-reduced-motion:reduce){.itemBtn.in,.itemBtn.nope{animation:none}}
 
@@ -2905,6 +2913,32 @@ html.touchnav :focus-visible{outline:none!important}
   .menu:not(.tutoring) .mworld .sgrid{grid-row:3/7;max-height:100%;overflow:auto}
   .menu:not(.tutoring) .mworld .wfoot{grid-row:7}
 }
+
+/* (v390) the vote for a canvas on a landscape screen taller than a phone's: the paintings and their dots in the middle of the space
+   between the title and the footer, as upright */
+@media (min-aspect-ratio:1/1) and (min-height:521px){
+  .menu:not(.tutoring) .mworld{grid-template-rows:auto auto minmax(6px,1fr) auto auto minmax(6px,1fr) auto}
+  .menu:not(.tutoring) .mworld .whead{grid-row:1}
+  .menu:not(.tutoring) .mworld #modes{grid-row:2}
+  .menu:not(.tutoring) .mworld .gallery{grid-row:4;height:auto;padding-top:30px;padding-bottom:30px}
+  .menu:not(.tutoring) .mworld #gDots{grid-row:5}
+  .menu:not(.tutoring) .mworld .sgrid{grid-row:3/7;max-height:100%;overflow:auto}
+  .menu:not(.tutoring) .mworld .wfoot{grid-row:7}
+}
+/* (v390) partly folded, held wide: the paintings across both screens (the one you're on in the middle of the left-hand one, the next in
+   the middle of the right-hand one: the script spaces them a screen apart), the arrows at the far edges; shuffle under the left-hand
+   screen, Play and its note under the right */
+html.fv.fold .mworld{grid-template-columns:minmax(0,var(--fa)) var(--fg) minmax(0,1fr);grid-template-rows:auto auto minmax(6px,1fr) auto auto minmax(6px,1fr) auto}
+html.fv.fold .mworld .gallery{grid-column:1/-1;grid-row:4;height:auto;padding-top:30px;padding-bottom:30px}
+html.fv.fold .mworld .world{max-width:calc(var(--fa) - 120px)}
+html.fv.fold .mworld #gDots{grid-column:1;grid-row:5}
+html.fv.fold .mworld .wfoot{grid-column:1/-1;grid-row:7;align-self:end;width:100%;margin:0;grid-template-columns:minmax(0,var(--fa)) var(--fg) minmax(0,1fr);column-gap:0}
+html.fv.fold .mworld .wfoot>*{grid-column:3;justify-self:center;width:min(calc(100% - 40px),420px);box-sizing:border-box}
+html.fv.fold .mworld .wfoot>.wgo{grid-column:1/-1;width:100%;display:grid;grid-template-columns:minmax(0,var(--fa)) var(--fg) minmax(0,1fr);gap:0}
+html.fv.fold .mworld .wgo #shuffleBtn{grid-column:1;justify-self:center}
+html.fv.fold .mworld .wgo #startBtn{grid-column:3;justify-self:center;width:min(calc(100% - 40px),420px)}
+html.fv.fold .mworld .gnav{top:var(--gmid,54%)}
+html.fv.fold .mworld .gnav.next{right:max(10px,calc(env(safe-area-inset-right,0px) + 4px))}
 /* the count under the title on a line of its own */
 .mworld .whead h2::after{position:static;display:block;transform:skewX(6deg);margin-top:10px;font:800 11px/1 var(--font-ui);letter-spacing:.22em;color:#CBC2DA}
 /* a warm gallery light over the painting you're on */
@@ -3055,6 +3089,7 @@ html.difflock #stages,html.difflock #wDiffHd{display:none!important} /* (v378: n
 .itemBtn.orbBtn.up{bottom:calc(max(24px,calc(env(safe-area-inset-bottom) + 16px)) + 166px)}
 .itemBtn.ib2 svg,.itemBtn.orbBtn svg{width:30px;height:30px;margin-top:-10px}.orbBtn .stimg{position:relative;z-index:1;width:38px;height:38px;margin-top:-12px;object-fit:contain;filter:drop-shadow(0 2px 0 rgba(0,0,0,.25))}
 .itemBtn.ib2 .ilbl,.itemBtn.orbBtn .ilbl{bottom:10px;font-size:8.5px}
+@media (min-height:521px) and (min-aspect-ratio:23/20){.itemBtn.ib2,.itemBtn.orbBtn{left:auto;right:calc(max(150px,calc(env(safe-area-inset-right) + 142px)) + 94px);bottom:calc(max(36px,calc(env(safe-area-inset-bottom) + 26px)) + 8px)}.itemBtn.orbBtn.up{right:calc(max(150px,calc(env(safe-area-inset-right) + 142px)) + 168px)}} /* (v390) */
 @media (max-height:520px) and (min-aspect-ratio:1/1){.itemBtn.ib2,.itemBtn.orbBtn{left:auto;right:calc(max(156px,calc(env(safe-area-inset-right) + 148px)) + 80px);bottom:calc(max(22px,calc(env(safe-area-inset-bottom) + 14px)) + 3px);width:64px;height:64px}.itemBtn.orbBtn.up{right:calc(max(156px,calc(env(safe-area-inset-right) + 148px)) + 154px)}}
 .flash.ice{background:radial-gradient(circle at 50% 45%,#FFFFFF 0,#DDF3FF 45%,#9ED8FF 100%)}
 .flash.ice.on{animation:flashice .9s ease-out}
@@ -4002,6 +4037,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 @media (prefers-reduced-motion:reduce){.dsnoads::before,.dsspark{animation:none}.dsspark{opacity:.8}}
 .dspacks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 @media (min-width:620px){.dspacks{grid-template-columns:repeat(4,minmax(0,1fr))}}
+html.fv.fold .dspacks{grid-template-columns:repeat(2,minmax(0,1fr))} /* (v390: the card is in one screen there) */
 .dspack{position:relative;display:grid;justify-items:center;gap:4px;padding:10px 8px 8px;border:2.5px solid #171320;border-radius:14px;background:radial-gradient(circle at 50% 35%,#3A2F63,#1C1633 70%);box-shadow:0 3px 0 #171320;color:#fff;min-width:0}
 .dspack img{width:min(100%,104px);aspect-ratio:1;object-fit:contain;filter:drop-shadow(0 4px 0 rgba(0,0,0,.35))}
 .dspack .dsn{display:flex;align-items:center;gap:5px;font:400 24px/1 var(--font-display);text-shadow:0 2px 0 #000}.dspack .dsn svg{width:20px;height:20px}
@@ -4532,6 +4568,8 @@ html.appstore #errLine,html.appstore #lastErr{display:none!important}
 #mLocker.sgp .lkempty svg{width:46px;height:46px}
 /* the hang tags on paper */
 #mLocker.sgp .sggrid{gap:18px 14px}
+/* (v390) an upright screen 560 wide or more (iPhone Duo open, an iPad): the cards four to a row, a little smaller */
+@media (max-aspect-ratio:1/1) and (min-width:560px){:is(#mStrokes,#mLocker).sgp .sggrid,#mLocker.sgp .sggrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px 12px}}
 #mLocker.sgp .sgcard::before{content:"";position:absolute;left:0;right:0;top:10px;bottom:0;border-radius:11px;box-shadow:0 0 0 2px var(--ink0),3px 4px 0 rgba(23,19,32,.16);pointer-events:none}
 #mLocker.sgp .sgcard .sghook{box-shadow:inset 0 0 0 2.6px #55555E,0 1px 0 rgba(0,0,0,.25)}
 #mLocker.sgp .sgcard .sgca .stimg{inset:-4% -6%;width:112%;height:108%}
@@ -4748,6 +4786,10 @@ html.fv .mworld .gnav.next{right:calc(100% - var(--fa) + 4px)}
 html.fv .mworld .gnav{top:calc(50% + 24px)}
 /* in a match: what sits in the middle goes to the right-hand screen */
 html.fv .hud .score,html.fv .slamBtn,html.fv .vsx .vstitle{translate:calc(var(--fb) / 2) 0}
+/* (v390) the lesson's callouts in a match, and the hand showing the gesture, in the left-hand screen (the pause card has the right) */
+html.fv .tut[data-pos="play"]{left:calc(var(--fa) / 2);max-width:calc(var(--fa) - 28px)}
+html.fv .tutgest{left:calc(var(--fa) / 2)}
+@media (min-aspect-ratio:23/20),(max-height:520px) and (min-aspect-ratio:1/1){html.fv.fold .hud .slamBtn{translate:none}} /* (v390: in its corner there) */
 html.fv .banner{left:var(--fb)}
 html.fv .hint{left:calc(var(--fb) + 8px)}
 html.fv :is(.pop,.threat,.tutpraise,.tutpips,.evtoast,.sdspec,.mstrokes .sttoast,.frtoast,.kofb,.tydabs){left:calc((100% + var(--fb)) / 2)}
@@ -4966,7 +5008,7 @@ html.fh .tutgo .tgcard .tava{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 389</p>
+      <p class="ver">Version 390</p>
     </div>
   </div>
 
@@ -14520,15 +14562,22 @@ function whirlGlintTick(D, W, dt) {
   if (W.ph === 'dash') { const u = L.m.material.uniforms; u.uFill.value = 1; u.uT.value = clock; u.uLock.value = 0.35; u.uA.value = Math.max(0, 1 - W.t / 0.6); L.m.visible = u.uA.value > 0.01; }
   else if (W.ph === 'end') L.m.visible = false;
 }
+// (v390) the Whirlwind's own sounds (sfx/w_wind2.mp3, w_dash.mp3), for the whirler or a rival within earshot (quieter further off,
+// as at() makes the game's other sounds). The handle stays on the whirlwind, so the sound before it fades as the next starts, and the
+// charge's can fade if it stops short. False if it hasn't arrived yet: the caller plays the synth
+function whirlSnd(D, n) {
+  const W = D.whirl, h = AU.xplay && AU.xplay(n, { v: D === P ? 1 : clamp(1.15 - Math.hypot(D.x - P.x, D.z - P.z) / 22, 0.45, 1) }); if (!h) return false;
+  if (W) { if (W.snd) W.snd.stop(0.04); W.snd = h; W.sn = n; } return true;
+}
 function startWhirl(D) {
   if (D.charging) clearCharge(D); if (D === P) { holdCharge = false; slingOff(); }
   if (D.ai) { let best = null, bd = 14; for (const O of foes(D)) if (O.st === 'play') { const d = Math.hypot(O.x - D.x, O.z - D.z); if (d < bd) { bd = d; best = O; } } if (best) D.yaw = Math.atan2(best.x - D.x, best.z - D.z); } // (a CPU squares up to the nearest rival)
   D.whirl = { ph: 'wind', t: 0, spinA: 0, k: 0, swT: 0, lx: D.x, lz: D.z };
   const fx = whirlFx(D); fx.pm.uniforms.uCol.value.copy(tmat(D).color); fx.g.visible = true;
   emote(D, 'glee', 1.2);
-  if (D === P) { if (!(AU.xplay && AU.xplay('w_wind', { v: 0.8 }))) AU.rise(); buzz(10); banner('Whirlwind!', 'Aim it. It charges when the lane fills'); } else if (hearable(D) && !(AU.xplay && AU.xplay('w_wind', { v: 0.9 }))) AU.rise();
+  if (D === P) { if (!whirlSnd(D, 'w_wind2')) AU.rise(); buzz(10); banner('Whirlwind!', 'Aim it. It charges when the lane fills'); } else if (hearable(D) && !whirlSnd(D, 'w_wind2')) AU.rise();
 }
-function endWhirl(D) { D.whirl = null; if (D.wfx) D.wfx.g.visible = false; if (D.wlane) { D.wlane.m.visible = false; D.wlane.sp.visible = false; } }
+function endWhirl(D) { if (D.whirl && D.whirl.snd) D.whirl.snd.stop(0.15); D.whirl = null; if (D.wfx) D.wfx.g.visible = false; if (D.wlane) { D.wlane.m.visible = false; D.wlane.sp.visible = false; } }
 // the end: a burst of paint round you, and anyone close splatted
 function whirlBurst(D) {
   addSplat(D.x, D.y, D.z, D.yaw, WHIRL_TRAIL * 1.45, dryClock, false, false, tcode(D), 0.15); splash(D, 2.2); shockwave(D.x, D.y, D.z, 2.8, TEAMS[D.team].wet);
@@ -14540,7 +14589,7 @@ function whirlTick(D, dt) {
   const fwx = Math.sin(D.yaw), fwz = Math.cos(D.yaw);
   if (W.ph === 'wind') { W.k = Math.min(1, W.t / WHIRL_WIND); W.spinA += dt * (8 + 24 * W.k); whirlWind(D, W, dt);
     if (Math.random() < dt * 40) { const a = Math.random() * 6.283, r = 1.3; spawnPart(D.x + Math.cos(a) * r, D.y + 0.4 + Math.sin(a) * 0.5, D.z + Math.sin(a) * r, -Math.cos(a) * 3, 0.4, -Math.sin(a) * 3, 0.3, puHaloMat, 0.35, 0); } // (sparks drawn in)
-    if (W.t >= WHIRL_WIND) { W.ph = 'dash'; W.t = 0; W.lx = D.x; W.lz = D.z; if (D === P) { AU.boost(); AU.dash(); shake = Math.max(shake, 0.12); buzz(14); } else if (hearable(D)) AU.dash(); } }
+    if (W.t >= WHIRL_WIND) { W.ph = 'dash'; W.t = 0; W.lx = D.x; W.lz = D.z; if (D === P) { if (!whirlSnd(D, 'w_dash')) { AU.boost(); AU.dash(); } shake = Math.max(shake, 0.12); buzz(14); } else if (hearable(D) && !whirlSnd(D, 'w_dash')) AU.dash(); } }
   else if (W.ph === 'dash') {
     W.spinA += dt * 22;
     // leans toward a rival just ahead (inside a narrow cone), so a fair aim lands
@@ -14554,10 +14603,10 @@ function whirlTick(D, dt) {
     for (let n = Math.random() < dt * 70 ? 1 + (Math.random() < 0.5 ? 1 : 0) : 0; n > 0; n--) { const a = W.spinA + Math.random() * 6.283, rx = Math.cos(D.yaw), rz = -Math.sin(D.yaw), ca = Math.cos(a), sa = Math.sin(a);
       spawnPart(D.x - fwx * 0.6 + rx * ca * 0.95, D.y + 0.42 + Math.max(-0.3, sa * 0.95), D.z - fwz * 0.6 + rz * ca * 0.95, rx * -sa * 4.5 - fwx * 2.5, 1.2 + ca * 4.5, rz * -sa * 4.5 - fwz * 2.5, 0.5, tmat(D), 0.6 + Math.random() * 0.5); }
     if (D === P) { fovKick = Math.max(fovKick, 7); shake = Math.max(shake, 0.04); }
-    W.swT -= dt; if (W.swT <= 0) { W.swT = 0.26; if (D === P || hearable(D)) AU.swish(); }
+    W.swT -= dt; if (W.swT <= 0) { W.swT = 0.26; if (W.sn !== 'w_dash' && (D === P || hearable(D))) AU.swish(); }
     // done, or about to run off a drop or into a wall: it ends here
     const g = surfaceUnder(D.x + fwx * 0.9, D.z + fwz * 0.9, D.y + STEP, true);
-    if (W.t >= WHIRL_DASH || g === -Infinity || g < D.y - 0.6 || (W.t > 0.2 && D.spd < 1)) { if (W.t < WHIRL_DASH) D.spd = 0; W.ph = 'end'; W.t = 0; whirlBurst(D); } }
+    if (W.t >= WHIRL_DASH || g === -Infinity || g < D.y - 0.6 || (W.t > 0.2 && D.spd < 1)) { if (W.t < WHIRL_DASH) { D.spd = 0; if (W.snd) W.snd.stop(0.15); } W.ph = 'end'; W.t = 0; whirlBurst(D); } }
   else { W.spinA += dt * 12; W.k = W.t / WHIRL_END; if (W.t >= WHIRL_END) return endWhirl(D); }
   whirlGlintTick(D, W, dt);
   // the tornado: on you, along your heading, spinning; it spins up and swells in, and the burst throws it wide as it fades
@@ -14780,7 +14829,7 @@ const itemSpawn = { t: 7, last: null };
 function placePowers() {
   clearTraps(); boomClear(); clearStorms(); clearShocks(); dropTree(powers.map(pw => pw.g)); powers = []; itemSpawn.t = 6 + Math.random() * 3; itemSpawn.last = null; // (v348: the turns of pick-ups run on from one match to the next)
   itemSpawn.pend = null; itemSpawn.gap = 0; if (itemMarkGet.m) itemMarkGet.m.g.visible = false; for (const D of [P, H, H2, H3]) if (D) D.handT = 0; // (v285)
-  if (AU.xwant) { AU.xwant('w_wind'); AU.xwant('w_ting'); }
+  if (AU.xwant) { AU.xwant('w_wind2'); AU.xwant('w_dash'); AU.xwant('w_ting'); }
 }
 function spawnItem() {
   const alive = ACTIVE.filter(D => D.st !== 'out');
@@ -16391,7 +16440,9 @@ function makeAudio() {
   function xGet(n) { if (XB[n] || !ctx || typeof fetch !== 'function' || location.protocol === 'file:') return; XB[n] = 'busy';
     fetch(SFX_BASE + n + '.mp3').then(r => { if (!r.ok) throw new Error('missing'); return r.arrayBuffer(); }).then(b => new Promise((ok, bad) => { const p = ctx.decodeAudioData(b, ok, bad); if (p && p.catch) p.catch(bad); })).then(buf => { XB[n] = buf; }).catch(() => { XB[n] = null; }); }
   function xPlay(n, o) { o = o || {}; const b = XB[n]; if (!ctx || !b || b === 'busy' || ctx.state !== 'running') { xGet(n); return false; }
-    try { const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = b; src.playbackRate.value = o.rate || 1; g.gain.value = (o.v == null ? 1 : o.v) * cur.g0; src.connect(g); g.connect(sfx); src.start(T() + (o.d || 0) + 0.004); } catch (e) { return false; } return true; }
+    try { const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = b; src.playbackRate.value = o.rate || 1; g.gain.value = (o.v == null ? 1 : o.v) * cur.g0; src.connect(g); g.connect(sfx); src.start(T() + (o.d || 0) + 0.004); return { stop: f => xStop(src, g, f) }; } catch (e) { return false; } }
+  // (v390) fade a played file out over f seconds (0.12 by default) and end it; nothing once it has ended
+  function xStop(src, g, f) { try { const t = T(), t1 = t + Math.max(0.02, f == null ? 0.12 : f); g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value, t); g.gain.linearRampToValueAtTime(0, t1); src.stop(t1 + 0.02); } catch (e) {} }
   // play one take of a sound: o.v level, o.rate pitch, o.vary random pitch spread, o.d delay, o.p a stereo spot (else where it was heard from)
   function P_(name, o) {
     const e = SFXI.snd && SFXI.snd[name]; if (!e || !ctx) return false;
@@ -22683,18 +22734,26 @@ function renderStages() {
 // ---------- the world select: a gallery of framed paintings. On a phone it's a carousel, and the painting in the middle is the one you'll play ----------
 let menuPage = 'home', galT = 0;
 const gallery = $('stagePick'), worldBtns = [...gallery.querySelectorAll('.world')];
+// (v390) where the painting you're on sits across the gallery: its middle; or, iPhone Duo partly folded and held wide, the middle of
+// the left-hand screen (none on the fold)
+const galFold = () => FOLD.on && FOLD.axis === 'v' && document.documentElement.classList.contains('fv');
+function galMid() { const cw = gallery.clientWidth; if (!galFold()) return cw / 2; return Math.max(60, FOLD.a / 2 - gallery.getBoundingClientRect().left); }
 /* the side padding matches the painting's real width (it changes with the screen), so the first and last can sit dead centre too */
 { let gpW = 0, gpQ = 0; const gpFit = () => { gpQ = 0; const on = worldBtns.find(b => b.getAttribute('aria-pressed') === 'true') || worldBtns[0]; if (!on || !gallery.clientWidth || !on.offsetWidth) return;
     const mw = $('mWorld'), gr = gallery.getBoundingClientRect(), mr = mw.getBoundingClientRect(); { const ff = (on.querySelector('.frame') || on).getBoundingClientRect(); mw.style.setProperty('--gmid', Math.round((ff.height ? ff.top + ff.height / 2 : gr.top + gr.height / 2) - mr.top) + 'px'); } /* (the arrows' height: the middle of the painting) */
     const fr = on.querySelector('.frame') || on, fl = fr === on ? 0 : fr.offsetLeft, fw = fr.offsetWidth, ww = on.offsetWidth, cw = gallery.clientWidth; /* (the frame can be wider than its button: centre the frame) */
-    const pl = Math.max(12, Math.round(cw / 2 - fl - fw / 2)), pr = Math.max(12, Math.round(cw / 2 + fl + fw / 2 - ww)); if (pl + ',' + pr !== gpW) { gpW = pl + ',' + pr; gallery.style.paddingLeft = pl + 'px'; gallery.style.paddingRight = pr + 'px'; }
-    if (gallery.scrollWidth > cw + 4) gallery.scrollLeft = on.offsetLeft + fl + fw / 2 - cw / 2; };
+    const A = galMid(), pl = Math.max(12, Math.round(A - fl - fw / 2)), pr = Math.max(12, Math.round(cw - A + fl + fw / 2 - ww));
+    { const g = galFold() ? Math.max(16, Math.round((FOLD.b + innerWidth) / 2 - FOLD.a / 2 - ww)) + 'px' : ''; if (gallery.style.columnGap !== g) gallery.style.columnGap = g;
+      const sl = galFold() ? Math.max(0, Math.round(2 * A - cw)) + 'px' : '', sr = galFold() ? Math.max(0, Math.round(cw - 2 * A)) + 'px' : ''; // (and the snap's centre there too)
+      if (gallery.style.scrollPaddingLeft !== sl) gallery.style.scrollPaddingLeft = sl; if (gallery.style.scrollPaddingRight !== sr) gallery.style.scrollPaddingRight = sr; } // (v390: a screen apart)
+    if (pl + ',' + pr !== gpW) { gpW = pl + ',' + pr; gallery.style.paddingLeft = pl + 'px'; gallery.style.paddingRight = pr + 'px'; }
+    if (gallery.scrollWidth > cw + 4) gallery.scrollLeft = on.offsetLeft + fl + fw / 2 - A; };
   const gpSoon = () => { if (!gpQ) gpQ = requestAnimationFrame(gpFit); }; /* (next frame, never inside the resize callback: no observer loop) */
-  if (window.ResizeObserver) new ResizeObserver(gpSoon).observe(gallery); addEventListener('resize', gpSoon); window.__gpFit = gpSoon; }
+  if (window.ResizeObserver) new ResizeObserver(gpSoon).observe(gallery); addEventListener('resize', gpSoon); addEventListener('nativefold', () => setTimeout(gpSoon, 30)); window.__gpFit = gpSoon; }
 const W_DROP = '<svg class="wdrop" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8c3.6 4.5 6.3 8 6.3 11.4a6.3 6.3 0 0 1-12.6 0c0-3.4 2.7-6.9 6.3-11.4z"/></svg>', W_CROWN = '<svg class="wcrown" viewBox="0 0 30 24" aria-hidden="true"><path d="M3.5 20.5 2 7l7.2 5.2L15 3l5.8 9.2L28 7l-1.5 13.5z"/></svg>';
 const worldKey = () => (GEN.themes && GEN.themes.length === 1 && !SEASON.themes.includes(GEN.themes[0]) && STAGE_KEY[GEN.themes[0]]) || 's' + SEASON.n;
 const galScrolls = () => gallery.scrollWidth > gallery.clientWidth + 4;
-function worldAt() { if (!galScrolls()) return null; const mid = gallery.scrollLeft + gallery.clientWidth / 2; let best = null, bd = 1e9; for (const b of worldBtns) { const d = Math.abs(b.offsetLeft + b.offsetWidth / 2 - mid); if (d < bd) { bd = d; best = b; } } return best; }
+function worldAt() { if (!galScrolls()) return null; const mid = gallery.scrollLeft + galMid(); let best = null, bd = 1e9; for (const b of worldBtns) { const d = Math.abs(b.offsetLeft + b.offsetWidth / 2 - mid); if (d < bd) { bd = d; best = b; } } return best; }
 function renderWorlds() {
   if (typeof ttStrip === 'function') ttStrip(); // (v293)
   const W = store.world || {};
@@ -22721,7 +22780,7 @@ function selectWorld(s) {
   // the new canvas builds just after, so the tap answers first
   worldBuild(s); kick($('cvName'), 'bump');
 }
-function centerWorld(b, smooth) { if (!galScrolls() || !b) return; const fr = b.querySelector('.frame'); gallery.scrollTo({ left: b.offsetLeft + (fr ? fr.offsetLeft + fr.offsetWidth / 2 : b.offsetWidth / 2) - gallery.clientWidth / 2, behavior: smooth ? 'smooth' : 'auto' }); }
+function centerWorld(b, smooth) { if (!galScrolls() || !b) return; const fr = b.querySelector('.frame'); gallery.scrollTo({ left: b.offsetLeft + (fr ? fr.offsetLeft + fr.offsetWidth / 2 : b.offsetWidth / 2) - galMid(), behavior: smooth ? 'smooth' : 'auto' }); }
 gallery.addEventListener('click', e => {
   const t = e.target.closest('.world'); if (!t) return;
   if (t.dataset.s === 'season') { centerWorld(t, true); selectWorld('season'); openSeason(); return; }
@@ -27376,7 +27435,7 @@ function coachCorner(side, top) {
   clearTimeout(coachOffT); if (coachEl.dataset.side !== side) coachEl.dataset.side = side; if (coachEl.classList.contains('atcard') !== !!top) coachEl.classList.toggle('atcard', !!top); /* (v352: not .oncard, the online card's) */
   if (coachEl.hidden) { coachEl.hidden = false; void coachEl.offsetWidth; } if (!coachEl.classList.contains('on')) coachEl.classList.add('on');
 }
-const coachSide = () => viewW > viewH && viewH <= 520 ? 'l' : 'r'; // (the buttons' own sides: see .itemBtn and .slamBtn)
+const coachSide = () => viewW > viewH && (viewH <= 520 || viewW >= viewH * 1.15) ? 'l' : 'r'; /* (v390: any wide screen, its buttons on the right) */ // (the buttons' own sides: see .itemBtn and .slamBtn)
 function coachTalk() { coachEl.classList.remove('talk'); void coachEl.offsetWidth; coachEl.classList.add('talk'); }
 // on the canvases page, upright, a loose tip sits under the page's header (in the room the hidden mode tabs leave) instead of over it
 function tutUnderHead(r0) { const w = $('mWorld'); if (w.hidden || innerWidth > innerHeight || menuPage !== 'worlds') return 0; const h = w.querySelector('.whead').getBoundingClientRect(); return h.height ? h.bottom - r0.top + 4 : 0; }
@@ -28072,9 +28131,54 @@ function showTutWin() {
   { const info = endInfo || {}, rw = []; rw.push('<span style="--i:0">' + DROP_SVG + '<b>+' + (info.drops || 0) + '</b> dabs</span>'); if (info.tutBonus) rw.push('<span style="--i:1"><b>+' + info.tutBonus + '</b> lesson bonus</span>'); rw.push('<span style="--i:2">Flower + Fangs found</span>'); $('twRew').innerHTML = rw.join(''); }
   outro = true; outroT = 0; outroBase = Math.round(camYaw / (Math.PI / 2)) * (Math.PI / 2); // (the view pulls back over the whole canvas)
   hud.classList.add('off'); hintEl.classList.remove('on'); el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); AU.fanfare(); setTimeout(() => AU.power(), 500); buzz([20, 40, 20]);
+  setTimeout(() => { if (!el.hidden && el.classList.contains('on')) AU.music('win'); }, 900); // (v390: the win song, as the fanfare lands)
   setTimeout(() => $('twNext').focus({ preventScroll: true }), 80);
 }
 $('twNext').addEventListener('click', () => { AU.init(); AU.ui(); const el = $('tutWin'); el.classList.remove('on'); setTimeout(() => { el.hidden = true; }, 300); if (state === 'dead') { if (endInfo && endInfo.lesson && newItem) showNewItem(newItem); else startTally(); } }); // (v356: the lesson goes on to its new items)
+// ---------- (v390) the keyboard comes up over the game and the game stays where it is: only what you're typing in rises above it. In the
+// app the page never scrolls (WebKit used to push the whole game up to show the field) and the app says how tall the keyboard is; in a
+// browser that comes from the visual viewport. A card marked data-kblift (the intro's name card) rises whole, its buttons with it;
+// anywhere else the field's own panel scrolls it into view, or its card (or its page) rises just far enough to show it
+const KB = { h: 0, el: null, ink: '', x: '0px', y: '0px', lift: 0, top: -1 };
+const kbField = () => { const a = document.activeElement; return a && a.matches && a.matches('input:not([type=range]):not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]),textarea') ? a : null; };
+function kbBox(a) {
+  const own = a.closest('[data-kblift]') || a.closest('.modal > *'); if (own) return own;
+  for (let e = a.parentElement; e && e !== document.body; e = e.parentElement) if (getComputedStyle(e).position === 'fixed') return e;
+  return null;
+}
+function kbTop() { if (KB.top < 0) { const d = document.createElement('div'); d.style.cssText = 'position:fixed;top:0;height:env(safe-area-inset-top,0px);visibility:hidden;pointer-events:none'; document.body.appendChild(d); KB.top = d.offsetHeight || 0; d.remove(); } return Math.max(10, KB.top + 6); }
+// (its own translate stays: the rise is added to it, and eases in and out with the keyboard)
+function kbSet(el, y, ms) {
+  const from = getComputedStyle(el).translate, to = KB.x + ' calc(' + KB.y + ' - ' + y + 'px)';
+  el.style.translate = y > 0 ? to : KB.ink;
+  if (ms > 0 && el.animate) try { el.animate([{ translate: from }, { translate: y > 0 ? to : KB.x + ' ' + KB.y }], { duration: ms, easing: 'cubic-bezier(.2,.8,.3,1)' }); } catch (e) {}
+}
+function kbFit(ms) {
+  const a = KB.h > 40 ? kbField() : null, box = a ? kbBox(a) : null;
+  if (KB.el && KB.el !== box) { kbSet(KB.el, 0, ms); KB.el = null; KB.lift = 0; }
+  if (!box) return;
+  if (KB.el !== box) { const t = getComputedStyle(box).translate.split(' '); KB.el = box; KB.ink = box.style.translate; KB.x = t[0] && t[0] !== 'none' ? t[0] : '0px'; KB.y = t[1] || '0px'; KB.lift = 0; }
+  const low = innerHeight - KB.h - 12, top = kbTop(), r = a.getBoundingClientRect();
+  let fTop = r.top + KB.lift, need = r.bottom + KB.lift - low; // (where the field would be without the rise)
+  if (need > 0) for (let e = a.parentElement; e && e !== box; e = e.parentElement) { // a panel of its own that scrolls: there first
+    const o = getComputedStyle(e).overflowY; if ((o !== 'auto' && o !== 'scroll') || e.scrollHeight <= e.clientHeight + 1) continue;
+    const s0 = e.scrollTop; e.scrollTop = s0 + need; const d = e.scrollTop - s0; need -= d; fTop -= d; break;
+  }
+  let y = Math.max(0, need);
+  if (box.hasAttribute('data-kblift')) { const b = box.getBoundingClientRect(); y = Math.max(y, Math.min(b.bottom + KB.lift - low, b.top + KB.lift - top)); } // (the whole card, as long as its top stays on the screen)
+  y = Math.max(0, Math.round(y)); if (Math.abs(y - KB.lift) < 1) return;
+  KB.lift = y; kbSet(box, y, ms);
+}
+addEventListener('nativekeyboard', e => { const d = e.detail || {}; KB.h = Math.max(0, +d.h || 0); kbFit(d.ms > 0 ? +d.ms : 250); });
+document.addEventListener('focusin', () => kbFit(220));
+document.addEventListener('focusout', () => setTimeout(() => kbFit(220), 0));
+addEventListener('resize', () => { KB.top = -1; kbFit(0); });
+if (window.visualViewport) { const vv = window.visualViewport, vvKb = () => {
+  const n = window.__NATIVE; if (n && typeof n.kb === 'number') return; // (the app says it itself)
+  const h = kbField() && Math.abs(vv.scale - 1) < 0.01 ? Math.round(innerHeight - vv.height) : 0, k = h > 120 ? h : 0;
+  if (k !== KB.h) { KB.h = k; kbFit(220); }
+  if (k && (window.scrollY || vv.offsetTop)) try { window.scrollTo(0, 0); } catch (e) {} // (a browser scrolled the page up for the field: put it back)
+}; vv.addEventListener('resize', vvKb); vv.addEventListener('scroll', vvKb); }
 // ---------- (v257) the first launch, out in the sun: a scrapyard in a sandstone canyon at midday. The camera holds on the sky a while
 // (its stars twinkling, an old windmill turning, A Marcelin Game coming up in the middle of it), then pans slowly down onto an old oil
 // drum; something thumps about inside it, it rocks, tips over and pours; a pair of eyes comes up out of the puddle and looks about; you
@@ -28635,6 +28739,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     const W = viewW, H = viewH, sr = stage.getBoundingClientRect(); let r = { x0: 0, y0: Math.min(H * 0.12, safeTop() + 8), x1: W, y1: H };
     const c = UI && UI.cur && !UI.cur.hidden && !UI.cur.classList.contains('out') ? UI.cur.getBoundingClientRect() : null;
     if (c && c.width > 0) { if (W > H * 1.05) r.x0 = c.right - sr.left + 8; else r.y1 = c.top - sr.top - 8; }
+    if (KB.h > 40) r.y1 = Math.min(r.y1, H - KB.h - 8); // (v390: and above the keyboard)
     return free = r;
   }
   let safeT = -1; function safeTop() { if (safeT < 0) { const d = document.createElement('div'); d.style.cssText = 'position:absolute;top:0;height:env(safe-area-inset-top);visibility:hidden'; document.body.appendChild(d); safeT = d.offsetHeight || 0; d.remove(); } return safeT; }
@@ -28820,7 +28925,7 @@ void main(){ vec2 q = vUv - 0.5; float n = vn(q * 4.0 + vD.y * 17.0) * 0.6 + vn(
     el.innerHTML = panel('flIris', 'Those eyes need a color.', '<div class="flopts" id="flIrisO">' + irises + '</div>', go_('flIrisGo', 'Next'), null)
       + panel('flStyle', 'Now give them some style.', '<div class="flopts" id="flStyleO">' + styles + '</div>', go_('flStyleGo', 'Next'), 'iris')
       + panel('flPaint', 'Pick your paint.', '<div class="flopts" id="flPaintO">' + paints + '</div>', go_('flPaintGo', 'Next', true), 'style')
-      + '<form class="flpanel" id="flName" hidden autocomplete="off" aria-labelledby="flNameT"><h2 class="flbanner" id="flNameT">What do we call you?</h2><div class="flboard"><p class="flnote">Pick a username. It goes up in lights when you win.</p>'
+      + '<form class="flpanel" id="flName" hidden autocomplete="off" data-kblift aria-labelledby="flNameT"><h2 class="flbanner" id="flNameT">What do we call you?</h2><div class="flboard"><p class="flnote">Pick a username. It goes up in lights when you win.</p>'
       + '<div class="flfield"><input id="flNameIn" type="text" size="8" maxlength="12" autocomplete="off" autocapitalize="words" autocorrect="off" spellcheck="false" enterkeyhint="go" aria-label="Your username" aria-describedby="flNameSt"><button class="fldice" id="flDice" type="button" aria-label="Pick a random username">' + DICE + '</button></div><p class="flun" id="flNameSt" aria-live="polite"></p></div>'
       + '<div class="flfoot"><button class="flback" type="button" data-back="paint" aria-label="Back">' + BACK + '<span>Back</span></button><button class="flgo" type="submit" id="flNameGo"><span>Next</span></button></div></form>'
       + '<section class="flpanel flask" id="flAsk" hidden aria-labelledby="flAskT"><h2 class="flbanner" id="flAskT">All set?</h2><div class="flfoot"><button class="flgo alt" type="button" id="flNo"><span>Not yet</span></button><button class="flgo" type="button" id="flYes"><span>Let’s roll</span></button></div></section>'
