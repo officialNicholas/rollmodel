@@ -5220,7 +5220,7 @@ html.fv #pause .card>.psets{grid-column:1/-1}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 408</p>
+      <p class="ver">Version 409</p>
     </div>
   </div>
 
@@ -17117,8 +17117,9 @@ function makeAudio() {
   };
 
   let wakeG = null; // (v407: the output's own gate, shut while the sound is away so a restart can't blip)
-  function hush() { if (!ctx || !wakeG) return; const t = ctx.currentTime; wakeG.gain.cancelScheduledValues(t); wakeG.gain.setValueAtTime(0, t); }
-  function unhush() { if (!ctx || !wakeG || ctx.state !== 'running') return; const t = ctx.currentTime; wakeG.gain.cancelScheduledValues(t); wakeG.gain.setValueAtTime(0, t); wakeG.gain.setValueAtTime(0, t + 0.12); wakeG.gain.linearRampToValueAtTime(1, t + 0.4); }
+  let shut = false; // (v409: only faded back in if it was shut)
+  function hush() { if (!ctx || !wakeG) return; shut = true; const t = ctx.currentTime; wakeG.gain.cancelScheduledValues(t); wakeG.gain.setValueAtTime(0, t); }
+  function unhush() { if (!ctx || !wakeG || ctx.state !== 'running' || !shut) return; shut = false; const t = ctx.currentTime; wakeG.gain.cancelScheduledValues(t); wakeG.gain.setValueAtTime(0, t); wakeG.gain.setValueAtTime(0, t + 0.12); wakeG.gain.linearRampToValueAtTime(1, t + 0.4); }
   function build(c, live) {
     ctx = c;
     const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -4; lim.knee.value = 2; lim.ratio.value = 20; lim.attack.value = 0.001; lim.release.value = 0.12; const trimO = ctx.createGain(); trimO.gain.value = 0.9; lim.connect(trimO); trimO.connect(ctx.destination); /* (headroom: the limiter catches earlier, and the output sits under full scale) */
@@ -17367,7 +17368,7 @@ function makeAudio() {
         // the phone may have stopped the song's player while the app was away: start a fresh one at the same spot (seamless if the old one was fine)
         if (kick && trk && TRK[trk.key] && trk.t0 !== undefined) { const R = TRK[trk.key], el = T() - trk.t0, b = Math.min(R.b, R.buf.duration), L = Math.max(0.5, b - R.a); trkGo(trk.key, 0.15, 0.15, true, el < b ? el : R.a + ((el - R.a) % L)); } };
       const go = () => { if (!ctx || ctx.state === 'running') { unhush(); return after(); } ctx.resume().then(() => { unhush(); after(); }, () => {}); };
-      hush(); if (kick && ctx.state === 'running') { const c = ctx; setTimeout(() => { if (c === ctx) c.suspend().then(go, go); }, 100); } else go();
+      if (kick || ctx.state !== 'running') hush(); if (kick && ctx.state === 'running') { const c = ctx; setTimeout(() => { if (c === ctx) c.suspend().then(go, go); }, 100); } else go();
       wakeArm = true; check();
     },
     get renews() { return renews; },
