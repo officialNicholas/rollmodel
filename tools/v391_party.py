@@ -891,7 +891,7 @@ def apply(s):
     s = rep(s, "dist = clamp(Math.max(tall * Hh / (2 * tv * px), wide / (2 * tv * asp * 0.46)), 1.65, 12), ly = 0.36;",
                "dist = clamp(Math.max(tall * Hh / (2 * tv * px), wide / (2 * tv * asp * 0.46), pyNeed(fw / W, tv * asp, !land)), 1.65, 16), ly = 0.36; /* (v391: a party fits) */")
     s = rep(s, "const fw = x1 - x0, fh = y1 - y0, tx = (x0 + x1) / 2, feetY = y0 + fh * (land ? 0.86 : 0.86);",
-               "const fw = x1 - x0, fh = y1 - y0, tx = (x0 + x1) / 2, feetY = y0 + fh * (ptCrowd() ? (land ? 0.8 : 0.8) : 0.86);")
+               "const fw = x1 - x0, fh = y1 - y0, tx = (x0 + x1) / 2, feetY = y0 + fh * (ptCrowd() ? 0.8 : 0.86);")
     s = rep(s, "  heroDist = dist; hero.mx = P.x; hero.mz = P.z;\n  const lookY = feetY - ly * Hh / (2 * tv * dist);",
                "  heroDist = dist; hero.mx = P.x; hero.mz = P.z; if (PY.cx) { hero.mx += Math.cos(hero.yaw) * PY.cx; hero.mz -= Math.sin(hero.yaw) * PY.cx; } // (v391: the middle of the party)\n  const lookY = feetY - ly * Hh / (2 * tv * dist);")
     s = rep(s, "const tv = Math.tan(LINEUP.lens * Math.PI / 360), ext = lineGap() + 0.45, body = charTall({});",
@@ -955,5 +955,5 @@ async function frInbox() {
     s = rep(s, "    if (perm || acJwt(t).is_anonymous !== true) await acFetch('POST', '/auth/v1/logout?scope=local', null, t); else",
                "    if (perm || acJwt(t).is_anonymous !== true) { await pushForget(t); await acFetch('POST', '/auth/v1/logout?scope=local', null, t); } else")
     s = rep(s, "  store.sbs = { out: 1, lost: lost ? 1 : 0 }; save(); frBadge(); acPaintAll();",
-               "  store.sbs = { out: 1, lost: lost ? 1 : 0 }; save(); frBadge(); acPaintAll(); if (typeof PUSH === 'object') PUSH.sent = ''; // (v391: the next account sends the token again)")
+               "  store.sbs = { out: 1, lost: lost ? 1 : 0 }; save(); frBadge(); acPaintAll(); PUSH.sent = ''; // (v391: the next account sends the token again)")
     return s

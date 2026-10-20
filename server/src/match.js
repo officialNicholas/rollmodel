@@ -570,7 +570,7 @@ export class Match {
     p.st = 'hide'; p.pot = best.i; p.hiddenAt = now; p.immuneUntil = now + G.SPAWN_SAFE * 1000; p.spawnImm = true; p.paint = Math.max(p.paint, 0.5);
     p.cid = nextCid(p.cid); p.mover.reset({ x: best.x, y: best.y, z: best.z, yaw: p.latest.yaw }, now);
     p.vhist = [{ tc: now, tau: Math.round(now), x: best.x, y: best.y, z: best.z, grounded: true }];
-    p.flingOpen = false; p.pound = null; p.flatUntil = 0; p.lastMoveAt = now; p.lastHit = null; p.lastStateAt = Math.max(p.lastStateAt, now); // (time knocked out isn't time away)
+    p.flingOpen = false; p.pound = null; p.flatUntil = 0; p.lastMoveAt = now; p.lastHit = null; if (p.lastStateAt >= p.koAt - 1000) p.lastStateAt = Math.max(p.lastStateAt, now); // (time knocked out isn't time away for someone who was playing when it happened; a game that had already stopped sending stays quiet)
     p.latest = { tau: Math.max(p.lastTau + 1, Math.round(now)), tc: now, x: best.x, y: best.y, z: best.z, yaw: p.latest.yaw, spd: 0, vy: 0, flags: 0, aim: 0 }; p.lastTau = p.latest.tau;
     for (const q of this.P) this._send(q, { t: 'respawn', slot: p.slot, pot: best.i, x: best.x, y: best.y, z: best.z, immuneUntil: p.immuneUntil, cid: q === p ? p.cid : undefined });
     this._all({ t: 'pot', i: best.i, occ: p.slot, up: true, ink: r2(best.ink) });

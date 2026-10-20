@@ -75,7 +75,8 @@ test('the same token on a new device takes over the session and the match', asyn
 test('AFK: a player whose game stops sending is flagged, then removed', async () => {
   const c = await duel({ matchT: 30, afkWarn: 1, afkForfeit: 2.5 });
   try {
-    const afk = c.B.wait('afk', m => m.slot === c.A.slot && m.on), left = c.B.wait('playerLeft', m => m.slot === c.A.slot, 8000);
+    const slot = c.A.slot; // (taken now: A's own game lets go of its slot when the match closes, which can be before B hears A left)
+    const afk = c.B.wait('afk', m => m.slot === slot && m.on), left = c.B.wait('playerLeft', m => m.slot === slot, 8000);
     c.A.stop(); // connected, but nothing is being sent (the app went to the background)
     await afk;
     assert.equal((await left).reason, 'afk');
