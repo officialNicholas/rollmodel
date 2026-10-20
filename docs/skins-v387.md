@@ -5,7 +5,7 @@ Five premium looks for the whole body, bought with dabs in the Paint Shop. A ski
 
 | Skin | Price | What it looks like | How it moves |
 | --- | --- | --- | --- |
-| Galaxy | 2000 | Deep space: dark blue-violet with magenta and blue nebulae and a dusty band across it | Its stars twinkle; the nebulae stay still |
+| Galaxy | 2000 | Matte and almost pure dark, with glowing patches of nebula (magenta, blue, teal) and a dusty band; bright stars (v389) | Its stars twinkle; the nebulae stay still |
 | Lava | 1750 | Near-black basalt broken into uneven plates, the cracks between them molten (yellow-white core, orange to red edges) | Heat flows up through the cracks so each one brightens and dims in turn; the plates breathe; faint veins glow |
 | Rainbow | 1500 | Holographic foil: every colour, pearly, with white glints | The colour turns with the angle you see it from and swirls slowly across the body (v388) |
 | Matrix | 1750 | A black screen with green code: glyphs of lit pixels in cells | Streams of code rain down the body, each with a bright white-green head and a fading trail; glyphs flicker as it passes |
@@ -46,3 +46,8 @@ Five premium looks for the whole body, bought with dabs in the Paint Shop. A ski
 - Glitter: more flakes catch the light, and they and the dust between them flare much brighter.
 - Rainbow: the candy stripes are gone. Three designs were tried (holographic foil, tie-dye swirls, a smooth head-to-tail rainbow); the
   foil was kept.
+
+## v389
+
+- Galaxy: matte and almost pure dark (no gloss, clearcoat or sheen on the skin; the paint coat and the eyes keep their shine). The nebulae
+  are fewer, smaller patches with near-black space between them, and they glow brighter; the stars are brighter still.

@@ -127,7 +127,7 @@ Once every 10 to 20 matches (a new number each time), after **Play** and before 
 
 ## Good to know
 
-- The game inside is version 388. Settings shows it as "Version 1.1 (388)".
+- The game inside is version 389. Settings shows it as "Version 1.1 (389)".
 - A brand-new player first gets the intro: a paint barrel in a desert scrapyard, then picking eye colour, eye style, paint colour and a name, before the lobby and the lesson. Existing players go straight to the lobby. To see it again, delete and reinstall the app.
 - Saved names, looks and progress carry over from the earlier builds: the game keeps the same save and the same private address inside the app.
 - The app icon is the paint roller. To change it later, drop a new 1024 x 1024 image into **Assets > AppIcon**.

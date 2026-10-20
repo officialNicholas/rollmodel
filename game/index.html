@@ -4966,7 +4966,7 @@ html.fh .tutgo .tgcard .tava{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 388</p>
+      <p class="ver">Version 389</p>
     </div>
   </div>
 
@@ -12222,7 +12222,7 @@ vec2 coatBeads(vec3 sp, float band){
   return vec2(m, m > 0.0 ? r * sqrt(max(0.0, 1.0 - dd * dd / (r * r))) / 36.0 * 0.9 : 0.0); }
 // (v387) the skin: uFx x which (0 none, 1 galaxy, 2 lava, 3 rainbow, 4 matrix, 5 glitter), y how far it has swept up over the body
 // (0..1), z the time (s); what it gives off (sFxGlow), how much of it there is here (sFxM), and its surface (rough, metal; -1: as it was)
-uniform vec4 uFx; vec3 sFxGlow = vec3(0.0); float sFxM = 0.0, sFxRough = -1.0, sFxMetal = -1.0;
+uniform vec4 uFx; vec3 sFxGlow = vec3(0.0); float sFxM = 0.0, sFxRough = -1.0, sFxMetal = -1.0, sFxMatte = 0.0;
 vec3 fxHsv(float h, float s, float v) { vec3 k = clamp(abs(mod(h * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0); return v * mix(vec3(1.0), k, s); }
 float fxFbm(vec3 p) { return 0.5 * aNoise(p) + 0.3 * aNoise(p * 2.03 + 5.1) + 0.2 * aNoise(p * 4.1 + 1.7); }
 // stars: one (or none) to a cell, round with a soft halo; tw how much they twinkle; far off (a cell under a pixel) they fade out
@@ -12301,17 +12301,17 @@ if (uFx.x > 0.5) {
   vec3 fxN = normalize(vNormal), fxV = normalize(vViewPosition); float fxFr = pow(1.0 - saturate(dot(fxN, fxV)), 2.2);
   float fFace = smoothstep(0.1, 0.5, vFace.z) * (1.0 - smoothstep(0.35, 0.8, sGill));   // (the face: a little calmer, so it reads)
   if (k < 1.5) {
-    // GALAXY: deep space with still nebulae (magenta, blue), a dusty band across it, and two layers of stars that twinkle
-    float n1 = fxFbm(cp * 2.4 + 1.3), n2 = fxFbm(cp * 5.2 - 2.1);
-    col = mix(vec3(0.006, 0.005, 0.03), vec3(0.04, 0.014, 0.1), smoothstep(0.35, 0.75, n1));
-    float a = smoothstep(0.5, 0.82, n1 * 0.65 + n2 * 0.45), b = smoothstep(0.55, 0.85, n2 * 0.7 + (1.0 - n1) * 0.4);
-    vec3 neb = vec3(0.42, 0.04, 0.32) * a + vec3(0.03, 0.12, 0.5) * b; col += neb * 0.55;
-    float band = exp(-pow((cp.y * 0.8 + cp.x * 1.1 - cp.z * 0.4 - 0.75) / 0.16, 2.0)) * (0.6 + 0.6 * n2); col += vec3(0.25, 0.16, 0.35) * band * 0.3;
+    // GALAXY: matte, almost pure dark; the nebulae (magenta, blue, a teal wisp) and a dusty band glowing on it; two layers of stars,
+    // brighter still, twinkling
+    float n1 = fxFbm(cp * 2.4 + 1.3), n2 = fxFbm(cp * 5.2 - 2.1), n3 = fxFbm(cp * 3.6 + 7.7);
+    float a = smoothstep(0.6, 0.88, n1 * 0.65 + n2 * 0.45), b = smoothstep(0.63, 0.9, n2 * 0.7 + (1.0 - n1) * 0.4), c3 = smoothstep(0.68, 0.93, n3);
+    vec3 neb = vec3(0.8, 0.06, 0.6) * a + vec3(0.06, 0.26, 1.0) * b + vec3(0.0, 0.6, 0.65) * c3 * 0.55;
+    float band = exp(-pow((cp.y * 0.8 + cp.x * 1.1 - cp.z * 0.4 - 0.75) / 0.11, 2.0)) * smoothstep(0.35, 0.75, n2);
     float h1 = 0.0, h2 = 0.0; float s1 = fxStars(cp, 46.0, 0.58, 0.08, t, 0.55, h1); float s2 = fxStars(cp + 7.3, 15.0, 0.42, 0.06, t, 1.0, h2);
-    vec3 c1 = mix(vec3(0.75, 0.85, 1.0), vec3(1.0, 0.86, 0.7), h1), c2 = mix(vec3(0.8, 0.9, 1.0), vec3(1.0, 0.75, 0.95), h2);
-    col += c1 * s1 * 0.7 + c2 * s2 * 0.8;
-    glow = c1 * s1 * 2.4 + c2 * s2 * 5.0 + neb * 0.22 + vec3(0.3, 0.28, 0.9) * fxFr * 0.35;
-    sFxRough = 0.22;
+    vec3 c1 = mix(vec3(0.8, 0.88, 1.0), vec3(1.0, 0.88, 0.75), h1), c2 = mix(vec3(0.85, 0.92, 1.0), vec3(1.0, 0.8, 0.96), h2);
+    col = vec3(0.004, 0.0035, 0.011) + neb * 0.05 + vec3(0.25, 0.16, 0.35) * band * 0.03;
+    glow = neb * 1.2 + vec3(0.42, 0.28, 0.6) * band * 0.5 + c1 * s1 * 4.6 + c2 * s2 * 9.5 + vec3(0.22, 0.18, 0.6) * fxFr * 0.14;
+    sFxMatte = 1.0;
   } else if (k < 2.5) {
     // LAVA: near-black basalt broken into uneven plates, the cracks between them molten (a yellow-white core, orange to deep red at
     // their edges), heat flowing up through them so each crack brightens and dims in turn; the plates breathe a little, faint veins glow
@@ -12373,6 +12373,16 @@ if (uFx.x > 0.5) {
 }
 `, FX_SURF = `
 if (sFxM > 0.0) { if (sFxRough >= 0.0) roughnessFactor = mix(roughnessFactor, sFxRough, sFxM); if (sFxMetal >= 0.0) metalnessFactor = mix(metalnessFactor, sFxMetal, sFxM); }
+`, FX_MATTE = `
+{ float fxMt = sFxMatte * sFxM * (1.0 - sCoatM) * (1.0 - sEyeM);   // (v389: a matte skin: no gloss, clearcoat, sheen; the paint and the eyes keep theirs)
+  if (fxMt > 0.0) { material.roughness = mix(material.roughness, 1.0, fxMt); material.specularColor *= 1.0 - 0.93 * fxMt; material.specularF90 *= 1.0 - 0.93 * fxMt;
+#ifdef USE_CLEARCOAT
+    material.clearcoat *= 1.0 - fxMt;
+#endif
+#ifdef USE_SHEEN
+    material.sheenColor *= 1.0 - fxMt;
+#endif
+  } }
 `, FX_GLOW = `
 totalEmissiveRadiance += sFxGlow * (1.0 - sCoatM) * (1.0 - faceInk);   // (v387: what the skin gives off; never through the paint or the drawn face)
 `;
@@ -12764,7 +12774,7 @@ function axoMaterial(tex, look, meta) {
       .replace('#include <color_fragment>', '#include <color_fragment>\n' + SKIN_FS + FX_FS + FACE_FS + COAT_FS).replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n' + FX_SURF)
       .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n' + BUMP_FS)
       .replace('#include <clearcoat_normal_fragment_maps>', '#include <clearcoat_normal_fragment_maps>\n#ifdef USE_CLEARCOAT\nclearcoatNormal = normalize(mix(clearcoatNormal, normal, max(max(sCoatM, sEyeM), sWetK)));\n#endif')
-      .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\n' + LIT_FS)
+      .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\n' + LIT_FS + FX_MATTE)
       .replace('#include <aomap_fragment>', '#include <aomap_fragment>\n' + LOOK_FS + FX_GLOW)
       .replace('#include <colorspace_fragment>', '#include <colorspace_fragment>\n' + DEBUG_FS);
     if (meta.dqTex) dqsShader(sh, meta);
@@ -21349,7 +21359,7 @@ const WEAR = [{ id: 'pirate', name: 'Pirate hat', slot: 'head', stage: 'island' 
   { id: 'tophat', name: 'Top hat', slot: 'head', stage: 'blank' }, { id: 'bowtie', name: 'Bow tie', slot: 'neck', stage: 'blank' }, { id: 'pearls', name: 'Pearl necklace', slot: 'neck', stage: 'blank' }, { id: 'tiara', name: 'Tiara', slot: 'head', stage: 'blank' }, { id: 'lashes', name: 'Lashes', slot: 'lash', stage: 'blank' }, { id: 'glasses', name: 'Glasses', slot: 'eye', stage: 'blank' }, { id: 'beanie', name: 'Beanie', slot: 'head', stage: 'blank' }, { id: 'party', name: 'Party hat', slot: 'head', stage: 'blank' }, { id: 'monocle', name: 'Monocle', slot: 'eye', stage: 'blank' }, { id: 'stache', name: 'Mustache', slot: 'mouth', stage: 'blank' }, { id: 'scarf', name: 'Scarf', slot: 'neck', stage: 'blank' }, { id: 'antennae', name: 'Bouncy antennae', slot: 'head', stage: 'blank' }, { id: 'snorkel', name: 'Snorkel mask', slot: 'eye', stage: 'blank' }, { id: 'propcap', name: 'Propeller cap', slot: 'head', stage: 'blank' }, { id: 'floaties', name: 'Arm floaties', slot: 'arms', stage: 'blank' }, { id: 'cape', name: 'Hero cape', slot: 'back', stage: 'blank' },
   { id: 'hat', name: 'Witch hat', slot: 'head', season: 1, stage: 'halloween' }, { id: 'halo', name: 'Halo', slot: 'head', season: 1, stage: 'halloween' }, { id: 'fangs', name: 'Fangs', slot: 'mouth', season: 1, stage: 'halloween' }, { id: 'hockey', name: 'Hockey mask', slot: 'eye', season: 1, stage: 'halloween' }, { id: 'bunny', name: 'Bunny ears', slot: 'head', season: 1, stage: 'halloween' }, { id: 'skull', name: 'Skull bow', slot: 'head', season: 1, stage: 'halloween' }];
 // (v387) the skins: the whole body's look, one at a time, always in stock
-const SKINS = [{"id": "galaxy", "name": "Galaxy", "slot": "skin", "stage": "blank", "desc": "Deep space, its stars twinkling"}, {"id": "lava", "name": "Lava", "slot": "skin", "stage": "blank", "desc": "Molten cracks, glowing as the heat flows"}, {"id": "rainbow", "name": "Rainbow", "slot": "skin", "stage": "blank", "desc": "Holographic, its colours shifting as you move"}, {"id": "matrix", "name": "Matrix", "slot": "skin", "stage": "blank", "desc": "Green code raining down you"}, {"id": "glitter", "name": "Glitter", "slot": "skin", "stage": "blank", "desc": "Sparkling all over, in your paint colour"}];
+const SKINS = [{"id": "galaxy", "name": "Galaxy", "slot": "skin", "stage": "blank", "desc": "Deep, dark space, its stars twinkling"}, {"id": "lava", "name": "Lava", "slot": "skin", "stage": "blank", "desc": "Molten cracks, glowing as the heat flows"}, {"id": "rainbow", "name": "Rainbow", "slot": "skin", "stage": "blank", "desc": "Holographic, its colours shifting as you move"}, {"id": "matrix", "name": "Matrix", "slot": "skin", "stage": "blank", "desc": "Green code raining down you"}, {"id": "glitter", "name": "Glitter", "slot": "skin", "stage": "blank", "desc": "Sparkling all over, in your paint colour"}];
 WEAR.push(...SKINS);
 const SKIN_SW = {"galaxy": "<radialGradient id=\"skg1\" cx=\"35%\" cy=\"35%\" r=\"75%\"><stop offset=\"0\" stop-color=\"#5B2A9A\"/><stop offset=\".55\" stop-color=\"#1A0F45\"/><stop offset=\"1\" stop-color=\"#070616\"/></radialGradient><circle cx=\"20\" cy=\"20\" r=\"16\" fill=\"url(#skg1)\" stroke=\"#171320\" stroke-width=\"2.4\"/><circle cx=\"14\" cy=\"15\" r=\"1.4\" fill=\"#fff\"/><circle cx=\"25\" cy=\"12\" r=\"1\" fill=\"#fff\"/><circle cx=\"24\" cy=\"25\" r=\"1.6\" fill=\"#FFE8F7\"/><circle cx=\"12\" cy=\"25\" r=\".9\" fill=\"#fff\"/><circle cx=\"29\" cy=\"19\" r=\".8\" fill=\"#fff\"/>", "lava": "<radialGradient id=\"skg2\" cx=\"40%\" cy=\"35%\" r=\"75%\"><stop offset=\"0\" stop-color=\"#3A2622\"/><stop offset=\"1\" stop-color=\"#140C0A\"/></radialGradient><circle cx=\"20\" cy=\"20\" r=\"16\" fill=\"url(#skg2)\" stroke=\"#171320\" stroke-width=\"2.4\"/><path d=\"M8 17l7 2 4-5 6 4 7-3M12 28l5-6 7 2 3 6M19 19l-1 4\" fill=\"none\" stroke=\"#FF8A1E\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>", "rainbow": "<linearGradient id=\"skg3\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#FF9AD5\"/><stop offset=\".3\" stop-color=\"#9FE8FF\"/><stop offset=\".55\" stop-color=\"#B9FFB0\"/><stop offset=\".8\" stop-color=\"#FFF09A\"/><stop offset=\"1\" stop-color=\"#C9A6FF\"/></linearGradient><circle cx=\"20\" cy=\"20\" r=\"16\" fill=\"url(#skg3)\" stroke=\"#171320\" stroke-width=\"2.4\"/><path d=\"M10 22c4-6 9-8 15-6M13 28c5-3 10-4 14-2\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2\" stroke-linecap=\"round\" opacity=\".8\"/><circle cx=\"26\" cy=\"12\" r=\"1.5\" fill=\"#fff\"/>", "matrix": "<circle cx=\"20\" cy=\"20\" r=\"16\" fill=\"#03140A\" stroke=\"#171320\" stroke-width=\"2.4\"/><g fill=\"#2BFF6A\"><rect x=\"11\" y=\"9\" width=\"2.4\" height=\"3\"/><rect x=\"11\" y=\"14\" width=\"2.4\" height=\"3\" opacity=\".7\"/><rect x=\"11\" y=\"19\" width=\"2.4\" height=\"3\" opacity=\".4\"/><rect x=\"18\" y=\"13\" width=\"2.4\" height=\"3\"/><rect x=\"18\" y=\"18\" width=\"2.4\" height=\"3\" opacity=\".7\"/><rect x=\"18\" y=\"23\" width=\"2.4\" height=\"3\" opacity=\".45\"/><rect x=\"25\" y=\"8\" width=\"2.4\" height=\"3\" opacity=\".5\"/><rect x=\"25\" y=\"13\" width=\"2.4\" height=\"3\" opacity=\".8\"/><rect x=\"25\" y=\"18\" width=\"2.4\" height=\"3\"/><rect x=\"25\" y=\"23\" width=\"2.4\" height=\"3\" fill=\"#D8FFE4\"/></g>", "glitter": "<circle cx=\"20\" cy=\"20\" r=\"16\" fill=\"#E8457A\" stroke=\"#171320\" stroke-width=\"2.4\"/><g fill=\"#fff\"><path d=\"M14 11l1 3 3 1-3 1-1 3-1-3-3-1 3-1z\"/><path d=\"M26 20l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z\"/><circle cx=\"18\" cy=\"26\" r=\"1.1\"/><circle cx=\"24\" cy=\"12\" r=\".9\"/><circle cx=\"11\" cy=\"21\" r=\".8\"/></g>"};
 const WEAR_WHERE = { island: 'Palette Island', blank: 'Blank Canvas', halloween: 'the Spooky SZN stages' };
