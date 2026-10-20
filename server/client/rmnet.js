@@ -457,7 +457,7 @@ const RMNetSDK = (() => {
     partyLeave() { return this._request({ t: 'partyLeave' }); }
     partyKick(id) { return this._request({ t: 'partyKick', id }); } // (the leader only)
     partyReady(on = true) { return this._request({ t: 'partyReady', ready: !!on }); }
-    partyVote(mode) { return this._request({ t: 'partyVote', mode }); }
+    partyVote(mode, cpu) { return this._request(typeof cpu === 'boolean' ? { t: 'partyVote', mode, cpu } : { t: 'partyVote', mode }); } // (v413: cpu, the leader's pick)
     partyLook(look) { this.look = look; return this._request({ t: 'partyLook', look }); } // (un-readies you)
     partyBusy(what) { return this._request({ t: 'partyBusy', what: what || null }); } // 'locker' | 'shop' | 'strokes' | 'settings' | 'cpu' | 'menu' | null
     partyReact(e) { return this._sendJ({ t: 'partyReact', e }); } // the others get { id, e } as 'react'

@@ -108,3 +108,28 @@ test('the CPUs leave with the game that drives them; reactions on the results re
     const m = await got; assert.equal(m.e, 'gg'); assert.equal(m.slot, mySlot, 'from the one who sent it (the match had closed: someone left, so no rematch)');
   } finally { stop(); A.close(); B.close(); C.close(); await srv.close(); }
 });
+
+// (v413) a match with CPUs can be played again: each CPU goes along with the vote of the game that drives it
+for (const extra of [{}, { matchWorkers: 1 }]) test('a rematch with CPUs' + (extra.matchWorkers ? ' (on a match worker)' : ''), async () => {
+  const srv = await startServer({ sdT: 4, rematchWindow: 6 }, extra);
+  const [A, B] = makeBots(srv, 2, { behavior: 'wander', prefix: 'cpuR', client: 'rm-413' });
+  let stop = () => {};
+  try {
+    await Promise.all([A, B].map(b => b.connect()));
+    const v = await A.net.partyCreate(); await B.net.partyJoin(v.code);
+    await until(() => A.net.party && A.net.party.members.length === 2);
+    await A.net.partyVote('trio', true);
+    await until(() => B.net.party.cpu === true && B.net.party.mode === 'trio');
+    const found = Promise.all([A, B].map(b => b.wait('matchFound', () => true, 8000)));
+    await B.net.partyReady(true); await A.net.partyReady(true);
+    const [fa] = await found; const cpu = fa.players.find(p => p.cpu); assert.ok(cpu);
+    const owner = [A, B].find(b => b.id === cpu.owner); stop = driveCpus(owner);
+    await Promise.all([A, B].map(b => b.wait('matchEnd', () => true, 20000)));
+    const votes = A.wait('rematch', m => m.votes.filter(x => x === true).length === 3, 6000);
+    const again = Promise.all([A, B].map(b => b.wait('matchFound', m => m.matchId !== fa.matchId, 8000)));
+    A.net.rematch(true); B.net.rematch(true);
+    await votes; // (the CPU's vote is its owner's)
+    const [ra] = await again;
+    assert.equal(ra.players.length, 3); assert.equal(ra.players.filter(p => p.cpu).length, 1, 'the CPU plays again');
+  } finally { stop(); A.close(); B.close(); await srv.close(); }
+});
