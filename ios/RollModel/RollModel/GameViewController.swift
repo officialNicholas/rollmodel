@@ -73,6 +73,9 @@ final class GameViewController: UIViewController {
         // iPhone Duo partly folded: the game hears where the fold runs, and keeps its boxes and words to one side of it.
         device.watchFold()
         orient.viewController = self
+        orient.webView = webView
+        // Turning the phone the other way on the main menu: the game offers to switch to that way round.
+        orient.watchTurns()
         ads.webView = webView
         ads.viewController = self
         notify.webView = webView

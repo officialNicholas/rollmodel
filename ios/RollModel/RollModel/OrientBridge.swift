@@ -23,6 +23,35 @@ final class OrientBridge: NSObject, WKScriptMessageHandler {
     private static let savedKey = "rollmodel.orient"
 
     weak var viewController: UIViewController?
+    weak var webView: WKWebView?
+
+    /// The way the phone is physically held, told to the game as 'nativeturn' ({ way: "port" | "land" }) once it has been held
+    /// still that way for half a second (flat on a table, face up or down, says nothing). The screen itself stays locked to the
+    /// player's choice: the game asks whether to switch, on its main menu only. With Rotation Lock on, iOS reports no turns.
+    private var lastTurn = ""
+    private var pendingTurn: DispatchWorkItem?
+
+    func watchTurns() {
+        UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+        NotificationCenter.default.addObserver(self, selector: #selector(deviceTurned), name: UIDevice.orientationDidChangeNotification, object: nil)
+    }
+
+    @objc private func deviceTurned() {
+        let way: String
+        switch UIDevice.current.orientation {
+        case .portrait: way = "port"
+        case .landscapeLeft, .landscapeRight: way = "land"
+        default: return
+        }
+        pendingTurn?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            guard let self = self, way != self.lastTurn else { return }
+            self.lastTurn = way
+            self.webView?.evaluateJavaScript("window.dispatchEvent(new CustomEvent('nativeturn', { detail: { way: '\(way)' } }));", completionHandler: nil)
+        }
+        pendingTurn = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: work)
+    }
 
     /// What the iPhone may turn to: the player's last choice, upright until there is one.
     private(set) var mask: UIInterfaceOrientationMask = OrientBridge.allowed(for: UserDefaults.standard.string(forKey: OrientBridge.savedKey) ?? "port")
