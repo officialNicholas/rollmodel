@@ -16,7 +16,7 @@ export class Bot {
   constructor(opts = {}) {
     this.o = Object.assign({ behavior: 'wander', hz: 60, record: false, rematch: null, sendLayout: true }, opts);
     this.n = ++botSeq; this.R = rng(opts.seed || this.n * 9973);
-    this.net = new RMNet({ url: opts.url, name: opts.name || 'Bot' + this.n, WebSocket: opts.WebSocket, token: opts.token, autoReconnect: opts.autoReconnect !== false });
+    this.net = new RMNet({ url: opts.url, name: opts.name || 'Bot' + this.n, WebSocket: opts.WebSocket, token: opts.token, autoReconnect: opts.autoReconnect !== false, client: opts.client });
     this.body = null; this.level = null; this.layout = null; this.match = null; this.startAt = 0; this.rules = null;
     this.timer = null; this.lastFrame = 0; this.dead = false; this.hidden = -1; this.hideUntil = 0; this.out = false; this.ended = null;
     this.input = { yaw: undefined, speedK: 1 }; this.target = null; this.next = {}; this.pots = []; this.potUp = [];

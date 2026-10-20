@@ -44,7 +44,7 @@ export const DEFAULT_RULES = Object.freeze({
   rematchWindow: 30, endLinger: 0, // (the game's tally and winner screen take about ten seconds before the buttons show)
   roomGrace: 60, // a private room keeps a dropped player's place this long (say a phone that went to another app to send the code)
   partyGrace: 60, // a party keeps a dropped member's place this long (the app went to the background, or the signal dropped)
-  partyModes: ['duel', 'ffa', 'duo'], // the modes the game offers online, to parties and on its own (it shows the others as coming next)
+  partyModes: ['duel', 'trio', 'ffa', 'duo'], // the modes the game offers online, to parties and on its own (it shows the others as coming next)
   idlePing: 20, // seconds between the server's pings to a connection that is only waiting in the lobby (2 s in a match or a queue)
   silentKick: 75, // a connection that has sent nothing at all for this long is gone (the game sends a heartbeat every 20 s)
   weather: true, items: true, zone: true,

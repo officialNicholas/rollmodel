@@ -73,7 +73,9 @@ A party is up to four friends in one lobby who play together. The game server ke
   more players goes into matchmaking as one ticket. Anyone un-readying (or busy, or dropping) takes the party out of
   the queue.
 - **The leader picks the mode** (v392). The modes that fit the party's size: Versus (1v1) for one or two,
-  Showdown free-for-all for one to four, 2v2 for one, two or four (a party stays on one team, so not three). The game
+  Versus 3-way for one to three (v394: two find one more, three play their own), Showdown free-for-all for one to
+  four, 2v2 for one, two or four (a party stays on one team, so not three). The 3-way is offered only when every
+  member's game plays it (its hello says `client: 'rm-394'` or later). The game
   has the others ready up and wait; the leader's Play opens Choose Event with just those modes, and a pick is
   `partyVote` then `partyReady`. The leader's vote is the party's mode, and it doesn't un-ready the others. With no
   pick from the leader (an earlier game in the party), the most votes, then the first that fits. The `partyModes` setting says which modes

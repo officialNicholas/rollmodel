@@ -4944,6 +4944,22 @@ html.fh .tutgo .tgcard .tava{display:none}
 .pynote{justify-self:center;min-width:0;max-width:100%;margin:0;padding:7px 13px 6px;box-sizing:border-box;border-radius:999px;background:rgba(23,19,32,.84);color:#FFF8EA;font:800 12.5px/1.1 var(--font-ui);letter-spacing:.01em;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 3px 0 rgba(23,19,32,.22)}
 .pynote:empty{visibility:hidden}
 .mevents.evparty .evcard:not(.evpy),.mevents:not(.evparty) .evpy{display:none}
+
+/* (v394) the party's events: two groups, and each card's line-up (faces, a ? for each player to be found, vs between the sides) */
+.pyevh{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin:2px 2px -10px;font:800 12px/1 var(--font-ui);letter-spacing:.12em;text-transform:uppercase;color:#C9C2DC}
+.pyevh::after{content:"";flex:1;height:2px;border-radius:2px;background:rgba(255,255,255,.14)}
+.pyevh+.pyevh,.evcard+.pyevh{margin-top:8px}
+html.fh .pyevh{display:none}
+.evart.pyart img{filter:brightness(.42) saturate(.85)}
+.pyline{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:7px;transform:skewX(5deg);pointer-events:none}
+.pyside{display:flex;align-items:center;padding:4px;border-radius:999px;background:rgba(23,19,32,.74);box-shadow:0 0 0 2px rgba(255,255,255,.16)}
+.pyside>*+*{margin-left:-7px}
+.pyf{display:grid;place-items:center;flex:none;border-radius:50%;background:#171320}
+.pyf .frface{width:40px;height:40px}
+.pyf.me{box-shadow:0 0 0 2.5px #FFD24A;z-index:1}
+.pyline .onmys{width:38px;height:38px;color:#fff;opacity:.9;background:rgba(255,255,255,.08);font-size:18px}
+.pyvs{font:400 15px/1 var(--font-display);font-style:normal;text-transform:uppercase;color:#FFD24A;text-shadow:0 2px 0 #171320,1.2px 0 0 #171320,-1.2px 0 0 #171320}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.pyf .frface{width:34px;height:34px}.pyline .onmys{width:32px;height:32px;font-size:15px}.pyside{padding:3px}}
 </style>
 
 <div id="stage">
@@ -5122,7 +5138,7 @@ html.fh .tutgo .tgcard .tava{display:none}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 393</p>
+      <p class="ver">Version 394</p>
     </div>
   </div>
 
@@ -25259,7 +25275,7 @@ function onlineConnect() {
   return p;
 }
 function onNew() {
-  const net = new RMNet({ url: NET_URL, name: onName(), look: onLook(), token: store.netTok || null, client: 'rm-391', sb: sbUid(), zone: onZone(), beat: onBusy() ? 500 : 20000 });
+  const net = new RMNet({ url: NET_URL, name: onName(), look: onLook(), token: store.netTok || null, client: 'rm-394', sb: sbUid(), zone: onZone(), beat: onBusy() ? 500 : 20000 });
   const on = (ev, fn) => net.on(ev, d => { if (ON.net === net) fn(d || {}); }); // (a connection let go says nothing more)
   ON.net = net; ON.me = null; ON.lookSent = JSON.stringify(net.look);
   on('token', t => { if (t.token && t.token !== store.netTok) { store.netTok = t.token; save(); } }); // (who you are on the server, so your rating stays yours)
@@ -27411,7 +27427,8 @@ $('evShowPick').addEventListener('click', e => { const b = e.target.closest('but
 
 // ---- (v392) the host picks the event: their Play opens Choose Event with the events the party can play together (the
 // multiplayer ones, for its size); a pick readies the host up. The others say Ready and wait for it
-const PY_EV = { duel: { c: '#E3122F', ic: 'evVs', sub: '1v1' }, ffa: { c: '#8E5CFF', ic: 'evShow', sub: 'Free for all' }, duo: { c: '#2E7BFF', ic: 'evShow', sub: 'Teams of two' } };
+const PY_EV = { duel: { c: '#E3122F', ic: 'evVs', art: 'cathedral' }, trio: { c: '#D6336C', ic: 'evVs', art: 'raft' }, ffa: { c: '#8E5CFF', ic: 'evShow', art: 'manor' }, duo: { c: '#2E7BFF', ic: 'evShow', art: 'crypt' } };
+const PY_NEED = { duel: 2, trio: 3, ffa: 4, duo: 4 };
 function ptHost() { const me = ptMe(), p = ON.party; return !!(me && p && p.leader === me.id); }
 function ptTogether() { return 'Your party plays together: ' + (ptHost() ? 'press Play to pick the event' : 'ready up, and the host picks the event'); }
 // the line beside the big button: who picks, or what was picked
@@ -27433,19 +27450,37 @@ function ptPlayTap() {
   AU.pop(); ptReady();
 }
 function ptEvOn() { return menuPage === 'events' && evEl.classList.contains('evparty'); }
-// the party's event cards (again when the party changes); the page goes once there's nothing for the host to pick
+// (v394) who plays, as each card shows it: the sides, each a list of the party's members (you first) and '?' for a player to be found
+function ptEvSides(x, mem) {
+  const Q = '?', find = k => Array.from({ length: Math.max(0, k) }, () => Q);
+  if (x.mode === 'duo') return x.plan === 'private' ? [mem.slice(0, 2), mem.slice(2, 4)] : [mem.slice(0, 2), find(2)];
+  return mem.concat(find(PY_NEED[x.mode] - mem.length)).map(e => [e]);
+}
+// what each card says: the strip above it, the line under its name, and its whole meaning for a screen reader
+function ptEvWords(x, n) {
+  const own = x.plan === 'private', more = PY_NEED[x.mode] - n, name = PY_FULL[x.mode] || x.mode;
+  const bar = !x.on ? 'Coming soon' : own ? 'Just you ' + (['', '', 'two', 'three', 'four'][n] || 'all') : x.mode === 'duo' ? 'Finds a team online' : 'Finds ' + more + ' more online';
+  const sub = x.mode === 'duel' || x.mode === 'trio' ? 'Most paint wins' : x.mode === 'ffa' ? 'Last one standing' : own ? 'Two teams, picked fair' : 'You two on one team';
+  const say = name + ': ' + (x.mode === 'duo' ? (own ? 'two teams of your party' : 'you two as a team against a team found online')
+    : (own ? 'just your party' : 'your party and ' + more + (more === 1 ? ' player' : ' players') + ' found online') + (x.mode === 'duel' ? ', one against one' : ', each for their own'));
+  return { bar, sub, say };
+}
+// the party's event cards (again when the party changes), in two groups: with players online, then just your party. The page goes
+// once there's nothing for the host to pick
 function ptEvRender() {
   if (!ptEvOn()) return;
   const p = ON.party, me = ptMe();
   if (!ptOn() || ON.match || !me || p.leader !== me.id || me.ready || p.state !== 'idle') return closeEvents();
-  const n = p.members.length, ic = id => { const e = $(id) && $(id).querySelector('.evic'); return e ? e.innerHTML : ''; };
-  const art = { duel: stageArtOf(VOTE_STAGES.includes(stageSel) ? stageSel : 'cathedral'), ffa: stageArtOf('manor'), duo: stageArtOf('crypt') };
-  const h = p.modes.map(x => { const d = PY_EV[x.mode] || PY_EV.ffa, own = x.plan === 'private';
-    const bar = !x.on ? 'Coming soon' : own ? 'Just your party' : x.mode === 'duo' ? 'Finds a team online' : 'Finds ' + (4 - n) + ' more online';
-    const sub = x.mode === 'duel' ? 'You two, 1v1' : x.mode === 'duo' ? (own ? 'Two teams of you' : 'You two vs two') : own ? 'All four of you' : d.sub;
-    return '<div class="evcard evpy' + (x.on ? '' : ' soon') + '" data-pyev="' + x.mode + '" style="--ec:' + d.c + '"><button class="evmain" type="button" data-pyev="' + x.mode + '"' + (x.on ? '' : ' aria-disabled="true"') + '>'
-      + '<span class="evbar"><i>' + bar + '</i></span><span class="evtop"><span class="evic" aria-hidden="true">' + ic(d.ic) + '</span><span class="evtx"><b>' + frEsc(PY_FULL[x.mode] || x.mode) + '</b><small>' + sub + '</small></span></span>'
-      + '<span class="evart" aria-hidden="true"><img alt="" src="' + (art[x.mode] || '') + '"></span></button></div>'; }).join('');
+  const n = p.members.length, mem = [me].concat(p.members.filter(m => m !== me)), ic = id => { const e = $(id) && $(id).querySelector('.evic'); return e ? e.innerHTML : ''; };
+  const face = e => e === '?' ? ON_MYS : '<span class="pyf' + (e === me ? ' me' : '') + '">' + frFace(e.look) + '</span>';
+  const card = x => { const d = PY_EV[x.mode] || PY_EV.ffa, w = ptEvWords(x, n), art = stageArtOf(x.mode === 'duel' && VOTE_STAGES.includes(stageSel) ? stageSel : d.art);
+    const line = ptEvSides(x, mem).map(s => '<span class="pyside">' + s.map(face).join('') + '</span>').join('<i class="pyvs">vs</i>');
+    return '<div class="evcard evpy' + (x.on ? '' : ' soon') + '" data-pyev="' + x.mode + '" style="--ec:' + d.c + '"><button class="evmain" type="button" data-pyev="' + x.mode + '" aria-label="' + frEsc(w.say) + '"' + (x.on ? '' : ' aria-disabled="true"') + '>'
+      + '<span class="evbar"><i>' + w.bar + '</i></span><span class="evtop"><span class="evic" aria-hidden="true">' + ic(d.ic) + '</span><span class="evtx"><b>' + frEsc(PY_FULL[x.mode] || x.mode) + '</b><small>' + w.sub + '</small></span></span>'
+      + '<span class="evart pyart" aria-hidden="true"><img alt="" src="' + (art || '') + '"><span class="pyline">' + line + '</span></span></button></div>'; };
+  const ord = (a, b) => ['duo', 'trio', 'ffa', 'duel'].indexOf(a.mode) - ['duo', 'trio', 'ffa', 'duel'].indexOf(b.mode);
+  const online = p.modes.filter(x => x.plan !== 'private').sort(ord), own = p.modes.filter(x => x.plan === 'private');
+  const h = (online.length ? '<h3 class="pyevh evpy">With players online</h3>' + online.map(card).join('') : '') + (own.length ? '<h3 class="pyevh evpy">Just your party</h3>' + own.map(card).join('') : '');
   const g = $('evGrid'); if (g._py === h) return; g._py = h;
   g.querySelectorAll('.evpy').forEach(e => e.remove()); g.insertAdjacentHTML('afterbegin', h);
 }

@@ -184,6 +184,43 @@ test('a party of four plays a Showdown of its own (unrated), all four in it', as
   } finally { for (const b of bots) b.close(); await srv.close(); }
 });
 
+test('the 3-way for a party (v394): two find a third player online, three play their own; an earlier game in the party hides it', async () => {
+  const on = ['duel', 'trio', 'ffa', 'duo'];
+  const p = new Party('TRIOTRIO'), mk = (id, client) => ({ player: { id, name: id, look: null }, client });
+  p.add(mk('a', 'rm-394')); p.add(mk('b', 'rm-395'));
+  assert.deepEqual(p.modes(on).map(x => x.mode + ':' + x.plan), ['duel:private', 'trio:queue', 'ffa:queue', 'duo:queue'], 'two: a 3-way finds one more');
+  p.add(mk('c', 'rm-394'));
+  assert.deepEqual(p.modes(on).map(x => x.mode + ':' + x.plan), ['trio:private', 'ffa:queue'], 'three: a 3-way of their own');
+  p.add(mk('d', 'rm-391')); p.remove('d'); p.member('c').trio = false;
+  assert.deepEqual(p.modes(on).map(x => x.mode), ['ffa'], 'a game before v394 in the party: no 3-way');
+  const srv = await startServer({ sdT: 20, matchT: 3, rematchWindow: 1 });
+  const [A, B, C] = makeBots(srv, 3, { behavior: 'still', prefix: 'tri', client: 'rm-394' });
+  const [D, E, F] = makeBots(srv, 3, { behavior: 'still', prefix: 'own', client: 'rm-394' });
+  try {
+    await Promise.all([A, B, C, D, E, F].map(b => b.connect()));
+    // two friends and one player on their own
+    const v = await A.net.partyCreate(); await B.net.partyJoin(v.code);
+    await until(() => A.net.party && A.net.party.members.length === 2);
+    assert.equal(A.net.party.modes.find(x => x.mode === 'trio').plan, 'queue');
+    await B.net.partyReady(true); await A.net.partyVote('trio'); await until(() => A.net.party.mode === 'trio');
+    const queued = A.wait('queued', m => m.party === true && m.mode === 'trio'); await A.net.partyReady(true); await queued;
+    const found = Promise.all([A, B, C].map(b => b.wait('matchFound', () => true, 10000)));
+    await C.net.queue('trio');
+    const f = await found;
+    assert.equal(f[0].mode, 'trio'); assert.equal(f[0].players.length, 3); assert.equal(f[0].rated, true, 'matchmaking, so rated');
+    assert.deepEqual(f[0].players.map(p => p.id).sort(), [A.id, B.id, C.id].sort(), 'the two friends and the third, each on their own side');
+    assert.equal(new Set(f[0].players.map(p => p.side)).size, 3);
+    // three friends: a 3-way of their own
+    const w = await D.net.partyCreate(); await E.net.partyJoin(w.code); await F.net.partyJoin(w.code);
+    await until(() => D.net.party && D.net.party.members.length === 3);
+    assert.equal(D.net.party.modes.find(x => x.mode === 'trio').plan, 'private');
+    await E.net.partyReady(true); await F.net.partyReady(true); await D.net.partyVote('trio');
+    const own = Promise.all([D, E, F].map(b => b.wait('matchFound', () => true, 10000))); await D.net.partyReady(true);
+    const g = await own; assert.equal(g[0].mode, 'trio'); assert.equal(g[0].rated, false, 'just the party: not rated');
+    assert.deepEqual(g[0].players.map(p => p.id).sort(), [D.id, E.id, F.id].sort());
+  } finally { for (const b of [A, B, C, D, E, F]) b.close(); await srv.close(); }
+});
+
 test('a dropped member keeps their place for a while, comes back into the party, or is gone after the grace', async () => {
   const srv = await startServer({ partyGrace: 1.2 });
   const [A, B] = people(srv, 2);

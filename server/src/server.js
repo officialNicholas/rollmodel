@@ -8,7 +8,7 @@ import { MemoryStore, JsonFileStore } from './store.js';
 import { sanitizeName, sanitizeLook } from './names.js';
 import { connectionLimits, noteDrop } from './ratelimit.js';
 import { Matchmaker, Room, uniqueCode, makeTicket, regionOf } from './lobby.js';
-import { Party, PARTY, planFor, newPartyCode } from './party.js';
+import { Party, PARTY, planFor, newPartyCode, playsTrio } from './party.js';
 import { Match } from './match.js';
 import { Pusher } from './push.js';
 import { nowMs, Window, summarize, fin } from './util.js';
@@ -242,6 +242,7 @@ export class GameServer {
       if (typeof m.zone === 'string') sess.region = regionOf(m.zone);
       if (fin(m.tzo) && Math.abs(m.tzo) <= 900) sess.tzo = Math.round(m.tzo);
       if (typeof m.sb === 'string' && UUID.test(m.sb)) this._sbOn(sess, m.sb);
+      sess.client = typeof m.client === 'string' && m.client.length <= 32 ? m.client : ''; // (which game: what it can play in a party)
       const match = this.inMatch.get(player.id);
       const ratings = Object.fromEntries(Object.entries(player.ratings).map(([k, v]) => [k, { r: Math.round(v.r), rd: Math.round(v.rd), games: v.games }]));
       this.sendJson(sess, { t: 'welcome', id: player.id, token, name: player.name, nameChanged: nm.changed || undefined, ratings, serverTime: nowMs(), proto: PROTOCOL_VERSION, resume: match && match.active ? match.id : null, modes: Object.keys(MODE_INFO), caps: CAPS, partyModes: this.partyModes() });
@@ -520,7 +521,7 @@ export class GameServer {
     const { party } = rec, m = party.member(pid);
     if (!m || this.parties.get(party.code) !== party) return;
     clearTimeout(m.awayTimer); if (rec.sess && rec.sess !== sess && rec.sess.party === party) rec.sess.party = null;
-    m.sess = sess; m.away = false; m.name = sess.player.name; m.sb = sess.sb || m.sb; if (sess.player.look) m.look = sess.player.look; sess.party = party;
+    m.sess = sess; m.away = false; m.name = sess.player.name; m.sb = sess.sb || m.sb; m.trio = playsTrio(sess); if (sess.player.look) m.look = sess.player.look; sess.party = party;
     this._partySend(party);
   }
 

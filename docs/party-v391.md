@@ -27,6 +27,10 @@ today's lobby and Friends page.
     the modes that fit the party. Two: Versus (just you two), Showdown (with two more found) or Showdown 2v2.
     Three: Showdown, with one more found. Four: Showdown or Showdown 2v2, just you. The others' button is Ready, and
     they wait for the host's pick ("@host picks the event"). Picking readies the host up; with everyone ready it starts.
+  - **v394:** the host's events come in two groups, With players online and Just your party, and each card shows its
+    line-up (your face ringed, your friends, a ? for each player to be found, vs between the sides). Two friends:
+    Showdown 2v2 as a team against a team found online, Versus 3-way with one more, Showdown with two more, or Versus
+    between the two of you. Three: a 3-way of your own, or a Showdown with one more. Four: Showdown or 2v2.
   - **Ready:** when everyone is, a moment to back out, then the match. Opening the locker, the shop, Strokes or
     Settings, or a new look, un-readies you.
   - **The leader** taps a friend's plate to remove them. After a match you're all back in the lobby together.

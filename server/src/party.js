@@ -6,8 +6,8 @@ import { nowMs, randomId, roomCode } from './util.js';
 
 export const PARTY = Object.freeze({
   MAX: 4,
-  // the modes a party can vote for, in the order the game shows them: 1v1, Showdown (everyone for themselves), 2v2
-  MODES: Object.freeze(['duel', 'ffa', 'duo']),
+  // the modes a party can play, in the order the game shows them: 1v1, 3-way (v394), Showdown (everyone for themselves), 2v2
+  MODES: Object.freeze(['duel', 'trio', 'ffa', 'duo']),
   // the reactions (the game draws them; the server only lets these through)
   EMOTES: Object.freeze(['wave', 'laugh', 'wow', 'love', 'cool', 'cry', 'angry', 'gg']),
   // what a member can be busy with in their own game (it un-readies them, and the others see it)
@@ -18,14 +18,19 @@ export const PARTY = Object.freeze({
   START_MS: 1500, // everyone ready: this long to back out before the match (or the search) starts
 });
 
-// how a party of n plays a mode: 'private' (just the party: two in a duel, four in a Showdown or a 2v2), 'queue'
-// (matchmaking finds the rest: a party keeps together, and in 2v2 a party of two is a team) or null (not for that size)
+// how a party of n plays a mode: 'private' (just the party: two in a duel, three in a 3-way, four in a Showdown or a
+// 2v2), 'queue' (matchmaking finds the rest: a party keeps together, and in 2v2 a party of two is a team) or null (not
+// for that size)
 export function planFor(mode, n) {
   if (mode === 'duel') return n === 1 ? 'queue' : n === 2 ? 'private' : null;
+  if (mode === 'trio') return n === 1 || n === 2 ? 'queue' : n === 3 ? 'private' : null;
   if (mode === 'ffa') return n >= 1 && n <= 3 ? 'queue' : n === 4 ? 'private' : null;
   if (mode === 'duo') return n === 1 || n === 2 ? 'queue' : n === 4 ? 'private' : null;
   return null;
 }
+
+// a game that plays the 3-way online in a party: it says so in its hello (client 'rm-394' or later)
+export function playsTrio(sess) { const v = /^rm-(\d{1,6})$/.exec(String((sess && sess.client) || '')); return !!v && +v[1] >= 394; }
 
 export const newPartyCode = taken => { for (let i = 0; i < 50; i++) { const c = roomCode(PARTY.CODE_LEN); if (!taken.has(c)) return c; } throw new Error('no free party code'); };
 
@@ -38,7 +43,7 @@ export class Party {
   get size() { return this.members.length; }
   member(pid) { return this.members.find(m => m.id === pid) || null; }
   add(sess) {
-    const pl = sess.player, m = { id: pl.id, sess, sb: sess.sb || null, name: pl.name, look: pl.look, ready: false, vote: null, busy: null, away: false, at: nowMs() };
+    const pl = sess.player, m = { id: pl.id, sess, sb: sess.sb || null, name: pl.name, look: pl.look, ready: false, vote: null, busy: null, away: false, at: nowMs(), trio: playsTrio(sess) };
     this.members.push(m); if (!this.leader) this.leader = m.id;
     return m;
   }
@@ -49,8 +54,12 @@ export class Party {
     if (this.leader === pid) this.leader = this.members.length ? this.members.slice().sort((a, b) => a.at - b.at)[0].id : null;
     return m;
   }
-  // the modes this party can play now, each with how: [{ mode, plan }] (on: the modes switched on for parties)
-  modes(on) { return PARTY.MODES.map(mode => ({ mode, plan: planFor(mode, this.size), on: on.includes(mode) })).filter(x => x.plan); }
+  // the modes this party can play now, each with how: [{ mode, plan }] (on: the modes switched on for parties). A 3-way
+  // only when every member's game plays one online (v394 and later): an earlier game in the party doesn't see it
+  modes(on) {
+    const trio = this.members.every(m => m.trio);
+    return PARTY.MODES.map(mode => ({ mode, plan: planFor(mode, this.size), on: on.includes(mode) })).filter(x => x.plan && (x.mode !== 'trio' || trio));
+  }
   // the mode the party plays: the leader's pick (v392: the leader picks the event, the others ready up and wait for it); with no
   // pick from the leader, the most votes among the modes it can play (a party with an earlier game in it), and nobody voted, the first
   mode(on) {
