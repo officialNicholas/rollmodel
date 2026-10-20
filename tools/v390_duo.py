@@ -18,7 +18,9 @@
 - Near-square screens (iPhone Duo open or folded, an iPad): the match's pause and sound buttons sit further in from the corners, clear of
   the screen's rounded corners.
 - Near-square screens, upright, on the Strokes page and the Locker: the black ink band behind the tabs fades out at its ends instead of
-  stopping in a straight edge where the screen is wider than the band."""
+  stopping in a straight edge where the screen is wider than the band.
+- An upright screen 560 wide or more (iPhone Duo opened flat and held upright, an iPad): the Paint Shop's, the Locker's and the Strokes
+  page's cards four to a row, a little smaller, so more fit."""
 
 def rep(s, a, b, n=1):
     c = s.count(a); assert c == n, (c, n, a[:160]); return s.replace(a, b)
@@ -105,6 +107,11 @@ def apply(s):
                "/* (v390) and the ink band behind the Strokes page's and the Locker's tabs fades out at its ends (it can end short of the screen's edge there) */\n"
                "html.roomy :is(#mStrokes,#mLocker).sgp .sgtabs::before{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14%,#000 86%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 14%,#000 86%,transparent 100%)}\n"
                "/* cards: how to play and pause sit over a dimmed game */")
+    # ---- a wide upright screen: the cards four to a row
+    s = rep(s, "#mLocker.sgp .sggrid{gap:18px 14px}",
+               "#mLocker.sgp .sggrid{gap:18px 14px}\n"
+               "/* (v390) an upright screen 560 wide or more (iPhone Duo open, an iPad): the cards four to a row, a little smaller */\n"
+               "@media (max-aspect-ratio:1/1) and (min-width:560px){:is(#mStrokes,#mLocker).sgp .sggrid,#mLocker.sgp .sggrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px 12px}}")
     s = rep(s, "const coachSide = () => viewW > viewH && viewH <= 520 ? 'l' : 'r';",
                "const coachSide = () => viewW > viewH && (viewH <= 520 || viewW >= viewH * 1.15) ? 'l' : 'r'; // (v390: any wide screen: its buttons are on the right)\n//")
     return s
