@@ -77,6 +77,10 @@ function trialFits(x, z, h, yaw) {
       if (!(Math.abs(g - h) < 0.12) || blockedAt(px, pz, h + 0.05)) return false; } }
   for (let k = 0; k <= 8; k++) { const a = k / 8 * Math.PI, c = Math.cos(a) * TR_R, py = h + Math.sin(a) * TR_R, px = x + ax * c, pz = z + az * c;
     if (solidThrough(px, pz, py) || solidThrough(px, pz, py + TR_TUBE)) return false; }
+  // the drifting clouds (MOVERS) aren't solid, so nothing above sees them: keep the arch out of the whole run of each one at its height
+  for (const m of MOVERS) { if (!m.on || h + TR_R + TR_TUBE < m.y0 - 0.3 || h > m.y1 + 0.3) continue;
+    const ex = (m.axis === 'x' ? m.amp : 0) + m.hw + TR_R + 0.9, ez = (m.axis === 'z' ? m.amp : 0) + m.hw + TR_R + 0.9;
+    if (Math.abs(x - m.x) < ex && Math.abs(z - m.z) < ez) return false; }
   return !solidThrough(x, z, h + 0.5) && !solidThrough(x, z, h + 1.1);
 }
 // the next ring: somewhere you can roll to from here, by the CPUs' map (its own distances: the CPUs' costs aren't kept up in a time
