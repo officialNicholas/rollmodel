@@ -3,6 +3,9 @@
 //   ALLOWED_ORIGINS (comma list; empty allows any; the iOS app's page is rollmodel://localhost)
 //   MAX_CONNECTIONS (5000)  MAX_PER_IP (64)  TRUST_PROXY (0; 1 to take the client address from X-Forwarded-For)
 //   SNAPSHOT_HZ (30)  SHUTDOWN_GRACE_MS (3000)  RULES (JSON object overriding rules, for test servers)
+//   Notifications (v391, src/push.js): APNS_KEY_ID, APNS_TEAM_ID, APNS_KEY_P8, APNS_BUNDLE_ID, APNS_PRODUCTION,
+//   SUPABASE_URL, SUPABASE_KEY. Set as Fly secrets, never in a file; with no key, no notifications
+import { pushFromEnv } from './push.js';
 export function configFromEnv(env = process.env) {
   const int = (k, d, lo, hi) => { const v = parseInt(env[k], 10); return Number.isFinite(v) && v >= lo && v <= hi ? v : d; };
   let rules = {};
@@ -19,5 +22,6 @@ export function configFromEnv(env = process.env) {
     trustProxy: env.TRUST_PROXY === '1' || env.TRUST_PROXY === 'true',
     shutdownGraceMs: int('SHUTDOWN_GRACE_MS', 3000, 0, 60000),
     rules,
+    push: pushFromEnv(env),
   };
 }

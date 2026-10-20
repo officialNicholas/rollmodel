@@ -65,6 +65,7 @@ export const DEFAULT_RULES = Object.freeze({
 export const LIMITS = Object.freeze({
   maxPayload: 64 * 1024, // ws closes the connection above this (layouts are the largest messages)
   maxJson: 2048, // any JSON message other than a layout
+  maxInviteJson: 4096, // (v391) a party invite, which carries the inviter's Supabase token for its notification
   maxLayoutJson: 60 * 1024,
   layout: { boxes: 400, ramps: 200, holes: 120, pots: 32, powers: 48, spawns: 8, puddles: 48 },
   nameMin: 1, nameMax: 16, lookMax: 512,

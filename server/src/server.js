@@ -10,6 +10,7 @@ import { connectionLimits, noteDrop } from './ratelimit.js';
 import { Matchmaker, Room, uniqueCode, makeTicket, regionOf } from './lobby.js';
 import { Party, PARTY, planFor, newPartyCode } from './party.js';
 import { Match } from './match.js';
+import { Pusher } from './push.js';
 import { nowMs, Window, summarize, fin } from './util.js';
 import { performance } from 'node:perf_hooks';
 
@@ -37,6 +38,7 @@ export class GameServer {
     this.parties = new Map(); // join code -> party
     this.partyAway = new Map(); // player id -> the party keeping a dropped member's place
     this.bySb = new Map(); // Supabase user id -> the connections of that player (for invites and pokes)
+    this.push = opts.pusher || new Pusher(opts.push || null, { log: this.log }); // (v391: an invite to a friend whose game is closed, as a notification)
     this.mm = new Matchmaker(); this.perIp = new Map(); this.connSeq = 0; this.closing = false;
     this.stats = { connections: 0, messages: 0, violations: 0, kicked: 0, matchesStarted: 0, matchesEnded: 0, matchesCancelled: 0, bytesOut: 0, framesOut: 0 };
     this.tickTimes = new Window(8192); this.tickCpu = new Window(8192); this.startedAt = nowMs(); this._timer = null; this._nextTick = 0; this._lastMM = 0; this._lastPing = 0;
@@ -51,6 +53,7 @@ export class GameServer {
     this.port = this.http.address().port;
     this._nextTick = nowMs(); this._loop();
     this.log.info('listening', { port: this.port, host, proto: PROTOCOL_VERSION });
+    this.push.announce();
     return this;
   }
 
@@ -164,9 +167,10 @@ export class GameServer {
     const now = nowMs(); sess.lastMsg = now; this.stats.messages++;
     if (isBinary) return this._binary(sess, data, now);
     const len = data.length;
-    // only a layout may be big, and only while that player's match is collecting layouts
-    const layoutTime = sess.match && sess.match.phase === 'consensus';
-    if (len > (layoutTime ? LIMITS.maxLayoutJson : LIMITS.maxJson)) { if (noteDrop(sess.lim, now)) return this.kick(sess, 'flood'); return this._bad(sess, 'message too large'); }
+    // only a layout may be big, and only while that player's match is collecting layouts; an invite carries the inviter's
+    // Supabase token for its notification, so it may be a little bigger than the rest
+    const layoutTime = sess.match && sess.match.phase === 'consensus', invite = len > LIMITS.maxJson && len <= LIMITS.maxInviteJson && data.toString('utf8', 0, 20).startsWith('{"t":"partyInvite"');
+    if (len > (layoutTime ? LIMITS.maxLayoutJson : invite ? LIMITS.maxInviteJson : LIMITS.maxJson)) { if (noteDrop(sess.lim, now)) return this.kick(sess, 'flood'); return this._bad(sess, 'message too large'); }
     if (!sess.lim.json.take(1, now)) { if (noteDrop(sess.lim, now)) this.kick(sess, 'flood'); return; }
     let m; try { m = JSON.parse(data.toString('utf8')); } catch (e) { return this._bad(sess, 'not JSON'); }
     if (!m || typeof m !== 'object' || Array.isArray(m) || typeof m.t !== 'string') return this._bad(sess, 'no type');
@@ -423,6 +427,8 @@ export class GameServer {
         live.push({ to: m.to, name: nm.reason === 'missing' || nm.reason === 'empty' ? 'Friend' : nm.name, look: sanitizeLook(m.look), by: pid, exp: now + PARTY.INVITE_S * 1000 });
         party.invites = live; // (someone the leader removed can come back only with an invite like this)
         this._poke(m.to, 'invite', sess);
+        // (v391) a friend whose game isn't connected: a notification on their phone, when the invite came with what it needs
+        if (!this.bySb.has(m.to) && typeof m.inv === 'string' && typeof m.sbt === 'string') this.push.invite(m.inv, m.sbt);
         return this._partySend(party, { r: m.r, to: sess });
       }
       case 'partyDecline': {
@@ -685,7 +691,7 @@ export class GameServer {
     await new Promise(resolve => { const t = setTimeout(resolve, grace); const iv = setInterval(() => { if (!this.sessions.size) { clearTimeout(t); clearInterval(iv); resolve(); } }, 20); setTimeout(() => clearInterval(iv), grace + 10); });
     for (const s of [...this.sessions]) { try { s.ws && s.ws.terminate(); } catch (e) { /* gone */ } this._closed(s); }
     await new Promise(resolve => this.http.close(() => resolve()));
-    await this.store.close();
+    await this.store.close(); this.push.close();
     this.log.info('stopped');
   }
 }

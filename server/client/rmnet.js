@@ -409,7 +409,9 @@ const RMNetSDK = (() => {
     partyBusy(what) { return this._request({ t: 'partyBusy', what: what || null }); } // 'locker' | 'shop' | 'strokes' | 'settings' | 'cpu' | 'menu' | null
     partyReact(e) { return this._sendJ({ t: 'partyReact', e }); } // the others get { id, e } as 'react'
     // tell the game server about an invite made in the database: it shows in the party, and the friend's game is nudged
-    partyInvite(to, info = {}) { return this._request({ t: 'partyInvite', to, name: info.name, look: info.look }); }
+    // (info.inv, info.sbt: the invite's id in Supabase and your Supabase access token, for a notification on a friend's
+    // phone when their game is closed; the server asks Supabase for it as you, once)
+    partyInvite(to, info = {}) { return this._request({ t: 'partyInvite', to, name: info.name, look: info.look, inv: info.inv || undefined, sbt: info.sbt || undefined }); }
     partyDecline(code) { return this._request({ t: 'partyDecline', code: String(code || '').toUpperCase() }); }
     // nudge a friend's game to look at its inbox ('invite', 'request' or 'answer'); it carries nothing else
     poke(to, k) { return this._sendJ({ t: 'poke', to, k }); }
