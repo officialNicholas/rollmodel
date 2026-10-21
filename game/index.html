@@ -4994,6 +4994,13 @@ html.fv #pause .card>.psets{grid-column:1/-1}
 @keyframes jackout{to{opacity:0;transform:rotate(-6deg) scale(.6) translateY(10px)}}
 @keyframes jcoin{0%{opacity:1;transform:rotate(var(--a)) translateY(0) scale(.6)}100%{opacity:0;transform:rotate(var(--a)) translateY(-62px) scale(1)}}
 @media (prefers-reduced-motion:reduce){#repRow .jackpot,#repRow .jackpot .jcoin{animation:none}}
+/* (v416) the party's events: one card each, and the Online | CPUs switch above them */
+.pywho{grid-column:1/-1;justify-self:center;display:flex;gap:4px;margin:0 0 2px;padding:4px;border-radius:999px;background:rgba(23,19,32,.62);box-shadow:inset 0 0 0 2px rgba(255,255,255,.12)}
+.pywho button{appearance:none;display:inline-flex;align-items:center;gap:7px;min-width:132px;justify-content:center;height:38px;margin:0;padding:0 18px;border:0;border-radius:999px;background:transparent;color:#C9C2DC;font:900 14px/1 var(--font-head);letter-spacing:.06em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s}
+.pywho button[aria-pressed="true"]{background:#FFD24A;color:#171320;box-shadow:0 3px 0 rgba(0,0,0,.35)}
+.pywho button svg{width:17px;height:17px}
+@media (max-width:359px){.pywho button{min-width:112px;padding:0 12px;font-size:12.5px}}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.pywho button{height:32px}}
 /* (v414) why the dabs: short tags under the reputation row; a rank up's tag, and its dabs' flight to the counter */
 .dabwhy{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin:-4px 0 0;padding:0;list-style:none}
 .dabwhy[hidden]{display:none}
@@ -5271,7 +5278,7 @@ html.fv #pause .card>.psets{grid-column:1/-1}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 413</p>
+      <p class="ver">Version 414</p>
     </div>
   </div>
 
@@ -28350,6 +28357,10 @@ function ptEvWords(x, n) {
 }
 // the party's event cards (again when the party changes), in two groups: with players online, then just your party. The page goes
 // once there's nothing for the host to pick
+
+// (v416) one card per event; the switch says whether the missing players are found online or are CPUs
+const PY_WHO_IC = { online: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.6" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M3.6 12h16.8M12 3.4c2.6 2.6 3.6 5.4 3.6 8.6s-1 6-3.6 8.6c-2.6-2.6-3.6-5.4-3.6-8.6s1-6 3.6-8.6z" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+  cpu: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="7" width="14" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="9.5" cy="12.6" r="1.6" fill="currentColor"/><circle cx="14.5" cy="12.6" r="1.6" fill="currentColor"/><path d="M12 7V3.8M10 16.2h4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>' };
 function ptEvRender() {
   if (!ptEvOn()) return;
   const p = ON.party, me = ptMe();
@@ -28359,11 +28370,13 @@ function ptEvRender() {
   const card = (x, cpu) => { const d = PY_EV[x.mode] || PY_EV.ffa, w = cpu ? ptEvCpuWords(x, n) : ptEvWords(x, n), art = stageArtOf(x.mode === 'duel' && VOTE_STAGES.includes(stageSel) ? stageSel : d.art);
     const line = (cpu ? ptEvCpuSides(x, mem) : ptEvSides(x, mem)).map(s => '<span class="pyside">' + s.map(face).join('') + '</span>').join('<i class="pyvs">vs</i>');
     return '<div class="evcard evpy' + (cpu ? ' pyc' : '') + (x.on ? '' : ' soon') + '" data-pyev="' + x.mode + '"' + (cpu ? ' data-cpu="1"' : '') + ' style="--ec:' + d.c + '"><button class="evmain" type="button" data-pyev="' + x.mode + '"' + (cpu ? ' data-cpu="1"' : '') + ' aria-label="' + frEsc(w.say) + '"' + (x.on ? '' : ' aria-disabled="true"') + '>'
-      + '<span class="evbar"><i>' + w.bar + '</i></span><span class="evtop"><span class="evic" aria-hidden="true">' + ic(d.ic) + '</span><span class="evtx"><b>' + frEsc((PY_FULL[x.mode] || x.mode) + (cpu ? ptCpuWith(x.cpus) : '')) + '</b><small>' + w.sub + '</small></span></span>'
+      + '<span class="evbar"><i>' + w.bar + '</i></span><span class="evtop"><span class="evic" aria-hidden="true">' + ic(d.ic) + '</span><span class="evtx"><b>' + frEsc(PY_FULL[x.mode] || x.mode) + '</b><small>' + w.sub + '</small></span></span>'
       + '<span class="evart pyart" aria-hidden="true"><img alt="" src="' + (art || '') + '"><span class="pyline">' + line + '</span></span></button></div>'; };
-  const ord = (a, b) => ['duo', 'trio', 'ffa', 'duel'].indexOf(a.mode) - ['duo', 'trio', 'ffa', 'duel'].indexOf(b.mode);
-  const online = p.modes.filter(x => x.plan !== 'private').sort(ord), own = p.modes.filter(x => x.plan === 'private'), cpus = p.modes.filter(x => x.cpus > 0).sort((a, b) => ['trio', 'ffa', 'duo'].indexOf(a.mode) - ['trio', 'ffa', 'duo'].indexOf(b.mode));
-  const h = (online.length ? '<h3 class="pyevh evpy">With players online</h3>' + online.map(x => card(x, false)).join('') : '') + (cpus.length ? '<h3 class="pyevh evpy">Play now with CPUs</h3>' + cpus.map(x => card(x, true)).join('') : '') + (own.length ? '<h3 class="pyevh evpy">Just your party</h3>' + own.map(x => card(x, false)).join('') : '');
+  const ord = ['duel', 'trio', 'ffa', 'duo'], canCpu = p.modes.some(x => x.cpus > 0), who = canCpu && store.pyWho === 'cpu' ? 'cpu' : 'online';
+  // (v416) one card per event: just your party as it is; otherwise found online, or CPUs (with the switch on CPUs, where the event has room for them)
+  const list = p.modes.slice().sort((a, b) => ord.indexOf(a.mode) - ord.indexOf(b.mode)).map(x => x.plan === 'private' ? card(x, false) : who === 'cpu' ? (x.cpus > 0 ? card(x, true) : '') : card(x, false)).join('');
+  const sw = canCpu ? '<div class="pywho evpy" role="group" aria-label="Who fills the other places">' + ['online', 'cpu'].map(k => '<button type="button" data-pywho="' + k + '" aria-pressed="' + (who === k) + '">' + PY_WHO_IC[k] + (k === 'cpu' ? 'CPUs' : 'Online') + '</button>').join('') + '</div>' : '';
+  const h = sw + list;
   const g = $('evGrid'); if (g._py === h) return; g._py = h;
   g.querySelectorAll('.evpy').forEach(e => e.remove()); g.insertAdjacentHTML('afterbegin', h);
 }
@@ -28390,7 +28403,8 @@ async function ptEvPick(m, cpu) {
   AU.pop(); buzz(12); closeEvents();
   try { await ON.net.partyVote(m, !!cpu); await ON.net.partyReady(true); } catch (e) { frToast('<span>' + frEsc(onReqText(e)) + '</span>'); }
 }
-$('evGrid').addEventListener('click', e => { const b = e.target.closest('.evpy [data-pyev]'); if (!b || !ptEvOn()) return; AU.init(); ptEvPick(b.dataset.pyev, b.dataset.cpu === '1'); });
+$('evGrid').addEventListener('click', e => { const sw = e.target.closest('.pywho [data-pywho]'); if (sw && ptEvOn()) { AU.init(); AU.ui(); store.pyWho = sw.dataset.pywho; save(); ptEvRender(); return; } // (v416)
+  const b = e.target.closest('.evpy [data-pyev]'); if (!b || !ptEvOn()) return; AU.init(); ptEvPick(b.dataset.pyev, b.dataset.cpu === '1'); });
 
 // ---------- screen orientation: picked on the first launch, changed in Settings. On a phone held the other way the game asks for a turn ----------
 const ORIENT_NAMES = { port: 'upright', land: 'wide' };
