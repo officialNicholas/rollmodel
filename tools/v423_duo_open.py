@@ -2,13 +2,10 @@
 
 - Settings: on a landscape screen taller than 560 points the rows sat in the top third and the rest was empty. There the page now reads
   as three bands down the screen: sound and visuals, then turning and the help pages, each under a thin rule, with bigger toggles,
-  buttons, slider and labels, and Restart Game with the version as a footer just above Done. Phones held sideways (520 points tall or
+  buttons, slider and labels, and Restart Game with the version as a footer at the foot of the page. Phones held sideways (520 points tall or
   less) keep their layout as it was.
-- Settings has one way out, Back (top left). Done (bottom right) did the same thing, so it is gone on every layout (phone upright and
-  sideways, iPhone Duo open and closed) and the rows get its room at the foot of the page. Back already did what Done did (a changed
-  Visuals restarts the game); the focus Settings gave Done (opened from the pause menu, and after closing Delete account) goes to Back,
-  and Restart Game's second-tap guard disarms on Back alone. Done used to read Restart to apply once Visuals changed; the note under
-  Visuals now says the game restarts when you go back.
+- Settings no longer has a Done button (it is hidden elsewhere; Back is the one way out), so the rows run down to the foot of the page
+  on every layout instead of stopping above where Done sat.
 - Results beside the painting (a landscape screen taller than a phone's: iPhone Duo open, a tablet): the title is one line that never
   wraps, at up to 64 points, and the panel's single column was sized by its widest piece. VICTORY! (and NEW BEST! in a time trial) came
   out wider than the 361-point panel on iPhone Duo open, so the column grew past the panel, and everything in it (the score bar, the
@@ -21,11 +18,11 @@ def rep(s, a, b, n=1):
     c = s.count(a); assert c == n, (c, n, a[:160]); return s.replace(a, b)
 
 CSS = r"""
+/* (v423) no Done button any more (Back is the way out): the rows run down to the foot of the page */
+#setModal .card>#srows{bottom:max(8px,env(safe-area-inset-bottom))}
 /* (v423) Settings on a tall landscape screen (iPhone Duo opened flat, a tablet): three bands down the page instead of a block at the
    top, sound and visuals, turning and the help pages, each under a thin rule, with bigger controls; Restart Game and the version as a
-   footer above Done. A phone held sideways (520 points tall or less) never gets here */
-/* (v423) no Done button: the rows run down to the foot of the page */
-#setModal .card>#srows{bottom:max(8px,env(safe-area-inset-bottom))}
+   footer at the foot. A phone held sideways (520 points tall or less) never gets here (below) */
 @media (min-aspect-ratio:1/1) and (min-height:561px){
   #setModal .card>#setTitle{font-size:44px;line-height:52px}
   #setModal .card>#srows{top:calc(max(12px,env(safe-area-inset-top)) + 76px);bottom:calc(max(12px,env(safe-area-inset-bottom)) + 14px);padding-left:max(32px,env(safe-area-inset-left));padding-right:max(32px,env(safe-area-inset-right))}
@@ -59,23 +56,6 @@ CSS = r"""
 @media (min-width:860px) and (min-aspect-ratio:1/1) and (min-height:521px){#end{right:max(clamp(24px,4vw,56px),calc(env(safe-area-inset-right,0px) + 16px))}}
 """
 
-def no_done(s):
-    s = rep(s, '      <button class="btn play sm" id="setDone" type="button">Done</button>\n', '')
-    s = rep(s, "setPlayRows(true); if (window.__turnShow) window.__turnShow(); setModal.hidden = false; setFit();\n  setTimeout(() => $('setDone').focus({ preventScroll: true }), 30);",
-               "setPlayRows(true); if (window.__turnShow) window.__turnShow(); setModal.hidden = false; setFit();\n  setTimeout(() => $('setBack').focus({ preventScroll: true }), 30); // (v423: Back, the one way out)")
-    s = rep(s, "store.gfx = gfxPick; save(); $('setDone').disabled = true; $('setDone').textContent = 'Restarting';",
-               "store.gfx = gfxPick; save(); $('setBack').disabled = true; $('setBack').setAttribute('aria-label', 'Restarting');")
-    s = rep(s, "$('setDone').addEventListener('click', uiClick(doneSettings));", "")
-    # (Done said "Restart to apply" once Visuals changed: the note under Visuals says it now)
-    s = rep(s, "$('gfxNote').textContent = GFX_NOTE[gfxPick]; $('setDone').textContent = gfxPick === GFX ? 'Done' : 'Restart to apply';",
-               "$('gfxNote').textContent = GFX_NOTE[gfxPick] + (gfxPick === GFX ? '' : ' The game restarts when you go back.');")
-    s = rep(s, "  $('setDone').addEventListener('click', disarm); $('setBack').addEventListener('click', disarm); }\n",
-               "  $('setBack').addEventListener('click', disarm); }\n")
-    s = rep(s, "(b.hidden ? $('setDone') : b).focus({ preventScroll: true });", "(b.hidden ? $('setBack') : b).focus({ preventScroll: true });")
-    assert "$('setDone')" not in s and 'id="setDone"' not in s
-    return s
-
 def apply(s):
-    s = no_done(s)
     i = s.rfind("</style>"); s = s[:i] + CSS + s[i:]
     return s
