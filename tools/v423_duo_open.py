@@ -22,7 +22,7 @@ CSS = r"""
 #setModal .card>#srows{bottom:max(8px,env(safe-area-inset-bottom))}
 /* (v423) Settings on a tall landscape screen (iPhone Duo opened flat, a tablet): three bands down the page instead of a block at the
    top, sound and visuals, turning and the help pages, each under a thin rule, with bigger controls; Restart Game and the version as a
-   footer at the foot. A phone held sideways (520 points tall or less) never gets here (below) */
+   footer at the foot. A phone held sideways (520 points tall or less) never gets here */
 @media (min-aspect-ratio:1/1) and (min-height:561px){
   #setModal .card>#setTitle{font-size:44px;line-height:52px}
   #setModal .card>#srows{top:calc(max(12px,env(safe-area-inset-top)) + 76px);bottom:calc(max(12px,env(safe-area-inset-bottom)) + 14px);padding-left:max(32px,env(safe-area-inset-left));padding-right:max(32px,env(safe-area-inset-right))}
