@@ -9,7 +9,8 @@ drove them. Now:
 - The host's Choose Event in a party has a group of its own, "Play now with CPUs": two of you get a 3-way with 1 CPU, a Showdown
   with 2 CPUs and a 2v2 (you two against two CPUs); three of you a Showdown with 1 CPU and a 2v2 with 1 CPU. Each card's line-up
   shows a CPU badge in each CPU's place (a ? is still a person to be found). Picking one tells the server "against CPUs" (any
-  other card says "not"), and the friends see it beside their Ready: "Showdown with 2 CPUs".
+  other card says "not"), and the friends see it beside their Ready: "Showdown with 2 CPUs". (The server takes everyone's ready
+  away when the leader switches to or from CPUs; a friend who was ready and waiting readies up again by itself.)
 - The game says it is this version when it connects (client rm-413), so the server offers CPUs to a party whose games all can, and
   fills a long matchmaking wait (two people or more) with CPUs.
 - The game picked to drive the CPUs (the one with the steadiest connection) runs them with its own CPU minds (medium), as it does
@@ -107,9 +108,9 @@ function netBotPush(D, m) {
 def apply(s):
     s = rep(s, "@media (prefers-reduced-motion:reduce){#repRow .jackpot,#repRow .jackpot .jcoin{animation:none}}\n",
                "@media (prefers-reduced-motion:reduce){#repRow .jackpot,#repRow .jackpot .jcoin{animation:none}}\n" + CSS)
-    # the SDK: the leader's pick says against CPUs or not; the hello says which game this is
-    s = rep(s, "partyVote(mode) { return this._request({ t: 'partyVote', mode }); }",
-               "partyVote(mode, cpu) { return this._request(typeof cpu === 'boolean' ? { t: 'partyVote', mode, cpu } : { t: 'partyVote', mode }); } // (v413: cpu, the leader's pick)")
+    # the SDK (server/client/rmnet.js, inlined at build time) has partyVote(mode, cpu): the leader's pick says against CPUs or not.
+    # The hello says which game this is
+    assert s.count("partyVote(mode, cpu) {") == 1
     s = rep(s, "client: 'rm-394'", "client: 'rm-413'")
     # the party's events: a group of CPU cards
     i = s.index("function ptEvRender() {"); j = s.index("$('evGrid').addEventListener('click', e => { const b = e.target.closest('.evpy [data-pyev]');")
@@ -121,6 +122,11 @@ def apply(s):
                "if (p.state === 'starting' || p.state === 'queued' || (lead && lead.ready)) { const x = p.cpu && p.modes.find(q => q.mode === p.mode); return (PY_FULL[p.mode] || '') + (x && x.cpus > 0 ? ptCpuWith(x.cpus) : ''); }")
     s = rep(s, "else if (p.state === 'queued') { t = 'Finding'; s = 'Tap to cancel'; cls = 'pygo'; }",
                "else if (p.state === 'queued') { t = 'Finding'; s = p.members.length >= 2 && p.mode !== 'duel' ? 'CPUs fill in if it’s slow · tap to cancel' : 'Tap to cancel'; cls = 'pygo'; }")
+    # the leader switching to or from CPUs takes everyone's ready away on the server; a friend who readied up to wait for the
+    # leader's pick stays ready (as for any other pick)
+    s = rep(s, "  const was = ON.party, my = ON.me && ON.me.id, now = Date.now(); for (const i of v.invites) i.exp = now + i.left; ON.party = v; ON.stale = 0;\n",
+               "  const was = ON.party, my = ON.me && ON.me.id, now = Date.now(); for (const i of v.invites) i.exp = now + i.left; ON.party = v; ON.stale = 0;\n"
+               "  if (was && was.id === v.id && my && v.leader !== my && !!was.cpu !== !!v.cpu && v.state === 'idle' && ON.net) { const a = was.members.find(x => x.id === my), b = v.members.find(x => x.id === my); if (a && a.ready && b && !b.ready && !b.busy && !b.away) ON.net.partyReady(true).catch(() => {}); } // (v413)\n")
     # the match: which CPUs are this game's, their minds, their names
     s = rep(s, "  for (const D of [H, H2, H3]) { D.cpu = !slotOf.has(D); D.netLive = false; } // (the rivals are people: no CPU mind, no CPU pace)",
                "  NM.mine = new Set((net.bots ? net.bots() : []).map(sl => seats.get(sl)).filter(D => D && D !== P)); // (v413: the CPU players this game drives)\n"
