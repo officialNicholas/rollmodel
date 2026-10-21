@@ -5327,7 +5327,7 @@ html:not(.roomy) #hud:not(.off)~.corner{right:max(14px,calc(env(safe-area-inset-
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 416</p>
+      <p class="ver">Version 417</p>
     </div>
   </div>
 
@@ -12365,7 +12365,15 @@ Animator.prototype.crawl = function (t, out, dt) {
     if (mnK > 0.002 && l.arm) { const q = l.mq || (l.mq = new THREE.Vector3()); q.copy(tp); q.x += l.m * 0.032 * mnK; q.z += 0.014 * mnK; tp = q; } // (v274: menacing, its hands set wide)
     const slk = l.en === 'hand.R' ? slK : 0, wvk = l.en === 'hand.R' ? Math.max(wv, slk) : 0; if (wvk > 0.002) { const pk = P.fk('crawl', out), sh = pk[l.root], q = l.wq || (l.wq = new THREE.Vector3()), sw = slk > wv ? 0 : Math.sin(this.t * 2 * Math.PI * 2.4);
       if (slk > wv) q.set(sh.x + l.m * 0.05, sh.y + 0.22, sh.z + 0.13); else q.set(sh.x + l.m * (0.1 + 0.07 * sw), sh.y + 0.17 + 0.02 * Math.abs(sw), sh.z + 0.2); q.lerpVectors(tp, q, wvk); tp = q; lift = Math.max(lift, wvk); }
-    { const r = Math.hypot(LB.fwd.x, LB.fwd.z), a0 = Math.atan2(LB.fwd.x, LB.fwd.z), a = a0 + (Math.PI - 0.08 - a0) * tk; out.contact(l.en, tp, LV2.set(l.m * Math.sin(a) * r * (1 - wvk) + l.m * 0.2 * wvk, -0.35 * lift * (1 - tk) * (1 - wvk) + 0.85 * wvk, Math.cos(a) * r * (1 - wvk) + 0.5 * wvk), LV3.set(LB.pole.x * l.m, LB.pole.y, LB.pole.z), 1); }
+    { const r = Math.hypot(LB.fwd.x, LB.fwd.z), a0 = Math.atan2(LB.fwd.x, LB.fwd.z), a = a0 + (Math.PI - 0.08 - a0) * tk; LV2.set(l.m * Math.sin(a) * r * (1 - wvk) + l.m * 0.2 * wvk, -0.35 * lift * (1 - tk) * (1 - wvk) + 0.85 * wvk, Math.cos(a) * r * (1 - wvk) + 0.5 * wvk);
+      // (v419) a planted hand or foot keeps its heading on the ground while the body turns over it (carried round with the ground, as its
+      // place is), up to a comfortable twist of the wrist; lifted, it eases back to the way the body points. The fingers and toes no
+      // longer swivel on the floor round a turn
+      { const ad = Math.atan2(LV2.x, LV2.z), pl = !air && l.st === 'stance' && l.lift < 0.02 && sl < 0.05 && tk < 0.02 && wvk < 0.002 && !(L.settle && L.settle.l === l), wr = x => Math.atan2(Math.sin(x), Math.cos(x));
+        if (l.hy === undefined || air) l.hy = ad; else if (pl) l.hy += C ? -yr * h : 0; else l.hy += wr(ad - l.hy) * Math.min(1, dt * 12);
+        const dA = Math.max(-0.6, Math.min(0.6, wr(l.hy - ad))); if (pl) l.hy = ad + dA;
+        if (dA > 1e-4 || dA < -1e-4) { const c = Math.cos(dA), sn = Math.sin(dA), x = LV2.x, z = LV2.z; LV2.x = x * c + z * sn; LV2.z = z * c - x * sn; } }
+      out.contact(l.en, tp, LV2, LV3.set(LB.pole.x * l.m, LB.pole.y, LB.pole.z), 1); }
     const dig = this.chain[l.arm ? 'fingers' : 'toes'][l.m > 0 ? 0 : 1], ns = 1 - tk; const sl0 = sl; { const sl = tk; // (along its sides: the fingers and toes closed together, nearly straight)
     dig.forEach((g, k) => { rot(out, g[0], (4 + lift * 16 - (air ? 8 : 0)) * ns * (1 - wvk) + 3 * sl, 0, (k - 1.5) * (5 + (air ? 5 : 0) + 12 * wvk) * l.m * ns - (k - 1.5) * 2 * l.m * sl); rot(out, g[1], (3 + l.lift * 12) * ns * (1 - wvk) + 2 * sl, 0, 0); }); } // (v252: waving, the fingers spread and straight)
   }
@@ -13508,7 +13516,8 @@ const AXOC = (() => {
     // squashed: flattened by a pound (a pancake), or the game's own squash and stretch (landing, winding up a fling)
     X.flat += ((D && D.flatT > 0 ? 1 : 0) - X.flat) * Math.min(1, dt * (D && D.flatT > 0 ? 22 : 7));
     X.sq += (clamp(o.squash || 0, -0.3, 0.6) - X.sq) * Math.min(1, dt * 18);
-    const sy = (1 - 0.32 * X.sq + 0.18 * (o.rise || 0)) * (1 - 0.72 * X.flat), sxz = (1 + 0.16 * X.sq) * (1 + 0.4 * X.flat);
+    X.ri = X.ri === undefined ? (o.rise || 0) : X.ri + ((o.rise || 0) - X.ri) * Math.min(1, dt * 20); // (v419: eased like the squash: no one-frame pop)
+    const sy = (1 - 0.32 * X.sq + 0.18 * X.ri) * (1 - 0.72 * X.flat), sxz = (1 + 0.16 * X.sq) * (1 + 0.4 * X.flat);
     I.root.scale.set(sxz, sy, sxz);
     // the paint: all over it until it bursts off or runs off; wading through it, it washes up its legs and belly; wet, it shines
     if (X.rise > 0) { X.coat = Math.min(1, X.coat + X.rise * dt); if (X.coat >= 1) X.rise = 0; }
@@ -20432,6 +20441,9 @@ let IDLE_ACTS = IDLE_ACTS0;
 let idleLast = '';
 function pickIdle() { IDLE_ACTS = AXOC.S.ready ? IDLE_AXO : IDLE_ACTS0; if (window.__idleForce) { const f = IDLE_ACTS.find(a => a[0] === window.__idleForce); if (f) return f; } const pool = []; for (const a of IDLE_ACTS) if (a[0] !== idleLast) for (let i = 0; i < a[2]; i++) pool.push(a); const a = pool[(Math.random() * pool.length) | 0]; idleLast = a[0]; return a; }
 const beatNow = () => { const B = AU.beat ? AU.beat() : null; return B ? B.t * B.bpm / 60 : clock * 2.47; };
+// (v419) a mood cut short by a tap: what it was doing fades out over a moment under the new one, instead of snapping to rest
+const IDLE_CH = ['sway', 'push', 'hop', 'spin', 'sq', 'rise', 'roll', 'pitch', 'bank', 'hand', 'earCover', 'wave'];
+function idleCut() { if (!idle.act && !idle.cut) return; const v = {}; let any = false; for (const n of IDLE_CH) { v[n] = idle[n] || 0; if (Math.abs(v[n]) > 1e-3) any = true; } idle.cut = any ? { k: 1, v } : null; }
 function idleStep(rdt) {
   idle.sway = idle.push = idle.hop = idle.spin = idle.sq = idle.rise = idle.roll = idle.pitch = idle.bank = idle.hand = idle.earCover = idle.wave = 0; idle.face = null;
   let lxT = 0, lyT = 0;
@@ -20486,6 +20498,7 @@ function idleStep(rdt) {
       if (!idle.face && ACT_FACE[idle.act] && env > 0.3) idle.face = ACT_FACE[idle.act]; // (v252: a face to go with it)
       if (u >= 1) { idle.act = null; idle.t = 1.4 + Math.random() * 2.6; } }
   } else { idle.act = null; idle.t = 2.2; }
+  if (idle.cut) { const c = idle.cut; c.k -= rdt / 0.32; if (c.k <= 0 || state !== 'menu') idle.cut = null; else { const e = c.k * c.k * (3 - 2 * c.k); for (const n of IDLE_CH) idle[n] += c.v[n] * e; } } // (v419)
   idleLook.x += (lxT - idleLook.x) * Math.min(1, rdt * 10); idleLook.y += (lyT - idleLook.y) * Math.min(1, rdt * 10);
   if (idle.face && VP.slime && VP.slime.face) VP.slime.face(idle.face, 0.15); // (v252: the mood's face, held over the usual one while it lasts)
 }
@@ -20643,9 +20656,9 @@ function blobVisual(D, V, dt, ke, kf) {
     const ph = (clock * 0.85 + (D.cpu ? 0.47 : 0)) % 1;
     hop = 0; rise = ph < 0.3 ? Math.sin(ph / 0.3 * Math.PI) * 0.55 : 0;
     sq = ph < 0.3 ? 0 : ph < 0.44 ? (1 - (ph - 0.3) / 0.14) * 0.42 : ph > 0.9 ? (ph - 0.9) / 0.1 * 0.2 : 0;
-    if (D === P && (lookOpen || menuPage === 'home') && !lookIntro && !vsSnap) { sq = idle.sq || 0.04 + 0.035 * Math.sin(clock * 2.3); rise = idle.rise; hop = idle.hop; spinY = idle.spin; } // breathing, plus its little idle bits
+    if (D === P && (lookOpen || menuPage === 'home') && !lookIntro && !vsSnap) { sq = idle.sq + 0.04 + 0.035 * Math.sin(clock * 2.3); rise = idle.rise; hop = idle.hop; spinY = idle.spin; } // breathing, plus its little idle bits
     if (D !== P && D.lobbyReady === false && menuPage === 'home') { sq = 0.04 + 0.035 * Math.sin(clock * 2.1 + D.team); rise = 0; } // (v391: a party member waits calmly; ready, it hops)
-    if (D === P && menuReact > 0 && !vsSnap) { const u = 1 - menuReact / 0.7; hop = Math.sin(u * Math.PI) * 0.6; sq = u > 0.85 ? (u - 0.85) / 0.15 * 0.5 : 0; rise = u < 0.4 ? 0.7 : 0; }
+    if (D === P && menuReact > 0 && !vsSnap) { const u = 1 - menuReact / 0.7; hop = Math.max(idle.hop, Math.sin(u * Math.PI) * 0.6); sq = u > 0.85 ? (u - 0.85) / 0.15 * 0.5 : 0; rise = u < 0.4 ? 0.7 : 0; }
     if (D === P && lkDip && lkDip.pose) { const q = lkDip.pose; hop = q.y; sq = q.sq; rise = q.rise; spinY = q.spin; }
     if (D === P && lookIntro) { if (lookIntro.crawl) { const q = lookIntro.pose; hop = 0; sq = q.sq; rise = q.rise; spinY = 0; U.gDrop.value = 0; U.gWob.value = 1; V.introSc = 1; } else { const I = introPose(lookIntro.t); hop = I.y; sq = I.sq; rise = I.rise; spinY = 0; U.gDrop.value = I.drop; U.gWob.value = I.wob; V.introSc = I.sc; } }
   }
@@ -24348,7 +24361,7 @@ function pokeNext(S, acts) {
 const LOBBY_POKE = { q: [], last: '', n: 0, until: 0 };
 function lobbyPoke() {
   const now = performance.now(); if (now < LOBBY_POKE.until || menuReact > 0 || lkDip) return; // (still busy with the last one)
-  const [act, dur] = pokeNext(LOBBY_POKE, AXOC.S.ready ? POKE_AXO : POKE_SLIME); LOBBY_POKE.until = now + (dur + 0.3) * 1000;
+  const [act, dur] = pokeNext(LOBBY_POKE, AXOC.S.ready ? POKE_AXO : POKE_SLIME); LOBBY_POKE.until = now + (dur + 0.3) * 1000; idleCut(); // (v419)
   if (act === 'hop') { idle.act = null; menuReact = 0.7; AU.pop(); AU.vox(['hup', 'whee', 'hoh'][(Math.random() * 3) | 0], 0.8); return; }
   idle.act = act; idle.dur = dur; idle.u = 0; idle.b0 = beatNow(); idle.f1 = idle.f2 = false; idle.side = Math.random() < 0.5 ? -1 : 1;
   if (act === 'face') emote(P, ['glee', 'smug', 'bonk'][(Math.random() * 3) | 0], dur * 0.8);
@@ -24623,15 +24636,42 @@ function sgDressStart() {
   sgDressPaint(false); sgRing(0, 0, 0.7, TEAMS[0].wet);
   if (SGD.pend) { const w = SGD.pend; SGD.pend = null; sgDressReact(w); }
 }
+// (v419) the window's turntable: a turn to show something, a skin's spin, the back button, the way home to the front, all ease in and
+// out on a minimum-jerk curve from where it is, at the speed it already has (a new goal mid-turn picks up from there; a turn set from
+// outside, a skin's extra spin, starts afresh). True when it's there
+function lkTurn(goal, T0, k, dt, wrap) {
+  let w = SGD.tw;
+  if (!w || w.b !== goal || Math.abs(SGD.dyaw - w.y) > 1e-6) {
+    if (wrap) SGD.dyaw = wrapA(SGD.dyaw); const d = goal - SGD.dyaw;
+    w = SGD.tw = { a: SGD.dyaw, b: goal, v: clamp(SGD.dW || 0, -14, 14), t: 0, T: reduceMotion ? 0.12 : Math.min(1.5, T0 + k * Math.abs(d)), y: 0 };
+  }
+  w.t += dt; const u = Math.min(1, w.t / w.T), u3 = u * u * u, s = u3 * (10 - 15 * u + 6 * u * u), h = u - 6 * u3 + 8 * u3 * u - 3 * u3 * u * u;
+  SGD.dyaw = w.y = w.a + (w.b - w.a) * s + w.v * w.T * h;
+  if (u >= 1) { SGD.dyaw = w.b; SGD.tw = null; return true; } return false;
+}
+// (v419) what a reaction cut short leaves behind: a hop falls the rest of the way down and lands; a flip cut off mid-air settles upright
+// on a spring (an emote's turn goes to the turntable, see sgActEnd)
+function lkSettle(dt) {
+  const D = SGD.A.D, ip = D.ip, F = SGD.fall, emo = !!(SGD.act && SGD.act.k === 'emote');
+  if (F) { F.v -= 9 * dt; F.h += F.v * dt;
+    if (F.h <= 0) { SGD.fall = null; D.squash = Math.max(D.squash, 0.3 * Math.min(1, -F.v / 2)); if (!SGD.act) ip.hop = 0; }
+    else ip.hop = SGD.act ? Math.max(ip.hop || 0, F.h) : F.h; }
+  const R = SGD.pr; if (R) { const w = 13, h = Math.min(dt, 1 / 30); R.v += (-w * w * R.x - 2 * w * R.v) * h; R.x += R.v * h;
+    if (Math.abs(R.x) < 0.002 && Math.abs(R.v) < 0.02) { SGD.pr = null; if (!emo) ip.pitch = 0; } else ip.pitch = (emo ? ip.pitch || 0 : 0) + R.x; }
+  const hp = ip.hop || 0; SGD.hopV = dt > 0 ? (hp - (SGD.hopP || 0)) / dt : 0; SGD.hopP = hp;
+}
 function sgDress(dt) {
   lkWallTick(); // (v333)
   const A = SGD.A, D = A.D; SGD.t += dt; if (SGD.shk > 0) SGD.shk = Math.max(0, SGD.shk - dt * 3);
   sgActStep(dt); // (v328: a tap's reaction)
+  lkSettle(dt); // (v419)
   if (!SGD.dDrag) {
-    if (SGD.dV) { SGD.dyaw += SGD.dV * dt; SGD.dV *= Math.exp(-dt * 2.6); if (Math.abs(SGD.dV) < 0.08) SGD.dV = 0; }
-    else if (SGD.dyawTo !== null) { const e = SGD.dyawTo - SGD.dyaw; SGD.dyaw += e * Math.min(1, dt * (reduceMotion ? 30 : 5)); if (Math.abs(e) < 0.01) { SGD.dyaw = SGD.dyawTo; SGD.dyawTo = null; } }
-    else if ((SGD.dHold -= dt) <= 0 && SGD.dyaw) { SGD.dyaw = wrapA(SGD.dyaw); SGD.dyaw -= SGD.dyaw * Math.min(1, dt * (reduceMotion ? 30 : 2.4)); if (Math.abs(SGD.dyaw) < 0.003) SGD.dyaw = 0; }
-  }
+    if (SGD.dV) { SGD.tw = null; SGD.dyaw += SGD.dV * dt; SGD.dV *= Math.exp(-dt * 2.6); if (Math.abs(SGD.dV) < 0.08) SGD.dV = 0; }
+    else if (SGD.dyawTo !== null) { if (lkTurn(SGD.dyawTo, 0.4, 0.12, dt, false)) SGD.dyawTo = null; } // (v419: eased, see lkTurn)
+    else if ((SGD.dHold -= dt) <= 0 && SGD.dyaw) { if (lkTurn(0, 0.55, 0.2, dt, true)) SGD.dyaw = 0; }
+    else SGD.tw = null;
+  } else SGD.tw = null;
+  SGD.dW = dt > 0 ? wrapA(SGD.dyaw - (SGD.dwP === undefined ? SGD.dyaw : SGD.dwP)) / dt : 0; SGD.dwP = SGD.dyaw; // (v419: how fast the window turns)
   const y0 = D.yaw, yt = sgYawCam(A) + SGD.dyaw; D.yaw = yt; D.turn = clamp(wrapA(yt - y0) / Math.max(dt, 1e-3) / 9, -1, 1); D.spd = 0;
   D.ip.expr = null; D.ip.watch = null; if (Math.abs(wrapA(SGD.dyaw)) < 0.55 && !SGD.dDrag) sgWatch(A, null);
   if (SGD.moodT > 0) { SGD.moodT -= dt; D.ip.expr = SGD.mood; } else D.ip.expr = SGD.dDrag ? 'curious' : 'happy';
@@ -24680,7 +24720,10 @@ function sgDressCheer() { if (!SGD.built) return; sgActEnd(); const D = SGD.A.D;
 // surprise, a blep, a smirk, a sneeze, a wet-dog shake, a twirl. One at a time; taps do nothing until it's done; never the same twice running
 const POKE_DRESS = [['hop', 0.75], ['wave', 1.6], ['hand', 1.3], ['ears', 1.3], ['blep', 1.4], ['smirk', 1.4], ['sneeze', 1.9], ['shake', 1.3], ['twirl', 1.1]];
 const DRESS_POKE = { q: [], last: '', n: 0, until: 0 };
-function sgActEnd() { const a = SGD.act; SGD.act = null; SGD.actFace = null; if (!a || !SGD.built) return; const ip = SGD.A.D.ip; ip.hop = 0; ip.wave = 0; ip.hand = 0; ip.earUp = 0; ip.sq = null; ip.rise = null; if (a.k === 'emote') emEnd(SGD.A.D); }
+function sgActEnd() { const a = SGD.act; SGD.act = null; SGD.actFace = null; if (!a || !SGD.built) return; const ip = SGD.A.D.ip;
+  if ((ip.hop || 0) > 0.004) SGD.fall = { h: ip.hop, v: clamp(SGD.hopV || 0, -3, 3) }; // (v419: cut short in the air, it comes down)
+  if (a.k === 'emote' && a.t < a.dur) { const vp = SGD.A.D.vicPose; if (vp && vp.spin) { const sp = wrapA(vp.spin), V = SGD.A.V; SGD.dyaw += sp; if (V.yawD !== undefined) V.yawD += sp; SGD.tw = null; if (SGD.dyawTo === null && !SGD.dDrag) SGD.dyawTo = 0; } if (Math.abs(wrapA(ip.pitch || 0)) > 0.01) SGD.pr = { x: wrapA(ip.pitch), v: 0 }; }
+  ip.hop = 0; ip.wave = 0; ip.hand = 0; ip.earUp = 0; ip.sq = null; ip.rise = null; if (a.k === 'emote') emEnd(SGD.A.D); }
 function sgDressPoke() {
   if (!SGD.built) return; const now = performance.now(); if (now < DRESS_POKE.until) return; // (still busy with the last one)
   const [k, dur] = pokeNext(DRESS_POKE, reduceMotion ? POKE_DRESS.filter(x => x[0] !== 'twirl') : POKE_DRESS); DRESS_POKE.until = now + (dur + 0.25) * 1000;
