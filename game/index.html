@@ -4994,6 +4994,25 @@ html.fv #pause .card>.psets{grid-column:1/-1}
 @keyframes jackout{to{opacity:0;transform:rotate(-6deg) scale(.6) translateY(10px)}}
 @keyframes jcoin{0%{opacity:1;transform:rotate(var(--a)) translateY(0) scale(.6)}100%{opacity:0;transform:rotate(var(--a)) translateY(-62px) scale(1)}}
 @media (prefers-reduced-motion:reduce){#repRow .jackpot,#repRow .jackpot .jcoin{animation:none}}
+/* (v417) match polish: the score card fits a 320 px phone, Showdown hearts the width of their face, the in-match sound button
+   paper like the pause, and a few entrances (rival pointers, the pause card's contents, the results sheet's rows) */
+@media (max-width:359px) and (max-aspect-ratio:1/1){.hud .top{grid-template-columns:44px minmax(0,1fr) 44px}.hud .score{padding-left:10px;padding-right:10px}.hud .score .vsrow{padding:0 2px}.hud .score .clock{padding-left:10px;padding-right:10px}}
+.hud.sdmode .sdh{gap:0;height:auto}
+.hud.sdmode .sdh svg{width:min(14px,calc((var(--sdb) + 6px) / 3));height:auto;aspect-ratio:14/13}
+html:not(.roomy) #hud:not(.off)~.corner{right:max(14px,calc(env(safe-area-inset-right) + 8px))}
+#hud:not(.off)~.corner .ib{background:#FBF8F1 url(art/m_paperbg.webp) center/300px;color:var(--black);border-radius:3px;box-shadow:3px 4px 0 rgba(23,19,32,.28)}
+@media (max-height:520px) and (min-aspect-ratio:1/1){html:not(.roomy) #hud:not(.off)~.corner{top:max(8px,env(safe-area-inset-top))}#hud:not(.off)~.corner .ib{width:40px;height:40px}}
+@keyframes p17drop{from{translate:0 -38px;opacity:0}}
+@keyframes p17up{from{translate:0 12px;opacity:0}}
+@keyframes p17pop{from{scale:.5;opacity:0}}
+@media (prefers-reduced-motion:no-preference){
+#hud:not(.off)~.corner .ib{animation:p17drop .55s cubic-bezier(.3,1.55,.5,1) backwards}
+.foeptr.on>*{animation:p17pop var(--d-med,.24s) var(--ease-pop,cubic-bezier(.3,1.55,.5,1)) backwards}
+#pause .card>*{animation:p17up var(--d-med,.24s) var(--ease-out,cubic-bezier(.2,.8,.2,1)) backwards}
+#pause .card>:nth-child(1){animation-delay:.05s}#pause .card>:nth-child(2){animation-delay:.09s}#pause .card>:nth-child(3){animation-delay:.13s}#pause .card>:nth-child(4){animation-delay:.17s}#pause .card>:nth-child(n+5){animation-delay:.21s}
+#end>.rhead,#end>.judge,#end>#endBtn,#end>.row{animation:p17up var(--d-slow,.38s) var(--ease-out,cubic-bezier(.2,.8,.2,1)) backwards}
+#end>.rhead{animation-delay:.06s}#end>.judge{animation-delay:.12s}#end>#endBtn{animation-delay:.3s}#end>.row{animation-delay:.36s}
+}
 /* (v418) the purple round Back (as on Strokes, the Locker and Friends) on every page */
 :is(#evBack,#setBack,#worldBack).pback{appearance:none;display:flex;flex-direction:column;align-items:center;justify-content:center;width:var(--pbk,56px);height:var(--pbk,56px);margin:0;padding:2px 0 0;border:0;border-radius:50%;background:radial-gradient(circle at 38% 28%,#A876FF,#7B3BEA 58%,#5F22C8);color:#fff;box-shadow:0 0 0 3px #171320,0 5px 0 #171320;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .08s,box-shadow .08s}
 :is(#evBack,#setBack,#worldBack).pback svg{width:46%;height:46%;flex:none}
@@ -5308,7 +5327,7 @@ html.fv #pause .card>.psets{grid-column:1/-1}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 415</p>
+      <p class="ver">Version 416</p>
     </div>
   </div>
 
@@ -15463,9 +15482,9 @@ function useOrb(D) {
 function cpuGift() { const r = Math.random(); return !tut && !tut2 && !tut3 && r < 0.46 ? (r < 0.15 ? 'freeze' : r < 0.31 ? 'storm' : 'bomb') : ['giant', 'rocket'][(Math.random() * 2) | 0]; } // (v404: the bomb too) // (v384: the storm, as often as the freeze)
 function pocketHud() {
   const b2 = $('itemBtn2'), h2 = state === 'play' && P.st === 'play' ? P.held2 : null; if (b2.hidden === !!h2) b2.hidden = !h2;
-  if (h2 && b2.dataset.k !== h2) { b2.dataset.k = h2; b2.innerHTML = '<i class="sdisc" aria-hidden="true"></i>' + ITEM_ICON[h2] + '<span class="ilbl">' + PU[h2].name + '</span>'; b2.setAttribute('aria-label', 'Use the ' + PU[h2].name.toLowerCase()); restartCls(b2, 'in'); } else if (!h2) b2.dataset.k = '';
+  if (h2 && b2.dataset.k !== h2) { b2.dataset.k = h2; b2.innerHTML = '<i class="sdisc" aria-hidden="true"></i>' + ITEM_ICON[h2] + '<span class="ilbl">' + PU[h2].name + '</span>'; b2.setAttribute('aria-label', 'Use the ' + PU[h2].name.toLowerCase()); restartCls(b2, 'in'); } else if (!h2 && b2.dataset.k) b2.dataset.k = '';
   const ob = $('orbBtn'), os = state === 'play' && P.st === 'play' ? P.orbSaved : null; if (ob.hidden === !!os) ob.hidden = !os; if (ob.classList.contains('up') !== !!h2) ob.classList.toggle('up', !!h2);
-  if (os && ob.dataset.k !== os) { ob.dataset.k = os; ob.innerHTML = '<i class="sdisc" aria-hidden="true"></i>' + (STROKE_ICON[os] || '') + '<span class="ilbl">' + (ORB_LBL[os] || 'Orb') + '</span><i class="oclk" aria-hidden="true"></i>'; ob.setAttribute('aria-label', 'Use the ' + (ORB_LBL[os] || 'orb').toLowerCase()); restartCls(ob, 'in'); } else if (!os) ob.dataset.k = '';
+  if (os && ob.dataset.k !== os) { ob.dataset.k = os; ob.innerHTML = '<i class="sdisc" aria-hidden="true"></i>' + (STROKE_ICON[os] || '') + '<span class="ilbl">' + (ORB_LBL[os] || 'Orb') + '</span><i class="oclk" aria-hidden="true"></i>'; ob.setAttribute('aria-label', 'Use the ' + (ORB_LBL[os] || 'orb').toLowerCase()); restartCls(ob, 'in'); } else if (!os && ob.dataset.k) ob.dataset.k = '';
   if (os) { const keep = !(P.orbT < Infinity), f = keep ? 1 : clamp(P.orbT / ORB_HOLD, 0, 1); if (ob._keep !== keep) { ob._keep = keep; ob.classList.toggle('keep', keep); } if (!keep && Math.abs((ob._f === undefined ? 2 : ob._f) - f) > 0.003) { ob._f = f; ob.style.setProperty('--of', f.toFixed(3)); ob.classList.toggle('low', f < 0.3); } } else ob._f = undefined; // (v256: the orb's clock)
 }
 // ---------- v251: the Paint Trap. Dropped where you stand, it arms in a beat; the next rival over it sets it off: a burst of your paint, and
@@ -19167,7 +19186,7 @@ function trialPass(x, y, z) {
 }
 // the look, each frame: rising out of the floor, its glow breathing (brighter as you come close), sparkles running along it; through,
 // a flash and it swells and is gone; the pointer to it when it's off screen or far off
-let trHudY = 0, trHudAt = -9; const trHudBot = () => { if (clock - trHudAt > 0.5) { trHudAt = clock; const e = document.querySelector('.hud .score'); trHudY = e && e.offsetParent ? e.getBoundingClientRect().bottom : 0; } return trHudY; };
+let trHudY = 0, trHudAt = -9; const trHudBot = () => { if (p17Stale('tr')) { trHudAt = clock; const e = document.querySelector('.hud .score'); trHudY = e && e.offsetParent ? e.getBoundingClientRect().bottom : 0; } return trHudY; };
 const trBack = u => { const c = 1.9; return 1 + (c + 1) * Math.pow(u - 1, 3) + c * Math.pow(u - 1, 2); };
 function trialDraw(playing, dt) {
   if (TR.on && (state === 'dead' || state === 'menu')) { TR.on = false; TR.out = 0; } // (the match is over: it goes with it)
@@ -19189,7 +19208,7 @@ function trialDraw(playing, dt) {
   if (TR.on && TR.k > 0.3 && playing && P.st !== 'ko') { tv1.set(TR.x, TR.y + TR_R + 0.5, TR.z).project(camera); const W = viewW, Hh = viewH, behind = tv1.z > 1; let x = behind ? -tv1.x : tv1.x, y = behind ? -tv1.y : tv1.y;
     const on = !behind && Math.abs(x) < 0.9 && Math.abs(y) < 0.78, far = Math.hypot(TR.x - P.x, TR.z - P.z) > 9;
     if (on && !far) { if (el._on) { el._on = false; el.classList.remove('on'); } }
-    else { let px, py, rot; if (on) { px = (x * 0.5 + 0.5) * W; py = Math.max((-y * 0.5 + 0.5) * Hh - 30 - Math.abs(Math.sin(clock * 5)) * 6, trHudBot() + 26); rot = 180; } /* (never over the score card) */ else { const m = Math.max(Math.abs(x) / 0.86, Math.abs(y) / 0.72, 1e-3); x /= m; y /= m; px = (x * 0.5 + 0.5) * W; py = (-y * 0.5 + 0.5) * Hh; rot = Math.atan2(x, y) * 180 / Math.PI; }
+    else { let px, py, rot; if (on) { px = (x * 0.5 + 0.5) * W; py = Math.max((-y * 0.5 + 0.5) * Hh - 30 - Math.abs(Math.sin(clock * 5)) * 6, trHudBot() + 26); rot = 180; } /* (never over the score card) */ else { const m = Math.max(Math.abs(x) / 0.86, Math.abs(y) / 0.72, 1e-3); x /= m; y /= m; px = (x * 0.5 + 0.5) * W; py = p17Dodge(px, (-y * 0.5 + 0.5) * Hh); rot = Math.atan2(x, y) * 180 / Math.PI; }
       if (!el._on) { el._on = true; el.classList.add('on'); } el.classList.toggle('edge', !on); el.style.transform = 'translate(' + px.toFixed(1) + 'px,' + py.toFixed(1) + 'px)'; el.children[1].style.transform = 'rotate(' + rot.toFixed(0) + 'deg)'; } }
   else if (el._on) { el._on = false; el.classList.remove('on'); }
 }
@@ -20341,7 +20360,7 @@ function foePointer(fpEl, H, on) {
     if (!behind && Math.abs(x) < 0.94 && Math.abs(y) < 0.82) { if (fpEl._on) { fpEl._on = false; fpEl.classList.remove('on'); } }
     else {
       const yTop = Math.min(0.7, 1 - (isShow() ? 2 * (sdCardBot() + 30) : 200) / Hh), m = Math.max(Math.abs(x) / 0.86, y > 0 ? y / yTop : -y / 0.7, 1e-3); x /= m; y /= m; // kept clear of the scoreboard on a short screen
-      const px = (x * 0.5 + 0.5) * W, py = (-y * 0.5 + 0.5) * Hh, rot = Math.atan2(x, y) * 180 / Math.PI, dHP = Math.hypot(H.x - P.x, H.z - P.z);
+      const px = (x * 0.5 + 0.5) * W, py = p17Dodge(px, (-y * 0.5 + 0.5) * Hh), rot = Math.atan2(x, y) * 180 / Math.PI, dHP = Math.hypot(H.x - P.x, H.z - P.z);
       const warn = (threat && threat.F === H) || (H.slam && dHP < slamRadius(H) + PR + 3) || (H.charging && H.ai && H.ai.plan && (H.ai.plan.kind === 'attack' || H.ai.plan.kind === 'shove') && dHP < 13);
       if (!fpEl._on) { fpEl._on = true; fpEl.classList.add('on'); }
       if (fpEl._warn !== warn) { fpEl._warn = warn; fpEl.classList.toggle('warn', warn); }
@@ -21168,7 +21187,7 @@ function visuals(dt, rdt) {
     else {
       let px, py, rot;
       if (on) { px = (x * 0.5 + 0.5) * W; py = (-y * 0.5 + 0.5) * Hh - 44 - Math.abs(Math.sin(clock * 5)) * 6; rot = 180; }
-      else { const m = Math.max(Math.abs(x) / 0.86, Math.abs(y) / 0.72, 1e-3); x /= m; y /= m; px = (x * 0.5 + 0.5) * W; py = (-y * 0.5 + 0.5) * Hh; rot = Math.atan2(x, y) * 180 / Math.PI; }
+      else { const m = Math.max(Math.abs(x) / 0.86, Math.abs(y) / 0.72, 1e-3); x /= m; y /= m; px = (x * 0.5 + 0.5) * W; py = p17Dodge(px, (-y * 0.5 + 0.5) * Hh); rot = Math.atan2(x, y) * 180 / Math.PI; }
       if (!opEl._on) { opEl._on = true; opEl.classList.add('on'); }
       opEl.classList.toggle('edge', !on);
       opEl.style.transform = 'translate(' + px.toFixed(1) + 'px,' + py.toFixed(1) + 'px)'; opEl.children[1].style.transform = 'rotate(' + rot.toFixed(0) + 'deg)';
@@ -21178,7 +21197,7 @@ function visuals(dt, rdt) {
   { const el = $('giftPtr'); if (gift.on && playing && P.st !== 'ko') { tv1.set(gift.x, gift.y + 1, gift.z).project(camera); const W = viewW, Hh = viewH, behind = tv1.z > 1; let x = behind ? -tv1.x : tv1.x, y = behind ? -tv1.y : tv1.y;
       const on = !behind && Math.abs(x) < 0.9 && Math.abs(y) < 0.78, far = Math.hypot(gift.x - P.x, gift.z - P.z) > 6;
       if (on && !far) { if (el._on) { el._on = false; el.classList.remove('on'); } }
-      else { let px, py, rot; if (on) { px = (x * 0.5 + 0.5) * W; py = (-y * 0.5 + 0.5) * Hh - 56 - Math.abs(Math.sin(clock * 5)) * 6; rot = 180; } else { const m = Math.max(Math.abs(x) / 0.86, Math.abs(y) / 0.72, 1e-3); x /= m; y /= m; px = (x * 0.5 + 0.5) * W; py = (-y * 0.5 + 0.5) * Hh; rot = Math.atan2(x, y) * 180 / Math.PI; }
+      else { let px, py, rot; if (on) { px = (x * 0.5 + 0.5) * W; py = (-y * 0.5 + 0.5) * Hh - 56 - Math.abs(Math.sin(clock * 5)) * 6; rot = 180; } else { const m = Math.max(Math.abs(x) / 0.86, Math.abs(y) / 0.72, 1e-3); x /= m; y /= m; px = (x * 0.5 + 0.5) * W; py = p17Dodge(px, (-y * 0.5 + 0.5) * Hh); rot = Math.atan2(x, y) * 180 / Math.PI; }
         if (!el._on) { el._on = true; el.classList.add('on'); } el.classList.toggle('edge', !on); el.style.transform = 'translate(' + px.toFixed(1) + 'px,' + py.toFixed(1) + 'px)'; el.children[1].style.transform = 'rotate(' + rot.toFixed(0) + 'deg)'; } }
     else if (el._on) { el._on = false; el.classList.remove('on'); } }
   // (v285) the nearest pick-up while you've got nothing (the one coming for you, if one is): over it when it's on screen and far off, on
@@ -21188,7 +21207,7 @@ function visuals(dt, rdt) {
     if (tg) { tv1.set(tg.x, tg.y + 1.05, tg.z).project(camera); const W = viewW, Hh = viewH, behind = tv1.z > 1; let x = behind ? -tv1.x : tv1.x, y = behind ? -tv1.y : tv1.y;
       const on = !behind && Math.abs(x) < 0.9 && Math.abs(y) < 0.78, far = Math.hypot(tg.x - P.x, tg.z - P.z) > 7;
       if (on && !far) { if (el._on) { el._on = false; el.classList.remove('on'); } }
-      else { let px, py, rot; if (on) { px = (x * 0.5 + 0.5) * W; py = (-y * 0.5 + 0.5) * Hh - 48 - Math.abs(Math.sin(clock * 5)) * 6; rot = 180; } else { const m = Math.max(Math.abs(x) / 0.86, Math.abs(y) / 0.72, 1e-3); x /= m; y /= m; px = (x * 0.5 + 0.5) * W; py = (-y * 0.5 + 0.5) * Hh; rot = Math.atan2(x, y) * 180 / Math.PI; }
+      else { let px, py, rot; if (on) { px = (x * 0.5 + 0.5) * W; py = (-y * 0.5 + 0.5) * Hh - 48 - Math.abs(Math.sin(clock * 5)) * 6; rot = 180; } else { const m = Math.max(Math.abs(x) / 0.86, Math.abs(y) / 0.72, 1e-3); x /= m; y /= m; px = (x * 0.5 + 0.5) * W; py = p17Dodge(px, (-y * 0.5 + 0.5) * Hh); rot = Math.atan2(x, y) * 180 / Math.PI; }
         if (el._ty !== ty) { el._ty = ty; el.children[0].innerHTML = ITEM_ICON[ty] || ''; }
         if (!el._on) { el._on = true; el.classList.add('on'); } el.classList.toggle('edge', !on); el.style.transform = 'translate(' + px.toFixed(1) + 'px,' + py.toFixed(1) + 'px)'; el.children[1].style.transform = 'rotate(' + rot.toFixed(0) + 'deg)'; } }
     else if (el._on) { el._on = false; el.classList.remove('on'); } }
@@ -21206,7 +21225,7 @@ function visuals(dt, rdt) {
   drawShots();
   for (const pw of powers) if (pw.g) { const k = pw.pop < 1 ? 1 - Math.pow(1 - pw.pop, 3) : 1; pw.g.scale.setScalar(Math.max(0.01, k)); pw.g.position.set(pw.x, pw.y + 1.05 + Math.sin(clock * 2.2 + pw.phase) * 0.14, pw.z); if (pw.eyes) { const yaw = Math.atan2(camera.position.x - pw.x, camera.position.z - pw.z); pw.spin.rotation.set(Math.sin(clock * 2.6 + pw.phase) * 0.1, yaw + Math.sin(clock * 1.5 + pw.phase) * 0.5, Math.sin(clock * 2.1 + pw.phase) * 0.16); } else pw.spin.rotation.y = clock * 2.1 + pw.phase; let nr = 0; for (const D of ACTIVE) if (D.st === 'play') nr = Math.max(nr, 1 - Math.hypot(D.x - pw.x, D.z - pw.z) / 3.2); nr = Math.max(0, nr); const jw = Math.sin(clock * (3.1 + 9 * nr) + pw.phase) * (0.03 + 0.07 * nr); pw.bub.scale.set(1 + jw, 1 - jw, 1 + jw * 0.5); } // the bubble gets jittery as someone rolls up to it
   pocketHud(); { const ib = $('itemBtn'), held = state === 'play' && P.st === 'play' && !(tut && tut.hideItem) ? P.held : null; if (ib.hidden === !!held) ib.hidden = !held;
-    if (held && ib.dataset.k !== held) { ib.dataset.k = held; ib.innerHTML = '<i class="sdisc" aria-hidden="true"></i>' + ITEM_ICON[held] + '<span class="ilbl">' + PU[held].name + '</span>'; ib.setAttribute('aria-label', 'Use the ' + PU[held].name.toLowerCase()); restartCls(ib, 'in'); } else if (!held) ib.dataset.k = ''; }
+    if (held && ib.dataset.k !== held) { ib.dataset.k = held; ib.innerHTML = '<i class="sdisc" aria-hidden="true"></i>' + ITEM_ICON[held] + '<span class="ilbl">' + PU[held].name + '</span>'; ib.setAttribute('aria-label', 'Use the ' + PU[held].name.toLowerCase()); restartCls(ib, 'in'); } else if (!held && ib.dataset.k) ib.dataset.k = ''; }
   { const pt = $('ptimer'); let frac = -1, n = 0, kind = '';
     if (state === 'play' && P.st === 'play' && drop.visible) {
       if (P.rocket) { const R = P.rocket, left = R.ph === 'hover' ? Math.max(0, ROCKET_HOVER - R.t) : ROCKET_HOVER; frac = left / ROCKET_HOVER; n = Math.ceil(left); kind = 'pw'; }
@@ -27573,7 +27592,7 @@ function showEnd(img) {
   // the verdict
   const word = solo ? (info.newBest ? 'New best!' : 'Time!') : info.win > 0 ? 'Victory!' : info.win < 0 ? 'Defeat' : 'Draw', t = $('endTitle');
   $('endWord').textContent = word; t.className = 'rtitle' + (solo ? '' : info.win < 0 ? ' lose' : info.win === 0 ? ' draw' : '');
-  t.setAttribute('aria-label', solo ? word : info.win > 0 ? 'Victory! You win' : info.win < 0 ? 'Defeat. ' + nameOf(info.winner) + ' wins' : 'Draw');
+  t.setAttribute('aria-label', solo ? word : info.win > 0 ? 'Victory! You win' : info.win < 0 ? (info.winner ? 'Defeat. ' + nameOf(info.winner) + ' wins' : 'Defeat') : 'Draw');
   paintName(); showRep(info);
   if (solo ? info.newBest : info.win > 0) setTimeout(() => hap('success'), 420); // (v351: as the verdict lands)
   const PT_B = ['in ' + w[0] + ' and Blue', 'in ' + w[1], 'in Two Colors', 'for One Blob', 'in Light and ' + w[2], 'in ' + w[2]];
@@ -28151,7 +28170,26 @@ function sdVicWords(info, feat, me) {
 const sdCardStat = D => { const k = endInfo && endInfo.kos ? endInfo.kos[D.team] || 0 : D.kos; return k + '\u00a0KO'; };
 // how far down the screen the scoreboard reaches (looked at now and then: it only changes with the layout)
 let sdCardY = 0, sdCardAt = -9;
-function sdCardBot() { if (Math.abs(clock - sdCardAt) > 0.5) { sdCardAt = clock; const c = hud.querySelector('.score'), r = c && c.getBoundingClientRect(), b = stage.getBoundingClientRect(); sdCardY = r && r.height ? r.bottom - b.top : 130; } return sdCardY; }
+// (v417) a layout value is measured again only when something could have moved it: the screen's size, the HUD's classes, or a
+// size change the observer saw (the score card, the pound and item buttons); and once more 0.7 s later, when the HUD's slide-in has
+// settled. (They were read twice a second, each read a forced layout in the middle of the frame.)
+function p17Stale(n) {
+  const S = p17Stale.st || (p17Stale.st = { gen: 0 });
+  if (!S.ro && typeof ResizeObserver === 'function') { S.ro = new ResizeObserver(() => { S.gen++; }); for (const e of hud.querySelectorAll('.score,.slamBtn,.itemBtn')) S.ro.observe(e); }
+  const o = S[n] || (S[n] = { k: '', due: -1 }), k = viewW + 'x' + viewH + ' ' + hud.className + ' ' + S.gen;
+  if (k !== o.k) { o.k = k; o.due = clock + 0.7; return true; }
+  if (o.due >= 0 && (clock >= o.due || clock < o.due - 1)) { o.due = -1; return true; }
+  return false;
+}
+// (v417) an edge pointer that would sit on the pound or item button stops just above it
+function p17Dodge(px, py) {
+  if (p17Stale('dodge') || !p17Dodge.b) { p17Dodge.b = []; // (the layout box, not the drawn one: a button mid-pop is scaled)
+    for (const e of hud.querySelectorAll('.slamBtn,.itemBtn')) { let x = 0, y = 0, n = e; while (n && n !== stage) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; }
+      if (n && e.offsetWidth) p17Dodge.b.push([x - 26, y - 24, x + e.offsetWidth + 26]); } }
+  for (const b of p17Dodge.b) if (px > b[0] && px < b[2] && py > b[1]) py = b[1];
+  return py;
+}
+function sdCardBot() { if (p17Stale('sd')) { sdCardAt = clock; const c = hud.querySelector('.score'), r = c && c.getBoundingClientRect(), b = stage.getBoundingClientRect(); sdCardY = r && r.height ? r.bottom - b.top : 130; } return sdCardY; }
 // the spectator's camera: behind whoever it's watching, the way the game's own follows you
 function specCam(rdt) {
   const S = spec.D; if (!S) return false;
