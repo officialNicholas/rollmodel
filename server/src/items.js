@@ -61,6 +61,7 @@ export class Items {
       p.item = p.bot ? CPU_START[Math.floor(this.R() * CPU_START.length)] : GAME_ITEMS.includes(L.it) ? L.it : null;
       p.special = p.bot ? (this.R() < 0.46 ? ['freeze', 'storm', 'bomb'][Math.floor(this.R() * 3)] : ['giant', 'rocket'][Math.floor(this.R() * 2)]) : SPECIALS.includes(L.sp) ? L.sp : 'giant';
       p.pockets = !p.bot && L.sk === 'pockets'; // (Deep Pockets: the orb keeps till it's used)
+      p.two = p.pockets && (L.iv || 0) >= 3; p.item2 = null; // (and a second pocket, for a game that knows of it: kit iv 3)
       p.orb = null; p.orbUntil = 0; p.hitsBy = new Map();
     }
   }
@@ -85,7 +86,7 @@ export class Items {
     for (let i = this.freezes.length - 1; i >= 0; i--) if (now >= this.freezes[i].at) this._flash(this.freezes.splice(i, 1)[0], now);
     this._orbTick(now, alive);
     if (now < this.nextAt || now > m.endAt - 6000) return;
-    const busy = m.P.filter(p => p.item || Object.values(p.effects).some(v => typeof v === 'number' && v > now)).length;
+    const busy = m.P.filter(p => p.item || p.item2 || Object.values(p.effects).some(v => typeof v === 'number' && v > now)).length;
     const cap = m.info.players > 2 ? 2 : 1;
     if (this.items.size >= cap || this.items.size + busy >= alive.length) { this.nextAt = now + 1000; return; }
     const sp = this._spot(alive);
@@ -138,9 +139,11 @@ export class Items {
       if (it.owner === p.slot && it.grace > now) continue;
       if (Math.abs(cur.y - it.y) < 1.6 && Math.hypot(cur.x - it.x, cur.z - it.z) < PICK_R) {
         this.items.delete(it.id);
-        if (p.item) { const bx = cur.x - Math.sin(p.latest.yaw) * 1.1, bz = cur.z - Math.cos(p.latest.yaw) * 1.1, g = m.level.surfaceUnder(bx, bz, cur.y + 0.5); this._spawn(p.item, bx, g > -Infinity ? g : cur.y, bz, now, p.slot); }
-        p.item = it.kind;
-        m._all({ t: 'itemTaken', id: it.id, slot: p.slot, kind: it.kind });
+        const drop = () => { const bx = cur.x - Math.sin(p.latest.yaw) * 1.1, bz = cur.z - Math.cos(p.latest.yaw) * 1.1, g = m.level.surfaceUnder(bx, bz, cur.y + 0.5); this._spawn(p.item, bx, g > -Infinity ? g : cur.y, bz, now, p.slot); };
+        // (as in the game: with Deep Pockets a second one goes in the other pocket, and a third drops the older; else the one held drops)
+        if (p.two && p.item) { if (p.item2) { drop(); p.item = p.item2; } p.item2 = it.kind; }
+        else { if (p.item) drop(); p.item = it.kind; }
+        m._all({ t: 'itemTaken', id: it.id, slot: p.slot, kind: it.kind, h1: p.item, h2: p.two ? p.item2 : undefined });
         break;
       }
     }
@@ -175,13 +178,14 @@ export class Items {
       this._special(p, gift, ts, fin(msg.yaw) ? msg.yaw : p.mover.last.yaw);
       return null;
     }
-    if (!p.item) return 'no_item';
+    const second = !!msg.second && p.two; // (v432: Deep Pockets' other pocket)
+    if (!(second ? p.item2 : p.item)) return 'no_item';
     const no = m._canAct(p, ts); if (no) return no;
     const e = p.effects;
     if ((e.whirl || 0) > ts || (e.giant || 0) > ts || (e.rocket || 0) > ts) return 'busy';
-    const kind = p.item, L = p.mover.last;
+    const kind = second ? p.item2 : p.item, L = p.mover.last;
     if ((kind === 'turret' || kind === 'whirl') && p.mover.airborne) return 'air';
-    p.item = null;
+    if (second) p.item2 = null; else p.item = null;
     let trap;
     switch (kind) {
       case 'roller': e.roller = ts + DUR.roller * 1000; p.paint = 1; break;
@@ -198,7 +202,7 @@ export class Items {
         break;
       }
     }
-    m._all({ t: 'itemUsed', slot: p.slot, kind, ts, x: L.x, y: L.y, z: L.z, yaw: fin(msg.yaw) ? msg.yaw : L.yaw, curve: msg.curve === 1 || msg.curve === -1 ? msg.curve : undefined, tgt: Number.isInteger(msg.tgt) ? msg.tgt : undefined, until: DUR[kind] ? ts + DUR[kind] * 1000 : undefined, trap: trap ? trap.id : undefined });
+    m._all({ t: 'itemUsed', slot: p.slot, kind, ts, x: L.x, y: L.y, z: L.z, yaw: fin(msg.yaw) ? msg.yaw : L.yaw, curve: msg.curve === 1 || msg.curve === -1 ? msg.curve : undefined, tgt: Number.isInteger(msg.tgt) ? msg.tgt : undefined, until: DUR[kind] ? ts + DUR[kind] * 1000 : undefined, trap: trap ? trap.id : undefined, h1: p.two ? p.item : undefined, h2: p.two ? p.item2 : undefined });
     return null;
   }
   // a special stroke goes off

@@ -207,3 +207,31 @@ test('an orb its holder never used comes out of them when they are knocked out, 
     const t = await taken; assert.equal(t.slot, c.A.slot);
   } finally { await c.close(); }
 });
+
+test('Deep Pockets online: a second item goes in the other pocket, a third drops the older, and either pocket can be used', async () => {
+  const c = await setup({ itemFirst: [60, 61] }, { iv: 3, it: 'roller', sk: 'pockets' }); // (no automatic items: placed by hand)
+  try {
+    const m = c.m(), items = m.items, p = m.P[c.A.slot];
+    assert.equal(p.two, true, 'a Deep Pockets player with a game that knows of the second pocket');
+    assert.equal(p.item, 'roller', 'starts with the item picked');
+    await until(() => c.A.net.serverNow() > c.A.startAt + 200, 4000);
+    const grab = async kind => {
+      const at = { x: c.A.body.x + 1.6, z: c.A.body.z };
+      const it = items._spawn(kind, at.x, 0, at.z, performance.now(), -1);
+      const taken = c.B.wait('itemTaken', x => x.id === it.id, 8000);
+      goTo(c.A, at.x, at.z); const t = await taken; c.A.o.script = b => { b.input = { speedK: 0 }; }; await sleep(250); return t;
+    };
+    const t1 = await grab('trap');
+    assert.deepEqual([t1.h1, t1.h2], ['roller', 'trap'], 'both pockets full');
+    assert.deepEqual([p.item, p.item2], ['roller', 'trap']);
+    const dropped = c.B.wait('itemSpawn', x => x.kind === 'roller' && x.dropped === c.A.slot, 15000);
+    const t2 = await grab('whirl');
+    assert.deepEqual([t2.h1, t2.h2], ['trap', 'whirl'], 'a third: the older goes');
+    assert.equal((await dropped).kind, 'roller', 'the older is dropped on the stage');
+    // the second pocket
+    const used = c.B.wait('itemUsed', x => x.slot === c.A.slot);
+    const u = await c.A.net.action('use', { second: 1 }); assert.equal(u.ok, true, u.reason);
+    const um = await used; assert.equal(um.kind, 'whirl'); assert.deepEqual([um.h1, um.h2 ?? null], ['trap', null]);
+    assert.deepEqual([p.item, p.item2], ['trap', null]);
+  } finally { await c.close(); }
+});
