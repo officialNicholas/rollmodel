@@ -5107,8 +5107,6 @@ html:not(.roomy) #hud:not(.off)~.corner{right:max(14px,calc(env(safe-area-inset-
 @keyframes emheart{0%{transform:translate(0,0) scale(.2) rotate(var(--r));opacity:0}16%{transform:translate(calc(var(--dx) * .3),-16px) scale(calc(var(--s) * 1.18)) rotate(var(--r));opacity:1}72%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(calc(var(--s) * .8)) rotate(calc(var(--r) * -1));opacity:0}}
 @media (prefers-reduced-motion:reduce){.emheart{animation-duration:.9s}}
 .lkcard .emico{width:74%;height:auto;max-height:84%}
-/* (v422) the emotes' pictures on their cards */
-.lkcard .emico.emart{width:78%;height:78%;max-height:84%;object-fit:contain;-webkit-user-drag:none;user-select:none;filter:drop-shadow(1px 2px 0 rgba(23,19,32,.18))}
 /* (v407) upright: the window's buttons clear of the ink band behind the tabs */
 @media (max-aspect-ratio:1/1){
   :is(#mStrokes,#mLocker).sgp .sgfoot{bottom:26px}
@@ -5183,19 +5181,27 @@ html:is(.scol,.scolL) #mLocker.sgp .sgpanel{flex:1 1 auto;max-height:none;margin
 /* (v424) the cover screen: Back and close buttons in the side column under the camera (fixed, so their cards' entrance can't carry
    them: the cards keep still there), the dab counter and turn button a step lower; the lobby's Play and rank bar a little smaller,
    the left plates spaced */
-html:is(.scol,.scolL) :is(#stBack,#lkBack,#frX,#evBack,#setBack,#worldBack){position:fixed!important;z-index:30;top:var(--sctop)!important;bottom:auto!important;margin:0!important;transform:none}
-html.scol :is(#stBack,#lkBack,#frX,#evBack,#setBack,#worldBack){left:auto!important;right:calc((var(--scw) - 56px) / 2)!important}
-html.scolL :is(#stBack,#lkBack,#frX,#evBack,#setBack,#worldBack){right:auto!important;left:calc((var(--scw) - 56px) / 2)!important}
-html:is(.scol,.scolL) :is(#dsX,#smClose,#stPopX,#ttX,#acX,#onX,#pkX,#ibX){position:fixed!important;z-index:30;top:calc(var(--sctop) + 4px)!important;bottom:auto!important;margin:0!important}
-html.scol :is(#dsX,#smClose,#stPopX,#ttX,#acX,#onX,#pkX,#ibX){left:auto!important;right:calc((var(--scw) - 48px) / 2)!important}
-html.scolL :is(#dsX,#smClose,#stPopX,#ttX,#acX,#onX,#pkX,#ibX){right:auto!important;left:calc((var(--scw) - 48px) / 2)!important}
-/* (a card that lifts in carries its close button with it, so on the cover screen those cards fade in instead) */
-/* the dab store's close button (and, on the cover screen, every close button in the column) is the side menu's: a chunky slate key, a bold white X */
-#dsX,html:is(.scol,.scolL) :is(#stPopX,#ttX,#acX,#onX,#pkX,#ibX){display:grid;place-items:center;width:46px;height:44px;padding:0;border:0;border-radius:9px;color:#fff;background:linear-gradient(180deg,#4A4561 0%,#353049 60%,#2A2539 100%);box-shadow:0 0 0 2.5px #171320,inset 0 2px 0 rgba(255,255,255,.2),inset 0 -3px 0 rgba(0,0,0,.25),0 4px 0 #171320;transform:skewX(-5deg);opacity:1}
-#dsX svg,html:is(.scol,.scolL) :is(#stPopX,#ttX,#acX,#onX,#pkX,#ibX) svg{width:22px;height:22px;color:#fff;stroke-width:3.4;filter:drop-shadow(0 1.5px 0 rgba(23,19,32,.45))}
+/* the dock: a box at the page root (no card's transform or blur can hold or clip it) that the open page's Back or close button is
+   moved into by script, under the camera; the match's sound button and the lobby's bell and menu sit below whatever is docked */
+#scolDock{display:none}
+html:is(.scol,.scolL) #scolDock{position:fixed;z-index:60;top:var(--sctop);width:var(--scw);display:flex;flex-direction:column;align-items:center;gap:12px;pointer-events:none}
+html.scol #scolDock{right:0} html.scolL #scolDock{left:0}
+#scolDock>*{position:static!important;margin:0!important;pointer-events:auto;flex:none}
+#scolDock>.pback,#scolDock>.sgback{transform:none}
+html:is(.scol,.scolL){--scdk:0px}
+html:is(.scol,.scolL) .corner{top:calc(var(--sctop) + var(--scdk))!important}
+html:is(.scol,.scolL) .corner .ib{margin:0 auto}
+html:is(.scol,.scolL) #hud:not(.off)~.corner{right:0!important}
+html:is(.scol,.scolL) .mhome.lobby .ltools{top:calc(var(--sctop) + var(--scdk))}
+#dsX{display:grid;place-items:center;width:46px;height:44px;padding:0;border:0;border-radius:9px;color:#fff;background:linear-gradient(180deg,#4A4561 0%,#353049 60%,#2A2539 100%);box-shadow:0 0 0 2.5px #171320,inset 0 2px 0 rgba(255,255,255,.2),inset 0 -3px 0 rgba(0,0,0,.25),0 4px 0 #171320;transform:skewX(-5deg);opacity:1}
+#dsX svg{width:22px;height:22px;color:#fff;stroke-width:3.4;filter:drop-shadow(0 1.5px 0 rgba(23,19,32,.45))}
 #dsX:active{transform:skewX(-5deg) translateY(2px)}
-html:is(.scol,.scolL) :is(#dsX,#stPopX,#ttX,#acX,#onX,#pkX,#ibX){translate:0}
-html:is(.scol,.scolL) .card:has(> :is(#dsX,#stPopX,#ttX,#acX,#onX,#pkX,#ibX)){animation-name:fadein!important;transform:none}
+#scolDock>#dsX{transform:skewX(-5deg)!important}
+/* the vote for a canvas: its title across the top in one line (Back is in the dock) */
+html:is(.scol,.scolL) .mworld .whead{grid-template-columns:1fr;padding:0 max(14px,env(safe-area-inset-left))}
+html:is(.scol,.scolL) .mworld .whead h2{text-align:left;white-space:nowrap;font-size:clamp(22px,6vw,30px)}
+/* the match's pound button centred in the screen left of the column (the hud's padding had centred it in the narrower width) */
+html.scol .hud .slamBtn{position:relative;left:calc(var(--scw) / -2 + 46px)}
 html:is(.scol,.scolL) :is(#mStrokes,#mLocker).sgp .sgbadge{top:calc(var(--sctop) + 70px)}
 html.scol #mLocker.sgp .sgrot,html.scol #mLocker.sgp.sgnoted .sgrot{top:calc(var(--sctop) + 136px - var(--gt))}
 html.scol #mStrokes.sgp .sgrot{top:calc(var(--sctop) + 136px - var(--gt));bottom:auto}
@@ -5204,6 +5210,43 @@ html.scol #mStrokes.sgp .sgrot{top:calc(var(--sctop) + 136px - var(--gt));bottom
 html:is(.scol,.scolL) .mhome.lobby #homePlay{scale:.84}
 html:is(.scol,.scolL) .mhome.lobby #pbar{scale:.86}
 html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
+
+/* (v423) no Done button any more (Back is the way out): the rows run down to the foot of the page */
+#setModal .card>#srows{bottom:max(8px,env(safe-area-inset-bottom))}
+/* (v423) Settings on a tall landscape screen (iPhone Duo opened flat, a tablet): three bands down the page instead of a block at the
+   top, sound and visuals, turning and the help pages, each under a thin rule, with bigger controls; Restart Game and the version as a
+   footer at the foot. A phone held sideways (520 points tall or less) never gets here */
+@media (min-aspect-ratio:1/1) and (min-height:561px){
+  #setModal .card>#setTitle{font-size:44px;line-height:52px}
+  #setModal .card>#srows{top:calc(max(12px,env(safe-area-inset-top)) + 76px);bottom:calc(max(12px,env(safe-area-inset-bottom)) + 14px);padding-left:max(32px,env(safe-area-inset-left));padding-right:max(32px,env(safe-area-inset-right))}
+  #setModal #sfit{position:relative;min-height:100%;padding-bottom:58px;box-sizing:border-box;align-content:center;row-gap:clamp(32px,8vh,72px);column-gap:20px}
+  #setModal .sopt{position:relative;gap:10px;padding-top:18px;border-top:1.5px solid rgba(255,255,255,.12)}
+  #setModal .sopt::before{content:"";position:absolute;left:0;top:-2.5px;width:34px;height:3.5px;border-radius:2px;background:#F2C14E;transform:skewX(-14deg)}
+  #setModal .slab{font-size:16px}
+  #setModal .tog,#setModal .tog button{height:58px}
+  #setModal .tog button{font-size:19px!important}
+  #setModal .tog.pick button{font-size:16px!important}
+  #setModal .sopt .gnote{font-size:12.5px}
+  #setModal .trn{height:56px;gap:14px}
+  #setModal .trnl{font-size:13px}
+  #setModal .trnv{font-size:14px;padding:5px 10px 4px}
+  #setModal .trndef{font-size:12.5px;padding:6px 11px 5px}
+  #setModal .sdocs{align-self:stretch;display:grid;align-content:end}
+  #setModal .sbtns.four{gap:12px}
+  #setModal .sbtns.four .sbtn{min-height:64px;padding:4px 6px;font-size:13px;line-height:1.15}
+  #setModal .sfoot{position:absolute;left:0;right:0;bottom:0;padding-top:14px;border-top:1.5px solid rgba(255,255,255,.12)}
+  #setModal .sfoot .sreset{font-size:14px}
+  #setModal .sfoot .sver{font-size:12px}
+}
+/* (v423) the results beside the painting: one column the panel's width, whatever is in it (VICTORY! at 64 points was wider than the
+   panel on iPhone Duo open and pushed the score bar, the dabs and the big button out past the panel's right edge), the title sized to
+   the panel, and clear of a right-hand safe area */
+@media (min-aspect-ratio:1/1){#end{grid-template-columns:minmax(0,1fr)}#end>*{min-width:0}}
+@media (min-aspect-ratio:1/1) and (min-height:521px){
+  #end{container-type:inline-size}
+  #end .rtitle{font-size:min(clamp(44px,13vw,64px),15cqi)}
+}
+@media (min-width:860px) and (min-aspect-ratio:1/1) and (min-height:521px){#end{right:max(clamp(24px,4vw,56px),calc(env(safe-area-inset-right,0px) + 16px))}}
 </style>
 
 <div id="stage">
@@ -5384,7 +5427,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 422</p>
+      <p class="ver">Version 424</p>
     </div>
   </div>
 
@@ -21994,10 +22037,7 @@ function vicEmOf(D) { const w = lookOf(D), v = w && emoteOk(w.emote); if (v) ret
 // the victory's cues: a whoosh, a bop, hearts round its head
 function emVicCue(k, n) { if (!vic) return; if (k === 'whoosh') AU.whoosh(); else if (k === 'bop') AU.pop(); else if (k === 'heart') { const D = vic.feat[0]; vicV.set(D.x, D.y + 0.72, D.z).project(vicCam); emHearts((vicV.x * 0.5 + 0.5) * viewW, (0.5 - vicV.y * 0.5) * viewH, n || 2, 1.35); if (n) return; AU.pop(); } }
 // the icons on their tags
-// (v422) the emotes' pictures (Ludo.ai, the Strokes stickers' style)
-const EM_ART = { slam: 'art/em_slam.webp', hearts: 'art/em_hearts.webp', flip: 'art/em_flip.webp', spin: 'art/em_spin.webp' };
 function emIcon(id) {
-  if (EM_ART[id]) return '<img class="emico emart" src="' + EM_ART[id] + '" alt="" draggable="false">';
   const ink = '#171320', g = {
     slam: '<path d="M6 31.5c3-2.4 6.2-3.1 9.4-2.1M34 31.5c-3-2.4-6.2-3.1-9.4-2.1M9 24.5l3.4 2.2M31 24.5l-3.4 2.2" stroke="#FFD23F" stroke-width="2.6" stroke-linecap="round" fill="none"/><ellipse cx="20" cy="33" rx="13" ry="3.4" fill="#FF5C5C" stroke="' + ink + '" stroke-width="2.2"/><path d="M20 4v20" stroke="' + ink + '" stroke-width="7" stroke-linecap="round"/><path d="M20 4v20" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/><path d="M12.5 18.5 20 27l7.5-8.5z" fill="#FFFFFF" stroke="' + ink + '" stroke-width="2.4" stroke-linejoin="round"/>',
     flip: '<path d="M29.6 12.4A11 11 0 1 0 31 22" fill="none" stroke="' + ink + '" stroke-width="7" stroke-linecap="round"/><path d="M29.6 12.4A11 11 0 1 0 31 22" fill="none" stroke="#5BE07E" stroke-width="3.2" stroke-linecap="round"/><path d="M24.5 11.6l6.6 1.6 1.2-6.8" fill="none" stroke="' + ink + '" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="18" r="4.2" fill="#FFFFFF" stroke="' + ink + '" stroke-width="2.2"/>',
@@ -27982,14 +28022,14 @@ if (store.perfHud && !APPSTORE) setTimeout(() => perfHudSet(true), 0);
 // (v308) screens that cover the lobby: the 3D lobby holds still behind them instead of drawing every frame for nobody
 let LCOV = null;
 function lobbyCovered() { if (!LCOV) LCOV = ['setModal', 'howModal', 'docModal', 'acModal', 'nameModal', 'ttModal', 'pkModal', 'ibModal'].map(id => document.getElementById(id)).filter(Boolean); for (let i = 0; i < LCOV.length; i++) if (!LCOV[i].hidden) return true; return false; }
-function paintSettings() { try { $('lastErr').textContent = store.lastErr ? 'Last error: ' + store.lastErr : ''; } catch (e) {} for (const b of $('sfxPick').children) b.setAttribute('aria-pressed', String((b.dataset.v === 'off') === !!store.sfxOff)); for (const b of $('musPick').children) b.setAttribute('aria-pressed', String((b.dataset.v === 'off') === !!store.musicOff)); { const v = document.querySelector('#howModal .ver'); $('setVer').textContent = v ? v.textContent : ''; } for (const b of $('orientPick').children) b.setAttribute('aria-pressed', String(b.dataset.o === (store.orient || ''))); for (const b of $('gfxPick').children) b.setAttribute('aria-pressed', String(b.dataset.g === gfxPick)); $('gfxNote').textContent = GFX_NOTE[gfxPick]; $('setDone').textContent = gfxPick === GFX ? 'Done' : 'Restart to apply'; setFitSoon(); }
+function paintSettings() { try { $('lastErr').textContent = store.lastErr ? 'Last error: ' + store.lastErr : ''; } catch (e) {} for (const b of $('sfxPick').children) b.setAttribute('aria-pressed', String((b.dataset.v === 'off') === !!store.sfxOff)); for (const b of $('musPick').children) b.setAttribute('aria-pressed', String((b.dataset.v === 'off') === !!store.musicOff)); { const v = document.querySelector('#howModal .ver'); $('setVer').textContent = v ? v.textContent : ''; } for (const b of $('orientPick').children) b.setAttribute('aria-pressed', String(b.dataset.o === (store.orient || ''))); for (const b of $('gfxPick').children) b.setAttribute('aria-pressed', String(b.dataset.g === gfxPick)); $('gfxNote').textContent = GFX_NOTE[gfxPick] + (gfxPick === GFX ? '' : ' Going back restarts the game to apply it.'); $('setDone').textContent = gfxPick === GFX ? 'Done' : 'Restart to apply'; setFitSoon(); }
 let setInPlay = false;
 // (v399) from the pause menu: the rows that can't be used mid-match (Visuals restarts the game, Screen turns it, Restart Game, Delete account) hidden
 function setPlayRows(on) { for (const id of ['orientPick', 'gfxPick']) { const r = $(id).closest('.sopt'); if (r) r.hidden = on; } $('resetBtn').hidden = on; if (on) $('delAcBtn').hidden = true; else delPaint(); }
 function openSettingsInPlay() {
   if (!(state === 'paused' || (NM && state === 'play')) || pauseEl.hidden) return;
   setInPlay = true; pauseEl.hidden = true; gfxPick = GFX; paintSettings(); setPlayRows(true); if (window.__turnShow) window.__turnShow(); setModal.hidden = false; setFit();
-  setTimeout(() => $('setDone').focus({ preventScroll: true }), 30);
+  setTimeout(() => $('setBack').focus({ preventScroll: true }), 30);
 }
 function openSettings() { if (state !== 'menu' || lookOpen || shopOpen || lkOn()) return; gfxPick = GFX; paintSettings(); delPaint(); if (window.__turnShow) window.__turnShow(); setModal.hidden = false; setFit(); netProbe(); setTimeout(() => $('gfxPick').querySelector('[aria-pressed="true"]').focus({ preventScroll: true }), 30); }
 function closeSettings() { if (setModal.hidden) return; setModal.hidden = true;
@@ -29145,7 +29185,7 @@ async function lwbTick() {
   finally { LWB.busy = false; }
 }
 setInterval(lwbTick, 300);
-function delClose() { if (delModal.hidden || AC.busy) return; delModal.hidden = true; delPaint(); const b = $('delAcBtn'); (b.hidden ? $('setDone') : b).focus({ preventScroll: true }); }
+function delClose() { if (delModal.hidden || AC.busy) return; delModal.hidden = true; delPaint(); const b = $('delAcBtn'); (b.hidden ? $('setBack') : b).focus({ preventScroll: true }); }
 $('delAcBtn').addEventListener('click', uiClick(delOpen));
 $('delNo').addEventListener('click', uiClick(delClose));
 delModal.addEventListener('click', e => { if (e.target === delModal) delClose(); });
@@ -31190,6 +31230,29 @@ requestAnimationFrame(() => setTimeout(rollModel, 0));
   addEventListener('resize', () => requestAnimationFrame(mark)); addEventListener('orientationchange', () => setTimeout(mark, 120));
   addEventListener('nativefold', () => setTimeout(mark, 30));
   if (document.body) mark(); else addEventListener('DOMContentLoaded', mark);
+})();
+
+// (v424) the dock: on the cover screen, the open page's Back or close button moves into #scolDock (a box at the page root, under the
+// camera) while its page shows, and back to its place when the page hides. Checked a few times a second; cheap.
+(function () {
+  const IDS = ['stBack', 'lkBack', 'frX', 'evBack', 'setBack', 'worldBack', 'dsX', 'smClose', 'stPopX', 'ttX', 'acX', 'onX', 'pkX', 'ibX'];
+  const home = new Map(); let dock = null;
+  const shown = el => { for (let p = el; p && p !== document.body; p = p.parentElement) { if (p.hidden) return false; const c = getComputedStyle(p); if (c.display === 'none' || c.visibility === 'hidden') return false; } return true; };
+  function tick() {
+    const on = document.documentElement.classList.contains('scol') || document.documentElement.classList.contains('scolL');
+    if (!dock) { dock = document.createElement('div'); dock.id = 'scolDock'; document.body.appendChild(dock); }
+    let n = 0;
+    for (const id of IDS) {
+      const b = document.getElementById(id); if (!b) continue;
+      const h = home.get(id);
+      if (h) { // docked: back home once its page hides (or the column goes)
+        const vis = on && shown(h.parent);
+        if (!vis) { h.parent.insertBefore(b, h.next && h.next.parentNode === h.parent ? h.next : null); home.delete(id); } else n++;
+      } else if (on && shown(b.parentElement) && shown(b)) { home.set(id, { parent: b.parentElement, next: b.nextSibling }); dock.appendChild(b); n++; }
+    }
+    document.documentElement.style.setProperty('--scdk', (n ? n * 68 : 0) + 'px');
+  }
+  setInterval(tick, 250); addEventListener('resize', () => setTimeout(tick, 50));
 })();
 </script>
 

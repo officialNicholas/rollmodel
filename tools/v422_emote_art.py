@@ -30,8 +30,7 @@ CSS = """/* (v422) the emotes' pictures on their cards */
 
 def apply(s):
     # the emotes' cards
-    s = rep(s, "function emIcon(id) {\n", EM_ART)
-    s = rep(s, ".lkcard .emico{width:74%;height:auto;max-height:84%}\n", ".lkcard .emico{width:74%;height:auto;max-height:84%}\n" + CSS)
+    # (v424: the emote cards keep their drawn icons; the painted ones read badly at card size. Only the Whirlwind keeps its picture)
     # the Whirlwind: the item button and the pointer to a pick-up...
     a = re.findall(r"ITEM_ICON\.whirl = '<svg viewBox=\"0 0 40 40\" aria-hidden=\"true\">(?:<path d=\"[^\"]*\"/>)+</svg>'; // \(v271\)", s)
     assert len(a) == 1, len(a)
