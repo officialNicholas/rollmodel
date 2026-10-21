@@ -28,7 +28,7 @@ CSS = """/* (v414) why the dabs: short tags under the reputation row; a rank up'
 .dabwhy li{display:inline-flex;align-items:center;gap:4px;padding:4px 8px 3px;border-radius:999px;background:rgba(244,238,227,.12);box-shadow:inset 0 0 0 1.5px rgba(244,238,227,.22);color:#F4EEE3;font:800 11px/1 var(--font-ui);letter-spacing:.02em;white-space:nowrap;animation:fadein .3s 1.4s both}
 .dabwhy li b{color:#FFD24A;font-weight:900}
 .dabwhy li.down b{color:#C9C2DC}
-#repRow .rkdab{position:absolute;left:-6px;top:-30px;z-index:3;display:grid;justify-items:center;gap:1px;padding:6px 12px 5px;border-radius:8px;background:linear-gradient(180deg,#B9F3C8 0%,#46C96B 100%);color:#171320;box-shadow:0 0 0 3px #171320,3px 4px 0 rgba(0,0,0,.4);rotate:-5deg;animation:rkin .45s cubic-bezier(.3,1.6,.5,1) both}
+#repRow .rkdab{position:absolute;left:6px;top:50%;translate:0 -50%;z-index:3;display:grid;justify-items:center;gap:1px;padding:6px 12px 5px;border-radius:8px;background:linear-gradient(180deg,#B9F3C8 0%,#46C96B 100%);color:#171320;box-shadow:0 0 0 3px #171320,3px 4px 0 rgba(0,0,0,.4);rotate:-5deg;animation:rkin .45s cubic-bezier(.3,1.6,.5,1) both}
 #repRow .rkdab b{font:400 18px/1 var(--font-display);letter-spacing:.04em;text-transform:uppercase}
 #repRow .rkdab i{display:inline-flex;align-items:center;gap:3px;font:900 13px/1 var(--font-head);font-style:normal}
 #repRow .rkdab i .dropi{width:14px;height:14px}
