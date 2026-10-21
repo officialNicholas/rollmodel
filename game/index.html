@@ -5427,7 +5427,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 424</p>
+      <p class="ver">Version 425</p>
     </div>
   </div>
 
@@ -24947,10 +24947,10 @@ function startRoom(p, fresh) {
 }
 // a basin each to start in: the roomiest, and well apart (pairs nearer than 16 lose points, nearer than 9 aren't taken while there's any
 // other choice); a little chance in it so the same map doesn't always start the same way
-function introBasins() {
-  const all = pots.filter(p => potUp(p) && !p.occ), got = new Map(), who = ACTIVE.filter(D => D.st !== 'out');
+function introBasins(rand, order0) { // (v426: rand and order0 given online: the stage's seed, slot order, the same on every phone)
+  rand = rand || Math.random; const all = pots.filter(p => potUp(p) && !p.occ), got = new Map(), who = order0 || ACTIVE.filter(D => D.st !== 'out');
   if (!all.length) return got;
-  const sc = new Map(all.map(p => [p, startRoom(p).score + Math.random() * 2.5]));
+  const sc = new Map(all.map(p => [p, startRoom(p).score + rand() * 2.5]));
   let best = null, bv = -Infinity;
   // (which side of the map a basin is on: nearer the player's spawn or the rival's; starting on opposite sides is fairer and further apart)
   const half = p => Math.hypot(p.x - START.x, p.z - START.z) < Math.hypot(p.x - CSTART.x, p.z - CSTART.z) ? 0 : 1;
@@ -24959,9 +24959,9 @@ function introBasins() {
   (function rec(start) { if (pick.length === n) { tryPick(pick); return; } for (let i = start; i < all.length; i++) { pick.push(all[i]); rec(i + 1); pick.pop(); } })(0);
   if (!best) return got;
   // the player gets the best of the chosen ones (on its own side, in a duel, if that's nearly as good), the others go round the rest
-  best.sort((a, b) => sc.get(b) - sc.get(a)); const order = who.slice().sort((a, b) => (a === P ? -1 : b === P ? 1 : 0));
-  if (best.length === 2 && half(best[0]) === 1 && half(best[1]) === 0 && sc.get(best[1]) > sc.get(best[0]) - 4) best.reverse();
-  if (mode === 'duo' && best.length >= 4) { const b0 = best[0], rest = best.slice(1).sort((a, b) => Math.hypot(a.x - b0.x, a.z - b0.z) - Math.hypot(b.x - b0.x, b.z - b0.z)); got.set(P, b0); got.set(H3, rest[0]); got.set(H, rest[1]); got.set(H2, rest[2]); return got; }
+  best.sort((a, b) => sc.get(b) - sc.get(a)); const order = order0 ? who : who.slice().sort((a, b) => (a === P ? -1 : b === P ? 1 : 0));
+  if (!order0 && best.length === 2 && half(best[0]) === 1 && half(best[1]) === 0 && sc.get(best[1]) > sc.get(best[0]) - 4) best.reverse();
+  if (!order0 && mode === 'duo' && best.length >= 4) { const b0 = best[0], rest = best.slice(1).sort((a, b) => Math.hypot(a.x - b0.x, a.z - b0.z) - Math.hypot(b.x - b0.x, b.z - b0.z)); got.set(P, b0); got.set(H3, rest[0]); got.set(H, rest[1]); got.set(H2, rest[2]); return got; }
   order.forEach((D, i) => { if (best[i]) got.set(D, best[i]); });
   return got;
 }
@@ -25946,7 +25946,21 @@ function netMatchFound(m, net) {
 window.netMatchFound = netMatchFound; // (the lobby calls this when the server has found a match)
 // the stage as built goes back to the server, which compares everyone's; then you're at your slot's spot, the rival at theirs
 function netSendLayout() {
-  const sp = NM.mode === 'duel' ? [START, CSTART] : NM.mode === 'trio' ? [START, CSTART, CSTART2] : [START, CSTART, CSTART2, CSTART3]; // (every phone builds the same stage: the spots in the stage's own order)
+  const sp = (NM.mode === 'duel' ? [START, CSTART] : NM.mode === 'trio' ? [START, CSTART, CSTART2] : [START, CSTART, CSTART2, CSTART3]).map(q => ({ x: q.x, z: q.z, yaw: q.yaw })); // (every phone builds the same stage: the spots in the stage's own order)
+  // (v426) the basins, picked the same on every phone (the stage's seed, slot order): where each crawl-out ends is that slot's spawn spot
+  // (the live basins are still the lobby's, wandered about: the stage's own are placed first, and the pick is kept by basin number, since the
+  // match start places them again; the lobby's pick-ups are kept out of the pick, since each phone has its own)
+  NM.basins = new Map();
+  try {
+    placeObjects(level); const pw0 = powers; powers = [];
+    try {
+      const slots = [...NM.seats.keys()].sort((a, b) => a - b), who = slots.map(k => NM.seats.get(k)).filter(D => D && ACTIVE.includes(D));
+      const got = introBasins(rng((GEN.seed ^ 0x51a7) >>> 0), who);
+      for (const [k, D] of NM.seats) { const p = got.get(D); if (!p || !sp[k]) continue; NM.basins.set(k, pots.indexOf(p));
+        const yaw = basinLeap(p), fx = Math.sin(yaw), fz = Math.cos(yaw), R = basinRim(p, fx, fz), s1 = R.rw + CRAWL_PAST;
+        sp[k] = { x: p.x + fx * s1, z: p.z + fz * s1, yaw }; }
+    } finally { powers = pw0; }
+  } catch (e) { NM.basins = new Map(); }
   const L = RMNet.layoutFromStage({ arena: ARENA, boxes: BOXES, ramps: RAMPS, holes: HOLES, pots: POTS.slice(0, VS_CFG.pots), powers: POWER_SPOTS, spawns: sp, puddles: RIVALS.slice(0, VS_CFG.rivals) });
   NM.net.sendLayout(L);
   // the server puts slot i on spot i: you on yours, each of the others on theirs
@@ -26021,7 +26035,7 @@ function netUnPot(why, D) {
 function netFrame() {
   if (!NM || !NM.net) return;
   if (NM.mine && NM.mine.size) netBotsFrame(); // (v413)
-  if (state === 'play' && !NM.live && NM.phase !== 'end' && NM.startAt && P.st === 'play' && !P.air && netNow() >= NM.startAt) NM.live = true;
+  if (state === 'play' && !NM.live && NM.phase !== 'end' && NM.startAt && P.st === 'play' && !P.air && !P.introCrawl && !P.introAct && netNow() >= NM.startAt) NM.live = true; // (v426: once the way out of the basin is done)
   if (!NM.live || state !== 'play' || (P.st !== 'play' && P.st !== 'hide')) return;
   NM.net.sendState(netState());
 }
@@ -26078,7 +26092,7 @@ function netPuppet(D, dt) {
   if (D.flatT > 0) { D.flatT = Math.max(0, D.flatT - dt); if (D.flatT === 0) { D.squash = 0.9; D.wob = 1; } }
   if (D.st === 'ko' || D.st === 'out') { if (D.rag) ragStep(D, dt); return; } // (gone until the server brings it back)
   const r = NM.net.remote(NM.slotOf.get(D)), F = RMNet.FLAGS; if (!r) return;
-  if (!D.netLive) { if (r.t > NM.startAt + 30) D.netLive = true; else return netDrop(D, dt); } // (until its first move after Go: still dropping onto its spot)
+  if (!D.netLive) { if (r.t > NM.startAt + 30) D.netLive = true; else return (D.st === 'hide' || D.introCrawl || D.introAct || (NM.basins && NM.basins.size)) ? undefined : netDrop(D, dt); } // (until its first move after Go: still dropping onto its spot; v426: or in its basin, the intro's)
   const f = r.flags; D.paint = r.paint; D.immuneT = f & F.IMMUNE ? 0.4 : 0; D.charging = !!(f & F.CHARGE); D.charge = r.aim;
   if (D.st === 'hide') { D.yaw = r.yaw; return; } // (sat in its pot: the server's pot messages move it in and out)
   const px = D.x, pz = D.z, jump = Math.hypot(r.x - px, r.z - pz) > 3, dyaw = wrapA(r.yaw - D.yaw);
@@ -26464,7 +26478,9 @@ async function ptInvite(f) {
     if (!r || !r.ok) { ON.pick = (PT_INV[r && r.why] || PT_INV.bad_room)(hdOf(f.name)); AU.nope(); return; }
     ON.sent.set(f.id, { id: r.id, at: Date.now(), name: f.name });
     try { await ON.net.partyInvite(f.id, { name: f.name, look: f.look, inv: r.id, sbt: FR.s && FR.s.access_token }); } catch (e) {} // (it's in their inbox either way)
-    AU.pop(); onSay('Invited ' + hdOf(f.name)); pushAsk(); if (PK.spot) setTimeout(() => { if (PK.open && PK.spot) pkClose(); }, 650);
+    AU.pop(); onSay('Invited ' + hdOf(f.name)); frToast('<span>Invite sent to <b>' + frEsc(hdOf(f.name)) + '</b></span>'); // (v426: said on screen too)
+    for (const b of document.querySelectorAll('[data-py="inv"][data-id="' + (CSS && CSS.escape ? CSS.escape(f.id) : f.id) + '"]')) { b.disabled = true; b.classList.add('pkon'); b.textContent = 'Invited'; }
+    pushAsk(); if (PK.spot) setTimeout(() => { if (PK.open && PK.spot) pkClose(); }, 650);
   } catch (e) { AU.nope(); ON.pick = e.code === 'full' ? 'Your party is full.' : e.code === 'no_party' ? 'Parties come with the next game server update.' : e.status === 400 ? PT_INV.bad_mode() : e.status ? frErrText(e) : e.code === 'old' ? 'Update the game to play online.' : onReqText(e); }
   finally { PK.busy.delete(tag); pkRender(); partyRender(); }
 }
@@ -27587,7 +27603,7 @@ function beginMatch() {
   clearShot(); $('gframe').hidden = true; $('gwall').hidden = true;
   vicLayer(P, false); lobbyShadow.visible = false; heroSay.hidden = true; closeSide(true); AI = isShow() ? Object.assign({}, AI_LV[NM ? 'medium' : diff], SD_AI[NM ? 'medium' : diff]) : AI_LV[NM ? 'medium' : diff]; /* (v413: online CPUs are medium) */ mapUsed = true; resetRun(); gyCam = 0; state = 'intro'; qMatchStart(); introT = 0; introN = 0; introUp = 0; hud.classList.add('off'); giftPlan(); newItem = null; tutBegin(); ptMatch(); hud.classList.toggle('lesson', !!(tut && tutFlat)); // (v356)
   if (window.__skipIntro) { startItems(); state = 'play'; hud.classList.remove('off'); for (const D of ACTIVE) { D.y = 6.5; D.air = true; D.vy = -1; D.freeLand = true; D.stroke++; } AU.music('play'); return; } // (tests)
-  const basins = NM ? new Map() : introBasins();
+  const basins = NM ? (() => { const g = new Map(); if (NM.basins) for (const [k, p] of NM.basins) { const D = NM.seats.get(k); if (D && ACTIVE.includes(D) && potUp(p) && !p.occ) g.set(D, p); } return g; })() : introBasins(); // (v426: online, the basins every phone agreed on)
   for (const D of ACTIVE) { const p = basins.get(D); D.stroke++; D.wearOff = true; D.peeked = false; D.introBare = false; D.introLeap = null; D.introOut = false; D.introCrawl = null; D.introAct = null; D.ip = null; D.eyeSink = D.eyeShut = D.eyeWide = 0; D.introKind = pickIntro(D);
     if (p) { D.st = 'hide'; D.pot = p; p.occ = p.lastOcc = D; D.x = p.x; D.z = p.z; D.y = D.introY0 = p.y; D.yaw = basinLeap(p); D.rimInfo = basinRim(p, Math.sin(D.yaw), Math.cos(D.yaw)); // (read now, behind the wipe, not mid-countdown) D.air = false; D.vy = 0; D.spd = 0; D.freeLand = false; D.formK = 1; D.fT = 1; D.fV = 0; D.wob = 0;
       potClaim(p, D.team); p.paintC.copy(TEAM_COLS[D.team]); p.slosh = 0; D.popAt = D === P ? 0.32 : 0.36 + Math.random() * 0.16; D.leapAt = D.popAt + (D === P ? 0.85 : 0.8 + Math.random() * 0.08) - (D.introKind === 'climb' ? 0.2 : 0); /* (the climb takes longer now: it starts a little sooner) */ continue; }

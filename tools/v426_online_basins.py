@@ -5,8 +5,9 @@
   from them a teleport. Now, before the stage goes to the server, every phone picks the same basins (the pick runs on the stage's
   seed, players in slot order), and sends the end of each player's crawl-out as that slot's spawn spot. The server then starts each
   player exactly where the crawl-out lands, so the basin intro plays online as it does against CPUs, and the first move after Go is
-  not a teleport. The game only goes live once your own crawl-out is done, and a rival still in its basin or crawling out is left to
-  the intro (it isn't dropped onto its spot).
+  not a teleport (the cannon and twister ways out land within a metre of the crawl's end, inside the server's allowance). The game
+  only goes live once your own way out is done, and a rival still in its basin or on its way out is left to the intro (it isn't
+  dropped onto its spot).
 - Invite: tapping Invite on a friend sent the invite, but the only feedback was a sound and a screen-reader line, and the button
   could keep saying Invite. Now a toast says the invite was sent, and the button turns to Invited at once.
 """
@@ -30,22 +31,27 @@ def apply(s):
     s = rep(s, "function netSendLayout() {\n  const sp = NM.mode === 'duel' ? [START, CSTART] : NM.mode === 'trio' ? [START, CSTART, CSTART2] : [START, CSTART, CSTART2, CSTART3]; // (every phone builds the same stage: the spots in the stage's own order)\n",
                "function netSendLayout() {\n  const sp = (NM.mode === 'duel' ? [START, CSTART] : NM.mode === 'trio' ? [START, CSTART, CSTART2] : [START, CSTART, CSTART2, CSTART3]).map(q => ({ x: q.x, z: q.z, yaw: q.yaw })); // (every phone builds the same stage: the spots in the stage's own order)\n"
                "  // (v426) the basins, picked the same on every phone (the stage's seed, slot order): where each crawl-out ends is that slot's spawn spot\n"
+               "  // (the live basins are still the lobby's, wandered about: the stage's own are placed first, and the pick is kept by basin number, since the\n"
+               "  // match start places them again; the lobby's pick-ups are kept out of the pick, since each phone has its own)\n"
                "  NM.basins = new Map();\n"
                "  try {\n"
-               "    const slots = [...NM.seats.keys()].sort((a, b) => a - b), who = slots.map(k => NM.seats.get(k)).filter(D => D && ACTIVE.includes(D));\n"
-               "    const got = introBasins(rng((GEN.seed ^ 0x51a7) >>> 0), who);\n"
-               "    for (const [k, D] of NM.seats) { const p = got.get(D); if (!p || !sp[k]) continue; NM.basins.set(k, p);\n"
-               "      const yaw = basinLeap(p), fx = Math.sin(yaw), fz = Math.cos(yaw), R = basinRim(p, fx, fz), s1 = R.rw + CRAWL_PAST;\n"
-               "      sp[k] = { x: p.x + fx * s1, z: p.z + fz * s1, yaw }; }\n"
+               "    placeObjects(level); const pw0 = powers; powers = [];\n"
+               "    try {\n"
+               "      const slots = [...NM.seats.keys()].sort((a, b) => a - b), who = slots.map(k => NM.seats.get(k)).filter(D => D && ACTIVE.includes(D));\n"
+               "      const got = introBasins(rng((GEN.seed ^ 0x51a7) >>> 0), who);\n"
+               "      for (const [k, D] of NM.seats) { const p = got.get(D); if (!p || !sp[k]) continue; NM.basins.set(k, pots.indexOf(p));\n"
+               "        const yaw = basinLeap(p), fx = Math.sin(yaw), fz = Math.cos(yaw), R = basinRim(p, fx, fz), s1 = R.rw + CRAWL_PAST;\n"
+               "        sp[k] = { x: p.x + fx * s1, z: p.z + fz * s1, yaw }; }\n"
+               "    } finally { powers = pw0; }\n"
                "  } catch (e) { NM.basins = new Map(); }\n")
     # ---- at the match start: the picked basins, by seat
     s = rep(s, "  const basins = NM ? new Map() : introBasins();",
                "  const basins = NM ? (() => { const g = new Map(); if (NM.basins) for (const [k, p] of NM.basins) { const D = NM.seats.get(k); if (D && ACTIVE.includes(D) && potUp(p) && !p.occ) g.set(D, p); } return g; })() : introBasins(); // (v426: online, the basins every phone agreed on)")
     # ---- the game goes live once your crawl-out is done; a rival in its basin or crawling out is the intro's, not dropped onto its spot
     s = rep(s, "  if (state === 'play' && !NM.live && NM.phase !== 'end' && NM.startAt && P.st === 'play' && !P.air && netNow() >= NM.startAt) NM.live = true;\n  if (!NM.live || state !== 'play'",
-               "  if (state === 'play' && !NM.live && NM.phase !== 'end' && NM.startAt && P.st === 'play' && !P.air && !P.introCrawl && netNow() >= NM.startAt) NM.live = true; // (v426: once the crawl-out is done)\n  if (!NM.live || state !== 'play'")
+               "  if (state === 'play' && !NM.live && NM.phase !== 'end' && NM.startAt && P.st === 'play' && !P.air && !P.introCrawl && !P.introAct && netNow() >= NM.startAt) NM.live = true; // (v426: once the way out of the basin is done)\n  if (!NM.live || state !== 'play'")
     s = rep(s, "  if (!D.netLive) { if (r.t > NM.startAt + 30) D.netLive = true; else return netDrop(D, dt); } // (until its first move after Go: still dropping onto its spot)",
-               "  if (!D.netLive) { if (r.t > NM.startAt + 30) D.netLive = true; else return (D.st === 'hide' || D.introCrawl || (NM.basins && NM.basins.size)) ? undefined : netDrop(D, dt); } // (until its first move after Go: still dropping onto its spot; v426: or in its basin, the intro's)")
+               "  if (!D.netLive) { if (r.t > NM.startAt + 30) D.netLive = true; else return (D.st === 'hide' || D.introCrawl || D.introAct || (NM.basins && NM.basins.size)) ? undefined : netDrop(D, dt); } // (until its first move after Go: still dropping onto its spot; v426: or in its basin, the intro's)")
     # ---- the invite says it was sent
     s = rep(s, "    AU.pop(); onSay('Invited ' + hdOf(f.name)); pushAsk();",
                "    AU.pop(); onSay('Invited ' + hdOf(f.name)); frToast('<span>Invite sent to <b>' + frEsc(hdOf(f.name)) + '</b></span>'); // (v426: said on screen too)\n"
