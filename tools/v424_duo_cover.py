@@ -35,6 +35,8 @@ html:is(.scol,.scolL) .card:has(> :is(#dsX,#stPopX,#ttX,#acX,#onX,#pkX,#ibX)){an
 html:is(.scol,.scolL) :is(#mStrokes,#mLocker).sgp .sgbadge{top:calc(var(--sctop) + 70px)}
 html.scol #mLocker.sgp .sgrot,html.scol #mLocker.sgp.sgnoted .sgrot{top:calc(var(--sctop) + 136px - var(--gt))}
 html.scol #mStrokes.sgp .sgrot{top:calc(var(--sctop) + 136px - var(--gt));bottom:auto}
+/* Settings closes with its Back button only (Done did the same) */
+#setDone{display:none!important}
 html:is(.scol,.scolL) .mhome.lobby #homePlay{scale:.84}
 html:is(.scol,.scolL) .mhome.lobby #pbar{scale:.86}
 html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
