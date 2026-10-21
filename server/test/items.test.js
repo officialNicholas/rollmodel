@@ -6,9 +6,9 @@ import { performance } from 'node:perf_hooks';
 import { startServer, makeBots, until, sleep, matchOf } from './helpers/harness.js';
 import { flatLayout } from './helpers/layouts.js';
 
-async function setup(rules) {
+async function setup(rules, look) {
   const srv = await startServer(Object.assign({ items: true, matchT: 30, itemFirst: [0.3, 0.4], itemEvery: [0.5, 0.6] }, rules));
-  const [A, B] = makeBots(srv, 2, { behavior: 'script', layoutFor: () => flatLayout(26.4), prefix: 'it' });
+  const [A, B] = makeBots(srv, 2, { behavior: 'script', layoutFor: () => flatLayout(26.4), prefix: 'it', look: look || { iv: 2 } });
   A.o.script = bot => { bot.input = { speedK: 0 }; }; B.o.script = bot => { bot.input = { speedK: 0 }; };
   await Promise.all([A, B].map(b => b.connect()));
   const spawned = [];
@@ -63,7 +63,7 @@ test('a client cannot pick up an item from afar, and a roller widens the trail',
   } finally { await c.close(); }
 });
 
-test('a trap flattens the next rival over it', async () => {
+test('a trap knocks out the next rival over it', async () => {
   const c = await setup({ itemFirst: [60, 61] });
   try {
     const m = c.m(); await until(() => c.A.net.serverNow() > c.A.startAt + 200, 4000);
@@ -74,9 +74,121 @@ test('a trap flattens the next rival over it', async () => {
     goTo(c.A, 12, -2);
     const trap = [...m.items.traps.values()][0]; assert.ok(trap);
     // the rival walks over it
-    const flat = c.A.wait('flat', x => x.slot === c.B.slot, 15000);
+    const ko = c.A.wait('ko', x => x.slot === c.B.slot, 15000);
     goTo(c.B, trap.x, trap.z);
-    const f = await flat; assert.equal(f.by, c.A.slot);
-    assert.ok(m.P[c.B.slot].flatUntil > 0);
+    const f = await ko; assert.equal(f.by, c.A.slot); assert.equal(f.reason, 'trap');
+  } finally { await c.close(); }
+});
+
+// ---------------------------------------------------------------------------------------------- (v427) the game's items online
+const still = b => { b.o.script = x => { x.input = { speedK: 0 }; }; };
+const live = c => until(() => c.A.net.serverNow() > c.A.startAt + 300, 5000);
+// put the two bots a few metres apart, out in the open
+async function apart(c, d = 4) {
+  goTo(c.A, -d / 2, -8); goTo(c.B, d / 2, -8);
+  await until(() => Math.hypot(c.A.body.x + d / 2, c.A.body.z + 8) < 1 && Math.hypot(c.B.body.x - d / 2, c.B.body.z + 8) < 1, 20000); // (round the wall from B's side: it takes a while)
+  still(c.A); still(c.B); await sleep(700);
+}
+
+test('everyone starts with the item they picked; an older game in the match turns items off', async () => {
+  const c = await setup({ itemFirst: [60, 61] }, { iv: 2, it: 'boom', sp: 'storm' });
+  try {
+    const m = c.m(); assert.ok(m.items, 'items on');
+    assert.equal(m.P[c.A.slot].item, 'boom'); assert.equal(m.P[c.A.slot].special, 'storm');
+  } finally { await c.close(); }
+  const d = await setup({}, {}); // (no iv: a game from before v427)
+  try { assert.equal(d.m().items, null, 'no items with a game that cannot show them'); } finally { await d.close(); }
+});
+
+test('a boomerang hit, claimed, is ruled a knock-out; with no boomerang out it is refused', async () => {
+  const c = await setup({ itemFirst: [60, 61] });
+  try {
+    const m = c.m(); await live(c); await apart(c, 5);
+    const pA = m.P[c.A.slot];
+    const none = await c.A.net.action('hit', { k: 'boom', target: c.B.slot, x: c.B.body.x, y: 0, z: c.B.body.z });
+    assert.equal(none.ok, false); assert.equal(none.reason, 'no_effect');
+    pA.item = 'boom';
+    const used = c.B.wait('itemUsed', x => x.slot === c.A.slot && x.kind === 'boom');
+    assert.equal((await c.A.net.action('use', { yaw: Math.PI / 2, curve: 1 })).ok, true);
+    const u = await used; assert.equal(u.curve, 1);
+    await sleep(400);
+    const ko = c.B.wait('ko', x => x.slot === c.B.slot);
+    const r = await c.A.net.action('hit', { k: 'boom', target: c.B.slot, x: c.B.body.x, y: 0.5, z: c.B.body.z });
+    assert.equal(r.ok, true, r.reason);
+    const k = await ko; assert.equal(k.by, c.A.slot); assert.equal(k.reason, 'boom');
+  } finally { await c.close(); }
+});
+
+test('a hit claimed from too far is refused', async () => {
+  const c = await setup({ itemFirst: [60, 61] });
+  try {
+    const m = c.m(); await live(c); await apart(c, 8);
+    m.P[c.A.slot].item = 'whirl'; assert.equal((await c.A.net.action('use')).ok, true);
+    await sleep(1200);
+    const r = await c.A.net.action('hit', { k: 'crush', target: c.B.slot });
+    assert.equal(r.ok, false); assert.equal(r.reason, 'far', 'a whirlwind reaches about 2.4 m, the rival is 8 m off');
+  } finally { await c.close(); }
+});
+
+test('turret globs drain the paint tank, three in a row stun, and a dry rival is knocked out', async () => {
+  const c = await setup({ itemFirst: [60, 61] });
+  try {
+    const m = c.m(); await live(c); await apart(c, 6);
+    m.P[c.A.slot].item = 'turret'; assert.equal((await c.A.net.action('use')).ok, true);
+    const pB = m.P[c.B.slot], p0 = pB.paint, shots = [];
+    c.B.on('shot', x => shots.push(x));
+    for (let i = 0; i < 3; i++) { assert.equal((await c.A.net.action('hit', { k: 'shot', target: c.B.slot, x: c.B.body.x, y: 0.4, z: c.B.body.z })).ok, true); await sleep(60); }
+    await until(() => shots.length >= 3, 3000);
+    assert.ok(pB.paint < p0 - 0.15, 'paint ' + p0 + ' -> ' + pB.paint);
+    assert.equal(shots[2].stun, true, 'the third in a row stuns');
+    await sleep(1700); pB.paint = 0;
+    const ko = c.B.wait('ko', x => x.slot === c.B.slot);
+    assert.equal((await c.A.net.action('hit', { k: 'shot', target: c.B.slot, x: c.B.body.x, y: 0.4, z: c.B.body.z })).ok, true);
+    assert.equal((await ko).reason, 'shot');
+  } finally { await c.close(); }
+});
+
+test('the orb: whoever reaches it gets their special; a Flash Freeze freezes the rival, who can tap out a second early', async () => {
+  const c = await setup({ itemFirst: [60, 61], orbFirst: [0.3, 0.4] }, { iv: 2, sp: 'freeze' });
+  try {
+    const m = c.m();
+    const o = await c.A.wait('orbSpawn', undefined, 6000);
+    const taken = c.B.wait('orbTaken', x => x.id === o.id, 15000);
+    goTo(c.A, o.x, o.z); still(c.B);
+    const t = await taken; assert.equal(t.slot, c.A.slot); assert.equal(t.gift, 'freeze');
+    assert.equal(m.P[c.A.slot].orb, 'freeze');
+    still(c.A); await sleep(200);
+    const fr = c.B.wait('freeze', undefined, 4000);
+    assert.equal((await c.A.net.action('use', { orb: 1 })).ok, true);
+    const f = await fr; assert.deepEqual(f.slots, [c.B.slot]);
+    const pB = m.P[c.B.slot]; assert.ok(pB.frozen);
+    const j = await c.B.net.action('jump'); assert.equal(j.ok, false); assert.equal(j.reason, 'frozen');
+    assert.equal((await c.B.net.action('thaw')).ok, true);
+    assert.ok(pB.frozen.until <= f.until - 900, 'a second sooner at most: ' + (f.until - pB.frozen.until));
+  } finally { await c.close(); }
+});
+
+test('paint claims stamp the canvas, within what the effect can paint', async () => {
+  const c = await setup({ itemFirst: [60, 61] });
+  try {
+    const m = c.m(); await live(c); await apart(c, 6);
+    const before = m.cov.count[c.A.slot];
+    const no = await c.A.net.action('paint', { k: 'bomb', pts: [[c.A.body.x, 0, c.A.body.z]] }); assert.equal(no.reason, 'no_effect');
+    m.P[c.A.slot].orb = 'bomb'; assert.equal((await c.A.net.action('use', { orb: 1 })).ok, true);
+    await sleep(1800);
+    assert.equal((await c.A.net.action('paint', { k: 'bomb', pts: [[c.A.body.x, 0, c.A.body.z]] })).ok, true);
+    assert.ok(m.cov.count[c.A.slot] > before + 200, 'a bomb paints a wide circle');
+    assert.equal((await c.A.net.action('paint', { k: 'bomb', pts: [[c.A.body.x, 0, c.A.body.z]] })).reason, 'budget', 'once');
+  } finally { await c.close(); }
+});
+
+test('an effect\'s look is relayed to the others, and big ones are refused', async () => {
+  const c = await setup({ itemFirst: [60, 61] });
+  try {
+    await live(c);
+    const got = c.B.wait('fx', x => x.slot === c.A.slot && x.k === 'drop');
+    c.A.net.tell('fx', { k: 'drop', d: [1.5, 0, -2] });
+    assert.deepEqual((await got).d, [1.5, 0, -2]);
+    const big = await c.A.net.action('fx', { k: 'drop', d: 'x'.repeat(500) }); assert.equal(big.reason, 'big');
   } finally { await c.close(); }
 });

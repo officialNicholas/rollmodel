@@ -471,14 +471,15 @@ const RMNetSDK = (() => {
 
     // ---- map consensus ----
     layoutHash(layout) { return layoutHash(layout); }
-    sendLayout(layout) {
+    // kit (v427): what this player takes into the match: { iv, it, sp, sk } (the item protocol it speaks, its start item, special, skill)
+    sendLayout(layout, kit) {
       if (!this.match) return false;
       const hash = layoutHash(layout); this.match.layoutHash = hash;
       // sent to the centimetre, as it is compared (the hash is the same): full float precision would make a busy stage
       // several times bigger than it needs to be
       const cm = v => (typeof v === 'number' ? Math.round(v * 100) / 100 : Array.isArray(v) ? v.map(cm) : v);
       const out = {}; for (const k of Object.keys(layout)) out[k] = cm(layout[k]);
-      return this._sendJ({ t: 'layout', m: this.match.id, hash, layout: out });
+      return this._sendJ({ t: 'layout', m: this.match.id, hash, layout: out, kit: kit && typeof kit === 'object' ? kit : undefined });
     }
 
     // ---- play ----
@@ -510,6 +511,14 @@ const RMNetSDK = (() => {
         this._acts.set(n, r => { clearTimeout(timer); resolve(r); });
       });
     }
+    // fire and forget, no answer asked for: the item claims and relays ('hit', 'paint', 'fx')
+    tell(type, data = {}) {
+      const msg = Object.assign({}, data, { t: 'act', a: type });
+      if (msg.ts === undefined) msg.ts = this.serverNow();
+      if (msg.vt === undefined) msg.vt = this.renderTime();
+      return this._sendJ(msg);
+    }
+    botTell(slot, type, data = {}) { return this._bots.has(slot) ? this.tell(type, Object.assign({}, data, { bot: slot })) : false; }
     // (v404) CPU players: in a match with CPUs, one game drives them (the roster's cpu: true, owner: that player's id).
     // That game sends each one's state and moves as it does its own; the server referees them like anyone.
     bots() { return [...this._bots.keys()]; }

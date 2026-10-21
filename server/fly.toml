@@ -11,8 +11,8 @@ primary_region = "ord"
   TRUST_PROXY = "1"
   DATA_FILE = "/data/store.json"
   LOG_LEVEL = "info"
-  # the game doesn't show online pick-ups yet: none are handed out
-  RULES = '{"items":false}'
+  # (v427) pick-ups, the orb and the specials are on: a match gets them when every game in it is v427 or later
+  # (older games say nothing of them, and the match plays without, as before)
   # matches on a worker thread, the main thread keeps the sockets and the lobby (on performance-2x: one worker).
   # Measured: 1,000 players in duels, main thread 65% of a core, the match worker 49% (docs/net-scale.md)
   MATCH_WORKERS = "auto"

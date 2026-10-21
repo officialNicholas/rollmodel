@@ -5427,7 +5427,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 425</p>
+      <p class="ver">Version 426</p>
     </div>
   </div>
 
@@ -6211,14 +6211,15 @@ const RMNetSDK = (() => {
 
     // ---- map consensus ----
     layoutHash(layout) { return layoutHash(layout); }
-    sendLayout(layout) {
+    // kit (v427): what this player takes into the match: { iv, it, sp, sk } (the item protocol it speaks, its start item, special, skill)
+    sendLayout(layout, kit) {
       if (!this.match) return false;
       const hash = layoutHash(layout); this.match.layoutHash = hash;
       // sent to the centimetre, as it is compared (the hash is the same): full float precision would make a busy stage
       // several times bigger than it needs to be
       const cm = v => (typeof v === 'number' ? Math.round(v * 100) / 100 : Array.isArray(v) ? v.map(cm) : v);
       const out = {}; for (const k of Object.keys(layout)) out[k] = cm(layout[k]);
-      return this._sendJ({ t: 'layout', m: this.match.id, hash, layout: out });
+      return this._sendJ({ t: 'layout', m: this.match.id, hash, layout: out, kit: kit && typeof kit === 'object' ? kit : undefined });
     }
 
     // ---- play ----
@@ -6250,6 +6251,14 @@ const RMNetSDK = (() => {
         this._acts.set(n, r => { clearTimeout(timer); resolve(r); });
       });
     }
+    // fire and forget, no answer asked for: the item claims and relays ('hit', 'paint', 'fx')
+    tell(type, data = {}) {
+      const msg = Object.assign({}, data, { t: 'act', a: type });
+      if (msg.ts === undefined) msg.ts = this.serverNow();
+      if (msg.vt === undefined) msg.vt = this.renderTime();
+      return this._sendJ(msg);
+    }
+    botTell(slot, type, data = {}) { return this._bots.has(slot) ? this.tell(type, Object.assign({}, data, { bot: slot })) : false; }
     // (v404) CPU players: in a match with CPUs, one game drives them (the roster's cpu: true, owner: that player's id).
     // That game sends each one's state and moves as it does its own; the server referees them like anyone.
     bots() { return [...this._bots.keys()]; }
@@ -15010,7 +15019,9 @@ function throwBoom(D) {
   if (D.charging) clearCharge(D); if (D === P) { holdCharge = false; slingOff(); }
   // a rival roughly ahead: thrown straight at them (a CPU squares up to the nearest in front of it)
   let tgt = null, tb = D.ai ? 0.9 : 0.42; for (const F of foes(D)) if (F.st === 'play') { const dx = F.x - D.x, dz = F.z - D.z, d = Math.hypot(dx, dz); if (d < 2 || d > 12) continue; const da = Math.abs(wrapA(Math.atan2(dx, dz) - D.yaw)); if (da < tb) { tb = da; tgt = F; } }
-  const yaw = tgt ? Math.atan2(tgt.x - D.x, tgt.z - D.z) : D.yaw, curve = Math.abs(D.turn || 0) > 0.3 ? Math.sign(D.turn) : (boomSide = -boomSide);
+  let yaw = tgt ? Math.atan2(tgt.x - D.x, tgt.z - D.z) : D.yaw, curve = Math.abs(D.turn || 0) > 0.3 ? Math.sign(D.turn) : (boomSide = -boomSide);
+  if (NM && NM.echo && NM.echoBoom) { const e = NM.echoBoom; yaw = e.yaw; curve = e.curve; tgt = e.tgt && e.tgt.st === 'play' ? e.tgt : null; } // (v427: another player's, thrown as they threw it)
+  else if (NMI() && netMe(D)) netAct('use', { yaw: netR(yaw), curve, tgt: tgt ? NM.slotOf.get(tgt) : undefined }, D);
   const gy = surfaceUnder(D.x, D.z, D.y + 0.4, true), y0 = (gy > -Infinity ? gy : D.y) + BOOM_H, M = boomMesh(tmat(D));
   const B = { owner: D, x: D.x + Math.sin(yaw) * 0.45, z: D.z + Math.cos(yaw) * 0.45, y: y0, yaw, curve, tgt, ph: 'out', t: 0, spin: 0, vy: 0, hit: new Set(), seen: new Set(), dist: 0, stroke: 1, rb: { stroke: -1 }, swT: 0, warned: false, g: M.g, sp: M.spin };
   B.g.position.set(B.x, B.y, B.z); scene.add(B.g); booms.push(B);
@@ -15052,7 +15063,7 @@ function boomTick(dt) {
     B.x = nx; B.z = nz; B.y += clamp(want - B.y, -6 * dt, (B.ph === 'out' ? 12 : 30) * dt);
     // the stripe
     B.dist += v * dt;
-    while (B.dist >= BOOM_STEP) { B.dist -= BOOM_STEP; const gy = surfaceUnder(B.x, B.z, B.y + 0.1); if (gy === -Infinity || B.y - gy > 1.4) { B.stroke++; continue; } addPoint(B.x, gy, B.z, B.yaw, dryClock, B.stroke, BOOM_W, tcode(O), B.rb, [B.x, gy, B.z]); }
+    while (B.dist >= BOOM_STEP) { B.dist -= BOOM_STEP; const gy = surfaceUnder(B.x, B.z, B.y + 0.1); if (gy === -Infinity || B.y - gy > 1.4) { B.stroke++; continue; } addPoint(B.x, gy, B.z, B.yaw, dryClock, B.stroke, BOOM_W, tcode(O), B.rb, [B.x, gy, B.z]); netPaint('boom', B.x, gy, B.z, O); }
     if (Math.random() < dt * 30) spawnPart(B.x, B.y, B.z, (Math.random() - 0.5) * 2, 1 + Math.random(), (Math.random() - 0.5) * 2, 0.4, tmat(O), 0.3 + Math.random() * 0.2);
     // anyone it clips; a CPU that sees it coming may jump or roll
     for (const F of foes(O)) {
@@ -15063,7 +15074,7 @@ function boomTick(dt) {
       if (safe(F) || F.immuneT > 0 || F.rocket || dx * dx + dz * dz > (BOOM_R + PR) ** 2 || F.y > B.y + 0.12 || F.y + 0.8 < B.y - 0.25) continue;
       B.hit.add(F);
       if (F.giantT > 0) { if (B.ph === 'out') { B.ph = 'back'; B.t = 0; } F.wob = 1; if (hearable(F)) AU.bonk(0.7); continue; } // (a giant swats it away)
-      knockOut(F, 'boom', O); if (O === P) { shake = Math.max(shake, 0.2); buzz([12, 20, 12]); }
+      if (NM) netClaim('boom', F, O, B); else knockOut(F, 'boom', O); if (O === P) { shake = Math.max(shake, 0.2); buzz([12, 20, 12]); }
     }
     B.swT -= dt; if (B.swT <= 0) { B.swT = 0.22; if (Math.hypot(B.x - P.x, B.z - P.z) < 14) { AU.at(B.x, B.z); AU.swish(); } }
     B.g.position.set(B.x, B.y, B.z);
@@ -15200,7 +15211,7 @@ function startWhirl(D) {
 function endWhirl(D) { if (D.whirl && D.whirl.snd) D.whirl.snd.stop(0.15); D.whirl = null; if (D.wfx) D.wfx.g.visible = false; if (D.wlane) { D.wlane.m.visible = false; D.wlane.sp.visible = false; } }
 // the end: a burst of paint round you, and anyone close splatted
 function whirlBurst(D) {
-  addSplat(D.x, D.y, D.z, D.yaw, WHIRL_TRAIL * 1.45, dryClock, false, false, tcode(D), 0.15); splash(D, 2.2); shockwave(D.x, D.y, D.z, 2.8, TEAMS[D.team].wet);
+  addSplat(D.x, D.y, D.z, D.yaw, WHIRL_TRAIL * 1.45, dryClock, false, false, tcode(D), 0.15); netPaint('whirlEnd', D.x, D.y, D.z, D, true); splash(D, 2.2); shockwave(D.x, D.y, D.z, 2.8, TEAMS[D.team].wet);
   for (const O of foes(D)) if (O.st === 'play' && !safe(O) && !(O.immuneT > 0) && Math.abs(O.y - D.y) < 1.4 && Math.hypot(O.x - D.x, O.z - D.z) < WHIRL_BURST) knockOut(O, 'crush', D);
   if (D === P) { shake = Math.max(shake, 0.25); fovKick = Math.max(fovKick, 9); buzz([15, 20, 30]); AU.burst(1); AU.splat(1.3); } else if (hearable(D)) { AU.burst(0.6); AU.splat(1); }
 }
@@ -15216,7 +15227,7 @@ function whirlTick(D, dt) {
     let tg = null, tb = 0.35; for (const O of foes(D)) if (O.st === 'play' && !safe(O)) { const dx = O.x - D.x, dz = O.z - D.z, d = Math.hypot(dx, dz); if (d > 9 || d < 0.5) continue; const da = Math.abs(wrapA(Math.atan2(dx, dz) - D.yaw)); if (da < tb) { tb = da; tg = O; } }
     if (tg) D.yaw += clamp(wrapA(Math.atan2(tg.x - D.x, tg.z - D.z) - D.yaw), -0.9 * dt, 0.9 * dt);
     // the trail: a wide splat every so often
-    if (Math.hypot(D.x - W.lx, D.z - W.lz) >= WHIRL_STEP) { W.lx = D.x; W.lz = D.z; addSplat(D.x, D.y, D.z, D.yaw, WHIRL_TRAIL, dryClock, false, false, tcode(D), 0.25); }
+    if (Math.hypot(D.x - W.lx, D.z - W.lz) >= WHIRL_STEP) { W.lx = D.x; W.lz = D.z; addSplat(D.x, D.y, D.z, D.yaw, WHIRL_TRAIL, dryClock, false, false, tcode(D), 0.25); netPaint('whirl', D.x, D.y, D.z, D); }
     // anyone in its path
     for (const O of foes(D)) if (O.st === 'play' && !safe(O) && !(O.immuneT > 0) && Math.abs(O.y - D.y) < 1.4 && Math.hypot(O.x - D.x, O.z - D.z) < WHIRL_R) { knockOut(O, 'crush', D); if (D === P) { shake = Math.max(shake, 0.2); buzz([12, 20, 12]); } }
     // droplets flung off the spiral
@@ -15578,9 +15589,11 @@ function dropHeld(D) {
 }
 // using what you hold: the roller rolls, the turret plants (on the ground)
 function useHeld(D) {
-  if (!D.held || D.whirl || (D === P && tut && tut.hideItem) || D.st !== 'play' || D.flatT > 0 || D.stunT > 0 || D.rocket || D.turret || D.giantT > 0 || D.knockT > 0) return false;
-  const type = D.held; if ((type === 'turret' || type === 'whirl') && D.air) return false;
+  const echo = !!(NM && NM.echo); // (v427: another player's, played here)
+  if (!echo && (!D.held || D.whirl || (D === P && tut && tut.hideItem) || D.st !== 'play' || D.flatT > 0 || D.stunT > 0 || D.rocket || D.turret || D.giantT > 0 || D.knockT > 0)) return false;
+  const type = D.held; if (!echo && (type === 'turret' || type === 'whirl') && D.air) return false;
   D.held = null; D.heldT = 0;
+  if (!echo && NMI() && netMe(D) && type !== 'boom') netAct('use', { yaw: netR(D.yaw) }, D); // (v427; the boomerang says how it was thrown)
   if (type === 'whirl') { startWhirl(D); for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0; return true; }
   if (type === 'trap') { dropTrap(D); for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0; return true; }
   if (type === 'boom') { throwBoom(D); for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0; return true; } // (v301)
@@ -15595,7 +15608,7 @@ function useHeld(D) {
 function useHeld2(D) { if (!D.held2) return false; const a = D.held; D.held = D.held2; D.held2 = null; if (useHeld(D)) { D.held = a; return true; } D.held2 = D.held; D.held = a; return false; }
 function useOrb(D) {
   if (!D.orbSaved || D.st !== 'play' || D.flatT > 0 || D.stunT > 0 || D.rocket || D.turret || D.giantT > 0 || D.knockT > 0) return false;
-  const g = D.orbSaved; D.orbSaved = null; shockwave(D.x, D.y + 0.1, D.z, 2.2, 0xFFFFFF); orbGift(D, g); return true;
+  const g = D.orbSaved; D.orbSaved = null; if (NMI() && netMe(D)) netAct('use', { orb: 1, yaw: netR(D.yaw) }, D); shockwave(D.x, D.y + 0.1, D.z, 2.2, 0xFFFFFF); orbGift(D, g); return true;
 }
 function cpuGift() { const r = Math.random(); return !tut && !tut2 && !tut3 && r < 0.46 ? (r < 0.15 ? 'freeze' : r < 0.31 ? 'storm' : 'bomb') : ['giant', 'rocket'][(Math.random() * 2) | 0]; } // (v404: the bomb too) // (v384: the storm, as often as the freeze)
 function pocketHud() {
@@ -15639,7 +15652,7 @@ function trapTick(dt) {
     const T = trapList[i]; T.t += dt; if (T.arm > 0) T.arm -= dt;
     const u = T.g.userData; u.light.material = (T.arm > 0 ? (T.t * 10) % 1 < 0.5 : (T.t * 1.4) % 1 < 0.2) ? trapLightOn : trapLightOff; u.ring.scale.setScalar(1 + 0.07 * Math.sin(T.t * 5));
     if (T.t > TRAP_LIFE) { trapPop(T, null, true); continue; }
-    if (state !== 'play') continue; const armed = !(T.arm > 0);
+    if (state !== 'play' || NM) continue; const armed = !(T.arm > 0); // (v427: online, the server says when one goes off)
     if (armed && T.owner !== P && !T.seen && P.st === 'play' && Math.hypot(P.x - T.x, P.z - T.z) < 9) { T.seen = true; hint('trapdodge', say('A trap! Swipe up to roll through it safely', 'A trap! Shift to roll through it safely'), 3.2); }
     for (const D of ACTIVE) {
       if (D === T.owner || ally(D, T.owner) || D.st !== 'play' || D.rocket || D.turret || D.immuneT > 0 || D.dashT > 0) continue; // (a roll still sets it off: harmlessly, below)
@@ -15684,6 +15697,7 @@ function trapPop(T, B, harmless) {
   if (harmless) { B.wob = Math.max(B.wob, 0.7); if (B === P) { popText('Dodged the trap!'); buzz(8); } else if (T.owner === P) popText(nameOf(B) + ' rolled right through'); return; }
   if (B.charging) clearCharge(B); if (B === P) { holdCharge = false; slingOff(); }
   if (!NM) { emote(T.owner, 'glee', 0.9); hitStop(0.06, T.owner, B); return knockOut(B, 'trap', T.owner); } // (v309: a trap is a knock-out now)
+  if (NM) { emote(T.owner, 'glee', 0.9); hitStop(0.06, T.owner, B); return; } // (v427: online the server knocks them out)
   const l = Math.hypot(B.x - T.x, B.z - T.z), nx = l > 0.05 ? (B.x - T.x) / l : Math.sin(B.yaw), nz = l > 0.05 ? (B.z - T.z) / l : Math.cos(B.yaw);
   B.stunT = Math.max(B.stunT || 0, TRAP_STUN); B.tGuard = TRAP_STUN + 0.9; B.spd = 0; B.turn = 0; B.kx = nx * 3.4; B.kz = nz * 3.4; B.slam = false; B.missile = false; B.rollT = 0;
   B.squash = 0.9; B.wob = 1; fxKnock(B, nx, nz, 0.8); if (!B.air) { B.air = true; B.stroke++; } B.vy = Math.max(B.vy || 0, 5.5); B.lastHit = { by: T.owner, t: runT };
@@ -15716,6 +15730,15 @@ function freezeTick(dt) {
     frzList.splice(i, 1); freezeFlash(F);
   }
 }
+// (v427) frozen where it stands, for t seconds (offline at the flash; online when the server says)
+function freezeOne(B, t) {
+  const fr = $('frost');
+    if (B.charging) clearCharge(B); if (B === P) { holdCharge = false; slingOff(); }
+    B.frozenT = t; B.stunT = Math.max(B.stunT || 0, t); B.spd = 0; B.turn = 0; B.kx = B.kz = 0; B.slam = false; B.missile = false; B.rollT = 0; B.wob = 1;
+    B.iceTap = 0; B.iceShk = 0; B.iceMash = B.ai && (diff === 'hard' || (diff === 'medium' && Math.random() < 0.5)) ? 1 : 0; B.iceMashT = 0.45 + Math.random() * 0.4; // (v256: a CPU taps its way out on hard, half the time on medium, never on easy)
+    for (let k = 0; k < 10; k++) { const a = Math.random() * 6.283; spawnPart(B.x, B.y + 0.4, B.z, Math.cos(a) * 2, 1 + Math.random() * 2, Math.sin(a) * 2, 0.22, k % 2 ? boilPartMat : puHaloMat, 0.6); }
+    if (B === P) { shake = Math.max(shake, 0.3); buzz([30, 30, 30]); popText('Frozen! Tap fast to break out'); fr.classList.add('held'); frostHeld = true; }
+}
 function freezeFlash(F) {
   const D = F.by, fl = $('flash'), fr = $('frost'); let n = 0;
   if (!frzList.length) fr.classList.remove('wind');
@@ -15723,14 +15746,11 @@ function freezeFlash(F) {
   shockwave(D.x, D.y + 0.2, D.z, ARENA * 1.6, 0xDDF3FF); shockwave(D.x, D.y + 0.2, D.z, ARENA * 0.8, 0xFFFFFF); AU.burst(1); hitStop(0.06, D);
   for (const B of ACTIVE) {
     if (B === D || ally(B, D) || B.st !== 'play' || B.rocket) continue; // (down in a basin, knocked out, or up in a rocket: untouched)
+    if (NM) continue; // (v427: online the server says who)
     if (B.rollT > ROLL_T - FREEZE_SWEET) { if (B === P) { popText('Perfect dodge!'); buzz([8, 20, 8]); AU.ready && AU.ready(); } else if (D === P) popText(nameOf(B) + ' dodged it!'); continue; }
-    if (B.charging) clearCharge(B); if (B === P) { holdCharge = false; slingOff(); }
-    B.frozenT = FREEZE_T; B.stunT = Math.max(B.stunT || 0, FREEZE_T); B.spd = 0; B.turn = 0; B.kx = B.kz = 0; B.slam = false; B.missile = false; B.rollT = 0; B.wob = 1; n++;
-    B.iceTap = 0; B.iceShk = 0; B.iceMash = B.ai && (diff === 'hard' || (diff === 'medium' && Math.random() < 0.5)) ? 1 : 0; B.iceMashT = 0.45 + Math.random() * 0.4; // (v256: a CPU taps its way out on hard, half the time on medium, never on easy)
-    for (let k = 0; k < 10; k++) { const a = Math.random() * 6.283; spawnPart(B.x, B.y + 0.4, B.z, Math.cos(a) * 2, 1 + Math.random() * 2, Math.sin(a) * 2, 0.22, k % 2 ? boilPartMat : puHaloMat, 0.6); }
-    if (B === P) { shake = Math.max(shake, 0.3); buzz([30, 30, 30]); popText('Frozen! Tap fast to break out'); fr.classList.add('held'); frostHeld = true; }
+    freezeOne(B, FREEZE_T); n++;
   }
-  if (D === P) banner('Flash freeze!', n ? 'They’re frozen. Go get them' : 'Nobody caught');
+  if (D === P && !NM) banner('Flash freeze!', n ? 'They’re frozen. Go get them' : 'Nobody caught');
   else if (P.st === 'hide') popText('Safe in the ' + potWord());
   for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0;
 }
@@ -15800,12 +15820,12 @@ function stormSpawn(S) {
     const d = stormTake(D); d.x = x; d.z = z; d.gy = gy; d.t = 0; d.sx = S.cx + (Math.random() - 0.5) * 2.4; d.sz = S.cz + (Math.random() - 0.5) * 2.4; d.sy = S.cy - 0.9; d.dodge = null;
     d.ring.position.set(x, gy + 0.07, z); d.fill.position.set(x, gy + 0.06, z); d.ring.scale.setScalar(0.3); d.fill.scale.setScalar(0.3);
     for (const F of foes(D)) if (F.ai && F.st === 'play' && Math.hypot(F.x - x, F.z - z) < STORM_KO + PR + 1.2 && Math.random() < (diff === 'easy' ? 0.3 : diff === 'hard' ? 0.75 : 0.5)) (d.dodge || (d.dodge = [])).push(F);
-    S.drops.push(d); return;
+    S.drops.push(d); netFx('drop', [netR(x), netR(z), netR(gy)], D); return;
   }
 }
 // it lands: a splat of the storm's paint, and anyone under it is out (unless in the air over it, or rolling)
 function stormLand(S, d) {
-  const D = S.by, x = d.x, z = d.z, gy = d.gy;
+  const D = S.by, x = d.x, z = d.z, gy = d.gy; netPaint('storm', x, gy, z, D, true);
   addSplat(x, gy, z, Math.random() * 6.2832, STORM_R * (0.9 + Math.random() * 0.2), dryClock, false, true, tcode(D));
   shockwave(x, gy, z, STORM_R * 1.15, TEAMS[D.team].wet); shockwave(x, gy, z, STORM_R * 0.6, 0xFFFFFF);
   for (let i = 0; i < 10; i++) { const a = Math.random() * 6.283, s = 2 + Math.random() * 2.5; spawnPart(x + Math.cos(a) * 0.3, gy + 0.2, z + Math.sin(a) * 0.3, Math.cos(a) * s, 2.5 + Math.random() * 3, Math.sin(a) * s, 0.45 + Math.random() * 0.3, tmat(D), 0.45 + Math.random() * 0.4); }
@@ -15817,7 +15837,7 @@ function stormLand(S, d) {
     const og = O.air ? surfaceUnder(O.x, O.z, O.y + STEP, true) : O.y, base = og > -Infinity ? og : O.y, lift = O.air ? O.y - base : 0;
     if (Math.abs(base - gy) > 1.2) continue;
     if (lift > 0.9 || safe(O)) { dodgedPound(O, D); continue; }
-    poundHit(O, D, 'storm');
+    if (NM) netClaim('storm', O, D, { x, y: gy, z }); else poundHit(O, D, 'storm');
   }
 }
 function stormEnd(S) { for (const d of S.drops) stormGive(d); S.drops.length = 0; scene.remove(S.g, S.sh); for (const m of S.g.userData.mats) m.dispose(); S.sh.material.dispose(); }
@@ -15845,7 +15865,7 @@ function stormTick(dt) {
     { const gy = surfaceUnder(S.cx, S.cz, S.cy - 1, true); S.sh.visible = gy > -Infinity && sc > 0.05; if (S.sh.visible) { S.sh.position.set(S.cx, gy + 0.05, S.cz); S.sh.scale.setScalar((STORM_AREA + 0.6) * sc); S.sh.material.opacity = 0.13 * sc; } }
     if (live && S.t > STORM_FORM * 0.6) { S.drip += dt * 16; while (S.drip >= 1) { S.drip -= 1; const a = Math.random() * 6.2832, r = Math.random() * 2.6; spawnPart(S.cx + Math.cos(a) * r, S.cy - 0.9, S.cz + Math.sin(a) * r, 0, -3 - Math.random() * 2, 0, 0.5 + Math.random() * 0.3, tmat(D), 0.18 + Math.random() * 0.12); } }
     // the drops
-    while (live && S.t >= S.next) { S.next += STORM_EVERY * (0.8 + Math.random() * 0.4); stormSpawn(S); }
+    while (live && S.t >= S.next && !(NMI() && !netMe(D))) { S.next += STORM_EVERY * (0.8 + Math.random() * 0.4); stormSpawn(S); }
     for (let j = S.drops.length - 1; j >= 0; j--) {
       const d = S.drops[j]; d.t += dt; const k = Math.min(1, d.t / STORM_FALL), pulse = 0.5 + 0.5 * Math.sin(d.t * 26), grow = 1 - Math.pow(1 - Math.min(1, k / 0.45), 3);
       d.ring.scale.setScalar(Math.max(0.01, (0.3 + 0.65 * grow) * STORM_R)); d.fill.scale.setScalar(Math.max(0.01, (0.15 + 0.8 * k) * STORM_R));
@@ -16005,7 +16025,7 @@ function clearBombs() { for (const B of bombList) bombDrop(B); bombList.length =
 function bombBlow(B) {
   const D = B.by, x = D.x, z = D.z, gy0 = surfaceUnder(x, z, D.y + STEP, true), gy = gy0 > -Infinity ? gy0 : D.y;
   // the paint: a big splat and a ring of smaller ones round its edge
-  addSplat(x, gy, z, Math.random() * 6.2832, BOMB_R, dryClock, false, true, tcode(D));
+  addSplat(x, gy, z, Math.random() * 6.2832, BOMB_R, dryClock, false, true, tcode(D)); netPaint('bomb', x, gy, z, D, true);
   const n = 12; for (let k = 0; k < n; k++) { const a = k / n * 6.2832 + Math.random() * 0.3, r = BOMB_R * (0.7 + Math.random() * 0.25), px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r, g = surfaceUnder(px, pz, gy + 1.5, true); if (g > -Infinity && Math.abs(g - gy) < 1.5) addSplat(px, g, pz, a, 1.1 + Math.random() * 0.6, dryClock, false, true, tcode(D)); }
   shockwave(x, gy, z, BOMB_R * 1.15, 0xFFFFFF); shockwave(x, gy, z, BOMB_R * 0.85, TEAMS[D.team].wet); shockwave(x, gy, z, BOMB_R * 0.45, 0xFFFFFF);
   for (let i = 0; i < 46; i++) { const a = Math.random() * 6.283, s = 4 + Math.random() * 7; spawnPart(x + Math.cos(a) * 0.4, gy + 0.5, z + Math.sin(a) * 0.4, Math.cos(a) * s, 3 + Math.random() * 6, Math.sin(a) * s, 0.6 + Math.random() * 0.4, i % 4 ? tmat(D) : puHaloMat, 0.5 + Math.random() * 0.6); }
@@ -16020,7 +16040,7 @@ function bombBlow(B) {
     if (Math.hypot(O.x - x, O.z - z) > BOMB_R + PR) continue;
     const og = O.air ? surfaceUnder(O.x, O.z, O.y + STEP, true) : O.y, base = og > -Infinity ? og : O.y;
     if (Math.abs(base - gy) > 2.2 || safe(O)) continue;
-    poundHit(O, D, 'bomb'); kos++;
+    if (NM) netClaim('bomb', O, D, { x, y: gy, z }); else poundHit(O, D, 'bomb'); kos++;
   }
   if (D === P && kos > 1) popText(kos + ' at once!');
 }
@@ -16228,7 +16248,7 @@ function updateOrb(dt) {
   for (const D of ACTIVE) { if (D.st !== 'play' || D.giantT > 0 || D.rocket || D.turret || (D !== P && tut3Orb())) continue; if (Math.hypot(D.x - orb.x, D.y + 0.3 - orb.y, D.z - orb.z) < PR + ORB_R + 0.12) { takeOrb(D); return; } }
 }
 // a pound or a coffin burst that goes off right under it takes it too
-function orbPound(D, R) { if (orb.on && orb.k > 0.5 && D.giantT <= 0 && !(D !== P && tut3Orb()) && !D.rocket && !D.turret && Math.hypot(orb.x - D.x, orb.z - D.z) < R * 0.6 && orb.y - D.y < 3 && orb.y - D.y > -0.5) takeOrb(D); }
+function orbPound(D, R) { if (NM) return; if (orb.on && orb.k > 0.5 && D.giantT <= 0 && !(D !== P && tut3Orb()) && !D.rocket && !D.turret && Math.hypot(orb.x - D.x, orb.z - D.z) < R * 0.6 && orb.y - D.y < 3 && orb.y - D.y > -0.5) takeOrb(D); }
 function takeOrb(D) {
   orb.on = false; orb.pull = 0; orb.stay = false; orb.g.visible = false; orb.ring.visible = false; orb.spawnT = 16 + Math.random() * 6;
   for (let i = 0; i < 26; i++) { const a = Math.random() * 6.283; spawnPart(orb.x, orb.y, orb.z, Math.cos(a) * 4, 1 + Math.random() * 4, Math.sin(a) * 4, 0.55, orbPartMats[i % orbPartMats.length], 0.6); }
@@ -16304,6 +16324,7 @@ function rocketDive(D, auto) {
   return true;
 }
 function rocketLand(D) {
+  if (NMI() && netMe(D)) { netFx('rland', [netR(D.x), netR(D.y), netR(D.z)], D); netPaint('rocket', D.x, D.y, D.z, D, true); } // (v427: where it came down)
   const RR = ROCKET_R, koR = RR + PR, dp = dp0(D);
   D.rocket = null; D.air = false; D.vy = 0; D.spd = 0; D.squash = 1; D.wob = 1; D.stroke++; D.coyote = 0; D.flung = false; D.flingC = 0; graceOut(D); D.slamCD = Math.max(D.slamCD, 1.5);
   const hitP = rivals.filter(r => r.on && Math.abs(r.y - D.y) < 0.3 && Math.hypot(r.x - D.x, r.z - D.z) < RR * 0.5 + r.rad);
@@ -16315,11 +16336,12 @@ function rocketLand(D) {
   spawnCrown(D, RR); startQuake(0.95 * Math.max(0.35, 1 - dp / 45)); for (const p of pots) p.bounce = 1;
   if (hearable(D) || D === P) { AU.quake(); AU.slam(); AU.burst(1); }
   // the ground heaves: anyone standing nearby gets bounced off their feet
-  for (const B of foes(D)) { const bd = Math.hypot(B.x - D.x, B.z - D.z);
+  for (const B of foes(D)) { if (NM) break; const bd = Math.hypot(B.x - D.x, B.z - D.z); // (v427: online, nobody's thrown about by it)
     if (B.st === 'play' && !B.air && B.immuneT <= 0 && !safe(B) && B.giantT <= 0 && !B.rocket && Math.abs(B.y - D.y) < 3 && bd < 16 && bd > koR) { if (B.charging) clearCharge(B); if (B === P) { holdCharge = false; slingOff(); } B.air = true; B.stroke++; B.vy = 3 + 3.5 * (1 - bd / 16); B.knockT = 0.35; B.wob = 1; B.squash = 0.7; fxKnock(B, B.x - D.x, B.z - D.z, 0.35 + 0.35 * (1 - bd / 16)); if (bd < 12) fxTumble(B, 0.75, Math.random() - 0.5, B.x - D.x, B.z - D.z); } }
   if (D === P) { shake = 0.95; hold = 0.17; fovKick = -16; buzz([45, 25, 70]); flashScreen(); }
   else if (dp < 26) { shake = Math.max(shake, 0.8 * (1 - dp / 26)); hitStop(0.1, D, null, D.x, D.z); }
   for (const O of foes(D)) {
+    if (NM) { if (matchLeft > 0 && (O.st === 'play' || O.st === 'hide') && Math.hypot(O.x - D.x, O.z - D.z) < koR + 0.4) netClaim('rocket', O, D, D); continue; } // (v427)
     if (!NM && matchLeft > 0 && (O.st === 'play' || O.st === 'hide') && !O.rocket && O.immuneT <= 0 && Math.hypot(O.x - D.x, O.z - D.z) < koR) {
       const og = O.air ? surfaceUnder(O.x, O.z, O.y + STEP, true) : O.y, base = og > -Infinity ? og : O.y, lift = O.air ? O.y - base : 0;
       if (Math.abs(base - D.y) < 1.4) { if (lift > 0.6 || safe(O)) dodgedPound(O, D); else poundHit(O, D, O.st === 'hide' ? 'coffin' : 'pound'); }
@@ -16426,7 +16448,7 @@ function updateShots(dt) {
     s.acc += dt; if (s.acc > 0.075) { s.acc = 0; spawnPart(s.x - s.vx * 0.02, s.y - s.vy * 0.02, s.z - s.vz * 0.02, s.vx * 0.05 + (Math.random() - 0.5), s.vy * 0.05, s.vz * 0.05 + (Math.random() - 0.5), 0.26, tmat(s.by), 0.26); }
     let hit = null; for (const B of ACTIVE) { if (B === s.by || ally(B, s.by) || B.st !== 'play' || B.rocket) continue; const dx = B.x - s.x, dz = B.z - s.z, dy = B.y + PR * 0.8 - s.y; if (dx * dx + dz * dz < (PR + SHOT_R) * (PR + SHOT_R) && Math.abs(dy) < PR + 0.35) { hit = B; break; } }
     let gone = false;
-    if (hit) { shotHit(hit, s); shotSplat(s, hit.air ? surfaceUnder(hit.x, hit.z, hit.y + 0.3, true) : hit.y, 0.85); gone = true; }
+    if (hit) { if (NM) { netClaim('shot', hit, s.by, s); hit.wob = Math.max(hit.wob || 0, 0.6); } else shotHit(hit, s); shotSplat(s, hit.air ? surfaceUnder(hit.x, hit.z, hit.y + 0.3, true) : hit.y, 0.85); gone = true; }
     else if (ballShot(s)) { shotSplat(s, surfaceUnder(s.x, s.z, s.y + 0.3, true), 0.7); gone = true; }
     else if (shotBlocked(s.x, s.z, s.y)) { const g = surfaceUnder(px, pz, py + 0.2, true); s.x = px; s.z = pz; shotSplat(s, g, 0.9); gone = true; }
     else { const g = surfaceUnder(s.x, s.z, py + 0.05, true); if (g > -Infinity && s.y <= g) { s.y = g; shotSplat(s, g, 1); gone = true; } else if (s.y < -6 || s.life <= 0) gone = true; }
@@ -16435,6 +16457,7 @@ function updateShots(dt) {
 }
 function shotSplat(s, y, k) {
   if (!(y > -Infinity)) return;
+  netPaint('shot', s.x, y, s.z, s.by);
   addSplat(s.x, y, s.z, Math.atan2(s.vx, s.vz), (0.9 + Math.random() * 0.3) * k, dryClock, Math.random() < 0.7, false, tcode(s.by)); // most skip splashing nearby walls (it fires fast)
   for (let i = 0; i < 7; i++) { const a = Math.random() * 6.283, v = 1.5 + Math.random() * 2; spawnPart(s.x, y + 0.12, s.z, Math.cos(a) * v, 1 + Math.random() * 1.6, Math.sin(a) * v, 0.32, tmat(s.by), 0.45); }
   if (Math.hypot(s.x - P.x, s.z - P.z) < 14) { AU.at(s.x, s.z); AU.plop(); }
@@ -17913,7 +17936,7 @@ function dodgedPound(O, D, perfectNet) {
   if (perfect) { shockwave(O.x, O.y, O.z, 2.2, 0xFFE07A); for (let i = 0; i < 14; i++) { const a = i / 14 * 6.283; spawnPart(O.x, O.y + 0.3, O.z, Math.cos(a) * 3.4, 1 + Math.random() * 1.5, Math.sin(a) * 3.4, 0.4, orbPartMats[i % orbPartMats.length], 0.6); } }
   if (O === P) { popText(perfect ? 'Perfect dodge!' : 'Dodged!'); buzz(perfect ? [10, 25, 30] : 12); AU.ready(); if (perfect) slow = Math.max(slow, 0.22); } else if (D === P) popText(perfect ? 'Perfect dodge!' : 'It dodged!');
 }
-function poundHit(O, D, reason) { if (O.giantT > 0) unGiant(O, D); else knockOut(O, reason, D); }
+function poundHit(O, D, reason) { if (NM && !NM.rule) return knockOut(O, reason, D); if (O.giantT > 0) unGiant(O, D); else knockOut(O, reason, D); }
 function unGiant(B, A) {
   B.giantT = 0; graceOut(B); B.wob = 1; B.squash = 1; B.immuneT = Math.max(B.immuneT, 0.8); emote(B, 'ouch', 1.0); emote(A, 'glee', 1.2); if (B.charging) clearCharge(B); if (B === P) { holdCharge = false; slingOff(); }
   if (!B.air) { B.air = true; B.stroke++; } B.vy = Math.max(B.vy, 5.5); B.slam = false; B.missile = false; fxKnock(B, B.x - A.x, B.z - A.z, 0.8);
@@ -18757,7 +18780,7 @@ function kcamSteer(D, dt) {
 }
 function knockOut(D, reason, by) {
   if (D.st === 'ko' || state !== 'play') return;
-  if (NM && !NM.rule) { if (D === P && !NM.selfKo && (reason === 'fall' || reason === 'dry')) { NM.selfKo = reason; netAct('selfKo', { reason }); } else if (netMine(D) && !D.netSelfKo && (reason === 'fall' || reason === 'dry')) { D.netSelfKo = reason; netAct('selfKo', { reason }, D); } return; } // (v306: online only the server knocks anyone out; yours, it's told)
+  if (NM && !NM.rule) { if (by && NET_CLAIM[reason]) netClaim(NET_CLAIM[reason], D, by); /* (v427) */ if (D === P && !NM.selfKo && (reason === 'fall' || reason === 'dry')) { NM.selfKo = reason; netAct('selfKo', { reason }); } else if (netMine(D) && !D.netSelfKo && (reason === 'fall' || reason === 'dry')) { D.netSelfKo = reason; netAct('selfKo', { reason }, D); } return; } // (v306: online only the server knocks anyone out; yours, it's told)
   if (tut && D === P && by && by !== P && (reason === 'pound' || reason === 'coffin' || reason === 'crush')) return tutSpare(by, reason); // (v297: not in the lesson)
   const sdLast = isShow() && sdHit(D, by);
   const pot = D.pot; if (pot) { pot.occ = null; D.pot = null; }
@@ -19099,7 +19122,7 @@ function stepBlob(D, dt) {
   if (D.assistQ > 0) { D.assistQ -= dt; if (D.assistQ <= 0) { D.assistQ = 0; poundAssist(D); } }
   if (D.assistT > 0) { D.assistT -= dt; if (!D.air || D.slam || D.st !== 'play') D.assistT = 0; }
   if (D.frozenT > 0 && D.iceMash) { D.iceMashT -= dt; if (D.iceMashT <= 0) { D.iceMashT = 0.17 + Math.random() * 0.13; iceTap(D); } }
-  if (D.frozenT > 0) { D.frozenT -= dt; if (D.frozenT <= 0) { D.frozenT = 0; thawFx(D); } }
+  if (D.frozenT > 0) { D.frozenT -= dt; if (D.frozenT <= 0) { D.frozenT = 0; thawFx(D); if (NMI() && netMe(D) && D.iceTap > 0) netAct('thaw', null, D); } } // (v427: tapped out early: the server's told)
   if (D.stunT > 0) { D.stunT -= dt; D.spd = 0; D.turn = 0; D.wob = Math.max(D.wob, 0.5); if (D.stunT <= 0) { D.stunT = 0; D.stunGuard = 1.5; D.squash = 0.6; D.fxShk = Math.max(D.fxShk, 0.8); fxLaunch(D, 0.5); if (hearable(D)) AU.pop(); } }
   else if (D.flatT > 0) { D.flatT -= dt; D.spd = 0; D.turn = 0; if (D.flatT <= 0) { D.immuneT = 1.0; D.squash = 0.9; D.wob = 1; D.fxShk = Math.max(D.fxShk, 1); fxLaunch(D, 0.6); if (hearable(D)) AU.pop(); } }
   else steerAndTurn(D, dt, D.slam ? 0 : D.air ? (D.knockT > 0 ? 0.12 : D.charging ? 0.85 : 0.65) : D.whirl ? (D.whirl.ph === 'dash' ? 0.3 : 0.5) : D.charging ? 0.75 : D.rollT > ROLL_T - ROLL_DASH ? 0.4 : 1);
@@ -19179,7 +19202,7 @@ function stepBlob(D, dt) {
   if (D.flung && D.st === 'play' && !NM) for (const p of pots) if (p.occ && p.occ !== D && !(p.occ.spawnImm && p.occ.immuneT > 0) && potUp(p) && Math.abs(D.y - p.y) < 1.1 && Math.hypot(D.x - p.x, D.z - p.z) < 0.62 + PR) { bumpFromCoffin(p.occ, D); break; }
   if (D.slam) return;
   if (D.giantT <= 0 && !D.whirl) for (const p of pots) if (potUp(p) && !p.occ && p.ink > 0.02 && p.cool <= 0 && Math.abs(D.y - p.y) < 0.9 && Math.hypot(D.x - p.x, D.z - p.z) < 0.5 + PR * 0.95) { if (NM && netMe(D)) netPre(D); enterPot(D, p); if (NM && netMe(D)) netAct('enterPot', { pot: pots.indexOf(p) }, D); break; }
-  if (D.st === 'play') for (const pw of powers) if (pw.g && !(pw.grace > 0 && pw.owner === D) && Math.abs(D.y - pw.y) < 1.6 && Math.hypot(D.x - pw.x, D.z - pw.z) < 0.95) { collectPower(D, pw); break; }
+  if (D.st === 'play' && !NM) for (const pw of powers) if (pw.g && !(pw.grace > 0 && pw.owner === D) && Math.abs(D.y - pw.y) < 1.6 && Math.hypot(D.x - pw.x, D.z - pw.z) < 0.95) { collectPower(D, pw); break; }
 }
 // after the buzzer: anyone caught in the air (a hop, a fling, put back after the winner screen) comes down where they are and stays down
 // (over a hole, drifted back over the nearest floor first)
@@ -19345,7 +19368,7 @@ function step(dt) {
     if (dangerK > 0) dangerK -= dt;
     for (const D of ACTIVE) if (D.cpu) aiStep(D, dt);
     for (const D of ACTIVE) if (NM && D !== P && !netMine(D)) netPuppet(D, dt); else stepBlob(D, dt);
-    if (NM) netContact(); else { blobContact(); updateOrb(dt); if (mode === 'solo' && !tut) trialTick(dt); } updateShots(dt); boomTick(dt); if (tut) tutStep(dt); else if (tut2) tut2Step(dt); else if (tut3) tut3Step(dt);
+    if (NM) { netContact(); if (NMI()) netItemsFrame(dt); } else { blobContact(); updateOrb(dt); if (mode === 'solo' && !tut) trialTick(dt); } updateShots(dt); boomTick(dt); if (tut) tutStep(dt); else if (tut2) tut2Step(dt); else if (tut3) tut3Step(dt);
     // a handful of tips, once each
     if (runT > 5) hint('jump', say('Tap to jump', 'Space to jump'), 2.4);
     if (runT > 10 && !P.dry) hint('hold', say('Pull down and let go to fling', 'Hold S, let go to fling'), 2.8);
@@ -25962,7 +25985,7 @@ function netSendLayout() {
     } finally { powers = pw0; }
   } catch (e) { NM.basins = new Map(); }
   const L = RMNet.layoutFromStage({ arena: ARENA, boxes: BOXES, ramps: RAMPS, holes: HOLES, pots: POTS.slice(0, VS_CFG.pots), powers: POWER_SPOTS, spawns: sp, puddles: RIVALS.slice(0, VS_CFG.rivals) });
-  NM.net.sendLayout(L);
+  NM.net.sendLayout(L, netKit()); // (v427: and what you take into it)
   // the server puts slot i on spot i: you on yours, each of the others on theirs
   const at = sp.map(q => ({ x: q.x, z: q.z, yaw: q.yaw }));
   for (const [s, D] of NM.seats) { const S = netStartOf(D); if (S && at[s]) Object.assign(S, at[s]); }
@@ -25992,6 +26015,8 @@ function netWire(net) {
     for (const q of m.spawns || []) { const S = netStartOf(netBlob(q.slot)); if (S) Object.assign(S, { x: q.x, z: q.z, yaw: q.yaw }); } });
   on('correction', netCorrect); on('botCorrection', netBotCorrect); on('ko', netKo); on('respawn', netRespawn); on('flat', netFlat); on('push', netPush); on('dodged', netDodged);
   on('pot', netPot); on('potEject', netEject); on('act', netFoeAct); on('resume', netResume); on('out', netOut);
+  on('itemSpawn', netItemSpawn); on('itemGone', netItemGone); on('itemTaken', netItemTaken); on('itemUsed', netItemUsed); on('itemTrap', netItemTrap); // (v427)
+  on('orbSpawn', netOrbSpawn); on('orbTaken', netOrbTaken); on('orbLost', netOrbLost); on('freeze', netFreeze); on('shot', netShot); on('unGiant', netUnGiant); on('fx', netFxIn);
   on('coverage', m => { NM.cov = netCovOf(m.sides); });
   on('snapshot', s => { const me = (s.players || []).find(q => q.slot === NM.slot); if (me) NM.srvPaint = me.paint; }); // (the referee's paint meter, for the pound)
   on('overtime', m => { NM.endAt = m.endAt; if (state === 'play') { banner('Overtime!', (m.secs | 0) + ' more seconds', true); AU.horn(); buzz([30, 40, 30]); lastCount = 99; } });
@@ -26022,7 +26047,7 @@ function netAct(a, data, D) {
   // (stamped with when it happened: inside a long frame, that's before the frame's end)
   const back = netAhead * 1000, ts = nm.net.serverNow() - back;
   if (nm.live && state === 'play' && (P.st === 'play' || P.st === 'hide')) nm.net.sendState(netState(), true, ts);
-  nm.net.action(a, Object.assign({ ts, vt: nm.net.renderTime() - back }, data || {})).then(r => { if (NM !== nm || r.ok) return; nm.refused++; nm.why.push(a + ':' + r.reason); if (nm.why.length > 8) nm.why.shift(); if (a === 'enterPot' && P.st === 'hide' && r.reason !== 'disconnected' && r.reason !== 'timeout') netUnPot(r.reason); });
+  nm.net.action(a, Object.assign({ ts, vt: nm.net.renderTime() - back }, data || {})).then(r => { if (NM !== nm || r.ok) return; nm.refused++; nm.why.push(a + ':' + r.reason); if (a === 'use') netUseRefused(P, r.reason); if (nm.why.length > 8) nm.why.shift(); if (a === 'enterPot' && P.st === 'hide' && r.reason !== 'disconnected' && r.reason !== 'timeout') netUnPot(r.reason); });
 }
 // a dive into a pot the referee didn't allow: back where you were, on the ground (no hop out: the server never had you in it)
 function netPre(D) { D = D || P; const q = { x: D.x, y: D.y, z: D.z, yaw: D.yaw, air: D.air }; if (D === P) NM.pre = q; else D.netPre0 = q; }
@@ -26047,7 +26072,7 @@ function netBotAct(D, a, data) {
   const nm = NM, slot = nm.slotOf.get(D); if (slot === undefined) return;
   const back = netAhead * 1000, ts = nm.net.serverNow() - back;
   if (D.netSend && state === 'play' && (D.st === 'play' || D.st === 'hide')) nm.net.sendBotState(slot, netStateOf(D), true, ts);
-  nm.net.botAction(slot, a, Object.assign({ ts, vt: nm.net.renderTime() - back }, data || {})).then(r => { if (NM !== nm || !r || r.ok) return; nm.refused++; nm.why.push('cpu ' + a + ':' + r.reason); if (nm.why.length > 8) nm.why.shift(); if (a === 'enterPot' && D.st === 'hide' && r.reason !== 'disconnected' && r.reason !== 'timeout') netUnPot(r.reason, D); });
+  nm.net.botAction(slot, a, Object.assign({ ts, vt: nm.net.renderTime() - back }, data || {})).then(r => { if (NM !== nm || !r || r.ok) return; nm.refused++; nm.why.push('cpu ' + a + ':' + r.reason); if (a === 'use') netUseRefused(D, r.reason); if (nm.why.length > 8) nm.why.shift(); if (a === 'enterPot' && D.st === 'hide' && r.reason !== 'disconnected' && r.reason !== 'timeout') netUnPot(r.reason, D); });
 }
 function netBotsFrame() {
   for (const D of NM.mine) {
@@ -26070,7 +26095,142 @@ function netBotPush(D, m) {
 }
 const netState = () => ({ x: P.x, y: P.y, z: P.z, yaw: P.yaw, spd: P.st === 'hide' ? 0 : P.spd, vy: P.vy, air: P.air, rolling: P.rollT > 0, charging: P.charging, slam: !!P.slam, hidden: P.st === 'hide', flung: !!P.flung, dry: !!P.dry, missile: !!P.missile, paint: clamp(P.paint, 0, 1), aim: P.charging ? clamp(P.charge || 0, 0, 1) : 0 });
 // at Go: no pick-ups online, the rival's rank on its tag, the weather from the start
-function netGo() { for (const D of ACTIVE) { D.held = null; D.held2 = null; D.heldT = 0; } for (const D of NM.others) D.rank = NM.ranks.get(D) || 1; NM.wxI = -1; NM.phase = 'play'; }
+function netGo() { for (const D of ACTIVE) { D.held = null; D.held2 = null; D.heldT = 0; } for (const D of NM.others) D.rank = NM.ranks.get(D) || 1; NM.wxI = -1; NM.phase = 'play';
+  // (v427) the server's pockets: what each starts with
+  const pk = NM.s && NM.s.pockets; if (NMI() && Array.isArray(pk)) for (const [slot, D] of NM.seats) if (ACTIVE.includes(D) && PU[pk[slot]]) { D.held = pk[slot]; if (D !== P) D.heldT = -(2 + Math.random() * 6); } }
+
+// ---------- (v427) the game's pick-ups, the orb and the specials, online. The server hands them out, keeps the pockets and rules on every
+// knock-out; this game shows its pick-ups and orb, sends what you (and the CPUs it drives) use, plays everyone's effects, and sends the
+// hits and the paint your effects land, for the server to check ----------
+const NMI = () => !!(NM && NM.rules && NM.rules.iv >= 2);
+const netR = v => Math.round(v * 100) / 100;
+const NET_CLAIM = { crush: 'crush', boom: 'boom', storm: 'storm', bomb: 'bomb', shot: 'shot' };
+// what you take into a match: the item protocol this game speaks, your start item, special and skill
+function netKit() { return { iv: 2, it: strokeItem() || undefined, sp: strokeSpecial() || undefined, sk: strokeSkill() || undefined }; }
+// fire and forget (the claims, the paint, the relays)
+function netTell(a, data, D) {
+  if (!NM || !NM.net || !NM.net.tell) return; const nm = NM, back = netAhead * 1000, d = Object.assign({ ts: nm.net.serverNow() - back, vt: nm.net.renderTime() - back }, data || {});
+  if (D && D !== P) { const slot = nm.slotOf.get(D); if (slot !== undefined && netMine(D)) nm.net.botTell(slot, a, d); return; }
+  nm.net.tell(a, d);
+}
+// a hit one of yours landed (yours, or a CPU's this game drives): once a moment for each target and kind (each turret glob counts)
+function netClaim(k, B, A, at) {
+  if (!NMI() || !A || !B || !netMe(A) || ally(A, B)) return; const slot = NM.slotOf.get(B); if (slot === undefined) return;
+  const now = performance.now(), ct = A.netClaimT || (A.netClaimT = {}), key = k + ':' + slot; if (k !== 'shot' && ct[key] > now - 450) return; ct[key] = now;
+  const q = at || B; netTell('hit', { k, target: slot, x: netR(q.x), y: netR(q.y), z: netR(q.z) }, A);
+}
+// the paint an effect of yours leaves, sent in batches (now: at once)
+function netPaint(k, x, y, z, D, now) {
+  if (!NMI() || !D || !netMe(D) || !(y > -Infinity)) return; const Q = D.netPaintQ || (D.netPaintQ = {}), q = Q[k] || (Q[k] = []);
+  q.push([netR(x), netR(y), netR(z)]); if (now || q.length >= 12) netPaintFlush(D, k);
+}
+function netPaintFlush(D, k) { const q = D.netPaintQ && D.netPaintQ[k]; if (!q || !q.length) return; D.netPaintQ[k] = []; netTell('paint', { k, pts: q }, D); }
+function netFx(k, d, D) { if (NMI() && D && netMe(D)) netTell('fx', { k, d }, D); }
+// another player's effect played here: nothing of it is sent
+function netEcho(fn) { const was = NM.echo; NM.echo = true; try { fn(); } finally { NM.echo = was; } }
+// ---- what the server says
+function netItemSpawn(m) {
+  if (!m || powers.some(q => q.id === m.id)) return; const dropped = Number.isInteger(m.dropped);
+  const pw = { id: m.id, phase: Math.random() * 6, pop: 0, grace: dropped ? 2.5 : 0, owner: dropped ? netBlob(m.dropped) : null, age: 0 };
+  placePower(pw, PU[m.kind] ? m.kind : 'roller', [m.x, m.y, m.z]); powers.push(pw);
+  if (state === 'play' && !dropped && Math.hypot(P.x - m.x, P.z - m.z) < 16) AU.pop();
+}
+function netItemGone(m) {
+  const pw = powers.find(q => q.id === m.id);
+  if (pw) { const near = state === 'play' && Math.hypot(P.x - pw.x, P.z - pw.z) < 16; itemPop(pw); if (m.why === 'stale' && near) AU.pop(); return; }
+  const T = trapList.find(q => q.id === m.id); if (T) trapPop(T, null, true);
+}
+function netItemTaken(m) {
+  const D = netBlob(m.slot), pw = powers.find(q => q.id === m.id);
+  if (!D || !ACTIVE.includes(D)) { if (pw) itemPop(pw); return; }
+  D.held = null; D.held2 = null; // (what it held goes back on the stage: the server puts it there)
+  if (pw) collectPower(D, pw); else { D.held = PU[m.kind] ? m.kind : 'roller'; D.heldT = 0; if (D === P) { AU.pop(); buzz(12); } }
+}
+function netItemUsed(m) {
+  const D = netBlob(m.slot); if (!D || !ACTIVE.includes(D)) return;
+  if (netMe(D)) { if (m.kind === 'trap' && m.trap) { for (let i = trapList.length - 1; i >= 0; i--) if (trapList[i].owner === D && !trapList[i].id) { trapList[i].id = m.trap; break; } } return; } // (yours went off when you used it)
+  if (D.st !== 'play') return;
+  if (Number.isFinite(m.yaw)) D.yaw = m.yaw;
+  netEcho(() => {
+    if (m.orb) { D.orbSaved = null; orbGift(D, m.kind); return; }
+    if (!PU[m.kind]) return;
+    D.held = m.kind; NM.echoBoom = m.kind === 'boom' ? { yaw: Number.isFinite(m.yaw) ? m.yaw : D.yaw, curve: m.curve === -1 ? -1 : 1, tgt: Number.isInteger(m.tgt) ? netBlob(m.tgt) : null } : null;
+    try { useHeld(D); } finally { NM.echoBoom = null; }
+    if (m.kind === 'trap') { const T = trapList[trapList.length - 1]; if (T && T.owner === D) { T.id = m.trap; if (Number.isFinite(m.x)) { T.x = m.x; T.z = m.z; T.g.position.set(T.x, T.y, T.z); } } }
+  });
+}
+// a use the server refused (it saw something else going on): a trap dropped here for it is taken back up
+function netUseRefused(D, why) { if (why === 'disconnected' || why === 'timeout') return; for (let i = trapList.length - 1; i >= 0; i--) if (trapList[i].owner === D && !trapList[i].id) { trapPop(trapList[i], null, true); break; } }
+function netItemTrap(m) { const T = trapList.find(q => q.id === m.id); if (T) trapPop(T, netBlob(m.slot), !!m.safe); }
+function netOrbSpawn(m) {
+  orb.on = true; orb.k = 0; orb.pull = 0; orb.stay = true; orb.netId = m.id; orb.x = orb.tx = m.x; orb.z = orb.tz = m.z; orb.base = m.y; orb.y = m.y + 1.15; orb.ph = Math.random() * 6.28;
+  orb.g.visible = true; orb.ring.visible = true; if (state === 'play') { AU.orb(); kick($('orbFlash'), 'on'); popText('Orb!'); }
+  for (let i = 0; i < 16; i++) { const a = i / 16 * 6.283; spawnPart(orb.x, orb.y, orb.z, Math.cos(a) * 2.5, (Math.random() - 0.3) * 3, Math.sin(a) * 2.5, 0.5, orbPartMats[i % orbPartMats.length], 0.5); }
+}
+function netOrbTick(dt) { if (!orb.on) return; orb.k = Math.min(1, orb.k + dt * 1.8); orb.y = orb.base + 1.15 + Math.sin(runT * 2.2 + orb.ph) * 0.12; }
+function netOrbTaken(m) {
+  const D = netBlob(m.slot);
+  if (orb.on) { orb.on = false; orb.pull = 0; orb.g.visible = false; orb.ring.visible = false; for (let i = 0; i < 26; i++) { const a = Math.random() * 6.283; spawnPart(orb.x, orb.y, orb.z, Math.cos(a) * 4, 1 + Math.random() * 4, Math.sin(a) * 4, 0.55, orbPartMats[i % orbPartMats.length], 0.6); } shockwave(orb.x, orb.base, orb.z, 2.6, 0xFFFFFF); }
+  if (!D || !ACTIVE.includes(D) || m.at === 'now') return; // (one already in the slot: it went off at once; the server says how)
+  const keep = !!m.keep; D.orbSaved = m.gift; D.orbT = keep ? Infinity : ORB_HOLD; if (D.ai) D.ai.orbWait = 0.5 + Math.random() * 2.2; emote(D, 'glee', 0.8);
+  if (D === P) { AU.pop(); buzz([10, 20, 10]); const w = ORB_LBL[m.gift] || 'Orb'; banner(keep ? 'Orb saved!' : w + ' ready!', keep ? say('Keep it as long as you like. Tap it to use it', 'Keep it as long as you like. Press C to use it') : say('Tap it to use it', 'Press C to use it')); }
+}
+function netOrbLost(m) { const D = netBlob(m.slot); if (D && D.orbSaved) orbFade(D); }
+function netFreeze(m) {
+  const A = netBlob(m.by), left = Math.max(0.3, (m.until - netNow()) / 1000);
+  for (const s of m.slots || []) { const B = netBlob(s); if (B && B.st === 'play') freezeOne(B, left); }
+  for (const s of m.dodged || []) { const B = netBlob(s); if (B === P) { popText('Perfect dodge!'); buzz([8, 20, 8]); AU.ready && AU.ready(); } else if (B && A === P) popText(nameOf(B) + ' dodged it!'); }
+  if (A === P) banner('Flash freeze!', (m.slots || []).length ? 'They’re frozen. Go get them' : 'Nobody caught');
+}
+function netShot(m) {
+  const B = netBlob(m.slot), A = netBlob(m.by); if (!B || !A) return;
+  const dx = B.x - A.x, dz = B.z - A.z, l = Math.hypot(dx, dz) || 1, nx = dx / l, nz = dz / l;
+  if (netMe(B)) { if (B.charging) clearCharge(B); if (B === P) { holdCharge = false; slingOff(); } B.paint = Math.min(B.paint, m.paint); if (B.paint <= 0.001 && !B.dry) { B.paint = 0; goDry(B); } B.kx = nx * SHOT_PUSH * 0.45; B.kz = nz * SHOT_PUSH * 0.45; B.lastHit = { by: A, t: runT }; }
+  B.squash = 0.85; B.wob = 1; fxKnock(B, nx, nz, 0.35); emote(B, 'ouch', 0.7); emote(A, 'glee', 0.7); shockwave(B.x, B.y + 0.1, B.z, 1.1, TEAMS[A.team].wet);
+  if (hearable(B)) AU.bonk(0.7);
+  if (B === P) { shake = Math.max(shake, 0.22); buzz([15, 20, 15]); pingTank(1.2); } else if (A === P) buzz(10);
+  if (m.stun) turretStun(B, A, nx, nz);
+}
+function netUnGiant(m) { const B = netBlob(m.slot), A = netBlob(m.by) || B; if (B && B.giantT > 0) { NM.rule = true; try { unGiant(B, A); } finally { NM.rule = false; } } }
+// a storm's drop, where its caster's game dropped it
+function netStormDrop(D, x, z, gy) {
+  const S = stormList.find(q => q.by === D && !q.end); if (!S || !(gy > -Infinity)) return;
+  const d = stormTake(D); d.x = x; d.z = z; d.gy = gy; d.t = 0; d.sx = S.cx + (Math.random() - 0.5) * 2.4; d.sz = S.cz + (Math.random() - 0.5) * 2.4; d.sy = S.cy - 0.9; d.dodge = null;
+  d.ring.position.set(x, gy + 0.07, z); d.fill.position.set(x, gy + 0.06, z); d.ring.scale.setScalar(0.3); d.fill.scale.setScalar(0.3);
+  S.drops.push(d);
+}
+function netFxIn(m) {
+  const D = netBlob(m.slot); if (!D || netMe(D) || !ACTIVE.includes(D) || !Array.isArray(m.d)) return; const d = m.d;
+  if (m.k === 'drop' && d.length >= 3) netStormDrop(D, +d[0], +d[1], +d[2]);
+  else if (m.k === 'rland' && d.length >= 3 && D.rocket) { D.x = +d[0]; D.y = +d[1]; D.z = +d[2]; netEcho(() => rocketLand(D)); }
+}
+// another player's effects, played on its puppet (where it is is the server's)
+function netFxPuppet(D, dt, f) {
+  const F = RMNet.FLAGS;
+  if (D.giantT > 0) { D.giantT -= dt; if (D.giantT <= 0) { D.giantT = 0; graceOut(D); D.wob = 1; } }
+  if (f & F.GIANT) D.netGiant = true; else if (D.netGiant) { D.netGiant = false; if (D.giantT > 0.25) D.giantT = 0.25; } // (shrunk early: a pound)
+  if (D.power) { D.power.t -= dt; if (D.power.t <= 0) { if (D.power.type === 'roller') graceOut(D); D.power = null; } }
+  if (D.turret) stepTurret(D, dt);
+  if (D.whirl) whirlTick(D, dt);
+  if (D.rocket) { const R = D.rocket; R.t += dt; R.ph = D.vy > 2 ? 'up' : D.vy < -4 ? 'dive' : R.ph === 'dive' ? 'dive' : 'hover'; D.fxAcc = D.fxAcc || 0; rocketFx(D, dt); if (R.t > 14) D.rocket = null; }
+  if (D.orbSaved && D.orbT < Infinity) { D.orbT -= dt; if (D.orbT <= -1) D.orbSaved = null; }
+}
+// each frame: the orb's bob, the pick-ups popping in, and what paint is waiting goes
+function netItemsFrame(dt) {
+  netOrbTick(dt);
+  for (const pw of powers) { if (pw.pop < 1) pw.pop = Math.min(1, pw.pop + dt * 3); if (pw.grace > 0) pw.grace -= dt; }
+  NM.paintT = (NM.paintT || 0) - dt;
+  if (NM.paintT <= 0) { NM.paintT = 0.2; for (const D of [P, ...(NM.mine || [])]) if (D && D.netPaintQ) for (const k in D.netPaintQ) netPaintFlush(D, k); }
+}
+// back after a dropped connection: what's out there, and what's in your pockets
+function netItemsResume(m) {
+  if (!NMI() || !Array.isArray(m.items)) return;
+  for (const pw of powers.slice()) if (!m.items.some(i => i.id === pw.id)) itemPop(pw);
+  for (const i of m.items) netItemSpawn(i);
+  if (m.orb) { if (!orb.on || orb.netId !== m.orb.id) netOrbSpawn(m.orb); } else if (orb.on) { orb.on = false; orb.g.visible = false; orb.ring.visible = false; }
+  if (Array.isArray(m.pockets) && P.st === 'play') P.held = PU[m.pockets[NM.slot]] ? m.pockets[NM.slot] : null;
+  if (m.myOrb && !P.orbSaved) { P.orbSaved = m.myOrb; P.orbT = ORB_HOLD; } else if (!m.myOrb) P.orbSaved = null;
+}
 // the weather on the server's schedule (the same turns as the game's own: a heat wave and its rain, rain, clear)
 function netWeather() {
   const W = NM.wx; if (!W.length || !NM.startAt) return;
@@ -26101,6 +26261,7 @@ function netPuppet(D, dt) {
   const roll = !!(f & F.ROLL); if (roll && !D.netRoll) { D.rollT = ROLL_T; if (hearable(D)) AU.dash(); } else if (roll) D.rollT = Math.max(0.02, D.rollT - dt); else D.rollT = 0; D.netRoll = roll;
   const slam = !!(f & F.SLAM); if (slam && !D.slam) { D.slam = true; D.slamT = 0; D.missile = !!(f & F.MISSILE); } else if (!slam && D.slam) { D.slam = false; D.missile = false; } if (D.slam) D.slamT += dt;
   D.flung = !!(f & F.FLUNG); const dry = !!(f & F.DRY); if (dry && !D.dry) { D.dry = true; D.wob = 1; } else if (!dry) D.dry = false;
+  if (NMI()) netFxPuppet(D, dt, f); // (v427)
   netTrail(D, jump ? 0 : Math.hypot(D.x - px, D.z - pz), dt, jump);
 }
 // its trail, painted here as it goes (just for the look: the score is the server's)
@@ -26128,6 +26289,8 @@ function netDrop(D, dt) {
 function netContact() { for (const B of NM.others) if (ACTIVE.includes(B)) netTouch(P, B); for (const A of NM.mine || []) if (ACTIVE.includes(A)) for (const B of ACTIVE) if (B !== A) netTouch(A, B); }
 function netTouch(A, B) {
   if (A.st !== 'play' || B.st !== 'play') return;
+  if (NMI() && !ally(A, B) && Math.abs(A.y - B.y) < 1.6) { const dd = Math.hypot(B.x - A.x, B.z - A.z), g = A.giantT > 0, rl = !!(A.power && A.power.type === 'roller'); // (v427)
+    if ((g || rl) && A.rollT > 0 && dd < (g ? PR * GIANT_K : PR) + PR + 0.1) netClaim('crush', B, A, A); else if (g && dd < PR * GIANT_K + PR + 0.1 && !(B.flatT > 0)) netClaim('squash', B, A, A); }
   const dx = B.x - A.x, dz = B.z - A.z, d = Math.hypot(dx, dz), dy = A.y - B.y, now = performance.now();
   if (!ally(A, B) && A.air && A.vy < -0.5 && dy > 0.25 && dy < 0.95 && d < PR * 2 && !A.slam && !(A.assistT > 0) && B.flatT <= 0 && !((A === P ? NM.stompAt : A.netStompAt) > now - 400)) {
     if (A === P) NM.stompAt = now; else A.netStompAt = now; netAct('stomp', { target: NM.slotOf.get(B) }, A); A.vy = 6.5; A.air = true; A.y = Math.max(A.y, B.y + 0.3); fxLaunch(A, 0.8); return;
@@ -26226,6 +26389,7 @@ function netResume(m) {
     sdHud(true);
   }
   if (state === 'play' && P.st === 'play' && m.self.st === 'play') netCorrect({ x: m.self.x, y: m.self.y, z: m.self.z, yaw: m.self.yaw });
+  netItemsResume(m); // (v427)
 }
 // ---- the end, and after
 function netEnd(m) {

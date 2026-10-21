@@ -122,7 +122,8 @@ test('knock-outs, coverage and other players cannot be claimed or spoofed', asyn
     const before = c.m.cov.colors()[c.A.slot];
     err = c.A.wait('error', m => m.code === 'bad_message');
     c.A.net._sendJ({ t: 'cov', s: [100, 0], c: [100, 0] }); await err;
-    assert.equal((await c.A.net.action('paint', { x: 0, z: 0, r: 30 })).reason, 'unknown');
+    assert.equal((await c.A.net.action('paint', { x: 0, z: 0, r: 30 })).ok, false); // (v427: a paint claim, refused: no such kind, and no effect of the sender's live)
+    assert.equal((await c.A.net.action('paint', { k: 'bomb', pts: [[0, 0, 0]] })).ok, false);
     assert.equal(c.m.cov.colors()[c.A.slot], before, 'coverage is only what the server painted');
     // acting as someone else: the id is ignored, the action is the sender's own
     const r = await c.A.net.action('selfKo', { reason: 'fall', id: c.B.id, slot: c.B.slot });

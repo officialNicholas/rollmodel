@@ -300,8 +300,8 @@ The live server is the Fly.io app `rollmodel-game` (in the personal organization
   the later setup for 5,000 (six game machines and a store machine), once parties are shared between machines; see
   docs/net-scale.md. Always on (no stopping when idle). (Before October 2026: a shared-cpu-1x with 512 MB.)
 - **Settings** live in `server/fly.toml`: `TRUST_PROXY=1` (the server reads the player's address from Fly's
-  `Fly-Client-IP`), `DATA_FILE=/data/store.json`, and `RULES={"items":false}`, which keeps pick-ups off online until the
-  game shows the server's pick-ups.
+  `Fly-Client-IP`), and `DATA_FILE=/data/store.json`. (Until v427 it also had `RULES={"items":false}`, which kept pick-ups off online; since
+  v427 they're on, for matches where every game is v427 or later: see "Items online" below.)
 - **Deploying a new version:** `cd server && fly deploy --ha=false`. Fly builds the image from `server/Dockerfile` and replaces the
   machine; a running match is called off without rating changes (the graceful stop above). From a network that
   inspects TLS (where Fly's remote builder cannot connect), build the image locally and deploy that instead:
@@ -526,9 +526,42 @@ modules applied last. What a player sees, with pictures, is in `docs/online-v306
    your phone is still on the versus card or the countdown goes back to the lobby with a word on screen ("The match was
    called off", "Away too long"), never into a match you are no longer in.
 
-Off online for now: pick-ups (the server can hand them out, but the game does not show the server's yet), orbs and the
-special strokes that come from them, rare finds and gifts, the Swim faster start boost, the easier paint drain of easy
-mode, rams and roll stuns between players, and pots moving to new spots.
+Off online for now: rare finds and gifts, the Swim faster start boost, the easier paint drain of easy mode, rams and roll
+stuns between players, Deep Pockets' second item pocket, and pots moving to new spots.
+
+## Items online (v427)
+
+Pick-ups, the orb and the special strokes are on in a match when every game in it speaks the item protocol (the kit each
+game sends with the match's stage says `iv: 2`; an older game says nothing, and that match plays without them, as before).
+
+- **What each takes in:** the kit, sent with the stage: the start item, the special and the skill. Everyone starts with their
+  start item (a CPU with a roller, turret or trap). The `start` message lists the pockets.
+- **Pick-ups:** the game's five (Roller, Turret, Paint Trap, and in some turns the Whirlwind and the Boomerang), at the
+  stage's power spots, nearest whoever is behind. The server decides who reaches one (from the validated positions) and drops
+  what they held behind them. `itemSpawn`, `itemTaken`, `itemGone`.
+- **The orb:** at a power spot, 14 to 18 s in, then 16 to 22 s after each is taken. Whoever reaches it (2.4 m: the game draws it
+  in) gets their special in the orb slot for 10 s (Deep Pockets: until used); one already there goes off at once.
+  `orbSpawn`, `orbTaken`, `orbLost`.
+- **Using one:** action `use` (`orb: 1` for the orb slot; the boomerang says its `yaw`, `curve` and target). It goes off on the
+  user's screen at once; `itemUsed` tells everyone, and each game plays it on that player.
+- **Hits:** whoever's effect lands one sends a claim, action `hit` `{ k, target, x, y, z }`: `crush` (a whirlwind; a giant
+  or a roller rolling into someone), `squash` (a giant walking into someone: flattened), `boom`, `shot` (a turret glob), `storm`
+  (a drop), `bomb`, `rocket`. The server checks the effect is live, the place is in its reach, and the target was there at the
+  attacker's view time (lag-compensated, with a little give), then rules like a pound: it waits a moment for the target's own
+  dodge, and a roll, a dash, the spawn grace, a whirlwind or a rocket keeps them safe. A knock-out comes as `ko`; a giant hit by
+  a storm drop, a bomb or a rocket shrinks instead (`unGiant`). A turret glob takes 0.07 of the paint tank, three in a row from
+  one turret stun for 1.5 s, and a glob on an empty tank is a knock-out (`shot`).
+- **Ruled by the server alone:** the Paint Trap (the next rival over it is knocked out; a roll through it, or a giant, pops it
+  harmlessly: `itemTrap`), and the Flash Freeze (0.9 s after it's used, everyone else in the open is frozen for 5 s unless
+  their roll began right at the flash; in a pot or up in a rocket they're out of it: `freeze`). A frozen player can't act
+  and is held where they stand once the freeze has reached their game; tapping out sends `thaw`, at most a second early.
+- **Paint:** action `paint` `{ k, pts }` stamps an effect's splats on the server's canvas (whirlwind trail and burst, boomerang
+  stripe, turret globs, storm drops, bomb, rocket), each kind with its own size, only while the effect is live, near where it
+  can paint, and no more than it could have painted. The roller and the giant are painted by the server itself.
+- **Relays:** action `fx` `{ k, d }` passes an effect's look to the others as it is (a storm's drops, where a rocket came
+  down), small and at most a few a second.
+- `hit`, `paint` and `fx` have their own allowance (24 a second, 48 in a burst) and are dropped quietly past it; they never count
+  against the player's other messages.
 
 ## Decisions needed before going live
 

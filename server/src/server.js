@@ -23,6 +23,7 @@ const CLOSE = { NORMAL: 1000, AWAY: 1001, VERSION: 4000, REPLACED: 4001, KICKED:
 const JSON_TYPES = new Set(['hello', 'queue', 'cancelQueue', 'createRoom', 'joinRoom', 'leaveRoom', 'ready', 'setName', 'layout', 'act', 'rematch', 'leaveMatch', 'bye',
   'partyCreate', 'partyJoin', 'partyLeave', 'partyKick', 'partyReady', 'partyVote', 'partyLook', 'partyBusy', 'partyReact', 'partyInvite', 'partyDecline', 'poke', 'matchReact']);
 // what this server offers beyond the first protocol (the game checks before it shows parties)
+const ITEM_ACTS = new Set(['hit', 'paint', 'fx']);
 const CAPS = ['party', 'cpu', 'mreact']; // (v404: CPU players in online matches; v405: reactions in a match's results)
 // a Supabase user id (the game's friends live there): the address of an invite or a poke
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -213,8 +214,9 @@ export class GameServer {
     // Supabase token for its notification, so it may be a little bigger than the rest
     const layoutTime = sess.match && sess.match.phase === 'consensus', invite = len > LIMITS.maxJson && len <= LIMITS.maxInviteJson && data.toString('utf8', 0, 20).startsWith('{"t":"partyInvite"');
     if (len > (layoutTime ? LIMITS.maxLayoutJson : invite ? LIMITS.maxInviteJson : LIMITS.maxJson)) { if (noteDrop(sess.lim, now)) return this.kick(sess, 'flood'); return this._bad(sess, 'message too large'); }
-    if (!sess.lim.json.take(1, now)) { if (noteDrop(sess.lim, now)) this.kick(sess, 'flood'); return; }
-    let m; try { m = JSON.parse(data.toString('utf8')); } catch (e) { return this._bad(sess, 'not JSON'); }
+    let m; try { m = JSON.parse(data.toString('utf8')); } catch (e) { if (!sess.lim.json.take(1, now) && noteDrop(sess.lim, now)) return this.kick(sess, 'flood'); return this._bad(sess, 'not JSON'); }
+    // (the item claims and relays have their own allowance, below; everything else counts against this one)
+    if (!(m && m.t === 'act' && ITEM_ACTS.has(m.a)) && !sess.lim.json.take(1, now)) { if (noteDrop(sess.lim, now)) this.kick(sess, 'flood'); return; }
     if (!m || typeof m !== 'object' || Array.isArray(m) || typeof m.t !== 'string') return this._bad(sess, 'no type');
     if (!JSON_TYPES.has(m.t)) return this._bad(sess, 'unknown type ' + String(m.t).slice(0, 20));
     if (m.r !== undefined && !(Number.isInteger(m.r) && m.r >= 0 && m.r < 2 ** 31)) return this._bad(sess, 'bad request id');
@@ -376,6 +378,12 @@ export class GameServer {
         const p = match.playerById(sess.player.id); if (p && p.sess === sess) match.onLayout(p, m); return;
       }
       case 'act': {
+        if (ITEM_ACTS.has(m.a)) { // (the item claims and relays: their own allowance, and past it they're dropped, not counted against the player)
+          const match = sess.match; if (!match) return;
+          const q = Number.isInteger(m.bot) ? match.P.find(x => x.slot === m.bot && x.bot && x.owner === sess.player.id && x.sess) : match.playerById(sess.player.id);
+          if (!q || (!q.bot && q.sess !== sess) || !(q.bot ? q.sess : sess).lim.fx.take(1, now)) return;
+          if (match.onAction(q, m, now) === 'bad') this._bad(sess, 'bad action'); return;
+        }
         if (!Number.isInteger(m.bot) && !sess.lim.act.take(1, now)) { if (noteDrop(sess.lim, now)) this.kick(sess, 'flood'); return; } // (a CPU player's moves count against its own allowance, below)
         const match = sess.match; if (!match) return this.sendJson(sess, { t: 'ack', n: Number.isInteger(m.n) ? m.n : undefined, a: m.a, ok: false, reason: 'not_in_match' });
         if (Number.isInteger(m.bot)) { // (v404) a CPU player's move, from the game that drives it

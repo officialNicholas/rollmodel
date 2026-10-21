@@ -92,14 +92,14 @@ export class Mover {
     if (env.still) {
       // not allowed to go anywhere (countdown, flattened): stay near the anchor
       const a = env.anchor || P;
-      if (Math.hypot(s.x - a.x, s.z - a.z) > MOVE.STILL_M) return { ok: false, reason: 'moved', hard: false };
+      if (Math.hypot(s.x - a.x, s.z - a.z) > (env.stillM || MOVE.STILL_M)) return { ok: false, reason: 'moved', hard: false };
     } else {
       const prev = Math.max(this.allow, this.groundCap(P.x, P.y, P.z, env));
       const cap = Math.max(prev, this.groundCap(s.x, s.y, s.z, env)) * (1 + MOVE.TOL), budget = cap * dtc;
       this._prev = prev;
       if (d > budget + MOVE.TELEPORT_M) return { ok: false, reason: 'teleport', hard: true };
       bucket = Math.max(0, bucket + d - budget);
-      if (bucket > MOVE.BUCKET_MAX) return { ok: false, reason: 'speed', hard: false };
+      if (bucket > MOVE.BUCKET_MAX) return { ok: false, reason: 'speed', hard: false, detail: { cap: +cap.toFixed(2), v: +(d / dtc).toFixed(2), allow: +this.allow.toFixed(2) } };
     }
     // solids. A fast fall can drop through the top of a piece in one frame (the game only looks a step above you when
     // you land); coming down from above, that is a landing on the top, not a wall.

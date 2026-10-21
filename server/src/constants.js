@@ -51,6 +51,7 @@ export const DEFAULT_RULES = Object.freeze({
   silentKick: 75, // a connection that has sent nothing at all for this long is gone (the game sends a heartbeat every 20 s)
   weather: true, items: true, zone: true,
   itemFirst: [6, 9], itemEvery: [9, 13], // seconds: when the first pick-up appears, and the gap between them
+  orbFirst: [14, 18], orbEvery: [16, 22], // ... and the orb (the game's: 18 s in, then 16 to 22 s after each is taken)
   // The spec says a player hidden in a pot is safe from a pound. The current single-player game knocks them out instead
   // ("Nailed!"); set this to false to match the game.
   potShields: true,

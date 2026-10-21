@@ -10,9 +10,11 @@ import { codec, FLAGS, RemoteTrack } from '../client/rmnet.js';
 import { LeakyMin, clamp, fin, nowMs, randomId, seed32 } from './util.js';
 import { weatherSchedule, rainMulAt, zoneSchedule, zoneSizeAt } from './schedule.js';
 import { rateMatch } from './rating.js';
-import { Items } from './items.js';
+import { Items, ITEM_PROTOCOL } from './items.js';
 
-const ACTIONS = new Set(['jump', 'roll', 'fling', 'pound', 'land', 'stomp', 'enterPot', 'exitPot', 'use', 'selfKo']);
+const ACTIONS = new Set(['jump', 'roll', 'fling', 'pound', 'land', 'stomp', 'enterPot', 'exitPot', 'use', 'selfKo', 'hit', 'paint', 'fx', 'thaw']);
+// (the item claims and relays: answered, if asked, but never passed on as moves)
+const QUIET = new Set(['use', 'selfKo', 'hit', 'paint', 'fx', 'thaw']);
 const SELF_KO = new Set(['dry', 'fall', 'zone', 'sun']);
 const CLIENT_FLAGS = FLAGS.AIR | FLAGS.CHARGE | FLAGS.SLAM | FLAGS.FLUNG | FLAGS.MISSILE;
 const SELF_RESPAWN_T = 2, SD_END_T = 1.7, ZONE_KO = 1.1, VHIST = 96, POT_EMPTY_T = 0.8;
@@ -77,7 +79,7 @@ export class Match {
   roster() { return this.P.map(p => ({ slot: p.slot, id: p.id, name: p.name, look: p.look, side: p.side, color: p.color, rating: Math.round(p.rating.r), cpu: p.bot || undefined, owner: p.bot ? p.owner : undefined, sb: p.bot ? undefined : p.sb || undefined })); }
   publicRules() {
     const r = this.rules;
-    return { matchT: r.matchT, sdT: r.sdT, hearts: r.hearts, respawnT: r.respawnT, flatT: r.flatT, slamFirst: r.slamFirst, slamCd: r.slamCd, potShields: r.potShields, items: r.items, weather: r.weather, zone: r.zone, lagCompMaxMs: r.lagCompMaxMs, snapshotHz: r.snapshotHz, koPct: r.koPct, overtime: r.overtime, potDownT: r.potDownT };
+    return { matchT: r.matchT, sdT: r.sdT, hearts: r.hearts, respawnT: r.respawnT, flatT: r.flatT, slamFirst: r.slamFirst, slamCd: r.slamCd, potShields: r.potShields, items: !!this.items, iv: this.items ? ITEM_PROTOCOL : 0, weather: r.weather, zone: r.zone, lagCompMaxMs: r.lagCompMaxMs, snapshotHz: r.snapshotHz, koPct: r.koPct, overtime: r.overtime, potDownT: r.potDownT };
   }
   playerById(id) { return this.P.find(p => p.id === id) || null; }
   get active() { return this.phase !== 'closed'; }
@@ -89,6 +91,8 @@ export class Match {
   }
   onLayout(p, m) {
     if (this.phase !== 'consensus' || p.layout || p.st === 'left') return;
+    // (v427) what they take into it: kept small, read by the items
+    if (m.kit && typeof m.kit === 'object' && !Array.isArray(m.kit)) { const k = m.kit, str = v => typeof v === 'string' && v.length <= 16 ? v : undefined; p.kit = { iv: Number.isInteger(k.iv) ? k.iv : 0, it: str(k.it), sp: str(k.sp), sk: str(k.sk) }; }
     const v = validateLayout(m.layout, { arena: this.info.arena, players: this.P.length });
     if (!v.ok) { this.log.warn('layout invalid', { player: p.id, error: v.error }); p.layout = '!invalid'; p.layoutHash = '!invalid:' + p.slot; }
     else if (m.hash !== v.hash) { this.log.warn('layout hash differs from its content', { player: p.id, computed: v.hash }); p.layout = v.canonical; p.layoutHash = '!hash:' + p.slot; }
@@ -117,7 +121,8 @@ export class Match {
     this.startAt = Math.round(now + (this.rules.startLead + this.rules.countdown) * 1000); this.endAt = this.startAt + dur * 1000;
     this.weather = this.rules.weather ? weatherSchedule(this.seed, dur) : [];
     this.zone = this.showdown && this.rules.zone ? zoneSchedule() : [];
-    if (this.rules.items && this.level.powers.length) this.items = new Items(this);
+    // (pick-ups, the orb and the specials, when every game in it can show them: an older game can't, and would be hit by things it never sees)
+    if (this.rules.items && this.level.powers.length && this.P.every(p => p.bot || ((p.kit || p.look || {}).iv >= ITEM_PROTOCOL))) this.items = new Items(this);
     this.phase = 'countdown';
     for (const p of this.P) {
       const sp = this.level.spawns[p.slot];
@@ -128,7 +133,7 @@ export class Match {
       p.lastTau = p.latest.tau; if (p.st !== 'left') p.st = 'play'; p.slamCd = this.rules.slamFirst; p.lastStateAt = now; p.lastMoveAt = this.startAt;
     }
     const spawns = this.P.map(p => ({ slot: p.slot, x: p.spawn.x, y: p.spawn.y, z: p.spawn.z, yaw: p.spawn.yaw }));
-    for (const p of this.P) this._send(p, { t: 'start', matchId: this.id, startAt: this.startAt, endAt: this.endAt, countdown: this.rules.countdown, layoutHash: hash, spawns, cid: p.cid, weather: this.weather, zone: this.zone, rules: this.publicRules(), pots: this.pots.length });
+    for (const p of this.P) this._send(p, { t: 'start', matchId: this.id, startAt: this.startAt, endAt: this.endAt, countdown: this.rules.countdown, layoutHash: hash, spawns, cid: p.cid, weather: this.weather, zone: this.zone, rules: this.publicRules(), pots: this.pots.length, pockets: this.items ? this.items.pockets() : undefined });
     this.log.info('match starting', { startAt: this.startAt, hash });
   }
   // the match never started: tell everyone and let the server put them back in the queue (or the room)
@@ -168,7 +173,7 @@ export class Match {
       cid: p.cid, self: { x: L.x, y: L.y, z: L.z, yaw: L.yaw, st: p.st, paint: p.paint, hearts: p.hearts, pot: p.pot, respawnAt: p.respawnAt === Infinity ? null : p.respawnAt },
       others: this.P.filter(q => q !== p).map(q => ({ slot: q.slot, st: q.st, hearts: q.hearts, kos: q.kos, pot: q.pot })),
       pots: this.pots.map(q => ({ i: q.i, occ: q.occ, up: q.up, ink: r2(q.ink) })), cov: this.cov ? this.cov.bySide().map(r2) : [],
-      items: this.items ? this.items.list() : [], results: this.results || undefined, needLayout: this.phase === 'consensus' && !p.layout,
+      items: this.items ? this.items.list() : [], orb: this.items ? this.items.orbNow() : null, pockets: this.items ? this.items.pockets() : undefined, myOrb: p.orb || undefined, results: this.results || undefined, needLayout: this.phase === 'consensus' && !p.layout,
     });
     this._all({ t: 'playerBack', slot: p.slot }, p);
   }
@@ -232,7 +237,8 @@ export class Match {
     };
     if (s.t < this.startAt - 30) { env.still = true; env.anchor = p.spawn; }
     else if (p.flatUntil && s.t < p.flatUntil - 60) { env.still = true; env.anchor = p.flatAnchor; }
-    else if ((e.turret || 0) > s.t + 60) { env.still = true; env.anchor = e.turretAt; }
+    else if ((e.turret || 0) > s.t + 60) { env.still = true; env.anchor = e.turretAt; env.stillM = 0.9; } // (a turret plants itself as it skids to a stop)
+    else if (p.frozen && s.t >= p.frozen.from && s.t < p.frozen.until - 60) { env.still = true; env.anchor = p.frozen.anchor || (p.frozen.anchor = { x: p.mover.last.x, z: p.mover.last.z }); } // (frozen: once the freeze has reached their game)
     return env;
   }
   _accept(p, s, tau, r, pos) {
@@ -313,12 +319,16 @@ export class Match {
       case 'enterPot': why = this._enterPot(p, ts, m.pot); break;
       case 'exitPot': why = p.st === 'hide' ? (this._leavePot(p, ts, 'exit'), null) : (this._lateExit(p, ts), 'not_hidden'); break;
       case 'use': why = this.items ? this.items.use(p, ts, vt, m) : 'no_items'; break;
+      case 'hit': why = this.items ? this.items.hit(p, ts, vt, m, recv) : 'no_items'; break;
+      case 'paint': why = this.items ? this.items.paint(p, ts, m) : 'no_items'; break;
+      case 'fx': why = this.items ? this.items.fx(p, m) : 'no_items'; break;
+      case 'thaw': why = this.items ? this.items.thaw(p, ts) : 'no_items'; break;
       case 'selfKo': why = this._selfKo(p, m.reason); break;
     }
     (p.recentActs = p.recentActs || []).push({ a, why: why || undefined, ts: Math.round(ts), at: Math.round(recv) }); if (p.recentActs.length > 5) p.recentActs.shift(); // (for the logs)
     if (why === 'pending') return null; // a landing or a stomp: answered once it has been judged
     this._ack(p, n, a, !why, why);
-    if (!why && a !== 'selfKo' && a !== 'use') this._all({ t: 'act', slot: p.slot, a, ts, c: a === 'fling' ? p.flingC : undefined, pot: a === 'enterPot' ? p.pot : undefined }, p);
+    if (!why && !QUIET.has(a)) this._all({ t: 'act', slot: p.slot, a, ts, c: a === 'fling' ? p.flingC : undefined, pot: a === 'enterPot' ? p.pot : undefined }, p);
     return null;
   }
   // still in the air in a pound (once it has landed the player is free, even while the hits are being judged)
@@ -327,8 +337,10 @@ export class Match {
     if (p.st !== 'play') return p.st === 'hide' ? 'hidden' : 'state';
     if (p.flatUntil > ts + 60) return 'flat';
     if ((p.effects.turret || 0) > ts + 60) return 'busy';
+    if (p.frozen && ts >= p.frozen.at && ts < p.frozen.until - 60) return 'frozen';
     return null;
   }
+  _histAt(p, ts) { return sampleHist(p.vhist, ts); }
   _jump(p, ts) {
     if (p.st === 'hide') { this._leavePot(p, ts, 'jump'); return null; }
     const no = this._canAct(p, ts); if (no) return no;
@@ -447,6 +459,7 @@ export class Match {
       if (perfect) B.rollReadyAt = Math.min(B.rollReadyAt, h.ts);
       this._all({ t: 'dodged', slot: B.slot, by: A.slot, how: safe, perfect: perfect || undefined }); if (h.n !== undefined) this._ack(A, h.n, h.kind, false, 'dodged'); return;
     }
+    if (h.kind === 'item') { if (this.items) this.items.decide(h, now); return; }
     if (h.kind === 'stomp') { this._flatten(B, A, now); if (h.n !== undefined) this._ack(A, h.n, 'stomp', true); return; }
     if ((B.effects.giant || 0) > h.ts && this.items) { this.items.unGiant(B, A); return; }
     this._ko(B, A, this._hiddenAt(B, h.ts) ? 'coffin' : 'pound');

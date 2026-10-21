@@ -17,6 +17,7 @@ export function connectionLimits() {
     ping: new TokenBucket(12, 24),
     json: new TokenBucket(20, 40), // control messages
     act: new TokenBucket(15, 25), // in-match actions
+    fx: new TokenBucket(24, 48), // in-match item claims and relays (a turret's globs, a boomerang's stripe); dropped quietly past it
     join: new TokenBucket(0.1, 6), // wrong room codes: 6, then one more every 10 s
     react: new TokenBucket(1, 4), // party reactions: 4 in a row, then one a second
     poke: new TokenBucket(0.5, 12), // invites and pokes to other players: 12, then one every 2 s
