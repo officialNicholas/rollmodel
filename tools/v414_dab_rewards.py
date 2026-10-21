@@ -116,6 +116,8 @@ def apply(s):
     s = rep(s, "  if (!info || !(info.xp > 0)) { row.hidden = true; $('commDone').innerHTML = ''; return; }",
                "  if (!info || !(info.xp > 0)) { row.hidden = true; $('commDone').innerHTML = ''; if ($('dabWhy')) $('dabWhy').hidden = true; return; }")
     s = rep(s, "AU.fanfare(); AU.say('levelup'); }", "AU.fanfare(); AU.say('levelup'); rkBeat(info); }")
+    # the tally's counter counts the match's dabs; the rank up's come after, on their own flight
+    s = rep(s, "tal.from = Math.max(0, (store.drops || 0) - n);", "tal.from = Math.max(0, (store.drops || 0) - n - ((endInfo && endInfo.rkDabs) || 0));")
     # a commission's XP that reaches a rank: its dabs ride the commission's own flight
     s = rep(s, "c.claimed.push(id); const from = store.drops || 0; store.drops = from + COMM_DABS; stEv({ k: 'earn', src: 'comm', n: COMM_DABS }); store.xp = (store.xp || 0) + COMM_XP; save();",
                "c.claimed.push(id); const from = store.drops || 0; store.drops = from + COMM_DABS; stEv({ k: 'earn', src: 'comm', n: COMM_DABS }); store.xp = (store.xp || 0) + COMM_XP; save();\n"
