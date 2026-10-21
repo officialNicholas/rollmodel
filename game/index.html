@@ -4994,6 +4994,36 @@ html.fv #pause .card>.psets{grid-column:1/-1}
 @keyframes jackout{to{opacity:0;transform:rotate(-6deg) scale(.6) translateY(10px)}}
 @keyframes jcoin{0%{opacity:1;transform:rotate(var(--a)) translateY(0) scale(.6)}100%{opacity:0;transform:rotate(var(--a)) translateY(-62px) scale(1)}}
 @media (prefers-reduced-motion:reduce){#repRow .jackpot,#repRow .jackpot .jcoin{animation:none}}
+/* (v418) the purple round Back (as on Strokes, the Locker and Friends) on every page */
+:is(#evBack,#setBack,#worldBack).pback{appearance:none;display:flex;flex-direction:column;align-items:center;justify-content:center;width:var(--pbk,56px);height:var(--pbk,56px);margin:0;padding:2px 0 0;border:0;border-radius:50%;background:radial-gradient(circle at 38% 28%,#A876FF,#7B3BEA 58%,#5F22C8);color:#fff;box-shadow:0 0 0 3px #171320,0 5px 0 #171320;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .08s,box-shadow .08s}
+:is(#evBack,#setBack,#worldBack).pback svg{width:46%;height:46%;flex:none}
+:is(#evBack,#setBack,#worldBack).pback span{margin-top:-1px;font:400 11px/1 var(--font-display);letter-spacing:.01em}
+:is(#evBack,#setBack,#worldBack).pback:active{transform:translateY(3px);box-shadow:0 0 0 3px #171320,0 2px 0 #171320}
+:is(#evBack,#setBack,#worldBack).pback:focus-visible{outline:3px solid #fff;outline-offset:3px}
+@media (max-height:520px) and (min-aspect-ratio:1/1){:is(#evBack,#setBack,#worldBack).pback{--pbk:48px}:is(#evBack,#setBack,#worldBack).pback span{font-size:10px}}
+@media (max-aspect-ratio:1/1) and (max-height:700px){:is(#evBack,#setBack,#worldBack).pback{--pbk:50px}}
+/* (v417) menu polish: one set of motion tokens, the Strokes plate's tag only when it says something, the Friends sheet's inset,
+   the commissions and leaderboard rows coming in one by one, press states where they were missing */
+:root{--ease-out:cubic-bezier(.2,.8,.2,1);--ease-pop:cubic-bezier(.3,1.55,.5,1);--d-fast:.12s;--d-med:.24s;--d-slow:.38s}
+#abilBtn:not(.locked):not(.fresh) .abtag{display:none}
+@media (max-aspect-ratio:1/1){#friendsModal .frsheet{padding-left:max(22px,var(--gx));padding-right:max(22px,var(--gr))}}
+@keyframes p17rise{from{opacity:0;transform:translateY(10px) scale(.98)}}
+#commList>.comm{animation:p17rise var(--d-slow) var(--ease-out) both}
+#commList>.comm:nth-child(2){animation-delay:.06s}
+#commList>.comm:nth-child(3){animation-delay:.12s}
+#commList>.comm:nth-child(4){animation-delay:.18s}
+.ttrow{animation:p17rise var(--d-med) var(--ease-out) both}
+.ttrow:nth-child(2){animation-delay:.04s}.ttrow:nth-child(3){animation-delay:.08s}.ttrow:nth-child(4){animation-delay:.12s}.ttrow:nth-child(5){animation-delay:.16s}.ttrow:nth-child(n+6){animation-delay:.2s}
+.tttabs button:active{translate:0 2px;filter:brightness(.94)}
+@keyframes p17pop{0%{transform:scale(.88)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
+.pywho button[aria-pressed="true"]{animation:p17pop var(--d-med) var(--ease-pop)}
+.pywho button:active{transform:scale(.95)}
+.ttx{transition:transform var(--d-fast) var(--ease-out),background-color var(--d-fast)}
+.ttx:active{transform:scale(.88);background-color:rgba(23,19,32,.08)}
+.comm{transition:transform var(--d-fast) var(--ease-out)}
+.comm:active{transform:scale(.985)}
+.dsgo:not(:disabled):active{transform:translateY(2px);box-shadow:0 1px 0 #171320}
+@media (prefers-reduced-motion:reduce){#commList>.comm,.ttrow,.pywho button[aria-pressed="true"]{animation:none}.ttx,.comm{transition:none}}
 /* (v416) the party's events: one card each, and the Online | CPUs switch above them */
 .pywho{grid-column:1/-1;justify-self:center;display:flex;gap:4px;margin:0 0 2px;padding:4px;border-radius:999px;background:rgba(23,19,32,.62);box-shadow:inset 0 0 0 2px rgba(255,255,255,.12)}
 .pywho button{appearance:none;display:inline-flex;align-items:center;gap:7px;min-width:132px;justify-content:center;height:38px;margin:0;padding:0 18px;border:0;border-radius:999px;background:transparent;color:#C9C2DC;font:900 14px/1 var(--font-head);letter-spacing:.06em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s}
@@ -5234,7 +5264,7 @@ html.fv #pause .card>.psets{grid-column:1/-1}
       </div>
     </div>
     <div class="mevents" id="mEvents" hidden><div class="evwash" aria-hidden="true"><i></i></div>
-      <div class="evhead"><button class="sback" id="evBack" type="button" aria-label="Back to the lobby"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4.5 7.5 12l7.5 7.5" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2 id="evTitle">Choose event</h2></div>
+      <div class="evhead"><button class="sback pback" id="evBack" type="button" aria-label="Back to the lobby"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M12.6 7.4 6.2 13.6l6.4 6.2" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.4 13.6h11.2a6.4 6.4 0 0 1 0 12.8h-4.4" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round"/></svg><span>Back</span></button><h2 id="evTitle">Choose event</h2></div>
       <button class="evmore" id="evMore" type="button" aria-label="More events below" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9.5l6 6 6-6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="evgrid" id="evGrid" role="group" aria-labelledby="evTitle">
         <div class="evcard" data-ev="vs" style="--ec:#E3122F"><button class="evmain" id="evVs" type="button" aria-expanded="false" aria-controls="evVsPick"><span class="evbar"></span><span class="evtop"><span class="evic" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M32 3l7 12 13-4-3 13 12 7-12 7 3 13-13-4-7 12-7-12-13 4 3-13L3 31l12-7-3-13 13 4z" fill="#fff" stroke="#171320" stroke-width="3.2" stroke-linejoin="round"/><path d="M17 24l5 16 5-16M45 25.5c-1.6-1.6-6-2.2-8 .4-2.4 3 1 5 4 6.4 3.4 1.6 4.4 4.2 1.8 6.6-2.4 2-6.6 1-8.6-.8" fill="none" stroke="#171320" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 24l5 16 5-16M45 25.5c-1.6-1.6-6-2.2-8 .4-2.4 3 1 5 4 6.4 3.4 1.6 4.4 4.2 1.8 6.6-2.4 2-6.6 1-8.6-.8" fill="none" stroke="#E3122F" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="evtx"><b>Versus CPU</b><small>1v1 or a 3-way</small></span></span><span class="evart" aria-hidden="true"><img id="evVsArt" alt=""></span></button><div class="evdrop" id="evVsPick" hidden role="group" aria-label="How many rivals"><button type="button" data-m="duel"><b>1 v 1</b><small>You and one rival</small></button><button type="button" data-m="trio"><b>3-way</b><small>You and two rivals</small></button></div></div>
         <div class="evcard" data-ev="match" style="--ec:#19B7A5"><button class="evmain" id="evMatch" type="button"><span class="evbar"><i>Live online</i></span><span class="evtop"><span class="evic" aria-hidden="true"><svg viewBox="0 0 64 64"><circle cx="32" cy="28" r="22" fill="#8FDCF3" stroke="#171320" stroke-width="3.2"/><path d="M10 28h44M32 6c-8 7-8 37 0 44M32 6c8 7 8 37 0 44M14 16h36M14 40h36" fill="none" stroke="#171320" stroke-width="2.4"/><circle cx="15" cy="49" r="9" fill="#E3122F" stroke="#171320" stroke-width="3"/><circle cx="49" cy="49" r="9" fill="#2E9BFF" stroke="#171320" stroke-width="3"/><circle cx="12.5" cy="47.5" r="1.6" fill="#171320"/><circle cx="17.5" cy="47.5" r="1.6" fill="#171320"/><circle cx="46.5" cy="47.5" r="1.6" fill="#171320"/><circle cx="51.5" cy="47.5" r="1.6" fill="#171320"/></svg></span><span class="evtx"><b>Play online</b><small>1v1, 3-way or Showdown</small></span></span><span class="evart" aria-hidden="true"><img id="evMatchArt" alt=""></span></button><i class="evlock" id="evMatchLock" aria-hidden="true"></i><i class="evnew" aria-hidden="true">New!</i></div>
@@ -5243,7 +5273,7 @@ html.fv #pause .card>.psets{grid-column:1/-1}
       </div>
     </div>
     <div class="mworld" id="mWorld" hidden>
-      <div class="whead"><button class="ibtn back" id="worldBack" type="button" aria-label="Back to the title screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2 id="worldTitle">Canvases</h2><p class="wnote" id="worldNote" hidden></p></div>
+      <div class="whead"><button class="ibtn back pback" id="worldBack" type="button" aria-label="Back to the title screen"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M12.6 7.4 6.2 13.6l6.4 6.2" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.4 13.6h11.2a6.4 6.4 0 0 1 0 12.8h-4.4" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round"/></svg><span>Back</span></button><h2 id="worldTitle">Canvases</h2><p class="wnote" id="worldNote" hidden></p></div>
       <div class="seg" id="modes" role="group" aria-label="Game mode"></div>
       <button class="gnav prev" id="gPrev" type="button" aria-label="Previous canvas">&#8249;</button><button class="gnav next" id="gNext" type="button" aria-label="Next canvas">&#8250;</button>
       <div class="gallery" id="stagePick" role="group" aria-labelledby="worldTitle">
@@ -5278,7 +5308,7 @@ html.fv #pause .card>.psets{grid-column:1/-1}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 414</p>
+      <p class="ver">Version 415</p>
     </div>
   </div>
 
@@ -5295,7 +5325,7 @@ html.fv #pause .card>.psets{grid-column:1/-1}
   <div class="modal" id="setModal" hidden>
     <div class="card" role="dialog" aria-modal="true" aria-labelledby="setTitle"><i class="swash" aria-hidden="true"><i></i></i>
       <h2 class="ctitle" id="setTitle">Settings</h2>
-      <button class="sback" id="setBack" type="button" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4.5 7.5 12l7.5 7.5" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="sback pback" id="setBack" type="button" aria-label="Back"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M12.6 7.4 6.2 13.6l6.4 6.2" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.4 13.6h11.2a6.4 6.4 0 0 1 0 12.8h-4.4" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round"/></svg><span>Back</span></button>
       <div class="srows" id="srows"><div class="sfit" id="sfit">
         <div class="sopt"><p class="slab">Sound effects</p><div class="seg duo tog" id="sfxPick" role="group" aria-label="Sound effects"><button type="button" data-v="on" aria-pressed="true"><span>On</span></button><button type="button" data-v="off" aria-pressed="false"><span>Off</span></button></div></div>
         <div class="sopt"><p class="slab">Music</p><div class="seg duo tog" id="musPick" role="group" aria-label="Music"><button type="button" data-v="on" aria-pressed="true"><span>On</span></button><button type="button" data-v="off" aria-pressed="false"><span>Off</span></button></div></div>
