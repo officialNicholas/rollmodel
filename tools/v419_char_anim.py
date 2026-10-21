@@ -12,6 +12,15 @@ turning, stopping and starting in a match); what was off, and what changed:
 - The squash and stretch had one-frame pops: the lobby's idle moods replaced the breathing squash instead of adding to it (a jump as
   each mood began and ended), and the stretch (rise) went straight into the body's scale, so a tap's hop lost 12% of its height in
   one frame half way up. The breathing now goes on under the moods, and the stretch eases like the squash does.
+- A tap on the lobby character mid-mood snapped whatever it was doing to rest (mid-bounce it dropped to the floor in a frame, mid-wag
+  it swung back in one). The old mood now fades out under the new one over a third of a second, and a tap's hop starts from the
+  height it's already at.
+- Round a turn, a planted hand or foot stayed put but turned with the body, so its fingers and toes swivelled on the floor (about
+  0.4 to 0.75 units a second at the tips while the wrist held still). A planted hand or foot now keeps its heading on the ground,
+  carried round with it as its place is, up to a comfortable twist; lifted, it eases back to the way the body points.
+Measured before and after at 60 fps (scratchpad v419): the window's first-frame turn speed 210 -> 17 deg/s (side items) and 984 ->
+11 deg/s (skins); an emote cut short 8800 -> 1050 deg/s; a cut-short hop's drop 0.17 -> 0.045 a frame; fingertip swivel round a turn
+0.4-0.75 -> 0 units/s. All of it is the drawing only: the physics, the speeds and the turning in a match are as they were.
 """
 
 def rep(s, a, b, n=1):
@@ -75,6 +84,19 @@ def apply(s):
     s = rep(s, "    const sy = (1 - 0.32 * X.sq + 0.18 * (o.rise || 0)) * (1 - 0.72 * X.flat)",
                "    X.ri = X.ri === undefined ? (o.rise || 0) : X.ri + ((o.rise || 0) - X.ri) * Math.min(1, dt * 20); // (v419: eased like the squash: no one-frame pop)\n"
                "    const sy = (1 - 0.32 * X.sq + 0.18 * X.ri) * (1 - 0.72 * X.flat)")
+    # ---- the lobby: a tap mid-mood fades the old mood out under the new one (a hop, a lean, a turn of the head no longer snap to rest)
+    s = rep(s, "function idleStep(rdt) {\n",
+               "// (v419) a mood cut short by a tap: what it was doing fades out over a moment under the new one, instead of snapping to rest\n"
+               "const IDLE_CH = ['sway', 'push', 'hop', 'spin', 'sq', 'rise', 'roll', 'pitch', 'bank', 'hand', 'earCover', 'wave'];\n"
+               "function idleCut() { if (!idle.act && !idle.cut) return; const v = {}; let any = false; for (const n of IDLE_CH) { v[n] = idle[n] || 0; if (Math.abs(v[n]) > 1e-3) any = true; } idle.cut = any ? { k: 1, v } : null; }\n"
+               "function idleStep(rdt) {\n")
+    s = rep(s, "  idleLook.x += (lxT - idleLook.x) * Math.min(1, rdt * 10);",
+               "  if (idle.cut) { const c = idle.cut; c.k -= rdt / 0.32; if (c.k <= 0 || state !== 'menu') idle.cut = null; else { const e = c.k * c.k * (3 - 2 * c.k); for (const n of IDLE_CH) idle[n] += c.v[n] * e; } } // (v419)\n"
+               "  idleLook.x += (lxT - idleLook.x) * Math.min(1, rdt * 10);")
+    s = rep(s, "  const [act, dur] = pokeNext(LOBBY_POKE, AXOC.S.ready ? POKE_AXO : POKE_SLIME); LOBBY_POKE.until = now + (dur + 0.3) * 1000;",
+               "  const [act, dur] = pokeNext(LOBBY_POKE, AXOC.S.ready ? POKE_AXO : POKE_SLIME); LOBBY_POKE.until = now + (dur + 0.3) * 1000; idleCut(); // (v419)")
+    s = rep(s, "if (D === P && menuReact > 0 && !vsSnap) { const u = 1 - menuReact / 0.7; hop = Math.sin(u * Math.PI) * 0.6;",
+               "if (D === P && menuReact > 0 && !vsSnap) { const u = 1 - menuReact / 0.7; hop = Math.max(idle.hop, Math.sin(u * Math.PI) * 0.6);")
     # ---- the crawl: a planted hand or foot holds its heading on the ground round a turn
     s = rep(s, '    { const r = Math.hypot(LB.fwd.x, LB.fwd.z), a0 = Math.atan2(LB.fwd.x, LB.fwd.z), a = a0 + (Math.PI - 0.08 - a0) * tk; out.contact(l.en, tp, LV2.set(l.m * Math.sin(a) * r * (1 - wvk) + l.m * 0.2 * wvk, -0.35 * lift * (1 - tk) * (1 - wvk) + 0.85 * wvk, Math.cos(a) * r * (1 - wvk) + 0.5 * wvk), LV3.set(LB.pole.x * l.m, LB.pole.y, LB.pole.z), 1); }',
                "    { const r = Math.hypot(LB.fwd.x, LB.fwd.z), a0 = Math.atan2(LB.fwd.x, LB.fwd.z), a = a0 + (Math.PI - 0.08 - a0) * tk; LV2.set(l.m * Math.sin(a) * r * (1 - wvk) + l.m * 0.2 * wvk, -0.35 * lift * (1 - tk) * (1 - wvk) + 0.85 * wvk, Math.cos(a) * r * (1 - wvk) + 0.5 * wvk);\n      // (v419) a planted hand or foot keeps its heading on the ground while the body turns over it (carried round with the ground, as its\n      // place is), up to a comfortable twist of the wrist; lifted, it eases back to the way the body points. The fingers and toes no\n      // longer swivel on the floor round a turn\n      { const ad = Math.atan2(LV2.x, LV2.z), pl = !air && l.st === 'stance' && l.lift < 0.02 && sl < 0.05 && tk < 0.02 && wvk < 0.002 && !(L.settle && L.settle.l === l), wr = x => Math.atan2(Math.sin(x), Math.cos(x));\n        if (l.hy === undefined || air) l.hy = ad; else if (pl) l.hy += C ? -yr * h : 0; else l.hy += wr(ad - l.hy) * Math.min(1, dt * 12);\n        const dA = Math.max(-0.6, Math.min(0.6, wr(l.hy - ad))); if (pl) l.hy = ad + dA;\n        if (dA > 1e-4 || dA < -1e-4) { const c = Math.cos(dA), sn = Math.sin(dA), x = LV2.x, z = LV2.z; LV2.x = x * c + z * sn; LV2.z = z * c - x * sn; } }\n      out.contact(l.en, tp, LV2, LV3.set(LB.pole.x * l.m, LB.pole.y, LB.pole.z), 1); }")
