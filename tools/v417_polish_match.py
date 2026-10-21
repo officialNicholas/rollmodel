@@ -18,7 +18,9 @@ pressing well; what was off or missing:
 - Performance: the item buttons rewrote an empty data-k attribute every frame (three buttons, about 2 attribute writes a frame in
   Showdown); now only when it changes. The Showdown card and time trial card heights were re-measured twice a second with
   getBoundingClientRect (a forced layout in the middle of the frame); now only when the screen, the HUD or the card's size changes
-  (a ResizeObserver), once more after the HUD's slide-in settles."""
+  (a ResizeObserver), once more after the HUD's slide-in settles.
+- A crash fixed on the way: a Showdown you lost where two or more rivals tied for first (no single winner) threw while the results
+  sheet built its label (nameOf of no one), so the Showdown board never filled in; that label now just says Defeat."""
 
 def rep(s, a, b, n=1):
     c = s.count(a); assert c == n, (c, n, a[:160]); return s.replace(a, b)
@@ -66,8 +68,9 @@ function p17Stale(n) {
 }
 // (v417) an edge pointer that would sit on the pound or item button stops just above it
 function p17Dodge(px, py) {
-  if (p17Stale('dodge') || !p17Dodge.b) { const sb = stage.getBoundingClientRect(); p17Dodge.b = [];
-    for (const e of hud.querySelectorAll('.slamBtn,.itemBtn')) { const r = e.getBoundingClientRect(); if (r.width) p17Dodge.b.push([r.left - sb.left - 26, r.top - sb.top - 24, r.right - sb.left + 26]); } }
+  if (p17Stale('dodge') || !p17Dodge.b) { p17Dodge.b = []; // (the layout box, not the drawn one: a button mid-pop is scaled)
+    for (const e of hud.querySelectorAll('.slamBtn,.itemBtn')) { let x = 0, y = 0, n = e; while (n && n !== stage) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; }
+      if (n && e.offsetWidth) p17Dodge.b.push([x - 26, y - 24, x + e.offsetWidth + 26]); } }
   for (const b of p17Dodge.b) if (px > b[0] && px < b[2] && py > b[1]) py = b[1];
   return py;
 }
@@ -79,4 +82,7 @@ function sdCardBot() { if (p17Stale('sd')) { sdCardAt = clock; const c = """)
                "py = p17Dodge(px, (-y * 0.5 + 0.5) * Hh); rot = Math.atan2(x, y) * 180 / Math.PI; }", 4)
     s = rep(s, "py = (-y * 0.5 + 0.5) * Hh, rot = Math.atan2(x, y) * 180 / Math.PI, dHP",
                "py = p17Dodge(px, (-y * 0.5 + 0.5) * Hh), rot = Math.atan2(x, y) * 180 / Math.PI, dHP")
+    # the results sheet: a Showdown lost to a tie between rivals (no single winner) threw building its label
+    s = rep(s, "info.win < 0 ? 'Defeat. ' + nameOf(info.winner) + ' wins' : 'Draw'",
+               "info.win < 0 ? (info.winner ? 'Defeat. ' + nameOf(info.winner) + ' wins' : 'Defeat') : 'Draw'")
     return s
