@@ -7,4 +7,5 @@ def apply(s):
     s = rep(s, "desc: 'Win, and the dabs pay out big.'", "desc: 'Winning pays 1.5x the dabs.'")
     s = rep(s, "desc: 'Your paint goes further.'", "desc: 'Increases your paint capacity.'")
     s = rep(s, "desc: 'Carry more, use it when you like.'", "desc: 'Hold two power-ups at a time.'")
+    s = rep(s, "Built for speed, wet or dry.", "You move much faster than normal.")
     return s
