@@ -4994,6 +4994,45 @@ html.fv #pause .card>.psets{grid-column:1/-1}
 @keyframes jackout{to{opacity:0;transform:rotate(-6deg) scale(.6) translateY(10px)}}
 @keyframes jcoin{0%{opacity:1;transform:rotate(var(--a)) translateY(0) scale(.6)}100%{opacity:0;transform:rotate(var(--a)) translateY(-62px) scale(1)}}
 @media (prefers-reduced-motion:reduce){#repRow .jackpot,#repRow .jackpot .jcoin{animation:none}}
+/* (v414) why the dabs: short tags under the reputation row; a rank up's tag, and its dabs' flight to the counter */
+.dabwhy{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin:-4px 0 0;padding:0;list-style:none}
+.dabwhy[hidden]{display:none}
+.dabwhy li{display:inline-flex;align-items:center;gap:4px;padding:4px 8px 3px;border-radius:999px;background:rgba(244,238,227,.12);box-shadow:inset 0 0 0 1.5px rgba(244,238,227,.22);color:#F4EEE3;font:800 11px/1 var(--font-ui);letter-spacing:.02em;white-space:nowrap;animation:fadein .3s 1.4s both}
+.dabwhy li b{color:#FFD24A;font-weight:900}
+.dabwhy li.down b{color:#C9C2DC}
+#repRow .rkdab{position:absolute;left:6px;top:50%;translate:0 -50%;z-index:3;display:grid;justify-items:center;gap:1px;padding:6px 12px 5px;border-radius:8px;background:linear-gradient(180deg,#B9F3C8 0%,#46C96B 100%);color:#171320;box-shadow:0 0 0 3px #171320,3px 4px 0 rgba(0,0,0,.4);rotate:-5deg;animation:rkin .45s cubic-bezier(.3,1.6,.5,1) both}
+#repRow .rkdab b{font:400 18px/1 var(--font-display);letter-spacing:.04em;text-transform:uppercase}
+#repRow .rkdab i{display:inline-flex;align-items:center;gap:3px;font:900 13px/1 var(--font-head);font-style:normal}
+#repRow .rkdab i .dropi{width:14px;height:14px}
+#repRow .rkdab.out{transition:opacity .4s,transform .4s;opacity:0;transform:translateY(-8px)}
+@keyframes rkin{from{opacity:0;transform:scale(.4)}}
+#dabFly{position:fixed;inset:0;z-index:70;pointer-events:none}
+#dabFly[hidden]{display:none}
+#dabFly .cwallet{position:absolute!important;left:max(14px,calc(env(safe-area-inset-left) + 14px));top:max(12px,calc(env(safe-area-inset-top) + 10px));z-index:3;margin:0;pointer-events:none!important;animation:fadein .2s both;transition:opacity .4s}
+#dabFly .cwallet.gone{opacity:0}
+#dabFly .cwallet .dshop{display:none}
+#dabFly .cwallet.cbump .dcoin{animation:cbump .22s ease-out}
+#dabFly .cwallet.cbump b,#dabFly .cwallet.cbig b{animation:cbumpn .26s ease-out}
+#dabFly .cwallet.cbig .dcoin{animation:cbig .45s cubic-bezier(.3,1.6,.5,1)}
+#dabFly .ccoin{position:absolute;left:0;top:0;z-index:4;width:34px;height:34px;pointer-events:none;will-change:transform;filter:drop-shadow(0 2px 0 rgba(23,19,32,.35))}
+#dabFly .ccoin svg{display:block;width:100%;height:100%}#dabFly .ccoin .dabk{fill:var(--ink)}
+@media (prefers-reduced-motion:reduce){.dabwhy li,#repRow .rkdab{animation:none}}
+/* (v414) a Time trial's results: the week's board, one tap away */
+#victory .vttb{appearance:none;align-self:flex-start;display:inline-flex;align-items:center;gap:7px;margin:8px 0 2px;padding:7px 12px 6px 10px;border:1.5px solid rgba(245,240,232,.34);border-radius:999px;background:rgba(245,240,232,.07);color:var(--vbone);font:800 12px/1 var(--font-ui);letter-spacing:.1em;text-transform:uppercase;cursor:pointer;animation:vup .45s 1.5s cubic-bezier(.2,.9,.25,1) both;-webkit-tap-highlight-color:transparent}
+#victory .vttb svg{width:16px;height:16px;color:var(--vc-hi)}
+#victory .vttb i{font-style:normal;opacity:.6}
+#victory .vttb:active{transform:translateY(1px);background:rgba(245,240,232,.14)}
+#victory .vttb:focus-visible{outline:2px solid var(--vc-hi);outline-offset:2px}
+#victory.land .vttb{margin-top:6px;padding:6px 11px 5px 9px}
+#end .row #endTT{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+#end .row #endTT[hidden]{display:none}
+#end .row #endTT svg{flex:none;width:17px;height:17px;color:#C8901E}
+#end .row .btn{min-width:0}
+@media (max-width:379px){#end .row #endTT{flex:0 0 54px;padding-left:0;padding-right:0}#end .row #endTT .ettx{display:none}#end .row #endTT svg{width:20px;height:20px}}
+/* (v413) a CPU in a party event card's line-up */
+.pyf.pycpu{width:40px;height:40px;background:linear-gradient(180deg,#4B4560,#2A2537);box-shadow:inset 0 0 0 2px rgba(255,255,255,.22);color:#E8E2F6;font:900 10.5px/1 var(--font-head);letter-spacing:.06em}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.pyf.pycpu{width:34px;height:34px;font-size:9.5px}}
+.evpy.pyc .evbar{background:#3BB273}
 /* (v410) commissions all done: the panel's stamp, and the plate's full ring and DONE stamp */
 #commModal .card.alldone>.cnote.small{display:none}
 .cdone{display:grid;justify-items:center;gap:12px;padding:14px 0 8px}
@@ -5232,7 +5271,7 @@ html.fv #pause .card>.psets{grid-column:1/-1}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 412</p>
+      <p class="ver">Version 413</p>
     </div>
   </div>
 
@@ -5342,7 +5381,7 @@ html.fv #pause .card>.psets{grid-column:1/-1}
     <div class="reprow" id="repRow" hidden><div class="repl"><small>Reputation</small><b id="repRowName">Fresh Paint</b></div><div class="xpmeter" id="xpMeter" role="meter" aria-label="Reputation"></div><b class="xpgain" id="xpGain">+0<small>XP</small></b><b class="dropgain" id="dropGain" hidden>+0<small>dabs</small></b></div>
     <div class="commdone" id="commDone"></div>
     <button class="btn play two" id="endBtn" type="button"><span>Continue</span><small>New canvas</small></button>
-    <div class="row"><button class="btn" id="replayBtn" type="button">Rematch</button><button class="btn" id="menuBtn" type="button">Menu</button></div>
+    <div class="row"><button class="btn" id="replayBtn" type="button">Rematch</button><button class="btn" id="endTT" type="button" hidden aria-label="This week’s leaderboard for this canvas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h10v5.2a5 5 0 0 1-10 0z" fill="currentColor"/><path d="M7 5.2H4.3v1.6a3.6 3.6 0 0 0 3.4 3.6M17 5.2h2.7v1.6a3.6 3.6 0 0 1-3.4 3.6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M12 13.7v3.6M8.2 20.5h7.6M9.4 17.3h5.2v3.2H9.4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="ettx">Board</span></button><button class="btn" id="menuBtn" type="button">Menu</button></div>
   </section>
 
   <section class="orient" id="orient" hidden role="dialog" aria-modal="true" aria-labelledby="orientTitle">
@@ -6002,7 +6041,7 @@ const RMNetSDK = (() => {
     partyLeave() { return this._request({ t: 'partyLeave' }); }
     partyKick(id) { return this._request({ t: 'partyKick', id }); } // (the leader only)
     partyReady(on = true) { return this._request({ t: 'partyReady', ready: !!on }); }
-    partyVote(mode) { return this._request({ t: 'partyVote', mode }); }
+    partyVote(mode, cpu) { return this._request(typeof cpu === 'boolean' ? { t: 'partyVote', mode, cpu } : { t: 'partyVote', mode }); } // (v413: cpu, the leader's pick)
     partyLook(look) { this.look = look; return this._request({ t: 'partyLook', look }); } // (un-readies you)
     partyBusy(what) { return this._request({ t: 'partyBusy', what: what || null }); } // 'locker' | 'shop' | 'strokes' | 'settings' | 'cpu' | 'menu' | null
     partyReact(e) { return this._sendJ({ t: 'partyReact', e }); } // the others get { id, e } as 'react'
@@ -15698,6 +15737,55 @@ function shockTick(dt) {
 
 // (v404) Paint Boost: the trail, rolls and pounds take less paint (offline, as the other skills)
 const PBOOST_K = 0.7, pbK = D => (D.skill === 'pboost' && !NM ? PBOOST_K : 1);
+
+// ---------- (v414) a match's dabs, by how hard it was: a base for the mode, the paint, the place, the KOs (the most KOs alone, more), all
+// times the challenge (CPUs easy x0.75 .. hard x1.35, people online x1.5); a time trial adds its rings instead. docs/dab-rewards.md ----------
+const DAB_BASE = { solo: 6, duel: 8, trio: 10, duo: 10, ffa: 12 };
+const DAB_PLACE = { duel: [30], trio: [34, 12], duo: [30], ffa: [40, 14, 5] }; // first, second, third
+const DAB_DRAW = { duel: 12, trio: 14, duo: 12, ffa: 16 };
+const DAB_X = { easy: 0.75, medium: 1, hard: 1.35, online: 1.5 };
+const DAB_MOSTK = 12, DAB_RING = 2, DAB_BEST = 10;
+function dabPay(e, o) {
+  const m = e.mode, show = m === 'ffa' || m === 'duo', solo = m === 'solo', many = m !== 'duel';
+  const who = solo ? '' : NM ? 'online' : tut || tut2 || tut3 ? 'medium' : diff, nOpp = NM && NM.opp | 0, nCpu = NM ? Math.min(NM.cpus | 0, nOpp) : 0;
+  const x = solo ? 1 : NM && nCpu ? +(DAB_X.medium + (DAB_X.online - DAB_X.medium) * (nOpp - nCpu) / Math.max(1, nOpp)).toFixed(2) : DAB_X[who] || 1; // (v415: CPUs online pay like CPUs)
+  const myK = solo ? 0 : P.kos | 0, mostK = !solo && myK > 0 && ACTIVE.every(D => D === P || (D.kos | 0) < myK);
+  const place = solo ? 0 : o.win === 0 ? 0 : o.place | 0, outcome = solo ? 0 : o.win === 0 ? DAB_DRAW[m] || 0 : (DAB_PLACE[m] || [])[place - 1] || 0;
+  const paint = show ? 0 : Math.round((o.cov || 0) * 0.35), kos = (show ? 5 : 4) * myK;
+  const core = (DAB_BASE[m] || 8) + paint + outcome + kos + (mostK ? DAB_MOSTK : 0);
+  const rings = solo ? DAB_RING * (e.rings | 0) : 0, best = o.newBest ? DAB_BEST : 0, total = Math.round(core * x) + rings + best;
+  const why = [];
+  if (x !== 1) why.push({ t: who === 'online' ? (nCpu ? 'Online, ' + nCpu + (nCpu === 1 ? ' CPU' : ' CPUs') : 'Online') : who[0].toUpperCase() + who.slice(1) + (many ? ' CPUs' : ' CPU'), v: 'x' + x, down: x < 1 });
+  if (mostK) why.push({ t: 'Most KOs', v: '+' + DAB_MOSTK });
+  if (rings) why.push({ t: 'Rings ' + (e.rings | 0), v: '+' + rings });
+  if (myK && !mostK) why.push({ t: 'KOs ' + myK, v: '+' + kos });
+  if (best) why.push({ t: 'New best', v: '+' + best });
+  e.dabWhy = why.slice(0, 3); return total;
+}
+// a rank up pays: 25 + 5 x the rank reached, for each one passed
+const rankPay = lv => 25 + 5 * lv;
+function rankDabs(xp0, xp1) { const a = repOf(xp0).lv, b = repOf(xp1).lv; let n = 0; for (let l = a + 1; l <= b; l++) n += rankPay(l);
+  if (n > 0) { store.drops = (store.drops || 0) + n; stEv({ k: 'earn', src: 'rank', n }); save(); } return { n, lv: b }; }
+// the reasons, under the reputation row
+function dabWhyPaint(info) {
+  let el = $('dabWhy'); if (!el) { el = document.createElement('ul'); el.className = 'dabwhy'; el.id = 'dabWhy'; el.setAttribute('aria-label', 'Why these dabs'); $('repRow').insertAdjacentElement('afterend', el); }
+  const w = info && info.drops > 0 && !$('repRow').hidden ? info.dabWhy || [] : []; el.hidden = !w.length;
+  el.innerHTML = w.map(r => '<li' + (r.down ? ' class="down"' : '') + '>' + r.t + ' <b>' + r.v + '</b></li>').join('');
+}
+// the rank up's dabs: a tag on the reputation row, and the dabs flying up to your dabs counter (the commissions' flight)
+function rkBeat(info) {
+  if (!info || !(info.rkDabs > 0) || end.hidden) return; const row = $('repRow');
+  for (const x of row.querySelectorAll('.rkdab')) x.remove();
+  const tag = document.createElement('span'); tag.className = 'rkdab'; tag.innerHTML = '<b>Rank ' + info.rkLv + '</b><i>+' + info.rkDabs + DROP_SVG + '</i>'; row.appendChild(tag);
+  let fly = $('dabFly'); if (!fly) { fly = document.createElement('div'); fly.id = 'dabFly'; fly.setAttribute('aria-hidden', 'true'); document.body.appendChild(fly); }
+  for (const o of fly.querySelectorAll('.cwallet,.ccoin')) o.remove(); fly.hidden = false;
+  const src = $('dabsBtn'), w = src ? src.cloneNode(true) : document.createElement('span'); for (const el of w.querySelectorAll('[id]')) el.removeAttribute('id');
+  w.id = 'dabFlyWallet'; w.removeAttribute('title'); w.tabIndex = -1; w.classList.add('cwallet');
+  fly.appendChild(w); // (placed where the lobby's counter sits: top left)
+  const to = store.drops || 0, from = Math.max(0, to - info.rkDabs), b = w.querySelector('b'); if (b) b.textContent = String(from);
+  setTimeout(() => { if (!tag.isConnected || end.hidden) { fly.hidden = true; return; } AU.xplay('coins', { v: 0.8 }) || AU.power(); hap('success'); commCoins(tag, from, to, 'dabFly');
+    setTimeout(() => { tag.classList.add('out'); w.classList.add('gone'); }, 2300); setTimeout(() => { tag.remove(); w.remove(); if (!fly.querySelector('.ccoin')) fly.hidden = true; }, 2800); }, 550);
+}
 // (v404) Jackpot: a win (yours or your team's) pays half as many dabs again; a loss, nothing extra
 function jackpotPay(win) {
   endInfo.jack = 0; if (P.skill !== 'jackpot' || !(win > 0) || mode === 'solo' || tut || tut2 || tut3) return;
@@ -18144,11 +18232,11 @@ const safe = D => D.rollT > 0 || D.dashT > 0 || !!D.whirl; // untouchable: rolli
 const SPECIAL_GRACE = 0.5, graceOut = D => { D.immuneT = Math.max(D.immuneT || 0, SPECIAL_GRACE); D.sunGrace = SPECIAL_GRACE; };
 function cap(D) { if (nP > 0 && !D.air) addSplat(D.x, D.y, D.z, D.yaw, TW * 0.52, dryClock, true, false, tcode(D)); }
 function jump(D) {
-  if (D.st === 'hide') { if (NM && D === P) netAct('jump'); return exitPot(D); }
+  if (D.st === 'hide') { if (NM && netMe(D)) netAct('jump', null, D); return exitPot(D); }
   if (!canAct(D) || D.charging || D.slam) return;
   if (D.air) { if (D.coyote > 0) D.coyote = 0; else { D.buf = 0.15; return; } } // a moment of grace after rolling off a ledge
   else cap(D);
-  if (NM && D === P) netAct('jump');
+  if (NM && netMe(D)) netAct('jump', null, D);
   D.air = true; D.vy = JUMP_V; D.airSling = true; D.airBack = false; D.stroke++; D.squash = 0; D.buf = 0; D.preJ = 0; fxLaunch(D, 1); if (D === P) { AU.jump(); if (Math.random() < 0.18) AU.vox('hup', 0.8); }
   if (!D.ai || D.ai.mode === 'orb') orbJumpAssist(D);
 }
@@ -18161,7 +18249,7 @@ function airDash(D, dir) {
   if (D.charging) clearCharge(D);
   const s = airShot(D, DASH_C, dir > 0 ? D.yaw : D.yaw + Math.PI), dist = Math.hypot(s.x - D.x, s.z - D.z), vy = 2.6, gy = s.y > -Infinity ? s.y : D.y - 2;
   const up = vy / GRAV, ap = D.y + vy * vy / (2 * GRAV), T = up + Math.sqrt(2 * Math.max(0.05, ap - gy) / (GRAV * 1.45));
-  if (NM && D === P) netAct('roll');
+  if (NM && netMe(D)) netAct('roll', null, D);
   D.airSling = false; D.airBack = false; D.vy = vy; D.spd = dist / Math.max(0.2, T); D.kx = D.kz = 0; D.dashDir = dir; D.dashT = DASH_T; D.turn = 0; D.buf = 0; D.squash = 0.35; D.wob = 1;
   const mx = Math.sin(D.yaw) * dir, mz = Math.cos(D.yaw) * dir;
   for (let i = 0; i < 12; i++) { const sd = (Math.random() - 0.5) * 2; spawnPart(D.x - mx * 0.3, D.y + 0.3, D.z - mz * 0.3, -mx * 2.6 + mz * sd, 0.4 + Math.random(), -mz * 2.6 - mx * sd, 0.4, i % 3 ? tmat(D) : puHaloMat, 0.55); }
@@ -18172,7 +18260,7 @@ function airDash(D, dir) {
 // swipe up: a quick forward roll. A burst of speed, and nothing can touch you while you tumble (pounds, rams, stomps, splashes, blasts)
 const ROLL_T = 0.5, ROLL_DASH = 0.32, ROLL_CD = 1.5, ROLL_COST = 0.03, PRESS_EARLY = 0.2, PERFECT_DODGE = 0.15; // (v405: PRESS_EARLY, how early a pound or a roll can be pressed and still come out; PERFECT_DODGE, a roll this close before a pound lands gets the roll straight back) // untouchable for half a second; the tumble and its burst of speed are the first third of a second of that
 function dodgeRoll(D) {
-  if (D.st === 'hide') { if (NM && D === P) netAct('roll'); exitPot(D, true); return false; }
+  if (D.st === 'hide') { if (NM && netMe(D)) netAct('roll', null, D); exitPot(D, true); return false; }
   if (D === P && !D.ai && D.st === 'play' && !D.rocket && !D.turret && Math.max(D.flatT, D.stunT || 0) > 0 && Math.max(D.flatT, D.stunT || 0) < PRESS_EARLY) { D.rollBuf = Math.max(D.flatT, D.stunT || 0) + 0.06; return false; } // (v405: rolls you out the instant you're free)
   if (!canAct(D) || D.slam || D.rollT > 0) return false;
   if (D.air && D.airSling) return airDash(D, 1);
@@ -18181,7 +18269,7 @@ function dodgeRoll(D) {
   if (D.charging) clearCharge(D);
   if (D === P && tut && tut.rAim && H.st === 'play') { const dx = H.x - P.x, dz = H.z - P.z, da = wrapA(Math.atan2(dx, dz) - P.yaw); if (Math.hypot(dx, dz) < 9 && Math.abs(da) < 0.8) P.yaw += da; } // (v270: the lesson's roll goes at him)
   const base = cfg.speed * spdK(D) * (D.cpu ? AI.speed : 1) * (D.dry ? 0.7 : 1); // out of blood you can still roll, just not as far
-  if (NM && D === P) netAct('roll');
+  if (NM && netMe(D)) netAct('roll', null, D);
   D.rollT = ROLL_T; D.rollCD = ROLL_CD; D.rollBuf = 0; D.rollV = (Math.max(D.spd, base) + base * 1.15) * 1.08;
   D.spd = D.rollV; D.turn *= 0.3; D.squash = Math.max(D.squash, 0.35); D.wob = Math.max(D.wob, 0.5);
   if (D.giantT <= 0 && !D.dry) D.paint = Math.max(0.001, D.paint - ROLL_COST * pbK(D));
@@ -18248,7 +18336,7 @@ function fling(D, cIn) {
   let c = cIn !== undefined ? cIn : D.charge; clearCharge(D);
   if (D.dryPull) { D.dryPull = false; if (D.dry && D.st === 'play') return dryRoll(D, c); }
   if (D.st === 'play' && D.air && D.airSling && canAct(D)) {
-    if (NM && D === P) netAct('fling', { c });
+    if (NM && netMe(D)) netAct('fling', { c }, D);
     const s = airShot(D, c, D.yaw); D.airSling = false; D.vy = s.v0; D.spd = s.spd; D.kx = D.kz = 0; D.squash = 0.3; D.wob = 1; D.buf = 0;
     burst2(D, 6 + (c * 6 | 0));
     if (D === P) { shake = Math.max(shake, 0.04 + 0.04 * c); fovKick = 3 + 3 * c; AU.fling(c * 0.6); buzz(8); } else if (hearable(D)) AU.fling(c * 0.3);
@@ -18256,7 +18344,7 @@ function fling(D, cIn) {
   }
   if (D.st === 'hide') exitPot(D); else if (!canAct(D) || D.air) return; else { cap(D); D.stroke++; }
   if (!D.ai) { const as = assistShot(D, D.yaw, c); D.yaw = as.yaw; c = as.c; }
-  if (NM && D === P) netAct('fling', { c });
+  if (NM && netMe(D)) netAct('fling', { c }, D);
   D.air = true; D.vy = launchV(c); D.spd = launchSpd(c); D.ledge = null; D.ledgeNo = null; D.flingX = D.x; D.flingZ = D.z;
   if (!D.ai) D.ledge = ledgePlan(D); D.squash = 0; D.buf = 0; D.flung = true; D.flingC = c; D.rollOutT = 0; fxLaunch(D, 0.7 + 0.3 * c);
   burst2(D, 10 + (c * 10 | 0));
@@ -18320,7 +18408,7 @@ function useSlam(D) {
   if (!slamReady(D) && D === P && !D.ai && !D.slam && !D.rocket && D.paint >= POUND_MIN && (D.st === 'play' || D.st === 'hide') && Math.max(D.slamCD, D.flatT, D.stunT || 0) > 0 && Math.max(D.slamCD, D.flatT, D.stunT || 0) < PRESS_EARLY) { D.slamBuf = PRESS_EARLY + 0.04; return false; } // (v405)
   if (!slamReady(D)) { if (D === P && (canAct(D) || D.st === 'hide') && !D.slam && D.slamCD <= 0) { (kick($('ttrack'), 'nope'), pingTank(1.6)); AU.nope(); } return false; }
   if (D.charging) clearCharge(D);
-  if (D.giantT <= 0) D.paint -= Math.min(SLAM_COST * pbK(D), D.paint - 0.08); D.slamCD = D.slamMax = SLAM_CD; D.slams++; if (D === P) buzz(15); if (NM && D === P) netAct('pound');
+  if (D.giantT <= 0) D.paint -= Math.min(SLAM_COST * pbK(D), D.paint - 0.08); D.slamCD = D.slamMax = SLAM_CD; D.slams++; if (D === P) buzz(15); if (NM && netMe(D)) netAct('pound', null, D);
   if (D.st === 'hide') { burstCoffin(D); return true; }
   if (D.air && (D.flingC || 0) > 0.15) { D.slam = true; D.missile = true; D.missileHang = 0.1; D.slamT = 0; D.slamEta = 0.5; D.diveK = MISSILE_DIVE; D.vy = 0; D.slamHang = 0; D.spd = Math.max(D.spd, cfg.speed * MISSILE_SPD); D.turn = 0; D.buf = 0; if (!D.ai) missileAssist(D); missileLaunch(D); if (D === P) { fovKick = 14; shake = Math.max(shake, 0.15); } }
   else if (D.air) { D.slam = true; D.vy = Math.max(D.vy, 3); D.slamHang = D.ai ? 0.2 : 0.1; D.slamT = 0; D.slamEta = 0.3 + D.slamHang + Math.max(0, D.y - (surfaceUnder(D.x, D.z, D.y, true) > -Infinity ? surfaceUnder(D.x, D.z, D.y, true) : D.y)) / 20; D.spd = 0; D.turn = 0; D.buf = 0; if (hearable(D)) AU.whoosh(); if (D === P && Math.random() < 0.6) AU.vox('hyah'); }
@@ -18406,7 +18494,7 @@ function updateDebris(dt) {
 function startSlam(D) { cap(D); D.rollT = 0; D.air = true; D.vy = 9; D.slam = true; D.slamHang = D.ai ? 0.3 : 0.14; D.slamT = 0; D.slamEta = 0.43 + D.slamHang; D.stroke++; D.spd = 0; D.turn = 0; D.buf = 0; if (D.charging) clearCharge(D); if (hearable(D)) AU.whoosh(); if (D === P && Math.random() < 0.6) AU.vox('hyah'); }
 // the pound lands: a huge splat, puddles splash away, and the other blob is out if it's close
 function slamLand(D) {
-  if (NM && D === P) netAct('land', { x: D.x, y: D.y, z: D.z }); // (v306: online the server rules on who it caught)
+  if (NM && netMe(D)) netAct('land', { x: D.x, y: D.y, z: D.z }, D); // (v306: online the server rules on who it caught)
   const missile = !!D.missile, giant = D.giantT > 0, R = slamRadius(D), koR = R + PR;
   coneBlast(D.x, D.y, D.z, R);
   D.slam = false; D.missile = false; D.flingC = 0; D.squash = 1; D.spd = missile ? cfg.speed * 0.85 : 0; // a missile skids on out of its blast
@@ -18495,7 +18583,7 @@ function kcamSteer(D, dt) {
 }
 function knockOut(D, reason, by) {
   if (D.st === 'ko' || state !== 'play') return;
-  if (NM && !NM.rule) { if (D === P && !NM.selfKo && (reason === 'fall' || reason === 'dry')) { NM.selfKo = reason; netAct('selfKo', { reason }); } return; } // (v306: online only the server knocks anyone out; yours, it's told)
+  if (NM && !NM.rule) { if (D === P && !NM.selfKo && (reason === 'fall' || reason === 'dry')) { NM.selfKo = reason; netAct('selfKo', { reason }); } else if (netMine(D) && !D.netSelfKo && (reason === 'fall' || reason === 'dry')) { D.netSelfKo = reason; netAct('selfKo', { reason }, D); } return; } // (v306: online only the server knocks anyone out; yours, it's told)
   if (tut && D === P && by && by !== P && (reason === 'pound' || reason === 'coffin' || reason === 'crush')) return tutSpare(by, reason); // (v297: not in the lesson)
   const sdLast = isShow() && sdHit(D, by);
   const pot = D.pot; if (pot) { pot.occ = null; D.pot = null; }
@@ -18672,7 +18760,8 @@ function endMatch() {
   // reputation: paint earns it, a win earns more, and a finished commission pays
   endInfo.diff = NM ? 'online' : diff; let gain = Math.round(16 + ry * 0.9 + (win > 0 ? 36 : win === 0 && mode !== 'solo' ? 12 : 0) + (newBest ? 14 : 0) + (mode === 'trio' ? 8 : 0));
   const fin = commProgress(endInfo); endInfo.xp0 = store.xp || 0; store.xp = endInfo.xp0 + gain; endInfo.xp = gain; endInfo.comms = fin;
-  const drops = Math.round(8 + ry * 0.35 + (win > 0 ? 30 : win === 0 && mode !== 'solo' ? 12 : 0) + (newBest ? 10 : 0) + (mode === 'trio' ? 6 : 0)); store.drops = (store.drops || 0) + drops; endInfo.drops = drops; jackpotPay(win);
+  const drops = dabPay(endInfo, { cov: ry, win, newBest, place: win > 0 ? 1 : 1 + [rc, mode === 'trio' ? rc2 : -1].filter(v => v > ry).length }); store.drops = (store.drops || 0) + drops; endInfo.drops = drops; jackpotPay(win); // (v414: by the challenge)
+  { const r = rankDabs(endInfo.xp0, endInfo.xp0 + gain); endInfo.rkDabs = r.n; endInfo.rkLv = r.lv; } // (v414: a rank up pays)
   stMatch(); save(); tutEndMatch();
   if (!tutWinDue) banner(mode === 'solo' ? "Time's up!" : 'Time!', '', false); buzz([40, 30, 40]); slow = 0.6; // (v304: the lesson ends on its own word, Basics Complete)
   if (mode === 'solo' || win > 0) celebrating = true;
@@ -18824,7 +18913,7 @@ function stepBlob(D, dt) {
     D.paint += take; p.ink -= take;
     if (take > 0) { spawnSuck(p, dt, D); if (D === P) { glugAcc += dt; if (glugAcc > 0.09) { glugAcc = 0; AU.glug(D.paint); } } }
     // drained dry: it pops you out and sinks (it still shelters you while the sun is up)
-    if (p.ink <= 0.02 && wxPhase !== 'sun' && wxPhase !== 'warn') { D.emptyT = (D.emptyT || 0) + dt; if (D.emptyT > 0.8) { D.emptyT = 0; if (D.charging) clearCharge(D); if (D === P) { holdCharge = false; slingOff(); } D.yaw = exitYaw(D, D.yaw); D.turn = 0; exitPot(D); if (NM && D === P) netAct('exitPot'); } } else D.emptyT = 0;
+    if (p.ink <= 0.02 && wxPhase !== 'sun' && wxPhase !== 'warn') { D.emptyT = (D.emptyT || 0) + dt; if (D.emptyT > 0.8) { D.emptyT = 0; if (D.charging) clearCharge(D); if (D === P) { holdCharge = false; slingOff(); } D.yaw = exitYaw(D, D.yaw); D.turn = 0; exitPot(D); if (NM && netMe(D)) netAct('exitPot', null, D); } } else D.emptyT = 0;
     return;
   }
   // sunrise: out in the open the sun burns you away; coffins and shadows keep you safe
@@ -18912,10 +19001,10 @@ function stepBlob(D, dt) {
   D.slowK += ((D.slowed ? SLOW_K : 1) - D.slowK) * Math.min(1, dt * (D.slowed ? 12 : 2.5));
   if (D.flung && !D.air && D.spd < cfg.speed * spdK(D) * 1.15) D.flung = false;
   // slingshot into a coffin someone's hiding in and you knock them right out of it
-  if (D.rollT > 0 && D.st === 'play' && !D.air && D.giantT <= 0) for (const p of pots) if (p.occ && p.occ !== D && !(p.occ.spawnImm && p.occ.immuneT > 0) && potUp(p) && Math.abs(D.y - p.y) < 0.9 && Math.hypot(D.x - p.x, D.z - p.z) < 0.6 + PR) { if (NM) { if (D === P && p.ink > 0.02) { D.rollT = 0; D.dashT = 0; D.flung = false; D.spd = 0; netPre(); enterPot(D, p); p.cool = 0; netAct('enterPot', { pot: pots.indexOf(p) }); } } else rollIntoCoffin(D, p); break; }
+  if (D.rollT > 0 && D.st === 'play' && !D.air && D.giantT <= 0) for (const p of pots) if (p.occ && p.occ !== D && !(p.occ.spawnImm && p.occ.immuneT > 0) && potUp(p) && Math.abs(D.y - p.y) < 0.9 && Math.hypot(D.x - p.x, D.z - p.z) < 0.6 + PR) { if (NM) { if (netMe(D) && p.ink > 0.02) { D.rollT = 0; D.dashT = 0; D.flung = false; D.spd = 0; netPre(D); enterPot(D, p); p.cool = 0; netAct('enterPot', { pot: pots.indexOf(p) }, D); } } else rollIntoCoffin(D, p); break; }
   if (D.flung && D.st === 'play' && !NM) for (const p of pots) if (p.occ && p.occ !== D && !(p.occ.spawnImm && p.occ.immuneT > 0) && potUp(p) && Math.abs(D.y - p.y) < 1.1 && Math.hypot(D.x - p.x, D.z - p.z) < 0.62 + PR) { bumpFromCoffin(p.occ, D); break; }
   if (D.slam) return;
-  if (D.giantT <= 0 && !D.whirl) for (const p of pots) if (potUp(p) && !p.occ && p.ink > 0.02 && p.cool <= 0 && Math.abs(D.y - p.y) < 0.9 && Math.hypot(D.x - p.x, D.z - p.z) < 0.5 + PR * 0.95) { if (NM && D === P) netPre(); enterPot(D, p); if (NM && D === P) netAct('enterPot', { pot: pots.indexOf(p) }); break; }
+  if (D.giantT <= 0 && !D.whirl) for (const p of pots) if (potUp(p) && !p.occ && p.ink > 0.02 && p.cool <= 0 && Math.abs(D.y - p.y) < 0.9 && Math.hypot(D.x - p.x, D.z - p.z) < 0.5 + PR * 0.95) { if (NM && netMe(D)) netPre(D); enterPot(D, p); if (NM && netMe(D)) netAct('enterPot', { pot: pots.indexOf(p) }, D); break; }
   if (D.st === 'play') for (const pw of powers) if (pw.g && !(pw.grace > 0 && pw.owner === D) && Math.abs(D.y - pw.y) < 1.6 && Math.hypot(D.x - pw.x, D.z - pw.z) < 0.95) { collectPower(D, pw); break; }
 }
 // after the buzzer: anyone caught in the air (a hop, a fling, put back after the winner screen) comes down where they are and stays down
@@ -19081,7 +19170,7 @@ function step(dt) {
     runT += dt; if (NM && NM.startAt) runT = Math.max(0, (netNow() - NM.startAt) / 1000); if (NM) matchLeft = netLeft(); else if (!(sdEndT > 0)) matchLeft -= dt;
     if (dangerK > 0) dangerK -= dt;
     for (const D of ACTIVE) if (D.cpu) aiStep(D, dt);
-    for (const D of ACTIVE) if (NM && D !== P) netPuppet(D, dt); else stepBlob(D, dt);
+    for (const D of ACTIVE) if (NM && D !== P && !netMine(D)) netPuppet(D, dt); else stepBlob(D, dt);
     if (NM) netContact(); else { blobContact(); updateOrb(dt); if (mode === 'solo' && !tut) trialTick(dt); } updateShots(dt); boomTick(dt); if (tut) tutStep(dt); else if (tut2) tut2Step(dt); else if (tut3) tut3Step(dt);
     // a handful of tips, once each
     if (runT > 5) hint('jump', say('Tap to jump', 'Space to jump'), 2.4);
@@ -21671,7 +21760,9 @@ if (document.fonts && document.fonts.load) document.fonts.load(VIC_FACE).catch((
 // (v293) a Time trial's results: this week's top three on the canvas, this run marked (and this run under them if it placed lower)
 function ttVicRows(info) { if (!info.sid) return ''; const L = ttRuns(info.sid), hi = info.tt && info.tt.t, rows = L.slice(0, 3).map((r, i) => [i + 1, r]); const k = L.findIndex(r => r.t === hi); if (k >= 3) rows.push([k + 1, L[k]]);
   return rows.map(([n, r], i) => '<div class="vrow' + (r.t === hi ? ' me' : '') + '" style="--cc:' + colVars(P)[1] + ';animation-delay:' + (1.2 + i * 0.08).toFixed(2) + 's"><b class="vr">' + String(n).padStart(2, '0') + '</b>' + faceIcon(P, false)
-    + '<span class="vn">' + escAttr(ttWhen(r.t)) + (r.t === hi ? '<em>This run</em>' : '') + '</span><b class="vp">' + r.p + '<small>%</small></b></div>').join(''); }
+    + '<span class="vn">' + escAttr(ttWhen(r.t)) + (r.t === hi ? '<em>This run</em>' : '') + '</span><b class="vp">' + r.p + '<small>%</small></b></div>').join('')
+    + '<button class="vttb" type="button" aria-label="This week’s leaderboard for this canvas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h10v5.2a5 5 0 0 1-10 0z" fill="currentColor"/><path d="M7 5.2H4.3v1.6a3.6 3.6 0 0 0 3.4 3.6M17 5.2h2.7v1.6a3.6 3.6 0 0 1-3.4 3.6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M12 13.7v3.6M8.2 20.5h7.6M9.4 17.3h5.2v3.2H9.4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>See the board<i>›</i></button>'; } // (v414)
+$('vCards').addEventListener('click', e => { const b = e.target.closest('.vttb'); if (!b) return; e.stopPropagation(); AU.init(); const i = endInfo || {}; if (i.sid) openTT(i.sid, i.tt && i.tt.t); });
 const vicStat = (n, unit, label, hi) => '<div class="vst' + (hi ? ' hi' : '') + '"><b>' + n + (unit ? '<small>' + unit + '</small>' : '') + '</b><span>' + label + '</span></div>';
 const vicClock = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
 const VIC_HT = 1.25; // (the character from the floor to the top of a tall hat: the portrait framing fits this)
@@ -22404,13 +22495,19 @@ const REP_NAMES = ['Fresh Paint', 'Drip Rookie', 'Splat Kid', 'Street Brush', 'C
 const xpNeed = lv => 100 + 45 * (lv - 1);
 function repOf(xp) { let lv = 1, x = Math.max(0, xp | 0); while (x >= xpNeed(lv) && lv < 99) { x -= xpNeed(lv); lv++; } return { lv, x, need: xpNeed(lv), name: REP_NAMES[Math.min(REP_NAMES.length - 1, Math.floor((lv - 1) / 3))] }; }
 // commissions: three jobs at a time
-const COMMS = [{ id: 'play3', t: 'Three exhibitions', d: 'Play 3 matches, any mode', n: 3, k: 'play' }, { id: 'win1', t: 'Beat a rival', d: 'Win a 1v1', n: 1, k: 'win1' }, { id: 'cov35', t: 'Cover 35%', d: 'Paint 35% of a canvas in one match', n: 1, k: 'cov', v: 35 }, { id: 'trio', t: 'Three-way', d: 'Enter a 3-way exhibition', n: 1, k: 'trio' }, { id: 'solo30', t: 'Beat the clock', d: 'Cover 30% in a Time trial', n: 1, k: 'solo', v: 30 }, { id: 'win3', t: 'On a roll', d: 'Win 3 matches', n: 3, k: 'win' }, { id: 'play5', t: 'Regular', d: 'Play 5 matches', n: 5, k: 'play' }, { id: 'cov25', t: 'Quarter canvas', d: 'Paint 25% of a canvas in one match', n: 1, k: 'cov', v: 25 }, { id: 'hard1', t: 'Harsh critics', d: 'Win with the CPU on harsh', n: 1, k: 'hard' }];
+const COMMS = [{ id: 'play3', t: 'Three exhibitions', d: 'Play 3 matches, any mode', n: 3, k: 'play' }, { id: 'win1', t: 'Beat a rival', d: 'Win a 1v1', n: 1, k: 'win1' }, { id: 'cov35', t: 'Cover 35%', d: 'Paint 35% of a canvas in one match', n: 1, k: 'cov', v: 35 }, { id: 'trio', t: 'Three-way', d: 'Enter a 3-way exhibition', n: 1, k: 'trio' }, { id: 'solo30', t: 'Beat the clock', d: 'Cover 30% in a Time trial', n: 1, k: 'solo', v: 30 }, { id: 'win3', t: 'On a roll', d: 'Win 3 matches', n: 3, k: 'win' }, { id: 'play5', t: 'Regular', d: 'Play 5 matches', n: 5, k: 'play' }, { id: 'cov25', t: 'Quarter canvas', d: 'Paint 25% of a canvas in one match', n: 1, k: 'cov', v: 25 }, { id: 'hard1', t: 'Harsh critics', d: 'Win with the CPU on harsh', n: 1, k: 'hard' },
+  { id: 'online1', t: 'Go online', d: 'Play a match online', n: 1, k: 'online', on: 1 }, { id: 'onwin1', t: 'Online win', d: 'Win a match online', n: 1, k: 'onwin', on: 1 }, { id: 'party1', t: 'Party up', d: 'Play an online match in a party', n: 1, k: 'party', on: 1 }]; // (v414: the last three online)
+// (v414) online jobs: only offered once Play online is open (and Party up once you have a friend), so nobody gets one they can't do
+const commFrHas = () => { try { return !!((FR.box && FR.box.friends && FR.box.friends.length) || store.frHad); } catch (e) { return !!store.frHad; } };
+const commCan = x => { if (!x.on) return true; try { return !!NET_URL && mpOpen() && (x.k !== 'party' || commFrHas()); } catch (e) { return false; } };
+
 const COMM_XP = 60, COMM_DABS = 20;
-function commState() { if (!store.comm || !store.comm.active) store.comm = { active: [], prog: {}, done: [], claimed: [], v276: 1 }; const c = store.comm; if (!c.v276) { c.v276 = 1; c.claimed = (c.done || []).slice(); } if (!Array.isArray(c.claimed)) c.claimed = []; { const day = new Date().toDateString(); if (c.day !== day) { if (c.day) { const owe = c.done.filter(id => !c.claimed.includes(id)).length; if (owe) { store.drops = (store.drops || 0) + owe * COMM_DABS; stEv({ k: 'earn', src: 'comm', n: owe * COMM_DABS }); store.xp = (store.xp || 0) + owe * COMM_XP; } c.active = []; c.prog = {}; c.done = []; c.claimed = []; store.commSeen = 0; } c.day = day; save(); } } /* (a fresh set every day) */ c.active = c.active.filter(id => COMMS.some(x => x.id === id)); while (c.active.length < 3) { const pool = COMMS.filter(x => !c.active.includes(x.id) && !c.done.includes(x.id)); if (!pool.length) break; c.active.push(pool[(Math.random() * pool.length) | 0].id); } return c; }
+function commState() { if (!store.comm || !store.comm.active) store.comm = { active: [], prog: {}, done: [], claimed: [], v276: 1 }; const c = store.comm; if (!c.v276) { c.v276 = 1; c.claimed = (c.done || []).slice(); } if (!Array.isArray(c.claimed)) c.claimed = []; { const day = new Date().toDateString(); if (c.day !== day) { if (c.day) { const owe = c.done.filter(id => !c.claimed.includes(id)).length; if (owe) { store.drops = (store.drops || 0) + owe * COMM_DABS; stEv({ k: 'earn', src: 'comm', n: owe * COMM_DABS }); store.xp = (store.xp || 0) + owe * COMM_XP; } c.active = []; c.prog = {}; c.done = []; c.claimed = []; store.commSeen = 0; } c.day = day; save(); } } /* (a fresh set every day) */ c.active = c.active.filter(id => COMMS.some(x => x.id === id)); while (c.active.length < 3) { const pool = COMMS.filter(x => !c.active.includes(x.id) && !c.done.includes(x.id) && commCan(x)); if (!pool.length) break; c.active.push(pool[(Math.random() * pool.length) | 0].id); } return c; }
 function commProgress(info) {
-  const c = commState(), fin = [];
+  const c = commState(), fin = [], online = info.diff === 'online', party = online && (() => { try { return !!(ON.party && ON.party.members.length > 1); } catch (e) { return false; } })();
   for (const id of c.active) { const k = COMMS.find(x => x.id === id); if (!k || c.done.includes(id)) continue; let p = c.prog[id] || 0;
-    if (k.k === 'play') p++; else if (k.k === 'win' && info.win > 0) p++; else if (k.k === 'win1' && info.mode === 'duel' && info.win > 0) p = 1; else if (k.k === 'cov' && Math.round(info.you) >= k.v) p = 1; else if (k.k === 'trio' && info.mode === 'trio') p = 1; else if (k.k === 'solo' && info.mode === 'solo' && Math.round(info.you) >= k.v) p = 1; else if (k.k === 'hard' && info.diff === 'hard' && info.win > 0) p = 1;
+    if (k.k === 'play') p++; else if (k.k === 'win' && info.win > 0) p++; else if (k.k === 'win1' && info.mode === 'duel' && info.win > 0) p = 1; else if (k.k === 'cov' && Math.round(info.you) >= k.v) p = 1; else if (k.k === 'trio' && info.mode === 'trio') p = 1; else if (k.k === 'solo' && info.mode === 'solo' && Math.round(info.you) >= k.v) p = 1; else if (k.k === 'hard' && info.diff === 'hard' && info.mode !== 'solo' && info.win > 0) p = 1;
+    else if (k.k === 'online' && online) p = 1; else if (k.k === 'onwin' && online && info.win > 0) p = 1; else if (k.k === 'party' && party) p = 1; /* (v414) */
     c.prog[id] = p; if (p >= k.n) fin.push(k); }
   for (const k of fin) { c.done.push(k.id); delete c.prog[k.id]; } // (it keeps its place in the day's set, striped)
   commState(); return fin;
@@ -22467,6 +22564,7 @@ function commXp(btn) { const m = $('commModal'), mr = m.getBoundingClientRect(),
 function commClaim(id, btn) {
   const c = commState(); if (!c.done.includes(id) || c.claimed.includes(id)) return;
   c.claimed.push(id); const from = store.drops || 0; store.drops = from + COMM_DABS; stEv({ k: 'earn', src: 'comm', n: COMM_DABS }); store.xp = (store.xp || 0) + COMM_XP; save();
+  { const rk = rankDabs(store.xp - COMM_XP, store.xp); if (rk.n > 0) setTimeout(() => frToast('<span>Rank ' + rk.lv + '! <b>+' + rk.n + ' dabs</b></span>'), 900); } // (v414: a rank up pays, on the same flight)
   const card = btn.closest('.comm'); btn.disabled = true; btn.classList.add('took'); btn.innerHTML = '<span>' + COMM_CHECK + 'Claimed</span>';
   AU.xplay('coins', { v: 0.8 }) || AU.power(); hap('success');
   commXp(btn); commCoins(btn, from, store.drops); commBadgePaint();
@@ -25277,7 +25375,7 @@ async function frInbox() {
 }
 async function frPoll() {
   if (!FR.me || FR.polling) return; FR.polling = true;
-  try { const b = await frInbox(); FR.box = b; FR.err = ''; FR.at = Date.now(); FR.skew = (Date.parse(b.now) || Date.now()) - Date.now(); frSeen(b); onInbox(b); frBadge(); ibBadge(); pushSync(); if (FR.open) frRender(true); frFlushTrials(); frPayout(); }
+  try { const b = await frInbox(); FR.box = b; { const had = b && b.friends && b.friends.length ? 1 : 0; if ((store.frHad || 0) !== had) { store.frHad = had; save(); } } /* (v414) */ FR.err = ''; FR.at = Date.now(); FR.skew = (Date.parse(b.now) || Date.now()) - Date.now(); frSeen(b); onInbox(b); frBadge(); ibBadge(); pushSync(); if (FR.open) frRender(true); frFlushTrials(); frPayout(); }
   catch (e) { FR.at = Date.now(); FR.err = frErrText(e); if (FR.open) frRender(true); }
   finally { FR.polling = false; }
 }
@@ -25625,7 +25723,8 @@ function netMatchFound(m, net) {
   if (menuPage === 'events') { menuPage = 'home'; menu.dataset.page = 'home'; evEl.hidden = true; $('mHome').hidden = false; } evFrom = false; document.body.classList.remove('evon');
   if (shopOpen) closeShop(true); if (lookOpen) closeLook(); if (lkOn()) closeLocker(true); if (!$('friendsModal').hidden) closeFriends();
   mode = m.mode; applyMode(); if (ACTIVE.length !== seats.size) ACTIVE = ACTIVE.filter(D => slotOf.has(D)); // (a Showdown of three: the fourth sits it out)
-  for (const D of [H, H2, H3]) { D.cpu = !slotOf.has(D); D.netLive = false; } // (the rivals are people: no CPU mind, no CPU pace)
+  NM.mine = new Set((net.bots ? net.bots() : []).map(sl => seats.get(sl)).filter(D => D && D !== P)); // (v413: the CPU players this game drives)
+  for (const D of [H, H2, H3]) { D.cpu = !slotOf.has(D) || NM.mine.has(D); D.netLive = false; D.netSend = false; D.netSelfKo = null; D.netStompAt = 0; } // (the rivals are people: no CPU mind, no CPU pace; but the CPUs this game drives think as CPUs)
   netDress(m);
   AU.init(); AU.music('vs'); menu.classList.add('leaving'); setTimeout(() => menu.classList.remove('leaving'), 900);
   irisClose(() => {
@@ -25647,11 +25746,12 @@ function netSendLayout() {
 }
 // each of the others as they dressed: their name, paint (set apart from yours, and from each other's), eyes, wearables and rank
 function netDress(m) {
+  if (NM) { NM.opp = Math.max(0, m.players.length - 1); NM.cpus = m.players.filter(p => p.cpu).length; } // (v415: for the dabs' rate)
   const ok = (w, v, slot) => typeof v === 'string' && WEAR.some(x => x.id === v && x.slot === slot) ? v : null;
   for (const p of m.players) {
     const D = NM.seats.get(p.slot), Lk = netLookOf(D); if (!D || D === P || !Lk) continue;
     const L = p.look && typeof p.look === 'object' ? p.look : {}, w = L.w && typeof L.w === 'object' ? L.w : {};
-    NAMES[D.team] = p.name ? hdOf(String(p.name).slice(0, 16)) : 'Rival'; // (a person, by their handle: v311_handles)
+    NAMES[D.team] = p.cpu && p.name ? String(p.name).slice(0, 16) : p.name ? hdOf(String(p.name).slice(0, 16)) : 'Rival'; // (v413: a CPU by its name, no @) // (a person, by their handle: v311_handles)
     const c = typeof L.c === 'string' && rivalColOf(L.c); if (c) rivalCol[D.team] = c;
     Lk.wearing = { head: ok(w, w.head, 'head'), back: ok(w, w.back, 'back'), mouth: ok(w, w.mouth, 'mouth'), eye: ok(w, w.eye, 'eye'), side: ok(w, w.side, 'side'), neck: ok(w, w.neck, 'neck'), lash: ok(w, w.lash, 'lash'), arms: ok(w, w.arms, 'arms'), skin: ok(w, w.skin, 'skin'), iris: EYE_KEYS.includes(w.iris) ? w.iris : 'brown', eyes: EYE_STYLES[L.e] ? L.e : 'round' };
     Lk.wearing.emote = emoteOk(L.m); NM.ranks.set(D, clamp(L.r | 0, 1, 999) || 1);
@@ -25667,7 +25767,7 @@ function netWire(net) {
   const offs = [], on = (ev, fn) => offs.push(net.on(ev, m => { if (!NM || NM.net !== net) return; try { fn(m); } catch (e) { frameErr(e); } }));
   on('start', m => { if (m.matchId !== NM.id) return; NM.s = m; NM.startAt = m.startAt; NM.endAt = m.endAt; NM.rules = m.rules || {}; NM.wx = Array.isArray(m.weather) ? m.weather : [];
     for (const q of m.spawns || []) { const S = netStartOf(netBlob(q.slot)); if (S) Object.assign(S, { x: q.x, z: q.z, yaw: q.yaw }); } });
-  on('correction', netCorrect); on('ko', netKo); on('respawn', netRespawn); on('flat', netFlat); on('push', netPush); on('dodged', netDodged);
+  on('correction', netCorrect); on('botCorrection', netBotCorrect); on('ko', netKo); on('respawn', netRespawn); on('flat', netFlat); on('push', netPush); on('dodged', netDodged);
   on('pot', netPot); on('potEject', netEject); on('act', netFoeAct); on('resume', netResume); on('out', netOut);
   on('coverage', m => { NM.cov = netCovOf(m.sides); });
   on('snapshot', s => { const me = (s.players || []).find(q => q.slot === NM.slot); if (me) NM.srvPaint = me.paint; }); // (the referee's paint meter, for the pound)
@@ -25691,8 +25791,9 @@ function netWire(net) {
 const netNow = () => NM.net.serverNow(), netLeft = () => Math.max(0, (NM.endAt - netNow()) / 1000);
 const netBlob = slot => (NM && NM.seats.get(slot)) || null;
 // your moves go to the referee as they happen
-function netAct(a, data) {
+function netAct(a, data, D) {
   if (!NM || !NM.net) return; const nm = NM;
+  if (D && D !== P) return netMine(D) ? netBotAct(D, a, data) : undefined; // (v413: one of the CPUs this game drives)
   // where you are right now goes first, so the referee judges the move from here (on a slow frame you may have come
   // a long way since the last report)
   // (stamped with when it happened: inside a long frame, that's before the frame's end)
@@ -25701,18 +25802,48 @@ function netAct(a, data) {
   nm.net.action(a, Object.assign({ ts, vt: nm.net.renderTime() - back }, data || {})).then(r => { if (NM !== nm || r.ok) return; nm.refused++; nm.why.push(a + ':' + r.reason); if (nm.why.length > 8) nm.why.shift(); if (a === 'enterPot' && P.st === 'hide' && r.reason !== 'disconnected' && r.reason !== 'timeout') netUnPot(r.reason); });
 }
 // a dive into a pot the referee didn't allow: back where you were, on the ground (no hop out: the server never had you in it)
-function netPre() { NM.pre = { x: P.x, y: P.y, z: P.z, yaw: P.yaw, air: P.air }; }
-function netUnPot(why) {
-  const p = P.pot, q = NM.pre; if (p) { if (p.occ === P) p.occ = null; p.cool = 0.6; p.bounce = 0.6; } P.pot = null; P.st = 'play'; P.stroke++; P.spd = 0; P.vy = 0; P.wob = 1;
-  if (q) { P.x = q.x; P.z = q.z; P.yaw = q.yaw; } const g = surfaceUnder(P.x, P.z, (q ? q.y : P.y) + STEP, true); if (g > -Infinity && (!q || !q.air)) { P.y = g; P.air = false; } else { P.y = q ? q.y : P.y; P.air = true; }
-  if (P.charging) clearCharge(P); if (why === 'occupied') popText('Taken!');
+function netPre(D) { D = D || P; const q = { x: D.x, y: D.y, z: D.z, yaw: D.yaw, air: D.air }; if (D === P) NM.pre = q; else D.netPre0 = q; }
+function netUnPot(why, D) {
+  D = D || P; const p = D.pot, q = D === P ? NM.pre : D.netPre0; if (p) { if (p.occ === D) p.occ = null; p.cool = 0.6; p.bounce = 0.6; } D.pot = null; D.st = 'play'; D.stroke++; D.spd = 0; D.vy = 0; D.wob = 1;
+  if (q) { D.x = q.x; D.z = q.z; D.yaw = q.yaw; } const g = surfaceUnder(D.x, D.z, (q ? q.y : D.y) + STEP, true); if (g > -Infinity && (!q || !q.air)) { D.y = g; D.air = false; } else { D.y = q ? q.y : D.y; D.air = true; }
+  if (D.charging) clearCharge(D); if (why === 'occupied' && D === P) popText('Taken!');
 }
 // each frame: where you are, to the server (after you've landed from the drop at Go)
 function netFrame() {
   if (!NM || !NM.net) return;
+  if (NM.mine && NM.mine.size) netBotsFrame(); // (v413)
   if (state === 'play' && !NM.live && NM.phase !== 'end' && NM.startAt && P.st === 'play' && !P.air && netNow() >= NM.startAt) NM.live = true;
   if (!NM.live || state !== 'play' || (P.st !== 'play' && P.st !== 'hide')) return;
   NM.net.sendState(netState());
+}
+// (v413) the CPU players this game drives in an online match (NM.mine): their own CPU minds, their moves and states sent as theirs
+const netMine = D => !!(NM && NM.mine && NM.mine.has(D));
+const netMe = D => D === P || netMine(D);
+const netStateOf = D => ({ x: D.x, y: D.y, z: D.z, yaw: D.yaw, spd: D.st === 'hide' ? 0 : D.spd, vy: D.vy, air: D.air, rolling: D.rollT > 0, charging: D.charging, slam: !!D.slam, hidden: D.st === 'hide', flung: !!D.flung, dry: !!D.dry, missile: !!D.missile, paint: clamp(D.paint, 0, 1), aim: D.charging ? clamp(D.charge || 0, 0, 1) : 0 });
+function netBotAct(D, a, data) {
+  const nm = NM, slot = nm.slotOf.get(D); if (slot === undefined) return;
+  const back = netAhead * 1000, ts = nm.net.serverNow() - back;
+  if (D.netSend && state === 'play' && (D.st === 'play' || D.st === 'hide')) nm.net.sendBotState(slot, netStateOf(D), true, ts);
+  nm.net.botAction(slot, a, Object.assign({ ts, vt: nm.net.renderTime() - back }, data || {})).then(r => { if (NM !== nm || !r || r.ok) return; nm.refused++; nm.why.push('cpu ' + a + ':' + r.reason); if (nm.why.length > 8) nm.why.shift(); if (a === 'enterPot' && D.st === 'hide' && r.reason !== 'disconnected' && r.reason !== 'timeout') netUnPot(r.reason, D); });
+}
+function netBotsFrame() {
+  for (const D of NM.mine) {
+    const slot = NM.slotOf.get(D); if (slot === undefined || !ACTIVE.includes(D)) continue;
+    if (!D.netSend && state === 'play' && NM.phase !== 'end' && NM.startAt && netNow() >= NM.startAt && D.st === 'play' && !D.air) D.netSend = true;
+    if (D.netSend && state === 'play' && NM.phase !== 'end' && (D.st === 'play' || D.st === 'hide')) NM.net.sendBotState(slot, netStateOf(D));
+  }
+}
+// the referee puts one of them back where it says (as netCorrect does for you)
+function netBotCorrect(m) {
+  const D = netBlob(m.slot); if (!D || !netMine(D) || D.st !== 'play') return; NM.corr++;
+  if (D.charging) clearCharge(D);
+  D.x = m.x; D.y = m.y; D.z = m.z; D.yaw = m.yaw; D.spd = 0; D.vy = 0; D.kx = D.kz = 0; D.slam = false; D.missile = false; D.rollT = 0; D.dashT = 0; D.flung = false; D.flingC = 0; D.stroke++;
+  const g = surfaceUnder(D.x, D.z, D.y + STEP, true); D.air = !(g > -Infinity && D.y - g < 0.06); if (!D.air) D.y = g;
+}
+function netBotPush(D, m) {
+  if (D.charging) clearCharge(D);
+  D.yaw = Math.atan2(m.dx, m.dz); D.spd = m.spd; D.vy = m.vy; D.air = true; D.stroke++; D.slam = false; D.missile = false; D.flatT = 0; D.turn = 0; D.knockT = 0.9; D.flung = false; D.flingC = 0; D.wob = 1; D.squash = 0.8;
+  fxTumble(D, 0.8, Math.random() - 0.5);
 }
 const netState = () => ({ x: P.x, y: P.y, z: P.z, yaw: P.yaw, spd: P.st === 'hide' ? 0 : P.spd, vy: P.vy, air: P.air, rolling: P.rollT > 0, charging: P.charging, slam: !!P.slam, hidden: P.st === 'hide', flung: !!P.flung, dry: !!P.dry, missile: !!P.missile, paint: clamp(P.paint, 0, 1), aim: P.charging ? clamp(P.charge || 0, 0, 1) : 0 });
 // at Go: no pick-ups online, the rival's rank on its tag, the weather from the start
@@ -25771,17 +25902,17 @@ function netDrop(D, dt) {
 }
 // you and the rival touching: land on its head and the referee rules on the stomp (you bounce off at once, as the game does);
 // otherwise you just don't pass through it (rams and roll stuns aren't refereed yet, so they're off online)
-function netContact() { for (const B of NM.others) if (ACTIVE.includes(B)) netTouch(P, B); }
+function netContact() { for (const B of NM.others) if (ACTIVE.includes(B)) netTouch(P, B); for (const A of NM.mine || []) if (ACTIVE.includes(A)) for (const B of ACTIVE) if (B !== A) netTouch(A, B); }
 function netTouch(A, B) {
   if (A.st !== 'play' || B.st !== 'play') return;
   const dx = B.x - A.x, dz = B.z - A.z, d = Math.hypot(dx, dz), dy = A.y - B.y, now = performance.now();
-  if (!ally(A, B) && A.air && A.vy < -0.5 && dy > 0.25 && dy < 0.95 && d < PR * 2 && !A.slam && !(A.assistT > 0) && B.flatT <= 0 && !(NM.stompAt > now - 400)) {
-    NM.stompAt = now; netAct('stomp', { target: NM.slotOf.get(B) }); A.vy = 6.5; A.air = true; A.y = Math.max(A.y, B.y + 0.3); fxLaunch(A, 0.8); return;
+  if (!ally(A, B) && A.air && A.vy < -0.5 && dy > 0.25 && dy < 0.95 && d < PR * 2 && !A.slam && !(A.assistT > 0) && B.flatT <= 0 && !((A === P ? NM.stompAt : A.netStompAt) > now - 400)) {
+    if (A === P) NM.stompAt = now; else A.netStompAt = now; netAct('stomp', { target: NM.slotOf.get(B) }, A); A.vy = 6.5; A.air = true; A.y = Math.max(A.y, B.y + 0.3); fxLaunch(A, 0.8); return;
   }
   if (d > PR * 2 || Math.abs(dy) > 0.95 || A.air || B.air || B.flatT > 0) return;
   const nx = dx / (d || 1), nz = dz / (d || 1), push = PR * 2 - d + 0.01, x = A.x - nx * push, z = A.z - nz * push;
   if (!blockedAt(x, z, A.y)) { A.x = x; A.z = z; }
-  if (A.bonkCD <= 0 && A.spd > 1) { fxKnock(A, -nx, -nz, clamp(A.spd / 10, 0.25, 0.6)); A.spd *= 0.65; A.bonkCD = 0.25; A.squash = Math.max(A.squash, 0.45); A.wob = 1; AU.bonk(0.6); }
+  if (A.bonkCD <= 0 && A.spd > 1) { fxKnock(A, -nx, -nz, clamp(A.spd / 10, 0.25, 0.6)); A.spd *= 0.65; A.bonkCD = 0.25; A.squash = Math.max(A.squash, 0.45); A.wob = 1; if (A === P || hearable(A)) AU.bonk(0.6); }
 }
 // ---- the referee's rulings
 function netCorrect(m) {
@@ -25795,7 +25926,7 @@ function netKo(m) {
   const sd = isShow() && Number.isFinite(m.hearts); if (sd) D.hearts = m.hearts + 1; // (the game takes a heart off as it knocks one out: it lands where the server says)
   if (D.st !== 'ko' && D.st !== 'out') { if (D !== P && D.st !== 'hide') { D.x = m.x; D.y = m.y; D.z = m.z; } NM.rule = true; try { knockOut(D, m.reason, by); } finally { NM.rule = false; } }
   if (sd) { D.hearts = m.hearts; if (m.out && !D.elimNow && D.st !== 'out') { D.elimNow = true; D.elimAt = runT; D.elimBy = by || null; } sdHud(true); }
-  D.koT = m.respawnAt ? Math.max(0.3, (m.respawnAt - netNow()) / 1000) : 99; if (D === P) NM.selfKo = null;
+  D.koT = m.respawnAt ? Math.max(0.3, (m.respawnAt - netNow()) / 1000) : 99; if (D === P) NM.selfKo = null; else D.netSelfKo = null;
 }
 // out of hearts, for good (the server says when, and the place it got)
 function netOut(m) { const D = netBlob(m.slot); if (!D || D.st === 'out' || !isShow()) return; if (m.place) D.place = m.place; if (D.rag) ragEnd(D); D.koT = 0; D.hearts = 0; sdOut(D); }
@@ -25810,12 +25941,12 @@ function netRespawn(m) {
 }
 function netFlat(m) {
   const D = netBlob(m.slot), A = netBlob(m.by) || (D === P ? NM.others[0] : P); if (!D) return;
-  if (D === P) { P.x = m.x; P.y = m.y; P.z = m.z; P.spd = 0; P.vy = 0; P.air = false; }
+  if (D === P || netMine(D)) { D.x = m.x; D.y = m.y; D.z = m.z; D.spd = 0; D.vy = 0; D.air = false; }
   NM.rule = true; try { flatten(D, A, 'stomp'); } finally { NM.rule = false; }
   D.flatT = Math.max(0.2, (m.until - netNow()) / 1000);
 }
 function netPush(m) {
-  if (m.slot !== NM.slot) { const B = netBlob(m.slot); if (B) { B.wob = 1; B.squash = 0.8; } return; }
+  if (m.slot !== NM.slot) { const B = netBlob(m.slot); if (B && netMine(B)) return netBotPush(B, m); if (B) { B.wob = 1; B.squash = 0.8; } return; }
   if (P.charging) clearCharge(P); holdCharge = false; slingOff();
   P.yaw = Math.atan2(m.dx, m.dz); P.spd = m.spd; P.vy = m.vy; P.air = true; P.stroke++; P.slam = false; P.missile = false; P.flatT = 0; P.turn = 0; P.knockT = 0.9; P.flung = false; P.flingC = 0; P.wob = 1; P.squash = 0.8;
   const by = netBlob(m.by); P.lastHit = by && by !== P ? { by, t: runT } : null; fxTumble(P, 0.8, Math.random() - 0.5); shake = Math.max(shake, 0.45); buzz([30, 20, 30]); banner(m.why === 'burst' ? 'Blasted!' : 'Knocked back!');
@@ -25824,15 +25955,16 @@ function netDodged(m) { const D = netBlob(m.slot), A = netBlob(m.by); if (D && A
 function netPot(m) {
   const p = pots[m.i]; if (!p) return;
   if (typeof m.ink === 'number') p.ink = m.ink;
-  const occ = p.occ && p.occ !== P ? p.occ : null;
+  const occ = p.occ && p.occ !== P && !netMine(p.occ) ? p.occ : null; // (v413: this game's CPUs go in and out of pots themselves)
   if (m.up === false) { if (occ) netFoeOut(occ, p); if (p.st === 'up') sinkCoffin(p); p.next = [p.x, p.y, p.z]; return; }
   if (m.up && p.st !== 'up' && p.st !== 'rise') { p.next = [p.x, p.y, p.z]; riseCoffin(p); }
   const B = m.occ >= 0 ? netBlob(m.occ) : null;
-  if (B && B !== P) { if (occ && occ !== B) netFoeOut(occ, p); if (B.pot !== p && B.st !== 'ko' && B.st !== 'out') { if (B.pot) netFoeOut(B, B.pot); enterPot(B, p); } }
+  if (B && B !== P && !netMine(B)) { if (occ && occ !== B) netFoeOut(occ, p); if (B.pot !== p && B.st !== 'ko' && B.st !== 'out') { if (B.pot) netFoeOut(B, B.pot); enterPot(B, p); } }
   else if (occ) netFoeOut(occ, p);
 }
 function netFoeOut(D, p) { if (!D || D.pot !== p) return; p.occ = null; p.cool = 1.0; p.bounce = 0.7; D.pot = null; D.st = 'play'; D.stroke++; D.wob = 1; D.spawnImm = false; fxLaunch(D, 0.8); }
 function netEject(m) {
+  { const Db = netBlob(m.slot); if (Db && netMine(Db)) { if (Db.st !== 'hide') return; const by = netBlob(m.by); if (m.why === 'bumped' && by && by !== Db) bumpFromCoffin(Db, by); else exitPot(Db); return; } } // (v413)
   if (m.slot !== NM.slot || P.st !== 'hide') return;
   const by = netBlob(m.by); if (m.why === 'bumped' && by && by !== P) bumpFromCoffin(P, by); else exitPot(P);
 }
@@ -25899,7 +26031,7 @@ function netClosed(m) { if (!NM) return; NM.closed = true; NM.closedWhy = m && m
 // the end screen: Rematch (the same rival, if they want it too) or Menu
 function netEndButtons() {
   const b = $('endBtn'), wait = NM && NM.voted, gone = !NM || NM.closed, duel = !NM || NM.mode === 'duel', who = NM && duel ? nameOf(NM.others[0]) : 'the others';
-  $('replayBtn').hidden = true; $('replayBtn').closest('.row').hidden = false; end.classList.remove('gate');
+  $('replayBtn').hidden = true; $('endTT').hidden = true; $('replayBtn').closest('.row').hidden = false; end.classList.remove('gate');
   if (!b.querySelector('small')) b.innerHTML = '<span>Rematch</span><small></small>';
   b.querySelector('span').textContent = gone ? (NM && NM.closedWhy === 'rematch_timeout' ? 'Rematch closed' : duel ? 'Rival left' : 'No rematch') : wait ? 'Waiting…' : 'Rematch';
   b.querySelector('small').textContent = gone ? 'Back to the menu' : wait ? 'for ' + who : NM && NM.foeVote ? (duel ? who + ' wants one!' : NM.foeVote + ' of ' + NM.others.length + ' want one') : duel ? 'Same rival, new canvas' : 'Same players, new canvas';
@@ -25974,7 +26106,7 @@ function onlineConnect() {
   return p;
 }
 function onNew() {
-  const net = new RMNet({ url: NET_URL, name: onName(), look: onLook(), token: store.netTok || null, client: 'rm-394', sb: sbUid(), zone: onZone(), beat: onBusy() ? 500 : 20000 });
+  const net = new RMNet({ url: NET_URL, name: onName(), look: onLook(), token: store.netTok || null, client: 'rm-413', sb: sbUid(), zone: onZone(), beat: onBusy() ? 500 : 20000 });
   const on = (ev, fn) => net.on(ev, d => { if (ON.net === net) fn(d || {}); }); // (a connection let go says nothing more)
   ON.net = net; ON.me = null; ON.lookSent = JSON.stringify(net.look);
   on('token', t => { if (t.token && t.token !== store.netTok) { store.netTok = t.token; save(); } }); // (who you are on the server, so your rating stays yours)
@@ -26085,6 +26217,7 @@ function onAfter() {
 // the game server's word on your party: who's in it, ready, votes, its state. A newcomer pops; everyone ready rings
 function ptView(v) {
   const was = ON.party, my = ON.me && ON.me.id, now = Date.now(); for (const i of v.invites) i.exp = now + i.left; ON.party = v; ON.stale = 0;
+  if (was && was.id === v.id && my && v.leader !== my && !!was.cpu !== !!v.cpu && v.state === 'idle' && ON.net) { const a = was.members.find(x => x.id === my), b = v.members.find(x => x.id === my); if (a && a.ready && b && !b.ready && !b.busy && !b.away) ON.net.partyReady(true).catch(() => {}); } // (v413)
   if (was && was.id === v.id && state === 'menu') {
     for (const m of v.members) if (m.id !== my && !was.members.some(x => x.id === m.id)) { AU.pop(); buzz(12); onSay(hdOf(m.name) + ' joined your party'); }
     for (const m of was.members) if (m.id !== my && !v.members.some(x => x.id === m.id)) { const out = ON.kicked && ON.kicked.has(m.id); if (ON.kicked) ON.kicked.delete(m.id); // (v403: who's gone, said on screen)
@@ -26339,7 +26472,7 @@ function onRender(soft) {
   else if (v === 'connecting') h = '<div class="frmsg"><span class="frspin" aria-hidden="true"></span><p>Connecting…</p></div>';
   else if (v === 'error') h = '<div class="frmsg">' + FR_FACES + '<b>Can’t connect</b><p>' + frEsc(ON.err || 'Can’t reach the game server right now.') + '</p><button class="frb go" data-on="retry" data-f type="button">Try again</button></div>';
   else if (v === 'old') h = '<div class="frmsg">' + FR_FACES + '<b>Update the game to play online</b><p>This version of Roll Model is too old for online play. Update it, then come back.</p></div>';
-  else if (v === 'found') { const m = ON.match, o = m && (m.players || []).find(p => p.slot !== m.you); h = '<div class="frmsg onwait">' + onVs(me, o ? frFace(o.look) : ON_MYS) + '<b>Match found!</b><p>' + (o ? 'You vs ' + frEsc(hdOf(o.name)) : 'Get ready') + '</p></div>'; }
+  else if (v === 'found') { const m = ON.match, o = m && (m.players || []).find(p => p.slot !== m.you); h = '<div class="frmsg onwait">' + onVs(me, o ? frFace(o.look) : ON_MYS) + '<b>Match found!</b><p>' + (o ? 'You vs ' + frEsc(o.cpu ? o.name + ' (CPU)' : hdOf(o.name)) : 'Get ready') + '</p></div>'; }
   else if (v === 'queue') {
     const wait = Date.now() - ON.queued.at, qm = ON.queued.mode, nm = PY_FULL[qm] || 'Versus';
     const vs = qm === 'duel' ? onVs(me, ON_MYS) : qm === 'trio' ? '<span class="onvs" aria-hidden="true">' + me + ON_MYS + ON_MYS + '</span>' : qm === 'duo' ? '<span class="onvs" aria-hidden="true">' + me + ON_MYS + '<i>vs</i>' + ON_MYS + ON_MYS + '</span>' : '<span class="onvs" aria-hidden="true">' + me + ON_MYS + ON_MYS + ON_MYS + '</span>';
@@ -26482,7 +26615,7 @@ function ptPlay() {
   if (inp) {
     const p = ON.party, me = ptMe(), wait = p.members.filter(m => !m.ready).length, lead = p.members.find(m => m.id === p.leader), host = !!me && lead === me;
     if (p.state === 'starting') { t = 'Starting'; s = 'Tap to stop'; cls = 'pygo'; }
-    else if (p.state === 'queued') { t = 'Finding'; s = 'Tap to cancel'; cls = 'pygo'; }
+    else if (p.state === 'queued') { t = 'Finding'; s = p.members.length >= 2 && p.mode !== 'duel' ? 'CPUs fill in if it’s slow · tap to cancel' : 'Tap to cancel'; cls = 'pygo'; }
     else if (host && me.ready) { t = 'Ready!'; s = 'Waiting for ' + wait + ' · tap to cancel'; cls = 'pyready'; }
     else if (host) { const o = wait - 1; t = 'Play'; s = !p.mode ? 'No event for ' + p.members.length + ' yet' : o > 0 ? o + ' not ready yet' : 'Everyone’s ready'; }
     else if (me && me.ready) { t = 'Ready!'; s = (lead && !lead.ready ? 'Waiting for the host' : 'Waiting for ' + wait) + ' · tap to undo'; cls = 'pyready'; }
@@ -27243,7 +27376,7 @@ function openVote(id, done) {
 }
 function beginMatch() {
   clearShot(); $('gframe').hidden = true; $('gwall').hidden = true;
-  vicLayer(P, false); lobbyShadow.visible = false; heroSay.hidden = true; closeSide(true); AI = isShow() ? Object.assign({}, AI_LV[diff], SD_AI[diff]) : AI_LV[diff]; mapUsed = true; resetRun(); gyCam = 0; state = 'intro'; qMatchStart(); introT = 0; introN = 0; introUp = 0; hud.classList.add('off'); giftPlan(); newItem = null; tutBegin(); ptMatch(); hud.classList.toggle('lesson', !!(tut && tutFlat)); // (v356)
+  vicLayer(P, false); lobbyShadow.visible = false; heroSay.hidden = true; closeSide(true); AI = isShow() ? Object.assign({}, AI_LV[NM ? 'medium' : diff], SD_AI[NM ? 'medium' : diff]) : AI_LV[NM ? 'medium' : diff]; /* (v413: online CPUs are medium) */ mapUsed = true; resetRun(); gyCam = 0; state = 'intro'; qMatchStart(); introT = 0; introN = 0; introUp = 0; hud.classList.add('off'); giftPlan(); newItem = null; tutBegin(); ptMatch(); hud.classList.toggle('lesson', !!(tut && tutFlat)); // (v356)
   if (window.__skipIntro) { startItems(); state = 'play'; hud.classList.remove('off'); for (const D of ACTIVE) { D.y = 6.5; D.air = true; D.vy = -1; D.freeLand = true; D.stroke++; } AU.music('play'); return; } // (tests)
   const basins = NM ? new Map() : introBasins();
   for (const D of ACTIVE) { const p = basins.get(D); D.stroke++; D.wearOff = true; D.peeked = false; D.introBare = false; D.introLeap = null; D.introOut = false; D.introCrawl = null; D.introAct = null; D.ip = null; D.eyeSink = D.eyeShut = D.eyeWide = 0; D.introKind = pickIntro(D);
@@ -27377,7 +27510,7 @@ function talWinner() {
 }
 // what the match paid, win or lose: a pill under the bar, then the coins fly up to your dab bar, which counts up
 function talDabsShow() {
-  const n = (endInfo && endInfo.drops) || 0; tal.gain = n; tal.from = Math.max(0, (store.drops || 0) - n); tal.shownD = -1;
+  const n = (endInfo && endInfo.drops) || 0; tal.gain = n; tal.from = Math.max(0, (store.drops || 0) - n - ((endInfo && endInfo.rkDabs) || 0)); tal.shownD = -1;
   const g = $('tyGain'); g.innerHTML = '+' + n + DROP_SVG + '<small>dabs</small>'; restartCls(g, 'on'); AU.pop();
   const d = $('tyDabs'); d.innerHTML = DROP_SVG + '<b>' + tal.from + '</b>'; d.classList.add('on');
 }
@@ -27451,7 +27584,7 @@ function showEnd(img) {
   if (solo) { const best = info.newBest ? info.prevBest : info.best;
     if (best) h += '<div class="brow best" role="listitem" aria-label="' + (info.newBest ? 'Old best ' : 'Week best ') + best + '%" style="--c:var(--gold);--chi:var(--gold);--d:.31s"><b class="brank" aria-hidden="true"></b><span class="bico" style="--cd:#4A3A12">' + TROPHY_SVG + '</span><span class="bname" aria-hidden="true"><span class="bn"><b>' + (info.newBest ? 'Old best' : 'Week best') + '</b></span></span><b class="bpct" aria-hidden="true">' + best + '%</b></div>'; }
   const bd = $('board'); bd.className = 'board' + (solo ? ' solo' : ''); bd.innerHTML = ''; bd.hidden = true; $('judge').setAttribute('aria-label', says.join('. ') + (solo && (info.newBest ? info.prevBest : info.best) ? '. ' + (info.newBest ? 'Old best ' : 'Your best ') + (info.newBest ? info.prevBest : info.best) + '%' : ''));
-  end.dataset.next = ''; $('replayBtn').hidden = false; $('endBtn').querySelector('small').textContent = 'New canvas';
+  end.dataset.next = ''; $('replayBtn').hidden = false; $('endTT').hidden = !(solo && info.sid); /* (v414) */ $('endBtn').querySelector('small').textContent = 'New canvas';
   end.hidden = false; measureOutro(); judgeGo();
   endGate(); if (NM) netEndButtons(); // (online: Rematch or Menu, whatever the lobby has waiting)
 }
@@ -27462,15 +27595,15 @@ function xpFrame(el, k) { k = clamp(Math.round(k), 0, XP_FRAMES - 1); const fw =
 let repAnim = 0;
 function showRep(info) {
   const row = $('repRow'), m = $('xpMeter'); cancelAnimationFrame(repAnim);
-  if (!info || !(info.xp > 0)) { row.hidden = true; $('commDone').innerHTML = ''; return; }
+  if (!info || !(info.xp > 0)) { row.hidden = true; $('commDone').innerHTML = ''; if ($('dabWhy')) $('dabWhy').hidden = true; return; }
   const r0 = repOf(info.xp0), r1 = repOf(info.xp0 + info.xp), up = r1.lv > r0.lv; row.hidden = false; row.classList.toggle('up', up);
   $('repRowName').textContent = r0.name; $('xpGain').innerHTML = '+' + info.xp + '<small>XP</small>'; xpFrame(m, (XP_FRAMES - 1) * r0.x / r0.need);
-  const dg = $('dropGain'); dg.hidden = !(info.drops > 0); if (info.drops > 0) dg.innerHTML = '+' + info.drops + DROP_SVG + '<small>dabs</small>';
+  const dg = $('dropGain'); dg.hidden = !(info.drops > 0); if (info.drops > 0) dg.innerHTML = '+' + info.drops + DROP_SVG + '<small>dabs</small>'; dabWhyPaint(info); for (const x of row.querySelectorAll('.rkdab')) x.remove(); // (v414)
   $('commDone').innerHTML = (repOf(info.xp0 + info.xp).lv >= COMM_RANK ? info.comms || [] : []).map( // (v399: locked, it waits quietly)
     (k, i) => '<div class="cd" style="animation-delay:' + (1.6 + i * 0.15).toFixed(2) + 's">Commission done: ' + k.t + '<b>Claim it in Commissions</b></div>').join('');
   const t0 = performance.now(), dur = up ? 1700 : 1100, f0 = r0.x / r0.need, f1 = r1.x / r1.need;
   const step = () => { const u = clamp((performance.now() - t0 - 900) / dur, 0, 1), e = u * u * (3 - 2 * u); let f;
-    if (up) { const half = 0.55; f = e < half ? f0 + (1 - f0) * (e / half) : f1 * ((e - half) / (1 - half)); if (e >= half && !row.classList.contains('lv')) { row.classList.add('lv'); $('repRowName').textContent = r1.name; $('repRowName').animate([{ transform: 'scale(1.6)' }, { transform: 'none' }], { duration: 420, easing: 'cubic-bezier(.3,1.6,.5,1)' }); AU.fanfare(); AU.say('levelup'); } }
+    if (up) { const half = 0.55; f = e < half ? f0 + (1 - f0) * (e / half) : f1 * ((e - half) / (1 - half)); if (e >= half && !row.classList.contains('lv')) { row.classList.add('lv'); $('repRowName').textContent = r1.name; $('repRowName').animate([{ transform: 'scale(1.6)' }, { transform: 'none' }], { duration: 420, easing: 'cubic-bezier(.3,1.6,.5,1)' }); AU.fanfare(); AU.say('levelup'); rkBeat(info); } }
     else f = f0 + (f1 - f0) * e;
     xpFrame(m, (XP_FRAMES - 1) * f); if (u < 1) repAnim = requestAnimationFrame(step); };
   row.classList.remove('lv'); repAnim = requestAnimationFrame(step);
@@ -27599,6 +27732,7 @@ $('startBtn').addEventListener('click', uiClick(() => { if (!store.name) openNam
 $('shuffleBtn').addEventListener('click', uiClick(shuffleCanvas));
 $('endBtn').addEventListener('click', uiClick(rematchVote));
 $('replayBtn').addEventListener('click', uiClick(replay));
+$('endTT').addEventListener('click', () => { AU.init(); const i = endInfo || {}; if (i.sid) openTT(i.sid, i.tt && i.tt.t); }); /* (v414) */
 $('menuBtn').addEventListener('click', uiClick(() => { const won = !!(endInfo && endInfo.win > 0 && endInfo.mode !== 'solo'); toMenu(); if (won) reviewAfterWin(); }));
 // (v351) the App Store's rating prompt, at a good moment: back in the lobby from a win, once the player has 3 wins and 8 matches, once
 // per game build. iOS decides whether it shows (at most three times a year; never in TestFlight)
@@ -27913,7 +28047,8 @@ function endShowdown(timeUp) {
   store.world = store.world || {}; const wk = worldKey(), wr = store.world[wk] = store.world[wk] || { best: 0, wins: 0, played: 0 }; wr.played++; if (win > 0) wr.wins++;
   endInfo.diff = NM ? 'online' : diff; const pl = P.place || 4; let gain = Math.round(18 + 9 * P.kos + (win > 0 ? 40 : win === 0 ? 14 : 0) + (pl === 2 ? 12 : pl === 3 ? 5 : 0) + 4 * Math.max(0, P.hearts | 0));
   const fin = commProgress(endInfo); endInfo.xp0 = store.xp || 0; store.xp = endInfo.xp0 + gain; endInfo.xp = gain; endInfo.comms = fin;
-  const drops = Math.round(8 + 5 * P.kos + (win > 0 ? 30 : win === 0 ? 12 : 0) + (pl === 2 ? 8 : 0)); store.drops = (store.drops || 0) + drops; endInfo.drops = drops; jackpotPay(win);
+  const drops = dabPay(endInfo, { win, place: pl }); store.drops = (store.drops || 0) + drops; endInfo.drops = drops; jackpotPay(win); // (v414: by the challenge)
+  { const r = rankDabs(endInfo.xp0, endInfo.xp0 + gain); endInfo.rkDabs = r.n; endInfo.rkLv = r.lv; } // (v414: a rank up pays)
   stMatch(); save(); tutEndMatch();
   const duo = mode === 'duo';
   if (win > 0) banner(duo ? 'Your team wins!' : 'Last one standing!', timeUp ? 'Most hearts left' : '', false);
@@ -28183,7 +28318,7 @@ function ptTogether() { return 'Your party plays together: ' + (ptHost() ? 'pres
 function ptNote() {
   const p = ON.party, me = ptMe(); if (!p || !me) return '';
   const lead = p.members.find(m => m.id === p.leader);
-  if (p.state === 'starting' || p.state === 'queued' || (lead && lead.ready)) return PY_FULL[p.mode] || '';
+  if (p.state === 'starting' || p.state === 'queued' || (lead && lead.ready)) { const x = p.cpu && p.modes.find(q => q.mode === p.mode); return (PY_FULL[p.mode] || '') + (x && x.cpus > 0 ? ptCpuWith(x.cpus) : ''); }
   return lead && lead.id === me.id ? 'You pick the event' : lead ? hdOf(lead.name) + ' picks the event' : '';
 }
 // the big button in a party: the host's opens the party's events; anyone else's is Ready (and undoes it); a pick or a start is cancelled
@@ -28220,27 +28355,42 @@ function ptEvRender() {
   const p = ON.party, me = ptMe();
   if (!ptOn() || ON.match || !me || p.leader !== me.id || me.ready || p.state !== 'idle') return closeEvents();
   const n = p.members.length, mem = [me].concat(p.members.filter(m => m !== me)), ic = id => { const e = $(id) && $(id).querySelector('.evic'); return e ? e.innerHTML : ''; };
-  const face = e => e === '?' ? ON_MYS : '<span class="pyf' + (e === me ? ' me' : '') + '">' + frFace(e.look) + '</span>';
-  const card = x => { const d = PY_EV[x.mode] || PY_EV.ffa, w = ptEvWords(x, n), art = stageArtOf(x.mode === 'duel' && VOTE_STAGES.includes(stageSel) ? stageSel : d.art);
-    const line = ptEvSides(x, mem).map(s => '<span class="pyside">' + s.map(face).join('') + '</span>').join('<i class="pyvs">vs</i>');
-    return '<div class="evcard evpy' + (x.on ? '' : ' soon') + '" data-pyev="' + x.mode + '" style="--ec:' + d.c + '"><button class="evmain" type="button" data-pyev="' + x.mode + '" aria-label="' + frEsc(w.say) + '"' + (x.on ? '' : ' aria-disabled="true"') + '>'
-      + '<span class="evbar"><i>' + w.bar + '</i></span><span class="evtop"><span class="evic" aria-hidden="true">' + ic(d.ic) + '</span><span class="evtx"><b>' + frEsc(PY_FULL[x.mode] || x.mode) + '</b><small>' + w.sub + '</small></span></span>'
+  const face = e => e === '?' ? ON_MYS : e === 'C' ? PY_CPU : '<span class="pyf' + (e === me ? ' me' : '') + '">' + frFace(e.look) + '</span>';
+  const card = (x, cpu) => { const d = PY_EV[x.mode] || PY_EV.ffa, w = cpu ? ptEvCpuWords(x, n) : ptEvWords(x, n), art = stageArtOf(x.mode === 'duel' && VOTE_STAGES.includes(stageSel) ? stageSel : d.art);
+    const line = (cpu ? ptEvCpuSides(x, mem) : ptEvSides(x, mem)).map(s => '<span class="pyside">' + s.map(face).join('') + '</span>').join('<i class="pyvs">vs</i>');
+    return '<div class="evcard evpy' + (cpu ? ' pyc' : '') + (x.on ? '' : ' soon') + '" data-pyev="' + x.mode + '"' + (cpu ? ' data-cpu="1"' : '') + ' style="--ec:' + d.c + '"><button class="evmain" type="button" data-pyev="' + x.mode + '"' + (cpu ? ' data-cpu="1"' : '') + ' aria-label="' + frEsc(w.say) + '"' + (x.on ? '' : ' aria-disabled="true"') + '>'
+      + '<span class="evbar"><i>' + w.bar + '</i></span><span class="evtop"><span class="evic" aria-hidden="true">' + ic(d.ic) + '</span><span class="evtx"><b>' + frEsc((PY_FULL[x.mode] || x.mode) + (cpu ? ptCpuWith(x.cpus) : '')) + '</b><small>' + w.sub + '</small></span></span>'
       + '<span class="evart pyart" aria-hidden="true"><img alt="" src="' + (art || '') + '"><span class="pyline">' + line + '</span></span></button></div>'; };
   const ord = (a, b) => ['duo', 'trio', 'ffa', 'duel'].indexOf(a.mode) - ['duo', 'trio', 'ffa', 'duel'].indexOf(b.mode);
-  const online = p.modes.filter(x => x.plan !== 'private').sort(ord), own = p.modes.filter(x => x.plan === 'private');
-  const h = (online.length ? '<h3 class="pyevh evpy">With players online</h3>' + online.map(card).join('') : '') + (own.length ? '<h3 class="pyevh evpy">Just your party</h3>' + own.map(card).join('') : '');
+  const online = p.modes.filter(x => x.plan !== 'private').sort(ord), own = p.modes.filter(x => x.plan === 'private'), cpus = p.modes.filter(x => x.cpus > 0).sort((a, b) => ['trio', 'ffa', 'duo'].indexOf(a.mode) - ['trio', 'ffa', 'duo'].indexOf(b.mode));
+  const h = (online.length ? '<h3 class="pyevh evpy">With players online</h3>' + online.map(x => card(x, false)).join('') : '') + (cpus.length ? '<h3 class="pyevh evpy">Play now with CPUs</h3>' + cpus.map(x => card(x, true)).join('') : '') + (own.length ? '<h3 class="pyevh evpy">Just your party</h3>' + own.map(x => card(x, false)).join('') : '');
   const g = $('evGrid'); if (g._py === h) return; g._py = h;
   g.querySelectorAll('.evpy').forEach(e => e.remove()); g.insertAdjacentHTML('afterbegin', h);
 }
-// a pick: the party's event, and the host is ready (the friends who are ready already start it)
-async function ptEvPick(m) {
+// (v413) a party against CPUs: the line-up (a CPU badge for each CPU), the words, and the pick
+const PY_CPU = '<span class="pyf pycpu" aria-hidden="true">CPU</span>';
+const ptCpuWith = k => ' with ' + k + (k === 1 ? ' CPU' : ' CPUs');
+function ptEvCpuSides(x, mem) {
+  const C = Array.from({ length: Math.max(0, x.cpus | 0) }, () => 'C');
+  if (x.mode === 'duo') { const all = mem.concat(C); return [all.slice(0, 2), all.slice(2, 4)]; }
+  return mem.concat(C).map(e => [e]);
+}
+function ptEvCpuWords(x, n) {
+  const k = x.cpus | 0, cw = k === 1 ? '1 CPU' : k + ' CPUs', who = ['', '', 'you two', 'you three'][n] || 'your party';
+  const bar = !x.on ? 'Coming soon' : 'Starts now · no wait';
+  const sub = x.mode === 'duo' ? (n === 2 ? 'You two vs ' + cw : n === 3 ? 'Two of you vs one and a CPU' : 'Two teams') : x.mode === 'trio' ? 'Most paint wins' : 'Last one standing';
+  const say = (PY_FULL[x.mode] || x.mode) + ' with ' + cw + ': ' + who + ' and ' + cw + ', no waiting' + (x.mode === 'duo' ? ', on two teams' : ', each for their own');
+  return { bar, sub, say };
+}
+// a pick: the party's event (against CPUs or not), and the host is ready (the friends who are ready already start it)
+async function ptEvPick(m, cpu) {
   const p = ON.party, me = ptMe(), x = p && p.modes.find(q => q.mode === m);
   if (!p || !me || !ON.net || p.leader !== me.id || p.state !== 'idle') return closeEvents();
-  if (!x || !x.on) { AU.nope(); buzz(8); return frToast('<span>' + (x ? 'Coming soon' : 'Not for a party this size') + '</span>'); }
+  if (!x || !x.on || (cpu && !(x.cpus > 0))) { AU.nope(); buzz(8); return frToast('<span>' + (x ? 'Coming soon' : 'Not for a party this size') + '</span>'); }
   AU.pop(); buzz(12); closeEvents();
-  try { await ON.net.partyVote(m); await ON.net.partyReady(true); } catch (e) { frToast('<span>' + frEsc(onReqText(e)) + '</span>'); }
+  try { await ON.net.partyVote(m, !!cpu); await ON.net.partyReady(true); } catch (e) { frToast('<span>' + frEsc(onReqText(e)) + '</span>'); }
 }
-$('evGrid').addEventListener('click', e => { const b = e.target.closest('.evpy [data-pyev]'); if (!b || !ptEvOn()) return; AU.init(); ptEvPick(b.dataset.pyev); });
+$('evGrid').addEventListener('click', e => { const b = e.target.closest('.evpy [data-pyev]'); if (!b || !ptEvOn()) return; AU.init(); ptEvPick(b.dataset.pyev, b.dataset.cpu === '1'); });
 
 // ---------- screen orientation: picked on the first launch, changed in Settings. On a phone held the other way the game asks for a turn ----------
 const ORIENT_NAMES = { port: 'upright', land: 'wide' };
