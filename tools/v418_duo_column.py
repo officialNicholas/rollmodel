@@ -79,8 +79,8 @@ JS = r"""
 def fold(s):
     s = rep(s, "let foldKey = '';\nfunction foldApply() {\n  const f = foldRead(), r = document.documentElement, M = 10, key = f ? f.axis + ':' + Math.round(f.a) + ':' + Math.round(f.b) : '';\n  if (key === foldKey) return; foldKey = key;\n",
                "let foldKey = '', foldWant = '', foldSince = 0, foldT = 0;\nfunction foldApply() {\n  const f = foldRead(), r = document.documentElement, M = 10, key = f ? f.axis + ':' + Math.round(f.a) + ':' + Math.round(f.b) : '';\n  if (key === foldKey) { foldWant = ''; return; }\n"
-               "  // (v418) a new fold counts once it has held 1.2 s: opening the phone passes through partly folded for a moment on its way to flat\n"
-               "  if (key) { const now = performance.now(); if (key !== foldWant) { foldWant = key; foldSince = now; } if (now - foldSince < 1200) { clearTimeout(foldT); foldT = setTimeout(foldApply, 1250 - (now - foldSince)); return; } }\n"
+               "  // (v418) a new fold counts once it has held 2.5 s: opening the phone passes through partly folded for a moment on its way to flat\n"
+               "  if (key) { const now = performance.now(); if (key !== foldWant) { foldWant = key; foldSince = now; } if (now - foldSince < 2500) { clearTimeout(foldT); foldT = setTimeout(foldApply, 2550 - (now - foldSince)); return; } }\n"
                "  foldWant = ''; foldKey = key;\n")
     return s
 
