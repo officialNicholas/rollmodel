@@ -134,7 +134,7 @@ def apply(s):
     s = rep(s, "NAMES[D.team] = p.name ? hdOf(String(p.name).slice(0, 16)) : 'Rival';",
                "NAMES[D.team] = p.cpu && p.name ? String(p.name).slice(0, 16) : p.name ? hdOf(String(p.name).slice(0, 16)) : 'Rival'; // (v413: a CPU by its name, no @)")
     s = rep(s, "AI = isShow() ? Object.assign({}, AI_LV[diff], SD_AI[diff]) : AI_LV[diff];",
-               "AI = isShow() ? Object.assign({}, AI_LV[NM ? 'medium' : diff], SD_AI[NM ? 'medium' : diff]) : AI_LV[NM ? 'medium' : diff]; // (v413: online CPUs are medium)")
+               "AI = isShow() ? Object.assign({}, AI_LV[NM ? 'medium' : diff], SD_AI[NM ? 'medium' : diff]) : AI_LV[NM ? 'medium' : diff]; /* (v413: online CPUs are medium) */")
     s = rep(s, "for (const D of ACTIVE) if (NM && D !== P) netPuppet(D, dt); else stepBlob(D, dt);",
                "for (const D of ACTIVE) if (NM && D !== P && !netMine(D)) netPuppet(D, dt); else stepBlob(D, dt);")
     # their moves, as yours are sent
