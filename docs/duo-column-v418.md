@@ -25,6 +25,8 @@ close button sat under the camera.
 - **Pop-ups keep clear of the column.** This includes the dab store's close button, which is now left of the camera.
 - **The column holds the top buttons.** In the lobby, the bell and menu buttons sit in the column under the camera, one above
   the other. In a match, the sound button sits there too. Everything else in the lobby keeps its place.
+  On the Locker, Paint Shop and Strokes pages (v419), the dab counter (with its +) and the turn button sit there too, the
+  turn button under the counter.
 - **The Paint Shop on the cover screen.** The filter chips (All, Spooky SZN, Skins...) are gone and the shop shows everything.
   The stage is shorter (150 to 210 points instead of about 280). The My Locker and Paint Shop tabs drop their pictures. The list
   grows from about 210 points to about 345. The opened phone keeps the chips.

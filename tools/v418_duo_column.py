@@ -9,7 +9,8 @@ ones to its bottom), under the camera, within thumb reach.
   has the same inset on both sides, so nothing changes there). It marks the page `scol` (column on the right) or `scolL` (on the left)
   and keeps the column's width in `--scw`, checking again on every resize and fold.
 - Pop-ups keep clear of the column (the dab store's close button sat under the camera).
-- The lobby's bell and menu buttons, and the match's sound and pause buttons, move into the column under the camera, one above the other.
+- The lobby's bell and menu buttons, the match's sound button, and the Locker's, Paint Shop's and Strokes page's dab counter and turn
+  button move into the column under the camera.
 - The Paint Shop on the cover screen: no filter chips (All, Spooky SZN, Skins...), the shop shows everything, and the stage and tabs
   above it are smaller so the list gets more of the screen.
 - Opening iPhone Duo: on the way from closed to flat the hinge passes through partly folded for about a second, and the lobby moved you
@@ -38,6 +39,11 @@ html.scolL .corner{left:0;right:auto!important}
 html:is(.scol,.scolL) .mhome.lobby .ltop{animation:none}
 html:is(.scol,.scolL) .mhome.lobby .ltop>*{animation:rollin-t .55s var(--eo) both}
 html:is(.scol,.scolL) .menu.leaving .mhome.lobby .ltop>*{animation:rollout-t .35s var(--ei) both}
+/* the Locker's, the Paint Shop's and the Strokes page's dab counter (its + rides on it) and the turn button: in the column too */
+html.scol :is(#mStrokes,#mLocker).sgp .sgbadge{top:var(--sctop);right:calc((var(--scw) - 50px) / 2)}
+html.scolL :is(#mStrokes,#mLocker).sgp .sgbadge{top:var(--sctop);left:calc((var(--scw) - 50px) / 2);right:auto}
+html.scol :is(#mStrokes,#mLocker).sgp .sgrot{right:calc(var(--scw) / 2 - 21px - var(--gr))}
+html.scol #mLocker.sgp .sgrot,html.scol #mLocker.sgp.sgnoted .sgrot{top:calc(var(--sctop) + 66px - var(--gt));bottom:auto}
 /* the locker and Paint Shop on the cover screen: no filter chips, a shorter stage and slimmer tabs, so the list gets the room */
 html:is(.scol,.scolL) #mLocker.sgp .lkchips{display:none}
 html:is(.scol,.scolL) #mLocker.sgp .sgshow{flex:0 0 auto;height:clamp(150px,30vh,210px);min-height:0}

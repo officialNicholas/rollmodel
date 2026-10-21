@@ -5165,6 +5165,11 @@ html.scolL .corner{left:0;right:auto!important}
 html:is(.scol,.scolL) .mhome.lobby .ltop{animation:none}
 html:is(.scol,.scolL) .mhome.lobby .ltop>*{animation:rollin-t .55s var(--eo) both}
 html:is(.scol,.scolL) .menu.leaving .mhome.lobby .ltop>*{animation:rollout-t .35s var(--ei) both}
+/* the Locker's, the Paint Shop's and the Strokes page's dab counter (its + rides on it) and the turn button: in the column too */
+html.scol :is(#mStrokes,#mLocker).sgp .sgbadge{top:var(--sctop);right:calc((var(--scw) - 50px) / 2)}
+html.scolL :is(#mStrokes,#mLocker).sgp .sgbadge{top:var(--sctop);left:calc((var(--scw) - 50px) / 2);right:auto}
+html.scol :is(#mStrokes,#mLocker).sgp .sgrot{right:calc(var(--scw) / 2 - 21px - var(--gr))}
+html.scol #mLocker.sgp .sgrot,html.scol #mLocker.sgp.sgnoted .sgrot{top:calc(var(--sctop) + 66px - var(--gt));bottom:auto}
 /* the locker and Paint Shop on the cover screen: no filter chips, a shorter stage and slimmer tabs, so the list gets the room */
 html:is(.scol,.scolL) #mLocker.sgp .lkchips{display:none}
 html:is(.scol,.scolL) #mLocker.sgp .sgshow{flex:0 0 auto;height:clamp(150px,30vh,210px);min-height:0}
@@ -5352,7 +5357,7 @@ html:is(.scol,.scolL) #mLocker.sgp .sgpanel{flex:1 1 auto;max-height:none;margin
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 418</p>
+      <p class="ver">Version 419</p>
     </div>
   </div>
 
