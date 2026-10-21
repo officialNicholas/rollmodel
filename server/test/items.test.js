@@ -192,3 +192,18 @@ test('an effect\'s look is relayed to the others, and big ones are refused', asy
     const big = await c.A.net.action('fx', { k: 'drop', d: 'x'.repeat(500) }); assert.equal(big.reason, 'big');
   } finally { await c.close(); }
 });
+
+test('an orb its holder never used comes out of them when they are knocked out, for anyone to take', async () => {
+  const c = await setup({ itemFirst: [60, 61], orbFirst: [60, 61] });
+  try {
+    const m = c.m(); await live(c); await apart(c, 5);
+    const pB = m.P[c.B.slot]; pB.orb = 'rocket'; pB.orbUntil = Infinity;
+    const spawned = c.A.wait('orbSpawn', x => x.dropped === c.B.slot, 4000);
+    m._ko(pB, m.P[c.A.slot], 'pound');
+    const o = await spawned; assert.ok(Math.hypot(o.x - c.B.body.x, o.z - c.B.body.z) < 1.5, 'where they went down');
+    assert.equal(pB.orb, null);
+    const taken = c.B.wait('orbTaken', x => x.id === o.id, 10000);
+    goTo(c.A, o.x, o.z);
+    const t = await taken; assert.equal(t.slot, c.A.slot);
+  } finally { await c.close(); }
+});

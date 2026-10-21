@@ -46,7 +46,7 @@ def apply(s):
                "  } catch (e) { NM.basins = new Map(); }\n")
     # ---- at the match start: the picked basins, by seat
     s = rep(s, "  const basins = NM ? new Map() : introBasins();",
-               "  const basins = NM ? (() => { const g = new Map(); if (NM.basins) for (const [k, p] of NM.basins) { const D = NM.seats.get(k); if (D && ACTIVE.includes(D) && potUp(p) && !p.occ) g.set(D, p); } return g; })() : introBasins(); // (v426: online, the basins every phone agreed on)")
+               "  const basins = NM ? (() => { const g = new Map(); if (NM.basins) for (const [k, i] of NM.basins) { const p = pots[i], D = NM.seats.get(k); if (p && D && ACTIVE.includes(D) && potUp(p) && !p.occ) g.set(D, p); } /* (v428: kept by basin number: the match's own basins, placed again for it) */ return g; })() : introBasins(); // (v426: online, the basins every phone agreed on)")
     # ---- the game goes live once your crawl-out is done; a rival in its basin or crawling out is the intro's, not dropped onto its spot
     s = rep(s, "  if (state === 'play' && !NM.live && NM.phase !== 'end' && NM.startAt && P.st === 'play' && !P.air && netNow() >= NM.startAt) NM.live = true;\n  if (!NM.live || state !== 'play'",
                "  if (state === 'play' && !NM.live && NM.phase !== 'end' && NM.startAt && P.st === 'play' && !P.air && !P.introCrawl && !P.introAct && netNow() >= NM.startAt) NM.live = true; // (v426: once the way out of the basin is done)\n  if (!NM.live || state !== 'play'")

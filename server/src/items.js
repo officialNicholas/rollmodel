@@ -208,7 +208,7 @@ export class Items {
       case 'giant': e.giant = ts + T.GIANT * 1000; p.paint = 1; break;
       case 'rocket': e.rocket = ts + ROCKET_MAX * 1000; e.rocketLand = 0; p.paint = 1; p.mover.boost(G.ROCKET_SPD * 1.25, ROCKET_MAX * 1000, ts); break;
       case 'freeze': this.freezes.push({ by: p, at: ts + T.FREEZE_WIND * 1000 }); break;
-      case 'storm': e.storm = ts + STORM_MAX * 1000; e.stormAt = ts; e.stormPaint = 0; break;
+      case 'storm': e.storm = ts + STORM_MAX * 1000; e.stormAt = ts; e.stormPaint = 0; p.paint = 1; break; // (a full tank while it rains: the game keeps it full)
       case 'bomb': e.bomb = ts; e.bombPaint = 0; break;
     }
     m._all({ t: 'itemUsed', slot: p.slot, kind: gift, orb: 1, ts, x: L.x, y: L.y, z: L.z, yaw, until: gift === 'giant' ? e.giant : undefined });
@@ -359,6 +359,17 @@ export class Items {
   }
   // a pound on a giant shrinks it instead of knocking it out
   unGiant(B, A) { const now = nowMs(); B.effects.giant = 0; B.immuneUntil = Math.max(B.immuneUntil, now + 800); if (B.mover && B.st === 'play') B.mover.launch(5.6, now); /* (the game pops a shrunk giant up off its feet) */ this.m._all({ t: 'unGiant', slot: B.slot, by: A ? A.slot : -1 }); }
-  // knocked out: whatever it was doing stops (what's in its pockets stays, as in the game)
-  onKo(p) { p.effects = {}; p.frozen = null; }
+  // knocked out: whatever it was doing stops (its item stays, as in the game); an orb it hadn't used comes out of it where it went
+  // down, for anyone to take (gone over an edge: a new one comes up soon instead)
+  onKo(p) {
+    p.effects = {}; p.frozen = null;
+    if (!p.orb) return;
+    const m = this.m, now = nowMs(), L = (p.st === 'ko' && p.koPos) || (p.mover && p.mover.last); p.orb = null; p.orbUntil = 0;
+    m._all({ t: 'orbLost', slot: p.slot, why: 'ko' });
+    if (this.orb || !L) return;
+    const g = m.level.supportAt(L.x, L.z, L.y + 0.5);
+    if (!(g > -Infinity) || Math.abs(g - L.y) > 3) { this.orbAt = Math.min(this.orbAt, now + 1500); return; }
+    this.orb = { id: randomId('o_', 6), x: L.x, y: g, z: L.z, at: now };
+    m._all({ t: 'orbSpawn', id: this.orb.id, x: L.x, y: g, z: L.z, dropped: p.slot });
+  }
 }

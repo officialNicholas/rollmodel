@@ -262,7 +262,7 @@ export class Match {
       else p.paint -= G.DRAIN * 0.85 * dt * (v < 0.8 ? G.STILL_DRAIN : 1);
     }
     if (p.inkRushUntil > b.tc) p.paint += G.INK_RUSH * dt;
-    if ((p.effects.giant || 0) > b.tc || (p.effects.turret || 0) > b.tc) p.paint = 1;
+    if ((p.effects.giant || 0) > b.tc || (p.effects.turret || 0) > b.tc || (p.effects.storm || 0) > b.tc) p.paint = 1; // (v428: and while your storm rains)
     p.paint = clamp(p.paint, 0, 1);
     // touching down from a fling: the landing splat, which costs paint
     if (b.grounded && !a.grounded && p.flingOpen && !p.pound) {
@@ -527,7 +527,7 @@ export class Match {
     const L = B.mover.last;
     B.flatUntil = now + this.rules.flatT * 1000; B.flatAnchor = { x: L.x, z: L.z }; B.flats++; A.stomps++; B.lastHit = { by: A, t: now }; B.pound = null;
     B.cid = nextCid(B.cid); B.mover.last.t = Math.max(B.mover.last.t, now);
-    for (const q of this.P) this._send(q, { t: 'flat', slot: B.slot, by: A.slot, x: L.x, y: L.y, z: L.z, until: B.flatUntil, cid: q === B ? B.cid : undefined });
+    for (const q of this.P) this._send(q, { t: 'flat', slot: B.slot, by: A.slot, x: L.x, y: L.y, z: L.z, until: B.flatUntil, cid: q === B || (B.bot && q.id === B.owner) ? B.cid : undefined });
   }
   _enterPot(p, ts, i) {
     const pot = Number.isInteger(i) ? this.pots[i] : null; if (!pot) return 'bad_pot';
@@ -608,7 +608,7 @@ export class Match {
     p.vhist = [{ tc: now, tau: Math.round(now), x: best.x, y: best.y, z: best.z, grounded: true }];
     p.flingOpen = false; p.pound = null; p.flatUntil = 0; p.lastMoveAt = now; p.lastHit = null; if (p.lastStateAt >= p.koAt - 1000) p.lastStateAt = Math.max(p.lastStateAt, now); // (time knocked out isn't time away for someone who was playing when it happened; a game that had already stopped sending stays quiet)
     p.latest = { tau: Math.max(p.lastTau + 1, Math.round(now)), tc: now, x: best.x, y: best.y, z: best.z, yaw: p.latest.yaw, spd: 0, vy: 0, flags: 0, aim: 0 }; p.lastTau = p.latest.tau;
-    for (const q of this.P) this._send(q, { t: 'respawn', slot: p.slot, pot: best.i, x: best.x, y: best.y, z: best.z, immuneUntil: p.immuneUntil, cid: q === p ? p.cid : undefined });
+    for (const q of this.P) this._send(q, { t: 'respawn', slot: p.slot, pot: best.i, x: best.x, y: best.y, z: best.z, immuneUntil: p.immuneUntil, cid: q === p || (p.bot && q.id === p.owner) ? p.cid : undefined });
     this._all({ t: 'pot', i: best.i, occ: p.slot, up: true, ink: r2(best.ink) });
   }
   _checkShowdown(now) {
