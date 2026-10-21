@@ -5454,7 +5454,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 427</p>
+      <p class="ver">Version 428</p>
     </div>
   </div>
 
@@ -23992,7 +23992,19 @@ function openWorlds() {
   renderModes(); renderStages(); $('worldTitle').textContent = mode === 'solo' ? 'Pick a canvas' : 'Vote for a canvas';
   centerWorld(worldBtns.find(b => b.dataset.s === stageSel), false); renderWorlds();
   setTimeout(() => $('startBtn').focus({ preventScroll: true }), 40);
+  worldCornerAlign(); requestAnimationFrame(worldCornerAlign); // (v429: sound level with Back)
 }
+
+// (v429) while the canvas picker is open, the corner's sound button is moved down (or up) so its centre lines up with Back's
+function worldCornerAlign() {
+  const c = $('soundBtn') && $('soundBtn').parentElement; if (!c) return;
+  c.style.translate = '';
+  if (menuPage !== 'worlds' || $('mWorld').hidden) return;
+  const a = $('worldBack').getBoundingClientRect(), b = $('soundBtn').getBoundingClientRect();
+  if (!a.height || !b.height) return;
+  const d = Math.round((a.top + a.bottom) / 2 - (b.top + b.bottom) / 2); if (d) c.style.translate = '0 ' + d + 'px';
+}
+addEventListener('resize', () => requestAnimationFrame(worldCornerAlign));
 // a season's canvases, in a grid in place of the carousel; the back button comes back here
 const seasonOpen = () => $('mWorld').classList.contains('sopen');
 function openSeason() {
@@ -24007,7 +24019,7 @@ $('seasonGrid').addEventListener('click', e => { const t = e.target.closest('.st
   stageSel = t.dataset.s; store.stage = stageSel; save(); renderStages(); AU.pop();
   worldBuild(t.dataset.s); kick($('cvName'), 'bump'); });
 function closeWorlds() {
-  if (menuPage !== 'worlds') return; closeSeason(); menuPage = 'home'; menu.dataset.page = 'home'; $('mWorld').hidden = true; $('mHome').hidden = false; heroT = 0;
+  if (menuPage !== 'worlds') return; closeSeason(); menuPage = 'home'; menu.dataset.page = 'home'; $('mWorld').hidden = true; $('mHome').hidden = false; heroT = 0; worldCornerAlign();
   if (worldDirty) { worldDirty = false; if (GEN.key !== mapKey()) worldBuild(); } // (the pick's canvas, built now that it shows)
   renderLobbyUI();
   setTimeout(() => $('homePlay').focus({ preventScroll: true }), 30);
