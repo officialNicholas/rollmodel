@@ -2217,6 +2217,7 @@ body.homeon .corner{display:none}
 .itemBtn .sdisc{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 36% 30%,#FFFCF5,#F3EBDC 62%,#D8CCB6);-webkit-mask:url(art/m_dot.webp) center/100% 100% no-repeat;mask:url(art/m_dot.webp) center/100% 100% no-repeat}
 .itemBtn svg{position:relative;z-index:1;width:38px;height:38px;fill:var(--ink);stroke:var(--black);stroke-width:1.6;stroke-linejoin:round;margin-top:-12px;filter:drop-shadow(0 2px 0 rgba(0,0,0,.25))}
 .itemBtn .ilbl{position:absolute;left:50%;bottom:13px;transform:translateX(-50%);z-index:1;font:900 10px/1 var(--font-head);font-style:italic;text-transform:uppercase;letter-spacing:.08em;color:var(--black);white-space:nowrap}
+.itemBtn .ilbl.lng{font-size:8px;letter-spacing:0}@media (max-height:520px) and (min-aspect-ratio:1/1){.itemBtn .ilbl.lng{font-size:7px}}.itemBtn.ib2 .ilbl.lng,.itemBtn.orbBtn .ilbl.lng{font-size:7px;letter-spacing:0}
 .itemBtn.in{animation:slamin .4s cubic-bezier(.3,1.7,.5,1),itemglow 1.6s ease-in-out .4s infinite}
 @keyframes itemglow{50%{filter:drop-shadow(4px 6px 0 rgba(23,19,32,.3)) drop-shadow(0 0 12px rgba(var(--ink-rgb),.8))}}
 .itemBtn:active{transform:translateY(3px) scale(.95)}
@@ -5268,7 +5269,8 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
 .ttwho .tgf,.ttpod .tg{flex:none;padding:3px 7px 2px;border-radius:999px;background:#3A84D4;color:#fff;font:800 10px/1 var(--font-ui);letter-spacing:.06em;text-transform:uppercase;rotate:-3deg;white-space:nowrap}
 .ttpod .tg.you{background:#E8364F}
 .ttprz{display:flex;justify-content:center;gap:10px;margin:10px 0 2px;font:700 12px/1.3 var(--font-ui);color:#5E566E;text-align:center}
-.ttprz b{color:var(--black)}
+.ttprz b{color:var(--black)}.ttprz{flex-wrap:wrap;align-items:center;gap:6px 8px}.ttprz .pzh{flex-basis:100%;font:800 11px/1 var(--font-ui);letter-spacing:.08em;text-transform:uppercase;color:#5E566E}.ttprz .pz{display:inline-flex;align-items:center;gap:5px;padding:4px 9px 4px 5px;border-radius:999px;background:#F1EADB;box-shadow:inset 0 0 0 1.5px rgba(23,19,32,.14);font:800 12.5px/1 var(--font-ui);color:var(--black)}.ttprz .pz i{display:grid;place-items:center;min-width:26px;height:18px;padding:0 4px;border-radius:999px;font:900 10px/1 var(--font-ui);font-style:normal;color:#2B2400}.ttprz .pz.g i{background:#F2C12E}.ttprz .pz.s i{background:#C9CED6}.ttprz .pz.b i{background:#D08A4E;color:#2E1604}.ttprz .pzd{font:700 11.5px/1 var(--font-ui);color:#5E566E}.ttprz .pzn{flex-basis:100%;font:600 11px/1.3 var(--font-ui);color:#7A7288}
+
 .ttmine{position:sticky;bottom:0;display:grid;grid-template-columns:32px minmax(0,1fr) auto;align-items:center;gap:10px;margin:8px 0 0 -2px;padding:7px 10px 7px 6px;border-radius:3px;
   background:#FFE07A;box-shadow:0 0 0 2px var(--black),3px 3px 0 2px rgba(23,19,32,.8)}
 .ttmine .ttrk{background:#fff;color:var(--black);width:auto;min-width:28px;padding:0 4px;border-radius:999px;font-size:12px}
@@ -5454,7 +5456,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 434</p>
+      <p class="ver">Version 435</p>
     </div>
   </div>
 
@@ -15060,7 +15062,7 @@ function throwBoom(D) {
   let tgt = null, tb = D.ai ? 0.9 : 0.42; for (const F of foes(D)) if (F.st === 'play') { const dx = F.x - D.x, dz = F.z - D.z, d = Math.hypot(dx, dz); if (d < 2 || d > 12) continue; const da = Math.abs(wrapA(Math.atan2(dx, dz) - D.yaw)); if (da < tb) { tb = da; tgt = F; } }
   let yaw = tgt ? Math.atan2(tgt.x - D.x, tgt.z - D.z) : D.yaw, curve = Math.abs(D.turn || 0) > 0.3 ? Math.sign(D.turn) : (boomSide = -boomSide);
   if (NM && NM.echo && NM.echoBoom) { const e = NM.echoBoom; yaw = e.yaw; curve = e.curve; tgt = e.tgt && e.tgt.st === 'play' ? e.tgt : null; } // (v427: another player's, thrown as they threw it)
-  else if (NMI() && netMe(D)) netAct('use', { yaw: netR(yaw), curve, tgt: tgt ? NM.slotOf.get(tgt) : undefined }, D);
+  else if (NMI() && netMe(D)) netAct('use', { yaw: netR(yaw), curve, tgt: tgt ? NM.slotOf.get(tgt) : undefined, second: NM.second ? 1 : undefined }, D);
   const gy = surfaceUnder(D.x, D.z, D.y + 0.4, true), y0 = (gy > -Infinity ? gy : D.y) + BOOM_H, M = boomMesh(tmat(D));
   const B = { owner: D, x: D.x + Math.sin(yaw) * 0.45, z: D.z + Math.cos(yaw) * 0.45, y: y0, yaw, curve, tgt, ph: 'out', t: 0, spin: 0, vy: 0, hit: new Set(), seen: new Set(), dist: 0, stroke: 1, rb: { stroke: -1 }, swT: 0, warned: false, g: M.g, sp: M.spin };
   B.g.position.set(B.x, B.y, B.z); scene.add(B.g); booms.push(B);
@@ -15632,7 +15634,7 @@ function useHeld(D) {
   if (!echo && (!D.held || D.whirl || (D === P && tut && tut.hideItem) || D.st !== 'play' || D.flatT > 0 || D.stunT > 0 || D.rocket || D.turret || D.giantT > 0 || D.knockT > 0)) return false;
   const type = D.held; if (!echo && (type === 'turret' || type === 'whirl') && D.air) return false;
   D.held = null; D.heldT = 0;
-  if (!echo && NMI() && netMe(D) && type !== 'boom') netAct('use', { yaw: netR(D.yaw) }, D); // (v427; the boomerang says how it was thrown)
+  if (!echo && NMI() && netMe(D) && type !== 'boom') netAct('use', { yaw: netR(D.yaw), second: NM.second ? 1 : undefined }, D); // (v427; the boomerang says how it was thrown)
   if (type === 'whirl') { startWhirl(D); for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0; return true; }
   if (type === 'trap') { dropTrap(D); for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0; return true; }
   if (type === 'boom') { throwBoom(D); for (const B of ACTIVE) if (B.ai) B.ai.thinkT = 0; return true; } // (v301)
@@ -15644,7 +15646,7 @@ function useHeld(D) {
 }
 
 // ---------- v251: Deep Pockets: the second pocket and the saved orb ----------
-function useHeld2(D) { if (!D.held2) return false; const a = D.held; D.held = D.held2; D.held2 = null; if (useHeld(D)) { D.held = a; return true; } D.held2 = D.held; D.held = a; return false; }
+function useHeld2(D) { if (!D.held2) return false; const a = D.held; D.held = D.held2; D.held2 = null; let ok = false; if (NM) NM.second = 1; try { ok = useHeld(D); } finally { if (NM) NM.second = 0; } if (ok) { D.held = a; return true; } D.held2 = D.held; D.held = a; return false; } // (v434: online, the use says it's the second pocket)
 function useOrb(D) {
   if (!D.orbSaved || D.st !== 'play' || D.flatT > 0 || D.stunT > 0 || D.rocket || D.turret || D.giantT > 0 || D.knockT > 0) return false;
   const g = D.orbSaved; D.orbSaved = null; if (NMI() && netMe(D)) netAct('use', { orb: 1, yaw: netR(D.yaw) }, D); shockwave(D.x, D.y + 0.1, D.z, 2.2, 0xFFFFFF); orbGift(D, g); return true;
@@ -15652,7 +15654,7 @@ function useOrb(D) {
 function cpuGift() { const r = Math.random(); return !tut && !tut2 && !tut3 && r < 0.46 ? (r < 0.15 ? 'freeze' : r < 0.31 ? 'storm' : 'bomb') : ['giant', 'rocket'][(Math.random() * 2) | 0]; } // (v404: the bomb too) // (v384: the storm, as often as the freeze)
 function pocketHud() {
   const b2 = $('itemBtn2'), h2 = state === 'play' && P.st === 'play' ? P.held2 : null; if (b2.hidden === !!h2) b2.hidden = !h2;
-  if (h2 && b2.dataset.k !== h2) { b2.dataset.k = h2; b2.innerHTML = '<i class="sdisc" aria-hidden="true"></i>' + ITEM_ICON[h2] + '<span class="ilbl">' + PU[h2].name + '</span>'; b2.setAttribute('aria-label', 'Use the ' + PU[h2].name.toLowerCase()); restartCls(b2, 'in'); } else if (!h2 && b2.dataset.k) b2.dataset.k = '';
+  if (h2 && b2.dataset.k !== h2) { b2.dataset.k = h2; b2.innerHTML = '<i class="sdisc" aria-hidden="true"></i>' + ITEM_ICON[h2] + '<span class="ilbl' + (PU[h2].name.length > 7 ? ' lng' : '') + '">' + PU[h2].name + '</span>'; b2.setAttribute('aria-label', 'Use the ' + PU[h2].name.toLowerCase()); restartCls(b2, 'in'); } else if (!h2 && b2.dataset.k) b2.dataset.k = '';
   const ob = $('orbBtn'), os = state === 'play' && P.st === 'play' ? P.orbSaved : null; if (ob.hidden === !!os) ob.hidden = !os; if (ob.classList.contains('up') !== !!h2) ob.classList.toggle('up', !!h2);
   if (os && ob.dataset.k !== os) { ob.dataset.k = os; ob.innerHTML = '<i class="sdisc" aria-hidden="true"></i>' + (STROKE_ICON[os] || '') + '<span class="ilbl">' + (ORB_LBL[os] || 'Orb') + '</span><i class="oclk" aria-hidden="true"></i>'; ob.setAttribute('aria-label', 'Use the ' + (ORB_LBL[os] || 'orb').toLowerCase()); restartCls(ob, 'in'); } else if (!os && ob.dataset.k) ob.dataset.k = '';
   if (os) { const keep = !(P.orbT < Infinity), f = keep ? 1 : clamp(P.orbT / ORB_HOLD, 0, 1); if (ob._keep !== keep) { ob._keep = keep; ob.classList.toggle('keep', keep); } if (!keep && Math.abs((ob._f === undefined ? 2 : ob._f) - f) > 0.003) { ob._f = f; ob.style.setProperty('--of', f.toFixed(3)); ob.classList.toggle('low', f < 0.3); } } else ob._f = undefined; // (v256: the orb's clock)
@@ -21413,7 +21415,7 @@ function visuals(dt, rdt) {
   drawShots();
   for (const pw of powers) if (pw.g) { const k = pw.pop < 1 ? 1 - Math.pow(1 - pw.pop, 3) : 1; pw.g.scale.setScalar(Math.max(0.01, k)); pw.g.position.set(pw.x, pw.y + 1.05 + Math.sin(clock * 2.2 + pw.phase) * 0.14, pw.z); if (pw.eyes) { const yaw = Math.atan2(camera.position.x - pw.x, camera.position.z - pw.z); pw.spin.rotation.set(Math.sin(clock * 2.6 + pw.phase) * 0.1, yaw + Math.sin(clock * 1.5 + pw.phase) * 0.5, Math.sin(clock * 2.1 + pw.phase) * 0.16); } else pw.spin.rotation.y = clock * 2.1 + pw.phase; let nr = 0; for (const D of ACTIVE) if (D.st === 'play') nr = Math.max(nr, 1 - Math.hypot(D.x - pw.x, D.z - pw.z) / 3.2); nr = Math.max(0, nr); const jw = Math.sin(clock * (3.1 + 9 * nr) + pw.phase) * (0.03 + 0.07 * nr); pw.bub.scale.set(1 + jw, 1 - jw, 1 + jw * 0.5); } // the bubble gets jittery as someone rolls up to it
   pocketHud(); { const ib = $('itemBtn'), held = state === 'play' && P.st === 'play' && !(tut && tut.hideItem) ? P.held : null; if (ib.hidden === !!held) ib.hidden = !held;
-    if (held && ib.dataset.k !== held) { ib.dataset.k = held; ib.innerHTML = '<i class="sdisc" aria-hidden="true"></i>' + ITEM_ICON[held] + '<span class="ilbl">' + PU[held].name + '</span>'; ib.setAttribute('aria-label', 'Use the ' + PU[held].name.toLowerCase()); restartCls(ib, 'in'); } else if (!held && ib.dataset.k) ib.dataset.k = ''; }
+    if (held && ib.dataset.k !== held) { ib.dataset.k = held; ib.innerHTML = '<i class="sdisc" aria-hidden="true"></i>' + ITEM_ICON[held] + '<span class="ilbl' + (PU[held].name.length > 7 ? ' lng' : '') + '">' + PU[held].name + '</span>'; ib.setAttribute('aria-label', 'Use the ' + PU[held].name.toLowerCase()); restartCls(ib, 'in'); } else if (!held && ib.dataset.k) ib.dataset.k = ''; }
   { const pt = $('ptimer'); let frac = -1, n = 0, kind = '';
     if (state === 'play' && P.st === 'play' && drop.visible) {
       if (P.rocket) { const R = P.rocket, left = R.ph === 'hover' ? Math.max(0, ROCKET_HOVER - R.t) : ROCKET_HOVER; frac = left / ROCKET_HOVER; n = Math.ceil(left); kind = 'pw'; }
@@ -25568,7 +25570,7 @@ function ttBoardHtml(sid) {
   for (const k of [1, 0, 2]) { const r = c.rows[k];
     h += r ? '<div class="pd p' + (k + 1) + (r.me ? ' me' : '') + '"><b class="md">' + (k + 1) + '</b>' + frFace(r.look) + '<span class="nm">' + who(r) + '</span><b class="pc">' + (r.best | 0) + '<small>%</small></b>' + tag(r) + '</div>'
       : '<div class="pd p' + (k + 1) + ' empty"><b class="md">' + (k + 1) + '</b><span class="nm">Open</span></div>'; }
-  h += '</div><p class="ttprz">When the week turns: <b>' + P3[0] + '</b> · <b>' + P3[1] + '</b> · <b>' + P3[2] + '</b> dabs</p>';
+  h += '</div><p class="ttprz"><span class="pzh">Weekly prizes</span><span class="pz g"><i>1st</i>' + P3[0] + '</span><span class="pz s"><i>2nd</i>' + P3[1] + '</span><span class="pz b"><i>3rd</i>' + P3[2] + '</span><span class="pzd">dabs</span><span class="pzn">Paid to the top three when the week ends.</span></p>';
   if (c.rows.length > 3) h += '<ol class="ttlist">' + c.rows.slice(3, 25).map(r => '<li class="ttrow' + (r.me ? ' me' : '') + '"><b class="ttrk" aria-label="' + ttOrd(r.rank) + '">' + r.rank + '</b><span class="ttwho">' + frFace(r.look) + who(r) + (r.friend ? '<i class="tgf">Friend</i>' : '') + '</span><b class="ttpc">' + (r.best | 0) + '<small>%</small></b></li>').join('') + '</ol>';
   const inTop = c.rows.some(r => r.me);
   if (!inTop) h += c.me ? mineRow(c.me.rank, c.me.best) : myBest != null ? mineRow(0, myBest, 'Sending…') : mineRow(0, null, 'No run yet');
@@ -26225,7 +26227,7 @@ const NMI = () => !!(NM && NM.rules && NM.rules.iv >= 2);
 const netR = v => Math.round(v * 100) / 100;
 const NET_CLAIM = { crush: 'crush', boom: 'boom', storm: 'storm', bomb: 'bomb', shot: 'shot' };
 // what you take into a match: the item protocol this game speaks, your start item, special and skill
-function netKit() { return { iv: 2, it: strokeItem() || undefined, sp: strokeSpecial() || undefined, sk: strokeSkill() || undefined }; }
+function netKit() { return { iv: 3, it: strokeItem() || undefined, sp: strokeSpecial() || undefined, sk: strokeSkill() || undefined }; }
 // fire and forget (the claims, the paint, the relays)
 function netTell(a, data, D) {
   if (!NM || !NM.net || !NM.net.tell) return; const nm = NM, back = netAhead * 1000, d = Object.assign({ ts: nm.net.serverNow() - back, vt: nm.net.renderTime() - back }, data || {});
@@ -26264,6 +26266,7 @@ function netItemTaken(m) {
   if (!D || !ACTIVE.includes(D)) { if (pw) itemPop(pw); return; }
   D.held = null; D.held2 = null; // (what it held goes back on the stage: the server puts it there)
   if (pw) collectPower(D, pw); else { D.held = PU[m.kind] ? m.kind : 'roller'; D.heldT = 0; if (D === P) { AU.pop(); buzz(12); } }
+  if (m.h1 !== undefined || m.h2 !== undefined) { D.held = PU[m.h1] ? m.h1 : null; D.held2 = PU[m.h2] ? m.h2 : null; } // (v434: both pockets, as the server has them)
 }
 function netItemUsed(m) {
   const D = netBlob(m.slot); if (!D || !ACTIVE.includes(D)) return;
@@ -26277,6 +26280,7 @@ function netItemUsed(m) {
     try { useHeld(D); } finally { NM.echoBoom = null; }
     if (m.kind === 'trap') { const T = trapList[trapList.length - 1]; if (T && T.owner === D) { T.id = m.trap; if (Number.isFinite(m.x)) { T.x = m.x; T.z = m.z; T.g.position.set(T.x, T.y, T.z); } } }
   });
+  if (m.h1 !== undefined || m.h2 !== undefined) { D.held = PU[m.h1] ? m.h1 : null; D.held2 = PU[m.h2] ? m.h2 : null; } // (v434: what's left in its pockets)
 }
 // a use the server refused (it saw something else going on): a trap dropped here for it is taken back up
 function netUseRefused(D, why) { if (why === 'disconnected' || why === 'timeout') return; for (let i = trapList.length - 1; i >= 0; i--) if (trapList[i].owner === D && !trapList[i].id) { trapPop(trapList[i], null, true); break; } }
@@ -28258,7 +28262,7 @@ $('slamBtn').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPr
 const ITEM_ICON = { roller: '<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="5" y="9" width="30" height="13" rx="6.5"/><path d="M20 22v7h7" fill="none" stroke-width="3.2" stroke-linecap="round"/><rect x="25" y="27" width="7" height="9" rx="2"/></svg>', turret: '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M7 30a13 13 0 0 1 26 0z"/><path d="M20 20L33 9" fill="none" stroke-width="5" stroke-linecap="round"/><circle cx="20" cy="21" r="4.5"/></svg>' };
 ITEM_ICON.trap = '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 25a11 11 0 1 1 22 0c0 2.6-.8 4.8-2.1 6.5l.7 3.3a1.6 1.6 0 0 1-3 .7l-1.1-2.7a11 11 0 0 1-9.8.1l-1.2 2.8a1.6 1.6 0 0 1-3-.7l.8-3.6A11 11 0 0 1 8 25z"/><path d="M24.5 14.5c1.6-3 4-4.4 7-4" fill="none" stroke-width="2.6" stroke-linecap="round"/><path d="M33 3.5l1.2 2.8 3 .3-2.3 2 .7 3-2.6-1.6-2.6 1.6.7-3-2.3-2 3-.3z" fill="#F2C14E" stroke-width="1.4"/><circle cx="15" cy="20.5" r="2.6" fill="#fff" stroke="none" opacity=".75"/></svg>';
 ITEM_ICON.boom = '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M4.2 28.6C6 14.5 34 14.5 35.8 28.6c.3 2.2-2.3 3.4-3.9 1.9C27 25.4 13 25.4 8.1 30.5c-1.6 1.5-4.2.3-3.9-1.9z"/><path d="M12.5 9.5c4.6-2.4 10.4-2.4 15 0M15.5 5c2.9-1.3 6.1-1.3 9 0" fill="none" stroke-width="2.4" stroke-linecap="round"/></svg>'; // (v301)
-ITEM_ICON.whirl = '<svg viewBox="0 0 40 40" aria-hidden="true"><image href="art/it_whirl.webp" x="-2" y="-2" width="44" height="44"/></svg>'; // (v422: the painted tornado)
+ITEM_ICON.whirl = '<svg viewBox="0 0 40 40" aria-hidden="true"><image href="art/it_whirl.webp" x="2" y="1" width="36" height="36"/></svg>'; // (v422: the painted tornado)
 $('itemBtn').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); AU.init(); if (state === 'play' && !useHeld(P)) { AU.nope(); kick($('itemBtn'), 'nope'); } });
 $('itemBtn').addEventListener('click', e => { e.preventDefault(); if (state === 'play' && e.detail === 0) useHeld(P); });
 $('itemBtn2').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); AU.init(); if (state === 'play' && !useHeld2(P)) { AU.nope(); kick($('itemBtn2'), 'nope'); } });
