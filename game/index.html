@@ -3843,6 +3843,7 @@ body.flon #menu,body.flon #heroSay,body.flon #tut,body.flon #tutHand,body.flon #
 .frst{flex:none;width:8px;height:8px;border-radius:50%;background:#B9B3C4}.frst.lobby{background:#2E9E48;box-shadow:0 0 0 3px rgba(46,158,72,.22)}.frst.match{background:#F2A33A;box-shadow:0 0 0 3px rgba(242,163,58,.25)}
 .frbtns{display:flex;align-items:center;gap:6px}
 .frmenu{grid-column:1/-1;display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:0 0 10px 50px;font:700 13px/1.3 var(--font-ui)}
+.frmenu.frrep span:first-child{flex-basis:100%}.frrb{display:inline-flex;align-items:center;gap:6px;font:700 12.5px/1.2 var(--font-ui);color:#4E4660;cursor:pointer}.frrb input{width:18px;height:18px;accent-color:#C2283C;margin:0}.frrow .frago{font:600 12px/1.3 var(--font-ui);color:#6E6680}
 .frempty{margin:4px 0 0;font:600 13.5px/1.45 var(--font-ui);color:#5E566E}
 .frfine{margin:0;font:600 11.5px/1.4 var(--font-ui);font-style:italic;color:#6E6680}
 .frwarn{margin:0;font:700 12.5px/1.35 var(--font-ui);color:#C2283C}
@@ -5456,7 +5457,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 435</p>
+      <p class="ver">Version 436</p>
     </div>
   </div>
 
@@ -23340,7 +23341,7 @@ function sgEquip(id) { if (stIsItem(id)) equipItem(id); else if (stIsSkill(id)) 
 function renderStrokes() {
   const d = strokesOf(); craftTick();
   sgTabs(); sgBadge();
-  const soon = '<span class="sgcard soon" aria-hidden="true"><i class="sghook"></i><span class="sgcb"><span class="sgca">' + stImg('soon') + '</span></span><span class="sgcf">More soon</span></span>';
+  const soon = ''; // (v436: no filler cards)
   $('stSpecialRail').innerHTML = SPECIALS.map(o => stTile(o, false)).join('') + (SPECIALS.length % 3 ? soon : '');
   $('stSkillRail').innerHTML = SKILLS.map(o => stTile(o, true)).join('') + (SKILLS.length % 3 ? soon : ''); $('stItemRail').innerHTML = ST_ITEMS.map(o => stTile(o, 'item')).join('') + (ST_ITEMS.length % 3 ? soon : '');
   stSetCat(stCat, true); sgShowRender(); paintAbil(); stPopRender();
@@ -25598,7 +25599,7 @@ function ttRender() {
     if (!L.length) h = '<p class="ttnone"><b>No runs on this canvas yet this week.</b>Play a Time trial here to put one on the board.</p>';
     else { h = '<ol class="ttlist">'; L.forEach((r, i) => { h += '<li class="ttrow' + (i < 3 ? ' r' + (i + 1) : '') + (r.t === ttHi ? ' me' : '') + '"><b class="ttrk" aria-label="' + ttOrd(i + 1) + '">' + (i + 1) + '</b><span class="ttwho">' + escAttr(ttWhen(r.t)) + (r.t === ttHi ? '<em>Latest</em>' : '') + '</span><b class="ttpc">' + r.p + '<small>%</small></b></li>'; }); h += '</ol>'; }
     const pv = o.prev && o.prev.best[sid]; if (pv) h += '<p class="ttprev">Last week’s best here: <b>' + pv + '%</b></p>';
-    h += SB_CFG ? '<p class="tttease">The top three on <b>Friends</b> win dabs every week. <b>Global</b> comes with online play.</p>' : '<p class="tttease">Soon: the top three on <b>Friends</b> and <b>Global</b> win dabs every week.</p>';
+    h += SB_CFG ? '<p class="tttease">The top three on <b>Friends</b> win dabs every week. <b>Global</b> comes with online play.</p>' : '';
   } else if (ttTab === 'friends' && SB_CFG) h = frBoardHtml(sid); // (v305: live)
   else {
     const P3 = TT_PRIZE[ttTab]; h = '<div class="ttlock"><span class="ttlk">' + '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.4" fill="currentColor"/><path d="M8.2 10.5V8a3.8 3.8 0 0 1 7.6 0v2.5" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>' + '</span><b>Coming with online play</b><p>' + (ttTab === 'global' ? 'Everyone’s best on ' + escAttr(ttName(sid)) + ', every week.' : 'Your friends’ best on ' + escAttr(ttName(sid)) + ', every week.') + '</p>'
@@ -25931,12 +25932,56 @@ function frFace(look) { return ptHtml(ptSpecNet(look), 'frface', frFaceSvg(look)
 // (v334) the lobby's Friends button keeps its three drawn faces (v331 had put portraits there)
 const FR_X = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>';
 const FR_MORE = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="18.5" cy="12" r="2.2" fill="currentColor"/></svg>';
+// ---- (v436) Report: a player can be reported from the Friends page (a friend, a request, someone met online), for one of four reasons
+const FR_WHY = [['name', 'Offensive name'], ['cheating', 'Cheating'], ['bullying', 'Bullying'], ['other', 'Something else']];
+function frRepMenu(id, name, place) {
+  return '<div class="frmenu frrep"><span>Report ' + frEsc(hdOf(name)) + ' for:</span>' + FR_WHY.map(([k, t]) => '<button class="frb ghost" data-act="report" data-id="' + id + '" data-why="' + k + '" data-place="' + place + '" type="button">' + t + '</button>').join('')
+    + '<label class="frrb"><input type="checkbox" id="frRepBlk"' + (FR.repBlk ? ' checked' : '') + '> Block them too</label><button class="frb ghost" data-act="nvm" type="button">Cancel</button></div>';
+}
+// the ... menu of someone who isn't a friend (a request, someone met online): Report, Block (asked first), or the report's reasons
+function frOtherMenu(r, place) {
+  const conf = FR.confirm;
+  if (conf === 'report') return frRepMenu(r.id, r.name, place);
+  if (conf === 'block') return '<div class="frmenu"><span>Block ' + frEsc(hdOf(r.name)) + '?</span><button class="frb bad" data-act="block" data-id="' + r.id + '" type="button">Block</button><button class="frb ghost" data-act="nvm" type="button">Keep</button></div>';
+  return '<div class="frmenu"><button class="frb ghost" data-act="askreport" data-id="' + r.id + '" type="button">Report</button><button class="frb ghost" data-act="askblock" data-id="' + r.id + '" type="button">Block</button></div>';
+}
+const frMoreBtn = r => '<button class="frb ghost ic" data-act="more" data-id="' + r.id + '" type="button" aria-expanded="' + (FR.menu === r.id) + '" aria-label="More for ' + frEsc(hdOf(r.name)) + '">' + FR_MORE + '</button>';
+function frReqRow(r) {
+  const open = FR.menu === r.id;
+  return '<li class="frrow' + (open ? ' open' : '') + '">' + frFace(r.look) + '<span class="frwho"><b>' + frEsc(hdOf(r.name)) + '</b><small>Rank ' + (r.rank | 0) + '</small></span><span class="frbtns"><button class="frb go" data-act="acc" data-id="' + r.id + '" type="button">Accept</button><button class="frb ghost ic" data-act="dec" data-id="' + r.id + '" type="button" aria-label="Decline ' + frEsc(hdOf(r.name)) + '">' + FR_X + '</button>' + frMoreBtn(r) + '</span>'
+    + (open ? frOtherMenu(r, 'request') : '') + '</li>';
+}
+// the real players from your last online matches (the phone keeps the last 12), less your friends, requests and blocks
+function frSawOnline(m) {
+  const me = FR.me && FR.me.id, ok = id => typeof id === 'string' && /^[0-9a-f-]{36}$/i.test(id) && id !== me;
+  const met = (m && Array.isArray(m.players) ? m.players : []).filter(p => p.slot !== m.you && !p.cpu && ok(p.sb)); if (!met.length) return;
+  let L = Array.isArray(store.recent) ? store.recent.filter(x => x && ok(x.id)) : [];
+  for (const p of met) { L = L.filter(x => x.id !== p.sb); L.unshift({ id: p.sb, name: String(p.name || 'Player').slice(0, 20), look: p.look && typeof p.look === 'object' ? p.look : {}, at: Date.now() }); }
+  store.recent = L.slice(0, 12); save();
+}
+function frRecentHtml(b) {
+  const skip = new Set([...b.friends, ...b.incoming, ...b.outgoing, ...b.blocked].map(r => r.id)), L = (Array.isArray(store.recent) ? store.recent : []).filter(r => r && r.id && !skip.has(r.id));
+  if (!L.length) return '';
+  const ago = t => { const s = Math.max(0, (Date.now() - (+t || 0)) / 1000); return s < 3600 ? Math.max(1, Math.round(s / 60)) + 'm ago' : s < 86400 ? Math.round(s / 3600) + 'h ago' : Math.round(s / 86400) + 'd ago'; };
+  return '<section><h4>Played online recently</h4><ul class="frlist">' + L.map(r => { const open = FR.menu === r.id;
+    return '<li class="frrow sm' + (open ? ' open' : '') + '">' + frFace(r.look) + '<span class="frwho"><b>' + frEsc(hdOf(r.name)) + '</b><small class="frago">Played ' + ago(r.at) + '</small></span><span class="frbtns">' + frMoreBtn(r) + '</span>' + (open ? frOtherMenu(r, 'recent') : '') + '</li>'; }).join('') + '</ul></section>';
+}
+async function frReport(b) {
+  const id = b.dataset.id, why = b.dataset.why, place = b.dataset.place || 'friends', blk = !!($('frRepBlk') && $('frRepBlk').checked); FR.repBlk = blk;
+  b.closest('.frmenu').querySelectorAll('button').forEach(x => { x.disabled = true; });
+  try {
+    const r = await sbRpc('rm_report', { p_other: id, p_reason: why, p_place: place, p_note: null, p_block: blk });
+    if (r && r.ok) { FR.menu = ''; FR.confirm = ''; FR.err = ''; if (place === 'recent' && blk) store.recent = (store.recent || []).filter(x => x.id !== id), save(); frToast('<span>Thanks. <b>Report sent.</b> We look at every report within 24 hours.</span>'); hap('success'); await frPoll(); }
+    else FR.err = r && r.why === 'slow_down' ? 'You’ve sent a lot of reports this hour. Try again later.' : r && r.why === 'not_found' ? 'That player isn’t around any more.' : 'Couldn’t send the report. Try again.';
+  } catch (err) { FR.err = (err && (err.status === 404 || /PGRST202|Could not find the function/i.test(String(err.message || '')))) ? 'Couldn’t send the report. Try again later.' : frErrText(err); }
+  frRender();
+}
 function frRow(f) {
   const open = FR.menu === f.id, conf = open && FR.confirm;
   return '<li class="frrow' + (open ? ' open' : '') + '">' + frFace(f.look) + '<span class="frwho"><b>' + frEsc(hdOf(f.name)) + '</b><small><i class="frst ' + (f.online ? f.status : 'off') + '"></i>' + frWhen(f) + ' · Rank ' + (f.rank | 0) + '</small></span>'
     + '<span class="frbtns">' + onInvBtn(f) + '<button class="frb ghost ic" data-act="more" data-id="' + f.id + '" type="button" aria-expanded="' + open + '" aria-label="More for ' + frEsc(hdOf(f.name)) + '">' + FR_MORE + '</button></span>'
-    + (!open ? '' : '<div class="frmenu">' + (conf ? '<span>' + (conf === 'remove' ? 'Remove ' : 'Block ') + frEsc(hdOf(f.name)) + '?</span><button class="frb bad" data-act="' + conf + '" data-id="' + f.id + '" type="button">' + (conf === 'remove' ? 'Remove' : 'Block') + '</button><button class="frb ghost" data-act="nvm" type="button">Keep</button>'
-      : '<button class="frb ghost" data-act="askremove" data-id="' + f.id + '" type="button">Remove friend</button><button class="frb ghost" data-act="askblock" data-id="' + f.id + '" type="button">Block</button>') + '</div>') + '</li>';
+    + (!open ? '' : conf === 'report' ? frRepMenu(f.id, f.name, 'friends') : '<div class="frmenu">' + (conf ? '<span>' + (conf === 'remove' ? 'Remove ' : 'Block ') + frEsc(hdOf(f.name)) + '?</span><button class="frb bad" data-act="' + conf + '" data-id="' + f.id + '" type="button">' + (conf === 'remove' ? 'Remove' : 'Block') + '</button><button class="frb ghost" data-act="nvm" type="button">Keep</button>'
+      : '<button class="frb ghost" data-act="askremove" data-id="' + f.id + '" type="button">Remove friend</button><button class="frb ghost" data-act="askreport" data-id="' + f.id + '" type="button">Report</button><button class="frb ghost" data-act="askblock" data-id="' + f.id + '" type="button">Block</button>') + '</div>') + '</li>';
 }
 const FR_FACES = '<span class="ffaces" aria-hidden="true">' + ['green', 'purple'].map(c => frFaceSvg({ c })).join('') + '</span>'; // (v341: the two drawn faces again, not portraits)
 // the screen. A poll redraws it only when something it shows has changed, and keeps what you're typing
@@ -25956,12 +26001,13 @@ function frRender(fromPoll) {
     heroAdd = '<form class="fradd" id="frAdd" autocomplete="off" novalidate><label for="frIn">Add a friend</label><div><input id="frIn" type="text" inputmode="text" autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="9" placeholder="Their friend code" value="' + frEsc(FR.typed) + '"><button class="frb go" type="submit"><span>Add</span></button></div><p class="frnote' + (FR.noteOk ? '' : ' bad') + '" aria-live="polite">' + frEsc(FR.noteAt === 'code' ? '' : FR.note) + '</p></form>';
     if (NET_URL) h += onInvList(); // (v391: party invites)
     above = b.incoming.length > 0 || !!(NET_URL && ON.invites && ON.invites.length);
-    if (b.incoming.length) h += '<section><h4>Want to be friends <i>' + b.incoming.length + '</i></h4><ul class="frlist">' + b.incoming.map(r => '<li class="frrow">' + frFace(r.look) + '<span class="frwho"><b>' + frEsc(hdOf(r.name)) + '</b><small>Rank ' + (r.rank | 0) + '</small></span><span class="frbtns"><button class="frb go" data-act="acc" data-id="' + r.id + '" type="button">Accept</button><button class="frb ghost ic" data-act="dec" data-id="' + r.id + '" type="button" aria-label="Decline ' + frEsc(hdOf(r.name)) + '">' + FR_X + '</button></span></li>').join('') + '</ul></section>';
+    if (b.incoming.length) h += '<section><h4>Want to be friends <i>' + b.incoming.length + '</i></h4><ul class="frlist">' + b.incoming.map(frReqRow).join('') + '</ul></section>';
     h += '<section aria-label="Your friends">' + (above && b.friends.length ? '<h4>Your friends</h4>' : '') + (b.friends.length ? '<ul class="frlist">' + b.friends.map(frRow).join('') + '</ul>' : '<div class="frmsg frnone">' + FR_FACES + '<p>No friends yet. Send them your code, or add theirs above.</p></div>') + '</section>';
     if (b.outgoing.length) h += '<section><h4>Waiting on</h4><ul class="frlist">' + b.outgoing.map(r => '<li class="frrow sm">' + frFace(r.look) + '<span class="frwho"><b>' + frEsc(hdOf(r.name)) + '</b><small>Request sent</small></span><span class="frbtns"><button class="frb ghost" data-act="cancel" data-id="' + r.id + '" type="button">Cancel</button></span></li>').join('') + '</ul></section>';
+    h += frRecentHtml(b);
     if (b.blocked.length) h += '<details class="frblk"' + (FR.blkOpen ? ' open' : '') + '><summary>Blocked (' + b.blocked.length + ')</summary><ul class="frlist">' + b.blocked.map(r => '<li class="frrow sm"><span></span><span class="frwho"><b>' + frEsc(hdOf(r.name)) + '</b></span><span class="frbtns"><button class="frb ghost" data-act="unblock" data-id="' + r.id + '" type="button">Unblock</button></span></li>').join('') + '</ul></details>';
     if (FR.err) h += '<p class="frwarn">' + frEsc(FR.err) + '</p>';
-    h += '<p class="frfine">Friends see your name, your look and your rank, and when you’re online.</p>';
+    h += '<p class="frfine">Friends see your name, your look and your rank, and when you’re online. There’s no chat in Roll Model. To report or block a player, tap ••• by their name.</p>';
   }
   // (v326) the page: your tag (with your code and the add box, once you have them) on the wall, the rest on the sheet under its heading
   { const bx = FR.me && FR.box, n = bx ? bx.friends.length : -1, k = n > 0 ? bx.friends.filter(f => f.online).length : 0;
@@ -25999,12 +26045,13 @@ frBody.addEventListener('click', async e => {
   if (a === 'copy') return frCopy();
   if (a === 'share') { nativeSay('device', { share: 'Add me on Roll Model! My friend code is ' + frCode(FR.me.code) }); return; }
   if (a === 'more') { FR.menu = FR.menu === id ? '' : id; FR.confirm = ''; return frRender(); }
-  if (a === 'askremove' || a === 'askblock') { FR.confirm = a.slice(3); return frRender(); }
+  if (a === 'askremove' || a === 'askblock' || a === 'askreport') { FR.confirm = a.slice(3); return frRender(); }
+  if (a === 'report') return frReport(b);
   if (a === 'nvm') { FR.menu = ''; FR.confirm = ''; return frRender(); }
   const call = { acc: ['rm_answer_request', { p_from: id, p_accept: true }], dec: ['rm_answer_request', { p_from: id, p_accept: false }], cancel: ['rm_cancel_request', { p_to: id }],
     remove: ['rm_remove_friend', { p_other: id }], block: ['rm_block', { p_other: id }], unblock: ['rm_unblock', { p_other: id }] }[a];
   if (!call) return; b.disabled = true;
-  try { const r = await sbRpc(call[0], call[1]); if (a === 'acc' && r && r.ok) { AU.power(); buzz([12, 40, 12]); onNudge(id, 'answer'); } FR.menu = ''; FR.confirm = ''; FR.err = ''; await frPoll(); }
+  try { const r = await sbRpc(call[0], call[1]); if (a === 'block') store.recent = (store.recent || []).filter(x => x.id !== id), save(); if (a === 'acc' && r && r.ok) { AU.power(); buzz([12, 40, 12]); onNudge(id, 'answer'); } FR.menu = ''; FR.confirm = ''; FR.err = ''; await frPoll(); }
   catch (err) { FR.err = frErrText(err); }
   frRender();
 });
@@ -26071,7 +26118,7 @@ function netMatchFound(m, net) {
   const seats = netSeats(m), slotOf = new Map([...seats].map(([s, D]) => [D, s])), others = [...seats.values()].filter(D => D !== P), fo = m.players.find(p => p.slot === slotOf.get(others[0]));
   NM = { net, m, id: m.matchId, mode: m.mode, slot: m.you, seats, slotOf, others, foe: fo.slot, side: me.side, foeSide: fo.side, sides: new Map(m.players.map(p => [p.slot, p.side])), prevMode, s: null, startAt: 0, endAt: 0, cov: null, wxI: -1, wx: [],
     live: false, rule: false, selfKo: null, res: null, corr: 0, refused: 0, why: [], phase: 'found', ranks: new Map(), foeVote: 0, unsub: null, t0: performance.now() };
-  NM.unsub = netWire(net);
+  NM.unsub = netWire(net); try { frSawOnline(m); } catch (e) {}
   if (menuPage === 'worlds') { menuPage = 'home'; menu.dataset.page = 'home'; $('mWorld').hidden = true; $('mHome').hidden = false; }
   if (menuPage === 'events') { menuPage = 'home'; menu.dataset.page = 'home'; evEl.hidden = true; $('mHome').hidden = false; } evFrom = false; document.body.classList.remove('evon');
   if (shopOpen) closeShop(true); if (lookOpen) closeLook(); if (lkOn()) closeLocker(true); if (!$('friendsModal').hidden) closeFriends();
@@ -26791,7 +26838,7 @@ function ptReady() {
 }
 function ptVote(m) {
   const p = ON.party; if (!p || !ON.net || p.state === 'match') return; const x = p.modes.find(q => q.mode === m);
-  if (!x || !x.on) { AU.nope(); return frToast('<span>' + (x ? 'Coming soon' : 'Not for a party this size') + '</span>'); }
+  if (!x || !x.on) { AU.nope(); return frToast('<span>' + (x ? 'Not in parties yet' : 'Not for a party this size') + '</span>'); }
   ON.net.partyVote(m).catch(() => {}); AU.pop();
 }
 function ptLeave() { if (!ON.net || !ON.party) return; ON.net.partyLeave().catch(() => {}); ON.party = null; ptMenuClose(); ptEmo(false); partyRender(); onBeat(); onUpd(); onSay('You left the party'); }
@@ -27409,12 +27456,12 @@ async function acForgot() {
   if (AC.forgotAt && Date.now() - AC.forgotAt < 30000) return acShake('We just sent one. Give it a minute.');
   AC.busy = true; AC.err = ''; acBusy('Sending…');
   try { await sbFetch('/rest/v1/rpc/rm_reset_request', { p_who: w }); AC.forgotAt = Date.now(); AC.busy = false; AC.sentTo = w; AU.power(); acRender(); }
-  catch (e) { AC.busy = false; acBusy(null); acShake(csMissing(e) ? 'Password resets are coming soon.' : acErrText(e)); }
+  catch (e) { AC.busy = false; acBusy(null); acShake(csMissing(e) ? 'Password reset isn’t available right now. Try again later.' : acErrText(e)); }
 }
 function acEmailHtml() {
   const s = EM.st;
   if (!s) return '<div class="frmsg acmsg"><p>' + frEsc(AC.err || 'Getting your email…') + '</p>' + (AC.err ? '<div class="acbtns"><button class="frb" data-ac="close" type="button">Close</button></div>' : '') + '</div>';
-  if (s.off) return '<div class="frmsg acmsg">' + FR_FACES + '<b>Coming soon</b><p>Emails for accounts are on their way.</p><div class="acbtns"><button class="frb" data-ac="close" type="button">OK</button></div></div>';
+  if (s.off) return '<div class="frmsg acmsg">' + FR_FACES + '<b>Email</b><p>Adding an email isn’t available right now. Your account works without one.</p><div class="acbtns"><button class="frb" data-ac="close" type="button">OK</button></div></div>';
   const top = !s.email ? 'Add your email, so you can get back in if you ever forget your password. Other players never see it.'
     : !s.verified ? 'We sent a link to <b>' + frEsc(s.email) + '</b>. Tap it to confirm your email' + (s.mail ? ', so you can reset your password if you ever forget it.' : '.')
     : '<b>' + frEsc(s.email) + '</b> is confirmed. If you ever forget your password, Log in has a link to reset it.';
@@ -27424,7 +27471,7 @@ function acEmailHtml() {
     + '<div class="acf acw"><label for="acEmail2">' + (s.email ? 'Change your email' : 'Email') + '</label><input id="acEmail2" data-k="email2" type="email" inputmode="email" maxlength="254" autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" value="' + frEsc(AC.f.email2 || '') + '"></div>'
     + '<p class="acerr acw" id="acErr" role="alert">' + frEsc(AC.err || (NET_WALLED ? NET_APP : '')) + '</p>'
     + '<button class="frb go acgo acw" id="acGo" type="submit">' + (s.email ? 'Save new email' : 'Save email') + '</button>'
-    + (s.mail ? '' : '<p class="frfine acw">Account emails are switching on soon. Your email is kept for when they do.</p>') + '</form>';
+    + (s.mail ? '' : '<p class="frfine acw">Your email stays private. It’s only used for your account.</p>') + '</form>';
 }
 async function acEmailSave() {
   if (AC.busy) return; const em = ($('acEmail2') ? $('acEmail2').value : '').trim();
@@ -27601,7 +27648,7 @@ function acReset() {
 // the sheet. next(): after a sign-up or log-in (Play online goes on to the match). Signed in already: straight to next()
 function acctOpen(next, tab) {
   if (acctReady()) { if (typeof next === 'function') next(); return; }
-  if (!SB_CFG) { frToast('<span>Online play is coming soon</span>'); return; }
+  if (!SB_CFG) { frToast('<span>Online play isn’t available right now</span>'); return; }
   netProbe(); AC.next = typeof next === 'function' ? next : null; AC.tab = tab === 'in' ? 'in' : 'new'; AC.err = ''; AC.busy = false; if (!AC.f.userTyped) AC.f.user = acSuggest(); // (their name now, unless they've typed one here)
   if (!AC.open) AC.ret = document.activeElement; AC.open = true; $('acModal').hidden = false; acRender();
   const c = $('acModal').querySelector('.ttcard'); c.style.animation = 'none'; void c.offsetWidth; c.style.animation = '';
@@ -27647,7 +27694,7 @@ window.acctReady = acctReady; window.acctOpen = acctOpen; setTimeout(() => { try
 // phone takes the account's, at a start. If both did, more rank wins (the server never lets less replace more; a tie stays with this
 // phone). Logging in on a phone that was never this account's brings the account's copy.
 var CS = { ok: false, off: false, hold: false, dirty: false, t: 0, busy: null, sync: null, bootP: null, reloading: false, want: false, watch: 0 };
-const CS_LOCAL = ['sbs', 'muted', 'sfxOff', 'musicOff', 'gfx', 'orient', 'perfHud', 'acYoung', 'lastErr', 'netTok', 'csHi', 'st'], CS_BOOK = 'rm.cs', CS_WAIT = 30000;
+const CS_LOCAL = ['sbs', 'muted', 'sfxOff', 'musicOff', 'gfx', 'orient', 'perfHud', 'acYoung', 'lastErr', 'netTok', 'csHi', 'st', 'recent'], CS_BOOK = 'rm.cs', CS_WAIT = 30000;
 const csUid = () => (FR.s && FR.s.uid) || (store.sbs && store.sbs.uid) || '';
 const csXp = x => Math.max(0, Math.floor(+x || 0));
 const csMissing = e => !!e && (e.status === 404 || /PGRST202|Could not find the function/i.test(String(e.message || ''))); // (the v312 SQL not run yet)
@@ -27811,7 +27858,7 @@ BA.ready = true; if (BA.on && !SB_CFG) { BA.on = false; const b = $('bootAcct');
 function acSetPaint() {
   const row = $('acRow'); if (!row) return; const on = !!SB_CFG, nm = acName() || store.name || '';
   const b = (a, t, cls) => '<button class="sbtn' + (cls ? ' ' + cls : '') + '" type="button" data-ac="' + a + '"' + (AC.busy || !on ? ' disabled' : '') + '><span>' + t + '</span></button>';
-  row.classList.toggle('soon', !on); $('acSlab').innerHTML = 'Account' + (on ? '' : ' <i class="soontag">Coming soon</i>');
+  row.classList.toggle('soon', !on); $('acSlab').innerHTML = 'Account' + (on ? '' : ' <i class="soontag">Off</i>');
   let t, h;
   if (!on) { t = 'Accounts come with online play.'; h = b('new', 'Make an account') + b('in', 'Log in'); }
   else if (AC.out && acctReady()) { t = AC.busy ? 'Saving your progress to <b>' + frEsc(hdOf(nm)) + '</b>…' : 'Log out of <b>' + frEsc(hdOf(nm)) + '</b>? Your progress stays with your account, and this phone starts fresh for the next player.'; h = b('outyes', 'Log out') + b('outno', 'Stay'); } // (v312)
@@ -27844,12 +27891,12 @@ function acMatchPaint() {
   b.setAttribute('aria-label', on ? 'Play online: 1v1, 3-way or Showdown against real people' : lv < ABIL_RANK ? 'Play online, locked: reach rank ' + ABIL_RANK : 'Play online, locked: open Strokes in the lobby to unlock it');
 }
 function evToast(c, t) { const old = c.querySelector('.evtoast'); if (old) old.remove(); const s = document.createElement('span'); s.className = 'evtoast'; s.setAttribute('role', 'status'); s.textContent = t; c.appendChild(s); setTimeout(() => s.remove(), 1700); }
-function mpGo() { if (typeof onlineOpen === 'function') onlineOpen(); else evToast($('evMatch').closest('.evcard'), 'Online matches are coming soon'); }
+function mpGo() { if (typeof onlineOpen === 'function') onlineOpen(); else evToast($('evMatch').closest('.evcard'), 'Online matches aren’t available right now'); }
 function mpTap() {
   const c = $('evMatch').closest('.evcard');
   if (!mpOpen()) { AU.nope(); buzz(8); return evToast(c, repOf(store.xp || 0).lv < ABIL_RANK ? 'Reach rank ' + ABIL_RANK : 'Open Strokes in the lobby to unlock it'); }
   AU.ui(); if (!store.mpTried) { store.mpTried = 1; save(); acMatchPaint(); }
-  if (!SB_CFG) return evToast(c, 'Online matches are coming soon');
+  if (!SB_CFG) return evToast(c, 'Online matches aren’t available right now');
   acctOpen(mpGo);
 }
 const themeLabel = sid => (THEMES.find(t => t.id === sid) || {}).label || sid;
@@ -28873,7 +28920,7 @@ function ptEvSides(x, mem) {
 // what each card says: the strip above it, the line under its name, and its whole meaning for a screen reader
 function ptEvWords(x, n) {
   const own = x.plan === 'private', more = PY_NEED[x.mode] - n, name = PY_FULL[x.mode] || x.mode;
-  const bar = !x.on ? 'Coming soon' : own ? 'Just you ' + (['', '', 'two', 'three', 'four'][n] || 'all') : x.mode === 'duo' ? 'Finds a team online' : 'Finds ' + more + ' more online';
+  const bar = !x.on ? 'Not in parties yet' : own ? 'Just you ' + (['', '', 'two', 'three', 'four'][n] || 'all') : x.mode === 'duo' ? 'Finds a team online' : 'Finds ' + more + ' more online';
   const sub = x.mode === 'duel' || x.mode === 'trio' ? 'Most paint wins' : x.mode === 'ffa' ? 'Last one standing' : own ? 'Two teams, picked fair' : 'You two on one team';
   const say = name + ': ' + (x.mode === 'duo' ? (own ? 'two teams of your party' : 'you two as a team against a team found online')
     : (own ? 'just your party' : 'your party and ' + more + (more === 1 ? ' player' : ' players') + ' found online') + (x.mode === 'duel' ? ', one against one' : ', each for their own'));
@@ -28914,7 +28961,7 @@ function ptEvCpuSides(x, mem) {
 }
 function ptEvCpuWords(x, n) {
   const k = x.cpus | 0, cw = k === 1 ? '1 CPU' : k + ' CPUs', who = ['', '', 'you two', 'you three'][n] || 'your party';
-  const bar = !x.on ? 'Coming soon' : 'Starts now · no wait';
+  const bar = !x.on ? 'Not in parties yet' : 'Starts now · no wait';
   const sub = x.mode === 'duo' ? (n === 2 ? 'You two vs ' + cw : n === 3 ? 'Two of you vs one and a CPU' : 'Two teams') : x.mode === 'trio' ? 'Most paint wins' : 'Last one standing';
   const say = (PY_FULL[x.mode] || x.mode) + ' with ' + cw + ': ' + who + ' and ' + cw + ', no waiting' + (x.mode === 'duo' ? ', on two teams' : ', each for their own');
   return { bar, sub, say };
@@ -28923,7 +28970,7 @@ function ptEvCpuWords(x, n) {
 async function ptEvPick(m, cpu) {
   const p = ON.party, me = ptMe(), x = p && p.modes.find(q => q.mode === m);
   if (!p || !me || !ON.net || p.leader !== me.id || p.state !== 'idle') return closeEvents();
-  if (!x || !x.on || (cpu && !(x.cpus > 0))) { AU.nope(); buzz(8); return frToast('<span>' + (x ? 'Coming soon' : 'Not for a party this size') + '</span>'); }
+  if (!x || !x.on || (cpu && !(x.cpus > 0))) { AU.nope(); buzz(8); return frToast('<span>' + (x ? 'Not in parties yet' : 'Not for a party this size') + '</span>'); }
   AU.pop(); buzz(12); closeEvents();
   try { await ON.net.partyVote(m, !!cpu); await ON.net.partyReady(true); } catch (e) { frToast('<span>' + frEsc(onReqText(e)) + '</span>'); }
 }

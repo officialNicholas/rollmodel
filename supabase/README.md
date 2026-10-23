@@ -31,6 +31,13 @@ shouldn't.
       server: `docs/party-v391.md`)
    7. `supabase/migrations/20261020010000_first_name.sql` (v391: an account asks for a first name only; the last names
       kept so far are cleared. Run it before v391 of the game is out: until it's run, making an account in v391 fails)
+   8. `supabase/migrations/20261021000000_trial_global.sql` (v428: the Time trial's one weekly leaderboard)
+   9. `supabase/migrations/20261023000000_reports.sql` (v436: Report a player, from the Friends page, for App Review
+      guideline 1.2. Until it's run, Report says it couldn't send and to try later; Block works as before)
+
+   For App Review: `supabase/review/app_review_accounts.sql` makes the two demo accounts the reviewer signs in with
+   (@rollreview, with a friend already on its list, @rollreviewpal). Put your own two passwords in place of CHANGE-ME-1 and
+   CHANGE-ME-2 in your copy before running it, and don't commit that copy. Running it again resets both accounts.
 4. **Send me two values.** Dashboard > Project Settings > API Keys (or Data API):
    - the **Project URL** (`https://<something>.supabase.co`);
    - the **publishable key** (`sb_publishable_...`), or the older **anon public** key if that's what the project shows.
