@@ -36,6 +36,15 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         }
     }
 
+    #if compiler(>=6.2)
+    // iPadOS 26 and the big iPhones put the window's own controls (close, minimise, resize) in its top-left corner, over the game's
+    // Back buttons. The minimal style moves the safe area below them, and the page already keeps its buttons inside the safe area.
+    @available(iOS 26.0, *)
+    func preferredWindowingControlStyle(for windowScene: UIWindowScene) -> UIWindowScene.WindowingControlStyle {
+        return .minimal
+    }
+    #endif
+
     private var gameController: GameViewController? {
         window?.rootViewController as? GameViewController
     }
