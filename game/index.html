@@ -5471,7 +5471,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 438</p>
+      <p class="ver">Version 439</p>
     </div>
   </div>
 
@@ -6640,9 +6640,17 @@ const DEV_TIER = NATIVE && typeof NATIVE.tier === 'number' ? NATIVE.tier : MOBIL
 // (v430) the last match never ended: the page was closed under it (most likely the phone ran out of memory). Step down a level
 // before the visuals are picked, so it doesn't happen again: Graphics to Performance, or Performance to fewer pixels (store.lowMem)
 const MEM_DOWN = (() => { try {
-  const L = JSON.parse(localStorage.getItem('rm.live') || 'null'), C = JSON.parse(localStorage.getItem('rm.crashed') || 'null');
+  const L = JSON.parse(localStorage.getItem('rm.live') || 'null');
   localStorage.removeItem('rm.live'); localStorage.removeItem('rm.crashed');
-  const hit = L && Date.now() - L.t < 10 * 60000 ? L : C && Date.now() - C.t < 10 * 60000 ? C : null; if (!hit) return null;
+  // (v439) room to spare: 6 GB or more (an iPhone Air has 12), or a computer. A page closed there isn't the visuals' doing
+  const roomy = NATIVE ? +NATIVE.memGB >= 6 : DEV_TIER >= 3;
+  if (roomy && !store.memFix439) { store.memFix439 = 1; // (once: visuals the old guard stepped down come back, never the player's own pick)
+    if (store.memCrash && !store.gfxUser) { if (store.gfx === 'perf') delete store.gfx; delete store.lowMem; }
+    localStorage.setItem(KEY, JSON.stringify(store)); localStorage.setItem(KEY + '.t', String(Date.now())); }
+  // (v439) in the app only its word counts: iOS closed the page while the game was on screen. Not a match left unfinished (the app
+  // swiped away, the phone restarted, an update) nor the restart after the graphics were lost. A browser has only the stamp
+  const hit = NATIVE ? (NATIVE.crash && NATIVE.crash.onScreen ? NATIVE.crash : null) : L && Date.now() - L.t < 10 * 60000 ? L : null;
+  if (!hit || roomy) return null;
   const was = store.gfx === 'perf' || store.gfx === 'hi' ? store.gfx : DEV_TIER >= 2 ? 'hi' : 'perf'; let did = null;
   store.memCrash = (store.memCrash || 0) + 1;
   if (was === 'hi') { store.gfx = 'perf'; did = 'gfx'; } else if (!store.lowMem) { store.lowMem = 1; did = 'px'; }
@@ -28399,7 +28407,7 @@ function openSettings() { if (state !== 'menu' || lookOpen || shopOpen || lkOn()
 function closeSettings() { if (setModal.hidden) return; setModal.hidden = true;
   if (setInPlay) { setInPlay = false; setPlayRows(false); if (state === 'paused' || (NM && state === 'play')) { pauseEl.hidden = false; setTimeout(() => $('resumeBtn').focus({ preventScroll: true }), 30); } return; } // (v399: back to the pause menu)
   $('hamBtn').focus({ preventScroll: true }); }
-function doneSettings() { if (gfxPick === GFX) return closeSettings(); store.gfx = gfxPick; save(); $('setDone').disabled = true; $('setDone').textContent = 'Restarting'; setTimeout(() => location.reload(), 120); }
+function doneSettings() { if (gfxPick === GFX) return closeSettings(); store.gfx = gfxPick; store.gfxUser = 1; save(); $('setDone').disabled = true; $('setDone').textContent = 'Restarting'; setTimeout(() => location.reload(), 120); }
 $('setBtn').addEventListener('click', uiClick(openSettings));
 const SM_SND_ON = '<svg viewBox="0 0 48 48"><path d="M7 18h8l11-9v30l-11-9H7z" fill="#fff" stroke="#171320" stroke-width="3" stroke-linejoin="round"/><path d="M32 17a9 9 0 0 1 0 14M36.5 12.5a15 15 0 0 1 0 23" fill="none" stroke="#171320" stroke-width="6.5" stroke-linecap="round"/><path d="M32 17a9 9 0 0 1 0 14M36.5 12.5a15 15 0 0 1 0 23" fill="none" stroke="#46E07A" stroke-width="3.2" stroke-linecap="round"/></svg>', SM_SND_OFF = '<svg viewBox="0 0 48 48"><path d="M7 18h8l11-9v30l-11-9H7z" fill="#fff" stroke="#171320" stroke-width="3" stroke-linejoin="round"/><path d="M32 18l10 12M42 18 32 30" fill="none" stroke="#171320" stroke-width="7" stroke-linecap="round"/><path d="M32 18l10 12M42 18 32 30" fill="none" stroke="#FF5A57" stroke-width="3.6" stroke-linecap="round"/></svg>';
 // ---------- the home screen (v208): the floating power bar over your character (your rank, your paint filling toward the next one, your

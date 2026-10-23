@@ -21,6 +21,7 @@ final class GameViewController: UIViewController {
     private var reloadWhenActive = false
     private var restarts: [Date] = []    // (when the game's page was started over, this last minute)
     private var restartCard: UIView?
+    private var crashedOnScreen: Date?   // (the page was closed by iOS while the game was in front: the next page is told, once)
 
     override func loadView() {
         contentController.add(haptics, name: HapticsBridge.messageName)
@@ -100,6 +101,13 @@ final class GameViewController: UIViewController {
                                                      injectionTime: .atDocumentStart,
                                                      forMainFrameOnly: true))
         contentController.addUserScript(WKUserScript(source: AdsBridge.startScript,
+                                                     injectionTime: .atDocumentStart,
+                                                     forMainFrameOnly: true))
+        // Whether the page before this one was closed by iOS while the game was on screen (the one sure sign the phone ran short of
+        // memory while playing). The game only eases its visuals off for that, never for the app being closed or put away.
+        let crash = crashedOnScreen.map { "{ onScreen: true, ago: \(Int(Date().timeIntervalSince($0))) }" } ?? "null"
+        crashedOnScreen = nil
+        contentController.addUserScript(WKUserScript(source: "window.__NATIVE = window.__NATIVE || {}; window.__NATIVE.crash = \(crash);",
                                                      injectionTime: .atDocumentStart,
                                                      forMainFrameOnly: true))
     }
@@ -263,9 +271,11 @@ extension GameViewController: WKNavigationDelegate {
         // (a page that loads out of sight can't start its sound), after a short pause if it only just happened, so a struggling
         // device isn't stuck reloading.
         guard UIApplication.shared.applicationState == .active else {
+            // (in the background iOS closes pages to make room for other apps: that says nothing about the game)
             reloadWhenActive = true
             return
         }
+        crashedOnScreen = Date()
         reloadGame()
     }
 
