@@ -5471,7 +5471,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 439</p>
+      <p class="ver">Version 440</p>
     </div>
   </div>
 
@@ -15686,6 +15686,9 @@ function pocketHud() {
 // they're stunned and popped up. A dodge roll through it sets it off harmlessly (v365: a CPU coming to one has seen it or not: TRAP_CATCH); your own can't
 // catch you, and a jump clears it. Two down at most each (a third pops the oldest); left alone it fizzles out after TRAP_LIFE seconds ----------
 const TRAP_R = 0.92, TRAP_ARM = 0.6, TRAP_LIFE = 45, TRAP_MAX = 2, TRAP_STUN = 1.5, TRAP_SPLAT = SPLAT_R * 1.7;
+// (v440) Time trial has no rivals to set a trap off: there it goes off by itself TRAP_FUSE seconds after it's dropped, flashing white
+// faster and faster until it bursts
+const TRAP_FUSE = 3, trapFlashM = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
 // (v365) a CPU coming to a trap: the first time a rival's lies ahead of it (within TRAP_SEE, and within TRAP_LANE of the line it's rolling
 // along), it either hasn't seen it, TRAP_CATCH of the time by its level, and rolls on over it, or it has, and goes round it (or rolls
 // through it or hops it, if it's still dead ahead at the last moment). Once it's well past it forgets, so the next time it comes that way is a
@@ -15707,6 +15710,7 @@ function dropTrap(D) {
   const gy = surfaceUnder(D.x, D.z, D.y + 0.4, true), y = gy > -Infinity ? gy : D.y, mine = trapList.filter(T => T.owner === D);
   if (mine.length >= TRAP_MAX) trapPop(mine[0], null, true);
   const T = { owner: D, x: D.x, y, z: D.z, arm: TRAP_ARM, t: 0, code: tcode(D), mind: new Map(), seen: false, g: makeTrapMesh(D) }; T.g.position.set(T.x, y, T.z); scene.add(T.g); trapList.push(T);
+  if (mode === 'solo' && !NM) { T.fuse = TRAP_FUSE; T.domeM = T.g.children[1].material; } // (v440: Time trial: it goes off by itself)
   shockwave(T.x, y + 0.05, T.z, 0.9, TEAMS[D.team].wet); D.squash = Math.max(D.squash, 0.4); emote(D, 'glee', 0.6);
   if (hearable(D)) { AU.at(T.x, T.z); AU.plop(); }
   if (D === P) { buzz(10); popText('Trap set!'); }
@@ -15716,6 +15720,14 @@ function trapTick(dt) {
     const T = trapList[i]; T.t += dt; if (T.arm > 0) T.arm -= dt;
     const u = T.g.userData; u.light.material = (T.arm > 0 ? (T.t * 10) % 1 < 0.5 : (T.t * 1.4) % 1 < 0.2) ? trapLightOn : trapLightOff; u.ring.scale.setScalar(1 + 0.07 * Math.sin(T.t * 5));
     if (T.t > TRAP_LIFE) { trapPop(T, null, true); continue; }
+    if (T.fuse !== undefined) { // (v440) the fuse: flashes white, slow then fast, a rising tick on each, a swell at the end, then the burst
+      T.fuse -= dt; if (T.fuse <= 0) { T.g.children[1].material = T.domeM; trapPop(T, null, false); continue; }
+      const k = 1 - T.fuse / TRAP_FUSE, per = 0.55 - 0.45 * k; T.fl = (T.fl || 0) + dt; if (T.fl >= per) T.fl -= per;
+      const on = T.fl < per * 0.45; T.g.children[1].material = on ? trapFlashM : T.domeM; u.light.material = on ? trapLightOn : trapLightOff;
+      if (on && !T.wasOn && Math.hypot(T.x - P.x, T.z - P.z) < 20 && AU.tick) { AU.at(T.x, T.z); AU.tick(Math.floor(k * 10)); }
+      T.wasOn = on; T.g.scale.setScalar(TRAP_SCALE * (1 + 0.22 * k * k * k + (on ? 0.04 : 0))); u.ring.scale.setScalar(1 + 0.6 * k + 0.07 * Math.sin(T.t * 9));
+      continue;
+    }
     if (state !== 'play' || NM) continue; const armed = !(T.arm > 0); // (v427: online, the server says when one goes off)
     if (armed && T.owner !== P && !T.seen && P.st === 'play' && Math.hypot(P.x - T.x, P.z - T.z) < 9) { T.seen = true; hint('trapdodge', say('A trap! Swipe up to roll through it safely', 'A trap! Shift to roll through it safely'), 3.2); }
     for (const D of ACTIVE) {
