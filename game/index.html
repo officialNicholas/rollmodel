@@ -5704,7 +5704,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 459</p>
+      <p class="ver">Version 460</p>
     </div>
   </div>
 
@@ -25292,7 +25292,7 @@ function irisOpen(at) {
 const toMenu = () => irisClose(() => { showMenu(); camSnap = true; irisOpen(); });
 // (v255) Rematch, new canvas: the canvas vote for the same event first (another canvas, the CPUs easier or harder), then Play as
 // always; its back button goes to the events. The onboarding's own matches go straight on, as before.
-function rematchVote() { if (NM) return netRematch(); if (building || irisBusy) return; if (end.classList.contains('gate')) return toMenu(); if (tutPh() !== 'done') return start(); irisClose(() => { showMenu(); camSnap = true; openWorlds(); evFrom = true; irisOpen(); }); }
+function rematchVote() { if (NM) return netRematch(); if (building || irisBusy) return; if (end.classList.contains('lsn')) return irisClose(() => { showMenu(); camSnap = true; irisOpen(); setTimeout(() => openLocker('shop'), 60); }); if (end.classList.contains('gate')) return toMenu(); if (tutPh() !== 'done') return start(); irisClose(() => { showMenu(); camSnap = true; openWorlds(); evFrom = true; irisOpen(); }); }
 // ---------- the start of a match: 3, 2, 1, each blob gathering itself into a drop in the air over its spot, and at Go they fall and splat down ----------
 const REVEAL_T = 2.7; let revealT = 0, revealA0 = 0; // the sweep over the canvas before the count
 const INTRO_AT = [0.6, 1.6, 2.6, 3.6], INTRO_H = 1.9, INTRO_LK = 0.4, BASIN_DEEP = 2.4; // when each count lands (a second apart: room for the crawl out), how high the drop forms, how far above it the camera looks (so it sits under the numbers)
@@ -29091,8 +29091,8 @@ function orbFade(D) {
 }
 // ---------- (v256) a lesson waiting in the lobby (the Strokes page, commissions): the results lead only back to the lobby ----------
 function endGate() {
-  const due = false, eb = $('endBtn');
-  end.classList.toggle('gate', due); eb.innerHTML = due ? '<span>Main menu</span><small>Something new in the lobby</small>' : '<span>Continue</span><small>New canvas</small>';
+  const lsn = !NM && !!(endInfo && endInfo.lesson), due = lsn, eb = $('endBtn'); end.classList.toggle('lsn', lsn); // (v460: after the training match, only Continue, to the shop)
+  end.classList.toggle('gate', due); eb.innerHTML = lsn ? '<span>Continue</span><small>New items unlocked</small>' : due ? '<span>Main menu</span><small>Something new in the lobby</small>' : '<span>Continue</span><small>New canvas</small>';
   $('replayBtn').closest('.row').hidden = due;
   setTimeout(() => eb.focus({ preventScroll: true }), 30);
 }
