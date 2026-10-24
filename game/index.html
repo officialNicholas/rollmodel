@@ -5704,7 +5704,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 458</p>
+      <p class="ver">Version 459</p>
     </div>
   </div>
 
@@ -25826,7 +25826,7 @@ const ttOrd = n => n + (n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd
 function ttStrip() {
   const el = $('ttStrip'); if (!el) return; const solo = mode === 'solo'; el.hidden = !solo; $('soloNote').classList.toggle('ttoff', solo); $('wDiffHd').hidden = solo; if (!solo) return;
   const sid = ttSid(), L = ttRuns(sid), n = ttOf().n[sid] || 0;
-  $('ttStripB').textContent = L.length ? 'This week: ' + L[0].p + '%' : 'No run here this week';
+  $('ttStripB').textContent = L.length ? 'This week: ' + L[0].p + '%' : 'No best yet';
   $('ttStripS').textContent = L.length ? 'Best of ' + n + (n === 1 ? ' run' : ' runs') + ' on ' + ttName(sid) : 'Set one on ' + ttName(sid); $('ttStripW').textContent = 'New week in ' + ttLeft();
   el.setAttribute('aria-label', 'Leaderboard for ' + ttName(sid) + '. ' + $('ttStripB').textContent + '. New week in ' + ttLeft());
 }
