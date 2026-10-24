@@ -5471,7 +5471,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 440</p>
+      <p class="ver">Version 441</p>
     </div>
   </div>
 
@@ -22611,8 +22611,8 @@ function eyeShowFace(E) {
 if (!store.capeBack && Array.isArray(store.bought) && store.bought.includes('cape')) { store.capeBack = 1; store.drops = (store.drops || 0) + 480; store.bought = store.bought.filter(i => i !== 'cape'); if (Array.isArray(store.owned)) store.owned = store.owned.filter(i => i !== 'cape'); } // (v405: the cape's gone; what it cost comes back)
 const OWNED = new Set(Array.isArray(store.owned) ? store.owned.filter(id => ITEMS.some(w => w.id === id)) : []);
 // drops: paint earned at the end of a match. A found item goes on sale in the locker; it is worn once it is bought
-const PRICES = { sly: 545, flower: 145, pearls: 160, scarf: 180, bowtie: 185, stache: 195, beanie: 205, party: 240, monocle: 290, lashes: 220, glasses: 270, patch: 330, fangs: 400, tiara: 475, tophat: 580, bunny: 645, pirate: 695, hockey: 765, skull: 835, halo: 850, zombie: 975, hat: 1105, antennae: 195, floaties: 245, snorkel: 295, propcap: 345, cape: 480, galaxy: 2000, lava: 1750, rainbow: 1500, matrix: 1750, glitter: 1250, zombie: 1500 }; // (v387: the skins) // (v302: the five new everyday pieces; see docs/wearables-v302.md)
-const OUTRIGHT = new Set(['flower', 'lashes', 'bowtie', 'pearls', 'beanie', 'party', 'monocle', 'stache', 'scarf', 'antennae', 'snorkel', 'propcap', 'floaties', 'cape']), needFind = w => !OUTRIGHT.has(w.id) && (!!w.season || w.slot === 'head'); // (in stock from the start: nothing to find, only dabs to pay) // (what has to be found on a canvas before it is for sale)
+const PRICES = { sly: 545, flower: 25, pearls: 160, scarf: 180, bowtie: 185, stache: 195, beanie: 205, party: 240, monocle: 290, lashes: 220, glasses: 270, patch: 330, fangs: 40, tiara: 475, tophat: 580, bunny: 645, pirate: 695, hockey: 765, skull: 835, halo: 850, zombie: 975, hat: 1105, antennae: 195, floaties: 245, snorkel: 295, propcap: 345, cape: 480, galaxy: 2000, lava: 1750, rainbow: 1500, matrix: 1750, glitter: 1250, zombie: 1500 }; // (v387: the skins) // (v302: the five new everyday pieces; see docs/wearables-v302.md)
+const OUTRIGHT = new Set(['flower', 'fangs', 'lashes', 'bowtie', 'pearls', 'beanie', 'party', 'monocle', 'stache', 'scarf', 'antennae', 'snorkel', 'propcap', 'floaties', 'cape']), needFind = w => !OUTRIGHT.has(w.id) && (!!w.season || w.slot === 'head'); // (in stock from the start: nothing to find, only dabs to pay) // (what has to be found on a canvas before it is for sale)
 const PRICE = w => { const t = store.tut && store.tut.price; if (t && t[w.id] >= 0) return t[w.id]; if (w.gift) return 0; /* (v330: a gift costs nothing) */ { const lp = stLive(w.id); if (lp >= 0) return lp; } /* (v354: a live price from the dashboard) */ return PRICES[w.id] || (w.season ? 850 : w.slot === 'head' ? 510 : 255); }; // (the lesson sets the flower's and the fangs' prices)
 const BOUGHT = new Set(Array.isArray(store.bought) ? store.bought.filter(id => OWNED.has(id)) : [...OWNED]);
 if (!Array.isArray(store.bought)) { store.bought = [...BOUGHT]; }
@@ -28818,7 +28818,7 @@ function orbFade(D) {
 }
 // ---------- (v256) a lesson waiting in the lobby (the Strokes page, commissions): the results lead only back to the lobby ----------
 function endGate() {
-  const due = tutPh() === 'done' && ((!store.tut.strokes && strokesDue()) || (!store.tut.comms && commsDue())), eb = $('endBtn');
+  const due = false, eb = $('endBtn');
   end.classList.toggle('gate', due); eb.innerHTML = due ? '<span>Main menu</span><small>Something new in the lobby</small>' : '<span>Continue</span><small>New canvas</small>';
   $('replayBtn').closest('.row').hidden = due;
   setTimeout(() => eb.focus({ preventScroll: true }), 30);
@@ -28894,7 +28894,7 @@ function openEvents() {
 }
 function closeEvents() { if (menuPage !== 'events') return; evFold(); evEl.hidden = true; document.body.classList.remove('evon'); menuPage = 'home'; menu.dataset.page = 'home'; $('mHome').hidden = false; heroT = 0; setTimeout(() => $('homePlay').focus({ preventScroll: true }), 30); }
 // (v257) Time trial and Showdown open at rank 2, with the Strokes: until then their cards are greyed with a lock tag
-const EV_LOCKED = ['solo', 'showdown'], evUnlocked = () => repOf(store.xp || 0).lv >= ABIL_RANK;
+const EV_LOCKED = ['solo', 'showdown'], evUnlocked = () => true; /* (v441: every mode open from the start) */
 function evLockPaint() {
   const on = evUnlocked();
   for (const k of EV_LOCKED) { const c = evEl.querySelector('.evcard[data-ev="' + k + '"]'); if (!c) continue;
@@ -29538,6 +29538,7 @@ colorId = PALETTE.some(p => p.id === store.color) ? store.color : 'red'; renderS
 // (the flower at half what the match paid, the fangs for the rest), the locker to wear them, and the vote before a real match, which
 // always lands on a Halloween canvas. Settings can start it over.
 if (!store.tut || typeof store.tut !== 'object' || !store.tut.ph) store.tut = { ph: (store.runs || 0) > 0 ? 'done' : 'match' };
+if (store.tut.ph === 'shop' || store.tut.ph === 'locker') { store.tut.ph = 'match2'; delete store.tut.price; } if (store.tut.m3 === 1) store.tut.m3 = 2; // (v441: nothing forced, no Giant script)
 const tutArrowEl = $('tutArrow'), tutGV = new THREE.Vector3(), tutHandEl = $('tutHand'), tutEl = $('tut'), tutTxt = $('tutText'), tutCall = $('tutCall'), tutSlowEl = $('tutSlow'), tutDim = $('tutDim'), tutAva = $('tutAva');
 let tut2 = null, tut = null, tutPrev = null, tutTip = null, tutWinDue = false, tutNiAt = 0, tutFirstAt = 0, tutBrowseAt = 0; // tutBrowseAt: when the free look round the shop began // tutFirstAt: when the lobby first stood clear for the onboarding's first word (it waits a second) // tutNiAt: when the new item card came up (the coach waits for the item to land) // tutWinDue: the lesson's finish screen is owed, before the tally // tut: the scripted match; tutPrev: the mode, level and canvas to put back after it; tutTip: the tip up now
 // (v269) Restart Game: back to a first launch, the sound, music, screen and graphics settings kept. A first tap asks, a second within a few
@@ -29881,6 +29882,22 @@ function tutModesCard() {
   el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); tutCardCoach(); AU.fanfare && AU.fanfare(); AU.bloop(0.55); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);
 }
 function tutModesDone(open) { const el = $('tutGo'); el.classList.remove('on'); el.hidden = true; coachCorner(null); el.dataset.mode = ''; store.tut.modes = 1; if (!store.tut.trySd) store.tut.trySd = 'due'; save(); menu.classList.remove('tutoring'); if (open) setTimeout(() => openEvents(), 250); }
+// (v441) the first thing after the intro: learn the basics (the training match) or just play (skip it, straight to Choose Event)
+function tutBasicsCard() {
+  const el = $('tutGo'); if (!el.hidden) return; el.dataset.mode = 'basics';
+  tutCardText(['Learn <em>the basics?</em>', 'A quick training match shows you how to roll, fling, pound and dodge. Or skip it and jump straight in.', 'Teach me', 'Just play']);
+  el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); tutCardCoach(); AU.bloop(0.55); menu.classList.add('tutoring'); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);
+}
+function tutBasicsPick(learn) {
+  const el = $('tutGo'); el.classList.remove('on'); el.hidden = true; coachCorner(null); el.dataset.mode = '';
+  if (learn) { start(); return; } // (the training match, as Play does while it's due)
+  tutSkipAll(); setTimeout(() => { if (state === 'menu' && menuPage === 'home' && !building) playEvents(); }, 200);
+}
+// skipped: the onboarding is over, nothing taught and nothing owed (no lesson, no shop trip, no later scripts or cards)
+function tutSkipAll() {
+  store.tut.skipped = 1; store.tut.m3 = 2; store.tut.comms = 1; store.tut.modes = 1; store.tut.trySd = 1; delete store.tut.price;
+  tutSet('done'); save(); tutHide(); menu.classList.remove('tutoring');
+}
 function tutWelcome() {
   const el = $('tutGo'); if (!el.hidden) return; el.dataset.mode = 'welcome';
   tutCardText(['Commissions <em>are open!</em>', 'Commissions are goals that pay extra dabs, and they refresh every day. Check in whenever you\u2019re here.', 'Show me', 'Later']);
@@ -29893,8 +29910,8 @@ function tutCardCoach() { // (with him over it the card sits half his height low
 }
 // strokes: once you're rank 3 (and the first lessons are done), Ol' Bloop stops you in the lobby: let's learn some more (v374: no
 // "look how far you've come" card first): the Strokes page, the Giant crafted and equipped
-function tutCommsDue() { return $('friendsModal').hidden && tutPh() === 'done' && !store.tut.comms && commsDue() && (store.tut.strokes === 1 || !strokesDue()) && state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden && $('tutGo').hidden && !vic; }
-function tutStrokesDue() { return $('friendsModal').hidden && tutPh() === 'done' && !store.tut.strokes && strokesDue() && state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden && $('tutGo').hidden && !vic; }
+function tutCommsDue() { return false && $('friendsModal').hidden && tutPh() === 'done' && !store.tut.comms && commsDue() && (store.tut.strokes === 1 || !strokesDue()) && state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden && $('tutGo').hidden && !vic; }
+function tutStrokesDue() { return false && $('friendsModal').hidden && tutPh() === 'done' && !store.tut.strokes && strokesDue() && state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden && $('tutGo').hidden && !vic; }
 function tutStrokesCard() {
   const el = $('tutGo'); el.dataset.mode = 'strokes2';
   tutCardText(['Let’s learn <em>some more</em>', 'Strokes, Time trial and Showdown are unlocked. Let’s start with Strokes.', 'Show me', '']);
@@ -29925,12 +29942,12 @@ function tutCard(on) {
   if (on) { el.dataset.mode = 'rest'; tutCardText(TG_REST); matchLeft = 10; tut.card = true; tut.slowK = 0; bannerEl.classList.remove('on'); el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); tutCardCoach(); AU.fanfare && AU.fanfare(); AU.bloop(0.55); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60); return; }
   el.classList.remove('on'); el.hidden = true; coachCorner(null); if (tut) { if (tut.card) { P.paint = 1; P.slamCD = 0; matchLeft = 10; banner('Paint it ' + colorOf().name.toLowerCase() + '!', TH.label, false, true); tutFinStart(); } /* (Let's do it: a full tank and the pound ready for the final push) */ tut.card = false; tut.slowK = 1; }
 }
-$('tgGo').addEventListener('click', () => { AU.init(); AU.ui(); const m = $('tutGo').dataset.mode; if (m === 'welcome') tutWelcomeDone(true); else if (m === 'modes') tutModesDone(true); else if (m === 'strokes1' || m === 'strokes2') tutStrokesGo(); else tutCard(false); });
-$('tgLater').addEventListener('click', () => { AU.init(); AU.ui(); if ($('tutGo').dataset.mode === 'modes') return tutModesDone(false); tutWelcomeDone(false); });
+$('tgGo').addEventListener('click', () => { AU.init(); AU.ui(); const m = $('tutGo').dataset.mode; if (m === 'basics') return tutBasicsPick(true); if (m === 'welcome') tutWelcomeDone(true); else if (m === 'modes') tutModesDone(true); else if (m === 'strokes1' || m === 'strokes2') tutStrokesGo(); else tutCard(false); });
+$('tgLater').addEventListener('click', () => { AU.init(); AU.ui(); if ($('tutGo').dataset.mode === 'basics') return tutBasicsPick(false); if ($('tutGo').dataset.mode === 'modes') return tutModesDone(false); tutWelcomeDone(false); });
 // the first real match: no weather until halfway, then the sun in three short steps (find shade, with the way to it shown; hold to stay put in
 // it; or hide in a coffin), then the rain in one plain line, no slow-down. Your paint lasts longer
 // this match (stepBlob), and the orb comes up near you (orbSpawn)
-function tut2Begin() { tut2 = { ph: 'calm', sub: '', subT: 0, tipT: 0, hold: 0, slowK: 1, slowT: 0, shade: null, held: 0, ms: '', msT: 0, msN: 0 }; wxLeft = 1e9; wxPhase = 'clear'; gift.id = null; gift.on = false; gift.got = false; giftM.visible = giftRing.visible = giftBeam.visible = false; }
+function tut2Begin() { tut2 = { ph: 'calm', sub: '', subT: 0, tipT: 0, hold: 0, slowK: 1, slowT: 0, shade: null, held: 0, ms: 'done', msT: 0, msN: 0 }; /* (v441: no slingshot reminder) */ wxLeft = 1e9; wxPhase = 'clear'; gift.id = null; gift.on = false; gift.got = false; giftM.visible = giftRing.visible = giftBeam.visible = false; }
 function tut2Step(dt) {
   const t = tut2; if (!t || state !== 'play') return;
   if (t.slowT > 0) { t.slowT -= dt / Math.max(t.slowK, 0.05); t.slowK = t.slowT > 0 ? 0.3 : 1; } /* (the sun's first word: a moment slowed and dimmed so it sinks in) */
@@ -30253,7 +30270,8 @@ function tutPlaceDue() { const n = performance.now(), k = tutTip.key + '|' + vie
 // a real match where you have hardly flung: Ol' Bloop's pro tip, with the finger slowly pulling down. Once a match, five times in all, and
 // not once you fling a lot (it goes the moment you do)
 let tutPT = null;
-function tutProTip() {
+function tutProTip() { if (tutTip && tutTip.key === 'protip') tutHide(); return; // (v441: no slingshot pro tip)
+
   if (tut || state !== 'play') { if (tutTip && tutTip.key === 'protip') tutHide(); return; } if (!tutPT || tutPT.run !== runId) tutPT = { run: runId, n: 0, last: 0, was: false, shown: false, hideAt: 0 }; const pt = tutPT;
   if (P.flung && !pt.was) { pt.n++; pt.last = runT; store.flings = (store.flings || 0) + 1; if (tutTip && tutTip.key === 'protip') tutHide(); } pt.was = !!P.flung;
   if (tutTip && tutTip.key === 'protip' && runT > pt.hideAt) tutHide();
@@ -30298,11 +30316,11 @@ function tutEndMatch() { // (as a match ends)
     const bonus = tut.bonus || 0; if (bonus) { store.drops = (store.drops || 0) + bonus; stEv({ k: 'earn', src: 'lesson', n: bonus }); endInfo.drops = (endInfo.drops || 0) + bonus; } endInfo.tutBonus = bonus; // (the lessons' dabs)
     tutCard(false); tut = null; tutHide(); if (tutSlowEl.classList.contains('on')) AU.slow(false, true); tutSlowEl.classList.remove('on'); tutPipsEl.classList.remove('on');
     if (!owns('flower')) unlockItem('flower'); if (!owns('fangs')) unlockItem('fangs'); if (!newItem || newItem === 'flower') newItem = ['flower', 'fangs'];
-    store.tut.price = { flower: Math.max(1, Math.round((endInfo.drops || 0) / 2)) }; // (half what this match paid)
+    
     for (const k of ['steer', 'jump', 'hold', 'burst', 'roll', 'pound', 'missile', 'item', 'orb', 'rocket', 'airdash', 'rroll']) store.seen[k] = 1; // (taught: the one-time tips stay down)
-    endInfo.lesson = true; tutSet('shop'); save(); tutWinDue = true; return;
+    endInfo.lesson = true; tutSet('match2'); save(); tutWinDue = true; return; /* (v441: no shop trip) */
   }
-  if (tutPh() === 'match2' && tut2) { tut2 = null; tutHide(); delete store.tut.price; store.tut.m3 = 1; tutSet('done'); save(); }
+  if (tutPh() === 'match2' && tut2) { tut2 = null; tutHide(); delete store.tut.price; store.tut.m3 = 2; tutSet('done'); /* (v441: no Giant script) */ save(); }
   else if (tut3) { tut3 = null; tutHide(); store.tut.m3 = 2; save(); }
 }
 // (v283) Skip tutorial, from the first lesson's pause: the match ends there and you're back in the lobby with what it would have given you,
@@ -30310,8 +30328,7 @@ function tutEndMatch() { // (as a match ends)
 function tutSkip() {
   if (!tut || state !== 'paused') return;
   tutCard(false); tut = null; tutHide(); if (tutSlowEl.classList.contains('on')) AU.slow(false, true); tutSlowEl.classList.remove('on'); tutPipsEl.classList.remove('on');
-  for (const id of ['flower', 'fangs']) { OWNED.add(id); BOUGHT.add(id); } store.owned = [...OWNED]; store.bought = [...BOUGHT]; store.fresh = [...new Set([...(store.fresh || []), 'flower', 'fangs'])];
-  newItem = null; delete store.tut.price; store.tut.skipped = 1; tutSet('locker'); save(); toMenu();
+  newItem = null; tutSkipAll(); toMenu(); /* (v441: skipped like Just play) */
 }
 function tutFangsSale() { const t = store.tut.price || (store.tut.price = {}); if (t.fangs >= 0) return; if (!OWNED.has('fangs')) { OWNED.add('fangs'); store.owned = [...OWNED]; } t.fangs = store.drops || 0; save(); if (shopOpen) renderShop(); if (lkOn()) lkRender(); }
 // between matches the coach points the way: the shop for the flower and the fangs, the locker to wear them, then the canvases to vote
@@ -30324,7 +30341,7 @@ function tutMenuTick() {
   if (tutPh() === 'done') { if (menu.classList.contains('tutoring')) menu.classList.remove('tutoring'); if (!(state === 'play' && tutTip && (tutTip.key === 'protip' || tutTip.key === 'zgift'))) tutHide(); return; } /* (the onboarding is over: nothing to point at, so no hunting the page for open dialogs every frame) */
   if ((FL && FL.busy()) || bootHold || !booted || !tutBootEl.classList.contains('gone') || !tutOrientEl.hidden || document.querySelector('.modal:not([hidden]):not(#stPop)')) return tutHide(); // (nothing over the loading screen, the orientation chooser or any dialog) // (nothing over the loading screen: its tap to start must get through)
   const ph = tutPh(), simple = ph !== 'done' && ph !== 'vote' && ph !== 'match2'; if (menu.classList.contains('tutoring') !== simple) menu.classList.toggle('tutoring', simple); /* (v358: not after the locker) */ // (the lesson keeps the lobby simple: no commissions, no how-to)
-  if (ph === 'match') { if (state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden) { if (!tutFirstAt) tutFirstAt = performance.now(); if (performance.now() - tutFirstAt < 1000) return tutHide(); /* (a second of the lobby first) */ tutShow('Hey, rookie! Ready to roll? Your first match is a little training session.', 'homePlay', 'first'); } else tutHide(); return; }
+  if (ph === 'match') { if (state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden) { if (!tutFirstAt) tutFirstAt = performance.now(); if (performance.now() - tutFirstAt < 1000) return tutHide(); /* (a second of the lobby first) */ { tutHide(); tutBasicsCard(); } /* (v441: learn the basics, or just play) */ } else tutHide(); return; }
   if (ph === 'welcome') { if (state === 'dead') { if (!end.hidden) return tutShow('Back to the lobby', 'menuBtn', 'welback'); return tutHide(); }
     if (state === 'menu' && lkOn() && store.zombieDeal && bought('zombie') && myLook.eyes !== 'zombie') { if (LKR.tab !== 'mine') return tutShow('Open your locker and put them on', 'lkTabMine', 'eyesz'); return tutShow('Tap the zombie eyes to put them on', () => $('lkPaneMine').querySelector('[data-k="e:zombie"]'), 'wearz'); } /* (v327: bought, they go straight on; taken off again, they're in your locker) */
     tutHide(); if (state === 'menu') tutSet('done'); return; }
