@@ -5714,7 +5714,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 468</p>
+      <p class="ver">Version 469</p>
     </div>
   </div>
 
@@ -16620,19 +16620,22 @@ function startRocket(D) {
 }
 function stepRocket(D, dt) {
   const R = D.rocket, y0 = D.y; R.t += dt;
-  if (R.ph !== 'up') steerAndTurn(D, dt, R.ph === 'dive' ? (R.slow ? 1.1 : 0.55) : 1.5);
+  if (R.ph !== 'up') steerAndTurn(D, dt, R.ph === 'dive' ? (R.slow ? 1.1 : 0.55) : 1.25); // (v469: 1.25, was 1.5)
   if (R.ph === 'up') {
     const u = Math.min(1, R.t / ROCKET_UP), e = 1 - Math.pow(1 - u, 3); D.y = R.y0 + (R.top - R.y0) * e; D.vy = (D.y - y0) / Math.max(dt, 1e-4); D.spd *= Math.exp(-dt * 5);
     if (u >= 1) { R.ph = 'hover'; R.t = 0; D.vy = 0; if (D === P) hint('rocket', say('Steer over them, then Boost', 'Steer over them, then E'), 2.6); }
   } else if (R.ph === 'hover') {
-    D.spd += (ROCKET_SPD - D.spd) * Math.min(1, dt * 4);
+    D.spd += (ROCKET_SPD - D.spd) * Math.min(1, dt * 2.6);
     D.y = R.top - 0.35 * R.t + Math.sin(R.t * 2.6) * 0.18; D.vy = (D.y - y0) / Math.max(dt, 1e-4);
     if (R.t >= ROCKET_HOVER) rocketDive(D, true);
   } else {
     D.spd += (ROCKET_SPD * (R.slow ? 0.85 : 0.2) - D.spd) * Math.min(1, dt * (R.slow ? 4 : 9)); // a boost comes down about where the target was when you hit it
     D.vy = Math.max(R.slow ? -ROCKET_FALL : -ROCKET_DIVE, D.vy - (R.slow ? 14 : 120) * dt); D.y += D.vy * dt;
   }
-  const lim = ARENA - 0.8, fx = Math.sin(D.yaw), fz = Math.cos(D.yaw); D.x = clamp(D.x + fx * D.spd * dt, -lim, lim); D.z = clamp(D.z + fz * D.spd * dt, -lim, lim);
+  const lim = ARENA - 0.8, fx = Math.sin(D.yaw), fz = Math.cos(D.yaw);
+  // (v469) the rocket carries its own momentum: its drift eases toward where you face, so turns sweep in smooth arcs (a boost still drops near straight down)
+  if (R.vx === undefined) { R.vx = fx * D.spd; R.vz = fz * D.spd; } { const kv = Math.min(1, dt * (R.ph === 'dive' && !R.slow ? 12 : 3.2)); R.vx += (fx * D.spd - R.vx) * kv; R.vz += (fz * D.spd - R.vz) * kv; }
+  D.x = clamp(D.x + R.vx * dt, -lim, lim); D.z = clamp(D.z + R.vz * dt, -lim, lim);
   R.gy = surfaceUnder(D.x, D.z, Math.max(y0, D.y) + STEP, true);
   rocketFx(D, dt);
   if (R.ph === 'dive' && R.gy > -Infinity && D.y <= R.gy) { D.y = R.gy; rocketLand(D); return; }
@@ -29836,7 +29839,7 @@ colorId = PALETTE.some(p => p.id === store.color) ? store.color : 'red'; renderS
 // (the flower at half what the match paid, the fangs for the rest), the locker to wear them, and the vote before a real match, which
 // always lands on a Halloween canvas. Settings can start it over.
 if (!store.tut || typeof store.tut !== 'object' || !store.tut.ph) store.tut = { ph: (store.runs || 0) > 0 ? 'done' : 'match' };
-if (store.tut.skipped && !store.tut.lite) { tipsTrim(); save(); } /* (v462: a save that skipped already) */ if (store.tut.ph === 'shop' || store.tut.ph === 'locker') { store.tut.ph = 'match2'; delete store.tut.price; } if (store.tut.m3 === 1) store.tut.m3 = 2; // (v441: nothing forced, no Giant script)
+if (store.tut.skipped && !store.tut.cm469) { store.tut.cm469 = 1; delete store.tut.comms; save(); } /* (v469: the Commissions card, back for those who skipped) */ if (store.tut.skipped && !store.tut.lite) { tipsTrim(); save(); } /* (v462: a save that skipped already) */ if (store.tut.ph === 'shop' || store.tut.ph === 'locker') { store.tut.ph = 'match2'; delete store.tut.price; } if (store.tut.m3 === 1) store.tut.m3 = 2; // (v441: nothing forced, no Giant script)
 const tutArrowEl = $('tutArrow'), tutGV = new THREE.Vector3(), tutHandEl = $('tutHand'), tutEl = $('tut'), tutTxt = $('tutText'), tutCall = $('tutCall'), tutSlowEl = $('tutSlow'), tutDim = $('tutDim'), tutAva = $('tutAva');
 let tut2 = null, tut = null, tutPrev = null, tutTip = null, tutWinDue = false, tutNiAt = 0, tutFirstAt = 0, tutBrowseAt = 0; // tutBrowseAt: when the free look round the shop began // tutFirstAt: when the lobby first stood clear for the onboarding's first word (it waits a second) // tutNiAt: when the new item card came up (the coach waits for the item to land) // tutWinDue: the lesson's finish screen is owed, before the tally // tut: the scripted match; tutPrev: the mode, level and canvas to put back after it; tutTip: the tip up now
 // (v269) Restart Game: back to a first launch, the sound, music, screen and graphics settings kept. A first tap asks, a second within a few
@@ -30275,7 +30278,7 @@ function tipsTrim() { // (v462) the tips not shown to those who skipped the less
   for (const k of ['boom', 'boomdodge', 'rroll', 'trapdodge', 'orb', 'rocket', 'dryroll', 'airdash', 'burst', 'missile', 'startitem']) store.seen[k] = 1; store.tut.lite = 1; }
 function tutSkipAll() {
   tipsTrim();
-  delete store.tut.replay; store.tut.skipped = 1; store.tut.m3 = 2; store.tut.comms = 1; store.tut.modes = 1; store.tut.trySd = 1; delete store.tut.price;
+  delete store.tut.replay; store.tut.skipped = 1; store.tut.m3 = 2; store.tut.modes = 1; store.tut.trySd = 1; delete store.tut.price;
   tutSet('done'); save(); tutHide(); menu.classList.remove('tutoring');
 }
 function tutWelcome() {
@@ -30290,11 +30293,11 @@ function tutCardCoach() { // (with him over it the card sits half his height low
 }
 // strokes: once you're rank 3 (and the first lessons are done), Ol' Bloop stops you in the lobby: let's learn some more (v374: no
 // "look how far you've come" card first): the Strokes page, the Giant crafted and equipped
-function tutCommsDue() { return false && $('friendsModal').hidden && tutPh() === 'done' && !store.tut.comms && commsDue() && (store.tut.strokes === 1 || !strokesDue()) && state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden && $('tutGo').hidden && !vic; }
-function tutStrokesDue() { return false && $('friendsModal').hidden && tutPh() === 'done' && !store.tut.strokes && strokesDue() && state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden && $('tutGo').hidden && !vic; }
+function tutCommsDue() { return $('friendsModal').hidden && tutPh() === 'done' && !store.tut.comms && commsDue() && (store.tut.strokes === 1 || !strokesDue()) && state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden && $('tutGo').hidden && !vic; }
+function tutStrokesDue() { return $('friendsModal').hidden && tutPh() === 'done' && !store.tut.strokes && strokesDue() && state === 'menu' && menuPage === 'home' && !lookOpen && !shopOpen && !building && !irisBusy && setModal.hidden && nameModal.hidden && howModal.hidden && $('tutGo').hidden && !vic; }
 function tutStrokesCard() {
   const el = $('tutGo'); el.dataset.mode = 'strokes2';
-  tutCardText(['Let’s learn <em>some more</em>', 'Strokes, Time trial and Showdown are unlocked. Let’s start with Strokes.', 'Show me', '']);
+  tutCardText(['Let’s learn <em>some more</em>', 'Strokes are open! Pick a special move and a skill to take into your matches.', 'Show me', '']);
   if (el.hidden) { el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); } tutCardCoach(); store.evNew = { solo: 1, showdown: 1 }; AU.fanfare && AU.fanfare(); AU.bloop(0.55); menu.classList.add('tutoring'); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);
 }
 function tutStrokesGo() { const el = $('tutGo'); el.classList.remove('on'); el.hidden = true; coachCorner(null); el.dataset.mode = ''; store.tut.strokes = 'on'; tutSet('strokes'); openStrokes(); } /* (straight onto the page: no lobby tip flashing up first) */
