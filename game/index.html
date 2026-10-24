@@ -5704,7 +5704,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 460</p>
+      <p class="ver">Version 461</p>
     </div>
   </div>
 
@@ -29476,7 +29476,7 @@ canvas.addEventListener('pointermove', e => {
   if (state !== 'play' || P.charging || !t.moved || P.st === 'out') { joyHide(); return; }
   const r = slingRect(), port = innerWidth <= innerHeight, tr = port ? joyEl.offsetWidth / 2 - 11 : joyEl.offsetWidth * 0.3; /* (v450: the pill's knob runs its length) */
   const kx = clamp((e.clientX - anchorX) / MAX_DRAG, -1, 1) * tr, ky = port ? 0 : clamp((e.clientY - anchorY) / MAX_DRAG, -1, 1) * tr * (P.turret ? 1 : 0.45);
-  joyEl.style.transform = 'translate(' + (anchorX - r.left).toFixed(1) + 'px,' + (anchorY - r.top - (port ? 46 : 0)).toFixed(1) + 'px)'; /* (v450: upright, just above the thumb) */
+  joyEl.style.transform = 'translate(' + (anchorX - r.left).toFixed(1) + 'px,' + (anchorY - r.top - (port ? 20 : 0)).toFixed(1) + 'px)'; /* (v450: upright, just above the thumb) */
   joyK.style.transform = 'translate(' + kx.toFixed(1) + 'px,' + ky.toFixed(1) + 'px)';
   if (!joyOn) { joyOn = true; joyEl.style.setProperty('--jk', TEAMS[P.team].css); joyEl.classList.add('on'); if (!joyRaf) joyRaf = requestAnimationFrame(joyTick); }
 });
