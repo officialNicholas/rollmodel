@@ -5704,7 +5704,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 461</p>
+      <p class="ver">Version 462</p>
     </div>
   </div>
 
@@ -29817,7 +29817,7 @@ colorId = PALETTE.some(p => p.id === store.color) ? store.color : 'red'; renderS
 // (the flower at half what the match paid, the fangs for the rest), the locker to wear them, and the vote before a real match, which
 // always lands on a Halloween canvas. Settings can start it over.
 if (!store.tut || typeof store.tut !== 'object' || !store.tut.ph) store.tut = { ph: (store.runs || 0) > 0 ? 'done' : 'match' };
-if (store.tut.ph === 'shop' || store.tut.ph === 'locker') { store.tut.ph = 'match2'; delete store.tut.price; } if (store.tut.m3 === 1) store.tut.m3 = 2; // (v441: nothing forced, no Giant script)
+if (store.tut.skipped && !store.tut.lite) { tipsTrim(); save(); } /* (v462: a save that skipped already) */ if (store.tut.ph === 'shop' || store.tut.ph === 'locker') { store.tut.ph = 'match2'; delete store.tut.price; } if (store.tut.m3 === 1) store.tut.m3 = 2; // (v441: nothing forced, no Giant script)
 const tutArrowEl = $('tutArrow'), tutGV = new THREE.Vector3(), tutHandEl = $('tutHand'), tutEl = $('tut'), tutTxt = $('tutText'), tutCall = $('tutCall'), tutSlowEl = $('tutSlow'), tutDim = $('tutDim'), tutAva = $('tutAva');
 let tut2 = null, tut = null, tutPrev = null, tutTip = null, tutWinDue = false, tutNiAt = 0, tutFirstAt = 0, tutBrowseAt = 0; // tutBrowseAt: when the free look round the shop began // tutFirstAt: when the lobby first stood clear for the onboarding's first word (it waits a second) // tutNiAt: when the new item card came up (the coach waits for the item to land) // tutWinDue: the lesson's finish screen is owed, before the tally // tut: the scripted match; tutPrev: the mode, level and canvas to put back after it; tutTip: the tip up now
 // (v269) Restart Game: back to a first launch, the sound, music, screen and graphics settings kept. A first tap asks, a second within a few
@@ -30252,7 +30252,10 @@ function tutBasicsPick(learn) {
   tutSkipAll(); setTimeout(() => { if (state === 'menu' && menuPage === 'home' && !building) playEvents(); }, 200);
 }
 // skipped: the onboarding is over, nothing taught and nothing owed (no lesson, no shop trip, no later scripts or cards)
+function tipsTrim() { // (v462) the tips not shown to those who skipped the lesson
+  for (const k of ['boom', 'boomdodge', 'rroll', 'trapdodge', 'orb', 'rocket', 'dryroll', 'airdash', 'burst', 'missile', 'startitem']) store.seen[k] = 1; store.tut.lite = 1; }
 function tutSkipAll() {
+  tipsTrim();
   delete store.tut.replay; store.tut.skipped = 1; store.tut.m3 = 2; store.tut.comms = 1; store.tut.modes = 1; store.tut.trySd = 1; delete store.tut.price;
   tutSet('done'); save(); tutHide(); menu.classList.remove('tutoring');
 }
