@@ -15,7 +15,7 @@ import { rng, randomId, nowMs, clamp, fin } from './util.js';
 
 export const GAME_ITEMS = ['roller', 'turret', 'trap', 'whirl', 'boom'];
 export const ITEM_KINDS = [...GAME_ITEMS, 'slam', 'giant'];
-export const SPECIALS = ['giant', 'rocket', 'freeze', 'storm', 'bomb'];
+export const SPECIALS = ['giant', 'rocket', 'freeze', 'storm', 'bomb', 'heat']; // (heat: game v468, the clients play it out)
 const RARE = ['whirl', 'boom'], RARE_SHARE = 0.12, RARE_P = (GAME_ITEMS.length - RARE.length) * RARE_SHARE / (1 - RARE.length * RARE_SHARE);
 const CPU_START = ['roller', 'turret', 'trap'];
 // the item protocol a game speaks (its look's iv): 2, this one
@@ -59,7 +59,7 @@ export class Items {
     for (const p of m.P) {
       const L = p.kit || p.look || {};
       p.item = p.bot ? CPU_START[Math.floor(this.R() * CPU_START.length)] : GAME_ITEMS.includes(L.it) ? L.it : null;
-      p.special = p.bot ? (this.R() < 0.46 ? ['freeze', 'storm', 'bomb'][Math.floor(this.R() * 3)] : ['giant', 'rocket'][Math.floor(this.R() * 2)]) : SPECIALS.includes(L.sp) ? L.sp : 'giant';
+      p.special = p.bot ? (this.R() < 0.46 ? ['freeze', 'storm', 'bomb', 'heat'][Math.floor(this.R() * 4)] : ['giant', 'rocket'][Math.floor(this.R() * 2)]) : SPECIALS.includes(L.sp) ? L.sp : 'giant';
       p.pockets = !p.bot && L.sk === 'pockets'; // (Deep Pockets: the orb keeps till it's used)
       p.two = p.pockets && (L.iv || 0) >= 3; p.item2 = null; // (and a second pocket, for a game that knows of it: kit iv 3)
       p.orb = null; p.orbUntil = 0; p.hitsBy = new Map();

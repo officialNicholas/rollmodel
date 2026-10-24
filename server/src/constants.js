@@ -49,7 +49,7 @@ export const DEFAULT_RULES = Object.freeze({
   idlePing: 20, // seconds between the server's pings to a connection that is only waiting in the lobby (2 s in a match or a queue)
   cpuFill: 25, // (v404) seconds in the queue before a match of two or more people starts with CPU players in the empty places (0: never)
   silentKick: 75, // a connection that has sent nothing at all for this long is gone (the game sends a heartbeat every 20 s)
-  weather: true, items: true, zone: true,
+  weather: false, items: true, zone: true, // (no weather since game v468: the heat is a special stroke now)
   itemFirst: [6, 9], itemEvery: [9, 13], // seconds: when the first pick-up appears, and the gap between them
   orbFirst: [14, 18], orbEvery: [16, 22], // ... and the orb (the game's: 18 s in, then 16 to 22 s after each is taken)
   // The spec says a player hidden in a pot is safe from a pound. The current single-player game knocks them out instead
