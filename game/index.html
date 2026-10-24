@@ -5499,6 +5499,17 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
 
 /* (v453) the lobby's Play, upright: a little smaller, centred */
 @media (max-aspect-ratio:1/1){#homePlay.playbtn{justify-self:center;width:min(86%,310px);min-width:0;min-height:76px}#homePlay.playbtn .pbl{font-size:38px}}
+
+/* (v454) the Locker's tabs without the ink stripe behind them */
+#mLocker.sgp .sgtabs::before{display:none}
+
+/* (v455) upright Locker: the preview small at rest, big while you handle it; the list gets the room */
+@media (max-aspect-ratio:1/1){
+  html:not(.fh):not(.fv):not(.scol):not(.scolL) #mLocker.sgp .sgshow{flex:0 0 auto;height:clamp(150px,27vh,230px);min-height:0;transition:height .4s cubic-bezier(.3,1.15,.5,1)}
+  html:not(.fh):not(.fv):not(.scol):not(.scolL) #mLocker.sgp.lkbig .sgshow{height:clamp(240px,50vh,440px)}
+  html:not(.fh):not(.fv):not(.scol):not(.scolL) #mLocker.sgp .sgpanel{flex:1 1 auto;max-height:none;margin-top:18px}
+  html:not(.fh):not(.fv) .menu:not(.tutoring) .mworld #gDots{margin-top:-26px}
+}
 </style>
 
 <div id="stage">
@@ -5679,7 +5690,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 453</p>
+      <p class="ver">Version 455</p>
     </div>
   </div>
 
@@ -25023,6 +25034,13 @@ function lkSetTab(t, quiet) {
   if (!quiet) { AU.ui(); buzz(4); }
   lkRender(); $('lkScroll').scrollTop = LKR.scr[t] || 0;
 }
+// (v455) upright, the Locker's preview grows while you handle it and settles back a moment after
+{ let lkBigT = 0; const pg = $('mLocker');
+  const grow = () => { clearTimeout(lkBigT); pg.classList.add('lkbig'); };
+  const settle = d => { clearTimeout(lkBigT); lkBigT = setTimeout(() => pg.classList.remove('lkbig'), d); };
+  $('lkStage').addEventListener('pointerdown', grow); $('lkStage').addEventListener('pointerup', () => settle(1600)); $('lkStage').addEventListener('pointercancel', () => settle(1600));
+  $('lkRot').addEventListener('click', () => { grow(); settle(2200); });
+  new MutationObserver(() => { if (pg.hidden) { clearTimeout(lkBigT); pg.classList.remove('lkbig'); } }).observe(pg, { attributes: true, attributeFilter: ['hidden'] }); }
 function openLocker(tab, id) {
   setTimeout(lkPlusPlace, 80); setTimeout(lkPlusPlace, 500); // (v381: the + at the end of the counter)
   if (state !== 'menu' || building) return;
