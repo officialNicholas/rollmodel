@@ -5534,6 +5534,9 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
   html:not(.fh):not(.fv):not(.scol):not(.scolL) #mLocker.sgp.sgnoted .sgfoot .sgnote{grid-column:2;grid-row:2;order:0;justify-self:start;max-width:100%;margin:0;text-align:left;text-wrap:balance}
   html:not(.fh):not(.fv):not(.scol):not(.scolL) #mLocker.sgp .sgrot,html:not(.fh):not(.fv):not(.scol):not(.scolL) #mLocker.sgp.sgnoted .sgrot{top:auto;bottom:74px}
 }
+
+/* (v471) the Heat Stroke scene: a warm glow over the picture while the sun is out */
+.sgflash.sunon{opacity:1!important;animation:none!important;background:radial-gradient(ellipse at 50% 22%,rgba(255,220,100,.62) 0,rgba(255,160,50,.3) 48%,rgba(255,140,30,.06) 85%)}
 </style>
 
 <div id="stage">
@@ -5714,7 +5717,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 470</p>
+      <p class="ver">Version 471</p>
     </div>
   </div>
 
@@ -23718,7 +23721,7 @@ function lkWallU() {
   U.uW0.value.fromArray(w.rgb); U.uW1.value.fromArray(w1.rgb); U.uK0.value = w.k; U.uK1.value = w1.k; U.uMix.value = LKW.w1 ? LKW.mix : 0;
 }
 const sgH = () => lkOn() ? SGH.lk || (SGH.lk = { pg: $('mLocker'), stage: $('lkStage'), ban: $('lkBan'), rot: $('lkRot'), bg: $('lkBg'), flash: $('lkFlash'), foot: $('mLocker').querySelector('.sgfoot') }) : SGH.st;
-const SG_T = { roller: 6.2, turret: 5.6, trap: 6.4, whirl: 6.0, boom: 5.4, rocket: 5.8, giant: 5.8, freeze: 6.6, storm: 5.8, bomb: 5.2 }; // (v384: the Paint Storm) // (v322: the specials too)
+const SG_T = { roller: 6.2, turret: 5.6, trap: 6.4, whirl: 6.0, boom: 5.4, rocket: 5.8, giant: 5.8, freeze: 6.6, storm: 5.8, bomb: 5.2, heat: 5.6 }; // (v384: the Paint Storm) // (v322: the specials too)
 function sgLayer(o) { o.traverse(m => { if (m.material && m.material.depthFunc === THREE.GreaterDepth) { m.layers.mask = 0; return; } m.layers.set(SG_L); }); }
 // a character for the demo: the game's own (made as a CPU's is), in a team's colour
 function sgActor(team, mine) {
@@ -23825,7 +23828,7 @@ function sgLoop() {
   if (SGD.kind === 'dress') return sgDressStart(); SGD.dk = SGD.fz = 0; for (const [m, sc] of SGD.padMs) m.scale.copy(sc); SGD.padR2 = SG_R * SG_R; SGD.A.col.set(TEAMS[0].wet); SGD.A.L.wearing = myLook; // (v327: the locker's dress mode; the demos in your paint as it is now)
   // (the ones that travel start the next time from the other side)
   const k = SGD.kind, s = SGD.side = k === 'turret' || k === 'boom' ? 1 : SGD.loop++ % 2 ? -1 : 1, A = SGD.A, B = SGD.B; SGD.t = 0; SGD.ev = {};
-  sgReset(A); sgReset(B); SGD.trap.visible = SGD.wg.visible = SGD.lane.visible = SGD.boom.visible = false; SGD.mk.visible = SGD.mkF.visible = SGD.mkB.visible = SGD.ice.visible = false; sgStormOff(); sgBombOff(); SGD.iceK = 0; SGD.sp = {}; SGD.zk = 0; for (const q of SGD.shots) q.on = false; if (SGD.bm) SGD.bm.on = false; if (SGD.whirl) SGD.whirl.ph = '';
+  sgReset(A); sgReset(B); SGD.trap.visible = SGD.wg.visible = SGD.lane.visible = SGD.boom.visible = false; SGD.mk.visible = SGD.mkF.visible = SGD.mkB.visible = SGD.ice.visible = false; sgStormOff(); sgBombOff(); { const fl = sgH().flash; if (fl && fl.classList.contains('sunon')) fl.className = 'sgflash'; } SGD.iceK = 0; SGD.sp = {}; SGD.zk = 0; for (const q of SGD.shots) q.on = false; if (SGD.bm) SGD.bm.on = false; if (SGD.whirl) SGD.whirl.ph = '';
   if (k === 'roller') { sgAt(A, -1.3 * s, 0.3); sgAt(B, 0.55 * s, -0.12); }
   else if (k === 'turret') { sgAt(A, -1.05 * s, 0.25); sgAt(B, 0.95 * s, -0.2); }
   else if (k === 'trap') { sgAt(A, -1.3 * s, 0.16); sgAt(B, 0.6 * s, -1.15); }
@@ -23835,6 +23838,7 @@ function sgLoop() {
   else if (k === 'freeze') { sgAtC(A, -0.9 * s, 0.45); sgAtC(B, 0.85 * s, -0.75); }
   else if (k === 'storm') { sgAtC(A, -0.7 * s, 0.45); sgAtC(B, 0.55 * s, -0.45); }
   else if (k === 'bomb') { sgAtC(A, -0.55 * s, 0.4); sgAtC(B, 0.45 * s, -0.25); }
+  else if (k === 'heat') { sgAtC(A, -0.85 * s, 0.45); sgAtC(B, 0.55 * s, -0.4); } // (v471)
   else { sgAt(A, -1.1 * s, 0.33); sgAt(B, 0.9 * s, -0.25); }
   A.D.yaw = sgYawCam(A); B.D.yaw = sgYawTo(B, A); A.V.yawD = B.V.yawD = undefined;
 }
@@ -23901,6 +23905,7 @@ function sgStep(dt) {
   else if (k === 'freeze') sgFreeze(dt, t, s);
   else if (k === 'storm') sgStorm(dt, t, s);
   else if (k === 'bomb') sgBomb(dt, t, s);
+  else if (k === 'heat') sgHeat(dt, t, s); // (v471)
   else {
     const BM = SGD.bm || (SGD.bm = { on: false, t: 0, x: 0, z: 0, px: 0, pz: 0 }), T0 = 0.8, TT = 1.6;
     if (t < T0) { sgFace(A, sgYawTo(A, B), dt, 5); sgWatch(A, B); DA.ip.expr = 'ready'; }
@@ -23978,6 +23983,30 @@ function sgGiant(dt, t, s) {
 }
 // Flash Freeze: a wind-up of frost, the flash, the rival frozen mid-stride, a ring of paint all round them, a grin at you while they
 // tap at the ice, then the thaw
+// (v471) Heat Stroke: a charge, the sun flares, the rival out in the open steams and dries up while you paint freely
+const COL_SUN = new THREE.Color(0xFFC93C);
+function sgHeat(dt, t, s) {
+  const A = SGD.A, B = SGD.B, DA = A.D, DB = B.D, cA = TEAMS[0].css, F = SGD.sp, fl = sgH().flash;
+  if (t < 1.2 && B.show) { const p = sgCS(0.2 * s, -0.3); sgGo(B, p[0], p[1], 0.8, dt); DB.ip.expr = 'content'; }
+  if (t < 0.4) { if (fl && fl.classList.contains('sunon')) fl.className = 'sgflash'; sgFace(A, sgYawCam(A), dt, 4); sgWatch(A, null); DA.ip.expr = 'ready'; }
+  else if (t < 1.2) { if (sgOnce('wind')) { DA.squash = 0.7; DA.wob = 1; emote(DA, 'glee', 0.8); F.fx = 0; }
+    sgFace(A, sgYawCam(A), dt, 4); sgWatch(A, B); DA.ip.expr = 'focus';
+    F.fx -= dt; if (F.fx <= 0) { F.fx = 0.1; const x = sgLX(A), z = sgLZ(A); for (let i = 0; i < 3; i++) { const a = Math.random() * 6.2832; sgPart(x + Math.cos(a) * 0.35, 0.2, z + Math.sin(a) * 0.35, Math.cos(a) * 0.3, 1.8 + Math.random(), Math.sin(a) * 0.3, 0.4, i % 2 ? COL_BURN : COL_SUN, 0.5); } } }
+  else if (sgOnce('sun')) { const x = sgLX(A), z = sgLZ(A); sgRing(x, z, 3.2, 0xFFC93C); sgRing(x, z, 1.9, 0xFFFFFF); if (fl) fl.className = 'sgflash sunon'; sgShk(0.35); emote(DA, 'glee', 1.2);
+    for (let i = 0; i < 20; i++) { const a = Math.random() * 6.2832, r = Math.random() * SG_R * 0.9; sgPart(Math.cos(a) * r, 0.1, Math.sin(a) * r, 0, 1 + Math.random() * 1.4, 0, 0.5 + Math.random() * 0.4, i % 2 ? COL_SUN : COL_BURN, 0.3 + Math.random() * 0.25); } }
+  // the rival out in the open: steaming, its paint draining, crawling off slower and slower, then dried out and dizzy
+  if (t >= 1.2 && t < 4.5 && B.show && DB.st === 'play') {
+    DB.paint = Math.max(0.04, 1 - (t - 1.2) / 2.5);
+    F.st = (F.st || 0) - dt; if (F.st <= 0) { F.st = 0.05; const bx = sgLX(B), bz = sgLZ(B); sgPart(bx + (Math.random() - 0.5) * 0.5, 0.5, bz + (Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.4, 1.3 + Math.random() * 1.2, (Math.random() - 0.5) * 0.4, 0.55, Math.random() < 0.55 ? COL_WHITE : COL_BURN, 0.45); }
+    if (t > 1.6 && t < 3.7) { const p = sgCS(0.95 * s, -0.75); sgGo(B, p[0], p[1], 0.15 + 0.55 * DB.paint, dt); } }
+  if (t >= 3.7 && B.show && sgOnce('dry')) { const bx = sgLX(B), bz = sgLZ(B); sgHalt(B, dt); DB.stunT = 1.5; DB.squash = 0.6; DB.wob = 1; sgRing(bx, bz, 0.9, 0xFFB45A); for (let i = 0; i < 10; i++) { const a = Math.random() * 6.2832; sgPart(bx, 0.45, bz, Math.cos(a) * 1.4, 1 + Math.random() * 1.5, Math.sin(a) * 1.4, 0.4, COL_DULL, 0.45); } }
+  // you: free to paint while they bake
+  if (t >= 1.45 && t < 4.4) {
+    if (!F.path) { F.path = [sgCS(-0.55 * s, 1.0), sgCS(-0.05 * s, 1.05), sgCS(-0.25 * s, 0.45), sgCS(-0.95 * s, 0.25), sgCS(-1.05 * s, 0.8)]; F.pi = 0; }
+    let p = F.path[F.pi]; if (Math.hypot(p[0] - sgLX(A), p[1] - sgLZ(A)) < 0.2 && F.pi < F.path.length - 1) p = F.path[++F.pi];
+    const lx = sgLX(A), lz = sgLZ(A); sgGo(A, p[0], p[1], 2.4, dt); sgStripe(lx, lz, sgLX(A), sgLZ(A), 0.62, cA); sgWatch(A, B); DA.ip.expr = 'glee'; }
+  if (t >= 4.4) { if (sgOnce('cool') && fl) fl.className = 'sgflash'; sgHalt(A, dt); sgFace(A, sgYawCam(A), dt, 4); sgWatch(A, null); DA.ip.expr = DB.stunT > 0 ? 'smirk' : 'glee'; }
+}
 function sgFreeze(dt, t, s) {
   const A = SGD.A, B = SGD.B, DA = A.D, DB = B.D, cA = TEAMS[0].css, F = SGD.sp;
   if (t < 1.3 && B.show) { const p = sgCS(-0.1 * s, -0.2); sgGo(B, p[0], p[1], 0.8, dt); DB.ip.expr = 'content'; }
