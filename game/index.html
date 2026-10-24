@@ -5510,6 +5510,15 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
   html:not(.fh):not(.fv):not(.scol):not(.scolL) #mLocker.sgp .sgpanel{flex:1 1 auto;max-height:none;margin-top:18px}
   html:not(.fh):not(.fv) .menu:not(.tutoring) .mworld #gDots{margin-top:-26px}
 }
+
+/* (v456) the account sheet in steps: the choice, then username/password/year, then name/email/terms */
+#acModal:not(.pick) .actabs{display:none}
+#acModal.pick .actabs{grid-template-columns:minmax(0,1fr);gap:14px;margin:8px 0 4px -10px}
+#acModal.pick .actabs button{min-height:64px;font-size:22px;filter:none;scale:1}
+#acModal.pick .acbody{min-height:0}
+#acModal .acpk{margin:6px 0 0;text-align:center}
+#acNew:not(.st2) .ac2,#acNew.st2 .ac1{display:none!important}
+#acNew .acback{justify-self:center}
 </style>
 
 <div id="stage">
@@ -5690,7 +5699,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 455</p>
+      <p class="ver">Version 456</p>
     </div>
   </div>
 
@@ -27590,7 +27599,7 @@ const onModalEl = $('onModal');
 // username. store.sbs (v305's: the refresh token and user id) also says perm (a real account, not anonymous), acct (its details
 // saved), name (the username on the server) and out (signed out: no player here until you log in or make an account) ----------
 const ACC_TERMS = 'tos-2026-10-18'; // (which Terms of Service and Privacy Policy were agreed to: kept with the account)
-const AC = { open: false, tab: 'new', next: null, busy: false, f: {}, show: false, ret: null, del: false, note: '', err: '' };
+const AC = { open: false, tab: 'new', step: 1, next: null, busy: false, f: {}, show: false, ret: null, del: false, note: '', err: '' };
 function acOut() { return !!(store.sbs && store.sbs.out); } // (these three are declarations, so code placed before this block can call them)
 function acHas() { return !!(SB_CFG && store.sbs && store.sbs.rt && !acOut()); } // (a player on the server: a new name goes there first)
 function acctReady() { return !!(SB_CFG && store.sbs && store.sbs.rt && store.sbs.perm && store.sbs.acct && !acOut()); } // (signed in, with a real account)
@@ -27776,16 +27785,17 @@ function acNewHtml() {
   const f = AC.f, yr = new Date().getFullYear(), o = (v, t, s) => '<option value="' + v + '"' + (String(s) === String(v) ? ' selected' : '') + '>' + t + '</option>';
   let ye = o('', 'Year', f.y || ''); for (let y = yr; y >= 1900; y--) ye += o(y, y, f.y); // (v307: the birth year only)
   const tx = (id, k, lab, ac, cap) => '<div><label for="' + id + '">' + lab + '</label><input id="' + id + '" data-k="' + k + '" type="text" maxlength="40" autocomplete="' + ac + '" autocapitalize="' + cap + '" autocorrect="off" spellcheck="false" value="' + frEsc(f[k] || '') + '"></div>';
-  return '<form class="acform" id="acNew" novalidate autocomplete="on">'
-    + '<div class="acf"><label for="acUser">Username</label><input id="acUser" data-k="user" type="text" maxlength="12" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" aria-describedby="acUserSt" value="' + frEsc(f.user || '') + '"><p class="unst" id="acUserSt" aria-live="polite"></p></div>'
-    + '<div class="acf"><label for="acEmail">Email</label><input id="acEmail" data-k="email" type="email" inputmode="email" maxlength="254" autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" aria-describedby="acEmailSt" value="' + frEsc(f.email || '') + '"><p class="unst" id="acEmailSt" aria-live="polite"></p></div>'
-    + '<div class="acf">' + tx('acFirst', 'first', 'First name', 'given-name', 'words') + '<p class="unst" id="acNameSt" aria-live="polite"></p></div>'
-    + '<fieldset class="acf"><legend>Birth year</legend><div class="acbd acyr"><select id="acY" data-k="y" aria-label="Birth year" autocomplete="bday-year">' + ye + '</select></div><p class="unst" id="acBdSt" aria-live="polite"></p></fieldset>'
-    + '<div class="acf"><label for="acPass">Password</label>' + acPw('acPass', 'pass', 'new-password') + '<p class="unst" id="acPassSt" aria-live="polite"></p></div>'
-    + '<div class="acagree acw"><input type="checkbox" id="acAgree" data-k="agree"' + (f.agree ? ' checked' : '') + ' aria-label="I agree to the Terms of Service and Privacy Policy"><label for="acAgree">I agree to the</label><button class="aclink" type="button" data-doc="tos">Terms of Service</button><span>and</span><button class="aclink" type="button" data-doc="priv">Privacy Policy</button></div>'
+  return '<form class="acform' + (AC.step === 2 ? ' st2' : '') + '" id="acNew" novalidate autocomplete="on">'
+    + '<div class="acf ac1"><label for="acUser">Username</label><input id="acUser" data-k="user" type="text" maxlength="12" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" aria-describedby="acUserSt" value="' + frEsc(f.user || '') + '"><p class="unst" id="acUserSt" aria-live="polite"></p></div>'
+    + '<div class="acf ac2">' + tx('acFirst', 'first', 'First name', 'given-name', 'words') + '<p class="unst" id="acNameSt" aria-live="polite"></p></div>'
+    + '<div class="acf ac2"><label for="acEmail">Email</label><input id="acEmail" data-k="email" type="email" inputmode="email" maxlength="254" autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" aria-describedby="acEmailSt" value="' + frEsc(f.email || '') + '"><p class="unst" id="acEmailSt" aria-live="polite"></p></div>'
+    + '<div class="acf ac1"><label for="acPass">Password</label>' + acPw('acPass', 'pass', 'new-password') + '<p class="unst" id="acPassSt" aria-live="polite"></p></div>'
+    + '<fieldset class="acf ac1"><legend>Birth year</legend><div class="acbd acyr"><select id="acY" data-k="y" aria-label="Birth year" autocomplete="bday-year">' + ye + '</select></div><p class="unst" id="acBdSt" aria-live="polite"></p></fieldset>'
+    + '<div class="acagree acw ac2"><input type="checkbox" id="acAgree" data-k="agree"' + (f.agree ? ' checked' : '') + ' aria-label="I agree to the Terms of Service and Privacy Policy"><label for="acAgree">I agree to the</label><button class="aclink" type="button" data-doc="tos">Terms of Service</button><span>and</span><button class="aclink" type="button" data-doc="priv">Privacy Policy</button></div>'
     + '<p class="acerr acw" id="acErr" role="alert">' + frEsc(AC.err || (NET_WALLED ? NET_APP : '')) + '</p>'
-    + '<button class="frb go acgo acw" id="acGo" type="submit" disabled>Make my account</button>'
-    + '<p class="frfine acw">Friends see your username, paint colour and rank. Your email, name and birth year stay private.</p></form>';
+    + '<button class="frb go acgo acw" id="acGo" type="submit" disabled>' + (AC.step === 2 ? 'Make my account' : 'Next') + '</button>'
+    + '<p class="frfine acw ac2">Friends see your username, paint colour and rank. Your email, name and birth year stay private.</p>'
+    + '<button class="aclink acw acback" data-ac="nback" type="button">Back</button></form>';
 }
 function acInHtml() {
   const swap = acHas() && !(store.sbs && store.sbs.perm) && acName();
@@ -27795,14 +27805,21 @@ function acInHtml() {
     + '<button class="aclink acw acforgot" data-ac="forgot" type="button">Forgot password?</button>'
     + '<p class="acerr acw" id="acErr" role="alert">' + frEsc(AC.err || (NET_WALLED ? NET_APP : '')) + '</p>'
     + '<button class="frb go acgo acw" id="acGo" type="submit">Log in</button>'
-    + (swap ? '<p class="frfine acw">Logging in swaps <b>' + frEsc(swap) + '</b>, the player on this device, for your account.</p>' : '') + csInNote() + '</form>';
+    + (swap ? '<p class="frfine acw">Logging in swaps <b>' + frEsc(swap) + '</b>, the player on this device, for your account.</p>' : '') + csInNote() + (baSheet() ? '' : '<button class="aclink acw acback" data-ac="pick" type="button">Back</button>') + '</form>';
 }
+const acPickHtml = () => '<p class="frfine acpk">One account for friends and online play. Your progress is saved with it.</p>';
+const acStepOk = w => !(w.user || w.bday || w.pass); // (step 1's three)
+function acStep(n, keep) { AC.step = n; const f = $('acNew'), g = $('acGo'); if (!f) return; f.classList.toggle('st2', n === 2); if (!keep) { AC.err = ''; const x = $('acErr'); if (x) x.textContent = ''; }
+  if (g) { delete g.dataset.t; g.textContent = n === 2 ? 'Make my account' : 'Next'; } $('acBody').scrollTop = 0; acValid();
+  setTimeout(() => { const i = !touchy() && $(n === 2 ? 'acFirst' : 'acUser'); if (i) i.focus({ preventScroll: true }); }, 40); }
+function acNext() { const f = acForm(); if (!acStepOk(f.why)) { AU.nope(); return acValid(); }
+  if (f.young) { store.acYoung = Date.now(); save(); adHello(false); AU.nope(); return acRender(); } acStep(2); } // (under 13: the kind word, before anything else is asked)
 function acRender() {
   const body = $('acBody'); if (!body) return; const t = AC.tab, nu = t === 'new', young = nu && acYoung();
-  $('acModal').classList.toggle('side', t === 'forgot' || t === 'email'); $('acModal').classList.toggle('nu', nu && !young); // (v355)
+  $('acModal').classList.toggle('side', t === 'forgot' || t === 'email'); $('acModal').classList.toggle('nu', nu && !young); $('acModal').classList.toggle('pick', t === 'pick'); // (v355)
   for (const b of $('acModal').querySelectorAll('.actabs button')) b.setAttribute('aria-selected', String(b.dataset.tab === t));
-  $('acTitle').textContent = nu ? 'Make an account' : t === 'forgot' ? 'Forgot your password?' : t === 'email' ? 'Your email' : 'Welcome back';
-  body.innerHTML = young ? AC_YOUNG : nu ? acNewHtml() : t === 'forgot' ? acForgotHtml() : t === 'email' ? acEmailHtml() : acInHtml(); body.scrollTop = 0;
+  $('acTitle').textContent = t === 'pick' ? 'Your account' : nu ? 'Make an account' : t === 'forgot' ? 'Forgot your password?' : t === 'email' ? 'Your email' : 'Welcome back';
+  body.innerHTML = t === 'pick' ? acPickHtml() : young ? AC_YOUNG : nu ? acNewHtml() : t === 'forgot' ? acForgotHtml() : t === 'email' ? acEmailHtml() : acInHtml(); body.scrollTop = 0;
   if (nu && !young && UN_W.acUser) UN_W.acUser(); acValid();
 }
 // the form as typed: each part checked as the server will (names: letters, spaces and . ' -; a real birthday; the password's rules)
@@ -27825,7 +27842,7 @@ function acValid() {
   $('acY').classList.toggle('empty', !$('acY').value);
   { const eb = !!AC.f.email && w.email; set('acEmailSt', eb ? 'bad' : '', eb ? 'Check your email address' : ''); $('acEmail').setAttribute('aria-invalid', String(eb)); }
   set('acPassSt', w.pass ? '' : 'ok', w.pass ? '8 or more, with a letter and a number' : 'Good password');
-  const g = $('acGo'); if (g && !AC.busy) g.disabled = !f.ok || NET_WALLED;
+  const g = $('acGo'); if (g && !AC.busy) g.disabled = !(AC.step === 2 ? f.ok : acStepOk(w)) || NET_WALLED;
 }
 function acBusy(t) { const g = $('acGo'), f = $('acBody').querySelector('.acform'); if (f) f.classList.toggle('busy', !!t); if (!g) return; if (t) { g.dataset.t = g.dataset.t || g.textContent; g.textContent = t; g.disabled = true; } else { if (g.dataset.t) g.textContent = g.dataset.t; g.disabled = false; acValid(); } }
 function acFail(e) {
@@ -27837,6 +27854,7 @@ function acFail(e) {
     : w === 'first' ? 'Check your first name: letters only.' : w === 'last' ? 'Check your last name: letters only.' : w === 'birthday' ? 'Check your birth year.'
     : e && e.code === 'weak_password' ? 'Pick a harder password.' : e && e.out ? 'You’re signed out. Log in again.' : e && e.at === 'save' ? 'Something went wrong. Try again.' : acErrText(e);
   if (e && e.at === 'user') { const i = $('acUser'), st = $('acUserSt'); if (i) i.dataset.un = 'bad'; if (st) { st.dataset.s = 'bad'; st.textContent = unSay(w, unNorm(AC.f.user)); } }
+  if (AC.tab === 'new' && AC.step === 2 && ((e && e.at === 'user') || w === 'birthday' || (e && e.code === 'weak_password'))) acStep(1, true); // (v456)
   const x = $('acErr'); if (x) x.textContent = AC.err; AU.nope(); acBusy(null); if (x) kick(x, 'unshake');
   const b = $('acBody'), g = $('acGo'); if (b && g) { const d = g.getBoundingClientRect().bottom - b.getBoundingClientRect().bottom; if (d > 0) b.scrollTop += d + 8; } // (v355)
 }
@@ -27882,7 +27900,7 @@ async function acLogin() {
     const me = await sbRpc('rm_me', { p_name: frName(), p_look: frLook(), p_rank: frRank() }); // (its profile, with this device's look and rank)
     if (!me || me.ok === false) { FR.need = (me && me.why) || 'bad'; throw acStop('nouser'); }
     FR.me = me; acSync(me); FR.sync = frSig(); FR.at = 0; frPoll(); AC.f.inPass = '';
-    if (!me.account) { AC.busy = false; AC.tab = 'new'; AC.f.user = me.name; AC.err = 'Almost there: add your details to finish your account.'; acRender(); return; } // (made but never finished)
+    if (!me.account) { AC.busy = false; AC.tab = 'new'; AC.step = 1; AC.f.user = me.name; AC.err = 'Almost there: add your details to finish your account.'; acRender(); return; } // (made but never finished)
     if (await csPull(me)) return; // (v312: the account's progress, in place of this phone's: the game starts again with it)
     acDone('<span>Welcome back, <b>' + frEsc(hdOf(me.name)) + '</b>!</span>');
   } catch (e) { acFail(e); }
@@ -27920,7 +27938,7 @@ function acReset() {
 function acctOpen(next, tab) {
   if (acctReady()) { if (typeof next === 'function') next(); return; }
   if (!SB_CFG) { frToast('<span>Online play isn’t available right now</span>'); return; }
-  netProbe(); AC.next = typeof next === 'function' ? next : null; AC.tab = tab === 'in' ? 'in' : 'new'; AC.err = ''; AC.busy = false; if (!AC.f.userTyped) AC.f.user = acSuggest(); // (their name now, unless they've typed one here)
+  netProbe(); AC.next = typeof next === 'function' ? next : null; AC.tab = tab === 'in' || tab === 'new' ? tab : 'pick'; AC.step = 1; AC.err = ''; AC.busy = false; if (!AC.f.userTyped) AC.f.user = acSuggest(); // (their name now, unless they've typed one here)
   if (!AC.open) AC.ret = document.activeElement; AC.open = true; $('acModal').hidden = false; acRender();
   const c = $('acModal').querySelector('.ttcard'); c.style.animation = 'none'; void c.offsetWidth; c.style.animation = '';
   setTimeout(() => { const i = !touchy() && $(AC.tab === 'in' ? 'acInUser' : 'acUser'); (i || $('acX')).focus({ preventScroll: true }); }, 40);
@@ -27932,13 +27950,15 @@ function acClose(keep) {
 const acBody = $('acBody'), acSet = (e, v) => { const k = e.target.dataset.k; if (!k) return false; AC.f[k] = e.target.type === 'checkbox' ? e.target.checked : e.target.value; if (k === 'user') AC.f.userTyped = true; return true; };
 acBody.addEventListener('input', e => { if (!acSet(e)) return; if (AC.err) { AC.err = ''; const x = $('acErr'); if (x) x.textContent = ''; } acValid(); });
 acBody.addEventListener('change', e => { if (acSet(e)) acValid(); });
-acBody.addEventListener('submit', e => { e.preventDefault(); AU.init(); try { document.activeElement.blur(); } catch (x) {} if (e.target.id === 'acNew') acCreate(); else if (e.target.id === 'acIn') acLogin(); else if (e.target.id === 'acForgot') acForgot(); else if (e.target.id === 'acEm') acEmailSave(); });
+acBody.addEventListener('submit', e => { e.preventDefault(); AU.init(); try { document.activeElement.blur(); } catch (x) {} if (e.target.id === 'acNew') { if (AC.step === 2) acCreate(); else acNext(); } else if (e.target.id === 'acIn') acLogin(); else if (e.target.id === 'acForgot') acForgot(); else if (e.target.id === 'acEm') acEmailSave(); });
 acBody.addEventListener('click', e => {
   const d = e.target.closest('[data-doc]'); if (d) { AU.init(); AU.ui(); return openDoc(d.dataset.doc, () => { const x = $('acAgree'); if (x) x.focus({ preventScroll: true }); }); } // (read them if you like: nothing makes you)
   const b = e.target.closest('[data-ac]'); if (!b) return; AU.init(); AU.ui();
   if (b.dataset.ac === 'close') return acClose();
   if (b.dataset.ac === 'forgot') { AC.tab = 'forgot'; AC.err = ''; AC.sentTo = ''; if (!AC.f.who) AC.f.who = AC.f.inUser || ''; return acRender(); } // (v355)
   if (b.dataset.ac === 'back') { AC.tab = 'in'; AC.err = ''; AC.sentTo = ''; return acRender(); }
+  if (b.dataset.ac === 'nback') { if (AC.step === 2) return acStep(1); AC.tab = 'pick'; AC.err = ''; return acRender(); } // (v456)
+  if (b.dataset.ac === 'pick') { AC.tab = 'pick'; AC.err = ''; return acRender(); }
   if (b.dataset.ac === 'resend') return acEmailResend();
   if (b.dataset.ac === 'show') { AC.show = !AC.show; for (const id of ['acPass', 'acInPass']) { const i = $(id); if (i) i.type = AC.show ? 'text' : 'password'; }
     for (const x of acBody.querySelectorAll('[data-ac="show"]')) { x.textContent = AC.show ? 'Hide' : 'Show'; x.setAttribute('aria-pressed', String(AC.show)); } }
@@ -27947,10 +27967,10 @@ acBody.addEventListener('click', e => {
 acBody.addEventListener('keydown', e => {
   if (e.key !== 'Enter' || e.target.tagName !== 'INPUT' || e.target.type === 'checkbox') return; const f = e.target.form; if (!f) return;
   if (f.id === 'acIn' && e.target.id === 'acInUser') { e.preventDefault(); $('acInPass').focus(); return; }
-  if (f.id !== 'acNew' || acForm().ok) return; e.preventDefault(); const els = [...f.querySelectorAll('input:not([type=checkbox]),select')], k = els.indexOf(e.target), nx = els.slice(k + 1).find(x => !x.value) || els[k + 1];
+  if (f.id !== 'acNew' || (AC.step === 2 ? acForm().ok : acStepOk(acForm().why))) return; e.preventDefault(); const els = [...f.querySelectorAll('input:not([type=checkbox]),select')].filter(x => x.offsetParent), k = els.indexOf(e.target), nx = els.slice(k + 1).find(x => !x.value) || els[k + 1];
   if (nx) nx.focus(); else try { e.target.blur(); } catch (x) {}
 });
-$('acModal').querySelector('.actabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (!b || AC.busy || b.dataset.tab === AC.tab) return; AU.init(); AU.ui(); AC.tab = b.dataset.tab; AC.err = ''; acRender(); });
+$('acModal').querySelector('.actabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (!b || AC.busy || b.dataset.tab === AC.tab) return; AU.init(); AU.ui(); AC.tab = b.dataset.tab; AC.step = 1; AC.err = ''; acRender(); });
 $('acX').addEventListener('click', () => { AU.init(); AU.ui(); acClose(); });
 $('acModal').addEventListener('click', e => { if (e.target === $('acModal') && !AC.busy) acClose(); });
 $('acModal').addEventListener('keydown', e => e.stopPropagation()); // (keys are for the form, not the game behind it)
