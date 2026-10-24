@@ -5704,7 +5704,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 463</p>
+      <p class="ver">Version 464</p>
     </div>
   </div>
 
@@ -22852,7 +22852,7 @@ function eyeShowFace(E) {
 if (!store.capeBack && Array.isArray(store.bought) && store.bought.includes('cape')) { store.capeBack = 1; store.drops = (store.drops || 0) + 480; store.bought = store.bought.filter(i => i !== 'cape'); if (Array.isArray(store.owned)) store.owned = store.owned.filter(i => i !== 'cape'); } // (v405: the cape's gone; what it cost comes back)
 const OWNED = new Set(Array.isArray(store.owned) ? store.owned.filter(id => ITEMS.some(w => w.id === id)) : []);
 // drops: paint earned at the end of a match. A found item goes on sale in the locker; it is worn once it is bought
-const PRICES = { sly: 545, flower: 25, pearls: 160, scarf: 180, bowtie: 100, stache: 195, beanie: 205, party: 240, monocle: 290, lashes: 220, glasses: 270, patch: 330, fangs: 40, tiara: 475, tophat: 580, bunny: 645, pirate: 695, hockey: 765, skull: 835, halo: 850, zombie: 975, hat: 1105, antennae: 195, floaties: 245, snorkel: 295, propcap: 345, cape: 480, galaxy: 2000, lava: 1750, rainbow: 1500, matrix: 1750, glitter: 1250, zombie: 1500 }; // (v387: the skins) // (v302: the five new everyday pieces; see docs/wearables-v302.md)
+const PRICES = { sly: 545, flower: 25, pearls: 160, scarf: 180, bowtie: 100, stache: 195, beanie: 205, party: 240, monocle: 290, lashes: 100, glasses: 270, patch: 330, fangs: 40, tiara: 475, tophat: 580, bunny: 645, pirate: 695, hockey: 765, skull: 835, halo: 850, zombie: 975, hat: 1105, antennae: 195, floaties: 245, snorkel: 295, propcap: 345, cape: 480, galaxy: 2000, lava: 1750, rainbow: 1500, matrix: 1750, glitter: 1250, zombie: 1500 }; // (v387: the skins) // (v302: the five new everyday pieces; see docs/wearables-v302.md)
 const OUTRIGHT = new Set(['flower', 'fangs', 'lashes', 'bowtie', 'pearls', 'beanie', 'party', 'monocle', 'stache', 'scarf', 'antennae', 'snorkel', 'propcap', 'floaties', 'cape']), needFind = w => !OUTRIGHT.has(w.id) && !!w.season; /* (v442: only the Spooky SZN pieces, which aren't for sale) */ // (in stock from the start: nothing to find, only dabs to pay) // (what has to be found on a canvas before it is for sale)
 const PRICE = w => { const t = store.tut && store.tut.price; if (t && t[w.id] >= 0) return t[w.id]; if (w.gift) return 0; /* (v330: a gift costs nothing) */ { const lp = stLive(w.id); if (lp >= 0) return lp; } /* (v354: a live price from the dashboard) */ return PRICES[w.id] || (w.season ? 850 : w.slot === 'head' ? 510 : 255); }; // (the lesson sets the flower's and the fangs' prices)
 const BOUGHT = new Set(Array.isArray(store.bought) ? store.bought.filter(id => OWNED.has(id)) : [...OWNED]);
