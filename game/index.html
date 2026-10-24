@@ -5524,6 +5524,16 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
 .evdrop small{display:none}
 .evdrop{height:66px}
 .evdrop b{font-size:22px}
+
+/* (v467) upright Locker: a compact footer (description, then the price and its note side by side) and the turn-around button above it */
+@media (max-aspect-ratio:1/1){
+  html:not(.fh):not(.fv):not(.scol):not(.scolL) #mLocker.sgp:not(.lkbig) .sgshow{height:clamp(190px,30vh,260px)}
+  html:not(.fh):not(.fv):not(.scol):not(.scolL) #mLocker.sgp.sgnoted .sgfoot{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:10px;row-gap:5px;align-items:center;justify-items:start;box-sizing:border-box;padding:0 12px 6px;bottom:0}
+  html:not(.fh):not(.fv):not(.scol):not(.scolL) #mLocker.sgp.sgnoted .sgfoot .sgline{grid-column:1/-1;grid-row:1;justify-self:center}
+  html:not(.fh):not(.fv):not(.scol):not(.scolL) #mLocker.sgp.sgnoted .sgfoot .sgact{grid-column:1;grid-row:2}
+  html:not(.fh):not(.fv):not(.scol):not(.scolL) #mLocker.sgp.sgnoted .sgfoot .sgnote{grid-column:2;grid-row:2;order:0;justify-self:start;max-width:100%;margin:0;text-align:left;text-wrap:balance}
+  html:not(.fh):not(.fv):not(.scol):not(.scolL) #mLocker.sgp .sgrot,html:not(.fh):not(.fv):not(.scol):not(.scolL) #mLocker.sgp.sgnoted .sgrot{top:auto;bottom:74px}
+}
 </style>
 
 <div id="stage">
@@ -5704,7 +5714,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 466</p>
+      <p class="ver">Version 467</p>
     </div>
   </div>
 
