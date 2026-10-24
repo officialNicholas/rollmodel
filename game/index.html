@@ -5496,6 +5496,9 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
   html .joy.on{opacity:.82}
   html .joy i{width:22px;height:22px;margin:-11px 0 0 -11px}
 }
+
+/* (v453) the lobby's Play, upright: a little smaller, centred */
+@media (max-aspect-ratio:1/1){#homePlay.playbtn{justify-self:center;width:min(86%,310px);min-width:0;min-height:76px}#homePlay.playbtn .pbl{font-size:38px}}
 </style>
 
 <div id="stage">
@@ -5676,7 +5679,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 452</p>
+      <p class="ver">Version 453</p>
     </div>
   </div>
 
@@ -30106,7 +30109,7 @@ const TUT_STEPS = [
       if (Math.abs(steerIn) > 0.3 || keyL || keyR) tut.steered = true; if (P.st === 'play' && P.air && P.vy > 3 && !P.flung && !P.slam) tut.jumped = true;
       lsnGhost(!tut.steered ? 'steertap' : !tut.jumped ? 'tap' : null, dt);
       return (tut.steered && tut.jumped) || tut.moved > 45; } },
-  { id: 'freetune', max: 99, enter() { tutHide(); lsnDue('tune'); }, tick() { return true; } }, // (Your steering: the card is the lesson)
+  { id: 'freetune', max: 99, enter() { tutHide(); tut.tuneWait = 4; }, tick(dt) { if ((tut.tuneWait -= dt) > 0) return false; lsnDue('tune'); return true; } }, /* (v453: 4 s of rolling first) */ // (Your steering: the card is the lesson)
   // three of the time trial's rings, one after another, close ahead of you
   { id: 'rings', max: 50, enter() { tutHide(); tut.ringsOn = false; tut.ghostT = 0; },
     tick(dt) { if (!tut.ringsOn) { tut.ringsOn = true; tut.rings = true; TR.n = 0; TR.last.length = 0; TR.on = false; TR.wait = 0.05; } lsnGhost(null, dt); return TR.n >= 3; },
