@@ -5676,7 +5676,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 451</p>
+      <p class="ver">Version 452</p>
     </div>
   </div>
 
@@ -30114,9 +30114,10 @@ const TUT_STEPS = [
   { id: 'sling', max: 40, enter() { tutHide(); lsnDue('sling'); },
     tick(dt) { lsnGhost(P.charging ? null : 'pull', dt); return P.st === 'play' && P.air && P.flung && (P.flingC || 0) > 0.1; } },
   // out of paint: your tank empties, one basin comes up a few steps ahead of you (the only one about), and the way to it is shown
-  { id: 'basin', max: 55, enter() { tut.slowK = 1; tut.basinTip = false; tut.basinT = 0; tut.basinSw = false; tut.potQ = null; tut.potTry = 0; tutHide(); lsnDue('basin'); },
+  { id: 'basin', max: 55, enter() { tut.slowK = 1; tut.basinTip = false; tut.basinT = 0; tut.basinSw = false; tut.potQ = null; tut.potTry = 0; tutHide(); tut.basinWait = 2.5; /* (v452: a beat after the fling, then the card) */ },
     exit() { tut.potQ = null; },
     tick(dt) { if (P.dryT) P.dryT = 0; /* (no running dry into a knock-out in the lesson) */
+      if (tut.basinWait > 0) { tut.basinWait -= dt; if (tut.basinWait <= 0) lsnDue('basin'); return false; } /* (v452) */
       if (!tut.potQ && P.st === 'play' && !P.air && (tut.potTry -= dt) <= 0) { tut.potTry = 0.3; tut.potQ = tutRaisePot(); }
       if (P.st === 'play') P.paint = tut.basinTip ? Math.min(P.paint, 0.02) : Math.max(0, P.paint - dt * 1.1);
       if (tut.basinTip && !tut.basinSw) { tut.basinT += dt; if (tut.basinT > 3 && P.st === 'play') { tut.basinSw = true; tutGest('swipe'); } } /* (not there yet: a finger shows the swipe up, a roll gets you there faster) */
@@ -30153,11 +30154,11 @@ const TUT_STEPS = [
     tick(dt) { if (!H.slam && P.st === 'play') tutRivalIn(6.5); if (H.st === 'play' && !H.slam && H.slamCD > 1.2) H.slamCD = 1.2; if (H.paint < 0.5) H.paint = 1;
       const d = Math.hypot(H.x - P.x, H.z - P.z), eta = H.slam ? H.slamEta - H.slamT : 9, coming = H.slam && H.st === 'play' && P.st === 'play' && !P.air && d < slamRadius(H) + PR + 2.5;
       if (coming && P.rollT <= 0 && !tut.rolled) P.rollCD = 0; /* (an early swipe never leaves you without a roll for the drop) */
-      if (coming && P.rollT > 0 && !tut.rolled) tut.rolled = true; // (a roll while its pound is in the air: that is the timing)
+      if (coming && P.rollT > 0 && !tut.rolled) { tut.rolled = true; popText('Dodged!'); } // (a roll while its pound is in the air: that is the timing) (v452: said)
       if (tut.rolled && H.slam && P.rollT > 0 && P.rollT < 0.05) P.rollT = 0.05; /* (and it holds you clear till the pound lands) */
       if (P.st === 'ko' && !tut.wasKo) tut.hits++; tut.wasKo = P.st === 'ko';
       if (H.slam && !tut.slamW) { tut.h0 = tut.hits; tut.slamNo++; } if (H.slam && H.st === 'play' && d < slamRadius(H) + PR + 6) tut.thr = true;
-      if (tut.slamW && !H.slam) { if (tut.thr && tut.hits === tut.h0 && H.st === 'play' && P.st === 'play') tut.escaped = true; tut.thr = false; } tut.slamW = !!H.slam; /* (it came down and missed you: a swipe, a jump, a fling or just getting out of its way, any of them) */
+      if (tut.slamW && !H.slam) { if (tut.thr && tut.hits === tut.h0 && H.st === 'play' && P.st === 'play') { if (!tut.escaped && !tut.rolled) popText('Dodged!'); tut.escaped = true; } tut.thr = false; } tut.slamW = !!H.slam; /* (it came down and missed you: a swipe, a jump, a fling or just getting out of its way, any of them) */
       if (coming && eta < 0.45 && !tut.rolled && P.rollT <= 0 && tut.cueN < 2 && tut.cueNo !== tut.slamNo) { tut.cueN++; tut.cueNo = tut.slamNo; lsnCue('dodge'); }
       return (tut.rolled || tut.escaped || tut.hits >= 2) && P.st === 'play' && !H.slam; },
     exit() { Object.assign(TUT_AI, TUT_AI_CALM); tut.drive = null; tut.noPound = false; } },
