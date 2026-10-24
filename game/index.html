@@ -5714,7 +5714,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 469</p>
+      <p class="ver">Version 470</p>
     </div>
   </div>
 
@@ -23615,7 +23615,7 @@ function sgShowRender() {
   else if (!cr) { b.disabled = busy || !due; b.innerHTML = '<span>' + (due ? 'Craft<small>' + o.craft + ' min</small>' : STROKE_LOCK + 'Rank ' + stRank(o)) + '</span>'; b.setAttribute('aria-label', due ? 'Craft ' + o.name + ', ' + o.craft + ' minutes' : o.name + ' opens at rank ' + stRank(o)); }
   if (cr) sgBench(o); sgSkipPaint();
   const lack = stBuys(o) ? stPrice(o) - (store.drops || 0) : 0;
-  const note = own ? '' : cr ? (adFree() ? '' : 'Watch an ad to finish it now') : !due ? 'Reach rank ' + stRank(o) + ' to ' + (stBuys(o) ? 'buy' : 'craft') + ' it' : stBuys(o) ? (lack > 0 ? 'You need ' + lack + ' more dabs. Matches pay in dabs' : '') : busy ? 'One craft at a time: ' + spName(d.craft.id) + ' is on the bench' : '';
+  const note = own ? '' : cr ? (adFree() ? '' : 'Watch an ad to finish it now') : !due ? 'Reach rank ' + stRank(o) + ' to ' + (stBuys(o) ? 'buy' : 'craft') + ' it' : stBuys(o) ? '' : busy ? 'One craft at a time: ' + spName(d.craft.id) + ' is on the bench' : '';
   $('sgNote').hidden = !note; $('sgNote').textContent = note; $('mStrokes').classList.toggle('sgnoted', !!note);
   SGD.rectDirty = true;
   stStrokeView(o); // (v370)
@@ -24996,7 +24996,7 @@ function lkShowRender() {
     line = own ? (needFind(w) ? 'Found on ' + where : 'From the Paint Shop') : found ? (owns(w.id) && needFind(w) ? 'You found it on ' + where : 'In stock now') : 'A Spooky SZN exclusive';
     if (w.slot === 'skin' || w.slot === 'emote') line = w.desc; // (v387)
     if (own) { if (on) { doH = ST_CHECK + 'Equipped'; doCls = 'on'; doDis = true; doLab = w.name + ' is equipped'; off = w.slot !== 'eyes' && w.slot !== 'emote'; } else { doH = 'Equip'; doLab = 'Put on the ' + w.name.toLowerCase(); } }
-    else if (found) { if (n >= p) { doH = 'Buy<small>' + DROP_SVG + p + '</small>'; doCls = 'craft'; doLab = 'Buy the ' + w.name.toLowerCase() + ' for ' + p + ' dabs'; } else { doH = DROP_SVG + p; doDis = true; doLab = w.name + ', ' + p + ' dabs'; note = 'You need ' + (p - n) + ' more dabs. Matches pay in dabs'; } }
+    else if (found) { if (n >= p) { doH = 'Buy<small>' + DROP_SVG + p + '</small>'; doCls = 'craft'; doLab = 'Buy the ' + w.name.toLowerCase() + ' for ' + p + ' dabs'; } else { doH = DROP_SVG + p; doDis = true; doLab = w.name + ', ' + p + ' dabs'; } }
     else { doH = STROKE_LOCK + 'Locked'; doDis = true; doLab = w.name + ' is a Spooky SZN exclusive'; note = 'A Spooky SZN exclusive, not sold in the Paint Shop'; } }
   else if (k === 'c') { const c = PALETTE.find(q => q.id === id) || colorOf(); kind = 'Your paint'; name = c.name; line = 'Everything you roll over turns ' + c.name.toLowerCase(); }
   else if (k === 'e') { kind = 'Your eyes'; name = EYE_STYLES[id] || 'Round'; line = NO_IRIS(id) ? 'These eyes keep their own colour' : 'Pick their colour under them'; }
