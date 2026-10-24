@@ -5676,7 +5676,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 450</p>
+      <p class="ver">Version 451</p>
     </div>
   </div>
 
@@ -30191,7 +30191,7 @@ function tutModesDone(open) { const el = $('tutGo'); el.classList.remove('on'); 
 // (v441) the first thing after the intro: learn the basics (the training match) or just play (skip it, straight to Choose Event)
 function tutBasicsCard() {
   const el = $('tutGo'); if (!el.hidden || menu.hidden || state !== 'menu' || building || irisBusy) return; /* (v443: never again on the way into the match) */ el.dataset.mode = 'basics';
-  tutCardText(['Learn <em>the basics?</em>', 'A quick training match: steer, jump, slingshot, pound and dodge. Or skip it and jump straight in.', 'Teach me', 'Just play']);
+  tutCardText(['Learn <em>the basics?</em>', 'A quick training match or jump right in?', 'Teach me', 'Just play']);
   el.hidden = false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); tutCardCoach(); AU.bloop(0.55); menu.classList.add('tutoring'); setTimeout(() => $('tgGo').focus({ preventScroll: true }), 60);
 }
 function tutBasicsPick(learn) {
