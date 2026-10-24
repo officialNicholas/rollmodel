@@ -5462,6 +5462,10 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
 /* (v445) the lesson cards' clips of the game: they fill their frame */
 .tv>img.tvclip{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;background:#E9E6EE}
 @media (max-height:520px) and (min-aspect-ratio:1/1){.tlvis .tv{aspect-ratio:16/10}.tlvis.two .tv{aspect-ratio:1/1}.tlvis:not(.two){width:min(100%,calc((100vh - 215px) * 1.6))}.tlvis.two{width:min(100%,calc((100vh - 230px) * 2 + 10px))}}
+
+/* (v446) Settings' help row: Replay tutorial, How to play, Terms, Privacy (three when Replay is hidden in a match) */
+#setModal .sbtns.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+#setModal .sbtns.four:has(#tutAgain[hidden]){grid-template-columns:repeat(3,minmax(0,1fr))}
 </style>
 
 <div id="stage">
@@ -5642,7 +5646,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 445</p>
+      <p class="ver">Version 446</p>
     </div>
   </div>
 
@@ -5667,7 +5671,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="sopt wide"><p class="slab">Visuals</p><div class="seg duo tog pick" id="gfxPick" role="group" aria-label="Visuals"><button type="button" data-g="hi" aria-pressed="false"><span>Graphics</span></button><button type="button" data-g="perf" aria-pressed="false"><span>Performance</span></button></div><p class="gnote" id="gfxNote" aria-live="polite"></p></div>
         <div class="sopt wide"><p class="slab">Turning <b class="trnv" id="turnVal">65%</b><button class="trndef" id="turnDef" type="button" aria-label="Turning back to default (65%)">Default</button></p><div class="trn"><span class="trnl" aria-hidden="true">Gentle</span><input type="range" id="turnPick" min="40" max="100" step="5" value="65" aria-label="Turning speed" aria-describedby="turnNote"><span class="trnl" aria-hidden="true">Quick</span></div><p class="gnote" id="turnNote">How fast you turn when you swipe.</p></div>
         <div class="sopt wide"><p class="slab">Invert steering</p><div class="seg duo tog pick" id="invPick" role="group" aria-label="Invert steering"><button type="button" data-v="off" aria-pressed="true"><span>Normal</span></button><button type="button" data-v="on" aria-pressed="false"><span>Inverted</span></button></div><p class="gnote" id="invNote">Swipe right to turn right.</p></div>
-        <div class="sopt full sdocs"><div class="sbtns four"><button class="sbtn" id="howOpen" type="button" aria-haspopup="dialog"><span>How to play</span></button><button class="sbtn" id="tosBtn" type="button" aria-haspopup="dialog"><span>Terms of Service</span></button><button class="sbtn" id="privBtn" type="button" aria-haspopup="dialog"><span>Privacy Policy</span></button></div></div>
+        <div class="sopt full sdocs"><div class="sbtns four"><button class="sbtn" id="tutAgain" type="button"><span>Replay tutorial</span></button><button class="sbtn" id="howOpen" type="button" aria-haspopup="dialog"><span>How to play</span></button><button class="sbtn" id="tosBtn" type="button" aria-haspopup="dialog"><span>Terms of Service</span></button><button class="sbtn" id="privBtn" type="button" aria-haspopup="dialog"><span>Privacy Policy</span></button></div></div>
         <p class="gnote serr" id="lastErr"></p>
         <div class="sfoot"><span class="sfacts"><button class="sreset" id="resetBtn" type="button">Restart Game</button><button class="sreset" id="delAcBtn" type="button" aria-haspopup="dialog" hidden>Delete account</button></span><p class="sver" id="setVer"></p></div>
       </div></div>
@@ -28581,7 +28585,7 @@ function lobbyCovered() { if (!LCOV) LCOV = ['setModal', 'howModal', 'docModal',
 function paintSettings() { try { invPaint(); } catch (e) {} try { $('lastErr').textContent = store.lastErr ? 'Last error: ' + store.lastErr : ''; } catch (e) {} for (const b of $('sfxPick').children) b.setAttribute('aria-pressed', String((b.dataset.v === 'off') === !!store.sfxOff)); for (const b of $('musPick').children) b.setAttribute('aria-pressed', String((b.dataset.v === 'off') === !!store.musicOff)); { const v = document.querySelector('#howModal .ver'); $('setVer').textContent = v ? v.textContent : ''; } for (const b of $('orientPick').children) b.setAttribute('aria-pressed', String(b.dataset.o === (store.orient || ''))); for (const b of $('gfxPick').children) b.setAttribute('aria-pressed', String(b.dataset.g === gfxPick)); $('gfxNote').textContent = GFX_NOTE[gfxPick] + (gfxPick === GFX ? '' : ' Going back restarts the game to apply it.'); $('setDone').textContent = gfxPick === GFX ? 'Done' : 'Restart to apply'; setFitSoon(); }
 let setInPlay = false;
 // (v399) from the pause menu: the rows that can't be used mid-match (Visuals restarts the game, Screen turns it, Restart Game, Delete account) hidden
-function setPlayRows(on) { for (const id of ['gfxPick']) { /* (v442: Screen stays) */ const r = $(id).closest('.sopt'); if (r) r.hidden = on; } $('resetBtn').hidden = on; if (on) $('delAcBtn').hidden = true; else delPaint(); }
+function setPlayRows(on) { for (const id of ['gfxPick']) { /* (v442: Screen stays) */ const r = $(id).closest('.sopt'); if (r) r.hidden = on; } $('resetBtn').hidden = on; $('tutAgain').hidden = on; if (on) $('delAcBtn').hidden = true; else delPaint(); }
 function openSettingsInPlay() {
   if (!(state === 'paused' || (NM && state === 'play')) || pauseEl.hidden) return;
   setInPlay = true; pauseEl.hidden = true; gfxPick = GFX; paintSettings(); setPlayRows(true); if (window.__turnShow) window.__turnShow(); setModal.hidden = false; setFit();
@@ -28593,6 +28597,12 @@ function closeSettings() { if (setModal.hidden) return; setModal.hidden = true;
   $('hamBtn').focus({ preventScroll: true }); }
 function doneSettings() { if (gfxPick === GFX) return closeSettings(); store.gfx = gfxPick; store.gfxUser = 1; save(); $('setDone').disabled = true; $('setDone').textContent = 'Restarting'; setTimeout(() => location.reload(), 120); }
 $('setBtn').addEventListener('click', uiClick(openSettings));
+// (v446) Replay tutorial, from Settings in the lobby: the training match again, straight away. No lesson dabs the second time round,
+// and after it you're back where you were
+$('tutAgain').addEventListener('click', () => { AU.init(); AU.ui(); if (state !== 'menu' || setInPlay || building) return;
+  store.tut.replay = 1; delete store.tut.skipped; tutSet('match'); save(); closeSettings();
+  setTimeout(() => { if (state === 'menu' && !building && tutMatchDue()) start(); }, 260); });
+
 const SM_SND_ON = '<svg viewBox="0 0 48 48"><path d="M7 18h8l11-9v30l-11-9H7z" fill="#fff" stroke="#171320" stroke-width="3" stroke-linejoin="round"/><path d="M32 17a9 9 0 0 1 0 14M36.5 12.5a15 15 0 0 1 0 23" fill="none" stroke="#171320" stroke-width="6.5" stroke-linecap="round"/><path d="M32 17a9 9 0 0 1 0 14M36.5 12.5a15 15 0 0 1 0 23" fill="none" stroke="#46E07A" stroke-width="3.2" stroke-linecap="round"/></svg>', SM_SND_OFF = '<svg viewBox="0 0 48 48"><path d="M7 18h8l11-9v30l-11-9H7z" fill="#fff" stroke="#171320" stroke-width="3" stroke-linejoin="round"/><path d="M32 18l10 12M42 18 32 30" fill="none" stroke="#171320" stroke-width="7" stroke-linecap="round"/><path d="M32 18l10 12M42 18 32 30" fill="none" stroke="#FF5A57" stroke-width="3.6" stroke-linecap="round"/></svg>';
 // ---------- the home screen (v208): the floating power bar over your character (your rank, your paint filling toward the next one, your
 // name on a strip of tape), your stats behind it, your dabs up top, a menu that slides open, friends and the spots beside you (soon) ----------
@@ -29962,22 +29972,24 @@ function tutHold(pos, x, y, nat) {
 // the lesson, one step at a time: each one says what to do, waits for it (slowed down while it waits), then the next. max: real seconds before it moves on anyway
 // ---------- (v443) the lesson's cards and cues: the game stopped on a looping little scene of the move (a finger acting out the gesture
 // in step with it) and a few words; at the two moments that are about timing (pound, dodge), stopped on the moment itself ----------
-const LSN_ORDER = ['move', 'tune', 'rings', 'sling', 'basin', 'pound', 'dodge'];
+const LSN_ORDER = ['move', 'tune', 'sling', 'basin', 'pound', 'dodge']; /* (v446: no Rings card) */
 const LSN = {
   move: { t: 'Move', two: true, p: [['steer', 'Drag to steer', 'A and D steer'], ['jump', 'Tap to jump', 'SPACE jumps']] },
   tune: { t: 'Your steering', tune: true, go: 'Done' },
-  rings: { t: 'Rings', p: [['rings', 'Steer through 3 rings', 'Steer through 3 rings']] },
   sling: { t: 'Slingshot', p: [['sling', 'Hold, pull down, let go', 'Hold S, then let go']] },
   basin: { t: 'Out of paint?', p: [['basin', 'Roll into the basin. Tap to hop out', 'Roll into the basin. SPACE hops out']] },
   pound: { t: 'Ground pound', p: [['pound', 'Get close, then tap Pound', 'Get close, then press E']] },
   dodge: { t: 'Dodge', p: [['dodge', 'Swipe up just before it lands', 'SHIFT just before it lands']] }
 };
-const TV = { // (v445) the game itself: clips of the moves, the finger drawn in
-  steer: '<img class="tvclip" src="art/l_steer.webp" alt="">', jump: '<img class="tvclip" src="art/l_jump.webp" alt="">',
-  rings: '<img class="tvclip" src="art/l_rings.webp" alt="">', sling: '<img class="tvclip" src="art/l_sling.webp" alt="">',
-  basin: '<img class="tvclip" src="art/l_basin.webp" alt="">', pound: '<img class="tvclip" src="art/l_pound.webp" alt="">',
-  dodge: '<img class="tvclip" src="art/l_dodge.webp" alt="">'
-};
+const TV_SRC = { steer: 'art/l_steer.webp', jump: 'art/l_jump.webp', sling: 'art/l_sling.webp', basin: 'art/l_basin.webp', pound: 'art/l_pound.webp', dodge: 'art/l_dodge.webp' };
+const TV = {}; for (const k in TV_SRC) TV[k] = '<img class="tvclip" data-k="' + k + '" alt="">'; // (v446: the address is set as the card shows)
+// (v446) each clip kept as its own data, so every showing gets a fresh address and plays from its first frame
+const LSN_BLOB = {};
+function lsnFetch() { for (const k in TV_SRC) { if (LSN_BLOB[k]) continue; try { fetch(TV_SRC[k]).then(r => r.ok ? r.blob() : null).then(b => { if (b) LSN_BLOB[k] = b; }).catch(() => {}); } catch (e) {} } }
+function lsnClips(on) { for (const im of lsnEl.querySelectorAll('img.tvclip')) {
+    if (!on) { if (im.dataset.u) { try { URL.revokeObjectURL(im.dataset.u); } catch (e) {} delete im.dataset.u; } continue; }
+    const k = im.dataset.k, b = LSN_BLOB[k]; let u = null; if (b) try { u = URL.createObjectURL(b); } catch (e) {}
+    if (u) { im.dataset.u = u; im.src = u; } else im.src = TV_SRC[k]; } }
 const LSN_TUNE = '<div class="tltune"><div class="tlrow"><span class="tlk">Turning</span><b class="tlpct" id="tlTurnV"></b></div>'
   + '<div class="tlrng"><span aria-hidden="true">Gentle</span><input type="range" class="tlrange" id="tlTurn" min="40" max="100" step="5" aria-label="Turning speed"><span aria-hidden="true">Quick</span></div>'
   + '<div class="tlrow"><span class="tlk">Invert steering</span></div><div class="seg duo tog pick" id="tlInv" role="group" aria-label="Invert steering"><button type="button" data-v="off"><span>Normal</span></button><button type="button" data-v="on"><span>Inverted</span></button></div>'
@@ -30002,13 +30014,14 @@ function lsnShow(k) {
   lsnEl.querySelector('#tlTitle').textContent = L.t;
   const vis = lsnEl.querySelector('.tlvis'), hand = lsnHand(); vis.className = 'tlvis' + (L.two ? ' two' : '');
   vis.innerHTML = L.tune ? LSN_TUNE : L.p.map(([v, w, wk]) => '<div class="tlpan"><div class="tv" data-v="' + v + '" aria-hidden="true">' + TV[v].replace('%H%', hand).replace('%ARCH%', TV_ARCH).replace('%TUB%', TV_TUB).replace('%TUBF%', TV_TUBF).replace('%PB%', TV_PB) + '</div><p class="tll">' + escAttr(keysUI ? wk : w) + '</p></div>').join('');
+  lsnClips(true); /* (v446: from their first frame) */
   if (k === 'basin') { const w = vis.querySelector('.tll'), pw = potWord(); if (w) w.textContent = say('Roll into the ' + pw + '. Tap to hop out', 'Roll into the ' + pw + '. SPACE hops out'); }
   lsnEl.querySelector('#tlGo').textContent = L.go || 'Go!';
   lsnEl.hidden = false; lsnEl.classList.remove('on'); void lsnEl.offsetWidth; lsnEl.classList.add('on'); lsnAt = performance.now();
   if (L.tune) lsnTuneInit();
   if (AU.plop) AU.plop(); else AU.ui(); setTimeout(() => { if (!lsnEl.hidden) lsnEl.querySelector('#tlGo').focus({ preventScroll: true }); }, 60);
 }
-function lsnGo() { if (lsnEl.hidden || performance.now() - lsnAt < 800) return; /* (a tap meant for the game just before the card came up never skips it) */ lsnEl.classList.remove('on'); lsnEl.hidden = true; lsnEl.querySelector('.tlvis').innerHTML = ''; AU.init(); AU.pop(); lsnFreeze(null); if (tut) tut.ghostT = 0; }
+function lsnGo() { if (lsnEl.hidden || performance.now() - lsnAt < 800) return; /* (a tap meant for the game just before the card came up never skips it) */ lsnEl.classList.remove('on'); lsnEl.hidden = true; lsnClips(false); lsnEl.querySelector('.tlvis').innerHTML = ''; AU.init(); AU.pop(); lsnFreeze(null); if (tut) tut.ghostT = 0; }
 lsnEl.addEventListener('click', e => { if (e.target.closest('.tltune')) return; lsnGo(); }); // (Go, or a tap anywhere but on the Turning bar and Invert)
 function lsnTuneInit() {
   const r = $('tlTurn'), v = $('tlTurnV'), inv = $('tlInv'); if (!r) return;
@@ -30042,7 +30055,7 @@ window.addEventListener('keydown', e => {
   if (lsnEl.parentNode && !lsnEl.hidden) { if (e.target && e.target.closest && e.target.closest('.tltune') && k !== 'Enter') return; if (k === 'Enter' || k === ' ' || k === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); lsnGo(); } else if (k === 'p' || k === 'P') { e.preventDefault(); e.stopImmediatePropagation(); } return; }
   if (CUE.k) { e.preventDefault(); e.stopImmediatePropagation(); if ((CUE.k === 'pound' && (k === 'e' || k === 'E')) || (CUE.k === 'dodge' && (k === 'Shift' || k === 'q' || k === 'Q'))) lsnCueDo(); }
 }, true);
-function lsnOff() { CUE.k = null; cueEl.hidden = true; cueEl.classList.remove('on'); lsnEl.hidden = true; lsnEl.classList.remove('on'); lsnEl.querySelector('.tlvis').innerHTML = ''; if (tut) { tut.lsn = null; tut.lsnDue = null; } }
+function lsnOff() { CUE.k = null; cueEl.hidden = true; cueEl.classList.remove('on'); lsnEl.hidden = true; lsnEl.classList.remove('on'); lsnClips(false); lsnEl.querySelector('.tlvis').innerHTML = ''; if (tut) { tut.lsn = null; tut.lsnDue = null; } }
 // a few seconds into a lesson without doing it: the finger acts it out over the game (no words), and goes once you do
 function lsnGhost(kind, dt) { if (!tut) return; tut.ghostT = (tut.ghostT || 0) + (dt || 0); const g = kind && tut.ghostT > 3.5 ? kind : ''; if ((tutGestEl.dataset.g || '') !== g) tutGest(g || null); }
 const TV_ARCH = "<svg viewBox=\"0 0 100 64\" aria-hidden=\"true\"><path d=\"M10 62V40a40 40 0 0 1 80 0v22\" fill=\"none\" stroke=\"#171320\" stroke-width=\"15\" stroke-linecap=\"round\"/><path d=\"M10 62V40a40 40 0 0 1 80 0v22\" fill=\"none\" stroke=\"#FFC21A\" stroke-width=\"8.5\" stroke-linecap=\"round\"/><path d=\"M16 36a34 34 0 0 1 22-26\" fill=\"none\" stroke=\"#FFF4C4\" stroke-width=\"3\" stroke-linecap=\"round\"/></svg>", TV_TUB = "<svg viewBox=\"0 0 100 52\" aria-hidden=\"true\"><ellipse cx=\"50\" cy=\"26\" rx=\"47\" ry=\"22\" fill=\"#6B5444\" stroke=\"#171320\" stroke-width=\"4\"/><ellipse cx=\"50\" cy=\"24\" rx=\"39\" ry=\"15\" fill=\"var(--pc)\" stroke=\"#171320\" stroke-width=\"2.5\"/><ellipse cx=\"40\" cy=\"20\" rx=\"12\" ry=\"4\" fill=\"rgba(255,255,255,.35)\"/></svg>", TV_TUBF = "<svg viewBox=\"0 0 100 52\" aria-hidden=\"true\"><path d=\"M3 26a47 22 0 0 0 94 0\" fill=\"none\" stroke=\"#171320\" stroke-width=\"4\"/><path d=\"M7 28a43 18 0 0 0 86 0\" fill=\"none\" stroke=\"#6B5444\" stroke-width=\"6\"/></svg>", TV_PB = "<svg viewBox=\"0 0 40 40\" aria-hidden=\"true\"><path d=\"M14 3h12v13h7.5L20 30.5 6.5 16H14z\"/></svg>"; // (the scenes' drawn parts)
@@ -30055,7 +30068,7 @@ const TUT_STEPS = [
       return (tut.steered && tut.jumped) || tut.moved > 45; } },
   { id: 'freetune', max: 99, enter() { tutHide(); lsnDue('tune'); }, tick() { return true; } }, // (Your steering: the card is the lesson)
   // three of the time trial's rings, one after another, close ahead of you
-  { id: 'rings', max: 50, enter() { tutHide(); tut.ringsOn = false; lsnDue('rings'); },
+  { id: 'rings', max: 50, enter() { tutHide(); tut.ringsOn = false; tut.ghostT = 0; },
     tick(dt) { if (!tut.ringsOn) { tut.ringsOn = true; tut.rings = true; TR.n = 0; TR.last.length = 0; TR.on = false; TR.wait = 0.05; } lsnGhost(null, dt); return TR.n >= 3; },
     exit() { tut.rings = false; TR.wait = 0; if (TR.on) { TR.on = false; TR.out = 1; } } },
   { id: 'sling', max: 40, enter() { tutHide(); lsnDue('sling'); },
@@ -30148,7 +30161,7 @@ function tutBasicsPick(learn) {
 }
 // skipped: the onboarding is over, nothing taught and nothing owed (no lesson, no shop trip, no later scripts or cards)
 function tutSkipAll() {
-  store.tut.skipped = 1; store.tut.m3 = 2; store.tut.comms = 1; store.tut.modes = 1; store.tut.trySd = 1; delete store.tut.price;
+  delete store.tut.replay; store.tut.skipped = 1; store.tut.m3 = 2; store.tut.comms = 1; store.tut.modes = 1; store.tut.trySd = 1; delete store.tut.price;
   tutSet('done'); save(); tutHide(); menu.classList.remove('tutoring');
 }
 function tutWelcome() {
@@ -30381,7 +30394,7 @@ function tutReward(id, hit) {
   const k = TUT_PIP[id]; if (k === undefined) return; tut.bonus = (tut.bonus || 0) + 5;
   const fresh = !tut.pips.has(k); tut.pips.add(k); tutPipsTick(); const pe = tutPipsEl.children[k]; if (pe && fresh) restartCls(pe, 'got');
   tutPraiseEl.textContent = hit ? 'Shake it off!' : TUT_PRAISE[tut.praiseN++ % TUT_PRAISE.length]; clearTimeout(tutPraiseEl._t); clearTimeout(tutPraiseEl._t0); { const bw = Math.max(0, bannerUntil - performance.now()), go = () => { tutPraiseEl._pend = false; restartCls(tutPraiseEl, 'on'); tutPraiseEl._t = setTimeout(() => tutPraiseEl.classList.remove('on'), 1150); }; if (bw > 30) { tutPraiseEl.classList.remove('on'); tutPraiseEl._pend = true; tutPraiseEl._t0 = setTimeout(go, bw); } else go(); } // (after a banner, never under it)
-  const sce = document.querySelector('#hud .score'); if (sce && state === 'play') { const r0 = stage.getBoundingClientRect(), r = sce.getBoundingClientRect(), pl = document.createElement('p'); pl.className = 'tutplus'; pl.textContent = '+5'; pl.style.left = (r.left - r0.left + r.width / 2).toFixed(0) + 'px'; pl.style.top = (r.bottom - r0.top + 4).toFixed(0) + 'px'; stage.appendChild(pl); setTimeout(() => pl.remove(), 1000); }
+  const sce = document.querySelector('#hud .score'); if (sce && state === 'play' && !store.tut.replay) { const r0 = stage.getBoundingClientRect(), r = sce.getBoundingClientRect(), pl = document.createElement('p'); pl.className = 'tutplus'; pl.textContent = '+5'; pl.style.left = (r.left - r0.left + r.width / 2).toFixed(0) + 'px'; pl.style.top = (r.bottom - r0.top + 4).toFixed(0) + 'px'; stage.appendChild(pl); setTimeout(() => pl.remove(), 1000); }
   if (AU.tick) AU.tick(5 + tut.pips.size * 2); AU.pop(); buzz(12); if (!reduceMotion && P.st === 'play') confetti(P.x, P.y + 1, P.z, 26, 2.4);
 }
 function tutStep(dt) {
@@ -30541,7 +30554,7 @@ function tutBegin() { // (as a match begins)
   tut3 = null; if (tutPh() === 'done' && store.tut.m3 === 1 && !NM) tut3Begin();
   if (!tutMatchDue()) { tut = null; return; }
   Object.assign(TUT_AI, TUT_AI_CALM, { pound: 0, attack: 0, orb: 0 }); AI = TUT_AI;
-  tut = { step: -1, st: 0, slowK: 1, hidePound: true, keepAway: true, items: false, orbMine: false, drive: null, noTurret: true, hideItem: true, pips: new Set(), bonus: 0, praiseN: 0 }; tutPipsDraw(); if (AU.xwant) AU.xwant('t_ring'); for (const k in TV) { const im = new Image(); im.src = TV[k].match(/src="([^"]+)"/)[1]; } /* (v445: the clips) */ /* (v443: the rings' chime) */
+  tut = { step: -1, st: 0, slowK: 1, hidePound: true, keepAway: true, items: false, orbMine: false, drive: null, noTurret: true, hideItem: true, pips: new Set(), bonus: 0, praiseN: 0 }; tutPipsDraw(); if (AU.xwant) AU.xwant('t_ring'); lsnFetch(); /* (v446: the clips, as data) */ /* (v443: the rings' chime) */
   wxLeft = 1e9; orb.spawnT = 1e9; Object.assign(gift, { id: null, on: false, got: false, pop: 0, at: 1e9 }); /* (v442: no gift) */ giftM.visible = giftRing.visible = giftBeam.visible = false;
 }
 function tutLeave() { lsnOff(); tutRevealOff(); clearTimeout(tutPraiseEl._t0); tutPraiseEl._pend = false; tutPraiseEl.classList.remove('on'); tut2 = null; tut3 = null; tutArrowEl.hidden = true; if (tut) tutCard(false); tut = null; tutHide(); if (tutSlowEl.classList.contains('on')) AU.slow(false, true); tutSlowEl.classList.remove('on'); tutRestore(); tutWinDue = false; const tw = $('tutWin'); tw.classList.remove('on'); tw.hidden = true; }
@@ -30566,11 +30579,11 @@ function tutLead() {
 }
 function tutEndMatch() { // (as a match ends)
   if (tut) {
-    const bonus = tut.bonus || 0; if (bonus) { store.drops = (store.drops || 0) + bonus; stEv({ k: 'earn', src: 'lesson', n: bonus }); endInfo.drops = (endInfo.drops || 0) + bonus; } endInfo.tutBonus = bonus; // (the lessons' dabs)
+    const bonus = store.tut.replay ? 0 : (tut.bonus || 0); if (bonus) { store.drops = (store.drops || 0) + bonus; stEv({ k: 'earn', src: 'lesson', n: bonus }); endInfo.drops = (endInfo.drops || 0) + bonus; } endInfo.tutBonus = bonus; // (the lessons' dabs)
     lsnOff(); tutCard(false); tut = null; tutHide(); if (tutSlowEl.classList.contains('on')) AU.slow(false, true); tutSlowEl.classList.remove('on'); tutPipsEl.classList.remove('on');
     
     for (const k of ['steer', 'jump', 'hold', 'burst', 'roll', 'pound', 'missile', 'item', 'orb', 'rocket', 'airdash', 'rroll']) store.seen[k] = 1; // (taught: the one-time tips stay down)
-    endInfo.lesson = true; tutSet('match2'); save(); tutWinDue = true; return; /* (v441: no shop trip) */
+    endInfo.lesson = true; tutSet(store.tut.replay ? 'done' : 'match2'); delete store.tut.replay; save(); tutWinDue = true; return; /* (v441: no shop trip) */
   }
   if (tutPh() === 'match2' && tut2) { tut2 = null; tutHide(); delete store.tut.price; store.tut.m3 = 2; tutSet('done'); /* (v441: no Giant script) */ save(); }
   else if (tut3) { tut3 = null; tutHide(); store.tut.m3 = 2; save(); }
