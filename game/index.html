@@ -5458,6 +5458,10 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
 .tcue[data-k="pound"] .tqword{left:min(var(--cx),calc(100% - 110px))}
 @keyframes tqword{from{opacity:0;scale:.6}to{opacity:1;scale:1}}
 @media (prefers-reduced-motion:reduce){.tv *,.tv>i{animation-duration:4.5s!important}.tvf{animation:none!important}}
+
+/* (v445) the lesson cards' clips of the game: they fill their frame */
+.tv>img.tvclip{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;background:#E9E6EE}
+@media (max-height:520px) and (min-aspect-ratio:1/1){.tlvis .tv{aspect-ratio:16/10}.tlvis.two .tv{aspect-ratio:1/1}.tlvis:not(.two){width:min(100%,calc((100vh - 215px) * 1.6))}.tlvis.two{width:min(100%,calc((100vh - 230px) * 2 + 10px))}}
 </style>
 
 <div id="stage">
@@ -5638,7 +5642,7 @@ html:is(.scol,.scolL) .mhome.lobby .lcol.left{gap:20px}
         <div class="pol"><div class="pic" style="--pc:#2ECC71"><span class="ink stroke"></span><span class="glyph sm">&#9733;</span><span class="cap">Transforms</span></div><div><b>Hold it, then use it</b><p id="howItems"></p></div></div>
       </div>
       <button class="btn play sm" id="howClose" type="button">Got it</button>
-      <p class="ver">Version 444</p>
+      <p class="ver">Version 445</p>
     </div>
   </div>
 
@@ -26842,7 +26846,7 @@ const ptOn = () => !!(ON.party && ON.party.members.length > 1);
 const ptCrowd = () => !!(ON.party && (ON.party.members.length > 1 || ON.party.invites.some(i => i.exp > Date.now())));
 const ptMe = () => { const p = ON.party, id = ON.me && ON.me.id; return p && id ? p.members.find(m => m.id === id) || null : null; };
 // playing with friends opens with Play online (v359: rank 2, and the Strokes page seen); until then a word on when
-const ptLockText = () => repOf(store.xp || 0).lv < ABIL_RANK ? 'Reach rank ' + ABIL_RANK + ' to play with friends' : 'Open Strokes in the lobby to play with friends';
+const ptLockText = () => 'Reach rank ' + ABIL_RANK + ' to play with friends';
 function ptLocked() { if (mpOpen()) return false; AU.nope(); buzz(8); frToast('<span>' + ptLockText() + '</span>'); return true; }
 // ---- the connection: kept while you're signed in to an account in the lobby (so an invite gets here at once), and while you're
 // in a party, a queue or a match; let go when the app goes to the background (the party keeps your place for a minute)
@@ -28084,19 +28088,19 @@ $('acBtns').addEventListener('click', async e => {
 
 // ---- Play online (Choose event): open once the Strokes page has been seen (a player who did the Strokes lesson has seen it). Then:
 // an account first, if there's none; then the lobby's online screen
-const mpOpen = () => !!(store.abilSeen || (store.tut && store.tut.strokes));
+const mpOpen = () => repOf(store.xp || 0).lv >= ABIL_RANK || !!(store.abilSeen || (store.tut && store.tut.strokes)); /* (v445: rank 2 opens it) */
 function acMatchPaint() {
   const b = $('evMatch'), c = b && b.closest('.evcard'); if (!c) return; const on = mpOpen(), lv = repOf(store.xp || 0).lv;
   c.classList.toggle('lock', !on); c.classList.toggle('fresh', on && !store.mpTried);
-  $('evMatchLock').innerHTML = ABIL_LOCK + (lv < ABIL_RANK ? 'Rank ' + ABIL_RANK : 'Open Strokes');
+  $('evMatchLock').innerHTML = ABIL_LOCK + 'Reach rank ' + ABIL_RANK;
   if (on) b.removeAttribute('aria-disabled'); else b.setAttribute('aria-disabled', 'true');
-  b.setAttribute('aria-label', on ? 'Play online: 1v1, 3-way or Showdown against real people' : lv < ABIL_RANK ? 'Play online, locked: reach rank ' + ABIL_RANK : 'Play online, locked: open Strokes in the lobby to unlock it');
+  b.setAttribute('aria-label', on ? 'Play online: 1v1, 3-way or Showdown against real people' : 'Play online, locked: reach rank ' + ABIL_RANK);
 }
 function evToast(c, t) { const old = c.querySelector('.evtoast'); if (old) old.remove(); const s = document.createElement('span'); s.className = 'evtoast'; s.setAttribute('role', 'status'); s.textContent = t; c.appendChild(s); setTimeout(() => s.remove(), 1700); }
 function mpGo() { if (typeof onlineOpen === 'function') onlineOpen(); else evToast($('evMatch').closest('.evcard'), 'Online matches aren’t available right now'); }
 function mpTap() {
   const c = $('evMatch').closest('.evcard');
-  if (!mpOpen()) { AU.nope(); buzz(8); return evToast(c, repOf(store.xp || 0).lv < ABIL_RANK ? 'Reach rank ' + ABIL_RANK : 'Open Strokes in the lobby to unlock it'); }
+  if (!mpOpen()) { AU.nope(); buzz(8); return evToast(c, 'Reach rank ' + ABIL_RANK + ' to play online'); }
   AU.ui(); if (!store.mpTried) { store.mpTried = 1; save(); acMatchPaint(); }
   if (!SB_CFG) return evToast(c, 'Online matches aren’t available right now');
   acctOpen(mpGo);
@@ -29968,14 +29972,11 @@ const LSN = {
   pound: { t: 'Ground pound', p: [['pound', 'Get close, then tap Pound', 'Get close, then press E']] },
   dodge: { t: 'Dodge', p: [['dodge', 'Swipe up just before it lands', 'SHIFT just before it lands']] }
 };
-const TV = {
-  steer: '<i class="tvf"></i><i class="tvsh"></i><i class="tvme"></i><i class="tvtr"></i><i class="tvh">%H%</i>',
-  jump: '<i class="tvf"></i><i class="tvsh"></i><i class="tvme"></i><i class="tvr"></i><i class="tvh">%H%</i>',
-  rings: '<i class="tvf"></i><i class="tvsh"></i><i class="tvme"></i><i class="tvarch">%ARCH%</i><i class="tvburst"></i>',
-  sling: '<i class="tvf"></i><i class="tvlines"></i><i class="tvsh"></i><i class="tvband"></i><i class="tvme"></i><i class="tvpin"></i><i class="tvh">%H%</i>',
-  basin: '<i class="tvf"></i><i class="tvtub">%TUB%</i><i class="tvsh"></i><i class="tvme"></i><i class="tvtubf">%TUBF%</i><i class="tvtank"><i></i></i><i class="tvr"></i><i class="tvh">%H%</i>',
-  pound: '<i class="tvf"></i><i class="tvsplat"></i><i class="tvrv"></i><i class="tvstars"></i><i class="tvsh"></i><i class="tvme"></i><i class="tvpb">%PB%</i><i class="tvr"></i><i class="tvh">%H%</i>',
-  dodge: '<i class="tvf"></i><i class="tvwarn"></i><i class="tvsplat"></i><i class="tvsh"></i><i class="tvme"></i><i class="tvrv"></i><i class="tvtr"></i><i class="tvh">%H%</i>'
+const TV = { // (v445) the game itself: clips of the moves, the finger drawn in
+  steer: '<img class="tvclip" src="art/l_steer.webp" alt="">', jump: '<img class="tvclip" src="art/l_jump.webp" alt="">',
+  rings: '<img class="tvclip" src="art/l_rings.webp" alt="">', sling: '<img class="tvclip" src="art/l_sling.webp" alt="">',
+  basin: '<img class="tvclip" src="art/l_basin.webp" alt="">', pound: '<img class="tvclip" src="art/l_pound.webp" alt="">',
+  dodge: '<img class="tvclip" src="art/l_dodge.webp" alt="">'
 };
 const LSN_TUNE = '<div class="tltune"><div class="tlrow"><span class="tlk">Turning</span><b class="tlpct" id="tlTurnV"></b></div>'
   + '<div class="tlrng"><span aria-hidden="true">Gentle</span><input type="range" class="tlrange" id="tlTurn" min="40" max="100" step="5" aria-label="Turning speed"><span aria-hidden="true">Quick</span></div>'
@@ -30540,7 +30541,7 @@ function tutBegin() { // (as a match begins)
   tut3 = null; if (tutPh() === 'done' && store.tut.m3 === 1 && !NM) tut3Begin();
   if (!tutMatchDue()) { tut = null; return; }
   Object.assign(TUT_AI, TUT_AI_CALM, { pound: 0, attack: 0, orb: 0 }); AI = TUT_AI;
-  tut = { step: -1, st: 0, slowK: 1, hidePound: true, keepAway: true, items: false, orbMine: false, drive: null, noTurret: true, hideItem: true, pips: new Set(), bonus: 0, praiseN: 0 }; tutPipsDraw(); if (AU.xwant) AU.xwant('t_ring'); /* (v443: the rings' chime) */
+  tut = { step: -1, st: 0, slowK: 1, hidePound: true, keepAway: true, items: false, orbMine: false, drive: null, noTurret: true, hideItem: true, pips: new Set(), bonus: 0, praiseN: 0 }; tutPipsDraw(); if (AU.xwant) AU.xwant('t_ring'); for (const k in TV) { const im = new Image(); im.src = TV[k].match(/src="([^"]+)"/)[1]; } /* (v445: the clips) */ /* (v443: the rings' chime) */
   wxLeft = 1e9; orb.spawnT = 1e9; Object.assign(gift, { id: null, on: false, got: false, pop: 0, at: 1e9 }); /* (v442: no gift) */ giftM.visible = giftRing.visible = giftBeam.visible = false;
 }
 function tutLeave() { lsnOff(); tutRevealOff(); clearTimeout(tutPraiseEl._t0); tutPraiseEl._pend = false; tutPraiseEl.classList.remove('on'); tut2 = null; tut3 = null; tutArrowEl.hidden = true; if (tut) tutCard(false); tut = null; tutHide(); if (tutSlowEl.classList.contains('on')) AU.slow(false, true); tutSlowEl.classList.remove('on'); tutRestore(); tutWinDue = false; const tw = $('tutWin'); tw.classList.remove('on'); tw.hidden = true; }
